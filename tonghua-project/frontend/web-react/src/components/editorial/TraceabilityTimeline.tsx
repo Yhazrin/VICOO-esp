@@ -1,4 +1,5 @@
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { useRef } from 'react';
 import type { SupplyChainRecord } from '@/types';
 import { useTranslation } from 'react-i18next';
 
@@ -12,6 +13,17 @@ export default function TraceabilityTimeline({
   className = '',
 }: TraceabilityTimelineProps) {
   const { t } = useTranslation();
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Scroll-linked animation for the vertical path line
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ['start end', 'end start'],
+  });
+
+  // Calculate the total height needed for the path
+  const pathHeight = records.length * 200; // Approximate height per record
+  const strokeDashoffset = useTransform(scrollYProgress, [0, 1], [pathHeight, 0]);
 
   if (records.length === 0) {
     return (
@@ -24,12 +36,70 @@ export default function TraceabilityTimeline({
   }
 
   return (
-    <div className={`relative pl-12 ${className}`}>
-      {/* Vertical line */}
-      <div
-        className="absolute left-[15px] top-0 bottom-0 w-px bg-warm-gray"
+    <div ref={containerRef} className={`relative pl-12 ${className}`}>
+      {/* Animated decorative path line - draws on scroll */}
+      <svg
+        className="absolute left-[15px] top-0 w-4 h-full overflow-visible pointer-events-none"
         aria-hidden="true"
-      />
+        preserveAspectRatio="none"
+      >
+        {/* Main animated vertical line */}
+        <motion.path
+          d={`M 7 0 L 7 ${pathHeight}`}
+          fill="none"
+          stroke="#D4CFC4"
+          strokeWidth="1"
+          strokeLinecap="round"
+          style={{
+            strokeDasharray: pathHeight,
+            strokeDashoffset,
+          }}
+        />
+        {/* Decorative accent dots at top and bottom */}
+        <motion.circle
+          cx="7"
+          cy="0"
+          r="3"
+          fill="#8B3A2A"
+          style={{
+            opacity: useTransform(scrollYProgress, [0, 0.1], [0, 1]),
+          }}
+        />
+        <motion.circle
+          cx="7"
+          cy={pathHeight}
+          r="3"
+          fill="#8B3A2A"
+          style={{
+            opacity: useTransform(scrollYProgress, [0.9, 1], [0, 1]),
+          }}
+        />
+        {/* Decorative corner flourishes */}
+        <motion.path
+          d="M 7 20 Q 15 25 7 35"
+          fill="none"
+          stroke="#8B3A2A"
+          strokeWidth="1"
+          strokeLinecap="round"
+          style={{
+            opacity: useTransform(scrollYProgress, [0, 0.15], [0, 1]),
+            strokeDasharray: 30,
+            strokeDashoffset: useTransform(scrollYProgress, [0, 0.2], [30, 0]),
+          }}
+        />
+        <motion.path
+          d="M 7 60 Q 15 65 7 75"
+          fill="none"
+          stroke="#8B3A2A"
+          strokeWidth="1"
+          strokeLinecap="round"
+          style={{
+            opacity: useTransform(scrollYProgress, [0.05, 0.2], [0, 1]),
+            strokeDasharray: 30,
+            strokeDashoffset: useTransform(scrollYProgress, [0.05, 0.25], [30, 0]),
+          }}
+        />
+      </svg>
 
       <div className="space-y-0">
         {records.map((record, index) => (

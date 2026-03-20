@@ -1,6 +1,6 @@
 /* ─────────────────────────────────────────────────────────────
-   Global Styles — Tonghua Public Welfare × Sustainable Fashion
-   Paper texture, grain overlay, sepia treatment, reset
+   Global Styles — VICOO × Sustainable Fashion
+   Paper texture, grain overlay, sepia treatment, editorial layout
    ───────────────────────────────────────────────────────────── */
 
 @import './tokens.css';
@@ -25,6 +25,7 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  font-feature-settings: 'kern' 1, 'liga' 1;
 }
 
 body {
@@ -43,9 +44,10 @@ body::before {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse at 20% 50%, rgba(196, 164, 90, 0.04) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 20%, rgba(139, 58, 42, 0.03) 0%, transparent 40%),
-    radial-gradient(ellipse at 50% 80%, rgba(92, 64, 51, 0.02) 0%, transparent 60%);
+    radial-gradient(ellipse at 15% 30%, rgba(196, 164, 90, 0.05) 0%, transparent 45%),
+    radial-gradient(ellipse at 85% 15%, rgba(139, 58, 42, 0.04) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 85%, rgba(92, 64, 51, 0.03) 0%, transparent 55%),
+    radial-gradient(ellipse at 70% 60%, rgba(212, 207, 196, 0.08) 0%, transparent 50%);
 }
 
 /* ── Grain Overlay ── */
@@ -55,16 +57,18 @@ body::after {
   inset: 0;
   z-index: var(--z-grain);
   pointer-events: none;
-  opacity: 0.35;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.5'/%3E%3C/svg%3E");
+  opacity: 0.4;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.5'/%3E%3C/svg%3E");
   background-repeat: repeat;
-  background-size: 200px 200px;
+  background-size: 180px 180px;
   mix-blend-mode: multiply;
+  pointer-events: none;
 }
 
-/* ── Scrollbar ── */
+/* ── Scrollbar — Editorial Style ── */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -72,23 +76,32 @@ body::after {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-warm-gray);
-  border-radius: 3px;
+  background: var(--color-muted-gray);
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--color-aged-stock);
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-sepia-mid);
 }
 
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-muted-gray) var(--color-aged-stock);
+}
+
 /* ── Focus Styles ── */
 :focus-visible {
   outline: 2px solid var(--color-rust);
-  outline-offset: 2px;
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
 }
 
 /* ── List Reset ── */
 nav ul, nav ol,
-.list-unstyled {
+.list-unstyled,
+.list-reset {
   list-style: none;
   padding-left: 0;
 }
@@ -98,7 +111,7 @@ img {
   max-width: 100%;
   height: auto;
   display: block;
-  filter: sepia(0.2) contrast(1.05) brightness(0.97);
+  filter: sepia(0.15) contrast(1.05) brightness(0.97);
   transition: filter var(--duration-normal) var(--ease-editorial);
 }
 
@@ -112,6 +125,7 @@ button {
   border: none;
   cursor: pointer;
   color: inherit;
+  font-family: inherit;
 }
 
 /* ── Form Reset ── */
@@ -120,7 +134,11 @@ input, textarea, select {
   color: inherit;
 }
 
-/* ── Utility: Page Container ── */
+/* ─────────────────────────────────────────────────────────────
+   Editorial Layout Utilities
+   ───────────────────────────────────────────────────────────── */
+
+/* ── Page Container ── */
 .page-container {
   max-width: var(--max-width);
   margin: 0 auto;
@@ -129,20 +147,113 @@ input, textarea, select {
   z-index: var(--z-base);
 }
 
-/* ── Utility: Section Spacing ── */
+.page-container-prose {
+  max-width: var(--max-width-prose);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+  position: relative;
+  z-index: var(--z-base);
+}
+
+.page-container-wide {
+  max-width: var(--max-width-wide);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+  position: relative;
+  z-index: var(--z-base);
+}
+
+/* ── Section Spacing ── */
 .section-spacing {
-  padding-top: var(--space-3xl);
-  padding-bottom: var(--space-3xl);
+  padding-top: var(--space-24);
+  padding-bottom: var(--space-24);
+}
+
+.section-spacing-lg {
+  padding-top: var(--space-32);
+  padding-bottom: var(--space-32);
+}
+
+.section-spacing-sm {
+  padding-top: var(--space-16);
+  padding-bottom: var(--space-16);
 }
 
 @media (max-width: 768px) {
   .section-spacing {
-    padding-top: var(--space-2xl);
-    padding-bottom: var(--space-2xl);
+    padding-top: var(--space-16);
+    padding-bottom: var(--space-16);
+  }
+
+  .section-spacing-lg {
+    padding-top: var(--space-20);
+    padding-bottom: var(--space-20);
+  }
+
+  .section-spacing-sm {
+    padding-top: var(--space-10);
+    padding-bottom: var(--space-10);
   }
 }
 
-/* ── Utility: Divider ── */
+/* ─────────────────────────────────────────────────────────────
+   Editorial Grid Systems
+   ───────────────────────────────────────────────────────────── */
+
+/* ── 12-Column Magazine Grid ── */
+.grid-editorial {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--grid-gap);
+}
+
+.col-span-full { grid-column: span 12; }
+.col-span-10 { grid-column: span 10; }
+.col-span-8 { grid-column: span 8; }
+.col-span-7 { grid-column: span 7; }
+.col-span-6 { grid-column: span 6; }
+.col-span-5 { grid-column: span 5; }
+.col-span-4 { grid-column: span 4; }
+.col-span-3 { grid-column: span 3; }
+.col-span-2 { grid-column: span 2; }
+
+/* ── Column Rules — Multi-column Layout ── */
+.column-2 {
+  column-count: 2;
+  column-gap: var(--space-10);
+  column-rule: 1px solid var(--color-warm-gray);
+}
+
+.column-3 {
+  column-count: 3;
+  column-gap: var(--space-8);
+  column-rule: 1px solid var(--color-warm-gray);
+}
+
+@media (max-width: 1024px) {
+  .column-3 {
+    column-count: 2;
+  }
+}
+
+@media (max-width: 768px) {
+  .column-2,
+  .column-3 {
+    column-count: 1;
+    column-rule: none;
+  }
+
+  .grid-editorial {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-4);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Editorial Dividers & Separators
+   ───────────────────────────────────────────────────────────── */
+
+/* ── Horizontal Divider ── */
 .editorial-divider {
   width: 100%;
   height: 1px;
@@ -156,15 +267,86 @@ input, textarea, select {
   opacity: 0.5;
 }
 
-/* ── Utility: Aged Border ── */
+.editorial-divider-ornate {
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-warm-gray) 15%,
+    var(--color-warm-gray) 85%,
+    transparent 100%
+  );
+  position: relative;
+}
+
+.editorial-divider-ornate::before {
+  content: '❧';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--color-paper);
+  padding: 0 var(--space-4);
+  color: var(--color-sepia-mid);
+  font-size: var(--text-body);
+}
+
+/* ── Vertical Rule ── */
+.vertical-rule {
+  width: 1px;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--color-warm-gray) 20%,
+    var(--color-warm-gray) 80%,
+    transparent
+  );
+  opacity: 0.4;
+}
+
+/* ── Print Line — Full Width ── */
+.print-line {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-ink) 10%,
+    var(--color-ink) 90%,
+    transparent
+  );
+  opacity: 0.15;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Editorial Cards & Frames
+   ───────────────────────────────────────────────────────────── */
+
+/* ── Aged Border Frame ── */
 .aged-border {
   border: 1px solid var(--color-warm-gray);
   box-shadow:
     inset 0 0 30px rgba(237, 230, 214, 0.5),
     0 2px 8px rgba(26, 26, 22, 0.05);
+  position: relative;
 }
 
-/* ── Utility: Sepia Frame ── */
+.aged-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    135deg,
+    rgba(196, 164, 90, 0.06) 0%,
+    transparent 40%,
+    transparent 60%,
+    rgba(92, 64, 51, 0.04) 100%
+  );
+}
+
+/* ── Sepia Frame ── */
 .sepia-frame {
   position: relative;
   overflow: hidden;
@@ -190,12 +372,11 @@ input, textarea, select {
   object-fit: cover;
 }
 
-/* ── Utility: Vintage Card ── */
+/* ── Vintage Card ── */
 .vintage-card {
   position: relative;
   background: var(--color-paper);
-  border: 2px solid var(--color-ink);
-  border-color: rgba(26, 26, 22, 0.15);
+  border: 1px solid rgba(26, 26, 22, 0.12);
   transition: all var(--duration-normal) var(--ease-editorial);
 }
 
@@ -203,10 +384,11 @@ input, textarea, select {
 .vintage-card::after {
   content: '';
   position: absolute;
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border: 1px solid var(--color-ink);
-  opacity: 0.3;
+  opacity: 0.25;
+  transition: opacity var(--duration-fast) var(--ease-editorial);
 }
 
 .vintage-card::before {
@@ -224,74 +406,76 @@ input, textarea, select {
 }
 
 .vintage-card:hover {
-  border-color: rgba(26, 26, 22, 0.3);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(26, 26, 22, 0.08);
+  border-color: rgba(26, 26, 22, 0.25);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
 }
 
-/* ── Utility: Drop Cap ── */
-.drop-cap::first-letter {
-  float: left;
-  font-family: var(--font-display);
-  font-size: 3.5em;
-  line-height: 0.8;
-  padding-right: 8px;
-  padding-top: 4px;
-  color: var(--color-rust);
+.vintage-card:hover::before,
+.vintage-card:hover::after {
+  opacity: 0.4;
 }
 
-/* ── Utility: Pull Quote ── */
-.pull-quote {
-  font-family: var(--font-display);
-  font-size: var(--text-h3);
-  font-style: italic;
-  color: var(--color-ink);
-  border-left: 3px solid var(--color-rust);
-  padding-left: var(--space-lg);
-  margin: var(--space-xl) 0;
+/* ── Editorial Card — News/Article Style ── */
+.editorial-card {
+  position: relative;
+  background: var(--color-paper);
+  border-left: 3px solid transparent;
+  padding: var(--space-6);
+  transition: all var(--duration-normal) var(--ease-editorial);
 }
 
-/* ── Utility: Caption Style ── */
-.caption {
-  font-family: var(--font-mono);
-  font-size: var(--text-caption);
-  color: var(--color-sepia-mid);
-  letter-spacing: 0.05em;
-}
-
-/* ── Utility: Section Number ── */
-.section-number {
-  font-family: var(--font-mono);
-  font-size: var(--text-caption);
-  color: var(--color-sepia-mid);
-  letter-spacing: 0.2em;
-}
-
-/* ── Utility: Print Line ── */
-.print-line {
+.editorial-card::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
   height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--color-ink) 10%,
-    var(--color-ink) 90%,
-    transparent
-  );
-  opacity: 0.15;
+  background: var(--color-warm-gray);
+  opacity: 0;
+  transition: opacity var(--duration-normal) var(--ease-editorial);
 }
 
-/* ── Utility: Vintage Button ── */
+.editorial-card:hover {
+  border-left-color: var(--color-rust);
+  background: var(--color-cream);
+}
+
+.editorial-card:hover::before {
+  opacity: 1;
+}
+
+/* ── Image Caption ── */
+.image-caption {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-sepia-mid);
+  text-align: center;
+  padding-top: var(--space-3);
+  letter-spacing: var(--tracking-wide);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Editorial Buttons
+   ───────────────────────────────────────────────────────────── */
+
+/* ── Vintage Button ── */
 .vintage-button {
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-family: var(--font-ui);
-  font-size: var(--text-caption);
-  letter-spacing: 0.15em;
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-wider);
   text-transform: uppercase;
-  padding: var(--space-md) var(--space-xl);
+  padding: var(--space-4) var(--space-8);
   background: var(--color-ink);
   color: var(--color-paper);
   border: 1px solid var(--color-ink);
   transition: all var(--duration-normal) var(--ease-editorial);
+  overflow: hidden;
 }
 
 .vintage-button::before {
@@ -302,7 +486,7 @@ input, textarea, select {
   transform: scaleX(0);
   transform-origin: left;
   transition: transform var(--duration-normal) var(--ease-editorial);
-  z-index: -1;
+  z-index: 0;
 }
 
 .vintage-button:hover::before {
@@ -311,24 +495,191 @@ input, textarea, select {
 
 .vintage-button:hover {
   color: var(--color-paper);
+  border-color: var(--color-rust);
 }
 
-/* ── Utility: Image Caption ── */
-.image-caption {
-  font-family: var(--font-mono);
-  font-size: var(--text-caption);
-  color: var(--color-sepia-mid);
+.vintage-button span,
+.vintage-button svg {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Ghost Button ── */
+.ghost-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-ui);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  padding: var(--space-3) var(--space-6);
+  background: transparent;
+  color: var(--color-ink);
+  border: 1px solid var(--color-warm-gray);
+  transition: all var(--duration-fast) var(--ease-editorial);
+}
+
+.ghost-button:hover {
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+
+/* ── Link Button ── */
+.link-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-ui);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  color: var(--color-rust);
+  transition: all var(--duration-fast) var(--ease-editorial);
+}
+
+.link-button:hover {
+  color: var(--color-ink);
+}
+
+.link-button svg {
+  transition: transform var(--duration-fast) var(--ease-editorial);
+}
+
+.link-button:hover svg {
+  transform: translateX(4px);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Callouts & Advertisements
+   ───────────────────────────────────────────────────────────── */
+
+/* ── Callout Box ── */
+.callout {
+  padding: var(--space-6);
+  border: 1px solid var(--color-warm-gray);
+  background: var(--color-aged-stock);
+  position: relative;
+}
+
+.callout::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: var(--space-6);
+  right: var(--space-6);
+  height: 3px;
+  background: var(--color-rust);
+}
+
+.callout-info::before {
+  background: var(--color-info);
+}
+
+.callout-warning::before {
+  background: var(--color-warning);
+}
+
+.callout-success::before {
+  background: var(--color-success);
+}
+
+/* ── Advertisement Block ── */
+.advertisement {
+  padding: var(--space-8);
+  background: var(--color-aged-stock);
+  border: 1px dashed var(--color-warm-gray);
   text-align: center;
-  padding-top: var(--space-sm);
-  letter-spacing: 0.05em;
 }
 
-/* ── Utility: Column Rule ── */
-.column-rule {
-  column-rule: 1px solid var(--color-warm-gray);
+.advertisement-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-overline);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--color-muted-gray);
+  margin-bottom: var(--space-4);
 }
 
-/* ── Print-specific styles ── */
+/* ─────────────────────────────────────────────────────────────
+   Form Enhancements
+   ───────────────────────────────────────────────────────────── */
+
+.form-input {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-paper);
+  border: 1px solid var(--color-warm-gray);
+  font-family: var(--font-mono);
+  font-size: var(--text-body);
+  color: var(--color-ink);
+  transition: border-color var(--duration-fast) var(--ease-editorial);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--color-rust);
+}
+
+.form-input::placeholder {
+  color: var(--color-muted-gray);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Animation Utilities
+   ───────────────────────────────────────────────────────────── */
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-down {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in var(--duration-normal) var(--ease-entrance) forwards;
+}
+
+.animate-fade-up {
+  animation: fade-up var(--duration-normal) var(--ease-entrance) forwards;
+}
+
+.animate-fade-down {
+  animation: fade-down var(--duration-normal) var(--ease-entrance) forwards;
+}
+
+/* ── Stagger delays ── */
+.stagger-1 { animation-delay: 100ms; }
+.stagger-2 { animation-delay: 200ms; }
+.stagger-3 { animation-delay: 300ms; }
+.stagger-4 { animation-delay: 400ms; }
+.stagger-5 { animation-delay: 500ms; }
+
+/* ─────────────────────────────────────────────────────────────
+   Print-specific styles
+   ───────────────────────────────────────────────────────────── */
+
 @media print {
   body::before,
   body::after {
@@ -337,5 +688,11 @@ input, textarea, select {
 
   img {
     filter: none;
+    max-width: 100%;
+    height: auto;
+  }
+
+  .no-print {
+    display: none !important;
   }
 }

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
+import { OrigamiCorner, OrigamiDivider, OrigamiFoldAccent } from '@/components/animations/OrigamiFold';
 
 export default function EditorialFooter() {
   const { t } = useTranslation();
@@ -26,20 +27,58 @@ export default function EditorialFooter() {
         aria-hidden="true"
       />
 
+      {/* Origami fold accent at top */}
+      <div className="absolute top-0 left-0 right-0 h-3 overflow-hidden" aria-hidden="true">
+        <OrigamiDivider
+          orientation="horizontal"
+          length="full"
+          variant="single"
+          color="sepia"
+          foldCount={4}
+          showBackside={true}
+        />
+      </div>
+
+      {/* Origami corner accents */}
+      <OrigamiFoldAccent
+        position="top-left"
+        size="lg"
+        intensity="medium"
+        className="absolute top-6 left-0 pointer-events-none"
+      />
+      <OrigamiFoldAccent
+        position="top-right"
+        size="lg"
+        intensity="subtle"
+        className="absolute top-6 right-0 pointer-events-none"
+      />
+
       <div className="max-w-[14000px] mx-auto px-6 md:px-10 py-16 md:py-24 relative z-10">
         {/* Top section — Magazine colophon style */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8 mb-16">
           {/* Brand column */}
           <div className="md:col-span-4 relative">
-            {/* Decorative corner accents */}
-            <div className="absolute -top-2 -left-2 w-4 h-4 border-t border-l border-rust/40 pointer-events-none" />
-            <div className="absolute -bottom-2 -right-2 w-4 h-4 border-b border-r border-rust/40 pointer-events-none" />
+            {/* Origami corner accents */}
+            <OrigamiCorner
+              position="top-left"
+              size="sm"
+              color="sepia"
+              showBackside={true}
+              className="absolute -top-1 -left-1 pointer-events-none"
+            />
+            <OrigamiCorner
+              position="bottom-right"
+              size="sm"
+              color="sepia"
+              showBackside={true}
+              className="absolute -bottom-1 -right-1 pointer-events-none"
+            />
 
             <h3 className="font-display text-3xl md:text-4xl font-bold mb-4 tracking-tight">
-              TONGHUA
+              VICOO
             </h3>
             <p className="font-body text-sm text-warm-gray leading-relaxed max-w-xs mb-6">
-              {t('footer.tagline')}
+              Vision In Creative Opportunity
             </p>
             <div className="w-12 h-px bg-pale-gold mb-6" aria-hidden="true" />
             <p className="font-body text-[10px] tracking-[0.2em] uppercase text-sepia-mid">
@@ -112,9 +151,21 @@ export default function EditorialFooter() {
 
           {/* Newsletter */}
           <div className="md:col-span-2 relative">
-            {/* Decorative corner accents */}
-            <div className="absolute -top-2 -left-2 w-4 h-4 border-t border-l border-rust/30 pointer-events-none" />
-            <div className="absolute -bottom-2 -right-2 w-4 h-4 border-b border-r border-rust/30 pointer-events-none" />
+            {/* Origami corner accents */}
+            <OrigamiCorner
+              position="top-left"
+              size="sm"
+              color="sepia"
+              showBackside={true}
+              className="absolute -top-1 -left-1 pointer-events-none"
+            />
+            <OrigamiCorner
+              position="bottom-right"
+              size="sm"
+              color="sepia"
+              showBackside={true}
+              className="absolute -bottom-1 -right-1 pointer-events-none"
+            />
 
             <h4 className="font-body text-[10px] tracking-[0.2em] uppercase text-sepia-mid mb-6">
               Newsletter
@@ -150,7 +201,7 @@ export default function EditorialFooter() {
         {/* Divider */}
         <div className="border-t border-sepia-mid/20 pt-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <p className="font-body text-[11px] text-sepia-mid">
-            &copy; {year} Tonghua Public Welfare. All rights reserved.
+            &copy; {year} VICOO. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
             <span className="font-body text-[11px] text-sepia-mid">

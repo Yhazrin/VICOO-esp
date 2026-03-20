@@ -1,4 +1,5 @@
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { useRef } from 'react';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 
 interface StoryQuoteBlockProps {
@@ -15,6 +16,17 @@ export default function StoryQuoteBlock({
   className = '',
 }: StoryQuoteBlockProps) {
   const [ref, isVisible] = useScrollReveal<HTMLQuoteElement>();
+  const underlineRef = useRef<HTMLDivElement>(null);
+
+  // Scroll-linked animation for the decorative underline
+  const { scrollYProgress } = useScroll({
+    target: underlineRef,
+    offset: ['start end', 'end start'],
+  });
+
+  // Underline path animation
+  const strokeDashoffset = useTransform(scrollYProgress, [0, 1], [200, 0]);
+  const underlineOpacity = useTransform(scrollYProgress, [0, 0.3], [0, 1]);
 
   return (
     <motion.blockquote
@@ -36,6 +48,63 @@ export default function StoryQuoteBlock({
         <p className="font-display text-h3 md:text-h2 italic leading-[1.3] text-ink font-normal">
           {quote}
         </p>
+
+        {/* Animated decorative underline */}
+        <div ref={underlineRef} className="mt-4 h-4 overflow-visible">
+          <svg
+            className="w-full max-w-[280px] h-8 overflow-visible"
+            viewBox="0 0 280 32"
+            preserveAspectRatio="xMinYMid meet"
+            aria-hidden="true"
+          >
+            {/* Main decorative underline with flourish */}
+            <motion.path
+              d="M 0 8 Q 20 4 60 8 T 140 8 T 220 8 L 260 8"
+              fill="none"
+              stroke="#8B3A2A"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              style={{
+                strokeDasharray: 280,
+                strokeDashoffset,
+                opacity: underlineOpacity,
+              }}
+            />
+            {/* Accent dot at start */}
+            <motion.circle
+              cx="0"
+              cy="8"
+              r="2.5"
+              fill="#8B3A2A"
+              style={{
+                opacity: underlineOpacity,
+              }}
+            />
+            {/* Accent dot at end */}
+            <motion.circle
+              cx="260"
+              cy="8"
+              r="2.5"
+              fill="#8B3A2A"
+              style={{
+                opacity: underlineOpacity,
+              }}
+            />
+            {/* Decorative flourish after the line */}
+            <motion.path
+              d="M 265 8 Q 270 12 268 16 Q 272 14 275 18"
+              fill="none"
+              stroke="#8B3A2A"
+              strokeWidth="1"
+              strokeLinecap="round"
+              style={{
+                strokeDasharray: 20,
+                strokeDashoffset: useTransform(scrollYProgress, [0.1, 0.5], [20, 0]),
+                opacity: underlineOpacity,
+              }}
+            />
+          </svg>
+        </div>
 
         {(author || role) && (
           <footer className="mt-6 flex items-baseline gap-2">

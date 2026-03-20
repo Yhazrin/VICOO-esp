@@ -2,6 +2,8 @@ import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import EditorialFooter from './EditorialFooter';
 import MobileNav from './MobileNav';
+import CurtainTransition from '../animations/CurtainTransition';
+import GrainOverlay from '../animations/GrainOverlay';
 
 export default function Layout() {
   return (
@@ -9,9 +11,12 @@ export default function Layout() {
       <Header />
       <MobileNav />
       <main className="flex-1 pt-16 md:pt-20">
-        <Outlet />
+        <CurtainTransition>
+          <Outlet />
+        </CurtainTransition>
       </main>
       <EditorialFooter />
+      <GrainOverlay />
     </div>
   );
 }

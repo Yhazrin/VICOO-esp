@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
+import TiltCard from '@/components/animations/TiltCard';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import type { Product } from '@/types';
 
@@ -22,18 +23,25 @@ export default function ProductCard({
   const [imageLoaded, setImageLoaded] = useState(false);
 
   return (
-    <motion.article
-      ref={ref}
-      initial={{ opacity: 0, y: 40 }}
-      animate={isVisible ? { opacity: 1, y: 0 } : {}}
-      transition={{
-        duration: 0.7,
-        ease: [0, 0, 0.2, 1],
-        delay: index * 0.1,
-      }}
+    <TiltCard
       className={`group ${className}`}
+      maxTilt={12}
+      tiltSpeed={400}
+      springConfig={{ stiffness: 250, damping: 35 }}
+      shadowIntensity={0.35}
     >
-      <Link to={`/shop/${product.id}`} className="block">
+      <motion.article
+        ref={ref}
+        initial={{ opacity: 0, y: 40 }}
+        animate={isVisible ? { opacity: 1, y: 0 } : {}}
+        transition={{
+          duration: 0.7,
+          ease: [0, 0, 0.2, 1],
+          delay: index * 0.1,
+        }}
+        className="h-full"
+      >
+        <Link to={`/shop/${product.id}`} className="block h-full">
         {/* Image */}
         <div className="relative aspect-[3/4] overflow-hidden border-2 border-rust/30 bg-aged-stock mb-5 group-hover:border-rust/50 transition-colors duration-300">
           {/* Vintage frame effect */}
@@ -98,7 +106,8 @@ export default function ProductCard({
             <div className="flex-1 h-px bg-ink/20" />
           </div>
         </div>
-      </Link>
-    </motion.article>
+        </Link>
+      </motion.article>
+    </TiltCard>
   );
 }

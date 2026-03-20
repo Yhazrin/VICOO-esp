@@ -9,6 +9,8 @@ import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeadin
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import { VintageInput } from '@/components/editorial/VintageInput';
+import PagePeel from '@/components/animations/PagePeel';
+import { KineticTextMarquee } from '@/components/animations/KineticMarquee';
 
 type Category = 'all' | 'impact' | 'fashion' | 'community' | 'education';
 
@@ -22,6 +24,15 @@ interface StoryItem {
   readTimeMinutes: number;
   category: 'impact' | 'fashion' | 'community' | 'education';
 }
+
+// Marquee quotes from stories
+const STORY_QUOTES = [
+  'Every brushstroke a child makes is a window into a world they imagine',
+  'We don\'t just sell clothes, we sell the right to know where it came from',
+  'Sustainability begins with seeing, not just buying',
+  'A classroom becomes a gallery when we open the doors',
+  'The ocean she painted was the bluest thing she had ever seen',
+];
 
 const MOCK_STORIES: StoryItem[] = [
   {
@@ -88,22 +99,29 @@ export default function Stories() {
   return (
     <PageWrapper>
       <EditorialHero
-        number="04"
         title={t('stories.hero.title')}
         subtitle={t('stories.hero.subtitle')}
         hideHero={true}
       />
 
+      {/* Kinetic marquee with story quotes */}
+      <KineticTextMarquee
+        items={STORY_QUOTES}
+        direction="left"
+        speed={0.8}
+        pauseOnHover={true}
+      />
+
       <SectionContainer noTopSpacing>
         {/* Category filter */}
         <div className="flex items-center gap-1 mb-12 border-b border-warm-gray/30 overflow-x-auto">
-          {categories.map((cat, index) => (
+          {categories.map((cat) => (
             <motion.button
               key={cat}
               onClick={() => setActiveCategory(cat)}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
+              transition={{ duration: 0.3 }}
               whileHover={{ y: -2 }}
               className={`
                 font-body text-xs tracking-[0.15em] uppercase px-4 py-3 transition-all duration-200 border-b-2 -mb-px whitespace-nowrap relative
@@ -113,9 +131,6 @@ export default function Stories() {
                 }
               `}
             >
-              <span className="font-body text-[10px] text-sepia-mid/60 mr-1.5">
-                {String(index + 1).padStart(2, '0')}
-              </span>
               {t(`stories.categories.${cat}`)}
               {activeCategory === cat && (
                 <motion.span
@@ -131,79 +146,87 @@ export default function Stories() {
         {/* Magazine spread stories */}
         {filtered.length > 0 ? (
           <div className="space-y-0">
-            {filtered.map((story, index) => (
-              <motion.article
-                key={story.id}
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-100px' }}
-                transition={{ duration: 0.8, ease: [0, 0, 0.2, 1] }}
-                className="mb-16 md:mb-24"
-              >
-                <Link to={`/stories/${story.id}`} className="group block">
-                  <div className={`grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center ${index % 2 === 1 ? '' : ''}`}>
-                    {/* Image */}
-                    <div className={`md:col-span-7 ${index % 2 === 1 ? 'md:order-2' : ''}`}>
-                      <SepiaImageFrame
-                        src={story.coverImage}
-                        alt={story.title}
-                        aspectRatio={index === 0 ? 'wide' : 'landscape'}
-                        size="full"
-                      />
-                    </div>
+            {filtered.map((story, index) => {
+              // Alternate peel corners for visual interest
+              const peelCorner = index % 2 === 0 ? 'bottom-right' : 'bottom-left';
+              return (
+                <PagePeel
+                  key={story.id}
+                  corner={peelCorner}
+                  maxRotation={12}
+                  shadowIntensity={0.25}
+                  className="mb-16 md:mb-24"
+                >
+                  <motion.article
+                    initial={{ opacity: 0, y: 50 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: '-100px' }}
+                    transition={{ duration: 0.8, ease: [0, 0, 0.2, 1] }}
+                  >
+                    <Link to={`/stories/${story.id}`} className="group block">
+                      <div className={`grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center ${index % 2 === 1 ? '' : ''}`}>
+                        {/* Image */}
+                        <div className={`md:col-span-7 ${index % 2 === 1 ? 'md:order-2' : ''}`}>
+                          <SepiaImageFrame
+                            src={story.coverImage}
+                            alt={story.title}
+                            aspectRatio={index === 0 ? 'wide' : 'landscape'}
+                            size="full"
+                          />
+                        </div>
 
-                    {/* Text */}
-                    <div className={`md:col-span-5 ${index % 2 === 1 ? 'md:order-1' : ''}`}>
-                      <span className="font-body text-[10px] text-rust tracking-[0.25em] uppercase mb-4 block">
-                        {t(`stories.categories.${story.category}`)}
-                      </span>
+                        {/* Text */}
+                        <div className={`md:col-span-5 ${index % 2 === 1 ? 'md:order-1' : ''}`}>
+                          <span className="font-body text-[10px] text-rust tracking-[0.25em] uppercase mb-4 block">
+                            {t(`stories.categories.${story.category}`)}
+                          </span>
 
-                      <span className="font-body text-caption text-sepia-mid/60 tracking-[0.2em] mb-3 block">
-                        {String(index + 1).padStart(2, '0')}
-                      </span>
+                          <h2 className="font-display text-h3 md:text-h2 font-bold text-ink mb-4 group-hover:text-rust transition-colors leading-tight">
+                            {story.title}
+                          </h2>
 
-                      <h2 className="font-display text-h3 md:text-h2 font-bold text-ink mb-4 group-hover:text-rust transition-colors leading-tight">
-                        {story.title}
-                      </h2>
+                          <p className="font-body text-sm text-ink-faded leading-relaxed mb-6">
+                            {story.excerpt}
+                          </p>
 
-                      <p className="font-body text-sm text-ink-faded leading-relaxed mb-6">
-                        {story.excerpt}
-                      </p>
+                          <div className="flex items-center gap-4 font-body text-xs text-sepia-mid">
+                            <span>{story.author}</span>
+                            <span className="text-sepia-mid/40">|</span>
+                            <span>{story.readTimeMinutes} {t('stories.readTime')}</span>
+                            <span className="text-sepia-mid/40">|</span>
+                            <span>{story.publishedAt}</span>
+                          </div>
 
-                      <div className="flex items-center gap-4 font-body text-xs text-sepia-mid">
-                        <span>{story.author}</span>
-                        <span className="text-sepia-mid/40">|</span>
-                        <span>{story.readTimeMinutes} {t('stories.readTime')}</span>
-                        <span className="text-sepia-mid/40">|</span>
-                        <span>{story.publishedAt}</span>
+                          {/* Read more link */}
+                          <div className="mt-6">
+                            <span className="font-body text-xs text-rust tracking-[0.15em] uppercase group-hover:text-ink transition-colors">
+                              {t('stories.readMore')} &rarr;
+                            </span>
+                          </div>
+                        </div>
                       </div>
+                    </Link>
 
-                      {/* Read more link */}
-                      <div className="mt-6">
-                        <span className="font-body text-xs text-rust tracking-[0.15em] uppercase group-hover:text-ink transition-colors">
-                          {t('stories.readMore')} &rarr;
-                        </span>
+                    {/* Insert a quote block after the first story */}
+                    {index === 0 && (
+                      <div className="mt-16 md:mt-24">
+                        <PagePeel corner="top-right" maxRotation={8} shadowIntensity={0.2}>
+                          <StoryQuoteBlock
+                            quote="Every brushstroke a child makes is a window into a world they imagine. Our job is to make that world visible."
+                            author="Chen Wei"
+                            role="Founder, VICOO"
+                          />
+                        </PagePeel>
                       </div>
-                    </div>
-                  </div>
-                </Link>
+                    )}
 
-                {/* Insert a quote block after the first story */}
-                {index === 0 && (
-                  <div className="mt-16 md:mt-24">
-                    <StoryQuoteBlock
-                      quote="Every brushstroke a child makes is a window into a world they imagine. Our job is to make that world visible."
-                      author="Chen Wei"
-                      role="Founder, Tonghua Public Welfare"
-                    />
-                  </div>
-                )}
-
-                {index < filtered.length - 1 && index !== 0 && (
-                  <div className="editorial-divider mt-16 md:mt-24" />
-                )}
-              </motion.article>
-            ))}
+                    {index < filtered.length - 1 && index !== 0 && (
+                      <div className="editorial-divider mt-16 md:mt-24" />
+                    )}
+                  </motion.article>
+                </PagePeel>
+              );
+            })}
           </div>
         ) : (
           <p className="font-body text-sm text-sepia-mid py-20 text-center">
@@ -217,7 +240,6 @@ export default function Stories() {
         <SectionContainer narrow>
           <div className="text-center">
             <NumberedSectionHeading
-              number="02"
               title={t('stories.newsletter.title')}
               subtitle={t('stories.newsletter.subtitle')}
             />

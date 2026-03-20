@@ -1,52 +1,114 @@
 /* ─────────────────────────────────────────────────────────────
-   Design Tokens — Tonghua Public Welfare × Sustainable Fashion
+   Design Tokens — VICOO × Sustainable Fashion
    1990s Editorial / Print-Inspired / Humanistic
    ───────────────────────────────────────────────────────────── */
 
 :root {
-  /* ── Color Palette ── */
+  /* ── Color Palette — Paper & Ink ── */
   --color-paper: #F5F0E8;
   --color-aged-stock: #EDE6D6;
   --color-warm-gray: #D4CFC4;
+  --color-muted-gray: #B8B2A7;
   --color-ink: #1A1A16;
   --color-ink-faded: #4A4540;
+  --color-ink-light: #6B665C;
+  --color-sepia-dark: #3D3228;
   --color-sepia-mid: #5C4D3D;
+  --color-sepia-light: #8B7B66;
   --color-rust: #8B3A2A;
+  --color-rust-light: #A85A4A;
+  --color-rust-dark: #6B2A1A;
   --color-archive-brown: #5C4033;
   --color-pale-gold: #C4A45A;
+  --color-pale-gold-light: #D4BC7A;
+  --color-cream: #FAF6EE;
+
+  /* ── Editorial Accent Colors ── */
+  --color-editorial-red: #C41E3A;
+  --color-editorial-navy: #1C2841;
+  --color-editorial-olive: #4A5240;
+  --color-editorial-burgundy: #6B2D3D;
+
+  /* ── Functional Colors ── */
+  --color-success: #3D5A3D;
+  --color-error: #8B3A2A;
+  --color-warning: #A68A3D;
+  --color-info: #3D4A5C;
 
   /* ── Typography ── */
   --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
   --font-mono: 'IBM Plex Mono', 'Courier New', Courier, monospace;
   --font-ui: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
-  /* ── Font Sizes ── */
-  --text-hero: clamp(64px, 10vw, 120px);
-  --text-h1: clamp(40px, 6vw, 72px);
-  --text-h2: clamp(28px, 4vw, 48px);
-  --text-h3: clamp(20px, 2.5vw, 32px);
+  /* ── Font Sizes — Modular Scale (1.25 ratio) ── */
+  --text-hero: clamp(56px, 10vw, 120px);
+  --text-display: clamp(40px, 7vw, 80px);
+  --text-h1: clamp(32px, 5vw, 56px);
+  --text-h2: clamp(24px, 3.5vw, 40px);
+  --text-h3: clamp(20px, 2.5vw, 28px);
+  --text-h4: clamp(16px, 1.5vw, 20px);
+  --text-body-lg: 18px;
   --text-body: 16px;
+  --text-body-sm: 14px;
   --text-caption: 12px;
-  --text-label: 13px;
+  --text-label: 11px;
+  --text-overline: 10px;
 
-  /* ── Spacing ── */
-  --space-xs: 4px;
-  --space-sm: 8px;
-  --space-md: 16px;
-  --space-lg: 24px;
-  --space-xl: 40px;
-  --space-2xl: 64px;
-  --space-3xl: 96px;
-  --space-4xl: 128px;
+  /* ── Line Heights ── */
+  --leading-tight: 1.1;
+  --leading-snug: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.7;
+  --leading-loose: 1.9;
+
+  /* ── Letter Spacing ── */
+  --tracking-tighter: -0.04em;
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.05em;
+  --tracking-wider: 0.1em;
+  --tracking-widest: 0.2em;
+
+  /* ── Spacing Scale — 8px base ── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-32: 128px;
+  --space-40: 160px;
 
   /* ── Borders ── */
   --border-thin: 1px solid var(--color-warm-gray);
   --border-divider: 1px solid rgba(212, 207, 196, 0.4);
   --border-accent: 2px solid var(--color-rust);
+  --border-heavy: 3px solid var(--color-ink);
+
+  /* ── Border Radius — Minimal for editorial feel ── */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+
+  /* ── Shadows — Subtle, print-inspired ── */
+  --shadow-sm: 0 1px 2px rgba(26, 26, 22, 0.04);
+  --shadow-md: 0 4px 12px rgba(26, 26, 22, 0.06);
+  --shadow-lg: 0 8px 24px rgba(26, 26, 22, 0.08);
+  --shadow-xl: 0 16px 48px rgba(26, 26, 22, 0.1);
+  --shadow-inset: inset 0 2px 8px rgba(26, 26, 22, 0.04);
 
   /* ── Transitions ── */
   --ease-editorial: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-entrance: cubic-bezier(0, 0, 0.2, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-instant: 100ms;
   --duration-fast: 200ms;
   --duration-normal: 400ms;
   --duration-slow: 700ms;
@@ -54,14 +116,35 @@
 
   /* ── Layout ── */
   --max-width: 1400px;
-  --gutter: clamp(24px, 4vw, 80px);
-  --header-height: 64px;
-  --header-height-md: 80px;
+  --max-width-prose: 720px;
+  --max-width-wide: 1600px;
+  --gutter: clamp(16px, 4vw, 80px);
+  --gutter-sm: clamp(12px, 2vw, 24px);
+  --header-height: 72px;
+  --header-height-md: 88px;
 
   /* ── Z-Index Scale ── */
   --z-base: 1;
-  --z-overlay: 10;
-  --z-nav: 50;
+  --z-dropdown: 10;
+  --z-sticky: 20;
+  --z-overlay: 50;
   --z-modal: 100;
-  --z-grain: 999;
+  --z-tooltip: 150;
+  --z-toast: 200;
+  --z-grain: 9999;
+
+  /* ── Column Grid ── */
+  --grid-columns: 12;
+  --grid-gap: var(--space-6);
+}
+
+/* Dark mode overrides (optional future enhancement) */
+@media (prefers-color-scheme: dark) {
+  :root.auto-dark {
+    --color-paper: #1A1A16;
+    --color-aged-stock: #252320;
+    --color-warm-gray: #3D3A35;
+    --color-ink: #F5F0E8;
+    --color-ink-faded: #C4C0B5;
+  }
 }

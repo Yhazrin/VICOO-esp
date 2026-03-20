@@ -17,10 +17,11 @@ export default function About() {
   return (
     <PageWrapper>
       <EditorialHero
-        number="02"
         title={t('about.hero.title')}
         subtitle={t('about.hero.subtitle')}
         fullHeight={true}
+        scrambleTitle={true}
+        scrambleDuration={1200}
       />
 
       {/* Mission */}
@@ -28,7 +29,6 @@ export default function About() {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16">
           <div className="md:col-span-5">
             <NumberedSectionHeading
-              number="01"
               title={t('about.mission.title')}
             />
           </div>
@@ -66,17 +66,13 @@ export default function About() {
       {/* Values */}
       <SectionContainer>
         <NumberedSectionHeading
-          number="02"
           title={t('about.values.title')}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
-          {VALUES.map((key, index) => (
+          {VALUES.map((key) => (
             <article key={key} className="border-t border-warm-gray/30 pt-6">
-              <span className="font-body text-caption text-sepia-mid tracking-[0.2em]">
-                {String(index + 1).padStart(2, '0')}
-              </span>
-              <h3 className="font-display text-h3 font-bold text-ink mt-2 mb-3">
+              <h3 className="font-display text-h3 font-bold text-ink mb-3">
                 {t(`about.values.${key}.title`)}
               </h3>
               <p className="font-body text-sm text-ink-faded leading-relaxed">
@@ -99,7 +95,6 @@ export default function About() {
       {/* Team */}
       <SectionContainer>
         <NumberedSectionHeading
-          number="03"
           title={t('about.team.title')}
           subtitle={t('about.team.subtitle')}
         />

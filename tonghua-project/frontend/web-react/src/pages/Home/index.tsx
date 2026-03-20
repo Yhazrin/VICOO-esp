@@ -10,6 +10,7 @@ import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import ImpactCounter from '@/components/editorial/ImpactCounter';
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
+import MagneticButton from '@/components/animations/MagneticButton';
 
 export default function Home() {
   const { t } = useTranslation();
@@ -18,22 +19,24 @@ export default function Home() {
     <PageWrapper>
       {/* Hero */}
       <EditorialHero
-        number="Vol. 01"
         title={t('home.hero.title')}
         subtitle={t('home.hero.subtitle')}
+        scrambleTitle={true}
+        scrambleDuration={1400}
       >
-        <Link
-          to="/campaigns"
-          className="inline-block font-body text-sm tracking-[0.15em] uppercase bg-ink text-paper px-8 py-4 hover:bg-rust transition-colors duration-300"
-        >
-          {t('home.hero.cta')}
-        </Link>
+        <MagneticButton strength={0.4}>
+          <Link
+            to="/campaigns"
+            className="inline-block font-body text-sm tracking-[0.15em] uppercase bg-ink text-paper px-8 py-4 hover:bg-rust transition-colors duration-300"
+          >
+            {t('home.hero.cta')}
+          </Link>
+        </MagneticButton>
       </EditorialHero>
 
       {/* Featured Campaigns Section */}
       <SectionContainer>
         <NumberedSectionHeading
-          number="01"
           title={t('home.featured.sectionTitle')}
         />
 
@@ -72,14 +75,13 @@ export default function Home() {
         <StoryQuoteBlock
           quote="Every stitch carries a child's dream. Every garment is a chapter in a story that hasn't been written yet."
           author="Chen Wei"
-          role="Founder, Tonghua Public Welfare"
+          role="Founder, VICOO"
         />
       </SectionContainer>
 
       {/* Impact Numbers */}
       <SectionContainer>
         <NumberedSectionHeading
-          number="02"
           title={t('home.impact.title')}
         />
 
@@ -94,7 +96,6 @@ export default function Home() {
       {/* Children's Gallery */}
       <SectionContainer>
         <NumberedSectionHeading
-          number="03"
           title={t('home.artworks.sectionTitle')}
         />
 
@@ -166,18 +167,22 @@ export default function Home() {
               </p>
             </div>
             <div className="flex flex-col gap-4 md:items-end">
-              <Link
-                to="/donate"
-                className="inline-block font-body text-sm tracking-[0.15em] uppercase bg-rust text-paper px-8 py-4 hover:bg-pale-gold hover:text-ink transition-all duration-300"
-              >
-                {t('home.cta.donate')}
-              </Link>
-              <Link
-                to="/shop"
-                className="inline-block font-body text-sm tracking-[0.15em] uppercase border border-warm-gray/40 text-paper px-8 py-4 hover:border-pale-gold hover:text-pale-gold transition-all duration-300"
-              >
-                {t('home.cta.shop')}
-              </Link>
+              <MagneticButton strength={0.35}>
+                <Link
+                  to="/donate"
+                  className="inline-block font-body text-sm tracking-[0.15em] uppercase bg-rust text-paper px-8 py-4 hover:bg-pale-gold hover:text-ink transition-all duration-300"
+                >
+                  {t('home.cta.donate')}
+                </Link>
+              </MagneticButton>
+              <MagneticButton strength={0.35}>
+                <Link
+                  to="/shop"
+                  className="inline-block font-body text-sm tracking-[0.15em] uppercase border border-warm-gray/40 text-paper px-8 py-4 hover:border-pale-gold hover:text-pale-gold transition-all duration-300"
+                >
+                  {t('home.cta.shop')}
+                </Link>
+              </MagneticButton>
             </div>
           </div>
         </SectionContainer>
@@ -195,15 +200,6 @@ export default function Home() {
           transition={{ duration: 0.8 }}
           className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 py-8"
         >
-          <div className="flex items-center gap-4">
-            <span className="font-body text-caption text-sepia-mid tracking-[0.2em]">
-              VOL. 01
-            </span>
-            <span className="w-12 h-px bg-warm-gray/40" />
-            <span className="font-body text-caption text-sepia-mid tracking-[0.2em]">
-              INAUGURAL EDITION
-            </span>
-          </div>
           <p className="font-body text-xs text-sepia-mid">
             Shanghai, China &mdash; Est. 2026
           </p>

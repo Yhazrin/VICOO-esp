@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
+import { OrigamiFoldAccent } from '@/components/animations/OrigamiFold';
 
 interface SepiaImageFrameProps {
   src: string;
@@ -10,6 +11,9 @@ interface SepiaImageFrameProps {
   aspectRatio?: 'square' | 'landscape' | 'portrait' | 'wide';
   size?: 'sm' | 'md' | 'lg' | 'full';
   className?: string;
+  showCornerAccents?: boolean;
+  accentPosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'diagonal';
+  accentSize?: 'sm' | 'md' | 'lg';
 }
 
 const aspectClasses = {
@@ -33,9 +37,25 @@ export default function SepiaImageFrame({
   aspectRatio = 'landscape',
   size = 'full',
   className = '',
+  showCornerAccents = true,
+  accentPosition = 'diagonal',
+  accentSize = 'sm',
 }: SepiaImageFrameProps) {
   const [ref, isVisible] = useScrollReveal<HTMLDivElement>();
   const [imageLoaded, setImageLoaded] = useState(false);
+
+  // Determine corner accent positions based on accentPosition
+  const getCornerAccents = () => {
+    if (accentPosition === 'diagonal') {
+      return [
+        { position: 'top-left' as const, intensity: 'subtle' as const },
+        { position: 'bottom-right' as const, intensity: 'medium' as const },
+      ];
+    }
+    return [{ position: accentPosition as any, intensity: 'medium' as const }];
+  };
+
+  const cornerAccents = getCornerAccents();
 
   return (
     <motion.figure
@@ -53,6 +73,15 @@ export default function SepiaImageFrame({
           bg-aged-stock
         `}
       >
+        {/* Origami corner accents */}
+        {showCornerAccents && cornerAccents.map((accent, index) => (
+          <OrigamiFoldAccent
+            key={`accent-${index}`}
+            position={accent.position}
+            size={accentSize}
+            intensity={accent.intensity}
+          />
+        ))}
         {/* Aged overlay */}
         <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/5 via-transparent to-archive-brown/5" />
 
