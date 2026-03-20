@@ -129,10 +129,16 @@
     "newsletter": {
       "title": "Stay in the Loop",
       "subtitle": "Get monthly dispatches on campaigns, stories, and the impact your support creates.",
+      "hook": "Get stories of hope delivered to your inbox",
       "placeholder": "Your email address",
-      "subscribe": "Subscribe"
+      "subscribe": "Subscribe",
+      "success": "You are subscribed. Welcome to the story."
     },
-    "empty": "No stories found in this category."
+    "empty": {
+      "title": "No stories here yet",
+      "body": "Every great publication has blank pages waiting to be filled. Try another category — there are stories waiting to be discovered.",
+      "browseAll": "Browse All Stories"
+    }
   },
   "donate": {
     "hero": {
@@ -176,17 +182,60 @@
         "impact": "1 campaign × end-to-end sponsorship"
       }
     },
+    "emotional": {
+      "quote": "Before this program, I did not know my drawings could matter. Now I know they can change the world.",
+      "author": "Mei Lin",
+      "role": "Age 9, Dongfeng Elementary"
+    },
     "impact": {
       "title": "Where Your Money Goes",
       "artSupplies": "Art Supplies & Workshops",
+      "artSuppliesDesc": "Paints, brushes, canvases, and skilled workshop facilitators.",
       "production": "Sustainable Production",
+      "productionDesc": "Certified organic fabrics, fair-wage tailors, eco-dyes.",
       "operations": "Platform Operations",
-      "community": "Community Programs"
+      "operationsDesc": "Website, payment processing, child safety systems.",
+      "community": "Community Programs",
+      "communityDesc": "School partnerships, after-school programs, exhibitions."
     },
     "transparency": {
       "title": "Financial Transparency",
       "subtitle": "We publish quarterly financial reports. Every yuan is accounted for.",
-      "viewReport": "View Latest Report"
+      "viewReport": "View Latest Report",
+      "lastAudit": "Last audit: December 2025",
+      "onChain": "100% of donations tracked on-chain",
+      "quarterly": "Quarterly reports published every January, April, July, October",
+      "trust": {
+        "audited": "Audited",
+        "verified": "Verified",
+        "transparent": "Transparent",
+        "impactReported": "Impact-Reported"
+      }
+    },
+    "stories": {
+      "title": "Your Donations at Work",
+      "items": {
+        "0": {
+          "amount": "¥500",
+          "impact": "Funded a month of art supplies for Dongfeng Elementary",
+          "caption": "Dongfeng Elementary, Guizhou"
+        },
+        "1": {
+          "amount": "¥2,000",
+          "impact": "Supported the printing of 200 sustainable tote bags from children's designs",
+          "caption": "Spring Campaign 2025"
+        },
+        "2": {
+          "amount": "¥5,000",
+          "impact": "Sponsored an entire art workshop series for a rural community center",
+          "caption": "Sunshine Community Center, Yunnan"
+        }
+      }
+    },
+    "cta": {
+      "title": "Every yuan tells a story. What will yours say?",
+      "donate": "Donate Now",
+      "learnMore": "Learn More"
     },
     "faq": {
       "title": "Frequently Asked Questions",
@@ -250,21 +299,93 @@
       "shipping": "Shipping"
     },
     "verified": "Verified",
-    "carbon": "Carbon Footprint"
+    "carbon": "Carbon Footprint",
+    "lookup": {
+      "title": "Trace Your Product",
+      "subtitle": "Enter an order number or product ID to follow its complete journey from creation to delivery.",
+      "placeholder": "Enter order number or product ID...",
+      "ariaLabel": "Product traceability lookup",
+      "hint": "Try: VICOO-2026-SP-001",
+      "found": "Supply Chain Record Found",
+      "highlighted": "Highlighted Record"
+    },
+    "status": {
+      "verified": "Verified",
+      "inProgress": "In Progress",
+      "pending": "Pending"
+    },
+    "carbon": {
+      "title": "Carbon Footprint Comparison",
+      "subtitle": "Our commitment to sustainability means measuring, reducing, and offsetting every gram of emissions.",
+      "conventional": "Conventional Fashion",
+      "vicoo": "VICOO Garment",
+      "reduction": "Carbon Reduction",
+      "reductionDesc": "Lower emissions through organic materials, consolidated shipping, and verified carbon offsets.",
+      "explanation": "Based on lifecycle analysis comparing conventional fast-fashion production with our certified supply chain. Includes raw material sourcing, manufacturing, quality control, and last-mile delivery."
+    },
+    "certifications": {
+      "title": "Certifications and Standards",
+      "subtitle": "Every claim we make is backed by independent third-party verification."
+    },
+    "cta": {
+      "label": "Shop with Confidence",
+      "headline": "Know what you wear. Trust what you buy.",
+      "body": "Every garment in our collection comes with a complete, verifiable supply chain record. No hidden steps, no unverified claims.",
+      "button": "Browse the Collection"
+    }
   },
   "contact": {
     "hero": {
       "title": "Contact",
-      "subtitle": "We read every message. Whether you have a question, a partnership idea, or a story to share — we're listening."
+      "subtitle": "We read every message. Whether you have a question, a partnership idea, or a story to share — we're listening.",
+      "welcome": "Whether you want to donate, collaborate, or just say hello — we'd love to hear from you."
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "items": [
+        {
+          "question": "How can I make a donation?",
+          "answer": "You can donate through our secure online platform, WeChat Pay, or bank transfer. Every contribution directly supports children's art programs and sustainable fashion initiatives."
+        },
+        {
+          "question": "How do I submit my child's artwork?",
+          "answer": "Visit our Campaigns page to find active art drives. You can upload artwork directly through our platform or send it to us via email. All submissions are reviewed within 3 business days."
+        },
+        {
+          "question": "How can I track my order?",
+          "answer": "Once your order is confirmed, you will receive a tracking number via email. You can also check your order status anytime through your account dashboard under My Orders."
+        },
+        {
+          "question": "Are there volunteer opportunities?",
+          "answer": "Yes. We welcome volunteers for workshops, event coordination, translation, and digital outreach. Send us a message with your interests and availability, and we will match you with the right opportunity."
+        },
+        {
+          "question": "How can my organization partner with you?",
+          "answer": "We partner with schools, NGOs, and businesses that share our values. Select Partnership as your subject below and tell us about your organization. Our team will respond within 48 hours."
+        }
+      ]
     },
     "form": {
       "name": "Your Name",
       "email": "Email Address",
       "subject": "Subject",
+      "subjectPlaceholder": "Select a subject",
+      "subjectOptions": {
+        "general": "General Inquiry",
+        "donation": "Donation",
+        "order": "Order Support",
+        "partnership": "Partnership",
+        "artwork": "Artwork Submission",
+        "other": "Other"
+      },
       "message": "Your Message",
+      "characterCount": "{count} / {max} characters",
+      "requiredField": "This field is required",
+      "invalidEmail": "Please enter a valid email address",
       "submit": "Send Message",
-      "sending": "Sending...",
-      "success": "Thank you! We'll get back to you within 48 hours.",
+      "sending": "Sending",
+      "successTitle": "Message Sent",
+      "success": "Thank you for reaching out. We'll get back to you within 24 hours.",
       "error": "Something went wrong. Please try again."
     },
     "info": {
@@ -272,6 +393,20 @@
       "email": "hello@tonghua.org",
       "wechat": "TonghuaOfficial",
       "address": "Shanghai, China"
+    },
+    "cards": {
+      "email": {
+        "title": "Email Us",
+        "description": "We respond to every message within 24 hours on business days."
+      },
+      "location": {
+        "title": "Visit Us",
+        "description": "Our office is in the heart of Shanghai, open weekdays 9am to 6pm CST."
+      },
+      "responseTime": {
+        "title": "Response Time",
+        "description": "Average reply time is under 12 hours. Urgent matters are prioritized."
+      }
     }
   },
   "login": {

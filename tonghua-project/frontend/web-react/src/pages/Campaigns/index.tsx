@@ -18,7 +18,7 @@ const MOCK_CAMPAIGNS: Campaign[] = [
     title: 'Threads of Tomorrow',
     subtitle: 'Children from rural Guizhou reimagine what sustainable fashion means through watercolors and dreams.',
     description: 'A campaign exploring the intersection of childhood imagination and sustainable textile production.',
-    coverImageUrl: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=800&h=500&fit=crop',
+    coverImageUrl: 'https://picsum.photos/seed/threads-tomorrow/800/500',
     startDate: '2026-01-15',
     endDate: '2026-06-30',
     status: 'active',
@@ -27,13 +27,18 @@ const MOCK_CAMPAIGNS: Campaign[] = [
     goalAmount: 50000,
     raisedAmount: 32500,
     featured: true,
+    featuredChild: {
+      name: 'Xiao Lin',
+      age: 8,
+      quote: 'I never thought my painting of the ocean would become something people can wear.',
+    },
   },
   {
     id: '2',
     title: 'Ocean Dreams',
     subtitle: 'Shanghai coastal communities paint their vision of a plastic-free ocean, transformed into beachwear.',
     description: 'Marine-themed artwork by children from fishing communities, turned into sustainable swimwear.',
-    coverImageUrl: 'https://images.unsplash.com/photo-1544776193-352d25ca82cd?w=800&h=500&fit=crop',
+    coverImageUrl: 'https://picsum.photos/seed/ocean-dreams/800/500',
     startDate: '2026-03-01',
     endDate: '2026-09-30',
     status: 'active',
@@ -42,13 +47,18 @@ const MOCK_CAMPAIGNS: Campaign[] = [
     goalAmount: 35000,
     raisedAmount: 12800,
     featured: true,
+    featuredChild: {
+      name: 'Mei Hua',
+      age: 10,
+      quote: 'My grandmother taught me to love the sea. Now I can show everyone why it matters.',
+    },
   },
   {
     id: '3',
     title: 'Mountain Stories',
     subtitle: 'Yunnan children share their relationship with the mountains through textile art.',
     description: 'A completed campaign that brought mountain-inspired textile art to international fashion shows.',
-    coverImageUrl: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800&h=500&fit=crop',
+    coverImageUrl: 'https://picsum.photos/seed/mountain-stories/800/500',
     startDate: '2025-09-01',
     endDate: '2026-02-28',
     status: 'completed',
@@ -57,13 +67,18 @@ const MOCK_CAMPAIGNS: Campaign[] = [
     goalAmount: 80000,
     raisedAmount: 82400,
     featured: true,
+    featuredChild: {
+      name: 'Ah Jie',
+      age: 7,
+      quote: 'The mountain behind my school is where I go to think. Now my drawing of it is on a real jacket.',
+    },
   },
   {
     id: '4',
     title: 'City Rhythms',
     subtitle: 'Urban children interpret the pulse of their city through abstract prints and patterns.',
     description: 'Launching this summer — registration for schools opens May 2026.',
-    coverImageUrl: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800&h=500&fit=crop',
+    coverImageUrl: 'https://picsum.photos/seed/city-rhythms/800/500',
     startDate: '2026-07-01',
     endDate: '2026-12-31',
     status: 'upcoming',
@@ -78,7 +93,7 @@ const MOCK_CAMPAIGNS: Campaign[] = [
     title: 'Forest Whispers',
     subtitle: 'Children from Sichuan villages paint the stories their grandparents told about the ancient forests.',
     description: 'A campaign connecting oral tradition with sustainable forestry and textile sourcing.',
-    coverImageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=500&fit=crop',
+    coverImageUrl: 'https://picsum.photos/seed/forest-whispers/800/500',
     startDate: '2025-06-01',
     endDate: '2025-12-31',
     status: 'completed',
@@ -93,7 +108,7 @@ const MOCK_CAMPAIGNS: Campaign[] = [
     title: 'Starlight Weavers',
     subtitle: 'Night sky patterns from Tibetan highland children woven into scarves and wraps.',
     description: 'High-altitude astronomy meets textile craftsmanship in this unique cross-cultural project.',
-    coverImageUrl: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&h=500&fit=crop',
+    coverImageUrl: 'https://picsum.photos/seed/starlight-weavers/800/500',
     startDate: '2026-04-01',
     endDate: '2026-10-31',
     status: 'active',
@@ -166,7 +181,6 @@ export default function Campaigns() {
   return (
     <PageWrapper>
       <EditorialHero
-        number="03"
         title={t('campaigns.hero.title')}
         subtitle={t('campaigns.hero.subtitle')}
         hideHero={true}
@@ -259,89 +273,140 @@ export default function Campaigns() {
               transition={{ duration: 0.3 }}
               className="space-y-16"
             >
-              {paginated.map((campaign, index) => (
-                <motion.article
-                  key={campaign.id}
-                  initial={{ opacity: 0, y: 40 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-80px' }}
-                  transition={{ duration: 0.7, ease: [0, 0, 0.2, 1] }}
-                >
-                  <Link to={`/campaigns/${campaign.id}`} className="group block">
-                    <div className={`grid grid-cols-1 md:grid-cols-12 gap-8 items-center ${index % 2 === 1 ? '' : ''}`}>
-                      {/* Image */}
-                      <div className={`md:col-span-7 ${index % 2 === 1 ? 'md:order-2' : ''}`}>
-                        <SepiaImageFrame
-                          src={campaign.coverImageUrl}
-                          alt={campaign.title}
-                          aspectRatio="landscape"
-                          size="full"
-                        />
-                      </div>
+              {paginated.map((campaign, index) => {
+                const isCompleted = campaign.status === 'completed';
+                const fundingPercent = campaign.goalAmount > 0
+                  ? Math.round((campaign.raisedAmount / campaign.goalAmount) * 100)
+                  : 0;
 
-                      {/* Info */}
-                      <div className={`md:col-span-5 ${index % 2 === 1 ? 'md:order-1' : ''}`}>
-                        <div className="flex items-center gap-3 mb-4">
-                          <span className={`
-                            font-body text-[10px] tracking-[0.2em] uppercase px-3 py-1 border
-                            ${campaign.status === 'active' ? 'border-rust text-rust' : ''}
-                            ${campaign.status === 'upcoming' ? 'border-pale-gold text-pale-gold' : ''}
-                            ${campaign.status === 'completed' ? 'border-sepia-mid text-sepia-mid' : ''}
-                          `}>
-                            {t(`campaigns.status.${campaign.status}`)}
-                          </span>
-                        </div>
-
-                        <h3 className="font-display text-h3 md:text-h2 font-bold text-ink mb-3 group-hover:text-rust transition-colors">
-                          {campaign.title}
-                        </h3>
-
-                        <p className="font-body text-sm text-ink-faded leading-relaxed mb-6">
-                          {campaign.subtitle}
-                        </p>
-
-                        {/* Progress bar */}
-                        {campaign.goalAmount > 0 && (
-                          <div className="mb-4">
-                            <div className="flex items-baseline justify-between mb-2">
-                              <span className="font-body text-xs text-sepia-mid">
-                                ¥{campaign.raisedAmount.toLocaleString()} / ¥{campaign.goalAmount.toLocaleString()}
-                              </span>
-                              <span className="font-body text-xs text-sepia-mid">
-                                {Math.round((campaign.raisedAmount / campaign.goalAmount) * 100)}%
-                              </span>
-                            </div>
-                            <div className="h-px bg-warm-gray/30 w-full">
-                              <motion.div
-                                initial={{ width: 0 }}
-                                whileInView={{ width: `${Math.min(100, (campaign.raisedAmount / campaign.goalAmount) * 100)}%` }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 1, delay: 0.3 }}
-                                className="h-full bg-rust"
-                              />
-                            </div>
+                return (
+                  <motion.article
+                    key={campaign.id}
+                    initial={{ opacity: 0, y: 40 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: '-80px' }}
+                    transition={{ duration: 0.7, ease: [0, 0, 0.2, 1] }}
+                  >
+                    <Link to={`/campaigns/${campaign.id}`} className="group block">
+                      <div className={`grid grid-cols-1 md:grid-cols-12 gap-8 items-center ${index % 2 === 1 ? '' : ''}`}>
+                        {/* Image */}
+                        <div className={`md:col-span-7 ${index % 2 === 1 ? 'md:order-2' : ''}`}>
+                          <div className={isCompleted ? 'opacity-85 grayscale-[15%]' : ''}>
+                            <SepiaImageFrame
+                              src={campaign.coverImageUrl}
+                              alt={campaign.title}
+                              aspectRatio="landscape"
+                              size="full"
+                            />
                           </div>
-                        )}
+                        </div>
 
-                        <div className="flex gap-6 font-body text-xs text-sepia-mid">
-                          <span>{campaign.artworkCount} {t('campaigns.detail.artworks')}</span>
-                          <span>{campaign.participantCount} {t('campaigns.detail.participants')}</span>
+                        {/* Info */}
+                        <div className={`md:col-span-5 ${index % 2 === 1 ? 'md:order-1' : ''}`}>
+                          <div className="flex items-center gap-3 mb-4">
+                            <span className={`
+                              font-body text-[10px] tracking-[0.2em] uppercase px-3 py-1 border
+                              ${campaign.status === 'active' ? 'border-rust text-rust' : ''}
+                              ${campaign.status === 'upcoming' ? 'border-pale-gold text-pale-gold' : ''}
+                              ${campaign.status === 'completed' ? 'border-sepia-mid text-sepia-mid' : ''}
+                            `}>
+                              {t(`campaigns.status.${campaign.status}`)}
+                            </span>
+                            {isCompleted && fundingPercent >= 100 && (
+                              <span className="font-body text-[10px] tracking-[0.2em] uppercase px-3 py-1 border border-sepia-mid text-sepia-mid flex items-center gap-1.5">
+                                <svg className="w-3 h-3" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <path d="M3 8.5l3.5 3.5 6.5-7" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                                Goal Reached
+                              </span>
+                            )}
+                          </div>
+
+                          <h3 className="font-display text-h3 md:text-h2 font-bold text-ink mb-3 group-hover:text-rust transition-colors">
+                            {campaign.title}
+                          </h3>
+
+                          <p className="font-body text-sm text-ink-faded leading-relaxed mb-6">
+                            {campaign.subtitle}
+                          </p>
+
+                          {/* Progress bar */}
+                          {campaign.goalAmount > 0 && (
+                            <div className="mb-4">
+                              <div className="flex items-baseline justify-between mb-2">
+                                <span className="font-body text-xs text-sepia-mid">
+                                  ¥{campaign.raisedAmount.toLocaleString()} / ¥{campaign.goalAmount.toLocaleString()}
+                                </span>
+                                <span className={`font-body text-xs ${isCompleted ? 'text-sepia-mid' : 'text-sepia-mid'}`}>
+                                  {isCompleted
+                                    ? `${fundingPercent}% funded`
+                                    : `${fundingPercent}%`
+                                  }
+                                </span>
+                              </div>
+                              <div className="h-1.5 bg-warm-gray/30 w-full">
+                                <motion.div
+                                  initial={{ width: 0 }}
+                                  whileInView={{ width: `${Math.min(100, fundingPercent)}%` }}
+                                  viewport={{ once: true }}
+                                  transition={{ duration: 1, delay: 0.3, type: 'spring', stiffness: 60, damping: 20 }}
+                                  className={`h-full ${isCompleted ? 'bg-sepia-mid' : 'bg-rust'}`}
+                                />
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Featured child quote */}
+                          {campaign.featured && campaign.featuredChild && (
+                            <motion.div
+                              initial={{ opacity: 0, x: -10 }}
+                              whileInView={{ opacity: 1, x: 0 }}
+                              viewport={{ once: true }}
+                              transition={{ duration: 0.6, delay: 0.5 }}
+                              className="border-l-2 border-rust/40 pl-4 mt-5"
+                            >
+                              <p className="font-display italic text-sm text-ink-faded leading-relaxed">
+                                &ldquo;{campaign.featuredChild.quote}&rdquo;
+                              </p>
+                              <p className="font-body text-[11px] text-sepia-mid mt-1.5 tracking-wider uppercase">
+                                {campaign.featuredChild.name}, age {campaign.featuredChild.age}
+                              </p>
+                            </motion.div>
+                          )}
+
+                          <div className="flex gap-6 font-body text-xs text-sepia-mid mt-4">
+                            <span>{campaign.artworkCount} {t('campaigns.detail.artworks')}</span>
+                            <span>{campaign.participantCount} {t('campaigns.detail.participants')}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </Link>
+                    </Link>
 
-                  {index < paginated.length - 1 && (
-                    <div className="editorial-divider mt-16" />
-                  )}
-                </motion.article>
-              ))}
+                    {index < paginated.length - 1 && (
+                      <div className="editorial-divider mt-16" />
+                    )}
+                  </motion.article>
+                );
+              })}
             </motion.div>
           </AnimatePresence>
         ) : (
-          <p className="font-body text-sm text-ink-faded text-center py-20">
-            {t('campaigns.empty')}
-          </p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-center py-24"
+          >
+            <span className="font-display text-7xl text-warm-gray/30 leading-none block mb-6 select-none">
+              &ldquo;
+            </span>
+            <p className="font-display text-lg text-ink-faded mb-2">
+              No campaigns found in this category.
+            </p>
+            <p className="font-body text-sm text-sepia-mid">
+              Check back soon.
+            </p>
+          </motion.div>
         )}
 
         {/* Pagination */}

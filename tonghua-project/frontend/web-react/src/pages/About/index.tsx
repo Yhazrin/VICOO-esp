@@ -8,8 +8,16 @@ import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeadin
 import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
+import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
 
 const VALUES = ['transparency', 'childFirst', 'sustainability', 'community'] as const;
+
+const TEAM_MEMBERS = [
+  { name: 'Chen Wei', role: 'Founder & Director', initials: 'CW' },
+  { name: 'Li Mei', role: 'Head of Operations', initials: 'LM' },
+  { name: 'Zhang Hua', role: 'Design Lead', initials: 'ZH' },
+  { name: 'Wang Jun', role: 'Supply Chain Manager', initials: 'WJ' },
+];
 
 export default function About() {
   const { t } = useTranslation();
@@ -29,23 +37,36 @@ export default function About() {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16">
           <div className="md:col-span-5">
             <NumberedSectionHeading
+              number="01"
               title={t('about.mission.title')}
             />
           </div>
-          <div className="md:col-span-7 md:pt-8">
-            <p className="font-body text-base md:text-lg text-ink-faded leading-[1.85] editorial-drop-cap">
+          <div className="md:col-span-7 md:pt-8 relative">
+            {/* Decorative vertical line alongside mission text */}
+            <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-rust/40 via-rust/20 to-transparent" />
+            <p className="font-body text-base md:text-lg text-ink-faded leading-[1.85] editorial-drop-cap pl-6">
               {t('about.mission.body')}
             </p>
           </div>
         </div>
       </SectionContainer>
 
+      {/* Decorative scroll-drawn flourish */}
+      <div className="flex justify-center py-6" aria-hidden="true">
+        <ScrollPathDrawInline
+          path="M0,15 Q50,0 100,15 T200,15 T300,15 T400,15"
+          strokeColor="#8B3A2A"
+          strokeWidth={1}
+          className="w-80 h-8 opacity-60"
+        />
+      </div>
+
       {/* Image interlude */}
       <SectionContainer>
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
           <div className="md:col-span-8">
             <SepiaImageFrame
-              src="https://images.unsplash.com/photo-1544776193-352d25ca82cd?w=1000&q=80"
+              src="https://picsum.photos/seed/vicoo-workshop/1000/563"
               alt="Children in a workshop"
               caption="A Saturday workshop in Shanghai — where it all begins"
               aspectRatio="wide"
@@ -54,7 +75,7 @@ export default function About() {
           </div>
           <div className="md:col-span-4 flex items-end">
             <SepiaImageFrame
-              src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=500&q=80"
+              src="https://picsum.photos/seed/vicoo-supplies/500/667"
               alt="Art supplies"
               aspectRatio="portrait"
               size="full"
@@ -66,19 +87,28 @@ export default function About() {
       {/* Values */}
       <SectionContainer>
         <NumberedSectionHeading
+          number="02"
           title={t('about.values.title')}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
-          {VALUES.map((key) => (
-            <article key={key} className="border-t border-warm-gray/30 pt-6">
+          {VALUES.map((key, i) => (
+            <motion.article
+              key={key}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-50px' }}
+              transition={{ duration: 0.5, delay: i * 0.12 }}
+              whileHover={{ y: -3 }}
+              className="border-t border-warm-gray/30 pt-6 cursor-default"
+            >
               <h3 className="font-display text-h3 font-bold text-ink mb-3">
                 {t(`about.values.${key}.title`)}
               </h3>
               <p className="font-body text-sm text-ink-faded leading-relaxed">
                 {t(`about.values.${key}.body`)}
               </p>
-            </article>
+            </motion.article>
           ))}
         </div>
       </SectionContainer>
@@ -95,17 +125,13 @@ export default function About() {
       {/* Team */}
       <SectionContainer>
         <NumberedSectionHeading
+          number="03"
           title={t('about.team.title')}
           subtitle={t('about.team.subtitle')}
         />
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-          {[
-            { name: 'Chen Wei', role: 'Founder & Director' },
-            { name: 'Li Mei', role: 'Head of Operations' },
-            { name: 'Zhang Hua', role: 'Design Lead' },
-            { name: 'Wang Jun', role: 'Supply Chain Manager' },
-          ].map((member, i) => {
+          {TEAM_MEMBERS.map((member, i) => {
             const [imageLoaded, setImageLoaded] = useState(false);
             return (
               <motion.div
@@ -133,14 +159,26 @@ export default function About() {
                   {/* Loading skeleton */}
                   {!imageLoaded && <ImageSkeleton className="absolute inset-0" aspectRatio="aspect-[3/4]" />}
 
+                  {/* Fallback initials placeholder */}
+                  <div
+                    className="team-fallback absolute inset-0 z-5 hidden items-center justify-center bg-aged-stock"
+                  >
+                    <span className="font-display text-4xl font-bold text-rust/40">
+                      {member.initials}
+                    </span>
+                  </div>
+
                   <img
-                    src={`https://images.unsplash.com/photo-${1507000000000 + i * 100000}-000000000000?w=400&q=80`}
+                    src={`https://picsum.photos/seed/vicoo-team-${i}/400/533`}
                     alt={member.name}
                     className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 sepia-[0.05] ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
                     loading="lazy"
                     onLoad={() => setImageLoaded(true)}
                     onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const fallback = target.parentElement?.querySelector('.team-fallback');
+                      if (fallback) (fallback as HTMLElement).style.display = 'flex';
                     }}
                   />
                 </div>

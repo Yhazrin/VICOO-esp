@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
@@ -6,17 +7,191 @@ import SectionContainer from '@/components/layout/SectionContainer';
 import EditorialHero from '@/components/editorial/EditorialHero';
 import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeading';
 import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
+import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import DonationPanel from '@/components/editorial/DonationPanel';
 import ImpactCounter from '@/components/editorial/ImpactCounter';
 import FAQAccordion from '@/components/editorial/FAQAccordion';
+import MagneticButton from '@/components/animations/MagneticButton';
 import { donationsApi } from '@/services/donations';
 
+/* ─── Impact Area Data ─── */
+
 const IMPACT_AREAS = [
-  { key: 'artSupplies', pct: 40 },
-  { key: 'production', pct: 30 },
-  { key: 'operations', pct: 15 },
-  { key: 'community', pct: 15 },
+  { key: 'artSupplies', pct: 60, icon: 'brush' },
+  { key: 'production', pct: 20, icon: 'fabric' },
+  { key: 'operations', pct: 15, icon: 'gear' },
+  { key: 'community', pct: 5, icon: 'heart' },
 ];
+
+/* ─── Impact Icon ─── */
+
+function ImpactIcon({ type }: { type: string }) {
+  const icons: Record<string, JSX.Element> = {
+    brush: (
+      <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M18.37 2.63a1.5 1.5 0 0 1 2.12 0l.88.88a1.5 1.5 0 0 1 0 2.12L9.12 17.88a4 4 0 0 1-2.83 1.17H4v-2.25a4 4 0 0 1 1.17-2.83L17.42 1.68z" />
+        <path d="M4 20h4" />
+      </svg>
+    ),
+    fabric: (
+      <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2" />
+        <path d="M3 9h18M3 15h18M9 3v18M15 3v18" />
+      </svg>
+    ),
+    gear: (
+      <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="3" />
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+      </svg>
+    ),
+    heart: (
+      <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+      </svg>
+    ),
+  };
+  return <span className="text-rust/60">{icons[type] || null}</span>;
+}
+
+/* ─── Impact Progress Bar ─── */
+
+function ImpactProgressBar({
+  label,
+  description,
+  pct,
+  icon,
+  index,
+}: {
+  label: string;
+  description: string;
+  pct: number;
+  icon: string;
+  index: number;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true }}
+      transition={{
+        type: 'spring',
+        stiffness: 300,
+        damping: 30,
+        delay: index * 0.12,
+      }}
+    >
+      <div className="flex items-center gap-3 mb-2">
+        <ImpactIcon type={icon} />
+        <div className="flex-1 flex items-baseline justify-between">
+          <span className="font-body text-sm text-ink font-medium">
+            {label}
+          </span>
+          <span className="font-display text-sm font-bold text-rust">
+            {pct}%
+          </span>
+        </div>
+      </div>
+      <div className="h-2 bg-warm-gray/15 rounded-sm overflow-hidden">
+        <motion.div
+          initial={{ width: 0 }}
+          whileInView={{ width: `${pct}%` }}
+          viewport={{ once: true }}
+          transition={{
+            type: 'spring',
+            stiffness: 80,
+            damping: 20,
+            delay: index * 0.12 + 0.2,
+          }}
+          className="h-full rounded-sm"
+          style={{
+            background: 'linear-gradient(90deg, rgba(139, 58, 42, 0.5), rgba(139, 58, 42, 0.8))',
+          }}
+        />
+      </div>
+      <p className="font-body text-xs text-ink-faded mt-1.5 leading-relaxed pl-8">
+        {description}
+      </p>
+    </motion.div>
+  );
+}
+
+/* ─── Trust Badge ─── */
+
+function TrustBadge({ label, index }: { label: string; index: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{
+        type: 'spring',
+        stiffness: 380,
+        damping: 30,
+        delay: index * 0.08,
+      }}
+      className="flex items-center gap-2 border border-warm-gray/30 px-4 py-2.5 bg-paper"
+    >
+      <span className="w-2 h-2 bg-rust/60 rounded-full" />
+      <span className="font-body text-xs text-ink tracking-[0.08em] uppercase">
+        {label}
+      </span>
+    </motion.div>
+  );
+}
+
+/* ─── Donation Story Card ─── */
+
+function DonationStoryCard({
+  amount,
+  impact,
+  caption,
+  imageSeed,
+  index,
+}: {
+  amount: string;
+  impact: string;
+  caption: string;
+  imageSeed: string;
+  index: number;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{
+        type: 'spring',
+        stiffness: 380,
+        damping: 30,
+        delay: index * 0.15,
+      }}
+      whileHover={{ y: -6 }}
+      className="group"
+    >
+      <SepiaImageFrame
+        src={`https://picsum.photos/seed/${imageSeed}/400/300`}
+        alt={impact}
+        aspectRatio="landscape"
+        size="full"
+        showCornerAccents={true}
+      />
+      <div className="mt-4">
+        <span className="font-display text-lg font-bold text-rust">
+          {amount}
+        </span>
+        <p className="font-body text-sm text-ink mt-1 leading-relaxed">
+          {impact}
+        </p>
+        <span className="font-body text-caption text-sepia-mid tracking-[0.1em] mt-2 block">
+          {caption}
+        </span>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ─── Main Page ─── */
 
 export default function Donate() {
   const { t } = useTranslation();
@@ -38,56 +213,72 @@ export default function Donate() {
         frequency: data.frequency,
       });
       console.log('Donation successful');
-      // Handle success (e.g., show confirmation, redirect)
     } catch (error) {
       console.error('Donation failed:', error);
-      // Handle error (e.g., show error message)
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const donationStories = [
+    {
+      amount: t('donate.stories.items.0.amount'),
+      impact: t('donate.stories.items.0.impact'),
+      caption: t('donate.stories.items.0.caption'),
+      imageSeed: 'donation-school-art',
+    },
+    {
+      amount: t('donate.stories.items.1.amount'),
+      impact: t('donate.stories.items.1.impact'),
+      caption: t('donate.stories.items.1.caption'),
+      imageSeed: 'donation-tote-bags',
+    },
+    {
+      amount: t('donate.stories.items.2.amount'),
+      impact: t('donate.stories.items.2.impact'),
+      caption: t('donate.stories.items.2.caption'),
+      imageSeed: 'donation-workshop-rural',
+    },
+  ];
+
   return (
     <PageWrapper>
       <EditorialHero
-        number="05"
         title={t('donate.hero.title')}
         subtitle={t('donate.hero.subtitle')}
         fullHeight={true}
       />
 
+      {/* Emotional Introduction */}
+      <SectionContainer narrow>
+        <StoryQuoteBlock
+          quote={t('donate.emotional.quote')}
+          author={t('donate.emotional.author')}
+          role={t('donate.emotional.role')}
+        />
+      </SectionContainer>
+
       {/* Main donation area */}
       <SectionContainer noTopSpacing>
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-16">
-          {/* Left: Info */}
+          {/* Left: Impact Breakdown */}
           <div className="md:col-span-5">
             <NumberedSectionHeading
               number="01"
               title={t('donate.impact.title')}
             />
 
-            {/* Impact breakdown */}
-            <div className="space-y-6 mt-8">
-              {IMPACT_AREAS.map((area) => (
-                <div key={area.key}>
-                  <div className="flex items-baseline justify-between mb-2">
-                    <span className="font-body text-sm text-ink">
-                      {t(`donate.impact.${area.key}`)}
-                    </span>
-                    <span className="font-body text-sm text-sepia-mid">
-                      {area.pct}%
-                    </span>
-                  </div>
-                  <div className="h-1 bg-warm-gray/20 rounded-sm overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      whileInView={{ width: `${area.pct}%` }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 1, ease: [0, 0, 0.2, 1] }}
-                      className="h-full bg-rust/70 rounded-sm"
-                    />
-                  </div>
-                </div>
+            {/* Enhanced impact progress bars */}
+            <div className="space-y-7 mt-8">
+              {IMPACT_AREAS.map((area, index) => (
+                <ImpactProgressBar
+                  key={area.key}
+                  label={t(`donate.impact.${area.key}`)}
+                  description={t(`donate.impact.${area.key}Desc`)}
+                  pct={area.pct}
+                  icon={area.icon}
+                  index={index}
+                />
               ))}
             </div>
 
@@ -108,19 +299,39 @@ export default function Donate() {
         </div>
       </SectionContainer>
 
+      {/* Donation Success Stories */}
+      <SectionContainer>
+        <NumberedSectionHeading
+          number="02"
+          title={t('donate.stories.title')}
+        />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
+          {donationStories.map((story, i) => (
+            <DonationStoryCard
+              key={story.imageSeed}
+              amount={story.amount}
+              impact={story.impact}
+              caption={story.caption}
+              imageSeed={story.imageSeed}
+              index={i}
+            />
+          ))}
+        </div>
+      </SectionContainer>
+
       {/* Transparency */}
       <section className="bg-aged-stock section-spacing relative">
         {/* Grain overlay */}
         <div
           className="absolute inset-0 z-0 pointer-events-none opacity-[0.08]"
           style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
+            backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")',
           }}
           aria-hidden="true"
         />
 
         <SectionContainer>
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start relative z-10">
             <div className="md:col-span-5 relative">
               {/* Decorative corner accents */}
               <div className="absolute -top-2 -left-2 w-4 h-4 border-t-2 border-l-2 border-rust/30 pointer-events-none" />
@@ -132,6 +343,46 @@ export default function Donate() {
               <p className="font-body text-sm text-ink-faded leading-relaxed mb-6">
                 {t('donate.transparency.subtitle')}
               </p>
+
+              {/* Specific transparency data points */}
+              <div className="space-y-3 mb-8">
+                <div className="flex items-start gap-3">
+                  <span className="w-1.5 h-1.5 bg-rust/60 rounded-full mt-2 shrink-0" />
+                  <span className="font-body text-sm text-ink">
+                    {t('donate.transparency.lastAudit')}
+                  </span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="w-1.5 h-1.5 bg-rust/60 rounded-full mt-2 shrink-0" />
+                  <span className="font-body text-sm text-ink">
+                    {t('donate.transparency.onChain')}
+                  </span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="w-1.5 h-1.5 bg-rust/60 rounded-full mt-2 shrink-0" />
+                  <span className="font-body text-sm text-ink">
+                    {t('donate.transparency.quarterly')}
+                  </span>
+                </div>
+              </div>
+
+              {/* Trust Indicators */}
+              <div className="mb-8">
+                <span className="font-body text-caption text-sepia-mid tracking-[0.15em] uppercase block mb-3">
+                  Trust Indicators
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    t('donate.transparency.trust.audited'),
+                    t('donate.transparency.trust.verified'),
+                    t('donate.transparency.trust.transparent'),
+                    t('donate.transparency.trust.impactReported'),
+                  ].map((badge, i) => (
+                    <TrustBadge key={badge} label={badge} index={i} />
+                  ))}
+                </div>
+              </div>
+
               <motion.button
                 className="font-body text-xs text-rust tracking-[0.15em] uppercase hover:text-ink transition-colors"
                 whileHover={{ x: 4 }}
@@ -175,7 +426,7 @@ export default function Donate() {
       {/* Quote */}
       <SectionContainer narrow>
         <StoryQuoteBlock
-          quote="Transparency isn't a feature. It's a responsibility."
+          quote="Transparency is not a feature. It is a responsibility."
           author="Annual Report 2025"
         />
       </SectionContainer>
@@ -184,7 +435,7 @@ export default function Donate() {
       <SectionContainer>
         <div className="max-w-3xl mx-auto">
           <NumberedSectionHeading
-            number="06"
+            number="03"
             title={t('donate.faq.title')}
           />
           <div className="mt-8">
@@ -211,6 +462,75 @@ export default function Donate() {
           </div>
         </div>
       </SectionContainer>
+
+      {/* Final CTA */}
+      <section className="bg-ink text-paper section-spacing relative overflow-hidden">
+        {/* Grain overlay */}
+        <div
+          className="absolute inset-0 z-0 pointer-events-none opacity-[0.06]"
+          style={{
+            backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")',
+          }}
+          aria-hidden="true"
+        />
+
+        <SectionContainer>
+          <div className="relative z-10 text-center max-w-2xl mx-auto">
+            {/* Decorative line above */}
+            <motion.div
+              initial={{ width: 0 }}
+              whileInView={{ width: '80px' }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, ease: [0, 0, 0.2, 1] }}
+              className="h-px bg-rust/50 mx-auto mb-10"
+            />
+
+            <motion.h2
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className="font-display text-h2 md:text-h1 font-bold leading-[0.95] mb-10"
+            >
+              {t('donate.cta.title')}
+            </motion.h2>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.15 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+            >
+              <MagneticButton strength={0.35}>
+                <a
+                  href="#top"
+                  className="inline-block font-body text-sm tracking-[0.15em] uppercase bg-rust text-paper px-10 py-4 hover:bg-pale-gold hover:text-ink transition-all duration-300"
+                >
+                  {t('donate.cta.donate')}
+                </a>
+              </MagneticButton>
+              <MagneticButton strength={0.35}>
+                <Link
+                  to="/about"
+                  className="inline-block font-body text-sm tracking-[0.15em] uppercase border border-warm-gray/40 text-paper px-10 py-4 hover:border-pale-gold hover:text-pale-gold transition-all duration-300"
+                >
+                  {t('donate.cta.learnMore')}
+                </Link>
+              </MagneticButton>
+            </motion.div>
+
+            {/* Decorative line below */}
+            <motion.div
+              initial={{ width: 0 }}
+              whileInView={{ width: '80px' }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, ease: [0, 0, 0.2, 1], delay: 0.3 }}
+              className="h-px bg-rust/50 mx-auto mt-10"
+            />
+          </div>
+        </SectionContainer>
+      </section>
 
       <div className="editorial-divider" />
     </PageWrapper>

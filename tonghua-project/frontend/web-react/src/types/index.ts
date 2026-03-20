@@ -48,6 +48,11 @@ export interface Campaign {
   goalAmount: number;
   raisedAmount: number;
   featured: boolean;
+  featuredChild?: {
+    name: string;
+    age: number;
+    quote: string;
+  };
 }
 
 export interface Story {
@@ -62,6 +67,12 @@ export interface Story {
   category: 'impact' | 'fashion' | 'community' | 'education';
 }
 
+export interface ProductArtworkAttribution {
+  childName: string;
+  age: number;
+  campaign: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -73,6 +84,7 @@ export interface Product {
   inStock: boolean;
   stockCount: number;
   artworkSource?: Artwork;
+  artworkBy?: ProductArtworkAttribution;
   supplyChain: SupplyChainRecord[];
   sustainabilityScore: number;
 }

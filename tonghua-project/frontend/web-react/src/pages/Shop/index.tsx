@@ -7,6 +7,8 @@ import SectionContainer from '@/components/layout/SectionContainer';
 import EditorialHero from '@/components/editorial/EditorialHero';
 import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeading';
 import ProductCard from '@/components/editorial/ProductCard';
+import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
+import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import VintageSelect from '@/components/editorial/VintageSelect';
 import { productsApi } from '@/services/products';
 import type { Product } from '@/types';
@@ -21,12 +23,13 @@ const MOCK_PRODUCTS: Product[] = [
     description: 'A children\'s ocean painting transformed into a wearable story.',
     price: 298,
     currency: 'CNY',
-    imageUrls: ['https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600&q=80'],
+    imageUrls: ['https://picsum.photos/seed/dreamscape-tee/600/800'],
     category: 'apparel',
     inStock: true,
     stockCount: 24,
     sustainabilityScore: 87,
     supplyChain: [],
+    artworkBy: { childName: 'Xiao Lin', age: 8, campaign: 'Ocean Dreams' },
   },
   {
     id: '2',
@@ -34,12 +37,13 @@ const MOCK_PRODUCTS: Product[] = [
     description: 'Hand-printed organic cotton tote featuring spring campaign artwork.',
     price: 168,
     currency: 'CNY',
-    imageUrls: ['https://images.unsplash.com/photo-1544816155-12df9643f363?w=600&q=80'],
+    imageUrls: ['https://picsum.photos/seed/bloom-tote/600/800'],
     category: 'accessories',
     inStock: true,
     stockCount: 3,
     sustainabilityScore: 92,
     supplyChain: [],
+    artworkBy: { childName: 'Mei Hua', age: 7, campaign: 'Spring Garden' },
   },
   {
     id: '3',
@@ -47,12 +51,13 @@ const MOCK_PRODUCTS: Product[] = [
     description: 'Recycled paper sketchbook with cover art from our winter campaign.',
     price: 58,
     currency: 'CNY',
-    imageUrls: ['https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=600&q=80'],
+    imageUrls: ['https://picsum.photos/seed/sketchbook/600/800'],
     category: 'stationery',
     inStock: true,
     stockCount: 156,
     sustainabilityScore: 95,
     supplyChain: [],
+    artworkBy: { childName: 'Tong Tong', age: 6, campaign: 'Winter Wonders' },
   },
   {
     id: '4',
@@ -60,12 +65,13 @@ const MOCK_PRODUCTS: Product[] = [
     description: 'Museum-quality giclee print on archival paper.',
     price: 128,
     currency: 'CNY',
-    imageUrls: ['https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=600&q=80'],
+    imageUrls: ['https://picsum.photos/seed/ocean-print/600/800'],
     category: 'prints',
     inStock: true,
     stockCount: 42,
     sustainabilityScore: 88,
     supplyChain: [],
+    artworkBy: { childName: 'Xiao Yu', age: 9, campaign: 'Ocean Dreams' },
   },
   {
     id: '5',
@@ -73,12 +79,13 @@ const MOCK_PRODUCTS: Product[] = [
     description: 'Organic cotton hoodie with embroidered children\'s city drawings.',
     price: 458,
     currency: 'CNY',
-    imageUrls: ['https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=600&q=80'],
+    imageUrls: ['https://picsum.photos/seed/cityscape-hoodie/600/800'],
     category: 'apparel',
     inStock: false,
     stockCount: 0,
     sustainabilityScore: 84,
     supplyChain: [],
+    artworkBy: { childName: 'Jia Wei', age: 10, campaign: 'My City' },
   },
   {
     id: '6',
@@ -86,12 +93,13 @@ const MOCK_PRODUCTS: Product[] = [
     description: 'Enamel pin set featuring five winning artworks from 2025.',
     price: 48,
     currency: 'CNY',
-    imageUrls: ['https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=600&q=80'],
+    imageUrls: ['https://picsum.photos/seed/rainbow-pins/600/800'],
     category: 'accessories',
     inStock: true,
     stockCount: 89,
     sustainabilityScore: 90,
     supplyChain: [],
+    artworkBy: { childName: 'An Qi', age: 8, campaign: 'Colors of Hope' },
   },
 ];
 
@@ -145,7 +153,6 @@ export default function Shop() {
   return (
     <PageWrapper>
       <EditorialHero
-        number="06"
         title={t('shop.hero.title')}
         subtitle={t('shop.hero.subtitle')}
         hideHero={true}
@@ -283,6 +290,59 @@ export default function Shop() {
               </p>
             </motion.div>
           </div>
+        </div>
+      </SectionContainer>
+
+      {/* Behind the Collection */}
+      <SectionContainer>
+        <NumberedSectionHeading number="02" title="Behind the Collection" />
+
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 mt-10">
+          {/* Left: Workshop image — 8/12 columns */}
+          <motion.div
+            className="md:col-span-8"
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, ease: [0, 0, 0.2, 1] }}
+          >
+            <SepiaImageFrame
+              src="https://picsum.photos/seed/vicoo-workshop-art/800/500"
+              alt="Children creating artwork in a VICOO workshop"
+              caption="A Saturday morning workshop in Chengdu, where children paint the dreams that will become our next collection."
+              aspectRatio="wide"
+              size="full"
+              showCornerAccents={true}
+              accentPosition="diagonal"
+            />
+          </motion.div>
+
+          {/* Right: Editorial text — 4/12 columns */}
+          <motion.div
+            className="md:col-span-4 flex flex-col justify-center"
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, delay: 0.15, ease: [0, 0, 0.2, 1] }}
+          >
+            <p className="font-body text-xs text-ink-faded leading-relaxed mb-4">
+              Every garment in this collection begins the same way -- with a child,
+              a blank page, and the freedom to imagine. We partner with schools and
+              community centres across twelve cities, running workshops where children
+              draw their hopes for the world.
+            </p>
+            <p className="font-body text-xs text-ink-faded leading-relaxed mb-6">
+              Our designers then translate these raw, honest artworks into patterns,
+              prints, and embroideries -- never altering the child's original vision.
+              The result is clothing that carries real stories, not manufactured ones.
+            </p>
+
+            <StoryQuoteBlock
+              quote="I drew the ocean because I want it to stay blue forever."
+              author="Xiao Lin"
+              role="Age 8, Ocean Dreams campaign"
+            />
+          </motion.div>
         </div>
       </SectionContainer>
 

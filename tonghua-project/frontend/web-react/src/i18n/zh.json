@@ -129,10 +129,16 @@
     "newsletter": {
       "title": "保持联系",
       "subtitle": "每月接收关于活动、故事以及您的支持所创造的影响的通讯。",
+      "hook": "让希望的故事送到您的邮箱",
       "placeholder": "您的邮箱地址",
-      "subscribe": "订阅"
+      "subscribe": "订阅",
+      "success": "订阅成功，欢迎加入我们的故事。"
     },
-    "empty": "此分类下没有故事。"
+    "empty": {
+      "title": "这里还没有故事",
+      "body": "每本伟大的出版物都有等待被书写的空白页。试试其他分类——有故事等待被发现。",
+      "browseAll": "浏览全部故事"
+    }
   },
   "donate": {
     "hero": {
@@ -176,17 +182,60 @@
         "impact": "1次活动 × 端到端赞助"
       }
     },
+    "emotional": {
+      "quote": "在参加这个项目之前，我不知道我的画作有意义。现在我知道它们可以改变世界。",
+      "author": "林梅",
+      "role": "9岁，东风小学"
+    },
     "impact": {
       "title": "您的资金去向",
       "artSupplies": "美术用品与工作坊",
+      "artSuppliesDesc": "颜料、画笔、画布和专业的工作坊导师。",
       "production": "可持续生产",
+      "productionDesc": "有机认证面料、公平工资的裁缝、环保染料。",
       "operations": "平台运营",
-      "community": "社区项目"
+      "operationsDesc": "网站、支付处理、儿童安全系统。",
+      "community": "社区项目",
+      "communityDesc": "学校合作、课后项目、展览活动。"
     },
     "transparency": {
       "title": "财务透明",
       "subtitle": "我们每季度发布财务报告。每一元钱都有记录。",
-      "viewReport": "查看最新报告"
+      "viewReport": "查看最新报告",
+      "lastAudit": "最近审计：2025年12月",
+      "onChain": "100%捐赠通过链上追踪",
+      "quarterly": "季度报告于每年1月、4月、7月、10月发布",
+      "trust": {
+        "audited": "已审计",
+        "verified": "已验证",
+        "transparent": "透明公开",
+        "impactReported": "影响报告"
+      }
+    },
+    "stories": {
+      "title": "您的捐赠在行动",
+      "items": {
+        "0": {
+          "amount": "¥500",
+          "impact": "为东风小学资助了一个月的美术用品",
+          "caption": "东风小学，贵州"
+        },
+        "1": {
+          "amount": "¥2,000",
+          "impact": "支持印刷了200个由儿童设计的可持续手提袋",
+          "caption": "2025年春季活动"
+        },
+        "2": {
+          "amount": "¥5,000",
+          "impact": "为一个农村社区中心赞助了整套艺术工作坊系列",
+          "caption": "阳光社区中心，云南"
+        }
+      }
+    },
+    "cta": {
+      "title": "每一元钱都在讲述一个故事。你的故事将说什么？",
+      "donate": "立即捐赠",
+      "learnMore": "了解更多"
     },
     "faq": {
       "title": "常见问题",
@@ -250,21 +299,93 @@
       "shipping": "物流配送"
     },
     "verified": "已验证",
-    "carbon": "碳足迹"
+    "carbon": "碳足迹",
+    "lookup": {
+      "title": "追溯您的产品",
+      "subtitle": "输入订单号或产品 ID，追踪从创作到交付的完整旅程。",
+      "placeholder": "输入订单号或产品 ID...",
+      "ariaLabel": "产品溯源查询",
+      "hint": "试试：VICOO-2026-SP-001",
+      "found": "找到供应链记录",
+      "highlighted": "高亮记录"
+    },
+    "status": {
+      "verified": "已验证",
+      "inProgress": "进行中",
+      "pending": "待处理"
+    },
+    "carbon": {
+      "title": "碳足迹对比",
+      "subtitle": "我们对可持续发展的承诺意味着测量、减少并抵消每一克排放。",
+      "conventional": "传统时尚",
+      "vicoo": "VICOO 服装",
+      "reduction": "碳减排",
+      "reductionDesc": "通过有机材料、整合运输和经认证的碳抵消实现更低排放。",
+      "explanation": "基于生命周期分析，将传统快时尚生产与我们的认证供应链进行比较。包括原材料采购、制造、质量控制和最后一公里配送。"
+    },
+    "certifications": {
+      "title": "认证与标准",
+      "subtitle": "我们做出的每一项声明都有独立第三方验证的支持。"
+    },
+    "cta": {
+      "label": "放心购物",
+      "headline": "知你所穿，信你所购。",
+      "body": "我们系列中的每一件服装都附带完整、可验证的供应链记录。没有隐藏环节，没有未经验证的声明。",
+      "button": "浏览系列"
+    }
   },
   "contact": {
     "hero": {
       "title": "联系我们",
-      "subtitle": "我们阅读每一条消息。无论您有问题、合作想法或故事分享——我们都在倾听。"
+      "subtitle": "我们阅读每一条消息。无论您有问题、合作想法或故事分享——我们都在倾听。",
+      "welcome": "无论您想捐赠、合作，还是只想打个招呼——我们都期待听到您的声音。"
+    },
+    "faq": {
+      "title": "常见问题",
+      "items": [
+        {
+          "question": "如何进行捐赠？",
+          "answer": "您可以通过我们的在线平台、微信支付或银行转账进行捐赠。每一笔善款都直接用于支持儿童艺术项目和可持续时尚事业。"
+        },
+        {
+          "question": "如何提交孩子的作品？",
+          "answer": "访问我们的活动页面，找到正在进行的艺术活动。您可以通过平台直接上传作品，或通过邮件发送给我们。所有提交将在3个工作日内审核。"
+        },
+        {
+          "question": "如何追踪我的订单？",
+          "answer": "订单确认后，您将通过邮件收到物流单号。您也可以随时在账户面板的「我的订单」中查看订单状态。"
+        },
+        {
+          "question": "有志愿者机会吗？",
+          "answer": "是的。我们欢迎志愿者参与工作坊、活动协调、翻译和数字推广等工作。请告诉我们您的兴趣和可用时间，我们会为您匹配合适的机会。"
+        },
+        {
+          "question": "我的机构如何与您合作？",
+          "answer": "我们与学校、非政府组织和志同道合的企业合作。请在下方选择「合作」主题并介绍您的机构，我们将在48小时内回复。"
+        }
+      ]
     },
     "form": {
       "name": "您的姓名",
       "email": "电子邮箱",
       "subject": "主题",
+      "subjectPlaceholder": "请选择主题",
+      "subjectOptions": {
+        "general": "一般咨询",
+        "donation": "捐赠事宜",
+        "order": "订单支持",
+        "partnership": "合作洽谈",
+        "artwork": "作品提交",
+        "other": "其他"
+      },
       "message": "您的留言",
+      "characterCount": "{count} / {max} 字符",
+      "requiredField": "此字段为必填项",
+      "invalidEmail": "请输入有效的电子邮箱",
       "submit": "发送消息",
-      "sending": "发送中...",
-      "success": "谢谢您！我们将在48小时内回复。",
+      "sending": "发送中",
+      "successTitle": "消息已发送",
+      "success": "感谢您的来信，我们将在24小时内回复您。",
       "error": "出了点问题，请重试。"
     },
     "info": {
@@ -272,6 +393,20 @@
       "email": "hello@tonghua.org",
       "wechat": "TonghuaOfficial",
       "address": "中国上海"
+    },
+    "cards": {
+      "email": {
+        "title": "邮件联系",
+        "description": "我们会在工作日24小时内回复每一条消息。"
+      },
+      "location": {
+        "title": "到访我们",
+        "description": "我们的办公室位于上海市中心，工作日早9点至晚6点开放。"
+      },
+      "responseTime": {
+        "title": "回复时间",
+        "description": "平均回复时间在12小时以内，紧急事项会优先处理。"
+      }
     }
   },
   "login": {

@@ -11,9 +11,219 @@ import ImpactCounter from '@/components/editorial/ImpactCounter';
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import MagneticButton from '@/components/animations/MagneticButton';
+import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
+
+/* ─── Gallery Item (extracted to fix useState-in-map bug) ─── */
+
+interface GalleryItemProps {
+  src: string;
+  alt: string;
+  index: number;
+}
+
+function GalleryItem({ src, alt, index }: GalleryItemProps) {
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{
+        type: 'spring',
+        stiffness: 380,
+        damping: 30,
+        delay: index * 0.08,
+      }}
+      whileHover={{ y: -4 }}
+      className="relative aspect-square overflow-hidden border-2 border-warm-gray/50 bg-aged-stock group"
+    >
+      {/* Grain overlay */}
+      <div
+        className="absolute inset-0 z-10 pointer-events-none opacity-15"
+        style={{
+          backgroundImage:
+            'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")',
+        }}
+      />
+
+      {/* Sepia frame effect */}
+      <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/8 via-transparent to-archive-brown/8" />
+
+      {/* Decorative corner accents */}
+      <div className="absolute top-2 left-2 w-6 h-6 border-t border-l border-rust/40 z-20 pointer-events-none" />
+      <div className="absolute bottom-2 right-2 w-6 h-6 border-b border-r border-rust/40 z-20 pointer-events-none" />
+
+      {/* Loading skeleton */}
+      {!imageLoaded && (
+        <ImageSkeleton className="absolute inset-0" aspectRatio="aspect-square" />
+      )}
+
+      <img
+        src={src}
+        alt={alt}
+        className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 sepia-[0.1] ${
+          imageLoaded ? 'opacity-100' : 'opacity-0'
+        }`}
+        loading="lazy"
+        onLoad={() => setImageLoaded(true)}
+      />
+    </motion.div>
+  );
+}
+
+/* ─── Latest Artwork Card ─── */
+
+interface LatestArtworkCardProps {
+  src: string;
+  childName: string;
+  campaignName: string;
+  date: string;
+  index: number;
+  wide?: boolean;
+}
+
+function LatestArtworkCard({
+  src,
+  childName,
+  campaignName,
+  date,
+  index,
+  wide = false,
+}: LatestArtworkCardProps) {
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{
+        type: 'spring',
+        stiffness: 380,
+        damping: 30,
+        delay: index * 0.12,
+      }}
+      className={`group ${wide ? 'md:col-span-2' : 'md:col-span-1'}`}
+    >
+      <div
+        className={`relative overflow-hidden border border-warm-gray/60 bg-aged-stock ${
+          wide ? 'aspect-[16/10]' : 'aspect-[3/4]'
+        }`}
+      >
+        {/* Grain overlay */}
+        <div
+          className="absolute inset-0 z-10 pointer-events-none opacity-10"
+          style={{
+            backgroundImage:
+              'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")',
+          }}
+        />
+        <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/5 via-transparent to-archive-brown/5" />
+
+        {!imageLoaded && (
+          <ImageSkeleton
+            className="absolute inset-0"
+            aspectRatio={wide ? 'aspect-[16/10]' : 'aspect-[3/4]'}
+          />
+        )}
+
+        <img
+          src={src}
+          alt={`Artwork by ${childName}`}
+          className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 sepia-[0.1] ${
+            imageLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
+          loading="lazy"
+          onLoad={() => setImageLoaded(true)}
+        />
+      </div>
+
+      <div className="mt-4 flex items-baseline justify-between gap-4">
+        <div>
+          <p className="font-display text-sm font-semibold text-ink leading-snug">
+            {childName}
+          </p>
+          <p className="font-body text-xs text-ink-faded mt-1">{campaignName}</p>
+        </div>
+        <span className="font-body text-caption text-sepia-mid tracking-[0.1em] whitespace-nowrap">
+          {date}
+        </span>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ─── Brand Pillar ─── */
+
+interface BrandPillarProps {
+  label: string;
+  value: string;
+  index: number;
+}
+
+function BrandPillar({ label, value, index }: BrandPillarProps) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{
+        type: 'spring',
+        stiffness: 380,
+        damping: 30,
+        delay: index * 0.1,
+      }}
+      className="border-l border-warm-gray/40 pl-6"
+    >
+      <p className="font-display text-h3 md:text-h2 font-bold text-ink leading-[0.95]">
+        {value}
+      </p>
+      <p className="font-body text-xs text-sepia-mid tracking-[0.12em] uppercase mt-2">
+        {label}
+      </p>
+    </motion.div>
+  );
+}
+
+/* ─── Home Page ─── */
 
 export default function Home() {
   const { t } = useTranslation();
+
+  const galleryImages = [
+    { src: 'https://picsum.photos/seed/children-art-1/400/400', alt: "Child's watercolor landscape" },
+    { src: 'https://picsum.photos/seed/children-art-2/400/400', alt: "Child's abstract crayon drawing" },
+    { src: 'https://picsum.photos/seed/children-art-3/400/400', alt: "Child's pastel portrait" },
+    { src: 'https://picsum.photos/seed/children-art-4/400/400', alt: "Child's ink illustration" },
+  ];
+
+  const latestArtworks = [
+    {
+      src: 'https://picsum.photos/seed/spring-bloom-art/800/500',
+      childName: 'Lin Xiaomei',
+      campaignName: 'Spring Bloom Campaign',
+      date: 'Mar 2026',
+    },
+    {
+      src: 'https://picsum.photos/seed/ocean-dreams-art/400/533',
+      childName: 'Zhang Yufei',
+      campaignName: 'Ocean Dreams',
+      date: 'Feb 2026',
+    },
+    {
+      src: 'https://picsum.photos/seed/mountain-song-art/400/533',
+      childName: 'Wang Haoran',
+      campaignName: 'Mountain Song',
+      date: 'Jan 2026',
+    },
+  ];
+
+  const brandPillars = [
+    { label: 'Traceable Supply Chain', value: '100%' },
+    { label: 'Children Empowered', value: '2,847' },
+    { label: 'Yuan Reinvested', value: '890,000' },
+  ];
 
   return (
     <PageWrapper>
@@ -36,16 +246,13 @@ export default function Home() {
 
       {/* Featured Campaigns Section */}
       <SectionContainer>
-        <NumberedSectionHeading
-          title={t('home.featured.sectionTitle')}
-        />
+        <NumberedSectionHeading number="01" title={t('home.featured.sectionTitle')} />
 
-        {/* Asymmetric grid placeholder */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
           <div className="md:col-span-7">
             <SepiaImageFrame
-              src="https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=800&q=80"
-              alt="Children creating art"
+              src="https://picsum.photos/seed/spring-campaign/800/600"
+              alt="Children creating art in a community workshop"
               caption="Spring Campaign 2026 — Artwork Collection Phase"
               aspectRatio="landscape"
               size="full"
@@ -70,6 +277,16 @@ export default function Home() {
         </div>
       </SectionContainer>
 
+      {/* Scroll-drawn page turn connector */}
+      <div className="flex justify-center py-2" aria-hidden="true">
+        <ScrollPathDrawInline
+          path="M0,10 L60,10 M80,10 L140,10 M160,10 L220,10"
+          strokeColor="#D4CFC4"
+          strokeWidth={1}
+          className="w-56 h-5"
+        />
+      </div>
+
       {/* Quote Interlude */}
       <SectionContainer narrow>
         <StoryQuoteBlock
@@ -81,9 +298,7 @@ export default function Home() {
 
       {/* Impact Numbers */}
       <SectionContainer>
-        <NumberedSectionHeading
-          title={t('home.impact.title')}
-        />
+        <NumberedSectionHeading number="02" title={t('home.impact.title')} />
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
           <ImpactCounter value={2847} label={t('home.impact.children')} />
@@ -93,55 +308,38 @@ export default function Home() {
         </div>
       </SectionContainer>
 
+      {/* Latest Artworks */}
+      <SectionContainer>
+        <NumberedSectionHeading number="03" title="Latest Artworks" />
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+          {latestArtworks.map((artwork, i) => (
+            <LatestArtworkCard
+              key={artwork.campaignName}
+              src={artwork.src}
+              childName={artwork.childName}
+              campaignName={artwork.campaignName}
+              date={artwork.date}
+              index={i}
+              wide={i === 0}
+            />
+          ))}
+        </div>
+      </SectionContainer>
+
       {/* Children's Gallery */}
       <SectionContainer>
-        <NumberedSectionHeading
-          title={t('home.artworks.sectionTitle')}
-        />
+        <NumberedSectionHeading number="04" title={t('home.artworks.sectionTitle')} />
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-          {[
-            'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400&q=80',
-            'https://images.unsplash.com/photo-1560421683-6856ea585c78?w=400&q=80',
-            'https://images.unsplash.com/photo-1596464716127-f2a82984de30?w=400&q=80',
-            'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=400&q=80',
-          ].map((src, i) => {
-            const [imageLoaded, setImageLoaded] = useState(false);
-            return (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                whileHover={{ y: -4 }}
-                className="relative aspect-square overflow-hidden border-2 border-warm-gray/50 bg-aged-stock group"
-              >
-                {/* Grain overlay */}
-                <div className="absolute inset-0 z-10 pointer-events-none opacity-15" style={{
-                  backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")'
-                }} />
-
-                {/* Sepia frame effect */}
-                <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/8 via-transparent to-archive-brown/8" />
-
-                {/* Decorative corner accents */}
-                <div className="absolute top-2 left-2 w-6 h-6 border-t border-l border-rust/40 z-20 pointer-events-none" />
-                <div className="absolute bottom-2 right-2 w-6 h-6 border-b border-r border-rust/40 z-20 pointer-events-none" />
-
-                {/* Loading skeleton */}
-                {!imageLoaded && <ImageSkeleton className="absolute inset-0" aspectRatio="aspect-square" />}
-
-                <img
-                  src={src}
-                  alt={`Children's artwork ${i + 1}`}
-                  className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 sepia-[0.1] ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-                  loading="lazy"
-                  onLoad={() => setImageLoaded(true)}
-                />
-              </motion.div>
-            );
-          })}
+          {galleryImages.map((img, i) => (
+            <GalleryItem
+              key={img.src}
+              src={img.src}
+              alt={img.alt}
+              index={i}
+            />
+          ))}
         </div>
 
         <div className="mt-8 text-center">
@@ -191,18 +389,35 @@ export default function Home() {
       {/* Editorial divider before footer */}
       <div className="editorial-divider" />
 
-      {/* Bottom feature strip */}
+      {/* Bottom feature strip — 3 brand pillars */}
       <SectionContainer>
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 py-8"
+          className="py-12 md:py-16"
         >
-          <p className="font-body text-xs text-sepia-mid">
-            Shanghai, China &mdash; Est. 2026
-          </p>
+          <div className="flex items-baseline gap-3 mb-10">
+            <span className="font-body text-caption text-sepia-mid tracking-[0.2em]">
+              Shanghai, China
+            </span>
+            <span className="flex-1 h-px bg-warm-gray/40" />
+            <span className="font-body text-caption text-sepia-mid tracking-[0.2em]">
+              Est. 2026
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+            {brandPillars.map((pillar, i) => (
+              <BrandPillar
+                key={pillar.label}
+                label={pillar.label}
+                value={pillar.value}
+                index={i}
+              />
+            ))}
+          </div>
         </motion.div>
       </SectionContainer>
     </PageWrapper>
