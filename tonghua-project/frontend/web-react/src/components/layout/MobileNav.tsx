@@ -22,7 +22,7 @@ export default function MobileNav() {
   const navigate = useNavigate();
   const { mobileNavOpen, setMobileNavOpen, menuTriggerRef } = useUIStore();
   const { user, isAuthenticated, logout } = useAuthStore();
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [_userMenuOpen, setUserMenuOpen] = useState(false);
 
   // ref for the dialog container
   const dialogRef = useRef<HTMLDivElement>(null);
