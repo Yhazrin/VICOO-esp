@@ -7,10 +7,10 @@
     </view>
     <view class="cart-list">
       <view class="cart-item card" wx:for="{{cartItems}}" wx:key="product.id">
-        <image class="cart-img" src="{{item.product.imageUrl}}" mode="aspectFill" />
+        <image class="cart-img" src="{{item.product.imageUrl}}" mode="aspectFill" alt="{{item.product.name}}" />
         <view class="cart-info">
           <text class="cart-name">{{item.product.name}}</text>
-          <text class="cart-price">¥{{item.product.price}}</text>
+          <text class="cart-price">ï¿½{{item.product.price}}</text>
           <view class="qty-control">
             <text class="qty-btn" data-index="{{index}}" data-delta="-1" catchtap="onChangeQty">-</text>
             <text class="qty-num">{{item.quantity}}</text>
@@ -22,7 +22,7 @@
     </view>
     <empty-state wx:if="{{cartItems.length===0}}" text="\u8D2D\u7269\u8F66\u662F\u7A7A\u7684" />
     <view class="cart-footer" wx:if="{{cartItems.length > 0}}">
-      <text class="cart-total">\u5408\u8BA1: ¥{{getTotal()}}</text>
+      <text class="cart-total">\u5408\u8BA1: ï¿½{{getTotal()}}</text>
       <view class="btn-primary" bindtap="onCheckout">\u53BB\u7ED3\u7B97</view>
     </view>
   </view>

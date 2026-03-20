@@ -6,6 +6,7 @@ import SectionContainer from '@/components/layout/SectionContainer';
 import EditorialHero from '@/components/editorial/EditorialHero';
 import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeading';
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
+import { VintageInput } from '@/components/editorial/VintageInput';
 
 export default function Contact() {
   const { t } = useTranslation();
@@ -27,10 +28,8 @@ export default function Contact() {
     }, 1500);
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  const handleChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
   return (
@@ -39,9 +38,10 @@ export default function Contact() {
         number="08"
         title={t('contact.hero.title')}
         subtitle={t('contact.hero.subtitle')}
+        hideHero={true}
       />
 
-      <SectionContainer>
+      <SectionContainer noTopSpacing>
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-16">
           {/* Form */}
           <div className="md:col-span-7">
@@ -49,61 +49,37 @@ export default function Contact() {
 
             <form onSubmit={handleSubmit} className="space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="font-body text-xs text-sepia-mid tracking-wider uppercase block mb-2">
-                    {t('contact.form.name')}
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    className="w-full font-body text-sm py-3 border-b border-warm-gray/40 focus:border-rust transition-colors bg-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="font-body text-xs text-sepia-mid tracking-wider uppercase block mb-2">
-                    {t('contact.form.email')}
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    className="w-full font-body text-sm py-3 border-b border-warm-gray/40 focus:border-rust transition-colors bg-transparent"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="font-body text-xs text-sepia-mid tracking-wider uppercase block mb-2">
-                  {t('contact.form.subject')}
-                </label>
-                <input
+                <VintageInput
+                  label={t('contact.form.name')}
                   type="text"
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleChange}
+                  value={formData.name}
+                  onChange={handleChange('name')}
                   required
-                  className="w-full font-body text-sm py-3 border-b border-warm-gray/40 focus:border-rust transition-colors bg-transparent"
+                />
+                <VintageInput
+                  label={t('contact.form.email')}
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange('email')}
+                  required
                 />
               </div>
 
-              <div>
-                <label className="font-body text-xs text-sepia-mid tracking-wider uppercase block mb-2">
-                  {t('contact.form.message')}
-                </label>
-                <textarea
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  required
-                  rows={6}
-                  className="w-full font-body text-sm py-3 border-b border-warm-gray/40 focus:border-rust transition-colors resize-none bg-transparent"
-                />
-              </div>
+              <VintageInput
+                label={t('contact.form.subject')}
+                type="text"
+                value={formData.subject}
+                onChange={handleChange('subject')}
+                required
+              />
+
+              <VintageInput
+                label={t('contact.form.message')}
+                type="textarea"
+                value={formData.message}
+                onChange={handleChange('message')}
+                required
+              />
 
               <motion.button
                 type="submit"

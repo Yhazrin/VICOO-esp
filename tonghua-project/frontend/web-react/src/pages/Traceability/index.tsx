@@ -81,10 +81,11 @@ export default function Traceability() {
         number="07"
         title={t('traceability.hero.title')}
         subtitle={t('traceability.hero.subtitle')}
+        hideHero={true}
       />
 
       {/* Featured traceability example */}
-      <SectionContainer>
+      <SectionContainer noTopSpacing>
         <NumberedSectionHeading
           number="01"
           title="Dreamscape Tee — Full Journey"

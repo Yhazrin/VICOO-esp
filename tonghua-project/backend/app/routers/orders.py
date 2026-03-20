@@ -6,6 +6,7 @@ from typing import Union
 
 from app.database import get_db
 from app.models.order import Order, OrderItem
+from app.models.product import Product
 from app.schemas import ApiResponse, OrderCreate, OrderOut, OrderStatusUpdate, PaginatedResponse, WeChatPaymentParams
 from app.deps import get_current_user, require_role
 from app.security import generate_order_no
@@ -78,6 +79,19 @@ _mock_orders = [
         "items": [{"id": 7, "product_id": 1, "quantity": 1, "price": "168.00"}, {"id": 8, "product_id": 7, "quantity": 1, "price": "128.00"}],
         "created_at": "2025-04-20T09:00:00",
         "updated_at": "2025-04-22T14:00:00",
+    },
+    {
+        "id": 6,
+        "user_id": 1,  # Owner is user 1 (the test user)
+        "order_no": "TH2025042512006",
+        "total_amount": "128.00",
+        "status": "pending",
+        "shipping_address": "Test Address",
+        "payment_method": "wechat",
+        "payment_id": None,
+        "items": [{"id": 9, "product_id": 1, "quantity": 1, "price": "128.00"}],
+        "created_at": "2025-04-25T12:00:00",
+        "updated_at": "2025-04-25T12:00:00",
     },
 ]
 
@@ -156,6 +170,8 @@ async def get_order(
     except Exception:
         for o in _mock_orders:
             if o["id"] == order_id:
+                if current_user.get("role") != "admin" and o["user_id"] != current_user["id"]:
+                    raise HTTPException(status_code=403, detail="Forbidden")
                 return ApiResponse(data=o)
         raise HTTPException(status_code=404, detail="Order not found")
 
@@ -172,7 +188,24 @@ async def create_order(
     Returns order data plus WeChat payment parameters if payment_method is 'wechat'.
     """
     try:
-        total = sum(item.price * item.quantity for item in body.items)
+        # Validate each product exists and get real prices from database (security fix)
+        total = Decimal(0)
+        validated_items = []
+        for item in body.items:
+            product_stmt = select(Product).where(Product.id == item.product_id)
+            product_result = await db.execute(product_stmt)
+            product = product_result.scalar_one_or_none()
+            if not product:
+                raise HTTPException(status_code=404, detail=f"Product {item.product_id} not found")
+
+            item_price = product.price  # Use server-side verified price
+            validated_items.append({
+                "product_id": item.product_id,
+                "quantity": item.quantity,
+                "price": item_price,
+            })
+            total += item_price * item.quantity
+
         order_no = generate_order_no()
         order = Order(
             user_id=current_user["id"],
@@ -183,12 +216,13 @@ async def create_order(
         )
         db.add(order)
         await db.flush()
-        for item in body.items:
+
+        for validated_item in validated_items:
             oi = OrderItem(
                 order_id=order.id,
-                product_id=item.product_id,
-                quantity=item.quantity,
-                price=item.price,
+                product_id=validated_item["product_id"],
+                quantity=validated_item["quantity"],
+                price=validated_item["price"],  # Use server-side verified price
             )
             db.add(oi)
         await db.flush()
@@ -207,11 +241,40 @@ async def create_order(
             response_data.update(payment_params)
 
         return ApiResponse(data=response_data)
-    except Exception:
+    except Exception as e:
+        # If HTTPException (e.g., product not found), re-raise it
+        if isinstance(e, HTTPException):
+            raise
         import random
         new_id = max(o["id"] for o in _mock_orders) + 1 if _mock_orders else 1
         order_no = generate_order_no()
-        total = sum(float(item.price) * item.quantity for item in body.items)
+        # Still need to validate products in mock mode
+        # Security fix: Use fixed prices from mock product list instead of client-provided prices
+        # to prevent price tampering
+        mock_products = {
+            1: Decimal("128.00"),  # Product ID 1
+            2: Decimal("89.00"),   # Product ID 2
+            3: Decimal("258.00"),  # Product ID 3
+            4: Decimal("68.00"),   # Product ID 4
+            5: Decimal("168.00"),  # Product ID 5
+            6: Decimal("99.00"),   # Product ID 6
+            7: Decimal("188.00"),  # Product ID 7
+            8: Decimal("368.00"),  # Product ID 8
+        }
+        total = Decimal(0)
+        validated_mock_items = []
+        for item in body.items:
+            # Validate product exists and get server-side price
+            if item.product_id not in mock_products:
+                raise HTTPException(status_code=404, detail=f"Product {item.product_id} not found")
+
+            item_price = mock_products[item.product_id]
+            validated_mock_items.append({
+                "product_id": item.product_id,
+                "quantity": item.quantity,
+                "price": item_price,
+            })
+            total += item_price * item.quantity
         new_order = {
             "id": new_id,
             "user_id": current_user["id"],
@@ -222,8 +285,8 @@ async def create_order(
             "payment_method": body.payment_method,
             "payment_id": None,
             "items": [
-                {"id": random.randint(100, 999), "product_id": i.product_id, "quantity": i.quantity, "price": str(i.price)}
-                for i in body.items
+                {"id": random.randint(100, 999), "product_id": i["product_id"], "quantity": i["quantity"], "price": str(i["price"])}
+                for i in validated_mock_items
             ],
             "created_at": "2025-06-01T00:00:00",
             "updated_at": "2025-06-01T00:00:00",

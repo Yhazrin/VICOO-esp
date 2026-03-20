@@ -21,6 +21,7 @@
               src="{{item.image_url}}"
               mode="aspectFill"
               lazy-load
+              alt="{{item.title}}"
             />
             <view class="artwork-card__overlay">
               <text class="artwork-card__child-name">{{item.child_display_name}}</text>

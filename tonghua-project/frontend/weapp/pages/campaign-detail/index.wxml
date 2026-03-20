@@ -3,7 +3,7 @@
 
     <!-- Cover Image -->
     <view class="campaign-cover">
-      <image class="campaign-cover__image sepia-image" src="{{campaign.cover_url}}" mode="aspectFill" />
+      <image class="campaign-cover__image sepia-image" src="{{campaign.cover_url}}" mode="aspectFill" alt="{{campaign.name}}" />
       <view class="campaign-cover__overlay">
         <view class="campaign-cover__status {{campaign.status === 'active' ? 'campaign-cover__status--active' : ''}}">
           <text>{{campaign.status === 'active' ? '进行中' : '已结束'}}</text>
@@ -79,7 +79,7 @@
         >
           <view class="related-card">
             <view class="related-card__image-wrap">
-              <image class="related-card__image sepia-image" src="{{item.image_url}}" mode="aspectFill" lazy-load />
+              <image class="related-card__image sepia-image" src="{{item.image_url}}" mode="aspectFill" lazy-load alt="{{item.title}}" />
               <view class="related-card__overlay">
                 <text class="related-card__name">{{item.child_display_name}}</text>
               </view>

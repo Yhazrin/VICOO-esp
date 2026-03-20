@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime, Text, Enum, ForeignKey, func
+from sqlalchemy.orm import relationship
 from app.database import Base
 
 
@@ -22,3 +23,11 @@ class Artwork(Base):
     campaign_id = Column(Integer, ForeignKey("campaigns.id"), nullable=True, index=True)
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    # Relationships
+    child_participant = relationship(
+        "ChildParticipant",
+        back_populates="artworks",
+        lazy="joined",
+        uselist=False
+    )

@@ -1,5 +1,5 @@
 <view class="artwork-card" bindtap="onTap">
-  <image class="artwork-img sepia-image" src="{{artwork.imageUrl}}" mode="aspectFill" lazy-load />
+  <image class="artwork-img sepia-image" src="{{artwork.imageUrl}}" mode="aspectFill" lazy-load alt="{{artwork.title}}" />
   <view class="artwork-info">
     <text class="artwork-title">{{artwork.title}}</text>
     <text class="artwork-author editorial-caption">{{artwork.childDisplayName}}</text>

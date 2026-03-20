@@ -8,6 +8,7 @@ import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeadin
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
 import TraceabilityTimeline from '@/components/editorial/TraceabilityTimeline';
+import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import { useCartStore } from '@/stores/cartStore';
 import type { Product, SupplyChainRecord } from '@/types';
 
@@ -136,24 +137,29 @@ export default function ProductDetail() {
               </motion.div>
               {product.imageUrls.length > 1 && (
                 <div className="flex gap-3 mt-4">
-                  {product.imageUrls.map((url, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setSelectedImage(index)}
-                      aria-label={'View image ' + (index + 1)}
-                      className={`w-16 h-16 overflow-hidden border-2 transition-colors ${
-                        selectedImage === index ? 'border-ink' : 'border-transparent'
-                      }`}
-                    >
-                      <img
-                        src={url}
-                        alt=""
-                        aria-hidden="true"
-                        className="w-full h-full object-cover"
-                        style={{ filter: 'sepia(0.2) contrast(1.05) brightness(0.97)' }}
-                      />
-                    </button>
-                  ))}
+                  {product.imageUrls.map((url, index) => {
+                    const [thumbLoaded, setThumbLoaded] = useState(false);
+                    return (
+                      <button
+                        key={index}
+                        onClick={() => setSelectedImage(index)}
+                        aria-label={'View image ' + (index + 1)}
+                        className={`w-16 h-16 overflow-hidden border-2 transition-colors relative ${
+                          selectedImage === index ? 'border-ink' : 'border-transparent'
+                        }`}
+                      >
+                        {!thumbLoaded && <ImageSkeleton className="absolute inset-0" aspectRatio="aspect-square" />}
+                        <img
+                          src={url}
+                          alt=""
+                          aria-hidden="true"
+                          className={`w-full h-full object-cover ${thumbLoaded ? 'opacity-100' : 'opacity-0'}`}
+                          style={{ filter: 'sepia(0.2) contrast(1.05) brightness(0.97)' }}
+                          onLoad={() => setThumbLoaded(true)}
+                        />
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>

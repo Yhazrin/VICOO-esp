@@ -114,7 +114,7 @@ class AndroidCookieJar(private val context: Context) : CookieJar {
             )
         }
 
-        // Serialize to JSON and encode as Base64 to prevent injection
+        // Serialize cookies to JSON string
         val json = gson.toJson(serializableCookies)
         val base64Encoded = Base64.encodeToString(json.toByteArray(Charsets.UTF_8), Base64.NO_WRAP)
 

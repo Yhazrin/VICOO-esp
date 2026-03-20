@@ -5,7 +5,7 @@
 export interface User {
   id: string;
   email: string;
-  displayName: string;
+  nickname: string;
   avatarUrl?: string;
   role: 'user' | 'admin' | 'moderator';
   createdAt: string;

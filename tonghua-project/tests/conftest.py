@@ -4,6 +4,8 @@ Provides test database, auth helpers, and mock data factories.
 """
 
 import asyncio
+import os
+import sys
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import AsyncGenerator, Optional
@@ -11,6 +13,87 @@ from typing import AsyncGenerator, Optional
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
+from unittest.mock import AsyncMock, patch
+
+# Patch redis for testing (avoid Redis connection errors)
+# This must be done before importing any backend modules that use redis
+redis_mock = AsyncMock()
+# Configure default behavior for Redis methods used in the app
+# exists should return False (no duplicate votes)
+redis_mock.exists = AsyncMock(return_value=False)
+# setex should just complete successfully
+redis_mock.setex = AsyncMock(return_value=True)
+# incr should increment (for rate limiting)
+redis_mock.incr = AsyncMock(side_effect=lambda key: 1) # First call returns 1
+redis_mock.expire = AsyncMock(return_value=True)
+
+redis_patch = patch('redis.asyncio.from_url', return_value=redis_mock)
+redis_patch.start()
+
+# Mock WeChat API calls for login
+# Patch at the instance level to avoid method binding issues
+original_async_get = AsyncClient.get
+
+async def mock_wechat_get(self, url, **kwargs):
+    # Check if this is a WeChat API call
+    if isinstance(url, str) and "api.weixin.qq.com" in url:
+        # Return a mock response object
+        mock_resp = AsyncMock()
+        mock_resp.status_code = 200
+
+        # Check URL for invalid code
+        if "invalid_code" in url:
+            mock_resp.json = lambda: {
+                "errcode": 40029,
+                "errmsg": "invalid code"
+            }
+        else:
+            mock_resp.json = lambda: {
+                "openid": "test_openid_12345",
+                "session_key": "test_session_key_67890",
+                "unionid": "test_unionid_12345"
+            }
+        return mock_resp
+
+    # For non-WeChat requests, use the original method
+    # Note: We can't directly call original_async_get because it's unbound
+    # So we need to use the original implementation path
+    # https://www.python.org/dev/peps/pep-0562/ - we can't get the original bound method easily
+    # Instead, we'll call the original unbound function with proper self
+    return await original_async_get(self, url, **kwargs)
+
+httpx_patch = patch.object(AsyncClient, 'get', new=mock_wechat_get)
+httpx_patch.start()
+
+# Add backend directory to Python path to allow importing backend modules
+# Assumes tests are in tonghua-project/tests/ directory
+# backend/app is the package root (since main.py uses `from app.config ...`)
+backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'backend'))
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
+
+# Set required environment variables for testing
+# These are required by app.config.Settings
+os.environ.setdefault("TESTING", "1")
+os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///test.db")
+os.environ.setdefault("REDIS_URL", "redis://localhost:6379")
+os.environ.setdefault("APP_SECRET_KEY", "test-secret-key-for-hmac-sha256")
+os.environ.setdefault("ENCRYPTION_KEY", "test-encryption-key-32-bytes-long!!!")
+os.environ.setdefault("SEED_ADMIN_PASSWORD", "adminpass")
+os.environ.setdefault("SEED_EDITOR_PASSWORD", "editorpass")
+os.environ.setdefault("SEED_USER_PASSWORD", "userpass")
+# Use HS256 for testing (simpler than RS256)
+os.environ.setdefault("JWT_ALGORITHM", "HS256")
+
+# CORS configuration (required for TrustedHostMiddleware)
+os.environ.setdefault("CORS_ORIGINS", '["http://localhost:3000", "http://test", "http://testserver"]')
+
+# WeChat Pay configuration (required for payment_service singleton)
+os.environ.setdefault("WECHAT_APP_ID", "test-app-id")
+os.environ.setdefault("WECHAT_APP_SECRET", "test-app-secret")
+os.environ.setdefault("WECHAT_MCH_ID", "test-mch-id")
+os.environ.setdefault("WECHAT_PAY_API_KEY", "test-api-key")
+os.environ.setdefault("WECHAT_NOTIFY_URL", "http://localhost:8000/api/v1/payments/wechat-notify")
 
 # ---------------------------------------------------------------------------
 # Event loop
@@ -55,12 +138,96 @@ async def app():
     Imports the app from the backend module.
     """
     try:
-        from backend.main import create_app
-        application = create_app()
-    except ImportError:
+        # Since backend_dir is in sys.path, app is the top-level package
+        from app.main import app as application
+        # Debug: print routes (only once)
+        if not hasattr(app, '_printed_routes'):
+            print("\nDEBUG: Registered routes:")
+            for route in application.routes:
+                if hasattr(route, "path"):
+                    print(f"  {route.methods if hasattr(route, 'methods') else 'N/A'} {route.path}")
+            app._printed_routes = True
+
+    except ImportError as e:
         # Fallback: create a minimal FastAPI app for testing
+        print(f"Warning: Could not import backend app: {e}")
         from fastapi import FastAPI
         application = FastAPI(title="Tonghua Test API")
+
+    # Seed the database with a test user for authentication tests
+    try:
+        from app.database import engine, Base, AsyncSessionLocal
+        from app.models.user import User
+        from app.security import hash_password
+        from sqlalchemy import select
+
+        # Ensure tables exist (replicate lifespan logic)
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+
+        async with AsyncSessionLocal() as db:
+            # Seed a campaign first to avoid FK constraint violation during artwork creation
+            from app.models.campaign import Campaign
+            from app.models.donation import Donation
+            from datetime import datetime, timezone, timedelta
+            stmt_campaign = select(Campaign).where(Campaign.id == 1)
+            result_campaign = await db.execute(stmt_campaign)
+            campaign = result_campaign.scalar_one_or_none()
+            if not campaign:
+                campaign = Campaign(
+                    id=1,
+                    title="Test Campaign",
+                    description="Test campaign for artworks",
+                    cover_image="https://example.com/test.jpg",
+                    start_date=datetime.now(timezone.utc),
+                    end_date=datetime.now(timezone.utc) + timedelta(days=30),
+                    goal_amount=10000.00,
+                    current_amount=0.00,
+                    status="active",
+                )
+                db.add(campaign)
+                await db.commit()
+                print("Test campaign seeded successfully.")
+
+            # Seed a completed donation for ID 1 (required by TestDonationCertificate)
+            stmt_donation = select(Donation).where(Donation.id == 1)
+            result_donation = await db.execute(stmt_donation)
+            donation = result_donation.scalar_one_or_none()
+            if not donation:
+                donation = Donation(
+                    id=1,
+                    donor_name="Test Donor",
+                    donor_user_id=1,
+                    amount=100.00,
+                    currency="CNY",
+                    payment_method="stripe",
+                    payment_id="mock_1",
+                    campaign_id=1,
+                    status="completed",
+                    is_anonymous=False,
+                    message="Test donation",
+                )
+                db.add(donation)
+                await db.commit()
+                print("Test donation seeded successfully.")
+
+            stmt = select(User).where(User.email == "user@example.com")
+            result = await db.execute(stmt)
+            user = result.scalar_one_or_none()
+            if not user:
+                user = User(
+                    email="user@example.com",
+                    password_hash=hash_password("secure_password_123"),
+                    nickname="Test User",
+                    role="user",
+                    status="active",
+                )
+                db.add(user)
+                await db.commit()
+                print("Test user seeded successfully.")
+    except Exception as e:
+        print(f"Warning: Could not seed test user: {e}")
+
     return application
 
 
@@ -76,11 +243,28 @@ async def client(app) -> AsyncGenerator[AsyncClient, None]:
 # Auth token helpers
 # ---------------------------------------------------------------------------
 
+# We need to import security functions here, but they depend on settings
+# which is loaded when app.config is imported.
+# We'll defer import until the fixture is called.
+
+@pytest_asyncio.fixture(scope="session")
+def valid_token():
+    """Generate a valid access token for test user (ID 1)."""
+    from app.security import create_access_token
+    # Using subject "1" as we seeded the user and expect it to be ID 1
+    return create_access_token(subject="1", role="user")
+
+@pytest_asyncio.fixture(scope="session")
+def valid_refresh_token():
+    """Generate a valid refresh token for test user (ID 1)."""
+    from app.security import create_refresh_token
+    return create_refresh_token(subject="1")
+
 @pytest_asyncio.fixture
-def auth_headers():
+def auth_headers(valid_token):
     """Return authorization headers with a valid test token."""
     return {
-        "Authorization": "Bearer test-access-token-valid",
+        "Authorization": f"Bearer {valid_token}",
         "Content-Type": "application/json",
     }
 
@@ -88,8 +272,33 @@ def auth_headers():
 @pytest_asyncio.fixture
 def expired_auth_headers():
     """Return authorization headers with an expired token."""
+    # Generate an expired token for testing
+    from app.security import create_access_token
+    from datetime import timedelta
+    import time
+
+    # Create a token that expired 1 hour ago
+    from app.config import settings
+    from jose import jwt
+    from datetime import datetime, timezone
+
+    payload = {
+        "sub": "1",
+        "role": "user",
+        "type": "access",
+        "iat": datetime.now(timezone.utc) - timedelta(hours=2),
+        "exp": datetime.now(timezone.utc) - timedelta(hours=1),
+    }
+
+    if settings.JWT_ALGORITHM == "HS256":
+        signing_key = settings.APP_SECRET_KEY
+    else:
+        signing_key = settings.JWT_PRIVATE_KEY
+
+    expired_token = jwt.encode(payload, signing_key, algorithm=settings.JWT_ALGORITHM)
+
     return {
-        "Authorization": "Bearer test-access-token-expired",
+        "Authorization": f"Bearer {expired_token}",
         "Content-Type": "application/json",
     }
 
@@ -97,8 +306,10 @@ def expired_auth_headers():
 @pytest_asyncio.fixture
 def admin_auth_headers():
     """Return authorization headers for an admin user."""
+    from app.security import create_access_token
+    token = create_access_token(subject="admin-1", role="super_admin")
     return {
-        "Authorization": "Bearer test-access-token-admin",
+        "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",
     }
 
@@ -106,8 +317,10 @@ def admin_auth_headers():
 @pytest_asyncio.fixture
 def guardian_auth_headers():
     """Return authorization headers for a guardian user."""
+    from app.security import create_access_token
+    token = create_access_token(subject="guardian-1", role="guardian")
     return {
-        "Authorization": "Bearer test-access-token-guardian",
+        "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",
     }
 

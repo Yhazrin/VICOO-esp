@@ -97,7 +97,7 @@ interface TonghuaApi {
     // ---- Payments ----
 
     @POST("payments/create")
-    suspend fun createPaymentIntent(@Body request: Map<String, @JvmSuppressWildcards Any>): Response<ApiResponse<Map<String, Any>>>
+    suspend fun createPaymentIntent(@Body request: CreatePaymentIntentRequest): Response<ApiResponse<PaymentIntentResponse>>
 }
 
 /**

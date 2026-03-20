@@ -71,8 +71,26 @@ class ChildParticipantOut(BaseModel):
     region: Optional[str] = None
     school: Optional[str] = None
     consent_given: bool
+    consent_date: Optional[datetime] = None
     artwork_count: int
     status: str
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class ChildParticipantFrontend(BaseModel):
+    """
+    Frontend-compatible ChildParticipant schema.
+    Matches frontend/web-react/src/types/index.ts ChildParticipant interface.
+    """
+    id: str  # Frontend expects string ID
+    firstName: str  # Maps to display_name
+    age: int
+    guardianId: Optional[str] = None  # Not in backend model, optional for frontend
+    schoolName: Optional[str] = None  # Maps to school
+    consentGiven: bool  # Maps to consent_given
+    consentDate: Optional[str] = None  # Maps to consent_date (ISO string)
+    status: Optional[str] = None
+
+    model_config = {"from_attributes": True, "populate_by_name": True}

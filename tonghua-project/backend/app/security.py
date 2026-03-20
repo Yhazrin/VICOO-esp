@@ -114,7 +114,7 @@ def aes_decrypt(ciphertext_b64: str) -> str:
 # ── Convenience helpers ──────────────────────────────────────────
 def generate_order_no() -> str:
     """Generate a unique order number like TH20260319XXXXXXXX."""
-    import random
+    import secrets
     ts = datetime.now().strftime("%Y%m%d%H%M%S")
-    rand = random.randint(1000, 9999)
+    rand = secrets.randbelow(9000) + 1000  # 1000-9999
     return f"TH{ts}{rand}"

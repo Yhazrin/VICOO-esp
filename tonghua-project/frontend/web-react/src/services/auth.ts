@@ -9,13 +9,41 @@ export interface LoginRequest {
 export interface RegisterRequest {
   email: string;
   password: string;
-  displayName: string;
+  nickname: string;
 }
 
 export interface AuthResponse {
   user: User;
   access_token: string;
   refresh_token: string;
+}
+
+// Backend response structure (nested - register endpoint)
+interface BackendRegisterResponse {
+  success: boolean;
+  data: {
+    user: User;
+    token: {
+      access_token: string;
+      refresh_token: string;
+      expires_in: number;
+    };
+  };
+  message?: string;
+}
+
+// Backend response structure (nested - login endpoint, now consistent with register)
+interface BackendLoginResponse {
+  success: boolean;
+  data: {
+    user: User;
+    token: {
+      access_token: string;
+      refresh_token: string;
+      expires_in: number;
+    };
+  };
+  message?: string;
 }
 
 /**
@@ -35,13 +63,23 @@ export interface AuthResponse {
  */
 export const authApi = {
   login: async (data: LoginRequest): Promise<AuthResponse> => {
-    const response = await api.post<AuthResponse>('/auth/login', data);
-    return response.data;
+    const response = await api.post<BackendLoginResponse>('/auth/login', data);
+    // Transform backend response to frontend format
+    return {
+      user: response.data.data.user,
+      access_token: response.data.data.token.access_token,
+      refresh_token: response.data.data.token.refresh_token,
+    };
   },
 
   register: async (data: RegisterRequest): Promise<AuthResponse> => {
-    const response = await api.post<AuthResponse>('/auth/register', data);
-    return response.data;
+    const response = await api.post<BackendRegisterResponse>('/auth/register', data);
+    // Transform backend response to frontend format
+    return {
+      user: response.data.data.user,
+      access_token: response.data.data.token.access_token,
+      refresh_token: response.data.data.token.refresh_token,
+    };
   },
 
   logout: async (): Promise<void> => {
@@ -50,8 +88,8 @@ export const authApi = {
   },
 
   getProfile: async (): Promise<User> => {
-    const response = await api.get<User>('/auth/profile');
-    return response.data;
+    const response = await api.get<{ success: boolean; data: User }>('/users/me');
+    return response.data.data;
   },
 
   // REMOVED: Legacy method that injected token in request body

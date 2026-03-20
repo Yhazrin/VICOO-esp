@@ -22,6 +22,7 @@
           class="cart-item__image sepia-image"
           src="{{item.image_url}}"
           mode="aspectFill"
+          alt="{{item.title}}"
           data-id="{{item.id}}"
           bindtap="onItemTap"
         />

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select, func
+from sqlalchemy import select, func, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from decimal import Decimal
 from datetime import datetime
@@ -139,15 +139,32 @@ async def create_donation(body: DonationCreate, db: AsyncSession = Depends(get_d
     Returns donation data plus WeChat payment parameters if payment_method is 'wechat'.
     """
     try:
-        donation = Donation(**body.model_dump())
+        # Enforce 2 decimal precision for amount
+        body.amount = body.amount.quantize(Decimal("0.00"))
+        # Ensure donor_user_id is populated for ownership verification
+        # even if the request body doesn't include it
+        body_data = body.model_dump()
+        if body_data.get("donor_user_id") is None:
+            body_data["donor_user_id"] = current_user["id"]
+
+        donation = Donation(**body_data)
         db.add(donation)
-        # Update campaign amount if applicable
+
+        # Update campaign amount if applicable using atomic UPDATE to prevent race conditions
         if body.campaign_id:
-            stmt = select(Campaign).where(Campaign.id == body.campaign_id)
+            # Use atomic UPDATE with WHERE clause and RETURNING to safely increment
+            stmt = (
+                update(Campaign)
+                .where(Campaign.id == body.campaign_id)
+                .values(current_amount=Campaign.current_amount + body.amount)
+                .returning(Campaign.current_amount)
+            )
             result = await db.execute(stmt)
-            campaign = result.scalar_one_or_none()
-            if campaign:
-                campaign.current_amount = (campaign.current_amount or 0) + body.amount
+            updated_amount = result.scalar_one_or_none()
+            if updated_amount is None:
+                # Campaign might not exist, but donation should still be created
+                pass
+
         await db.flush()
 
         # Prepare response data
@@ -168,10 +185,26 @@ async def create_donation(body: DonationCreate, db: AsyncSession = Depends(get_d
         return ApiResponse(data=response_data)
     except Exception:
         new_id = max(d["id"] for d in _mock_donations) + 1 if _mock_donations else 1
+        # Round amount to 2 decimal places to match DB DECIMAL(12, 2) behavior
+        body_dump = body.model_dump(mode="json")
+        # Ensure donor_user_id is populated in mock data as well
+        if body_dump.get("donor_user_id") is None:
+            body_dump["donor_user_id"] = current_user["id"]
+
+        if isinstance(body_dump.get("amount"), str):
+             # Ensure we handle string representation if any
+             try:
+                 body_dump["amount"] = str(Decimal(body_dump["amount"]).quantize(Decimal("0.00")))
+             except:
+                 pass
+        else:
+             # Should be Decimal, quantize it
+             body_dump["amount"] = str(body_dump["amount"].quantize(Decimal("0.00")))
+
         new_donation = {
             "id": new_id,
             "donationId": new_id,  # Add camelCase alias for frontend
-            **body.model_dump(mode="json"),
+            **body_dump,
             "payment_id": None,
             "status": "pending",
             "created_at": "2025-06-01T00:00:00",
@@ -211,6 +244,7 @@ async def get_donation_certificate(donation_id: int, db: AsyncSession = Depends(
             "date": donation.created_at.isoformat() if donation.created_at else None,
             "campaign_id": donation.campaign_id,
             "certificate_no": f"TH-DON-{donation.id:06d}",
+            "certificate_url": f"/api/v1/donations/{donation.id}/certificate",
         })
     except HTTPException:
         raise
@@ -227,5 +261,6 @@ async def get_donation_certificate(donation_id: int, db: AsyncSession = Depends(
                     "date": d["created_at"],
                     "campaign_id": d.get("campaign_id"),
                     "certificate_no": f"TH-DON-{d['id']:06d}",
+                    "certificate_url": f"/api/v1/donations/{d['id']}/certificate",
                 })
         raise HTTPException(status_code=404, detail="Donation not found")

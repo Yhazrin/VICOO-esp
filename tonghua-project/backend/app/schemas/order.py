@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 class OrderItemCreate(BaseModel):
     product_id: int = Field(..., description="Product ID to order")
     quantity: int = Field(1, ge=1, le=999, description="Quantity to order")
-    price: Decimal = Field(..., gt=0, description="Unit price at time of order")
+    price: Optional[Decimal] = Field(None, gt=0, description="Unit price (ignored - server uses database price for security)")
 
 
 class OrderCreate(BaseModel):

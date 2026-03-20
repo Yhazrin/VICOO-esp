@@ -89,61 +89,61 @@ async def seed():
         # ── Child Participants ───────────────────────────────────
         print("Seeding child participants...")
         children = [
-            ChildParticipant(
+            ChildParticipant.create_with_encryption(
                 child_name="小明", display_name="小小画家", age=10,
                 guardian_name="李建国", region="云南大理", school="大理希望小学",
                 consent_given=True, consent_date=datetime(2025, 1, 15),
                 artwork_count=3, status="active",
             ),
-            ChildParticipant(
+            ChildParticipant.create_with_encryption(
                 child_name="小红", display_name="彩虹小画家", age=8,
                 guardian_name="张秀英", region="贵州遵义", school="遵义阳光小学",
                 consent_given=True, consent_date=datetime(2025, 1, 20),
                 artwork_count=2, status="active",
             ),
-            ChildParticipant(
+            ChildParticipant.create_with_encryption(
                 child_name="小丽", display_name="丽丽的画笔", age=11,
                 guardian_name="王大伟", region="甘肃定西", school="定西育才小学",
                 consent_given=True, consent_date=datetime(2025, 2, 1),
                 artwork_count=4, status="active",
             ),
-            ChildParticipant(
+            ChildParticipant.create_with_encryption(
                 child_name="小刚", display_name="星空少年", age=12,
                 guardian_name="刘芳", region="河南信阳", school="信阳实验小学",
                 consent_given=True, consent_date=datetime(2025, 2, 10),
                 artwork_count=2, status="active",
             ),
-            ChildParticipant(
+            ChildParticipant.create_with_encryption(
                 child_name="小雨", display_name="雨滴画室", age=9,
                 guardian_name="陈志明", region="四川凉山", school="凉山公益小学",
                 consent_given=True, consent_date=datetime(2025, 2, 15),
                 artwork_count=3, status="active",
             ),
-            ChildParticipant(
+            ChildParticipant.create_with_encryption(
                 child_name="小芳", display_name="芳芳的小世界", age=10,
                 guardian_name="赵刚", region="湖南湘西", school="湘西育苗小学",
                 consent_given=True, consent_date=datetime(2025, 2, 20),
                 artwork_count=1, status="active",
             ),
-            ChildParticipant(
+            ChildParticipant.create_with_encryption(
                 child_name="小杰", display_name="杰杰的画廊", age=7,
                 guardian_name="孙丽", region="江西赣州", school="赣州希望小学",
                 consent_given=True, consent_date=datetime(2025, 3, 1),
                 artwork_count=1, status="active",
             ),
-            ChildParticipant(
+            ChildParticipant.create_with_encryption(
                 child_name="小雪", display_name="雪地精灵", age=9,
                 guardian_name="周明", region="黑龙江齐齐哈尔", school="齐齐哈尔公益小学",
                 consent_given=True, consent_date=datetime(2025, 3, 5),
                 artwork_count=1, status="active",
             ),
-            ChildParticipant(
+            ChildParticipant.create_with_encryption(
                 child_name="小海", display_name="海的那边", age=11,
                 guardian_name="吴强", region="海南文昌", school="文昌公益小学",
                 consent_given=True, consent_date=datetime(2025, 3, 10),
                 artwork_count=1, status="active",
             ),
-            ChildParticipant(
+            ChildParticipant.create_with_encryption(
                 child_name="小花", display_name="花田守望者", age=8,
                 guardian_name="郑梅", region="广西百色", school="百色希望小学",
                 consent_given=True, consent_date=datetime(2025, 3, 15),

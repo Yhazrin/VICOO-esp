@@ -7,9 +7,7 @@ Page({
     userInfo: null,
     menuItems: [
       { id: "orders", title: "My Orders", icon: "orders", desc: "View all orders" },
-      { id: "donations", title: "My Donations", icon: "donate", desc: "Donation records" },
-      { id: "artworks", title: "My Artworks", icon: "art", desc: "Uploaded artworks" },
-      { id: "settings", title: "Settings", icon: "settings", desc: "Account settings" }
+      { id: "donations", title: "My Donations", icon: "donate", desc: "Donation records" }
     ]
   },
 
@@ -27,10 +25,10 @@ Page({
   },
 
   checkLoginStatus: function () {
-    // Server handles session via httpOnly cookies
-    // For now, always show as logged in
+    // Use auth.checkLogin() to determine login status
+    // This checks app.globalData.userInfo which is set by ensureLogin()
     this.setData({
-      isLoggedIn: true,
+      isLoggedIn: auth.checkLogin(),
       userInfo: app.globalData.userInfo
     });
   },
@@ -56,9 +54,7 @@ Page({
     }
     var routes = {
       orders: "/pages/user/orders/index",
-      donations: "/pages/user/donations/index",
-      artworks: "/pages/user/artworks/index",
-      settings: "/pages/user/settings/index"
+      donations: "/pages/user/donations/index"
     };
     if (routes[id]) {
       wx.navigateTo({ url: routes[id] });

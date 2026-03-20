@@ -1,7 +1,7 @@
 <view class="page-container">
   <loading loading="{{loading}}" />
   <view wx:if="{{artwork && \!loading}}">
-    <image class="detail-image sepia-image" src="{{artwork.imageUrl}}" mode="widthFix" />
+    <image class="detail-image sepia-image" src="{{artwork.imageUrl}}" mode="widthFix" alt="{{artwork.title}}" />
     <view class="detail-info">
       <text class="editorial-title detail-title">{{artwork.title}}</text>
       <text class="editorial-caption">\u4F5C\u8005: {{artwork.childDisplayName}}</text>

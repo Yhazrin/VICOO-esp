@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import Header from './Header';
-import Footer from './Footer';
+import EditorialFooter from './EditorialFooter';
 import MobileNav from './MobileNav';
 
 export default function Layout() {
@@ -11,7 +11,7 @@ export default function Layout() {
       <main className="flex-1 pt-16 md:pt-20">
         <Outlet />
       </main>
-      <Footer />
+      <EditorialFooter />
     </div>
   );
 }

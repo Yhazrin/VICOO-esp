@@ -7,6 +7,7 @@ import SectionContainer from '@/components/layout/SectionContainer';
 import EditorialHero from '@/components/editorial/EditorialHero';
 import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeading';
 import ProductCard from '@/components/editorial/ProductCard';
+import VintageSelect from '@/components/editorial/VintageSelect';
 import { productsApi } from '@/services/products';
 import type { Product } from '@/types';
 
@@ -147,21 +148,26 @@ export default function Shop() {
         number="06"
         title={t('shop.hero.title')}
         subtitle={t('shop.hero.subtitle')}
+        hideHero={true}
       />
 
-      <SectionContainer>
+      <SectionContainer noTopSpacing>
         <NumberedSectionHeading number="01" title="Collection" />
 
         {/* Filters and sort row */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
           {/* Category filter */}
           <div className="flex items-center gap-1 border-b border-warm-gray/30 overflow-x-auto flex-1">
-            {categories.map((cat) => (
-              <button
+            {categories.map((cat, index) => (
+              <motion.button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                whileHover={{ y: -2 }}
                 className={`
-                  font-body text-xs tracking-[0.15em] uppercase px-4 py-3 transition-all duration-200 border-b-2 -mb-px whitespace-nowrap
+                  font-body text-xs tracking-[0.15em] uppercase px-4 py-3 transition-all duration-200 border-b-2 -mb-px whitespace-nowrap relative
                   ${activeCategory === cat
                     ? 'border-rust text-rust'
                     : 'border-transparent text-sepia-mid hover:text-ink'
@@ -169,26 +175,26 @@ export default function Shop() {
                 `}
               >
                 {t(`shop.filters.${cat}`)}
-              </button>
+                {activeCategory === cat && (
+                  <motion.span
+                    layoutId="category-indicator"
+                    className="absolute bottom-0 left-0 right-0 h-px bg-rust"
+                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                  />
+                )}
+              </motion.button>
             ))}
           </div>
 
           {/* Sort */}
           <div className="flex items-center gap-3 flex-shrink-0">
-            <span className="font-body text-[10px] text-sepia-mid tracking-[0.2em] uppercase">
-              {t('shop.sort.label')}
-            </span>
-            <select
+            <VintageSelect
+              label={t('shop.sort.label')}
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortOption)}
-              className="font-body text-xs text-ink bg-transparent border-b border-warm-gray/40 focus:border-rust py-1 pr-6 appearance-none cursor-pointer transition-colors"
-            >
-              {sortOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+              options={sortOptions}
+              className="w-auto"
+            />
           </div>
         </div>
 
@@ -222,9 +228,18 @@ export default function Shop() {
 
       {/* Sustainability note */}
       <SectionContainer>
-        <div className="border-t border-warm-gray/30 pt-12 mt-8">
+        <div className="border-t border-warm-gray/30 pt-12 mt-8 relative">
+          {/* Decorative corner accents */}
+          <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-rust/30 pointer-events-none" />
+          <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-rust/30 pointer-events-none" />
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
               <span className="font-body text-caption text-sepia-mid tracking-[0.2em]">
                 01
               </span>
@@ -234,8 +249,13 @@ export default function Shop() {
               <p className="font-body text-xs text-ink-faded leading-relaxed">
                 All fabrics are GOTS-certified organic cotton or recycled polyester.
               </p>
-            </div>
-            <div>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
               <span className="font-body text-caption text-sepia-mid tracking-[0.2em]">
                 02
               </span>
@@ -245,8 +265,13 @@ export default function Shop() {
               <p className="font-body text-xs text-ink-faded leading-relaxed">
                 Fair wages, safe conditions, full supply chain transparency.
               </p>
-            </div>
-            <div>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
               <span className="font-body text-caption text-sepia-mid tracking-[0.2em]">
                 03
               </span>
@@ -256,7 +281,7 @@ export default function Shop() {
               <p className="font-body text-xs text-ink-faded leading-relaxed">
                 Every product's carbon footprint is calculated and offset.
               </p>
-            </div>
+            </motion.div>
           </div>
         </div>
       </SectionContainer>

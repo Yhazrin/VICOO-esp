@@ -64,6 +64,14 @@ Page({
           fail: function() {
             self.setData({ submitting: false });
             wx.showToast({ title: '支付取消', icon: 'none' });
+          },
+          complete: function() {
+            // Ensure UI state is properly updated regardless of success/fail
+            // This callback is called after success or fail
+            if (!self.data.showResult) {
+              // If success/fail didn't set the result (shouldn't happen, but safety check)
+              self.setData({ submitting: false });
+            }
           }
         });
       }).catch(function() {

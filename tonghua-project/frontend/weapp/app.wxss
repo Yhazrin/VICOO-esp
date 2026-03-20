@@ -3,7 +3,7 @@
 page {
   font-family: -apple-system, BlinkMacSystemFont, `IBM Plex Mono`, `PingFang SC`, `Microsoft YaHei`, sans-serif;
   background-color: #F5F0E8;
-  color: #3A3226;
+  color: #1A1A16;
   font-size: 28rpx;
   line-height: 1.6;
 }
@@ -16,7 +16,7 @@ page {
 .editorial-title {
   font-family: `Playfair Display`, `PingFang SC`, serif;
   font-weight: 700;
-  color: #2C1810;
+  color: #5C4033;
   letter-spacing: 0.02em;
 }
 
@@ -29,7 +29,7 @@ page {
 }
 
 .sepia-image {
-  filter: sepia(30%) contrast(95%);
+  filter: sepia(0.2) contrast(1.05) brightness(0.97);
 }
 
 .grain-overlay {
@@ -52,7 +52,7 @@ page {
 }
 
 .btn-primary {
-  background-color: #2C1810;
+  background-color: #8B3A2A;
   color: #F5F0E8;
   font-family: `IBM Plex Mono`, monospace;
   font-size: 24rpx;
@@ -63,11 +63,11 @@ page {
 
 .btn-secondary {
   background-color: transparent;
-  color: #2C1810;
+  color: #8B3A2A;
   font-family: `IBM Plex Mono`, monospace;
   font-size: 24rpx;
   padding: 18rpx 38rpx;
-  border: 2rpx solid #2C1810;
+  border: 2rpx solid #8B3A2A;
   letter-spacing: 0.05em;
 }
 
@@ -98,11 +98,11 @@ page {
   border: 2rpx solid #C4B5A1;
   font-family: `IBM Plex Mono`, monospace;
   font-size: 28rpx;
-  color: #3A3226;
+  color: #1A1A16;
 }
 
 .amount-btn.active {
-  background-color: #2C1810;
+  background-color: #8B3A2A;
   color: #F5F0E8;
-  border-color: #2C1810;
+  border-color: #8B3A2A;
 }

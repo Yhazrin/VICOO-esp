@@ -26,10 +26,12 @@ export default function LoginPage() {
         throw new Error(data.message || '用户名或密码错误');
       }
       const data = await response.json();
-      // Handle both camelCase and snake_case responses
-      const accessToken = data.access_token || data.accessToken;
-      const refreshToken = data.refresh_token || data.refreshToken;
-      login(data.user, accessToken, refreshToken);
+      // Handle response structure: { success: true, data: { user: {...}, token: { access_token, refresh_token } } }
+      const userData = data.data?.user || data.user;
+      const tokenData = data.data?.token || data.token || data;
+      const accessToken = tokenData.access_token || tokenData.accessToken;
+      const refreshToken = tokenData.refresh_token || tokenData.refreshToken;
+      login(userData, accessToken, refreshToken);
       toast.success('登录成功');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : '登录失败，请重试';

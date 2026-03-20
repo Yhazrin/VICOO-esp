@@ -19,6 +19,31 @@ function addRefreshSubscriber(cb: (token: string) => void) {
   refreshSubscribers.push(cb);
 }
 
+/**
+ * Generate HMAC-SHA256 signature for request authentication
+ */
+async function generateSignature(method: string, path: string, timestamp: string, nonce: string, body: string): Promise<string> {
+  // Use the same secret key as the backend
+  const secretKey = import.meta.env.VITE_API_SECRET_KEY || 'your-secret-key';
+
+  // Build the string to sign: method + "\n" + path + "\n" + timestamp + "\n" + nonce + "\n" + body
+  const stringToSign = `${method}\n${path}\n${timestamp}\n${nonce}\n${body}`;
+
+  // Generate HMAC-SHA256 signature
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secretKey),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+
+  const signatureBuffer = await crypto.subtle.sign('HMAC', key, encoder.encode(stringToSign));
+  const signatureArray = Array.from(new Uint8Array(signatureBuffer));
+  return signatureArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 export const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 15000,
@@ -27,6 +52,40 @@ export const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// Request interceptor — add access token and security headers
+api.interceptors.request.use(
+  async (config) => {
+    // Get access token from auth store
+    const { accessToken } = useAuthStore.getState();
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
+    }
+
+    // Add security headers for request signing
+    const timestamp = Math.floor(Date.now() / 1000).toString();
+    const nonce = crypto.randomUUID();
+
+    // Get request body for signing
+    const body = config.data ? (typeof config.data === 'string' ? config.data : JSON.stringify(config.data)) : '';
+
+    // Generate signature
+    const signature = await generateSignature(
+      config.method?.toUpperCase() || 'GET',
+      config.url || '',
+      timestamp,
+      nonce,
+      body
+    );
+
+    config.headers['X-Signature'] = signature;
+    config.headers['X-Timestamp'] = timestamp;
+    config.headers['X-Nonce'] = nonce;
+
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 // Response interceptor — handle token refresh on 401
 api.interceptors.response.use(
@@ -48,13 +107,19 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        await axios.post(
+        const refreshResponse = await axios.post(
           `${API_BASE_URL}/auth/refresh`,
           {},
           { withCredentials: true }
         );
+        // The new access token is in the response body
+        // The new refresh token is set as an httpOnly cookie by the server
+        const { access_token } = refreshResponse.data.data;
+        // Update the access token in memory (via auth store)
+        // Note: We don't store the refresh token in memory - it's in the httpOnly cookie
+        useAuthStore.getState().setAccessToken(access_token);
         isRefreshing = false;
-        onRefreshed('refreshed');
+        onRefreshed(access_token);
         return api(originalRequest);
       } catch {
         isRefreshing = false;

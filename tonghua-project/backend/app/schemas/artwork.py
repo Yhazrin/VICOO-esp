@@ -42,6 +42,20 @@ class ArtworkListItem(BaseModel):
     model_config = {"from_attributes": True, "populate_by_name": True}
 
 
+class ChildParticipantForArtwork(BaseModel):
+    """Child participant data for artwork (frontend-compatible format)"""
+    id: str
+    firstName: str
+    age: int
+    guardianId: Optional[str] = None
+    schoolName: Optional[str] = None
+    consentGiven: bool
+    consentDate: Optional[str] = None
+    status: Optional[str] = None
+
+    model_config = {"from_attributes": True, "populate_by_name": True}
+
+
 class ArtworkOut(BaseModel):
     id: int
     title: str
@@ -49,6 +63,7 @@ class ArtworkOut(BaseModel):
     image_url: str
     thumbnail_url: Optional[str] = None
     child_participant_id: Optional[int] = None
+    childParticipant: Optional[ChildParticipantForArtwork] = None
     artist_name: str
     status: str
     vote_count: int = Field(alias="like_count")

@@ -15,7 +15,7 @@
         <text class="image-picker__hint">支持 JPG/PNG，建议不超过 5MB</text>
       </view>
       <view class="image-preview" wx:if="{{imagePath}}">
-        <image class="image-preview__img sepia-image" src="{{imagePath}}" mode="aspectFit" />
+        <image class="image-preview__img sepia-image" src="{{imagePath}}" mode="aspectFit" alt="Selected image" />
         <view class="image-preview__remove" bindtap="onRemoveImage">
           <text>x</text>
         </view>

@@ -8,6 +8,7 @@ import EditorialHero from '@/components/editorial/EditorialHero';
 import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeading';
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
+import { VintageInput } from '@/components/editorial/VintageInput';
 
 type Category = 'all' | 'impact' | 'fashion' | 'community' | 'education';
 
@@ -90,17 +91,22 @@ export default function Stories() {
         number="04"
         title={t('stories.hero.title')}
         subtitle={t('stories.hero.subtitle')}
+        hideHero={true}
       />
 
-      <SectionContainer>
+      <SectionContainer noTopSpacing>
         {/* Category filter */}
         <div className="flex items-center gap-1 mb-12 border-b border-warm-gray/30 overflow-x-auto">
           {categories.map((cat, index) => (
-            <button
+            <motion.button
               key={cat}
               onClick={() => setActiveCategory(cat)}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+              whileHover={{ y: -2 }}
               className={`
-                font-body text-xs tracking-[0.15em] uppercase px-4 py-3 transition-all duration-200 border-b-2 -mb-px whitespace-nowrap
+                font-body text-xs tracking-[0.15em] uppercase px-4 py-3 transition-all duration-200 border-b-2 -mb-px whitespace-nowrap relative
                 ${activeCategory === cat
                   ? 'border-rust text-rust'
                   : 'border-transparent text-sepia-mid hover:text-ink'
@@ -111,7 +117,14 @@ export default function Stories() {
                 {String(index + 1).padStart(2, '0')}
               </span>
               {t(`stories.categories.${cat}`)}
-            </button>
+              {activeCategory === cat && (
+                <motion.span
+                  layoutId="story-category-indicator"
+                  className="absolute bottom-0 left-0 right-0 h-px bg-rust"
+                  transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                />
+              )}
+            </motion.button>
           ))}
         </div>
 
@@ -208,13 +221,13 @@ export default function Stories() {
               title={t('stories.newsletter.title')}
               subtitle={t('stories.newsletter.subtitle')}
             />
-            <div className="mt-8 flex items-center border-b border-warm-gray/40 focus-within:border-rust transition-colors max-w-md mx-auto">
-              <input
+            <div className="mt-8 flex items-center gap-4 max-w-md mx-auto border-b border-warm-gray/40 pb-2">
+              <VintageInput
                 type="email"
                 placeholder={t('stories.newsletter.placeholder')}
-                className="flex-1 font-body text-sm bg-transparent py-3 focus:outline-none text-ink placeholder:text-warm-gray"
+                className="flex-1"
               />
-              <button className="font-body text-xs tracking-[0.15em] uppercase text-rust hover:text-ink transition-colors ml-4 flex-shrink-0">
+              <button className="font-body text-xs tracking-[0.15em] uppercase text-rust hover:text-ink transition-colors flex-shrink-0">
                 {t('stories.newsletter.subscribe')} &rarr;
               </button>
             </div>

@@ -1,20 +1,29 @@
 import logging
 import time
+import re
 from contextlib import asynccontextmanager
+from typing import Optional
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 
 from app.config import settings
 from app.database import engine, Base, AsyncSessionLocal
-from app.deps import rate_limit_check, get_current_user_from_request
+from app.deps import rate_limit_check, get_current_user_from_request, verify_request_signature
+
+# Maximum allowed request body size (10 MB)
+MAX_REQUEST_BODY_SIZE = 10 * 1024 * 1024
 
 logger = logging.getLogger("tonghua")
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format="%(asctime)s %(levelname)s %(name)s - %(message)s",
 )
+# Ensure all "tonghua" loggers propagate and use the same level
+logging.getLogger("tonghua").setLevel(logging.DEBUG)
+logging.getLogger("tonghua.auth").setLevel(logging.DEBUG)
 
 
 @asynccontextmanager
@@ -37,30 +46,157 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS
+# Security: Only allow specific hosts
+# Configure allowed hosts via CORS_ORIGINS or add a dedicated setting
+# TrustedHostMiddleware expects hostnames (with optional port), e.g., "example.com" or "localhost:8000"
+def extract_host(url: str) -> str:
+    """Extract host:port from a URL or host string."""
+    url = url.strip()
+    if "://" in url:
+        # Remove scheme (e.g., "https://") and path
+        netloc = url.split("://", 1)[1].split("/", 1)[0]
+    else:
+        # No scheme, assume it's just host:port or domain
+        netloc = url.split("/", 1)[0]
+    return netloc
+
+allowed_hosts = [extract_host(origin) for origin in settings.CORS_ORIGINS]
+# Add localhost and localhost:8081 for development
+allowed_hosts.extend(["localhost", "localhost:8081", "localhost:8080", "127.0.0.1", "127.0.0.1:8081"])
+# Remove duplicates
+allowed_hosts = list(set(allowed_hosts))
+if not allowed_hosts:
+    allowed_hosts = ["localhost"]
+logger.info(f"Allowed hosts: {allowed_hosts}")
+# Temporarily disable TrustedHostMiddleware for development
+# app.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)
+
+# CORS - Restrict to specific origins (no wildcard)
+logger.info(f"CORS Origins: {settings.CORS_ORIGINS}")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+        "X-Requested-With",
+        "X-Signature",
+        "X-Timestamp",
+    ],
 )
+
+
+# ── Request size limit middleware ─────────────────────────────────
+@app.middleware("http")
+async def request_size_limit_middleware(request: Request, call_next):
+    """Limit request body size to prevent DoS attacks."""
+    content_length = request.headers.get("content-length")
+    if content_length:
+        try:
+            size = int(content_length)
+            if size > MAX_REQUEST_BODY_SIZE:
+                return JSONResponse(
+                    status_code=413,
+                    content={
+                        "success": False,
+                        "data": None,
+                        "message": "Request body too large",
+                    },
+                )
+        except ValueError:
+            pass
+    response = await call_next(request)
+    return response
+
+
+# ── Signature verification middleware ─────────────────────────────────
+@app.middleware("http")
+async def signature_verification_middleware(request: Request, call_next):
+    """Verify request signature using HMAC-SHA256.
+
+    This middleware validates:
+    1. X-Signature header (HMAC-SHA256 signature)
+    2. X-Timestamp header (prevents request replay)
+    3. X-Nonce header (prevents replay attacks)
+
+    Only applies to API endpoints (/api/*) except public auth endpoints.
+    """
+    # Skip signature verification for non-API endpoints
+    if not request.url.path.startswith("/api/"):
+        return await call_next(request)
+
+    # Skip signature verification for public auth endpoints
+    public_endpoints = [
+        "/api/v1/auth/login",
+        "/api/v1/auth/register",
+        "/api/v1/auth/refresh",
+        "/api/v1/auth/wx-login",
+        "/api/v1/auth/logout",
+    ]
+    if request.url.path in public_endpoints:
+        return await call_next(request)
+
+    # Skip signature verification in testing environment
+    if settings.TESTING == "1":
+        return await call_next(request)
+
+    # Verify signature
+    is_valid, error_message = await verify_request_signature(request)
+
+    if not is_valid:
+        return JSONResponse(
+            status_code=401,
+            content={
+                "success": False,
+                "data": None,
+                "message": error_message,
+            },
+        )
+
+    # Signature verified, continue processing
+    response = await call_next(request)
+    return response
 
 
 # ── Rate Limiting middleware (applied before logging) ────────────
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
-    # Apply rate limiting (skip for health check endpoint)
-    if request.url.path != "/health":
+    # Apply rate limiting (skip for health check endpoint and testing)
+    testing = settings.TESTING
+    logger.info(f"Rate limit middleware: path={request.url.path}, TESTING={testing}, type={type(testing)}")
+    # Skip rate limiting for health check and when TESTING=1
+    if request.url.path == "/health" or testing == "1":
+        logger.info(f"Rate limit middleware: Skipping rate limiting (path={request.url.path}, testing={testing})")
+    else:
+        logger.info(f"Rate limit middleware: Applying rate limiting")
         try:
             # Create DB session for user extraction
             async with AsyncSessionLocal() as db:
                 current_user = await get_current_user_from_request(request, db)
                 await rate_limit_check(request, current_user)
+        except HTTPException:
+            # Re-raise rate limit errors (429) or auth errors (401)
+            raise
         except Exception:
-            # If rate limiting fails, let the request continue (fails open)
+            # Fail open if DB connection or other system errors occur
             pass
     response = await call_next(request)
+    return response
+
+
+# ── Security headers middleware ───────────────────────────────────
+@app.middleware("http")
+async def security_headers_middleware(request: Request, call_next):
+    response = await call_next(request)
+    # Content Security Policy
+    # Note: This is restrictive; adjust if serving specific assets or headers.
+    response.headers["Content-Security-Policy"] = "default-src 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     return response
 
 
@@ -77,6 +213,10 @@ async def request_logging_middleware(request: Request, call_next):
         elapsed,
         response.status_code,
     )
+    # Log Set-Cookie headers for debugging
+    set_cookie_headers = [v for k, v in response.headers.items() if k.lower() == "set-cookie"]
+    if set_cookie_headers:
+        logger.info(f"Set-Cookie headers: {set_cookie_headers}")
     response.headers["X-Process-Time"] = f"{elapsed:.3f}"
     return response
 
@@ -140,4 +280,4 @@ app.include_router(supply_chain_router, prefix="/api/v1")
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8080, reload=True)

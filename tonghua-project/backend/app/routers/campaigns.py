@@ -11,6 +11,7 @@ from app.deps import require_role
 
 router = APIRouter(prefix="/campaigns", tags=["Campaigns"])
 
+# Use Decimal objects for amounts to match CampaignOut schema
 _mock_campaigns = [
     {
         "id": 1,
@@ -19,8 +20,8 @@ _mock_campaigns = [
         "cover_image": "/static/campaigns/campaign1.jpg",
         "start_date": "2025-03-01T00:00:00",
         "end_date": "2025-06-30T23:59:59",
-        "goal_amount": "50000.00",
-        "current_amount": "32500.00",
+        "goal_amount": Decimal("50000.00"),
+        "current_amount": Decimal("32500.00"),
         "status": "active",
         "participant_count": 150,
         "artwork_count": 8,
@@ -33,8 +34,8 @@ _mock_campaigns = [
         "cover_image": "/static/campaigns/campaign2.jpg",
         "start_date": "2025-07-01T00:00:00",
         "end_date": "2025-10-31T23:59:59",
-        "goal_amount": "80000.00",
-        "current_amount": "15000.00",
+        "goal_amount": Decimal("80000.00"),
+        "current_amount": Decimal("15000.00"),
         "status": "active",
         "participant_count": 95,
         "artwork_count": 7,
@@ -47,8 +48,8 @@ _mock_campaigns = [
         "cover_image": "/static/campaigns/campaign3.jpg",
         "start_date": "2025-11-01T00:00:00",
         "end_date": "2026-02-28T23:59:59",
-        "goal_amount": "100000.00",
-        "current_amount": "8500.00",
+        "goal_amount": Decimal("100000.00"),
+        "current_amount": Decimal("8500.00"),
         "status": "active",
         "participant_count": 60,
         "artwork_count": 5,
@@ -91,6 +92,25 @@ async def list_campaigns(
             page=page,
             page_size=page_size,
         )
+
+
+@router.get("/active", response_model=ApiResponse)
+async def get_active_campaign(db: AsyncSession = Depends(get_db)):
+    """Get the current active campaign."""
+    try:
+        stmt = select(Campaign).where(Campaign.status == "active").order_by(Campaign.created_at.desc())
+        result = await db.execute(stmt)
+        campaign = result.scalar_one_or_none()
+        if not campaign:
+            raise HTTPException(status_code=404, detail="No active campaign found")
+        return ApiResponse(data=CampaignOut.model_validate(campaign).model_dump())
+    except HTTPException:
+        raise
+    except Exception:
+        for c in _mock_campaigns:
+            if c["status"] == "active":
+                return ApiResponse(data=c)
+        raise HTTPException(status_code=404, detail="No active campaign found")
 
 
 @router.get("/{campaign_id}", response_model=ApiResponse)

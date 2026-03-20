@@ -15,7 +15,8 @@ val LightSand = Color(0xFFF0E9D8)
 
 // ---- Accent ----
 val DeepSepia = Color(0xFF8B6914)
-val BurntSienna = Color(0xFFA0522D)
+val BurntSienna = Color(0xFF8B3A2A) // Matches --color-rust
+val ArchiveBrown = Color(0xFF5C4033) // Matches --color-archive-brown
 val Terracotta = Color(0xFFCC7755)
 val MutedGold = Color(0xFFBFA054)
 

@@ -12,7 +12,7 @@ export default {
         'warm-gray': '#D4CFC4',
         'ink': '#1A1A16',
         'ink-faded': '#4A4540',
-        'sepia-mid': '#7A6A58',
+        'sepia-mid': '#5C4D3D',
         'rust': '#8B3A2A',
         'archive-brown': '#5C4033',
         'pale-gold': '#C4A45A',

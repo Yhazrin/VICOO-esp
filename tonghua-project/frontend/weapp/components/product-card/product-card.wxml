@@ -1,10 +1,10 @@
 <view class="product-card" bindtap="onTap">
-  <image class="product-img sepia-image" src="{{product.imageUrl}}" mode="aspectFill" lazy-load />
+  <image class="product-img sepia-image" src="{{product.imageUrl}}" mode="aspectFill" lazy-load alt="{{product.name}}" />
   <view class="product-info">
     <text class="product-name">{{product.name}}</text>
     <text class="product-source editorial-caption">\u6765\u81EA: {{product.sourceArtworkTitle}}</text>
     <view class="product-bottom">
-      <text class="product-price">¥{{product.price}}</text>
+      <text class="product-price">ï¿½{{product.price}}</text>
       <view class="add-cart-btn" catchtap="onAddCart">+</view>
     </view>
   </view>

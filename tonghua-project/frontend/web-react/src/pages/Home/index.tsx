@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
@@ -8,6 +9,7 @@ import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeadin
 import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import ImpactCounter from '@/components/editorial/ImpactCounter';
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
+import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 
 export default function Home() {
   const { t } = useTranslation();
@@ -102,17 +104,43 @@ export default function Home() {
             'https://images.unsplash.com/photo-1560421683-6856ea585c78?w=400&q=80',
             'https://images.unsplash.com/photo-1596464716127-f2a82984de30?w=400&q=80',
             'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=400&q=80',
-          ].map((src, i) => (
-            <div key={i} className="relative aspect-square overflow-hidden border border-warm-gray/40 bg-aged-stock group">
-              <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/5 via-transparent to-archive-brown/5" />
-              <img
-                src={src}
-                alt={`Children's artwork ${i + 1}`}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                loading="lazy"
-              />
-            </div>
-          ))}
+          ].map((src, i) => {
+            const [imageLoaded, setImageLoaded] = useState(false);
+            return (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                whileHover={{ y: -4 }}
+                className="relative aspect-square overflow-hidden border-2 border-warm-gray/50 bg-aged-stock group"
+              >
+                {/* Grain overlay */}
+                <div className="absolute inset-0 z-10 pointer-events-none opacity-15" style={{
+                  backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")'
+                }} />
+
+                {/* Sepia frame effect */}
+                <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/8 via-transparent to-archive-brown/8" />
+
+                {/* Decorative corner accents */}
+                <div className="absolute top-2 left-2 w-6 h-6 border-t border-l border-rust/40 z-20 pointer-events-none" />
+                <div className="absolute bottom-2 right-2 w-6 h-6 border-b border-r border-rust/40 z-20 pointer-events-none" />
+
+                {/* Loading skeleton */}
+                {!imageLoaded && <ImageSkeleton className="absolute inset-0" aspectRatio="aspect-square" />}
+
+                <img
+                  src={src}
+                  alt={`Children's artwork ${i + 1}`}
+                  className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 sepia-[0.1] ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                  loading="lazy"
+                  onLoad={() => setImageLoaded(true)}
+                />
+              </motion.div>
+            );
+          })}
         </div>
 
         <div className="mt-8 text-center">

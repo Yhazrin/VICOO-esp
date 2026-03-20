@@ -50,51 +50,69 @@ export default function TraceabilityTimeline({
             />
 
             {/* Card */}
-            <div className="p-6 border border-warm-gray bg-paper transition-colors hover:border-rust/30">
-              <div className="flex justify-between items-start flex-wrap gap-3 mb-3">
-                <h4 className="font-display text-[clamp(18px,2vw,24px)] font-bold text-ink">
-                  {record.stage}
-                </h4>
-                {record.verified && (
-                  <span className="font-body text-[10px] tracking-[0.1em] uppercase px-3 py-1 bg-rust/10 text-rust">
-                    {t('traceability.verified')}
-                  </span>
-                )}
-              </div>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: index * 0.1 }}
+              whileHover={{ y: -2 }}
+              className="relative p-6 border-2 border-rust/30 bg-paper transition-all duration-300 hover:border-rust/50 overflow-hidden"
+            >
+              {/* Grain overlay */}
+              <div className="absolute inset-0 z-10 pointer-events-none opacity-[0.08]" style={{
+                backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")'
+              }} />
 
-              <p className="font-body text-sm text-ink-faded leading-relaxed mb-4">
-                {record.description}
-              </p>
+              {/* Sepia corner accents */}
+              <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-rust/30" />
+              <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-rust/30" />
 
-              <div className="flex flex-wrap gap-6">
-                <div className="font-body text-[11px] text-sepia-mid">
-                  <span className="uppercase tracking-[0.1em]">Location:</span>{' '}
-                  <span className="text-ink-faded font-medium">{record.location}</span>
+              <div className="relative z-20">
+                <div className="flex justify-between items-start flex-wrap gap-3 mb-3">
+                  <h4 className="font-display text-[clamp(18px,2vw,24px)] font-bold text-ink">
+                    {record.stage}
+                  </h4>
+                  {record.verified && (
+                    <span className="font-body text-[10px] tracking-[0.1em] uppercase px-3 py-1 bg-rust/10 text-rust border border-rust/20">
+                      {t('traceability.verified')}
+                    </span>
+                  )}
                 </div>
-                <div className="font-body text-[11px] text-sepia-mid">
-                  <span className="uppercase tracking-[0.1em]">Partner:</span>{' '}
-                  <span className="text-ink-faded font-medium">{record.partnerName}</span>
-                </div>
-                <div className="font-body text-[11px] text-sepia-mid">
-                  <span className="uppercase tracking-[0.1em]">Date:</span>{' '}
-                  <span className="text-ink-faded font-medium">
-                    {new Date(record.date).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                    })}
-                  </span>
-                </div>
-                {record.carbonFootprint !== undefined && (
+
+                <p className="font-body text-sm text-ink-faded leading-relaxed mb-4">
+                  {record.description}
+                </p>
+
+                <div className="flex flex-wrap gap-6">
                   <div className="font-body text-[11px] text-sepia-mid">
-                    <span className="uppercase tracking-[0.1em]">{t('traceability.carbon')}:</span>{' '}
-                    <span className="text-archive-brown font-medium">
-                      {record.carbonFootprint} kg CO2
+                    <span className="uppercase tracking-[0.1em]">Location:</span>{' '}
+                    <span className="text-ink-faded font-medium">{record.location}</span>
+                  </div>
+                  <div className="font-body text-[11px] text-sepia-mid">
+                    <span className="uppercase tracking-[0.1em]">Partner:</span>{' '}
+                    <span className="text-ink-faded font-medium">{record.partnerName}</span>
+                  </div>
+                  <div className="font-body text-[11px] text-sepia-mid">
+                    <span className="uppercase tracking-[0.1em]">Date:</span>{' '}
+                    <span className="text-ink-faded font-medium">
+                      {new Date(record.date).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      })}
                     </span>
                   </div>
-                )}
+                  {record.carbonFootprint !== undefined && (
+                    <div className="font-body text-[11px] text-sepia-mid">
+                      <span className="uppercase tracking-[0.1em]">{t('traceability.carbon')}:</span>{' '}
+                      <span className="text-archive-brown font-medium">
+                        {record.carbonFootprint} kg CO2
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            </motion.div>
           </motion.div>
         ))}
       </div>

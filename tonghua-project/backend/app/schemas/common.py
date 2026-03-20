@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Dict, Generic, List, Optional, TypeVar
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 
 T = TypeVar("T")
 
@@ -25,9 +25,11 @@ class PaginatedResponse(BaseModel, Generic[T]):
 
 # ── Auth ──────────────────────────────────────────────────────────
 class LoginRequest(BaseModel):
-    email: Optional[str] = None
+    email: Optional[EmailStr] = None
     password: Optional[str] = None
-    wechat_code: Optional[str] = None
+    wechat_code: Optional[str] = Field(None, alias="code")
+
+    model_config = {"populate_by_name": True}
 
 
 class RegisterRequest(BaseModel):
@@ -40,7 +42,7 @@ class RegisterRequest(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
-    token_type: str = "bearer"
+    token_type: str = "Bearer"
     expires_in: int
 
 

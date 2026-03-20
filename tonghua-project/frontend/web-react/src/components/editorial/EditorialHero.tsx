@@ -9,6 +9,8 @@ interface EditorialHeroProps {
   number?: string;
   align?: 'left' | 'center';
   fullBleed?: boolean;
+  fullHeight?: boolean; // Use 100vh for pure introduction pages
+  hideHero?: boolean; // Hide hero section for functional pages
 }
 
 export default function EditorialHero({
@@ -18,15 +20,30 @@ export default function EditorialHero({
   number,
   align = 'left',
   fullBleed = true,
+  fullHeight = false,
+  hideHero = false,
 }: EditorialHeroProps) {
   const [ref, isVisible] = useScrollReveal<HTMLDivElement>();
+
+  // For functional pages that hide hero, render nothing (no container)
+  if (hideHero) {
+    return null;
+  }
+
+  // Determine height class based on fullHeight and fullBleed props
+  let heightClass = 'min-h-[50vh] md:min-h-[70vh]';
+  if (fullHeight) {
+    heightClass = 'min-h-screen';
+  } else if (fullBleed) {
+    heightClass = 'min-h-[80vh] md:min-h-screen';
+  }
 
   return (
     <section
       ref={ref}
       className={`
         relative overflow-hidden
-        ${fullBleed ? 'min-h-[80vh] md:min-h-screen' : 'min-h-[50vh] md:min-h-[70vh]'}
+        ${heightClass}
         flex items-end
         ${align === 'center' ? 'text-center justify-center' : ''}
       `}

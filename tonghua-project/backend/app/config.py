@@ -7,6 +7,8 @@ class Settings(BaseSettings):
     APP_NAME: str = "Tonghua API"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
+    APP_ENV: str = "development"  # development, staging, production
+    TESTING: str = "0"  # "1" for testing mode
 
     # Database - Read from env, no default for security
     DATABASE_URL: str
@@ -29,6 +31,7 @@ class Settings(BaseSettings):
     # WeChat
     WECHAT_APP_ID: Optional[str] = None
     WECHAT_APP_SECRET: Optional[str] = None
+    WECHAT_MCH_ID: Optional[str] = None  # WeChat Pay Merchant ID
     WECHAT_PAY_API_KEY: Optional[str] = None  # WeChat Pay API key
     WECHAT_NOTIFY_URL: Optional[str] = None  # WeChat Pay callback URL
 
@@ -46,14 +49,25 @@ class Settings(BaseSettings):
     SEED_ADMIN_PASSWORD: str
     SEED_EDITOR_PASSWORD: str
     SEED_USER_PASSWORD: str
+    MOCK_USER_PASSWORD: str  # Password for mock users in development
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def parse_cors_origins(cls, v):
-        """Parse CORS origins from string (comma-separated) or list."""
+        """Parse CORS origins from string (comma-separated, JSON array, or list)."""
         if isinstance(v, str):
             if v == "*":
                 return ["*"]
+            # Try to parse as JSON array first
+            if v.startswith("[") and v.endswith("]"):
+                try:
+                    import json
+                    parsed = json.loads(v)
+                    if isinstance(parsed, list):
+                        return parsed
+                except json.JSONDecodeError:
+                    pass
+            # Fall back to comma-separated parsing
             return [origin.strip() for origin in v.split(",") if origin.strip()]
         return v
 

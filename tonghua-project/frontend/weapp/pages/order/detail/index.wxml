@@ -10,17 +10,17 @@
     </view>
     <view class="order-items card">
       <view class="order-item" wx:for="{{order.items}}" wx:key="id">
-        <image class="item-img" src="{{item.imageUrl}}" mode="aspectFill" />
+        <image class="item-img" src="{{item.imageUrl}}" mode="aspectFill" alt="{{item.name}}" />
         <view class="item-info">
           <text class="item-name">{{item.name}}</text>
           <text class="item-qty editorial-caption">x {{item.quantity}}</text>
-          <text class="item-price">¥{{item.price}}</text>
+          <text class="item-price">ï¿½{{item.price}}</text>
         </view>
       </view>
     </view>
     <view class="order-info card">
       <view class="info-row"><text class="info-label editorial-caption">\u8BA2\u5355\u53F7</text><text>{{order.orderNo}}</text></view>
-      <view class="info-row"><text class="info-label editorial-caption">\u91D1\u989D</text><text class="info-value">¥{{order.totalAmount}}</text></view>
+      <view class="info-row"><text class="info-label editorial-caption">\u91D1\u989D</text><text class="info-value">ï¿½{{order.totalAmount}}</text></view>
       <view class="info-row"><text class="info-label editorial-caption">\u65F6\u95F4</text><text>{{order.createdAt}}</text></view>
     </view>
     <view class="btn-secondary trace-btn" bindtap="onTraceTap">\u67E5\u770B\u6EAF\u6E90\u4FE1\u606F</view>

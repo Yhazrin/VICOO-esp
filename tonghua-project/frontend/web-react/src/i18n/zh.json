@@ -9,7 +9,13 @@
     "traceability": "溯源",
     "contact": "联系我们",
     "login": "登录",
+    "register": "注册",
+    "profile": "个人中心",
     "logout": "退出"
+  },
+  "profile": {
+    "title": "个人中心",
+    "notLoggedIn": "请登录以查看您的个人资料。"
   },
   "home": {
     "hero": {
@@ -181,6 +187,17 @@
       "title": "财务透明",
       "subtitle": "我们每季度发布财务报告。每一元钱都有记录。",
       "viewReport": "查看最新报告"
+    },
+    "faq": {
+      "title": "常见问题",
+      "q1": "我的捐赠将如何使用？",
+      "a1": "您的捐赠直接用于为儿童提供美术用品、工作坊和可持续材料。我们每季度发布报告，详细说明每一元钱的使用情况。",
+      "q2": "我可以匿名捐赠吗？",
+      "a2": "是的，您可以选择匿名捐赠。您的隐私对我们很重要，我们尊重您的选择。",
+      "q3": "我的捐赠可以抵税吗？",
+      "a3": "是的，所有捐赠给童画公益的款项都可以抵税。您将收到官方收据作为记录。",
+      "q4": "如何追踪我的捐赠影响？",
+      "a4": "您将收到关于您的捐赠如何产生影响的更新。我们还发布季度财务报告，展示所有捐赠的影响。"
     }
   },
   "shop": {
@@ -268,6 +285,23 @@
     "orContinueWith": "或使用以下方式继续",
     "wechat": "微信"
   },
+  "register": {
+    "title": "加入我们的社区",
+    "subtitle": "创建账户，开始您的旅程。",
+    "nickname": "昵称",
+    "email": "邮箱",
+    "password": "密码",
+    "confirmPassword": "确认密码",
+    "submit": "创建账户",
+    "login": "登录",
+    "orContinueWith": "或使用以下方式继续",
+    "wechat": "微信",
+    "alreadyHaveAccount": "已有账户？",
+    "errors": {
+      "passwordMismatch": "密码不匹配",
+      "passwordTooShort": "密码至少需要8个字符"
+    }
+  },
   "notFound": {
     "title": "页面未找到",
     "subtitle": "这个章节似乎从我们的出版物中遗失了。",
@@ -293,6 +327,15 @@
     },
     "copyright": "© 2026 童画公益。保留所有权利。",
     "issueNo": "第01期 — 创刊号"
+  },
+  "artwork": {
+    "detail": {
+      "heading": "作品详情",
+      "artist": "创作者",
+      "vote": "为作品投票",
+      "votes": "票",
+      "tags": "标签"
+    }
   },
   "common": {
     "loading": "加载中...",

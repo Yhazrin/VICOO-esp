@@ -1,5 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, Enum, Text, func
+from sqlalchemy.orm import relationship
 from app.database import Base
+from app.security import aes_encrypt, aes_decrypt
 
 
 class User(Base):
@@ -21,12 +23,12 @@ class ChildParticipant(Base):
     __tablename__ = "child_participants"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    child_name = Column(String(100), nullable=False)
+    child_name = Column(Text, nullable=False)  # AES-256-GCM encrypted
     display_name = Column(String(100), nullable=False)
     age = Column(Integer, nullable=False)
-    guardian_name = Column(String(100), nullable=False)
-    guardian_phone_encrypted = Column(Text, nullable=True)
-    guardian_email_encrypted = Column(Text, nullable=True)
+    guardian_name = Column(Text, nullable=False)  # AES-256-GCM encrypted
+    guardian_phone_encrypted = Column(Text, nullable=True)  # AES-256-GCM encrypted
+    guardian_email_encrypted = Column(Text, nullable=True)  # AES-256-GCM encrypted
     region = Column(String(200), nullable=True)
     school = Column(String(200), nullable=True)
     consent_given = Column(Boolean, default=False, nullable=False)
@@ -38,3 +40,39 @@ class ChildParticipant(Base):
         nullable=False,
     )
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
+
+    # Relationships
+    artworks = relationship("Artwork", back_populates="child_participant", lazy="dynamic")
+
+    @property
+    def child_name_decrypted(self) -> str:
+        """Decrypt child_name for authorized access."""
+        return aes_decrypt(self.child_name) if self.child_name else None
+
+    @property
+    def guardian_name_decrypted(self) -> str:
+        """Decrypt guardian_name for authorized access."""
+        return aes_decrypt(self.guardian_name) if self.guardian_name else None
+
+    @property
+    def guardian_phone_decrypted(self) -> str:
+        """Decrypt guardian_phone for authorized access."""
+        return aes_decrypt(self.guardian_phone_encrypted) if self.guardian_phone_encrypted else None
+
+    @property
+    def guardian_email_decrypted(self) -> str:
+        """Decrypt guardian_email for authorized access."""
+        return aes_decrypt(self.guardian_email_encrypted) if self.guardian_email_encrypted else None
+
+    @classmethod
+    def create_with_encryption(cls, **kwargs):
+        """Create a new ChildParticipant with encrypted fields."""
+        if "child_name" in kwargs and kwargs["child_name"]:
+            kwargs["child_name"] = aes_encrypt(kwargs["child_name"])
+        if "guardian_name" in kwargs and kwargs["guardian_name"]:
+            kwargs["guardian_name"] = aes_encrypt(kwargs["guardian_name"])
+        if "guardian_phone_encrypted" in kwargs and kwargs["guardian_phone_encrypted"]:
+            kwargs["guardian_phone_encrypted"] = aes_encrypt(kwargs["guardian_phone_encrypted"])
+        if "guardian_email_encrypted" in kwargs and kwargs["guardian_email_encrypted"]:
+            kwargs["guardian_email_encrypted"] = aes_encrypt(kwargs["guardian_email_encrypted"])
+        return cls(**kwargs)

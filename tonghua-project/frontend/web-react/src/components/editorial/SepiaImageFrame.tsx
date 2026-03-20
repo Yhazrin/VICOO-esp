@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
+import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 
 interface SepiaImageFrameProps {
   src: string;
@@ -33,6 +35,7 @@ export default function SepiaImageFrame({
   className = '',
 }: SepiaImageFrameProps) {
   const [ref, isVisible] = useScrollReveal<HTMLDivElement>();
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   return (
     <motion.figure
@@ -61,11 +64,15 @@ export default function SepiaImageFrame({
           }}
         />
 
+        {/* Loading skeleton */}
+        {!imageLoaded && <ImageSkeleton className="absolute inset-0" aspectRatio={aspectClasses[aspectRatio]} />}
+
         <img
           src={src}
           alt={alt}
-          className="w-full h-full object-cover"
+          className={`w-full h-full object-cover ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
           loading="lazy"
+          onLoad={() => setImageLoaded(true)}
         />
       </div>
 

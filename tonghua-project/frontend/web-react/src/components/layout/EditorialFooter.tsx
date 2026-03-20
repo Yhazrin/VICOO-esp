@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { motion } from 'framer-motion';
 
 export default function EditorialFooter() {
   const { t } = useTranslation();
@@ -7,22 +8,33 @@ export default function EditorialFooter() {
 
   return (
     <footer className="bg-ink text-paper mt-auto relative overflow-hidden">
-      {/* Subtle paper texture overlay */}
+      {/* Grain overlay */}
       <div
-        className="absolute inset-0 pointer-events-none opacity-[0.03]"
+        className="absolute inset-0 z-0 pointer-events-none opacity-10"
         style={{
-          backgroundImage: 'url(/textures/paper.png)',
-          backgroundRepeat: 'repeat',
-          backgroundSize: '400px 400px',
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
         }}
         aria-hidden="true"
       />
 
-      <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-16 md:py-24 relative z-10">
+      {/* Sepia gradient overlay */}
+      <div
+        className="absolute inset-0 z-0 pointer-events-none opacity-5"
+        style={{
+          background: 'linear-gradient(to bottom, transparent 0%, rgba(139, 90, 43, 0.1) 100%)'
+        }}
+        aria-hidden="true"
+      />
+
+      <div className="max-w-[14000px] mx-auto px-6 md:px-10 py-16 md:py-24 relative z-10">
         {/* Top section — Magazine colophon style */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8 mb-16">
           {/* Brand column */}
-          <div className="md:col-span-4">
+          <div className="md:col-span-4 relative">
+            {/* Decorative corner accents */}
+            <div className="absolute -top-2 -left-2 w-4 h-4 border-t border-l border-rust/40 pointer-events-none" />
+            <div className="absolute -bottom-2 -right-2 w-4 h-4 border-b border-r border-rust/40 pointer-events-none" />
+
             <h3 className="font-display text-3xl md:text-4xl font-bold mb-4 tracking-tight">
               TONGHUA
             </h3>
@@ -43,12 +55,14 @@ export default function EditorialFooter() {
             <ul className="space-y-3">
               {['about', 'campaigns', 'stories'].map((key) => (
                 <li key={key}>
-                  <Link
-                    to={`/${key}`}
-                    className="font-body text-sm text-warm-gray hover:text-paper transition-colors duration-200"
-                  >
-                    {t(`footer.links.${key}`)}
-                  </Link>
+                  <motion.div whileHover={{ x: 4 }}>
+                    <Link
+                      to={`/${key}`}
+                      className="font-body text-sm text-warm-gray hover:text-paper transition-colors duration-200 inline-block"
+                    >
+                      {t(`footer.links.${key}`)}
+                    </Link>
+                  </motion.div>
                 </li>
               ))}
             </ul>
@@ -62,12 +76,14 @@ export default function EditorialFooter() {
             <ul className="space-y-3">
               {['shop', 'donate', 'contact'].map((key) => (
                 <li key={key}>
-                  <Link
-                    to={`/${key}`}
-                    className="font-body text-sm text-warm-gray hover:text-paper transition-colors duration-200"
-                  >
-                    {t(`footer.links.${key}`)}
-                  </Link>
+                  <motion.div whileHover={{ x: 4 }}>
+                    <Link
+                      to={`/${key}`}
+                      className="font-body text-sm text-warm-gray hover:text-paper transition-colors duration-200 inline-block"
+                    >
+                      {t(`footer.links.${key}`)}
+                    </Link>
+                  </motion.div>
                 </li>
               ))}
             </ul>
@@ -81,42 +97,53 @@ export default function EditorialFooter() {
             <ul className="space-y-3">
               {['privacy', 'terms', 'children'].map((key) => (
                 <li key={key}>
-                  <Link
-                    to={`/${key}`}
-                    className="font-body text-sm text-warm-gray hover:text-paper transition-colors duration-200"
-                  >
-                    {t(`footer.links.${key}`)}
-                  </Link>
+                  <motion.div whileHover={{ x: 4 }}>
+                    <Link
+                      to={`/${key}`}
+                      className="font-body text-sm text-warm-gray hover:text-paper transition-colors duration-200 inline-block"
+                    >
+                      {t(`footer.links.${key}`)}
+                    </Link>
+                  </motion.div>
                 </li>
               ))}
             </ul>
           </div>
 
           {/* Newsletter */}
-          <div className="md:col-span-2">
+          <div className="md:col-span-2 relative">
+            {/* Decorative corner accents */}
+            <div className="absolute -top-2 -left-2 w-4 h-4 border-t border-l border-rust/30 pointer-events-none" />
+            <div className="absolute -bottom-2 -right-2 w-4 h-4 border-b border-r border-rust/30 pointer-events-none" />
+
             <h4 className="font-body text-[10px] tracking-[0.2em] uppercase text-sepia-mid mb-6">
               Newsletter
             </h4>
             <p className="font-body text-xs text-warm-gray mb-4 leading-relaxed">
               Quarterly dispatches from the editor's desk. No spam, only stories.
             </p>
-            <form
+            <motion.form
               onSubmit={(e) => e.preventDefault()}
               className="flex flex-col gap-3"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.1 }}
             >
-              <input
+              <motion.input
                 type="email"
                 placeholder="your@email.com"
                 className="bg-transparent border-b border-sepia-mid/30 text-paper font-body text-xs py-2 outline-none focus:border-pale-gold transition-colors placeholder:text-sepia-mid/40"
                 aria-label="Email address"
+                whileFocus={{ scale: 1.01 }}
               />
-              <button
+              <motion.button
                 type="submit"
                 className="font-body text-[10px] tracking-[0.15em] uppercase text-pale-gold hover:text-paper transition-colors text-left cursor-pointer"
+                whileHover={{ x: 4 }}
               >
                 Subscribe &rarr;
-              </button>
-            </form>
+              </motion.button>
+            </motion.form>
           </div>
         </div>
 

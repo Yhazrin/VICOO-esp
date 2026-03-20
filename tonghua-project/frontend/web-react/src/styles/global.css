@@ -189,3 +189,153 @@ input, textarea, select {
   height: 100%;
   object-fit: cover;
 }
+
+/* ── Utility: Vintage Card ── */
+.vintage-card {
+  position: relative;
+  background: var(--color-paper);
+  border: 2px solid var(--color-ink);
+  border-color: rgba(26, 26, 22, 0.15);
+  transition: all var(--duration-normal) var(--ease-editorial);
+}
+
+.vintage-card::before,
+.vintage-card::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--color-ink);
+  opacity: 0.3;
+}
+
+.vintage-card::before {
+  top: -1px;
+  left: -1px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.vintage-card::after {
+  bottom: -1px;
+  right: -1px;
+  border-left: none;
+  border-top: none;
+}
+
+.vintage-card:hover {
+  border-color: rgba(26, 26, 22, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(26, 26, 22, 0.08);
+}
+
+/* ── Utility: Drop Cap ── */
+.drop-cap::first-letter {
+  float: left;
+  font-family: var(--font-display);
+  font-size: 3.5em;
+  line-height: 0.8;
+  padding-right: 8px;
+  padding-top: 4px;
+  color: var(--color-rust);
+}
+
+/* ── Utility: Pull Quote ── */
+.pull-quote {
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  font-style: italic;
+  color: var(--color-ink);
+  border-left: 3px solid var(--color-rust);
+  padding-left: var(--space-lg);
+  margin: var(--space-xl) 0;
+}
+
+/* ── Utility: Caption Style ── */
+.caption {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-sepia-mid);
+  letter-spacing: 0.05em;
+}
+
+/* ── Utility: Section Number ── */
+.section-number {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-sepia-mid);
+  letter-spacing: 0.2em;
+}
+
+/* ── Utility: Print Line ── */
+.print-line {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-ink) 10%,
+    var(--color-ink) 90%,
+    transparent
+  );
+  opacity: 0.15;
+}
+
+/* ── Utility: Vintage Button ── */
+.vintage-button {
+  position: relative;
+  font-family: var(--font-ui);
+  font-size: var(--text-caption);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: var(--space-md) var(--space-xl);
+  background: var(--color-ink);
+  color: var(--color-paper);
+  border: 1px solid var(--color-ink);
+  transition: all var(--duration-normal) var(--ease-editorial);
+}
+
+.vintage-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--color-rust);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--duration-normal) var(--ease-editorial);
+  z-index: -1;
+}
+
+.vintage-button:hover::before {
+  transform: scaleX(1);
+}
+
+.vintage-button:hover {
+  color: var(--color-paper);
+}
+
+/* ── Utility: Image Caption ── */
+.image-caption {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-sepia-mid);
+  text-align: center;
+  padding-top: var(--space-sm);
+  letter-spacing: 0.05em;
+}
+
+/* ── Utility: Column Rule ── */
+.column-rule {
+  column-rule: 1px solid var(--color-warm-gray);
+}
+
+/* ── Print-specific styles ── */
+@media print {
+  body::before,
+  body::after {
+    display: none;
+  }
+
+  img {
+    filter: none;
+  }
+}

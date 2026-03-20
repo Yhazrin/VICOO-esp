@@ -2,7 +2,7 @@
   <view class="user-header">
     <block wx:if="{{isLoggedIn}}">
       <view class="user-avatar-wrap">
-        <image class="user-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill" />
+        <image class="user-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill" alt="User avatar" />
       </view>
       <view class="user-name">{{userInfo.nickName}}</view>
       <view class="user-subtitle">Tonghua Volunteer</view>

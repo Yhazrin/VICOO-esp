@@ -4,12 +4,12 @@
     <view class="hero-section">
       <text class="section-number">01</text>
       <text class="editorial-title hero-title">\u7AE5\u753B\u516C\u76CA</text>
-      <text class="editorial-caption">\u53EF\u6301\u7EED\u65F6\u5C1A · \u7528\u827A\u672F\u6539\u53D8\u4E16\u754C</text>
+      <text class="editorial-caption">\u53EF\u6301\u7EED\u65F6\u5C1A ï¿½ \u7528\u827A\u672F\u6539\u53D8\u4E16\u754C</text>
       <view class="divider"></view>
     </view>
     <swiper class="banner-swiper" indicator-dots autoplay circular>
       <swiper-item wx:for="{{banners}}" wx:key="id">
-        <image class="banner-img sepia-image" src="{{item.imageUrl}}" mode="aspectFill" />
+        <image class="banner-img sepia-image" src="{{item.imageUrl}}" mode="aspectFill" alt="Banner image" />
       </swiper-item>
     </swiper>
     <view class="stats-section">

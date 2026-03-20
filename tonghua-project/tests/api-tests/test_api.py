@@ -16,15 +16,22 @@ from datetime import datetime, timezone
 
 # ---------------------------------------------------------------------------
 # Deterministic test IDs
+# Using integers to match database schema (all IDs are Integer, not UUID)
 # ---------------------------------------------------------------------------
 
-ARTWORK_ID = "550e8400-e29b-41d4-a716-446655440000"
-CAMPAIGN_ID = "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
-DONATION_ID = "6ba7b811-9dad-11d1-80b4-00c04fd430c8"
-PRODUCT_ID = "6ba7b812-9dad-11d1-80b4-00c04fd430c8"
-ORDER_ID = "6ba7b813-9dad-11d1-80b4-00c04fd430c8"
-USER_ID = "6ba7b814-9dad-11d1-80b4-00c04fd430c8"
-ZERO_UUID = "00000000-0000-0000-0000-000000000000"
+ARTWORK_ID = 1
+CAMPAIGN_ID = 1
+DONATION_ID = 1
+PRODUCT_ID = 1
+ORDER_ID = 6  # User 1's order (to avoid conflict with mock orders 1-5 owned by users 3-5)
+USER_ID = 1
+NON_EXISTENT_ID = 9999  # ID that doesn't exist in mock data
+
+# Payment IDs for IDOR testing
+# Payment 7 belongs to Order 6 (User 1)
+# Payment 2 belongs to Order 2 (User 4)
+PAYMENT_ID_OWNED_BY_USER_1 = 7
+PAYMENT_ID_OWNED_BY_USER_4 = 2
 
 
 # =============================================================================
@@ -99,35 +106,39 @@ class TestAuthRefresh:
     """POST /api/v1/auth/refresh"""
 
     @pytest.mark.asyncio
-    async def test_refresh_success(self, client: AsyncClient, no_auth_headers):
-        """Valid refresh token returns new access token."""
-        payload = {"refresh_token": "valid-refresh-token"}
-        response = await client.post("/api/v1/auth/refresh", json=payload, headers=no_auth_headers)
+    async def test_refresh_success(self, client: AsyncClient, valid_refresh_token):
+        """Valid refresh token in cookie returns new access token."""
+        # Set refresh token as cookie (as per httpOnly implementation)
+        cookies = {"refresh_token": valid_refresh_token}
+        response = await client.post("/api/v1/auth/refresh", cookies=cookies)
         assert response.status_code in (200, 404, 500)
         if response.status_code == 200:
             body = response.json()
             assert "access_token" in body["data"]
+            assert "refresh_token" in body["data"]
             assert body["data"]["expires_in"] == 900
+            # Verify new refresh token is set in cookie
+            assert "set-cookie" in response.headers
 
     @pytest.mark.asyncio
-    async def test_refresh_invalid_token(self, client: AsyncClient, no_auth_headers):
-        """Invalid refresh token returns 401."""
-        payload = {"refresh_token": "invalid-or-tampered-token"}
-        response = await client.post("/api/v1/auth/refresh", json=payload, headers=no_auth_headers)
+    async def test_refresh_invalid_token(self, client: AsyncClient):
+        """Invalid refresh token in cookie returns 401."""
+        cookies = {"refresh_token": "invalid-or-tampered-token"}
+        response = await client.post("/api/v1/auth/refresh", cookies=cookies)
         assert response.status_code in (401, 404, 500)
 
     @pytest.mark.asyncio
-    async def test_refresh_expired_token(self, client: AsyncClient, no_auth_headers):
-        """Expired refresh token returns 401."""
-        payload = {"refresh_token": "expired-refresh-token"}
-        response = await client.post("/api/v1/auth/refresh", json=payload, headers=no_auth_headers)
+    async def test_refresh_expired_token(self, client: AsyncClient):
+        """Expired refresh token in cookie returns 401."""
+        cookies = {"refresh_token": "expired-refresh-token"}
+        response = await client.post("/api/v1/auth/refresh", cookies=cookies)
         assert response.status_code in (401, 404, 500)
 
     @pytest.mark.asyncio
-    async def test_refresh_missing_token(self, client: AsyncClient, no_auth_headers):
-        """Missing refresh_token field returns 400/422."""
-        response = await client.post("/api/v1/auth/refresh", json={}, headers=no_auth_headers)
-        assert response.status_code in (400, 422, 404, 500)
+    async def test_refresh_missing_token(self, client: AsyncClient):
+        """Missing refresh token cookie returns 401."""
+        response = await client.post("/api/v1/auth/refresh")
+        assert response.status_code in (401, 404, 500)
 
 
 class TestAuthLogout:
@@ -141,9 +152,9 @@ class TestAuthLogout:
 
     @pytest.mark.asyncio
     async def test_logout_without_auth(self, client: AsyncClient, no_auth_headers):
-        """Unauthenticated logout returns 401."""
+        """Logout is allowed unauthenticated (clears cookie)."""
         response = await client.post("/api/v1/auth/logout", headers=no_auth_headers)
-        assert response.status_code in (401, 404, 500)
+        assert response.status_code in (200, 404, 500)
 
 
 # =============================================================================
@@ -161,20 +172,22 @@ class TestArtworkList:
         if response.status_code == 200:
             body = response.json()
             assert "data" in body
-            assert "meta" in body
+            assert "total" in body
+            assert "page" in body
+            assert "page_size" in body
             assert isinstance(body["data"], list)
 
     @pytest.mark.asyncio
     async def test_list_pagination(self, client: AsyncClient, no_auth_headers):
         """Pagination parameters are respected."""
         response = await client.get(
-            "/api/v1/artworks", params={"page": 2, "per_page": 5}, headers=no_auth_headers
+            "/api/v1/artworks", params={"page": 2, "page_size": 5}, headers=no_auth_headers
         )
         assert response.status_code in (200, 404, 500)
         if response.status_code == 200:
-            meta = response.json().get("meta", {})
-            assert meta.get("page") == 2
-            assert meta.get("per_page") == 5
+            body = response.json()
+            assert body.get("page") == 2
+            assert body.get("page_size") == 5
 
     @pytest.mark.asyncio
     async def test_list_filter_by_campaign(self, client: AsyncClient, no_auth_headers):
@@ -293,7 +306,7 @@ class TestArtworkDetail:
     @pytest.mark.asyncio
     async def test_get_not_found(self, client: AsyncClient, no_auth_headers):
         """Nonexistent ID returns 404."""
-        response = await client.get(f"/api/v1/artworks/{ZERO_UUID}", headers=no_auth_headers)
+        response = await client.get(f"/api/v1/artworks/{NON_EXISTENT_ID}", headers=no_auth_headers)
         assert response.status_code in (404, 500)
 
     @pytest.mark.asyncio
@@ -405,7 +418,7 @@ class TestCampaignDetail:
     @pytest.mark.asyncio
     async def test_get_not_found(self, client: AsyncClient, no_auth_headers):
         """Nonexistent campaign returns 404."""
-        response = await client.get(f"/api/v1/campaigns/{ZERO_UUID}", headers=no_auth_headers)
+        response = await client.get(f"/api/v1/campaigns/{NON_EXISTENT_ID}", headers=no_auth_headers)
         assert response.status_code in (404, 500)
 
 
@@ -420,70 +433,102 @@ class TestDonationInitiate:
     async def test_initiate_success(self, client: AsyncClient, auth_headers):
         """Valid donation creates payment intent."""
         payload = {
+            "donor_name": "Test User",
             "amount": 100.00,
             "currency": "CNY",
             "message": "For the children!",
             "is_anonymous": False,
-            "payment_provider": "stripe",
+            "payment_method": "stripe",
         }
         response = await client.post(
-            "/api/v1/donations/initiate", json=payload, headers=auth_headers
+            "/api/v1/donations", json=payload, headers=auth_headers
         )
         assert response.status_code in (201, 404, 500)
         if response.status_code == 201:
             data = response.json()["data"]
-            assert "donation_id" in data
-            assert "payment_client_secret" in data
+            assert "id" in data
 
     @pytest.mark.asyncio
     async def test_initiate_anonymous(self, client: AsyncClient, auth_headers):
         """Anonymous donation succeeds."""
         payload = {
+            "donor_name": "Anonymous",
             "amount": 50.00,
             "currency": "CNY",
             "is_anonymous": True,
-            "payment_provider": "stripe",
+            "payment_method": "stripe",
         }
         response = await client.post(
-            "/api/v1/donations/initiate", json=payload, headers=auth_headers
+            "/api/v1/donations", json=payload, headers=auth_headers
         )
         assert response.status_code in (201, 404, 500)
+        if response.status_code == 201:
+            data = response.json()["data"]
+            assert "id" in data
+            assert data["is_anonymous"] is True
 
     @pytest.mark.asyncio
     async def test_initiate_negative_amount(self, client: AsyncClient, auth_headers):
         """Negative amount returns 400."""
-        payload = {"amount": -50.00, "currency": "CNY", "payment_provider": "stripe"}
+        payload = {"donor_name": "Test", "amount": -50.00, "currency": "CNY", "payment_method": "stripe"}
         response = await client.post(
-            "/api/v1/donations/initiate", json=payload, headers=auth_headers
+            "/api/v1/donations", json=payload, headers=auth_headers
         )
         assert response.status_code in (400, 422, 404, 500)
 
     @pytest.mark.asyncio
     async def test_initiate_zero_amount(self, client: AsyncClient, auth_headers):
         """Zero amount returns 400."""
-        payload = {"amount": 0, "currency": "CNY", "payment_provider": "stripe"}
+        payload = {"donor_name": "Test", "amount": 0, "currency": "CNY", "payment_method": "stripe"}
         response = await client.post(
-            "/api/v1/donations/initiate", json=payload, headers=auth_headers
+            "/api/v1/donations", json=payload, headers=auth_headers
         )
         assert response.status_code in (400, 422, 404, 500)
 
     @pytest.mark.asyncio
     async def test_initiate_unauthenticated(self, client: AsyncClient, no_auth_headers):
         """Unauthenticated returns 401."""
-        payload = {"amount": 100.00, "currency": "CNY", "payment_provider": "stripe"}
+        payload = {"donor_name": "Test", "amount": 100.00, "currency": "CNY", "payment_method": "stripe"}
         response = await client.post(
-            "/api/v1/donations/initiate", json=payload, headers=no_auth_headers
+            "/api/v1/donations", json=payload, headers=no_auth_headers
         )
         assert response.status_code in (401, 404, 500)
 
     @pytest.mark.asyncio
     async def test_initiate_invalid_currency(self, client: AsyncClient, auth_headers):
         """Invalid currency code returns 400."""
-        payload = {"amount": 100.00, "currency": "INVALID", "payment_provider": "stripe"}
+        payload = {"donor_name": "Test", "amount": 100.00, "currency": "INVALID", "payment_method": "stripe"}
         response = await client.post(
-            "/api/v1/donations/initiate", json=payload, headers=auth_headers
+            "/api/v1/donations", json=payload, headers=auth_headers
         )
         assert response.status_code in (400, 422, 404, 500)
+
+    @pytest.mark.asyncio
+    async def test_initiate_duplicate(self, client: AsyncClient, auth_headers):
+        """Duplicate donation payload should succeed (creates new donation record)."""
+        payload = {
+            "donor_name": "Test User",
+            "amount": 100.00,
+            "currency": "CNY",
+            "message": "For the children!",
+            "is_anonymous": False,
+            "payment_method": "stripe",
+        }
+        # First request
+        response1 = await client.post(
+            "/api/v1/donations", json=payload, headers=auth_headers
+        )
+        assert response1.status_code in (201, 404, 500)
+
+        # Second request (duplicate)
+        response2 = await client.post(
+            "/api/v1/donations", json=payload, headers=auth_headers
+        )
+        # Should succeed (201) or handle gracefully
+        assert response2.status_code in (201, 404, 500)
+        if response2.status_code == 201:
+            data = response2.json()["data"]
+            assert "id" in data
 
 
 class TestDonationDetail:
@@ -503,7 +548,7 @@ class TestDonationDetail:
     @pytest.mark.asyncio
     async def test_get_other_user_donation(self, client: AsyncClient, auth_headers):
         """Cannot view another user's donation (IDOR)."""
-        response = await client.get(f"/api/v1/donations/{ZERO_UUID}", headers=auth_headers)
+        response = await client.get(f"/api/v1/donations/{NON_EXISTENT_ID}", headers=auth_headers)
         assert response.status_code in (403, 404, 500)
 
 
@@ -576,7 +621,7 @@ class TestProductDetail:
     @pytest.mark.asyncio
     async def test_get_not_found(self, client: AsyncClient, no_auth_headers):
         """Nonexistent product returns 404."""
-        response = await client.get(f"/api/v1/products/{ZERO_UUID}", headers=no_auth_headers)
+        response = await client.get(f"/api/v1/products/{NON_EXISTENT_ID}", headers=no_auth_headers)
         assert response.status_code in (404, 500)
 
 
@@ -607,18 +652,11 @@ class TestOrderCreate:
     async def test_create_success(self, client: AsyncClient, auth_headers):
         """Authenticated user creates order."""
         payload = {
-            "product_id": PRODUCT_ID,
-            "quantity": 2,
-            "shipping_address": {
-                "name": "Jane Doe",
-                "phone": "+86-138-0000-0000",
-                "province": "Guangdong",
-                "city": "Shenzhen",
-                "district": "Nanshan",
-                "address": "123 Tech Park Road",
-                "postal_code": "518000",
-            },
-            "payment_provider": "wechat_pay",
+            "items": [
+                {"product_id": PRODUCT_ID, "quantity": 2}
+            ],
+            "shipping_address": "Jane Doe, +86-138-0000-0000, 123 Tech Park Road, Shenzhen, Guangdong",
+            "payment_method": "wechat",
         }
         response = await client.post("/api/v1/orders", json=payload, headers=auth_headers)
         assert response.status_code in (201, 404, 500)
@@ -627,10 +665,11 @@ class TestOrderCreate:
     async def test_create_invalid_quantity(self, client: AsyncClient, auth_headers):
         """Zero quantity returns 400."""
         payload = {
-            "product_id": PRODUCT_ID,
-            "quantity": 0,
-            "shipping_address": {"name": "Jane"},
-            "payment_provider": "wechat_pay",
+            "items": [
+                {"product_id": PRODUCT_ID, "quantity": 0}
+            ],
+            "shipping_address": "Jane",
+            "payment_method": "wechat",
         }
         response = await client.post("/api/v1/orders", json=payload, headers=auth_headers)
         assert response.status_code in (400, 422, 404, 500)
@@ -639,10 +678,11 @@ class TestOrderCreate:
     async def test_create_negative_quantity(self, client: AsyncClient, auth_headers):
         """Negative quantity returns 400."""
         payload = {
-            "product_id": PRODUCT_ID,
-            "quantity": -1,
-            "shipping_address": {"name": "Jane"},
-            "payment_provider": "wechat_pay",
+            "items": [
+                {"product_id": PRODUCT_ID, "quantity": -1}
+            ],
+            "shipping_address": "Jane",
+            "payment_method": "wechat",
         }
         response = await client.post("/api/v1/orders", json=payload, headers=auth_headers)
         assert response.status_code in (400, 422, 404, 500)
@@ -650,7 +690,10 @@ class TestOrderCreate:
     @pytest.mark.asyncio
     async def test_create_unauthenticated(self, client: AsyncClient, no_auth_headers):
         """Unauthenticated returns 401."""
-        payload = {"product_id": PRODUCT_ID, "quantity": 1, "payment_provider": "wechat_pay"}
+        payload = {
+            "items": [{"product_id": PRODUCT_ID, "quantity": 1}],
+            "payment_method": "wechat"
+        }
         response = await client.post("/api/v1/orders", json=payload, headers=no_auth_headers)
         assert response.status_code in (401, 404, 500)
 
@@ -658,13 +701,36 @@ class TestOrderCreate:
     async def test_create_non_integer_quantity(self, client: AsyncClient, auth_headers):
         """Non-integer quantity returns 400."""
         payload = {
-            "product_id": PRODUCT_ID,
-            "quantity": 1.5,
-            "shipping_address": {"name": "Jane"},
-            "payment_provider": "wechat_pay",
+            "items": [
+                {"product_id": PRODUCT_ID, "quantity": 1.5}
+            ],
+            "shipping_address": "Jane",
+            "payment_method": "wechat",
         }
         response = await client.post("/api/v1/orders", json=payload, headers=auth_headers)
         assert response.status_code in (400, 422, 404, 500)
+
+    @pytest.mark.asyncio
+    async def test_create_duplicate(self, client: AsyncClient, auth_headers):
+        """Duplicate order payload should succeed (creates new order record)."""
+        payload = {
+            "items": [
+                {"product_id": PRODUCT_ID, "quantity": 2}
+            ],
+            "shipping_address": "Jane Doe, +86-138-0000-0000, 123 Tech Park Road, Shenzhen, Guangdong",
+            "payment_method": "wechat",
+        }
+        # First request
+        response1 = await client.post("/api/v1/orders", json=payload, headers=auth_headers)
+        assert response1.status_code in (201, 404, 500)
+
+        # Second request (duplicate)
+        response2 = await client.post("/api/v1/orders", json=payload, headers=auth_headers)
+        # Should succeed (201) or handle gracefully
+        assert response2.status_code in (201, 404, 500)
+        if response2.status_code == 201:
+            data = response2.json()["data"]
+            assert "id" in data
 
 
 class TestOrderDetail:
@@ -679,13 +745,13 @@ class TestOrderDetail:
     @pytest.mark.asyncio
     async def test_get_not_found(self, client: AsyncClient, auth_headers):
         """Nonexistent order returns 404."""
-        response = await client.get(f"/api/v1/orders/{ZERO_UUID}", headers=auth_headers)
+        response = await client.get(f"/api/v1/orders/{NON_EXISTENT_ID}", headers=auth_headers)
         assert response.status_code in (404, 500)
 
     @pytest.mark.asyncio
     async def test_get_other_user_order_idor(self, client: AsyncClient, auth_headers):
         """Cannot view another user's order (IDOR prevention)."""
-        response = await client.get(f"/api/v1/orders/{ZERO_UUID}", headers=auth_headers)
+        response = await client.get(f"/api/v1/orders/{NON_EXISTENT_ID}", headers=auth_headers)
         assert response.status_code in (403, 404, 500)
 
 
@@ -729,10 +795,8 @@ class TestPaymentCreate:
         """Create payment intent for an order."""
         payload = {
             "order_id": ORDER_ID,
-            "order_type": "product",
-            "provider": "stripe",
+            "method": "stripe",
             "amount": 256.00,
-            "currency": "CNY",
         }
         response = await client.post("/api/v1/payments/create", json=payload, headers=auth_headers)
         assert response.status_code in (201, 404, 500)
@@ -742,10 +806,8 @@ class TestPaymentCreate:
         """Unauthenticated returns 401."""
         payload = {
             "order_id": ORDER_ID,
-            "order_type": "product",
-            "provider": "stripe",
+            "method": "stripe",
             "amount": 256.00,
-            "currency": "CNY",
         }
         response = await client.post(
             "/api/v1/payments/create", json=payload, headers=no_auth_headers
@@ -754,13 +816,11 @@ class TestPaymentCreate:
 
     @pytest.mark.asyncio
     async def test_create_invalid_provider(self, client: AsyncClient, auth_headers):
-        """Invalid payment provider returns 400."""
+        """Invalid payment provider returns 422."""
         payload = {
             "order_id": ORDER_ID,
-            "order_type": "product",
-            "provider": "bitcoin",
+            "method": "bitcoin",
             "amount": 256.00,
-            "currency": "CNY",
         }
         response = await client.post("/api/v1/payments/create", json=payload, headers=auth_headers)
         assert response.status_code in (400, 422, 404, 500)
@@ -796,6 +856,38 @@ class TestPaymentWebhook:
         }
         response = await client.post("/api/v1/payments/webhook", json=payload, headers=headers)
         assert response.status_code in (400, 401, 404, 500)
+
+
+class TestPaymentGet:
+    """GET /api/v1/payments/{id} - Payment retrieval with IDOR protection."""
+
+    @pytest.mark.asyncio
+    async def test_get_own_payment(self, client: AsyncClient, auth_headers):
+        """User can retrieve their own payment."""
+        response = await client.get(
+            f"/api/v1/payments/{PAYMENT_ID_OWNED_BY_USER_1}",
+            headers=auth_headers
+        )
+        # 200 if database is working, 200 with mock if DB fails
+        assert response.status_code in (200, 201)
+
+    @pytest.mark.asyncio
+    async def test_get_other_user_payment(self, client: AsyncClient, auth_headers):
+        """User cannot retrieve another user's payment (IDOR)."""
+        response = await client.get(
+            f"/api/v1/payments/{PAYMENT_ID_OWNED_BY_USER_4}",  # Belongs to User 4
+            headers=auth_headers
+        )
+        assert response.status_code == 403
+
+    @pytest.mark.asyncio
+    async def test_get_non_existent_payment(self, client: AsyncClient, auth_headers):
+        """Returns 404 for non-existent payment."""
+        response = await client.get(
+            f"/api/v1/payments/{NON_EXISTENT_ID}",
+            headers=auth_headers
+        )
+        assert response.status_code == 404
 
 
 # =============================================================================
@@ -919,7 +1011,7 @@ class TestSQLInjectionSecurity:
             "payment_provider": "stripe",
         }
         response = await client.post(
-            "/api/v1/donations/initiate", json=payload, headers=auth_headers
+            "/api/v1/donations", json=payload, headers=auth_headers
         )
         # Type validation should reject non-numeric amount
         assert response.status_code in (400, 422, 404, 500)
@@ -973,14 +1065,20 @@ class TestIDORSecurity:
     async def test_order_access_other_user(self, client: AsyncClient, auth_headers):
         """Cannot access another user's order via IDOR."""
         # Try to access an order with zero UUID (belongs to no one or different user)
-        response = await client.get(f"/api/v1/orders/{ZERO_UUID}", headers=auth_headers)
+        response = await client.get(f"/api/v1/orders/{NON_EXISTENT_ID}", headers=auth_headers)
         assert response.status_code in (403, 404, 500)
 
     @pytest.mark.asyncio
     async def test_donation_access_other_user(self, client: AsyncClient, auth_headers):
         """Cannot access another user's donation via IDOR."""
-        response = await client.get(f"/api/v1/donations/{ZERO_UUID}", headers=auth_headers)
+        response = await client.get(f"/api/v1/donations/{NON_EXISTENT_ID}", headers=auth_headers)
         assert response.status_code in (403, 404, 500)
+
+    @pytest.mark.asyncio
+    async def test_payment_access_other_user(self, client: AsyncClient, auth_headers):
+        """Cannot access another user's payment via IDOR."""
+        response = await client.get(f"/api/v1/payments/{PAYMENT_ID_OWNED_BY_USER_4}", headers=auth_headers)
+        assert response.status_code == 403
 
     @pytest.mark.asyncio
     async def test_child_data_requires_special_role(self, client: AsyncClient, auth_headers):
@@ -997,9 +1095,15 @@ class TestPaymentSecurity:
     @pytest.mark.asyncio
     async def test_negative_donation_amount(self, client: AsyncClient, auth_headers):
         """Negative donation amount is rejected."""
-        payload = {"amount": -100.00, "currency": "CNY", "payment_provider": "stripe"}
+        payload = {
+            "donor_name": "Test User",
+            "amount": -100.00,
+            "currency": "CNY",
+            "payment_method": "stripe",
+            "is_anonymous": False
+        }
         response = await client.post(
-            "/api/v1/donations/initiate", json=payload, headers=auth_headers
+            "/api/v1/donations", json=payload, headers=auth_headers
         )
         assert response.status_code in (400, 422, 404, 500)
 
@@ -1008,32 +1112,41 @@ class TestPaymentSecurity:
         """Zero donation amount is rejected."""
         payload = {"amount": 0.00, "currency": "CNY", "payment_provider": "stripe"}
         response = await client.post(
-            "/api/v1/donations/initiate", json=payload, headers=auth_headers
+            "/api/v1/donations", json=payload, headers=auth_headers
         )
         assert response.status_code in (400, 422, 404, 500)
 
     @pytest.mark.asyncio
     async def test_excessive_decimal_donation(self, client: AsyncClient, auth_headers):
         """Amount with >2 decimal places is rejected or rounded."""
-        payload = {"amount": 100.999, "currency": "CNY", "payment_provider": "stripe"}
+        payload = {
+            "donor_name": "Test User",
+            "amount": 100.999,
+            "currency": "CNY",
+            "payment_method": "stripe"
+        }
         response = await client.post(
-            "/api/v1/donations/initiate", json=payload, headers=auth_headers
+            "/api/v1/donations", json=payload, headers=auth_headers
         )
         assert response.status_code in (201, 400, 422, 404, 500)
         if response.status_code == 201:
             # If accepted, amount should be rounded to 2 decimal places
+            # Note: JSON responses for Decimal types are typically strings
             data = response.json().get("data", {})
-            amount = data.get("amount", 100.999)
+            amount_str = data.get("amount", "100.999")
+            try:
+                amount = float(amount_str)
+            except ValueError:
+                amount = float(100.999)
             assert amount == round(amount, 2)
 
     @pytest.mark.asyncio
     async def test_order_quantity_non_integer(self, client: AsyncClient, auth_headers):
         """Non-integer quantity is rejected."""
         payload = {
-            "product_id": PRODUCT_ID,
-            "quantity": 2.5,
-            "shipping_address": {"name": "Test"},
-            "payment_provider": "wechat_pay",
+            "items": [{"product_id": PRODUCT_ID, "quantity": 2.5}],
+            "shipping_address": "Test Street",
+            "payment_method": "wechat",
         }
         response = await client.post("/api/v1/orders", json=payload, headers=auth_headers)
         assert response.status_code in (400, 422, 404, 500)

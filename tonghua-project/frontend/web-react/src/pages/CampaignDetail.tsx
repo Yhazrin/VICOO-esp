@@ -9,6 +9,7 @@ import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
 import DonationPanel from '@/components/editorial/DonationPanel';
 import ArtworkCard from '@/components/editorial/ArtworkCard';
+import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import type { Campaign, Artwork } from '@/types';
 
 const MOCK_CAMPAIGN: Campaign = {
@@ -85,11 +86,18 @@ export default function CampaignDetail() {
     <PageWrapper>
       {/* Hero Image */}
       <section className="relative h-[50vh] md:h-[60vh]">
+        <ImageSkeleton className="absolute inset-0" aspectRatio="aspect-video" />
         <img
           src={campaign.coverImageUrl}
           alt={campaign.title}
           className="w-full h-full object-cover"
-          style={{ filter: 'sepia(0.2) contrast(1.05) brightness(0.97)' }}
+          style={{ filter: 'sepia(0.2) contrast(1.05) brightness(0.97)', opacity: 0, transition: 'opacity 0.3s' }}
+          onLoad={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.style.opacity = '1';
+            const skeleton = target.previousElementSibling as HTMLElement;
+            if (skeleton) skeleton.style.display = 'none';
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/20 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
