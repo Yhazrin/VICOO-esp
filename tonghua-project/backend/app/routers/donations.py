@@ -91,6 +91,26 @@ async def donation_stats(db: AsyncSession = Depends(get_db)):
         })
 
 
+@router.get("/tiers", response_model=ApiResponse)
+async def list_donation_tiers():
+    """List available donation tiers."""
+    tiers = [
+        {"id": 1, "name": "Seed", "amount": 50, "currency": "CNY", "description": "Art supplies for one child"},
+        {"id": 2, "name": "Sprout", "amount": 200, "currency": "CNY", "description": "Workshop materials for a class"},
+        {"id": 3, "name": "Bloom", "amount": 500, "currency": "CNY", "description": "Full program support for one school"},
+        {"id": 4, "name": "Forest", "amount": 2000, "currency": "CNY", "description": "Community center program for a semester"},
+    ]
+    return ApiResponse(data=tiers)
+
+
+@router.get("/mine", response_model=ApiResponse)
+async def list_my_donations(current_user: dict = Depends(get_current_user)):
+    """List donations for the current user."""
+    user_id = current_user["id"]
+    my_donations = [d for d in _mock_donations if d.get("donor_user_id") == user_id]
+    return ApiResponse(data=my_donations)
+
+
 @router.get("/{donation_id}", response_model=ApiResponse)
 async def get_donation(donation_id: int, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
     """Get a donation by ID.

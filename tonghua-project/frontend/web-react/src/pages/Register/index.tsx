@@ -5,6 +5,8 @@ import { motion, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import { VintageInput } from '@/components/editorial/VintageInput';
 import GrainOverlay from '@/components/editorial/GrainOverlay';
+import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
+import { MagazineDivider } from '@/components/editorial/MagazineDivider';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function Register() {
@@ -44,19 +46,23 @@ export default function Register() {
 
   return (
     <PageWrapper>
-      {/* Centered auth layout - no hero section */}
-      <div className="min-h-[100dvh] flex items-center justify-center py-12 px-4 relative">
-        {/* Grain overlay */}
-        <div style={{ opacity: 0.06 }} className="absolute inset-0">
-          <GrainOverlay />
-        </div>
+      <PaperTextureBackground variant="paper" className="min-h-[100dvh] flex items-center relative">
+        <GrainOverlay />
 
-        <div className="w-full max-w-md relative">
+        {/* Decorative vertical line — left accent */}
+        <div className="absolute left-6 top-1/4 bottom-1/4 w-px bg-rust/15 hidden md:block" aria-hidden="true" />
+
+        <div className="w-full max-w-md relative mx-auto py-12 px-4">
           {/* Header */}
           <div className="text-center mb-10">
-            <span className="font-body text-caption text-sepia-mid tracking-[0.3em] uppercase mb-4 block">
-              10
-            </span>
+            <motion.span
+              initial={prefersReducedMotion ? false : { opacity: 0 }}
+              animate={prefersReducedMotion ? undefined : { opacity: 1 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.8, delay: 0.1 }}
+              className="font-body text-overline tracking-[0.3em] uppercase text-sepia-mid block mb-6"
+            >
+              Vol. IX · No. 10
+            </motion.span>
             <motion.h1
               initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
               animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
@@ -73,6 +79,12 @@ export default function Register() {
             >
               {t('register.subtitle')}
             </motion.p>
+
+            {/* Decorative divider under header */}
+            <motion.div
+              {...(prefersReducedMotion ? {} : { initial: { width: 0 }, animate: { width: '60px' }, transition: { duration: 0.8, delay: 0.3 } })}
+              className="h-px bg-rust/40 mx-auto mt-6"
+            />
           </div>
 
           {/* Form with corner accents */}
@@ -84,8 +96,8 @@ export default function Register() {
             className="space-y-6 relative"
           >
             {/* Corner accents — diagonal pattern */}
-            <div className="absolute -top-2 -left-2 w-4 h-4 border-t-2 border-l-2 border-rust/30 pointer-events-none" aria-hidden="true" />
-            <div className="absolute -bottom-2 -right-2 w-4 h-4 border-b-2 border-r-2 border-rust/30 pointer-events-none" aria-hidden="true" />
+            <div className="absolute -top-4 -left-4 w-6 h-6 border-t-2 border-l-2 border-rust/30 pointer-events-none" aria-hidden="true" />
+            <div className="absolute -bottom-4 -right-4 w-6 h-6 border-b-2 border-r-2 border-rust/30 pointer-events-none" aria-hidden="true" />
 
             <VintageInput
               label={t('register.nickname')}
@@ -135,16 +147,7 @@ export default function Register() {
               {isRegistering ? t('register.submitting') : t('register.submit')}
             </motion.button>
 
-            <div className="relative py-4">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-warm-gray/30" />
-              </div>
-              <div className="relative flex justify-center">
-                <span className="bg-paper px-4 font-body text-caption text-sepia-mid">
-                  {t('register.orContinueWith')}
-                </span>
-              </div>
-            </div>
+            <MagazineDivider variant="decorative" className="!my-6" />
 
             <motion.button
               type="button"
@@ -168,7 +171,7 @@ export default function Register() {
             </p>
           </motion.form>
         </div>
-      </div>
+      </PaperTextureBackground>
 
       <div className="editorial-divider" />
     </PageWrapper>

@@ -6,6 +6,7 @@ import SectionContainer from '@/components/layout/SectionContainer';
 import EditorialHero from '@/components/editorial/EditorialHero';
 import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeading';
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
+import FAQAccordion from '@/components/editorial/FAQAccordion';
 import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
 import { VintageInput } from '@/components/editorial/VintageInput';
@@ -387,10 +388,6 @@ export default function Contact() {
     }
   };
 
-  const handleFaqToggle = (index: number) => {
-    setOpenFaqIndex((prev) => (prev === index ? null : index));
-  };
-
   const resetForm = () => {
     setStatus('idle');
     setErrors({});
@@ -410,17 +407,7 @@ export default function Contact() {
         <NumberedSectionHeading number="01" title={t('contact.faq.title')} />
 
         <div className="max-w-3xl">
-          {Array.isArray(faqItems) &&
-            faqItems.map((item, index) => (
-              <FAQItem
-                key={index}
-                question={item.question}
-                answer={item.answer}
-                isOpen={openFaqIndex === index}
-                onToggle={() => handleFaqToggle(index)}
-                index={index}
-              />
-            ))}
+          {Array.isArray(faqItems) && <FAQAccordion items={faqItems} />}
         </div>
       </SectionContainer>
 

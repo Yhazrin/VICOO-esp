@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
@@ -10,6 +11,7 @@ import PaperTextureBackground from '@/components/editorial/PaperTextureBackgroun
 import DonationPanel from '@/components/editorial/DonationPanel';
 import ArtworkCard from '@/components/editorial/ArtworkCard';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
+import { campaignsApi } from '@/services/campaigns';
 import type { Campaign, Artwork } from '@/types';
 
 const MOCK_CAMPAIGN: Campaign = {
@@ -78,9 +80,60 @@ const MOCK_ARTWORKS: Artwork[] = [
 ];
 
 export default function CampaignDetail() {
+  const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
-  const campaign = MOCK_CAMPAIGN;
+  const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) {
+      setCampaign(MOCK_CAMPAIGN);
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    campaignsApi
+      .getById(id)
+      .then((data: any) => {
+        if (!cancelled) {
+          const raw = data?.data ?? data;
+          setCampaign({
+            ...MOCK_CAMPAIGN,
+            ...raw,
+            id: String(raw.id ?? id),
+            coverImageUrl: raw.cover_image ?? raw.coverImageUrl ?? MOCK_CAMPAIGN.coverImageUrl,
+            startDate: raw.start_date ?? raw.startDate ?? MOCK_CAMPAIGN.startDate,
+            endDate: raw.end_date ?? raw.endDate ?? MOCK_CAMPAIGN.endDate,
+            artworkCount: raw.artwork_count ?? raw.artworkCount ?? MOCK_CAMPAIGN.artworkCount,
+            participantCount: raw.participant_count ?? raw.participantCount ?? MOCK_CAMPAIGN.participantCount,
+            goalAmount: Number(raw.goal_amount ?? raw.goalAmount ?? MOCK_CAMPAIGN.goalAmount),
+            raisedAmount: Number(raw.current_amount ?? raw.raisedAmount ?? MOCK_CAMPAIGN.raisedAmount),
+          });
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setCampaign(MOCK_CAMPAIGN);
+          setLoading(false);
+        }
+      });
+    return () => { cancelled = true; };
+  }, [id]);
+
+  if (loading || !campaign) {
+    return (
+      <PageWrapper>
+        <PaperTextureBackground variant="paper" className="py-16 md:py-24">
+          <SectionContainer>
+            <p className="font-body text-sepia-mid">{t('campaigns.loading', 'Loading campaign...')}</p>
+          </SectionContainer>
+        </PaperTextureBackground>
+      </PageWrapper>
+    );
+  }
+
   const progress = Math.round((campaign.raisedAmount / campaign.goalAmount) * 100);
 
   return (

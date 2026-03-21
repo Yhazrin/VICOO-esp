@@ -27,8 +27,7 @@ function GalleryItem({ src, alt, index }: GalleryItemProps) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+      {...(prefersReducedMotion ? {} : { initial: { opacity: 0, y: 20 }, whileInView: { opacity: 1, y: 0 } })}
       viewport={{ once: true }}
       transition={{
         type: 'spring',
@@ -98,8 +97,7 @@ function LatestArtworkCard({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+      {...(prefersReducedMotion ? {} : { initial: { opacity: 0, y: 30 }, whileInView: { opacity: 1, y: 0 } })}
       viewport={{ once: true }}
       transition={{
         type: 'spring',
@@ -398,8 +396,7 @@ export default function Home() {
       {/* Bottom feature strip — 3 brand pillars */}
       <SectionContainer>
         <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={prefersReducedMotion ? undefined : { opacity: 1 }}
+          {...(prefersReducedMotion ? {} : { initial: { opacity: 0 }, whileInView: { opacity: 1 } })}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
           className="py-12 md:py-16"

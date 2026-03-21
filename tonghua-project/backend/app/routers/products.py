@@ -7,7 +7,7 @@ from app.database import get_db
 from app.models.product import Product
 from app.models.supply_chain import SupplyChainRecord
 from app.schemas import ApiResponse, PaginatedResponse, ProductCreate, ProductOut, ProductUpdate, SupplyChainRecordOut
-from app.deps import require_role
+from app.deps import require_role, get_current_user
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
@@ -93,6 +93,13 @@ async def list_categories(db: AsyncSession = Depends(get_db)):
         return ApiResponse(data=categories)
 
 
+@router.get("/featured", response_model=ApiResponse)
+async def list_featured_products():
+    """List featured products (active with stock, limit 8)."""
+    featured = [p for p in _mock_products if p["status"] == "active" and p["stock"] > 0][:8]
+    return ApiResponse(data=featured)
+
+
 @router.get("/{product_id}", response_model=ApiResponse)
 async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
     """Get a single product by ID."""
@@ -113,7 +120,7 @@ async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("", response_model=ApiResponse, status_code=201)
-async def create_product(body: ProductCreate, db: AsyncSession = Depends(get_db)):
+async def create_product(body: ProductCreate, db: AsyncSession = Depends(get_db), current_user: dict = Depends(require_role("admin", "editor"))):
     """Create a new product."""
     try:
         product = Product(**body.model_dump())
@@ -133,7 +140,7 @@ async def create_product(body: ProductCreate, db: AsyncSession = Depends(get_db)
 
 
 @router.put("/{product_id}", response_model=ApiResponse)
-async def update_product(product_id: int, body: ProductUpdate, db: AsyncSession = Depends(get_db)):
+async def update_product(product_id: int, body: ProductUpdate, db: AsyncSession = Depends(get_db), current_user: dict = Depends(require_role("admin", "editor"))):
     """Update a product."""
     try:
         stmt = select(Product).where(Product.id == product_id)

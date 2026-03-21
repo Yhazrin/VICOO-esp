@@ -113,6 +113,13 @@ async def get_active_campaign(db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=404, detail="No active campaign found")
 
 
+@router.get("/featured", response_model=ApiResponse)
+async def list_featured_campaigns():
+    """List featured (active) campaigns."""
+    featured = [c for c in _mock_campaigns if c["status"] == "active"]
+    return ApiResponse(data=featured)
+
+
 @router.get("/{campaign_id}", response_model=ApiResponse)
 async def get_campaign(campaign_id: int, db: AsyncSession = Depends(get_db)):
     """Get a single campaign by ID."""

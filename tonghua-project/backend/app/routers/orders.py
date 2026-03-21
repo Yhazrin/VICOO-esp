@@ -142,6 +142,31 @@ async def list_orders(
         )
 
 
+@router.get("/mine", response_model=ApiResponse)
+async def list_my_orders(current_user: dict = Depends(get_current_user)):
+    """List orders for the current user."""
+    user_id = current_user["id"]
+    my_orders = [o for o in _mock_orders if o["user_id"] == user_id]
+    return ApiResponse(data=my_orders)
+
+
+@router.post("/{order_id}/cancel", response_model=ApiResponse)
+async def cancel_order(order_id: int, current_user: dict = Depends(get_current_user)):
+    """Cancel an order. Only pending orders can be cancelled."""
+    user_id = current_user["id"]
+    for o in _mock_orders:
+        if o["id"] == order_id:
+            if o["user_id"] != user_id and current_user.get("role") != "admin":
+                raise HTTPException(status_code=403, detail="Forbidden")
+            if o["status"] == "cancelled":
+                raise HTTPException(status_code=400, detail="Order is already cancelled")
+            if o["status"] != "pending":
+                raise HTTPException(status_code=400, detail="Only pending orders can be cancelled")
+            o["status"] = "cancelled"
+            return ApiResponse(data=o)
+    raise HTTPException(status_code=404, detail="Order not found")
+
+
 @router.get("/{order_id}", response_model=ApiResponse)
 async def get_order(
     order_id: int,

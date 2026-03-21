@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
@@ -17,19 +17,25 @@ export default function ArtworkDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Load artwork data
-  if (loading && id) {
+  useEffect(() => {
+    if (!id) return;
+    let cancelled = false;
     artworksApi
       .getById(id)
       .then((data) => {
-        setArtwork(data);
-        setLoading(false);
+        if (!cancelled) {
+          setArtwork(data);
+          setLoading(false);
+        }
       })
       .catch((err) => {
-        setError(err.message || 'Failed to load artwork');
-        setLoading(false);
+        if (!cancelled) {
+          setError(err.message || 'Failed to load artwork');
+          setLoading(false);
+        }
       });
-  }
+    return () => { cancelled = true; };
+  }, [id]);
 
   const handleVote = async () => {
     if (!id) return;
