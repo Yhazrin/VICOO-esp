@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 
 interface EditorialAdvertisementProps {
   children: ReactNode;
@@ -14,6 +14,7 @@ export default function EditorialAdvertisement({
   className = '',
   variant = 'default',
 }: EditorialAdvertisementProps) {
+  const prefersReducedMotion = useReducedMotion();
   const variantStyles = {
     default: 'p-8',
     sidebar: 'p-4',
@@ -22,10 +23,9 @@ export default function EditorialAdvertisement({
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
+      {...(prefersReducedMotion ? {} : { initial: { opacity: 0 }, whileInView: { opacity: 1 } })}
       viewport={{ once: true }}
-      transition={{ duration: 0.5 }}
+      transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5 }}
       className={`
         relative
         bg-aged-stock/70

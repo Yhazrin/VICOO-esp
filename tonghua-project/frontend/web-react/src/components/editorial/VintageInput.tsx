@@ -84,7 +84,7 @@ export const VintageInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, V
               {...inputProps}
               ref={ref as React.Ref<HTMLTextAreaElement>}
               rows={4}
-              whileFocus={{ scale: 1.01 }}
+              whileFocus={prefersReducedMotion ? undefined : { scale: 1.01 }}
               className={baseClasses + ' ' + className + ' pt-3 pl-3 pr-3'}
             />
           ) : icon ? (
@@ -94,7 +94,7 @@ export const VintageInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, V
                 {...inputProps}
                 ref={ref as React.Ref<HTMLInputElement>}
                 type={type}
-                whileFocus={{ scale: 1.01 }}
+                whileFocus={prefersReducedMotion ? undefined : { scale: 1.01 }}
                 className={baseClasses + ' ' + className + ' border-none pl-0'}
               />
             </div>
@@ -103,7 +103,7 @@ export const VintageInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, V
               {...inputProps}
               ref={ref as React.Ref<HTMLInputElement>}
               type={type}
-              whileFocus={{ scale: 1.01 }}
+              whileFocus={prefersReducedMotion ? undefined : { scale: 1.01 }}
               className={baseClasses + ' ' + className + ' pt-3 pl-3 pr-3'}
             />
           )}

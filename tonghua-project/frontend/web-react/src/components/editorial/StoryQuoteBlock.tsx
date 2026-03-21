@@ -28,6 +28,7 @@ export default function StoryQuoteBlock({
   // Underline path animation
   const strokeDashoffset = useTransform(scrollYProgress, [0, 1], [200, 0]);
   const underlineOpacity = useTransform(scrollYProgress, [0, 0.3], [0, 1]);
+  const flourishDashoffset = useTransform(scrollYProgress, [0.1, 0.5], [20, 0]);
 
   return (
     <motion.blockquote
@@ -100,7 +101,7 @@ export default function StoryQuoteBlock({
               style={{
                 stroke: 'var(--color-rust)',
                 strokeDasharray: 20,
-                strokeDashoffset: prefersReducedMotion ? 0 : useTransform(scrollYProgress, [0.1, 0.5], [20, 0]),
+                strokeDashoffset: prefersReducedMotion ? 0 : flourishDashoffset,
                 opacity: prefersReducedMotion ? 1 : underlineOpacity,
               }}
             />

@@ -1,5 +1,4 @@
-'use client';
-import { motion, useMotionValue, useTransform } from 'framer-motion';
+import { motion, useMotionValue, useTransform, useReducedMotion } from 'framer-motion';
 import { useRef } from 'react';
 
 interface FloatingCardProps {
@@ -8,9 +7,10 @@ interface FloatingCardProps {
   initialRotate?: number;
   delay?: number;
   x?: string;
-  top?: string;
-  right?: string;
-  bottom?: string;
+}
+
+interface HeroFloatingCardsProps {
+  className?: string;
 }
 
 function FloatingCard({
@@ -19,13 +19,11 @@ function FloatingCard({
   initialRotate = 0,
   delay = 0.3,
   x = '50px',
-  top,
-  right,
-  bottom,
 }: FloatingCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
+  const prefersReducedMotion = useReducedMotion();
 
   const rotateX = useTransform(mouseY, [-0.5, 0.5], [8, -8]);
   const rotateY = useTransform(mouseX, [-0.5, 0.5], [-8, 8]);
@@ -49,9 +47,9 @@ function FloatingCard({
   return (
     <motion.div
       ref={cardRef}
-      initial={{ opacity: 0, x, rotate: initialRotate }}
+      {...(prefersReducedMotion ? {} : { initial: { opacity: 0, x } })}
       animate={{ opacity: 1, x: 0, rotate: initialRotate }}
-      transition={{ duration: 0.8, delay }}
+      transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.8, delay }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={{
@@ -64,7 +62,7 @@ function FloatingCard({
       <motion.div
         className="relative"
         style={{ transform: 'translateZ(20px)' }}
-        whileHover={{ scale: 1.05, y: -8 }}
+        whileHover={prefersReducedMotion ? undefined : { scale: 1.05, y: -8 }}
         transition={{ type: 'spring', stiffness: 300, damping: 20 }}
       >
         {children}
@@ -74,6 +72,7 @@ function FloatingCard({
 }
 
 export default function HeroFloatingCards({ className = '' }: HeroFloatingCardsProps) {
+  const prefersReducedMotion = useReducedMotion();
   return (
     <div className={`absolute right-0 top-0 bottom-0 w-[44%] z-[4] ${className}`}>
       {/* Card 1 - Child Drawing */}
@@ -83,7 +82,7 @@ export default function HeroFloatingCards({ className = '' }: HeroFloatingCardsP
         delay={0.3}
         x="50px"
       >
-        <div className="bg-EDE9DF rounded-md border border-black/5 overflow-hidden flex flex-col shadow-lg shadow-black/5">
+        <div className="bg-[#EDE9DF] rounded-md border border-black/5 overflow-hidden flex flex-col shadow-lg shadow-black/5">
           <svg viewBox="0 0 130 130" width="100%" style={{ flex: 1 }} xmlns="http://www.w3.org/2000/svg">
             <rect x="10" y="10" width="110" height="110" fill="#F4F0E8" rx="3"/>
             <circle cx="45" cy="50" r="18" fill="#B84B2A" opacity="0.5"/>
@@ -101,9 +100,9 @@ export default function HeroFloatingCards({ className = '' }: HeroFloatingCardsP
 
       {/* Arrow Sketch */}
       <motion.svg
-        initial={{ opacity: 0 }}
+        {...(prefersReducedMotion ? {} : { initial: { opacity: 0 } })}
         animate={{ opacity: 0.6 }}
-        transition={{ duration: 0.6, delay: 0.6 }}
+        transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6, delay: 0.6 }}
         className="absolute z-[6] w-12 h-8 top-[185px] right-[178px]"
         viewBox="0 0 48 32"
       >
@@ -126,7 +125,7 @@ export default function HeroFloatingCards({ className = '' }: HeroFloatingCardsP
         delay={0.4}
         x="50px"
       >
-        <div className="bg-EDE9DF rounded-md border border-black/5 overflow-hidden flex flex-col shadow-lg shadow-black/5">
+        <div className="bg-[#EDE9DF] rounded-md border border-black/5 overflow-hidden flex flex-col shadow-lg shadow-black/5">
           <svg viewBox="0 0 110 120" width="100%" style={{ flex: 1 }} xmlns="http://www.w3.org/2000/svg">
             <rect x="8" y="8" width="94" height="104" fill="#EDE9DF" rx="3"/>
             <path d="M20 28 Q30 15 40 22 L55 18 L70 22 Q80 15 90 28" stroke="#888" strokeWidth="1.2" fill="none"/>
@@ -150,7 +149,7 @@ export default function HeroFloatingCards({ className = '' }: HeroFloatingCardsP
         delay={0.5}
         x="50px"
       >
-        <div className="bg-F0ECE2 rounded-md border border-black/5 overflow-hidden flex flex-col shadow-lg shadow-black/5">
+        <div className="bg-[#F0ECE2] rounded-md border border-black/5 overflow-hidden flex flex-col shadow-lg shadow-black/5">
           <svg viewBox="0 0 145 140" width="100%" style={{ flex: 1 }} xmlns="http://www.w3.org/2000/svg">
             <rect x="8" y="8" width="129" height="124" fill="#F0ECE2" rx="3"/>
             <path d="M25 45 Q40 20 72 30 Q104 20 120 45" stroke="#B84B2A" strokeWidth="1.5" fill="none" opacity="0.5"/>
@@ -174,7 +173,7 @@ export default function HeroFloatingCards({ className = '' }: HeroFloatingCardsP
         delay={0.6}
         x="50px"
       >
-        <div className="bg-EDE9DF rounded-md border border-black/5 overflow-hidden flex flex-col shadow-lg shadow-black/5">
+        <div className="bg-[#EDE9DF] rounded-md border border-black/5 overflow-hidden flex flex-col shadow-lg shadow-black/5">
           <svg viewBox="0 0 105 108" width="100%" style={{ flex: 1 }} xmlns="http://www.w3.org/2000/svg">
             <rect x="8" y="8" width="89" height="92" fill="#EDE9DF" rx="3"/>
             <path d="M20 35 Q52 20 85 35 L82 90 L23 90 Z" fill="#C8B89A" opacity="0.35"/>
@@ -191,11 +190,11 @@ export default function HeroFloatingCards({ className = '' }: HeroFloatingCardsP
 
       {/* Organic Badge Circle */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.8, rotate: -8 }}
+        {...(prefersReducedMotion ? {} : { initial: { opacity: 0, scale: 0.8 } })}
         animate={{ opacity: 1, scale: 1, rotate: -8 }}
-        transition={{ duration: 0.6, delay: 0.7 }}
+        transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6, delay: 0.7 }}
         className="absolute bottom-[80px] right-[60px] w-20 h-20 rounded-full border border-black/10 bg-paper/90 flex flex-col items-center justify-center gap-1 cursor-pointer shadow-lg shadow-black/5"
-        whileHover={{ scale: 1.1, rotate: 0 }}
+        whileHover={prefersReducedMotion ? undefined : { scale: 1.1, rotate: 0 }}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
           <path d="M12 3L14 9H20L15.5 12.5L17.5 18.5L12 15L6.5 18.5L8.5 12.5L4 9H10L12 3Z" fill="#B84B2A" opacity="0.55"/>

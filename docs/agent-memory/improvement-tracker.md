@@ -101,6 +101,19 @@
 | 83 | Backend — update_user_status missing self-modification guard | P0 | ✅ done — admin cannot modify their own status (prevents lock-out) |
 | 84 | Backend — UserUpdate.phone missing max_length constraint | P0 | ✅ done — added `max_length=20` to prevent oversized encryption input |
 
+## Completed — P1 Editorial Reduced-Motion Round 3 (2026-03-22)
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 85 | StoryQuoteBlock — Rules of Hooks violation (inline useTransform in JSX) | P0 | ✅ done — hoisted flourishDashoffset to top-level; removed inline useTransform call |
+| 86 | EditorialHeroV2 — 7 animation blocks unguarded reduced-motion | P1 | ✅ done — content div, eyebrow, headline, subtitle, CTA row, arrow animation, stats row |
+| 87 | HeroInteractiveOrb — 6 continuous animations unguarded reduced-motion | P1 | ✅ done — 3 ring rotations, core orb pulse, inner highlight, 6 floating particles |
+| 88 | HeroFloatingCards — prefersReducedMotion scope error + unguarded arrow SVG | P1 | ✅ done — added useReducedMotion to parent component; guarded arrow SVG + badge |
+| 89 | EditorialAdvertisement — reduced-motion guard | P1 | ✅ done |
+| 90 | EditorialCallout — reduced-motion guard | P1 | ✅ done |
+| 91 | VintageInput — reduced-motion guard | P1 | ✅ done |
+| 92 | ProductDetail — setTimeout without cleanup (setState on unmounted) | P1 | ✅ done — useRef for timeout ID + useEffect cleanup with clearTimeout |
+
 ## Pending
 
 | # | Issue | Priority | Notes |
