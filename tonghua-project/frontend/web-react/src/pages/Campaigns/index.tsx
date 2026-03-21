@@ -427,7 +427,7 @@ export default function Campaigns() {
                 key={p}
                 onClick={() => setPage(p)}
                 className={`
-                  w-10 h-10 font-body text-caption border transition-all cursor-pointer
+                  w-11 h-11 font-body text-caption border transition-all cursor-pointer
                   ${page === p
                     ? 'border-rust bg-rust text-paper'
                     : 'border-warm-gray/30 text-sepia-mid hover:border-rust hover:text-rust'
