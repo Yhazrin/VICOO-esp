@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import BleedTitleBlock from '@/components/editorial/BleedTitleBlock';
@@ -79,6 +79,7 @@ const MOCK_ARTWORKS: Artwork[] = [
 
 export default function CampaignDetail() {
   const { t } = useTranslation();
+  const prefersReducedMotion = useReducedMotion();
   const campaign = MOCK_CAMPAIGN;
   const progress = Math.round((campaign.raisedAmount / campaign.goalAmount) * 100);
 
@@ -143,9 +144,11 @@ export default function CampaignDetail() {
                   </div>
                   <div className="w-full h-1.5 bg-warm-gray/30 rounded-sm overflow-hidden mb-4">
                     <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${progress}%` }}
-                      transition={{ duration: 1.2, ease: 'easeOut' }}
+                      {...(prefersReducedMotion ? { style: { width: `${progress}%` } } : {
+                        initial: { width: 0 },
+                        animate: { width: `${progress}%` },
+                        transition: { duration: 1.2, ease: 'easeOut' },
+                      })}
                       className="h-full bg-archive-brown rounded-sm"
                     />
                   </div>

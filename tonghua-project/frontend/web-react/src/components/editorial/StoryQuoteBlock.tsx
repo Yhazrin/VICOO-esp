@@ -1,4 +1,4 @@
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
 import { useRef } from 'react';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 
@@ -16,6 +16,7 @@ export default function StoryQuoteBlock({
   className = '',
 }: StoryQuoteBlockProps) {
   const [ref, isVisible] = useScrollReveal<HTMLQuoteElement>();
+  const prefersReducedMotion = useReducedMotion();
   const underlineRef = useRef<HTMLDivElement>(null);
 
   // Scroll-linked animation for the decorative underline
@@ -31,9 +32,9 @@ export default function StoryQuoteBlock({
   return (
     <motion.blockquote
       ref={ref}
-      initial={{ opacity: 0, y: 30 }}
-      animate={isVisible ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.8, ease: [0, 0, 0.2, 1] }}
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 30 }}
+      animate={isVisible ? (prefersReducedMotion ? {} : { opacity: 1, y: 0 }) : {}}
+      transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.8, ease: [0, 0, 0.2, 1] }}
       className={`relative py-12 md:py-16 ${className}`}
     >
       {/* Decorative quote mark */}
@@ -66,8 +67,8 @@ export default function StoryQuoteBlock({
               strokeLinecap="round"
               style={{
                 strokeDasharray: 280,
-                strokeDashoffset,
-                opacity: underlineOpacity,
+                strokeDashoffset: prefersReducedMotion ? 0 : strokeDashoffset,
+                opacity: prefersReducedMotion ? 1 : underlineOpacity,
               }}
             />
             {/* Accent dot at start */}
@@ -77,7 +78,7 @@ export default function StoryQuoteBlock({
               r="2.5"
               fill="#8B3A2A"
               style={{
-                opacity: underlineOpacity,
+                opacity: prefersReducedMotion ? 1 : underlineOpacity,
               }}
             />
             {/* Accent dot at end */}
@@ -87,7 +88,7 @@ export default function StoryQuoteBlock({
               r="2.5"
               fill="#8B3A2A"
               style={{
-                opacity: underlineOpacity,
+                opacity: prefersReducedMotion ? 1 : underlineOpacity,
               }}
             />
             {/* Decorative flourish after the line */}
@@ -99,8 +100,8 @@ export default function StoryQuoteBlock({
               strokeLinecap="round"
               style={{
                 strokeDasharray: 20,
-                strokeDashoffset: useTransform(scrollYProgress, [0.1, 0.5], [20, 0]),
-                opacity: underlineOpacity,
+                strokeDashoffset: prefersReducedMotion ? 0 : useTransform(scrollYProgress, [0.1, 0.5], [20, 0]),
+                opacity: prefersReducedMotion ? 1 : underlineOpacity,
               }}
             />
           </svg>

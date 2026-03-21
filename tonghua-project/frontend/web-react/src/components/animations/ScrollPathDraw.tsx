@@ -1,5 +1,5 @@
 import { useRef, type RefObject } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
 
 /**
  * Hook to create scroll-linked path drawing animation
@@ -49,6 +49,7 @@ export function MotionPath({
   fill = 'none',
   containerRef,
 }: MotionPathProps) {
+  const prefersReducedMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ['start end', 'end start'],
@@ -56,6 +57,20 @@ export function MotionPath({
 
   const pathLength = 1000; // Approximate path length for normalization
   const strokeDashoffset = useTransform(scrollYProgress, [0, 1], [pathLength, 0]);
+
+  if (prefersReducedMotion) {
+    return (
+      <path
+        d={d}
+        fill={fill}
+        stroke={strokeColor}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={className}
+      />
+    );
+  }
 
   return (
     <motion.path
@@ -116,6 +131,7 @@ export function ScrollPathDrawInline({
   containerRef,
   delay = 0,
 }: ScrollPathDrawInlineProps) {
+  const prefersReducedMotion = useReducedMotion();
   const internalRef = useRef<HTMLDivElement>(null);
   const resolvedRef = containerRef || internalRef;
 
@@ -139,18 +155,29 @@ export function ScrollPathDrawInline({
         className="w-full h-full"
         aria-hidden="true"
       >
-        <motion.path
-          d={path}
-          fill="none"
-          stroke={strokeColor}
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          style={{
-            strokeDasharray: 1000,
-            strokeDashoffset,
-          }}
-        />
+        {prefersReducedMotion ? (
+          <path
+            d={path}
+            fill="none"
+            stroke={strokeColor}
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        ) : (
+          <motion.path
+            d={path}
+            fill="none"
+            stroke={strokeColor}
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{
+              strokeDasharray: 1000,
+              strokeDashoffset,
+            }}
+          />
+        )}
       </svg>
     </div>
   );

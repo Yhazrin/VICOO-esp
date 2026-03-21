@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import type { Artwork } from '@/types';
@@ -17,14 +17,15 @@ export default function ArtworkCard({
   className = '',
 }: ArtworkCardProps) {
   const [ref, isVisible] = useScrollReveal<HTMLDivElement>();
+  const prefersReducedMotion = useReducedMotion();
   const [imageLoaded, setImageLoaded] = useState(false);
 
   return (
     <motion.article
       ref={ref}
-      initial={{ opacity: 0, y: 40 }}
-      animate={isVisible ? { opacity: 1, y: 0 } : {}}
-      transition={{
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 40 }}
+      animate={isVisible ? (prefersReducedMotion ? {} : { opacity: 1, y: 0 }) : {}}
+      transition={prefersReducedMotion ? { duration: 0 } : {
         duration: 0.7,
         ease: [0, 0, 0.2, 1],
         delay: index * 0.1,

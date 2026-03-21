@@ -7,6 +7,7 @@ interface TextScrambleProps {
   characters?: string;
   className?: string;
   as?: React.ElementType;
+  reducedMotion?: boolean;
 }
 
 const DEFAULT_CHARACTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*';
@@ -18,13 +19,14 @@ export const TextScramble = memo(function TextScramble({
   characters = DEFAULT_CHARACTERS,
   className,
   as: Component = 'span',
+  reducedMotion = false,
 }: TextScrambleProps) {
   const [displayedText, setDisplayedText] = useState(
-    trigger === 'onMount' ? '' : text
+    reducedMotion || trigger !== 'onMount' ? text : ''
   );
   const frameRef = useRef<number>(0);
   const startTimeRef = useRef<number>(0);
-  const hasTriggeredRef = useRef<boolean>(trigger === 'onMount');
+  const hasTriggeredRef = useRef<boolean>(trigger === 'onMount' && !reducedMotion);
 
   const getRandomCharacter = useCallback(() => {
     return characters.charAt(Math.floor(Math.random() * characters.length));
@@ -81,6 +83,7 @@ export const TextScramble = memo(function TextScramble({
   }, [trigger, startAnimation]);
 
   useEffect(() => {
+    if (reducedMotion) return;
     if (trigger === 'onMount' && !hasTriggeredRef.current) {
       hasTriggeredRef.current = true;
       startTimeRef.current = performance.now();
@@ -92,7 +95,7 @@ export const TextScramble = memo(function TextScramble({
         cancelAnimationFrame(frameRef.current);
       }
     };
-  }, [trigger, animate]);
+  }, [trigger, animate, reducedMotion]);
 
   const Tag = Component as React.ElementType;
 

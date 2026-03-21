@@ -187,6 +187,7 @@ export default function EditorialHero({
               trigger="onMount"
               duration={scrambleDuration}
               className="inline-block"
+              reducedMotion={prefersReducedMotion}
             />
           ) : (
             title

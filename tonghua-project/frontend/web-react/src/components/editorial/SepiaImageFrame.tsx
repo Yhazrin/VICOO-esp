@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import { OrigamiFoldAccent } from '@/components/animations/OrigamiFold';
@@ -42,6 +42,7 @@ export default function SepiaImageFrame({
   accentSize = 'sm',
 }: SepiaImageFrameProps) {
   const [ref, isVisible] = useScrollReveal<HTMLDivElement>();
+  const prefersReducedMotion = useReducedMotion();
   const [imageLoaded, setImageLoaded] = useState(false);
 
   // Determine corner accent positions based on accentPosition
@@ -60,9 +61,9 @@ export default function SepiaImageFrame({
   return (
     <motion.figure
       ref={ref}
-      initial={{ opacity: 0, y: 30 }}
-      animate={isVisible ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.7, ease: [0, 0, 0.2, 1] }}
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 30 }}
+      animate={isVisible ? (prefersReducedMotion ? {} : { opacity: 1, y: 0 }) : {}}
+      transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.7, ease: [0, 0, 0.2, 1] }}
       className={`${sizeClasses[size]} ${className}`}
     >
       <div

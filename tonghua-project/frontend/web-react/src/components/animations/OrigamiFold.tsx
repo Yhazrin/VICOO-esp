@@ -7,7 +7,7 @@
  */
 
 import { type ReactNode } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 
 /* ─────────────────────────────────────────────────────────────
    OrigamiCorner — Decorative folded paper corner effect
@@ -227,6 +227,7 @@ export function OrigamiDivider({
   children,
 }: OrigamiDividerProps) {
   const isHorizontal = orientation === 'horizontal';
+  const prefersReducedMotion = useReducedMotion();
 
   const containerClasses = isHorizontal
     ? `h-12 ${dividerLengthClasses[length]}`
@@ -234,9 +235,9 @@ export function OrigamiDivider({
 
   return (
     <motion.div
-      initial={{ opacity: 0, scaleX: isHorizontal ? 0 : 1, scaleY: isHorizontal ? 1 : 0 }}
-      animate={{ opacity: 1, scaleX: 1, scaleY: 1 }}
-      transition={{ duration: 0.8, ease: [0.34, 1.56, 0.64, 1] }}
+      initial={prefersReducedMotion ? false : { opacity: 0, scaleX: isHorizontal ? 0 : 1, scaleY: isHorizontal ? 1 : 0 }}
+      animate={prefersReducedMotion ? {} : { opacity: 1, scaleX: 1, scaleY: 1 }}
+      transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.8, ease: [0.34, 1.56, 0.64, 1] }}
       className={`flex ${isHorizontal ? 'items-center' : 'items-center'} ${containerClasses} ${className}`}
       aria-label="Section divider"
       role="separator"
@@ -303,6 +304,7 @@ function FoldSegment({
   isLeft,
 }: FoldSegmentProps) {
   const colors = dividerColorClasses[color];
+  const prefersReducedMotion = useReducedMotion();
   const isHorizontal = orientation === 'horizontal';
   const segmentSize = isHorizontal ? 'w-6 h-full' : 'h-6 w-full';
 
@@ -313,9 +315,9 @@ function FoldSegment({
 
   return (
     <motion.div
-      initial={{ opacity: 0, rotate: baseRotate + 90 }}
-      animate={{ opacity: 1, rotate }}
-      transition={{
+      initial={prefersReducedMotion ? false : { opacity: 0, rotate: baseRotate + 90 }}
+      animate={prefersReducedMotion ? {} : { opacity: 1, rotate }}
+      transition={prefersReducedMotion ? { duration: 0 } : {
         duration: 0.5,
         delay: index * 0.1,
         ease: [0.34, 1.56, 0.64, 1],
@@ -495,14 +497,15 @@ export function OrigamiPaperStrip({
     sepia: { front: '#5C4D3D', back: '#5C4033', shadow: 'color-mix(in srgb, var(--color-ink) 15%, transparent)' },
   }[color];
 
+  const prefersReducedMotion = useReducedMotion();
   const isHorizontal = orientation === 'horizontal';
   const stripSize = isHorizontal ? { width: foldCount * 20, height: 12 } : { width: 12, height: foldCount * 20 };
 
   return (
     <motion.div
-      initial={animated ? { opacity: 0, scale: 0.8 } : {}}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.6, ease: [0.34, 1.56, 0.64, 1] }}
+      initial={animated && !prefersReducedMotion ? { opacity: 0, scale: 0.8 } : {}}
+      animate={prefersReducedMotion ? {} : { opacity: 1, scale: 1 }}
+      transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6, ease: [0.34, 1.56, 0.64, 1] }}
       className={`flex ${isHorizontal ? '' : 'flex-col'} ${className}`}
       style={stripSize}
       aria-hidden="true"
@@ -514,9 +517,9 @@ export function OrigamiPaperStrip({
         return (
           <motion.div
             key={index}
-            initial={animated ? { rotate: isEven ? 5 : -5, opacity: 0 } : {}}
-            animate={{ rotate: rotateValue, opacity: 1 }}
-            transition={{
+            initial={animated && !prefersReducedMotion ? { rotate: isEven ? 5 : -5, opacity: 0 } : {}}
+            animate={prefersReducedMotion ? {} : { rotate: rotateValue, opacity: 1 }}
+            transition={prefersReducedMotion ? { duration: 0 } : {
               duration: 0.4,
               delay: animated ? index * 0.08 : 0,
               ease: [0.34, 1.56, 0.64, 1],

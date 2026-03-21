@@ -1,5 +1,5 @@
 import { type ReactNode, useRef } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
 
 interface PagePeelProps {
   children: ReactNode;
@@ -45,6 +45,16 @@ export default function PagePeel({
   className = '',
 }: PagePeelProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const prefersReducedMotion = useReducedMotion();
+
+  // Skip all scroll-linked motion for reduced-motion users
+  if (prefersReducedMotion) {
+    return (
+      <div ref={containerRef} className={`relative ${className}`}>
+        <div className="bg-paper">{children}</div>
+      </div>
+    );
+  }
 
   const { scrollYProgress } = useScroll({
     target: containerRef,

@@ -148,14 +148,17 @@ function CarbonBar({ label, value, maxValue, isEco, delay }: {
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: '-50px' });
+  const prefersReducedMotion = useReducedMotion();
   const percentage = (value / maxValue) * 100;
 
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, x: -20 }}
-      animate={isInView ? { opacity: 1, x: 0 } : {}}
-      transition={{ duration: 0.6, delay }}
+      {...(prefersReducedMotion ? {} : {
+        initial: { opacity: 0, x: -20 },
+        animate: isInView ? { opacity: 1, x: 0 } : {},
+        transition: { duration: 0.6, delay },
+      })}
       className="space-y-2"
     >
       <div className="flex justify-between items-baseline">
@@ -169,9 +172,11 @@ function CarbonBar({ label, value, maxValue, isEco, delay }: {
       <div className="h-3 bg-warm-gray/20 border border-warm-gray/30 overflow-hidden">
         <motion.div
           className={`h-full ${isEco ? 'bg-[#5a7a5a]' : 'bg-archive-brown/60'}`}
-          initial={{ width: 0 }}
-          animate={isInView ? { width: `${percentage}%` } : {}}
-          transition={{ duration: 1.2, delay: delay + 0.3, ease: [0, 0, 0.2, 1] }}
+          {...(prefersReducedMotion ? { style: { width: `${percentage}%` } } : {
+            initial: { width: 0 },
+            animate: isInView ? { width: `${percentage}%` } : {},
+            transition: { duration: 1.2, delay: delay + 0.3, ease: [0, 0, 0.2, 1] },
+          })}
         />
       </div>
     </motion.div>
@@ -209,10 +214,12 @@ function CertificationBadge({ title, description, delay }: {
   const prefersReducedMotion = useReducedMotion();
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay }}
+      {...(prefersReducedMotion ? {} : {
+        initial: { opacity: 0, y: 20 },
+        whileInView: { opacity: 1, y: 0 },
+        viewport: { once: true },
+        transition: { duration: 0.5, delay },
+      })}
       whileHover={prefersReducedMotion ? undefined : { y: -4, borderColor: 'color-mix(in srgb, var(--color-rust) 50%, transparent)' }}
       className="border-2 border-rust/30 bg-paper p-5 text-center transition-all duration-300 hover:shadow-[0_4px_20px_color-mix(in_srgb,var(--color-rust)_8%,transparent)] relative overflow-hidden group"
     >
@@ -261,14 +268,16 @@ function EnhancedTimelineEntry({ record, index, t }: {
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: -30 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true, margin: '-40px' }}
-      transition={{
-        duration: 0.6,
-        delay: index * 0.15,
-        ease: [0.25, 0.1, 0.25, 1],
-      }}
+      {...(prefersReducedMotion ? {} : {
+        initial: { opacity: 0, x: -30 },
+        whileInView: { opacity: 1, x: 0 },
+        viewport: { once: true, margin: '-40px' },
+        transition: {
+          duration: 0.6,
+          delay: index * 0.15,
+          ease: [0.25, 0.1, 0.25, 1],
+        },
+      })}
       className="relative pb-12 last:pb-0"
     >
       {/* Dot */}
@@ -409,6 +418,7 @@ function EnhancedTimeline({ records, t }: { records: EnhancedSupplyChainRecord[]
 
 export default function Traceability() {
   const { t } = useTranslation();
+  const prefersReducedMotion = useReducedMotion();
   const timelineRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
@@ -470,10 +480,12 @@ export default function Traceability() {
         />
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          {...(prefersReducedMotion ? {} : {
+            initial: { opacity: 0, y: 20 },
+            whileInView: { opacity: 1, y: 0 },
+            viewport: { once: true },
+            transition: { duration: 0.6 },
+          })}
           className="max-w-xl mb-16"
         >
           <div className="relative">
@@ -570,9 +582,11 @@ export default function Traceability() {
 
               {/* Carbon total */}
               <motion.div
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
+                {...(prefersReducedMotion ? {} : {
+                  initial: { opacity: 0 },
+                  whileInView: { opacity: 1 },
+                  viewport: { once: true },
+                })}
                 className="mt-6 border border-warm-gray/30 p-6 bg-aged-stock"
               >
                 <span className="font-body text-caption text-sepia-mid tracking-[0.2em] uppercase">
@@ -673,10 +687,12 @@ export default function Traceability() {
               />
 
               <motion.p
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.5 }}
+                {...(prefersReducedMotion ? {} : {
+                  initial: { opacity: 0 },
+                  whileInView: { opacity: 1 },
+                  viewport: { once: true },
+                  transition: { duration: 0.6, delay: 0.5 },
+                })}
                 className="font-body text-caption text-ink-faded leading-relaxed border-l-2 border-[#5a7a5a]/30 pl-4 mt-4"
               >
                 {t('traceability.carbon.explanation')}
@@ -686,10 +702,12 @@ export default function Traceability() {
             {/* Reduction counter */}
             <div className="md:col-span-5">
               <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.3 }}
+                {...(prefersReducedMotion ? {} : {
+                  initial: { opacity: 0, scale: 0.95 },
+                  whileInView: { opacity: 1, scale: 1 },
+                  viewport: { once: true },
+                  transition: { duration: 0.6, delay: 0.3 },
+                })}
                 className="border-2 border-[#5a7a5a]/30 p-8 text-center bg-paper relative overflow-hidden"
               >
                 {/* Grain */}
@@ -746,10 +764,12 @@ export default function Traceability() {
             ].map((step) => (
               <motion.div
                 key={step.num}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, ease: [0, 0, 0.2, 1] }}
+                {...(prefersReducedMotion ? {} : {
+                  initial: { opacity: 0, y: 30 },
+                  whileInView: { opacity: 1, y: 0 },
+                  viewport: { once: true },
+                  transition: { duration: 0.6, ease: [0, 0, 0.2, 1] },
+                })}
                 className="border-t border-warm-gray/30 pt-6"
               >
                 <span className="font-body text-caption text-sepia-mid tracking-[0.2em]">
@@ -794,10 +814,12 @@ export default function Traceability() {
 
       <SectionContainer narrow>
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, ease: [0, 0, 0.2, 1] }}
+          {...(prefersReducedMotion ? {} : {
+            initial: { opacity: 0, y: 30 },
+            whileInView: { opacity: 1, y: 0 },
+            viewport: { once: true },
+            transition: { duration: 0.7, ease: [0, 0, 0.2, 1] },
+          })}
           className="text-center py-8"
         >
           <span className="font-body text-overline tracking-[0.3em] uppercase text-sepia-mid block mb-4">

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 
 interface FAQItem {
   question: string;
@@ -13,6 +13,7 @@ interface FAQAccordionProps {
 
 export default function FAQAccordion({ items, className = '' }: FAQAccordionProps) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const prefersReducedMotion = useReducedMotion();
 
   const toggleItem = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
@@ -35,8 +36,8 @@ export default function FAQAccordion({ items, className = '' }: FAQAccordionProp
               {item.question}
             </span>
             <motion.span
-              animate={{ rotate: openIndex === index ? 180 : 0 }}
-              transition={{ duration: 0.3 }}
+              animate={prefersReducedMotion ? {} : { rotate: openIndex === index ? 180 : 0 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3 }}
               className="flex-shrink-0 w-6 h-6 flex items-center justify-center"
             >
               <svg
@@ -56,10 +57,10 @@ export default function FAQAccordion({ items, className = '' }: FAQAccordionProp
             {openIndex === index && (
               <motion.div
                 id={`faq-answer-${index}`}
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3, ease: [0, 0, 0.2, 1] }}
+                initial={prefersReducedMotion ? false : { opacity: 0, height: 0 }}
+                animate={prefersReducedMotion ? {} : { opacity: 1, height: 'auto' }}
+                exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, height: 0 }}
+                transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3, ease: [0, 0, 0.2, 1] }}
                 className="overflow-hidden"
               >
                 <div className="pb-4 pl-2">
