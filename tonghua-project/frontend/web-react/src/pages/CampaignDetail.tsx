@@ -196,12 +196,12 @@ export default function CampaignDetail() {
                   </div>
                   <div className="w-full h-1.5 bg-warm-gray/30 rounded-sm overflow-hidden mb-4">
                     <motion.div
-                      {...(prefersReducedMotion ? { style: { width: `${progress}%` } } : {
-                        initial: { width: 0 },
-                        animate: { width: `${progress}%` },
+                      {...(prefersReducedMotion ? { style: { transform: `scaleX(${progress / 100})` } } : {
+                        initial: { scaleX: 0 },
+                        animate: { scaleX: progress / 100 },
                         transition: { duration: 1.2, ease: 'easeOut' },
                       })}
-                      className="h-full bg-archive-brown rounded-sm"
+                      className="h-full origin-left bg-archive-brown rounded-sm"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4 text-center">

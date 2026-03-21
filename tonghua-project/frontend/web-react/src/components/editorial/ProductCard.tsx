@@ -136,11 +136,11 @@ export default function ProductCard({
                   {sustainability.label}
                 </span>
               </div>
-              <div className="w-12 h-px bg-warm-gray/30 mt-0.5">
+              <div className="w-12 h-px bg-warm-gray/30 mt-0.5 overflow-hidden">
                 <motion.div
-                  className={`h-full ${sustainability.barColor}`}
-                  initial={{ width: 0 }}
-                  animate={isVisible ? { width: `${product.sustainabilityScore}%` } : {}}
+                  className={`h-full origin-left ${sustainability.barColor}`}
+                  initial={{ scaleX: 0 }}
+                  animate={isVisible ? { scaleX: product.sustainabilityScore / 100 } : {}}
                   transition={{ duration: 0.8, delay: 0.3, ease: [0, 0, 0.2, 1] }}
                 />
               </div>
@@ -159,7 +159,7 @@ export default function ProductCard({
                     e.stopPropagation();
                     setShowNotifyInput(true);
                   }}
-                  className="w-full font-body text-overline tracking-[0.15em] uppercase text-sepia-mid py-2 px-4 border border-dashed border-sepia-mid/50 hover:border-sepia-mid hover:text-ink transition-all duration-200 bg-transparent"
+                  className="w-full font-body text-overline tracking-[0.15em] uppercase text-sepia-mid py-2 px-4 border border-dashed border-sepia-mid/50 hover:border-sepia-mid hover:text-ink transition-all duration-200 bg-transparent cursor-pointer"
                 >
                   Notify Me
                 </motion.button>

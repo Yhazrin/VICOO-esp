@@ -63,6 +63,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **EditorialHero**: Fixed `TextScramble.reducedMotion` prop coercion — `prefersReducedMotion ?? undefined` passes `undefined` when `useReducedMotion()` returns `null`, which defaults to `false` (animations run). Changed to `prefersReducedMotion ? true : undefined`.
 - **Stories**: Fixed article `initial` prop — was always `{{ opacity: 0, y: 50 }}` regardless of reduced-motion, causing elements to start invisible with no reveal animation. Now fully guarded.
 - **Stories/Campaigns/Donate**: Converted `width`-based animations to `scaleX` transforms across 4 locations (Stories ReadingProgressBar, Campaigns funding progress bar, Donate 2 decorative lines) for GPU compositing and hardware acceleration compliance.
+- **Traceability/CampaignDetail/ProductCard**: Extended `width`→`scaleX` conversions to 3 more locations — Traceability CarbonBar progress, CampaignDetail funding progress bar, ProductCard sustainability score bar. Added `overflow-hidden` to ProductCard parent container.
+- **Register/Login/Profile/NotFound**: Converted decorative divider line animations from `width` to `scaleX` with `origin-center` across 4 page components for consistent GPU compositing.
+- **ProductCard**: Added missing `cursor-pointer` to "Notify Me" button.
+- **Stories**: Added missing `cursor-pointer` to empty-state "Browse All" button.
+- **SepiaImageFrame**: Replaced `as any` type assertion with `Exclude<typeof accentPosition, 'diagonal'>` for proper TypeScript type narrowing.
 - **Login**: Fixed "Remember me" label — was missing `<input type="checkbox">` element and `htmlFor` attribute. Added proper checkbox with `accent-rust` styling.
 - **Stories**: Added `cursor-pointer` to category filter buttons.
 

@@ -263,7 +263,7 @@ function EmptyState({ onBrowseAll }: { onBrowseAll: () => void }) {
         onClick={onBrowseAll}
         whileHover={prefersReducedMotion ? undefined : { y: -2 }}
         whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
-        className="font-body text-caption tracking-[0.15em] uppercase text-rust border-b border-rust/30 pb-1 hover:text-ink hover:border-ink/30 transition-colors"
+        className="font-body text-caption tracking-[0.15em] uppercase text-rust border-b border-rust/30 pb-1 hover:text-ink hover:border-ink/30 transition-colors cursor-pointer"
       >
         {t('stories.empty.browseAll')}
       </motion.button>

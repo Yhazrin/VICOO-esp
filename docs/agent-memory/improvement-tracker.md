@@ -1,6 +1,6 @@
 # Improvement Tracker
 
-> Auto-maintained by agent loop. Last updated: 2026-03-21 (cycle 3)
+> Auto-maintained by agent loop. Last updated: 2026-03-21 (cycle 4)
 
 ## Completed
 
@@ -44,6 +44,16 @@
 | 41 | Campaigns — add `role="progressbar"` with aria-valuenow to funding progress bars | Low | ✅ done |
 | 42 | Campaigns/Stories — add `role="tablist"` to category filter containers | Low | ✅ done |
 | 43 | Stories — add `role="progressbar"` to ReadingProgressBar, `cursor-pointer` to category filter buttons | Low | ✅ done |
+| 44 | Traceability CarbonBar — convert `width` animation to `scaleX` for GPU compositing | Medium | ✅ done |
+| 45 | CampaignDetail funding progress — convert `width` animation to `scaleX` | Medium | ✅ done |
+| 46 | ProductCard sustainability score bar — convert `width` to `scaleX`, add `overflow-hidden` to parent | Medium | ✅ done |
+| 47 | Register decorative divider — convert `width` animation to `scaleX` with `origin-center` | Medium | ✅ done |
+| 48 | Login decorative divider — convert `width` animation to `scaleX` with `origin-center` | Medium | ✅ done |
+| 49 | Profile decorative divider — convert `width` animation to `scaleX` with `origin-center` | Medium | ✅ done |
+| 50 | NotFound decorative divider — convert `width` animation to `scaleX` with `origin-center` | Medium | ✅ done |
+| 51 | ProductCard "Notify Me" button — add missing `cursor-pointer` | Low | ✅ done |
+| 52 | Stories empty-state "Browse All" button — add missing `cursor-pointer` | Low | ✅ done |
+| 53 | SepiaImageFrame — replace `as any` with `Exclude<typeof accentPosition, 'diagonal'>` type narrowing | Medium | ✅ done |
 
 ## Pending
 

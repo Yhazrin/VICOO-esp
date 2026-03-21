@@ -37,8 +37,8 @@ export default function NotFound() {
 
             {/* Decorative divider */}
             <motion.div
-              {...(prefersReducedMotion ? {} : { initial: { width: 0 }, animate: { width: '80px' }, transition: { duration: 0.8, delay: 0.3, ease: [0, 0, 0.2, 1] } })}
-              className="h-px bg-rust/50 mx-auto mb-8"
+              {...(prefersReducedMotion ? {} : { initial: { scaleX: 0 }, animate: { scaleX: 1 }, transition: { duration: 0.8, delay: 0.3, ease: [0, 0, 0.2, 1] } })}
+              className="h-px w-[80px] bg-rust/50 mx-auto mb-8 origin-center"
             />
 
             <p className="font-body text-body-sm text-ink-faded leading-relaxed mb-10">

@@ -178,10 +178,10 @@ function CarbonBar({ label, value, maxValue, isEco, delay }: {
       </div>
       <div className="h-3 bg-warm-gray/20 border border-warm-gray/30 overflow-hidden">
         <motion.div
-          className={`h-full ${isEco ? 'bg-sage-light' : 'bg-archive-brown/60'}`}
-          {...(prefersReducedMotion ? { style: { width: `${percentage}%` } } : {
-            initial: { width: 0 },
-            animate: isInView ? { width: `${percentage}%` } : {},
+          className={`h-full origin-left ${isEco ? 'bg-sage-light' : 'bg-archive-brown/60'}`}
+          {...(prefersReducedMotion ? { style: { transform: `scaleX(${percentage / 100})` } } : {
+            initial: { scaleX: 0 },
+            animate: isInView ? { scaleX: percentage / 100 } : {},
             transition: { duration: 1.2, delay: delay + 0.3, ease: [0, 0, 0.2, 1] },
           })}
         />

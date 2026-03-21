@@ -98,8 +98,8 @@ export default function Profile() {
               {t('profile.notLoggedIn')}
             </motion.p>
             <motion.div
-              {...(prefersReducedMotion ? {} : { initial: { width: 0 }, animate: { width: '60px' }, transition: { duration: 0.8, delay: 0.3 } })}
-              className="h-px bg-rust/40 mx-auto mb-8"
+              {...(prefersReducedMotion ? {} : { initial: { scaleX: 0 }, animate: { scaleX: 1 }, transition: { duration: 0.8, delay: 0.3 } })}
+              className="h-px w-[60px] bg-rust/40 mx-auto mb-8 origin-center"
             />
             <motion.button
               initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
