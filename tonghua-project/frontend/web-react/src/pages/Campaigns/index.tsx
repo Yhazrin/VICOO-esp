@@ -446,6 +446,32 @@ export default function Campaigns() {
             </button>
           </div>
         )}
+
+        {/* CTA */}
+        <div className="pt-8">
+          <motion.div
+            {...(prefersReducedMotion ? {} : { initial: { opacity: 0, y: 20 }, whileInView: { opacity: 1, y: 0 } })}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="border border-warm-gray/30 p-10 md:p-14 text-center"
+          >
+            <p className="font-body text-overline tracking-[0.3em] uppercase text-sepia-mid mb-4">
+              {t('campaigns.cta.eyebrow', 'Every Thread Tells a Story')}
+            </p>
+            <h2 className="font-display text-h2 md:text-[32px] text-ink font-medium mb-4">
+              {t('campaigns.cta.title', 'Start a Campaign')}
+            </h2>
+            <p className="font-body text-body-sm text-ink-faded max-w-[480px] mx-auto mb-8 leading-relaxed">
+              {t('campaigns.cta.body', 'Are you a school, community center, or organization? Partner with us to bring sustainable fashion education to your community.')}
+            </p>
+            <Link
+              to="/contact"
+              className="inline-block font-mono text-[10px] tracking-[0.18em] uppercase bg-ink text-paper px-8 py-4 hover:bg-rust transition-colors duration-300 cursor-pointer"
+            >
+              {t('campaigns.cta.button', 'Get in Touch')}
+            </Link>
+          </motion.div>
+        </div>
       </SectionContainer>
 
       <div className="editorial-divider" />

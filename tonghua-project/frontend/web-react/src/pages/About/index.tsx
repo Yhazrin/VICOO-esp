@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
@@ -204,6 +205,29 @@ export default function About() {
             />
           ))}
         </div>
+      </SectionContainer>
+
+      {/* CTA — Get Involved */}
+      <SectionContainer narrow>
+        <motion.div
+          {...(prefersReducedMotion ? {} : { initial: { opacity: 0, y: 20 }, whileInView: { opacity: 1, y: 0 } })}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-center"
+        >
+          <NumberedSectionHeading number="04" title={t('about.cta.title', 'Get Involved')} />
+          <p className="font-body text-body-sm text-ink-faded leading-relaxed max-w-[540px] mx-auto mb-8">
+            {t('about.cta.body', 'Whether you donate, volunteer, or simply share our stories — every action helps a child\'s imagination reach the world.')}
+          </p>
+          <div className="flex items-center justify-center gap-6">
+            <Link to="/donate" className="font-mono text-[10px] tracking-[0.18em] uppercase bg-ink text-paper px-8 py-4 hover:bg-rust transition-colors duration-300">
+              {t('about.cta.donate', 'Donate')}
+            </Link>
+            <Link to="/campaigns" className="font-mono text-[10px] tracking-[0.18em] uppercase text-rust hover:text-ink transition-colors border-b border-rust/40 pb-1 cursor-pointer">
+              {t('about.cta.explore', 'Explore Campaigns')} &rarr;
+            </Link>
+          </div>
+        </motion.div>
       </SectionContainer>
 
       <div className="editorial-divider" aria-hidden="true" />

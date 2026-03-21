@@ -1,6 +1,6 @@
 # Improvement Tracker
 
-> Auto-maintained by agent loop. Last updated: 2026-03-21 (cycle 6+)
+> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 7)
 
 ## Completed
 
@@ -113,6 +113,17 @@
 | 90 | EditorialCallout — reduced-motion guard | P1 | ✅ done |
 | 91 | VintageInput — reduced-motion guard | P1 | ✅ done |
 | 92 | ProductDetail — setTimeout without cleanup (setState on unmounted) | P1 | ✅ done — useRef for timeout ID + useEffect cleanup with clearTimeout |
+
+## Completed — Cycle 7 (2026-03-22)
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 93 | About page — missing CTA section after Team | Medium | ✅ done — added "Get Involved" section (#04) with Donate + Explore Campaigns links |
+| 94 | Campaigns page — missing CTA section at bottom | Medium | ✅ done — added "Start a Campaign" bordered CTA box with Get in Touch link |
+| 95 | Profile page — avatar area lacks editorial treatment | Low | ✅ done — upgraded to w-20 h-20, added corner accents + hover scale, consistent with TeamMemberCard |
+| 96 | Frontend — auth.ts missing updateProfile method | Medium | ✅ done — added `updateProfile` mapping to PUT /users/me |
+| 97 | Frontend — products.ts missing getCategories method | Low | ✅ done — added `getCategories` mapping to GET /products/categories |
+| 98 | Frontend — payments.ts service file missing | Medium | ✅ done — created with create + getById methods, added Payment type to types/index.ts |
 
 ## Pending
 

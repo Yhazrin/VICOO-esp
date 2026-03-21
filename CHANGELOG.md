@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-03-22 — Cycle 7: Frontend Page Expansion & Service Completion
+
+### Features
+
+- **About page CTA** — Added "Get Involved" section (#04) with Donate and Explore Campaigns editorial links, matching existing magazine aesthetic with reduced-motion guards.
+- **Campaigns page CTA** — Added "Start a Campaign" bordered callout box with eyebrow, title, body copy, and "Get in Touch" link to contact page.
+- **Profile page avatar upgrade** — Enlarged avatar container (w-16→w-20), added decorative corner accents, SectionGrainOverlay, and hover micro-interaction (scale 1.03) consistent with TeamMemberCard style.
+
+### API Alignment
+
+- **Frontend: auth.ts updateProfile** — Added `updateProfile` method mapping to backend `PUT /users/me` with nickname/avatar/phone fields.
+- **Frontend: products.ts getCategories** — Added `getCategories` method mapping to backend `GET /products/categories`.
+- **Frontend: payments.ts service created** — New service file with `create` and `getById` methods matching backend `POST /payments/create` and `GET /payments/{id}`.
+- **Frontend: Payment type added** — New `Payment` interface in types/index.ts (id, orderId, donationId, amount, method, status, createdAt).
+
 ## 2026-03-21 — P0 Backend Security Fixes
 
 ### Security
