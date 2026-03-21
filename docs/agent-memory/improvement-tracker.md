@@ -1,6 +1,6 @@
 # Improvement Tracker
 
-> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 21)
+> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 22)
 > Scope broadened: now covers frontend UI/UX + backend architecture + software architecture + sustainability + code quality
 
 ## Completed
@@ -179,6 +179,21 @@
 | 135 | Layout — missing skip-to-content link (WCAG 2.4.1) | P0 | ✅ done — sr-only link + main#main-content id |
 | 136 | Header — desktop nav missing aria-label landmark | P1 | ✅ done — aria-label="Main navigation" |
 | 137 | global.css — no reduced-motion CSS-level fallback | P0 | ✅ done — @media (prefers-reduced-motion: reduce) block |
+| 138 | orders.py — 2 call sites use module-level payment_service (NameError after lazy singleton refactor) | P0 | ✅ done — `payment_service.` → `get_payment_service().` |
+| 139 | ArtworkDetail.tsx — broken handleVote calls non-existent setArtwork + error/queryError mismatch | P0 | ✅ done — useMutation + queryClient.invalidateQueries |
+| 140 | Traceability — EnhancedSupplyChainRecord extends SupplyChainRecord (missing fields: date, verified, partnerName) | P0 | ✅ done — standalone interface + explicit field mapping |
+| 141 | Traceability — handleSearch spreads SupplyChainRecord into EnhancedSupplyChainRecord | P0 | ✅ done — explicit field mapping with unknown cast |
+| 142 | Traceability — r.id === query.trim() number vs string comparison | P1 | ✅ done — String(r.id) === query.trim() |
+| 143 | Traceability — unused STAGE_MAP constant + useQuery/buildRecordsFromApi imports | Low | ✅ done — removed |
+| 144 | Traceability — r as Record<string, unknown> insufficient overlap cast | P1 | ✅ done — r as unknown as Record<string, unknown> |
+| 145 | Login — unused MagazineDivider import | Low | ✅ done — removed |
+| 146 | Register — unused MagazineDivider import | Low | ✅ done — removed |
+| 147 | Donate — back-to-top href="#top" wrong anchor target | P1 | ✅ done — href="#main-content" |
+| 148 | auth.py /refresh — trusts token payload role (privilege escalation) | P0 | ✅ done — queries DB for current role |
+| 149 | security.py create_refresh_token — no role in token (admin→user downgrade on refresh) | P0 | ✅ done — added role param |
+| 150 | artworks.py vote_artwork — non-atomic like_count += 1 (race condition) | P0 | ✅ done — atomic SQL UPDATE |
+| 151 | payments.py alipay_notify — fail-open when ALIPAY_PUBLIC_KEY unconfigured | P0 | ✅ done — returns "failure" |
+| 152 | models/payment.py — order_id/donation_id missing ForeignKey constraints | P1 | ✅ done — ForeignKey added |
 
 ## Pending
 

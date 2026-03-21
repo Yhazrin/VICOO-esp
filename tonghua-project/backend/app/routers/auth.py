@@ -354,7 +354,7 @@ async def wx_login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/refresh")
-async def refresh(request: Request):
+async def refresh(request: Request, db: AsyncSession = Depends(get_db)):
     """Refresh access token using a valid refresh token from httpOnly cookie."""
     # Read refresh token from httpOnly cookie
     refresh_token = request.cookies.get("refresh_token")
@@ -367,9 +367,14 @@ async def refresh(request: Request):
         if payload.get("type") != "refresh":
             raise HTTPException(status_code=400, detail="Invalid refresh token")
         sub = payload["sub"]
-        role = payload.get("role", "user")
+        # Look up current role from DB — don't trust the token payload
+        result = await db.execute(select(User).where(User.id == int(sub)))
+        user = result.scalar_one_or_none()
+        if not user:
+            raise HTTPException(status_code=401, detail="User not found")
+        role = user.role.value if hasattr(user.role, "value") else str(user.role)
         new_access = create_access_token(subject=sub, role=role)
-        new_refresh = create_refresh_token(subject=sub)
+        new_refresh = create_refresh_token(subject=sub, role=role)
 
         response_data = ApiResponse(
             success=True,

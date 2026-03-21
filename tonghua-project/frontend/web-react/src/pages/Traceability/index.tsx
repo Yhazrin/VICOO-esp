@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, useInView, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import EditorialHero from '@/components/editorial/EditorialHero';
@@ -11,52 +10,21 @@ import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
 import { supplyChainApi } from '@/services/supply-chain';
-import type { SupplyChainRecord } from '@/types';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
-import { supplyChainApi } from '@/services/supply-chain';
 
 // Extended record with story, image, and status for enhanced timeline
-interface EnhancedSupplyChainRecord extends SupplyChainRecord {
+interface EnhancedSupplyChainRecord {
+  id: number;
+  stage: string;
+  description: string;
+  location: string;
+  date: string;
+  verified: boolean;
+  partnerName: string;
+  carbonFootprint?: number;
   story: string;
   imageUrl: string;
   status: 'verified' | 'in-progress' | 'pending';
-}
-
-// Map backend stage keys to frontend stage keys
-const STAGE_MAP: Record<string, string> = {
-  material_sourcing: 'material',
-  processing: 'production',
-  manufacturing: 'production',
-  quality_check: 'quality',
-  shipping: 'shipping',
-};
-
-// Build enhanced records from API trace data, merging with narrative stories
-function buildRecordsFromApi(apiRecords: Array<{
-  id: number;
-  stage: string;
-  description: string | null;
-  location: string | null;
-  certified: boolean;
-  timestamp: string | null;
-}>): EnhancedSupplyChainRecord[] {
-  return apiRecords.map((r) => {
-    const frontendStage = STAGE_MAP[r.stage] || r.stage;
-    const narrative = MOCK_RECORDS.find((m) => m.stage === frontendStage);
-    return {
-      id: r.id,
-      stage: frontendStage,
-      description: r.description ?? narrative?.description ?? '',
-      location: r.location ?? narrative?.location ?? '',
-      date: r.timestamp ? r.timestamp.split('T')[0] : narrative?.date ?? '',
-      verified: r.certified,
-      partnerName: narrative?.partnerName ?? 'Verified Partner',
-      carbonFootprint: narrative?.carbonFootprint,
-      story: narrative?.story ?? '',
-      imageUrl: narrative?.imageUrl ?? `https://picsum.photos/seed/${frontendStage}/200/200`,
-      status: r.certified ? 'verified' as const : 'in-progress' as const,
-    };
-  });
 }
 
 const MOCK_RECORDS: EnhancedSupplyChainRecord[] = [
@@ -472,15 +440,25 @@ export default function Traceability() {
   useEffect(() => {
     let cancelled = false;
     supplyChainApi
-      .getRecords({ page_size: 50 })
+      .getRecords()
       .then((res) => {
-        if (cancelled || !res.items.length) return;
-        const mapped: EnhancedSupplyChainRecord[] = res.items.map((r, i) => ({
-          ...r,
-          story: MOCK_RECORDS[i]?.story ?? r.description,
-          imageUrl: MOCK_RECORDS[i]?.imageUrl ?? `https://picsum.photos/seed/stage-${r.stage}/200/200`,
-          status: (r.verified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
-        }));
+        if (cancelled || !res.length) return;
+        const mapped: EnhancedSupplyChainRecord[] = res.map((r, i) => {
+          const rec = r as unknown as Record<string, unknown>;
+          return {
+            id: Number(rec.id ?? i + 1),
+            stage: String(rec.stage ?? 'unknown'),
+            description: String(rec.description ?? ''),
+            location: String(rec.location ?? ''),
+            date: String(rec.date ?? rec.timestamp ?? ''),
+            verified: Boolean(rec.verified ?? rec.certified),
+            partnerName: String(rec.partnerName ?? rec.partner_name ?? MOCK_RECORDS[i]?.partnerName ?? 'Verified Partner'),
+            carbonFootprint: typeof rec.carbonFootprint === 'number' ? rec.carbonFootprint : undefined,
+            story: MOCK_RECORDS[i]?.story ?? String(rec.description ?? ''),
+            imageUrl: MOCK_RECORDS[i]?.imageUrl ?? `https://picsum.photos/seed/stage-${String(rec.stage ?? 'unknown')}/200/200`,
+            status: (rec.verified ?? rec.certified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
+          };
+        });
         setRecords(mapped);
       })
       .catch(() => {
@@ -500,15 +478,24 @@ export default function Traceability() {
     setIsSearching(true);
 
     supplyChainApi
-      .trace(query.trim())
-      .then((trace) => {
-        if (trace.records.length > 0) {
-          const first = trace.records[0];
+      .getProductJourney(query.trim())
+      .then((journey) => {
+        if (journey.length > 0) {
+          const first = journey[0];
+          const rec = first as unknown as Record<string, unknown>;
+          const mockMatch = MOCK_RECORDS.find((m) => m.stage === first.stage);
           const enhanced: EnhancedSupplyChainRecord = {
-            ...first,
-            story: MOCK_RECORDS.find((m) => m.stage === first.stage)?.story ?? first.description,
-            imageUrl: MOCK_RECORDS.find((m) => m.stage === first.stage)?.imageUrl ?? `https://picsum.photos/seed/${first.stage}/200/200`,
-            status: (first.verified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
+            id: Number(rec.id ?? 1),
+            stage: first.stage,
+            description: first.description,
+            location: first.location,
+            date: String(rec.date ?? rec.timestamp ?? ''),
+            verified: Boolean(rec.verified ?? rec.certified),
+            partnerName: String(rec.partnerName ?? rec.partner_name ?? mockMatch?.partnerName ?? 'Verified Partner'),
+            carbonFootprint: typeof rec.carbonFootprint === 'number' ? rec.carbonFootprint : undefined,
+            story: mockMatch?.story ?? first.description,
+            imageUrl: mockMatch?.imageUrl ?? `https://picsum.photos/seed/${first.stage}/200/200`,
+            status: (rec.verified ?? rec.certified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
           };
           setHighlightedId(enhanced.id);
           setSearchResult(enhanced);
@@ -519,7 +506,7 @@ export default function Traceability() {
         // Fallback: local search through records
         const found = records.find(
           (r) =>
-            r.id === query.trim() ||
+            String(r.id) === query.trim() ||
             r.partnerName.toLowerCase().includes(query.toLowerCase()) ||
             query.toUpperCase().includes('VICOO')
         );

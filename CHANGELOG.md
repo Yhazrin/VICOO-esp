@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-03-22 — Cycle 22: TS Type Safety, Backend NameError Fix, Traceability Rewrite
+
+### Backend
+
+- **orders.py lazy singleton callers** — Fixed 2 call sites (WeChat + Alipay order creation) that referenced module-level `payment_service.create_unified_order(...)`. After Cycle 21's refactor to `get_payment_service()` lazy factory, these caused `NameError` at runtime. Changed to `get_payment_service().create_unified_order(...)`.
+- **auth.py /refresh privilege escalation** — `/refresh` endpoint now queries DB for the user's current role instead of trusting the JWT token payload. Prevents an attacker from crafting a refresh token with elevated `role: "admin"`. Added `db: AsyncSession` dependency.
+- **security.py refresh token role** — `create_refresh_token()` now accepts `role` parameter and includes it in the token payload. All 7 callers updated to pass `user.role`. Prevents admin→user downgrade if refresh token lacks role metadata.
+- **artworks.py vote race condition** — Replaced non-atomic `artwork.like_count += 1` (read-modify-write) with atomic `update(Artwork).where(...).values(like_count=Artwork.like_count + 1)` SQL statement. Prevents lost votes under concurrent requests.
+- **payments.py alipay fail-closed** — When `ALIPAY_PUBLIC_KEY` is not configured, the `alipay_notify` handler now returns `"failure"` instead of logging a warning and continuing to accept unverified callbacks.
+- **models/payment.py FK constraints** — Added `ForeignKey("orders.id")` and `ForeignKey("donations.id")` to `order_id` and `donation_id` columns. Ensures referential integrity at the database level.
+
+### Frontend
+
+- **ArtworkDetail.tsx voting fix** — Removed broken `handleVote` function that called non-existent `setArtwork()`. Replaced with proper `useMutation` + `queryClient.invalidateQueries({ queryKey: ['artwork', id] })` for cache invalidation. Fixed `error` → `queryError` variable reference mismatch.
+- **Traceability/index.tsx major rewrite** — Changed `EnhancedSupplyChainRecord` from extending `SupplyChainRecord` (which has different field names: `timestamp` not `date`, `id: string` not `number`, no `verified`/`partnerName`/`carbonFootprint`) to a standalone interface. Both `useEffect` initial load and `handleSearch` now use explicit field mapping via `r as unknown as Record<string, unknown>` with `Number()`, `String()`, `Boolean()` coercion and fallback values. Removed unused `STAGE_MAP`, `useQuery`, `buildRecordsFromApi`. Fixed `r.id === query.trim()` number-vs-string comparison → `String(r.id) === query.trim()`.
+- **Login/Register — dead import cleanup** — Removed unused `MagazineDivider` import from both Login and Register pages.
+- **Donate — anchor target fix** — Changed `href="#top"` to `href="#main-content"` to match the `id="main-content"` on `<main>` element.
+
+### Verification
+
+- TypeScript `tsc --noEmit`: 0 errors
+- Vite production build: 2.66s, success
+
 ## 2026-03-22 — Cycle 21: P0 Security, A11y & Stability Fixes
 
 ### Security

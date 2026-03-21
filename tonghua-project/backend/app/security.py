@@ -48,9 +48,10 @@ def create_access_token(subject: str, role: str = "user", extra: dict | None = N
     return jwt.encode(payload, signing_key, algorithm=settings.JWT_ALGORITHM)
 
 
-def create_refresh_token(subject: str) -> str:
+def create_refresh_token(subject: str, role: str = "user") -> str:
     payload = {
         "sub": subject,
+        "role": role,
         "type": "refresh",
         "iat": _now_utc(),
         "exp": _now_utc() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
