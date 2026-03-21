@@ -143,7 +143,7 @@ async def get_campaign(campaign_id: int, db: AsyncSession = Depends(get_db)):
 async def create_campaign(
     body: CampaignCreate,
     db: AsyncSession = Depends(get_db),
-    _current_user: dict = Depends(require_role("super_admin", "content_admin")),
+    _current_user: dict = Depends(require_role("admin")),
 ):
     """Create a new campaign."""
     try:
@@ -171,7 +171,7 @@ async def update_campaign(
     campaign_id: int,
     body: CampaignUpdate,
     db: AsyncSession = Depends(get_db),
-    _current_user: dict = Depends(require_role("super_admin", "content_admin")),
+    _current_user: dict = Depends(require_role("admin")),
 ):
     """Update a campaign."""
     try:
@@ -198,7 +198,7 @@ async def update_campaign(
 async def delete_campaign(
     campaign_id: int,
     db: AsyncSession = Depends(get_db),
-    _current_user: dict = Depends(require_role("super_admin")),
+    _current_user: dict = Depends(require_role("admin")),
 ):
     """Delete a campaign."""
     try:

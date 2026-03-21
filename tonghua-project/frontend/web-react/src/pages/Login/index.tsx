@@ -67,8 +67,8 @@ export default function Login() {
 
             {/* Decorative divider under header */}
             <motion.div
-              {...(prefersReducedMotion ? {} : { initial: { width: 0 }, animate: { width: '60px' }, transition: { duration: 0.8, delay: 0.3 } })}
-              className="h-px bg-rust/40 mx-auto mt-6"
+              {...(prefersReducedMotion ? {} : { initial: { scaleX: 0 }, animate: { scaleX: 1 }, transition: { duration: 0.8, delay: 0.3 } })}
+              className="h-px w-[60px] bg-rust/40 mx-auto mt-6 origin-center"
             />
           </div>
 
@@ -101,7 +101,12 @@ export default function Login() {
             />
 
             <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 cursor-pointer">
+              <label htmlFor="remember-me" className="flex items-center gap-2 cursor-pointer">
+                <input
+                  id="remember-me"
+                  type="checkbox"
+                  className="w-4 h-4 accent-rust border-warm-gray/50 rounded-sm cursor-pointer"
+                />
                 <span className="font-body text-caption text-ink-faded">{t('login.rememberMe')}</span>
               </label>
               <Link

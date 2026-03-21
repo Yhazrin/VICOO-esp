@@ -23,6 +23,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Sage green accent system**: Introduced low-saturation sage green (#3F4F45) as a complementary cool-tone accent across the site. Semantic color language: rust = urgency/action, sage = trust/transparency/sustainability. Applied to:
+  - **Traceability page**: Migrated all 17 `eco-green` references to `sage` tokens (CarbonBar, status indicators, search results, highlighted records, carbon reduction counter).
+  - **ProductCard**: Sustainability score tier (≥80) now uses `text-sage`/`bg-sage` instead of `eco-green`.
+  - **Home page**: Brand pillar borders (`border-sage/40`), featured/artworks "View All" links (`text-sage`), shop CTA secondary button (`border-sage/40 hover:border-sage`).
+  - **Donate page**: Transparency section corner accents, bullet dots, trust badge dots all use sage. Financial report card hover/corner accents use sage. Final CTA decorative lines use `bg-sage/50`. "Learn More" button uses `border-sage/40`.
+  - **About page**: Value card top borders use `border-sage/20`. Mission section vertical accent line uses sage gradient.
+- **Legal pages editorial upgrade**: Privacy, Terms, and ChildrenSafety pages upgraded from ⭐⭐ to ⭐⭐⭐⭐ — added `GrainOverlay`, `MagazineDivider` between sections, decorative corner accents, vertical accent line, `whileInView` scroll-reveal animations. Fixed `useMediaQuery` → `useReducedMotion` inconsistency.
+- **Routes**: Registered `/privacy`, `/terms`, `/children-safety` routes in App.tsx.
+- **Footer**: Updated legal links to match registered route paths (`/children-safety` instead of `/children`).
+- **Agent docs**: Created `docs/agent-memory/codebase-index.md` and `improvement-tracker.md` for persistent codebase tracking.
 - **Login page**: Upgraded from ⭐⭐ to ⭐⭐⭐⭐ — added `PaperTextureBackground` wrapping, `MagazineDivider` decorative separator, decorative vertical accent line, animated "Vol. IX" header with decorative divider. Removed redundant GrainOverlay opacity wrapper.
 - **Register page**: Same editorial upgrade as Login — `PaperTextureBackground`, `MagazineDivider`, decorative accents, animated header with divider. Consistent editorial treatment across auth pages.
 - **Tailwind config**: Added 17 missing color tokens from `tokens.css` — ink-light, sepia-dark, sepia-light, rust-light, rust-dark, pale-gold-light, muted-gray, cream, editorial-red, editorial-navy, editorial-olive, editorial-burgundy, success, error, warning, info.
@@ -39,5 +49,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 
-- **Contact page**: Removed unused `FAQItem` and `ChevronIcon` inline components (replaced by `FAQAccordion`).
+- **Contact page**: Removed unused `FAQItem`, `ChevronIcon` inline components, `GRAIN_STYLE` constant, and `openFaqIndex` state (dead code from merge).
 - **Dead code cleanup**: Removed 8 dead barrel files (`HomePage.tsx`, `AboutPage.tsx`, etc.) that only re-exported from subdirectories.
+
+### Fixed (2026-03-21)
+
+- **TypeScript type safety**: Removed `any` type annotations from `.then()` callbacks in Profile (`Order[]`, `Donation[]`), CampaignDetail (`Campaign`), and ProductDetail (`Product`). Eliminated unnecessary `const raw = data?.data ?? data` pattern — service layer already returns properly typed `response.data`.
+- **Snake_case fallback removal**: CampaignDetail — removed 7 `raw.snake_case ??` fallbacks (`cover_image`, `start_date`, `end_date`, `artwork_count`, `participant_count`, `goal_amount`, `current_amount`). ProductDetail — removed 4 snake_case fallbacks (`image_urls`, `stock`, `sustainability_score`, `supply_chain`). Service layer returns camelCase typed data.
+- **React list keys**: Replaced `key={index}` with semantic unique keys in KineticMarquee (`marquee-${item}`, `stat-${stat.value}`), FAQAccordion (`item.question`), and ArtworkDetail (`tag`).
+- **EditorialHero**: Fixed `boolean | null` → `boolean | undefined` type mismatch on `TextScramble.reducedMotion` prop (`prefersReducedMotion ?? undefined`).
+- **Contact page**: Replaced raw `<select>` element with `VintageSelect` editorial component for consistent form styling.
+- **OrigamiFold**: Added `useReducedMotion()` hook to `OrigamiCorner` component — was running unconditional rotation animation, violating accessibility.
+- **EditorialHero**: Fixed `TextScramble.reducedMotion` prop coercion — `prefersReducedMotion ?? undefined` passes `undefined` when `useReducedMotion()` returns `null`, which defaults to `false` (animations run). Changed to `prefersReducedMotion ? true : undefined`.
+- **Stories**: Fixed article `initial` prop — was always `{{ opacity: 0, y: 50 }}` regardless of reduced-motion, causing elements to start invisible with no reveal animation. Now fully guarded.
+- **Stories/Campaigns/Donate**: Converted `width`-based animations to `scaleX` transforms across 4 locations (Stories ReadingProgressBar, Campaigns funding progress bar, Donate 2 decorative lines) for GPU compositing and hardware acceleration compliance.
+- **Traceability/CampaignDetail/ProductCard**: Extended `width`→`scaleX` conversions to 3 more locations — Traceability CarbonBar progress, CampaignDetail funding progress bar, ProductCard sustainability score bar. Added `overflow-hidden` to ProductCard parent container.
+- **Register/Login/Profile/NotFound**: Converted decorative divider line animations from `width` to `scaleX` with `origin-center` across 4 page components for consistent GPU compositing.
+- **ProductCard**: Added missing `cursor-pointer` to "Notify Me" button.
+- **Stories**: Added missing `cursor-pointer` to empty-state "Browse All" button.
+- **SepiaImageFrame**: Replaced `as any` type assertion with `Exclude<typeof accentPosition, 'diagonal'>` for proper TypeScript type narrowing.
+- **Login**: Fixed "Remember me" label — was missing `<input type="checkbox">` element and `htmlFor` attribute. Added proper checkbox with `accent-rust` styling.
+- **Stories**: Added `cursor-pointer` to category filter buttons.
+
+### Added (2026-03-21)
+
+- **SectionGrainOverlay component**: Reusable section-scoped grain overlay component extracted from Donate page inline SVG data URLs. Supports configurable `frequency`, `octaves`, and `opacity` props. Replaces 2 inline grain SVG instances in Donate page.
+- **Aria attributes**: Added `role="progressbar"` with `aria-valuenow`/`aria-valuemin`/`aria-valuemax` to Campaigns funding progress bars and Stories ReadingProgressBar. Added `role="tablist"` to Campaigns and Stories category filter containers.

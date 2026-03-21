@@ -16,7 +16,7 @@ class UserCreate(BaseModel):
 class UserUpdate(BaseModel):
     nickname: Optional[str] = Field(None, min_length=1, max_length=100)
     avatar: Optional[str] = Field(None, max_length=500)
-    phone: Optional[str] = Field(None)
+    phone: Optional[str] = Field(None, max_length=20, description="Phone number (will be encrypted at rest)")
 
 
 class UserOut(BaseModel):

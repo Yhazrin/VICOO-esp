@@ -62,10 +62,10 @@ export default function StoryQuoteBlock({
             <motion.path
               d="M 0 8 Q 20 4 60 8 T 140 8 T 220 8 L 260 8"
               fill="none"
-              stroke="#8B3A2A"
               strokeWidth="1.5"
               strokeLinecap="round"
               style={{
+                stroke: 'var(--color-rust)',
                 strokeDasharray: 280,
                 strokeDashoffset: prefersReducedMotion ? 0 : strokeDashoffset,
                 opacity: prefersReducedMotion ? 1 : underlineOpacity,
@@ -76,8 +76,8 @@ export default function StoryQuoteBlock({
               cx="0"
               cy="8"
               r="2.5"
-              fill="#8B3A2A"
               style={{
+                fill: 'var(--color-rust)',
                 opacity: prefersReducedMotion ? 1 : underlineOpacity,
               }}
             />
@@ -86,8 +86,8 @@ export default function StoryQuoteBlock({
               cx="260"
               cy="8"
               r="2.5"
-              fill="#8B3A2A"
               style={{
+                fill: 'var(--color-rust)',
                 opacity: prefersReducedMotion ? 1 : underlineOpacity,
               }}
             />
@@ -95,10 +95,10 @@ export default function StoryQuoteBlock({
             <motion.path
               d="M 265 8 Q 270 12 268 16 Q 272 14 275 18"
               fill="none"
-              stroke="#8B3A2A"
               strokeWidth="1"
               strokeLinecap="round"
               style={{
+                stroke: 'var(--color-rust)',
                 strokeDasharray: 20,
                 strokeDashoffset: prefersReducedMotion ? 0 : useTransform(scrollYProgress, [0.1, 0.5], [20, 0]),
                 opacity: prefersReducedMotion ? 1 : underlineOpacity,

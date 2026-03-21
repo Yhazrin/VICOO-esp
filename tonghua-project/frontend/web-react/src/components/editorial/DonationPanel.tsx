@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { VintageInput } from '@/components/editorial/VintageInput';
+import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 
 interface DonationPanelProps {
   onSubmit?: (data: {
@@ -98,7 +99,7 @@ export default function DonationPanel({
             <motion.button
               key={amount}
               type="button"
-              initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 10 }}
+              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
               animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.05 }}
               whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
@@ -115,10 +116,7 @@ export default function DonationPanel({
                 }
               `}
             >
-              {/* Grain overlay */}
-              <div className="absolute inset-0 z-10 pointer-events-none opacity-[0.06]" style={{
-                backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")'
-              }} aria-hidden="true" />
+              <SectionGrainOverlay className="z-10" />
 
               {/* Sepia accent gradient */}
               <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/3 via-transparent to-archive-brown/5" />
@@ -127,7 +125,7 @@ export default function DonationPanel({
               {selectedAmount === amount && !customAmount && (
                 <motion.div
                   className="absolute inset-0 z-0 bg-rust/[0.04]"
-                  initial={{ opacity: 0 }}
+                  initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
                   animate={{ opacity: 1 }}
                 />
               )}
@@ -162,7 +160,7 @@ export default function DonationPanel({
         {/* Error Message */}
         {error && !customAmount && (
           <motion.div
-            initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -10 }}
+            initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: -10 }}
             animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
             role="alert"
             className="mb-6 p-3 bg-archive-brown/10 border border-archive-brown/30"

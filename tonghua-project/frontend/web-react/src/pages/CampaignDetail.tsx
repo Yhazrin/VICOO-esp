@@ -95,20 +95,19 @@ export default function CampaignDetail() {
     let cancelled = false;
     campaignsApi
       .getById(id)
-      .then((data: any) => {
+      .then((data: Campaign) => {
         if (!cancelled) {
-          const raw = data?.data ?? data;
           setCampaign({
             ...MOCK_CAMPAIGN,
-            ...raw,
-            id: String(raw.id ?? id),
-            coverImageUrl: raw.cover_image ?? raw.coverImageUrl ?? MOCK_CAMPAIGN.coverImageUrl,
-            startDate: raw.start_date ?? raw.startDate ?? MOCK_CAMPAIGN.startDate,
-            endDate: raw.end_date ?? raw.endDate ?? MOCK_CAMPAIGN.endDate,
-            artworkCount: raw.artwork_count ?? raw.artworkCount ?? MOCK_CAMPAIGN.artworkCount,
-            participantCount: raw.participant_count ?? raw.participantCount ?? MOCK_CAMPAIGN.participantCount,
-            goalAmount: Number(raw.goal_amount ?? raw.goalAmount ?? MOCK_CAMPAIGN.goalAmount),
-            raisedAmount: Number(raw.current_amount ?? raw.raisedAmount ?? MOCK_CAMPAIGN.raisedAmount),
+            ...data,
+            id: String(data.id ?? id),
+            coverImageUrl: data.coverImageUrl ?? MOCK_CAMPAIGN.coverImageUrl,
+            startDate: data.startDate ?? MOCK_CAMPAIGN.startDate,
+            endDate: data.endDate ?? MOCK_CAMPAIGN.endDate,
+            artworkCount: data.artworkCount ?? MOCK_CAMPAIGN.artworkCount,
+            participantCount: data.participantCount ?? MOCK_CAMPAIGN.participantCount,
+            goalAmount: Number(data.goalAmount ?? MOCK_CAMPAIGN.goalAmount),
+            raisedAmount: Number(data.raisedAmount ?? MOCK_CAMPAIGN.raisedAmount),
           });
           setLoading(false);
         }
@@ -197,12 +196,12 @@ export default function CampaignDetail() {
                   </div>
                   <div className="w-full h-1.5 bg-warm-gray/30 rounded-sm overflow-hidden mb-4">
                     <motion.div
-                      {...(prefersReducedMotion ? { style: { width: `${progress}%` } } : {
-                        initial: { width: 0 },
-                        animate: { width: `${progress}%` },
+                      {...(prefersReducedMotion ? { style: { transform: `scaleX(${progress / 100})` } } : {
+                        initial: { scaleX: 0 },
+                        animate: { scaleX: progress / 100 },
                         transition: { duration: 1.2, ease: 'easeOut' },
                       })}
-                      className="h-full bg-archive-brown rounded-sm"
+                      className="h-full origin-left bg-archive-brown rounded-sm"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4 text-center">
@@ -250,7 +249,7 @@ export default function CampaignDetail() {
       <SectionContainer className="py-8">
         <Link
           to="/campaigns"
-          className="font-body text-caption tracking-[0.15em] uppercase text-ink-faded hover:text-rust transition-colors"
+          className="font-body text-caption tracking-[0.15em] uppercase text-ink-faded hover:text-rust transition-colors cursor-pointer"
         >
           &larr; {t('campaigns.detail.backToAll')}
         </Link>

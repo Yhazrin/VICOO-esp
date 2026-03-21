@@ -10,6 +10,7 @@ import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
 import type { SupplyChainRecord } from '@/types';
+import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 
 // Extended record with story, image, and status for enhanced timeline
 interface EnhancedSupplyChainRecord extends SupplyChainRecord {
@@ -172,16 +173,16 @@ function CarbonBar({ label, value, maxValue, isEco, delay }: {
         <span className="font-body text-label tracking-[0.15em] uppercase text-sepia-mid">
           {label}
         </span>
-        <span className={`font-display text-h3 font-bold ${isEco ? 'text-eco-green' : 'text-archive-brown'}`}>
+        <span className={`font-display text-h3 font-bold ${isEco ? 'text-sage' : 'text-archive-brown'}`}>
           {value} kg CO2
         </span>
       </div>
       <div className="h-3 bg-warm-gray/20 border border-warm-gray/30 overflow-hidden">
         <motion.div
-          className={`h-full ${isEco ? 'bg-eco-green' : 'bg-archive-brown/60'}`}
-          {...(prefersReducedMotion ? { style: { width: `${percentage}%` } } : {
-            initial: { width: 0 },
-            animate: isInView ? { width: `${percentage}%` } : {},
+          className={`h-full origin-left ${isEco ? 'bg-sage-light' : 'bg-archive-brown/60'}`}
+          {...(prefersReducedMotion ? { style: { transform: `scaleX(${percentage / 100})` } } : {
+            initial: { scaleX: 0 },
+            animate: isInView ? { scaleX: percentage / 100 } : {},
             transition: { duration: 1.2, delay: delay + 0.3, ease: [0, 0, 0.2, 1] },
           })}
         />
@@ -230,10 +231,7 @@ function CertificationBadge({ title, description, delay }: {
       whileHover={prefersReducedMotion ? undefined : { y: -4, borderColor: 'color-mix(in srgb, var(--color-rust) 50%, transparent)' }}
       className="border-2 border-rust/30 bg-paper p-5 text-center transition-all duration-300 hover:shadow-[0_4px_20px_color-mix(in_srgb,var(--color-rust)_8%,transparent)] relative overflow-hidden group"
     >
-      {/* Grain overlay */}
-      <div className="absolute inset-0 z-10 pointer-events-none opacity-[0.06]" style={{
-        backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")'
-      }} aria-hidden="true" />
+      <SectionGrainOverlay className="z-10" />
 
       {/* Corner accents */}
       <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-rust/30 group-hover:border-rust/30 transition-colors" />
@@ -266,7 +264,7 @@ function EnhancedTimelineEntry({ record, index, t }: {
 }) {
   const prefersReducedMotion = useReducedMotion();
   const statusConfig = {
-    verified: { label: t('traceability.status.verified'), bg: 'bg-eco-green/10', text: 'text-eco-green', border: 'border-eco-green/30', dot: 'bg-eco-green' },
+    verified: { label: t('traceability.status.verified'), bg: 'bg-sage/10', text: 'text-sage', border: 'border-sage/30', dot: 'bg-sage-light' },
     'in-progress': { label: t('traceability.status.inProgress'), bg: 'bg-pale-gold/20', text: 'text-archive-brown', border: 'border-archive-brown/30', dot: 'bg-archive-brown' },
     pending: { label: t('traceability.status.pending'), bg: 'bg-warm-gray/10', text: 'text-warm-gray', border: 'border-warm-gray/30', dot: 'bg-warm-gray' },
   };
@@ -298,10 +296,7 @@ function EnhancedTimelineEntry({ record, index, t }: {
         transition={{ duration: 0.3 }}
         className="relative p-6 border-2 border-rust/30 bg-paper transition-all duration-300 hover:border-rust/50 overflow-hidden"
       >
-        {/* Grain overlay */}
-        <div className="absolute inset-0 z-10 pointer-events-none opacity-[0.06]" style={{
-          backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")'
-        }} aria-hidden="true" />
+        <SectionGrainOverlay className="z-10" />
 
         {/* Sepia corner accents */}
         <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-rust/30" />
@@ -392,25 +387,25 @@ function EnhancedTimeline({ records, t }: { records: EnhancedSupplyChainRecord[]
       >
         <line
           x1="7" y1="0" x2="7" y2={pathHeight}
-          stroke="#D4CFC4"
+          style={{ stroke: 'var(--color-warm-gray)' }}
           strokeWidth="1"
           strokeLinecap="round"
         />
-        <circle cx="7" cy="0" r="3" fill="#8B3A2A" />
-        <circle cx="7" cy={pathHeight} r="3" fill="#8B3A2A" />
+        <circle cx="7" cy="0" r="3" style={{ fill: 'var(--color-rust)' }} />
+        <circle cx="7" cy={pathHeight} r="3" style={{ fill: 'var(--color-rust)' }} />
         <path
           d="M 7 20 Q 15 25 7 35"
           fill="none"
-          stroke="#8B3A2A"
           strokeWidth="1"
           strokeLinecap="round"
+          style={{ stroke: 'var(--color-rust)' }}
         />
         <path
           d="M 7 60 Q 15 65 7 75"
           fill="none"
-          stroke="#8B3A2A"
           strokeWidth="1"
           strokeLinecap="round"
+          style={{ stroke: 'var(--color-rust)' }}
         />
       </svg>
 
@@ -522,8 +517,8 @@ export default function Traceability() {
           <AnimatePresence>
             {isSearching && (
               <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
+                initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, height: 0 }}
+                animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.3 }}
               >
@@ -535,17 +530,17 @@ export default function Traceability() {
           <AnimatePresence>
             {searchResult && !isSearching && (
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
+                animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.4 }}
-                className="mt-4 p-5 border-2 border-eco-green/30 bg-eco-green/5 relative overflow-hidden"
+                className="mt-4 p-5 border-2 border-sage/30 bg-sage/5 relative overflow-hidden"
               >
-                <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-eco-green/30" />
-                <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-eco-green/30" />
+                <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-sage/30" />
+                <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-sage/30" />
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 flex-shrink-0 border border-eco-green/30 rounded-sm flex items-center justify-center bg-eco-green/10">
-                    <svg className="w-4 h-4 text-eco-green" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                  <div className="w-10 h-10 flex-shrink-0 border border-sage/30 rounded-sm flex items-center justify-center bg-sage/10">
+                    <svg className="w-4 h-4 text-sage" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
@@ -611,13 +606,13 @@ export default function Traceability() {
               <AnimatePresence>
                 {highlightedId && (
                   <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
+                    initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, height: 0 }}
+                    animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.4 }}
-                    className="mt-4 border-2 border-eco-green/30 p-5 bg-eco-green/5"
+                    className="mt-4 border-2 border-sage/30 p-5 bg-sage/5"
                   >
-                    <span className="font-body text-overline text-eco-green tracking-[0.15em] uppercase">
+                    <span className="font-body text-overline text-sage tracking-[0.15em] uppercase">
                       {t('traceability.lookup.highlighted')}
                     </span>
                     <p className="font-body text-caption text-ink-faded mt-1 leading-relaxed">
@@ -637,7 +632,7 @@ export default function Traceability() {
             <div className="absolute top-0 -left-6 bottom-0 w-px hidden md:block" aria-hidden="true">
               <ScrollPathDrawInline
                 path="M0,0 L0,800"
-                strokeColor="#A0896E"
+                strokeColor="var(--color-sepia-mid)"
                 strokeWidth={1}
                 className="h-full w-4"
                 containerRef={timelineRef}
@@ -660,7 +655,7 @@ export default function Traceability() {
       <div className="flex justify-center py-4" aria-hidden="true">
         <ScrollPathDrawInline
           path="M0,20 C60,5 120,35 180,20 S300,5 360,20"
-          strokeColor="#A0896E"
+          strokeColor="var(--color-sepia-mid)"
           strokeWidth={1}
           className="w-64 h-10"
         />
@@ -700,7 +695,7 @@ export default function Traceability() {
                   viewport: { once: true },
                   transition: { duration: 0.6, delay: 0.5 },
                 })}
-                className="font-body text-caption text-ink-faded leading-relaxed border-l-2 border-eco-green/30 pl-4 mt-4"
+                className="font-body text-caption text-ink-faded leading-relaxed border-l-2 border-sage/30 pl-4 mt-4"
               >
                 {t('traceability.carbon.explanation')}
               </motion.p>
@@ -715,22 +710,19 @@ export default function Traceability() {
                   viewport: { once: true },
                   transition: { duration: 0.6, delay: 0.3 },
                 })}
-                className="border-2 border-eco-green/30 p-8 text-center bg-paper relative overflow-hidden"
+                className="border-2 border-sage/30 p-8 text-center bg-paper relative overflow-hidden"
               >
-                {/* Grain */}
-                <div className="absolute inset-0 z-10 pointer-events-none opacity-[0.06]" style={{
-                  backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")'
-                }} aria-hidden="true" />
+                <SectionGrainOverlay className="z-10" />
 
                 {/* Corner accents */}
-                <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-eco-green/20" />
-                <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-eco-green/20" />
+                <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-sage/20" />
+                <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-sage/20" />
 
                 <div className="relative z-20">
-                  <span className="font-body text-overline tracking-[0.2em] uppercase text-eco-green block mb-3">
+                  <span className="font-body text-overline tracking-[0.2em] uppercase text-sage block mb-3">
                     {t('traceability.carbon.reduction')}
                   </span>
-                  <div className="font-display text-[clamp(48px,8vw,72px)] font-bold text-eco-green leading-none">
+                  <div className="font-display text-[clamp(48px,8vw,72px)] font-bold text-sage leading-none">
                     <AnimatedCounter value={reductionPercent} suffix="%" />
                   </div>
                   <p className="font-body text-caption text-sepia-mid mt-4 leading-relaxed">

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
 import { OrigamiCorner, OrigamiDivider, OrigamiFoldAccent } from '@/components/animations/OrigamiFold';
+import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 
 export default function EditorialFooter() {
   const { t } = useTranslation();
@@ -10,14 +11,7 @@ export default function EditorialFooter() {
 
   return (
     <footer className="bg-ink text-paper mt-auto relative overflow-hidden">
-      {/* Grain overlay */}
-      <div
-        className="absolute inset-0 z-0 pointer-events-none opacity-[0.06]"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
-        }}
-        aria-hidden="true"
-      />
+      <SectionGrainOverlay />
 
       {/* Sepia gradient overlay */}
       <div
@@ -135,11 +129,15 @@ export default function EditorialFooter() {
               {t('footer.sections.legal')}
             </h4>
             <ul className="space-y-3">
-              {['privacy', 'terms', 'children'].map((key) => (
+              {[
+                { key: 'privacy', path: '/privacy' },
+                { key: 'terms', path: '/terms' },
+                { key: 'children', path: '/children-safety' },
+              ].map(({ key, path }) => (
                 <li key={key}>
                   <motion.div whileHover={prefersReducedMotion ? undefined : { x: 4 }}>
                     <Link
-                      to={`/${key}`}
+                      to={path}
                       className="font-body text-body-sm text-warm-gray hover:text-paper transition-colors duration-200 inline-block cursor-pointer"
                     >
                       {t(`footer.links.${key}`)}
@@ -177,7 +175,7 @@ export default function EditorialFooter() {
             <motion.form
               onSubmit={(e) => e.preventDefault()}
               className="flex flex-col gap-3"
-              initial={{ opacity: 0 }}
+              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.1 }}
             >

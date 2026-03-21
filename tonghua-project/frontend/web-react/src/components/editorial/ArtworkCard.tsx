@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import type { Artwork } from '@/types';
+import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 
 interface ArtworkCardProps {
   artwork: Artwork;
@@ -39,14 +40,7 @@ export default function ArtworkCard({
       <Link to={`/artworks/${artwork.id}`} className="block cursor-pointer">
         {/* Image */}
         <div className="relative aspect-square overflow-hidden border-2 border-rust/30 bg-aged-stock mb-4">
-          {/* Grain overlay */}
-          <div
-            className="absolute inset-0 z-10 pointer-events-none opacity-[0.06]"
-            aria-hidden="true"
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
-            }}
-          />
+          <SectionGrainOverlay className="z-10" />
           <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/5 via-transparent to-archive-brown/5" />
 
           {/* Loading skeleton */}

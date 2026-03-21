@@ -4,7 +4,7 @@ import type { Product, PaginatedResponse } from '@/types';
 export const productsApi = {
   getAll: async (params?: {
     page?: number;
-    pageSize?: number;
+    page_size?: number;
     category?: string;
   }): Promise<PaginatedResponse<Product>> => {
     const response = await api.get<PaginatedResponse<Product>>('/products', {
@@ -23,8 +23,10 @@ export const productsApi = {
     return response.data;
   },
 
-  getByCategory: async (category: string): Promise<Product[]> => {
-    const response = await api.get<Product[]>(`/products/category/${category}`);
+  getByCategory: async (category: string): Promise<PaginatedResponse<Product>> => {
+    const response = await api.get<PaginatedResponse<Product>>('/products', {
+      params: { category },
+    });
     return response.data;
   },
 };

@@ -10,9 +10,10 @@ import FAQAccordion from '@/components/editorial/FAQAccordion';
 import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
 import { VintageInput } from '@/components/editorial/VintageInput';
+import { VintageSelect } from '@/components/editorial/VintageSelect';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
-
-const GRAIN_STYLE: React.CSSProperties = { backgroundImage: 'var(--grain-overlay)' };
+import { contactApi } from '@/services/contact';
+import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 
 const MAX_MESSAGE_LENGTH = 1000;
 
@@ -90,25 +91,6 @@ function CheckmarkIcon({ prefersReducedMotion }: { prefersReducedMotion: boolean
   );
 }
 
-function ChevronIcon({ isOpen }: { isOpen: boolean }) {
-  const prefersReducedMotion = useReducedMotion();
-  return (
-    <motion.svg
-      aria-hidden="true"
-      className="w-4 h-4 text-sepia-mid flex-shrink-0"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={1.5}
-      animate={prefersReducedMotion ? {} : { rotate: isOpen ? 180 : 0 }}
-      transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3, ease: [0, 0, 0.2, 1] }}
-      style={prefersReducedMotion ? { transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' } : undefined}
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-    </motion.svg>
-  );
-}
-
 interface ContactCardData {
   icon: React.ReactNode;
   titleKey: string;
@@ -137,59 +119,6 @@ const CONTACT_CARDS: ContactCardData[] = [
   },
 ];
 
-function FAQItem({
-  question,
-  answer,
-  isOpen,
-  onToggle,
-  index,
-}: {
-  question: string;
-  answer: string;
-  isOpen: boolean;
-  onToggle: () => void;
-  index: number;
-}) {
-  const prefersReducedMotion = useReducedMotion();
-
-  return (
-    <motion.div
-      {...(prefersReducedMotion ? {} : { initial: { opacity: 0, y: 20 }, whileInView: { opacity: 1, y: 0 } })}
-      viewport={{ once: true, margin: '-40px' }}
-      transition={{ duration: 0.5, delay: index * 0.08 }}
-      className="border-b border-warm-gray/30"
-    >
-      <button
-        type="button"
-        onClick={onToggle}
-        className="w-full flex items-start justify-between gap-4 py-5 text-left group cursor-pointer"
-        aria-expanded={isOpen}
-      >
-        <span className="font-display text-body md:text-h3 font-semibold text-ink group-hover:text-rust transition-colors duration-200">
-          {question}
-        </span>
-        <ChevronIcon isOpen={isOpen} />
-      </button>
-
-      <AnimatePresence initial={false}>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.35, ease: [0, 0, 0.2, 1] }}
-            className="overflow-hidden"
-          >
-            <p className="font-body text-body-sm md:text-body text-ink-faded leading-[1.75] pb-6 pr-8">
-              {answer}
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-}
-
 function ContactInfoCard({
   card,
   index,
@@ -217,14 +146,7 @@ function ContactInfoCard({
       className="group"
     >
       <div className="relative border-2 border-warm-gray/50 bg-paper overflow-hidden">
-        {/* Grain overlay */}
-        <div
-          className="absolute inset-0 z-0 pointer-events-none opacity-[0.06]"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-          }}
-          aria-hidden="true"
-        />
+        <SectionGrainOverlay />
 
         {/* Corner accents — diagonal pattern */}
         <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-rust/30 pointer-events-none" aria-hidden="true" />
@@ -305,7 +227,6 @@ export default function Contact() {
   });
   const [status, setStatus] = useState<FormStatus>('idle');
   const [errors, setErrors] = useState<FormErrors>({});
-  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const pullQuoteRef = useRef<HTMLDivElement>(null);
 
   // FAQ items from translations
@@ -358,11 +279,18 @@ export default function Contact() {
     setErrors({});
     setStatus('sending');
 
-    // API call would go here
-    setTimeout(() => {
+    try {
+      await contactApi.submit({
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        subject: formData.subject,
+        message: formData.message.trim(),
+      });
       setStatus('success');
       setFormData({ name: '', email: '', subject: '', message: '' });
-    }, 2000);
+    } catch {
+      setStatus('error');
+    }
   };
 
   const handleChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -441,14 +369,7 @@ export default function Contact() {
                   {...(prefersReducedMotion ? {} : { initial: { opacity: 0, scale: 0.95 }, animate: { opacity: 1, scale: 1 }, exit: { opacity: 0, scale: 0.95 }, transition: { duration: 0.5, ease: [0, 0, 0.2, 1] } })}
                   className="border-2 border-rust/30 bg-paper p-10 md:p-14 text-center relative"
                 >
-                  {/* Grain overlay */}
-                  <div
-                    className="absolute inset-0 z-0 pointer-events-none opacity-[0.06]"
-                    style={{
-                      backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-                    }}
-                    aria-hidden="true"
-                  />
+                  <SectionGrainOverlay />
 
                   {/* Corner accents — diagonal pattern */}
                   <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-rust/30 pointer-events-none" aria-hidden="true" />
@@ -504,57 +425,23 @@ export default function Contact() {
                   </div>
 
                   {/* Subject dropdown */}
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="contact-subject"
-                      className="font-body text-overline tracking-[0.2em] uppercase text-sepia-mid block"
-                    >
-                      {t('contact.form.subject')}
-                    </label>
-                    <div className="relative">
-                      <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-rust/30 pointer-events-none z-10" />
-                      <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-rust/30 pointer-events-none z-10" />
-                      <select
-                        id="contact-subject"
-                        value={formData.subject}
-                        onChange={handleSubjectChange}
-                        className={`
-                          w-full font-body text-body-sm py-3 px-3
-                          border-b-2 bg-transparent
-                          transition-all duration-300
-                          focus:outline-none focus-visible:ring-2 focus-visible:ring-rust/50 focus:border-rust
-                          appearance-none cursor-pointer
-                          ${errors.subject ? 'border-archive-brown' : 'border-warm-gray/60'}
-                          ${!formData.subject ? 'text-ink-faded/80' : 'text-ink'}
-                        `}
-                      >
-                        <option value="" disabled>
-                          {t('contact.form.subjectPlaceholder')}
-                        </option>
-                        {subjectOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                      {/* Dropdown arrow */}
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                        <svg className="w-4 h-4 text-sepia-mid" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                        </svg>
-                      </div>
-                    </div>
-                    {errors.subject && (
-                      <motion.p
-                        initial={{ opacity: 0, y: -5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        role="alert"
-                        className="font-body text-overline text-archive-brown"
-                      >
-                        {errors.subject}
-                      </motion.p>
-                    )}
-                  </div>
+                  <VintageSelect
+                    id="contact-subject"
+                    label={t('contact.form.subject')}
+                    options={[
+                      { value: '', label: t('contact.form.subjectPlaceholder') },
+                      ...subjectOptions,
+                    ]}
+                    value={formData.subject}
+                    onChange={handleSubjectChange}
+                    className={errors.subject ? '[&_select]:border-archive-brown' : ''}
+                    required
+                  />
+                  {errors.subject && (
+                    <p role="alert" className="font-body text-overline text-archive-brown -mt-2">
+                      {errors.subject}
+                    </p>
+                  )}
 
                   {/* Message textarea with character counter */}
                   <div className="space-y-2">
@@ -586,8 +473,8 @@ export default function Contact() {
                     <div className="flex items-center justify-between">
                       {errors.message ? (
                         <motion.p
-                          initial={{ opacity: 0, y: -5 }}
-                          animate={{ opacity: 1, y: 0 }}
+                          initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: -5 }}
+                          animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
                           role="alert"
                           className="font-body text-overline text-archive-brown"
                         >
@@ -631,8 +518,8 @@ export default function Contact() {
                   {/* Error state */}
                   {status === 'error' && (
                     <motion.p
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
+                      initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
+                      animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
                       role="alert"
                       className="font-body text-body-sm text-archive-brown"
                     >

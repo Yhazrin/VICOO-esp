@@ -2,13 +2,13 @@ import api from './api';
 import type { Donation, DonationTier } from '@/types';
 
 export interface CreateDonationRequest {
+  donor_name: string;
   amount: number;
   currency: string;
-  tierId?: string;
-  campaignId?: string;
+  payment_method: 'wechat' | 'alipay' | 'stripe' | 'paypal';
+  campaign_id?: number;
   message?: string;
-  anonymous: boolean;
-  frequency: 'once' | 'monthly';
+  is_anonymous: boolean;
 }
 
 export const donationsApi = {
@@ -33,10 +33,9 @@ export const donationsApi = {
   },
 
   getImpactStats: async (): Promise<{
-    totalRaised: number;
-    childrenHelped: number;
-    artworksCreated: number;
-    productsSold: number;
+    total_amount: string;
+    total_donors: number;
+    currency: string;
   }> => {
     const response = await api.get('/donations/stats');
     return response.data;

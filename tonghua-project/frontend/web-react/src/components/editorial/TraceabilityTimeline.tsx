@@ -2,6 +2,7 @@ import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion
 import { useRef } from 'react';
 import type { SupplyChainRecord } from '@/types';
 import { useTranslation } from 'react-i18next';
+import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 
 interface TraceabilityTimelineProps {
   records: SupplyChainRecord[];
@@ -61,8 +62,8 @@ export default function TraceabilityTimeline({
           cx="7"
           cy="0"
           r="3"
-          fill="#8B3A2A"
           style={{
+            fill: 'var(--color-rust)',
             opacity: useTransform(scrollYProgress, [0, 0.1], [0, 1]),
           }}
         />
@@ -70,8 +71,8 @@ export default function TraceabilityTimeline({
           cx="7"
           cy={pathHeight}
           r="3"
-          fill="#8B3A2A"
           style={{
+            fill: 'var(--color-rust)',
             opacity: useTransform(scrollYProgress, [0.9, 1], [0, 1]),
           }}
         />
@@ -79,10 +80,10 @@ export default function TraceabilityTimeline({
         <motion.path
           d="M 7 20 Q 15 25 7 35"
           fill="none"
-          stroke="#8B3A2A"
           strokeWidth="1"
           strokeLinecap="round"
           style={{
+            stroke: 'var(--color-rust)',
             opacity: useTransform(scrollYProgress, [0, 0.15], [0, 1]),
             strokeDasharray: 30,
             strokeDashoffset: useTransform(scrollYProgress, [0, 0.2], [30, 0]),
@@ -91,10 +92,10 @@ export default function TraceabilityTimeline({
         <motion.path
           d="M 7 60 Q 15 65 7 75"
           fill="none"
-          stroke="#8B3A2A"
           strokeWidth="1"
           strokeLinecap="round"
           style={{
+            stroke: 'var(--color-rust)',
             opacity: useTransform(scrollYProgress, [0.05, 0.2], [0, 1]),
             strokeDasharray: 30,
             strokeDashoffset: useTransform(scrollYProgress, [0.05, 0.25], [30, 0]),
@@ -106,7 +107,7 @@ export default function TraceabilityTimeline({
         {records.map((record, index) => (
           <motion.div
             key={record.id}
-            initial={{ opacity: 0, x: -20 }}
+            initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, x: -20 }}
             whileInView={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, x: 0 }}
             viewport={{ once: true, margin: '-30px' }}
             transition={{ duration: 0.5, delay: index * 0.1 }}
@@ -122,17 +123,14 @@ export default function TraceabilityTimeline({
 
             {/* Card */}
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
+              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
               whileInView={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: index * 0.1 }}
               whileHover={prefersReducedMotion ? undefined : { y: -2 }}
               className="relative p-6 border-2 border-rust/30 bg-paper transition-all duration-300 hover:border-rust/50 overflow-hidden"
             >
-              {/* Grain overlay */}
-              <div className="absolute inset-0 z-10 pointer-events-none opacity-[0.06]" style={{
-                backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")'
-              }} aria-hidden="true" />
+              <SectionGrainOverlay className="z-10" />
 
               {/* Sepia corner accents */}
               <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-rust/30" />

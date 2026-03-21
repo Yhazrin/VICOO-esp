@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
+import { useAuthStore } from '@/stores/authStore';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import EditorialHero from '@/components/editorial/EditorialHero';
@@ -11,6 +12,7 @@ import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import DonationPanel from '@/components/editorial/DonationPanel';
 import ImpactCounter from '@/components/editorial/ImpactCounter';
 import FAQAccordion from '@/components/editorial/FAQAccordion';
+import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 import MagneticButton from '@/components/animations/MagneticButton';
 import { donationsApi } from '@/services/donations';
 
@@ -99,8 +101,8 @@ function ImpactProgressBar({
       <div className="h-2 bg-warm-gray/15 rounded-sm overflow-hidden">
         <motion.div
           {...(prefersReducedMotion ? {} : {
-            initial: { width: 0 },
-            whileInView: { width: `${pct}%` },
+            initial: { scaleX: 0 },
+            whileInView: { scaleX: pct / 100 },
             viewport: { once: true },
             transition: {
               type: 'spring',
@@ -109,7 +111,7 @@ function ImpactProgressBar({
               delay: index * 0.12 + 0.2,
             },
           })}
-          className="h-full rounded-sm"
+          className="h-full rounded-sm origin-left"
           style={{
             background: 'linear-gradient(90deg, color-mix(in srgb, var(--color-rust) 50%, transparent), color-mix(in srgb, var(--color-rust) 80%, transparent))',
             ...(prefersReducedMotion ? { width: `${pct}%` } : {}),
@@ -141,7 +143,7 @@ function TrustBadge({ label, index, prefersReducedMotion }: { label: string; ind
       })}
       className="flex items-center gap-2 border border-warm-gray/30 px-4 py-2.5 bg-paper"
     >
-      <span className="w-2 h-2 bg-rust/60 rounded-sm" />
+      <span className="w-2 h-2 bg-sage/60 rounded-sm" />
       <span className="font-body text-caption text-ink tracking-[0.08em] uppercase">
         {label}
       </span>
@@ -213,15 +215,18 @@ export default function Donate() {
     frequency: 'once' | 'monthly';
     anonymous: boolean;
     message: string;
+    paymentMethod?: 'wechat' | 'alipay' | 'stripe' | 'paypal';
   }) => {
     setIsSubmitting(true);
     try {
+      const { user } = useAuthStore.getState();
       await donationsApi.create({
+        donor_name: data.anonymous ? 'Anonymous' : (user?.nickname || user?.email || 'Guest'),
         amount: data.amount,
         currency: 'CNY',
-        anonymous: data.anonymous,
-        message: data.message,
-        frequency: data.frequency,
+        payment_method: data.paymentMethod || 'wechat',
+        is_anonymous: data.anonymous,
+        message: data.message || undefined,
       });
       console.log('Donation successful');
     } catch (error) {
@@ -333,21 +338,14 @@ export default function Donate() {
 
       {/* Transparency */}
       <section className="bg-aged-stock section-spacing relative">
-        {/* Grain overlay */}
-        <div
-          className="absolute inset-0 z-0 pointer-events-none opacity-[0.06]"
-          style={{
-            backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")',
-          }}
-          aria-hidden="true"
-        />
+        <SectionGrainOverlay />
 
         <SectionContainer>
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start relative z-10">
             <div className="md:col-span-5 relative">
               {/* Decorative corner accents */}
-              <div className="absolute -top-2 -left-2 w-4 h-4 border-t-2 border-l-2 border-rust/30 pointer-events-none" />
-              <div className="absolute -bottom-2 -right-2 w-4 h-4 border-b-2 border-r-2 border-rust/30 pointer-events-none" />
+              <div className="absolute -top-2 -left-2 w-4 h-4 border-t-2 border-l-2 border-sage/30 pointer-events-none" />
+              <div className="absolute -bottom-2 -right-2 w-4 h-4 border-b-2 border-r-2 border-sage/30 pointer-events-none" />
 
               <h3 className="font-display text-h3 font-bold text-ink mb-4">
                 {t('donate.transparency.title')}
@@ -359,19 +357,19 @@ export default function Donate() {
               {/* Specific transparency data points */}
               <div className="space-y-3 mb-8">
                 <div className="flex items-start gap-3">
-                  <span className="w-1.5 h-1.5 bg-rust/60 rounded-sm mt-2 shrink-0" />
+                  <span className="w-1.5 h-1.5 bg-sage/60 rounded-sm mt-2 shrink-0" />
                   <span className="font-body text-body-sm text-ink">
                     {t('donate.transparency.lastAudit')}
                   </span>
                 </div>
                 <div className="flex items-start gap-3">
-                  <span className="w-1.5 h-1.5 bg-rust/60 rounded-sm mt-2 shrink-0" />
+                  <span className="w-1.5 h-1.5 bg-sage/60 rounded-sm mt-2 shrink-0" />
                   <span className="font-body text-body-sm text-ink">
                     {t('donate.transparency.onChain')}
                   </span>
                 </div>
                 <div className="flex items-start gap-3">
-                  <span className="w-1.5 h-1.5 bg-rust/60 rounded-sm mt-2 shrink-0" />
+                  <span className="w-1.5 h-1.5 bg-sage/60 rounded-sm mt-2 shrink-0" />
                   <span className="font-body text-body-sm text-ink">
                     {t('donate.transparency.quarterly')}
                   </span>
@@ -396,7 +394,7 @@ export default function Donate() {
               </div>
 
               <motion.button
-                className="font-body text-caption text-rust tracking-[0.15em] uppercase hover:text-ink transition-colors cursor-pointer"
+                className="font-body text-caption text-sage tracking-[0.15em] uppercase hover:text-ink transition-colors cursor-pointer"
                 whileHover={prefersReducedMotion ? undefined : { x: 4 }}
               >
                 {t('donate.transparency.viewReport')} &rarr;
@@ -407,16 +405,16 @@ export default function Donate() {
                 {['Q1 2026', 'Q4 2025', 'Q3 2025', 'Q2 2025'].map((quarter, index) => (
                   <motion.div
                     key={quarter}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
                     whileInView={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                     whileHover={prefersReducedMotion ? undefined : { y: -4 }}
-                    className="border border-warm-gray/30 p-6 bg-paper hover:border-rust/30 transition-colors cursor-pointer relative"
+                    className="border border-warm-gray/30 p-6 bg-paper hover:border-sage/30 transition-colors cursor-pointer relative"
                   >
                     {/* Corner accents */}
-                    <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-rust/30 pointer-events-none" />
-                    <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-rust/30 pointer-events-none" />
+                    <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-sage/30 pointer-events-none" />
+                    <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-sage/30 pointer-events-none" />
 
                     <span className="font-body text-caption text-sepia-mid tracking-[0.15em]">
                       FINANCIAL REPORT
@@ -477,21 +475,14 @@ export default function Donate() {
 
       {/* Final CTA */}
       <section className="bg-ink text-paper section-spacing relative overflow-hidden">
-        {/* Grain overlay */}
-        <div
-          className="absolute inset-0 z-0 pointer-events-none opacity-[0.06]"
-          style={{
-            backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")',
-          }}
-          aria-hidden="true"
-        />
+        <SectionGrainOverlay />
 
         <SectionContainer>
           <div className="relative z-10 text-center max-w-2xl mx-auto">
             {/* Decorative line above */}
             <motion.div
-              {...(prefersReducedMotion ? {} : { initial: { width: 0 }, whileInView: { width: '80px' }, viewport: { once: true }, transition: { duration: 0.8, ease: [0, 0, 0.2, 1] } })}
-              className="h-px bg-rust/50 mx-auto mb-10"
+              {...(prefersReducedMotion ? {} : { initial: { scaleX: 0 }, whileInView: { scaleX: 1 }, viewport: { once: true }, transition: { duration: 0.8, ease: [0, 0, 0.2, 1] } })}
+              className="h-px w-20 bg-sage/50 mx-auto mb-10 origin-center"
             />
 
             <motion.h2
@@ -516,7 +507,7 @@ export default function Donate() {
               <MagneticButton strength={0.35}>
                 <Link
                   to="/about"
-                  className="inline-block font-body text-body-sm tracking-[0.15em] uppercase border border-warm-gray/40 text-paper px-10 py-4 hover:border-pale-gold hover:text-pale-gold transition-all duration-300 cursor-pointer"
+                  className="inline-block font-body text-body-sm tracking-[0.15em] uppercase border border-sage/40 text-paper px-10 py-4 hover:border-sage hover:text-sage-pale transition-all duration-300 cursor-pointer"
                 >
                   {t('donate.cta.learnMore')}
                 </Link>
@@ -525,8 +516,8 @@ export default function Donate() {
 
             {/* Decorative line below */}
             <motion.div
-              {...(prefersReducedMotion ? {} : { initial: { width: 0 }, whileInView: { width: '80px' }, viewport: { once: true }, transition: { duration: 0.8, ease: [0, 0, 0.2, 1], delay: 0.3 } })}
-              className="h-px bg-rust/50 mx-auto mt-10"
+              {...(prefersReducedMotion ? {} : { initial: { scaleX: 0 }, whileInView: { scaleX: 1 }, viewport: { once: true }, transition: { duration: 0.8, ease: [0, 0, 0.2, 1], delay: 0.3 } })}
+              className="h-px w-20 bg-sage/50 mx-auto mt-10 origin-center"
             />
           </div>
         </SectionContainer>

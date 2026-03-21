@@ -25,6 +25,14 @@
   --color-cream: #FAF6EE;
   --color-eco-green: #5a7a5a;
 
+  /* ── Sage Green Accent — Low-saturation, editorial ── */
+  --color-sage: #3F4F45;
+  --color-sage-light: #5A6B5F;
+  --color-sage-lighter: #7A8B7E;
+  --color-sage-muted: #95A398;
+  --color-sage-pale: #C8D1CA;
+  --color-sage-dark: #2D3B33;
+
   /* ── Editorial Accent Colors ── */
   --color-editorial-red: #C41E3A;
   --color-editorial-navy: #1C2841;

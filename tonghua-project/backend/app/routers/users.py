@@ -91,7 +91,15 @@ async def update_me(
     except HTTPException:
         raise
     except Exception:
-        return ApiResponse(data={**current_user, **{k: v for k, v in body.model_dump().items() if v is not None}})
+        # Explicitly whitelist allowed fields to prevent mass-assignment
+        update_data = {}
+        if body.nickname is not None:
+            update_data["nickname"] = body.nickname
+        if body.avatar is not None:
+            update_data["avatar"] = body.avatar
+        if body.phone is not None:
+            update_data["phone"] = body.phone
+        return ApiResponse(data={**current_user, **update_data})
 
 
 @router.get("/{user_id}", response_model=ApiResponse)
@@ -132,6 +140,9 @@ async def update_user_role(
     _current_user: dict = Depends(require_role("admin")),
 ):
     """Update user role (admin only)."""
+    # Prevent self-modification to avoid privilege escalation / lock-out
+    if _current_user.get("id") == user_id:
+        raise HTTPException(status_code=403, detail="Admins cannot modify their own role")
     try:
         stmt = select(User).where(User.id == user_id)
         result = await db.execute(stmt)
@@ -155,6 +166,9 @@ async def update_user_status(
     _current_user: dict = Depends(require_role("admin")),
 ):
     """Update user status (admin only)."""
+    # Prevent self-modification to avoid lock-out
+    if _current_user.get("id") == user_id:
+        raise HTTPException(status_code=403, detail="Admins cannot modify their own status")
     try:
         stmt = select(User).where(User.id == user_id)
         result = await db.execute(stmt)

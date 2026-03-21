@@ -34,7 +34,45 @@ _mock_payments = [
 
 @router.post("/create", response_model=ApiResponse, status_code=201)
 async def create_payment(body: PaymentCreate, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    """Initiate a payment (create payment transaction record)."""
+    """Initiate a payment (create payment transaction record).
+
+    Security: Verifies the current user owns the associated order or donation.
+    """
+    # Ownership check: verify current user owns the order or donation
+    if body.order_id:
+        try:
+            stmt = select(Order).where(Order.id == body.order_id)
+            result = await db.execute(stmt)
+            order = result.scalar_one_or_none()
+            if order and order.user_id != current_user["id"] and current_user.get("role") != "admin":
+                raise HTTPException(status_code=403, detail="Forbidden: you can only pay for your own orders")
+        except HTTPException:
+            raise
+        except Exception:
+            # Mock fallback: check mock orders
+            for o in _mock_orders:
+                if o["id"] == body.order_id:
+                    if o["user_id"] != current_user["id"] and current_user.get("role") != "admin":
+                        raise HTTPException(status_code=403, detail="Forbidden: you can only pay for your own orders")
+                    break
+
+    if body.donation_id:
+        try:
+            stmt = select(Donation).where(Donation.id == body.donation_id)
+            result = await db.execute(stmt)
+            donation = result.scalar_one_or_none()
+            if donation and donation.donor_user_id and donation.donor_user_id != current_user["id"] and current_user.get("role") != "admin":
+                raise HTTPException(status_code=403, detail="Forbidden: you can only pay for your own donations")
+        except HTTPException:
+            raise
+        except Exception:
+            # Mock fallback: check mock donations
+            for d in _mock_donations:
+                if d["id"] == body.donation_id:
+                    if d.get("donor_user_id") and d["donor_user_id"] != current_user["id"] and current_user.get("role") != "admin":
+                        raise HTTPException(status_code=403, detail="Forbidden: you can only pay for your own donations")
+                    break
+
     try:
         tx = PaymentTransaction(
             order_id=body.order_id,
@@ -235,7 +273,10 @@ async def payment_webhook(request: Request, body: dict):
 
 
 @router.get("/test-wechat-params", response_model=ApiResponse)
-async def test_wechat_params():
+async def test_wechat_params(current_user: dict = Depends(get_current_user)):
+    """Test endpoint to verify WeChat payment parameter generation (admin only)."""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin only")
     """Test endpoint to verify WeChat payment parameter generation."""
     try:
         payment_params = payment_service.create_unified_order(

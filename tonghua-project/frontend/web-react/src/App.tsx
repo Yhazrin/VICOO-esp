@@ -16,6 +16,9 @@ import Contact from '@/pages/Contact';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import Profile from '@/pages/Profile';
+import Privacy from '@/pages/Privacy';
+import Terms from '@/pages/Terms';
+import ChildrenSafety from '@/pages/ChildrenSafety';
 import NotFound from '@/pages/NotFound';
 import { useSessionRestore } from '@/hooks/useSessionRestore';
 
@@ -42,6 +45,9 @@ function AnimatedRoutes() {
             <Route path="login" element={<ErrorBoundary><Login /></ErrorBoundary>} />
             <Route path="register" element={<ErrorBoundary><Register /></ErrorBoundary>} />
             <Route path="profile" element={<ErrorBoundary><Profile /></ErrorBoundary>} />
+            <Route path="privacy" element={<ErrorBoundary><Privacy /></ErrorBoundary>} />
+            <Route path="terms" element={<ErrorBoundary><Terms /></ErrorBoundary>} />
+            <Route path="children-safety" element={<ErrorBoundary><ChildrenSafety /></ErrorBoundary>} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>

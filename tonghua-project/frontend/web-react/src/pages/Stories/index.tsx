@@ -103,8 +103,8 @@ function EditorialOrnament({ className = '', prefersReducedMotion = false }: { c
     >
       <motion.line
         x1="0" y1="12" x2="70" y2="12"
-        stroke="#8B3A2A"
         strokeWidth="0.5"
+        style={{ stroke: 'var(--color-rust)' }}
         {...(prefersReducedMotion ? {} : {
           initial: { pathLength: 0 },
           whileInView: { pathLength: 1 },
@@ -115,8 +115,8 @@ function EditorialOrnament({ className = '', prefersReducedMotion = false }: { c
       <motion.circle
         cx="85" cy="12" r="3"
         fill="none"
-        stroke="#8B3A2A"
         strokeWidth="0.75"
+        style={{ stroke: 'var(--color-rust)' }}
         {...(prefersReducedMotion ? {} : {
           initial: { scale: 0 },
           whileInView: { scale: 1 },
@@ -126,7 +126,7 @@ function EditorialOrnament({ className = '', prefersReducedMotion = false }: { c
       />
       <motion.circle
         cx="100" cy="12" r="1.5"
-        fill="#8B3A2A"
+        style={{ fill: 'var(--color-rust)' }}
         {...(prefersReducedMotion ? {} : {
           initial: { scale: 0 },
           whileInView: { scale: 1 },
@@ -137,8 +137,8 @@ function EditorialOrnament({ className = '', prefersReducedMotion = false }: { c
       <motion.circle
         cx="115" cy="12" r="3"
         fill="none"
-        stroke="#8B3A2A"
         strokeWidth="0.75"
+        style={{ stroke: 'var(--color-rust)' }}
         {...(prefersReducedMotion ? {} : {
           initial: { scale: 0 },
           whileInView: { scale: 1 },
@@ -148,8 +148,8 @@ function EditorialOrnament({ className = '', prefersReducedMotion = false }: { c
       />
       <motion.line
         x1="130" y1="12" x2="200" y2="12"
-        stroke="#8B3A2A"
         strokeWidth="0.5"
+        style={{ stroke: 'var(--color-rust)' }}
         {...(prefersReducedMotion ? {} : {
           initial: { pathLength: 0 },
           whileInView: { pathLength: 1 },
@@ -167,12 +167,13 @@ function ReadingProgressBar({ readTimeMinutes, prefersReducedMotion = false }: {
   const widthPercent = Math.min((readTimeMinutes / maxReadTime) * 100, 100);
 
   return (
-    <div className="mt-4 h-[2px] w-full bg-warm-gray/20 rounded-sm overflow-hidden">
+    <div className="mt-4 h-[2px] w-full bg-warm-gray/20 rounded-sm overflow-hidden" role="progressbar" aria-valuenow={readTimeMinutes} aria-valuemin={0} aria-valuemax={maxReadTime} aria-label={`${readTimeMinutes} minute read`}>
       <motion.div
-        className="h-full bg-rust/60 rounded-sm"
-        initial={{ width: 0 }}
+        className="h-full bg-rust/60 rounded-sm origin-left"
+        style={prefersReducedMotion ? { transform: `scaleX(${widthPercent / 100})` } : undefined}
         {...(prefersReducedMotion ? {} : {
-          whileInView: { width: `${widthPercent}%` },
+          initial: { scaleX: 0 },
+          whileInView: { scaleX: widthPercent / 100 },
           viewport: { once: true },
           transition: { duration: 0.8, delay: 0.3, ease: [0, 0, 0.2, 1] },
         })}
@@ -188,8 +189,8 @@ function EmptyState({ onBrowseAll }: { onBrowseAll: () => void }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
+      animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.6, ease: [0, 0, 0.2, 1] }}
       className="py-20 md:py-32 flex flex-col items-center text-center"
@@ -247,8 +248,8 @@ function EmptyState({ onBrowseAll }: { onBrowseAll: () => void }) {
             transition: { duration: 0.6, delay: 1.4, type: 'spring' as const, stiffness: 200 },
           })}
         >
-          <line x1="88" y1="38" x2="98" y2="22" stroke="#8B3A2A" strokeWidth="1.5" strokeLinecap="round" />
-          <polygon points="98,22 100,19 96,19" fill="#8B3A2A" />
+          <line x1="88" y1="38" x2="98" y2="22" strokeWidth="1.5" strokeLinecap="round" style={{ stroke: 'var(--color-rust)' }} />
+          <polygon points="98,22 100,19 96,19" style={{ fill: 'var(--color-rust)' }} />
         </motion.g>
       </svg>
 
@@ -262,7 +263,7 @@ function EmptyState({ onBrowseAll }: { onBrowseAll: () => void }) {
         onClick={onBrowseAll}
         whileHover={prefersReducedMotion ? undefined : { y: -2 }}
         whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
-        className="font-body text-caption tracking-[0.15em] uppercase text-rust border-b border-rust/30 pb-1 hover:text-ink hover:border-ink/30 transition-colors"
+        className="font-body text-caption tracking-[0.15em] uppercase text-rust border-b border-rust/30 pb-1 hover:text-ink hover:border-ink/30 transition-colors cursor-pointer"
       >
         {t('stories.empty.browseAll')}
       </motion.button>
@@ -322,17 +323,17 @@ export default function Stories() {
 
       <SectionContainer noTopSpacing>
         {/* Category filter with count badges */}
-        <div className="flex items-center gap-1 mb-12 border-b border-warm-gray/30 overflow-x-auto">
+        <div className="flex items-center gap-1 mb-12 border-b border-warm-gray/30 overflow-x-auto" role="tablist">
           {categories.map((cat) => (
             <motion.button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 10 }}
+              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
               animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
               whileHover={prefersReducedMotion ? undefined : { y: -2 }}
               className={`
-                font-body text-caption tracking-[0.15em] uppercase px-4 py-3 transition-all duration-200 border-b-2 -mb-px whitespace-nowrap relative
+                font-body text-caption tracking-[0.15em] uppercase px-4 py-3 transition-all duration-200 border-b-2 -mb-px whitespace-nowrap relative cursor-pointer
                 ${activeCategory === cat
                   ? 'border-rust text-rust'
                   : 'border-transparent text-sepia-mid hover:text-ink'
@@ -369,7 +370,7 @@ export default function Stories() {
           {filtered.length > 0 ? (
             <motion.div
               key={activeCategory}
-              initial={{ opacity: 0 }}
+              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
@@ -387,12 +388,10 @@ export default function Stories() {
                     className="mb-16 md:mb-24"
                   >
                     <motion.article
-                      initial={{ opacity: 0, y: 50 }}
-                      {...(prefersReducedMotion ? {} : {
-                        whileInView: { opacity: 1, y: 0 },
-                        viewport: { once: true, margin: '-100px' },
-                        transition: { duration: 0.8, ease: [0, 0, 0.2, 1] },
-                      })}
+                      {...(prefersReducedMotion
+                        ? { initial: { opacity: 0 }, whileInView: { opacity: 1 }, viewport: { once: true }, transition: { duration: 0.3 } }
+                        : { initial: { opacity: 0, y: 50 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, margin: '-100px' }, transition: { duration: 0.8, ease: [0, 0, 0.2, 1] } }
+                      )}
                     >
                       <Link to={`/stories/${story.id}`} className="group block cursor-pointer">
                         <div className={`grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center ${index % 2 === 1 ? '' : ''}`}>

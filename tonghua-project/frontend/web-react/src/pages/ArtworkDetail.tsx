@@ -41,7 +41,7 @@ export default function ArtworkDetail() {
     if (!id) return;
     try {
       const result = await artworksApi.vote(id);
-      setArtwork((prev) => prev ? { ...prev, voteCount: result.voteCount } : null);
+      setArtwork((prev) => prev ? { ...prev, voteCount: result.like_count } : null);
     } catch (err) {
       console.error('Failed to vote', err);
     }
@@ -90,8 +90,8 @@ export default function ArtworkDetail() {
             {/* Image */}
             <div className="md:col-span-6">
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+                initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
+                animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1 }}
                 transition={{ duration: 0.5 }}
               >
                 <SepiaImageFrame
@@ -157,9 +157,9 @@ export default function ArtworkDetail() {
                     {t('artwork.detail.tags')}
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {artwork.tags.map((tag, index) => (
+                    {artwork.tags.map((tag) => (
                       <span
-                        key={index}
+                        key={tag}
                         className="font-body text-caption px-3 py-1 border border-warm-gray/50 text-sepia-mid"
                       >
                         {tag}

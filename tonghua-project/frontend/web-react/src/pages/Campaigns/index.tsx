@@ -137,7 +137,7 @@ export default function Campaigns() {
       try {
         const result = await campaignsApi.getAll({
           page,
-          pageSize: PAGE_SIZE,
+          page_size: PAGE_SIZE,
           status: filter === 'all' ? undefined : filter,
         });
         return result;
@@ -210,7 +210,7 @@ export default function Campaigns() {
         </div>
 
         {/* Filter tabs */}
-        <div className="flex items-center gap-1 mb-12 border-b border-warm-gray/30 overflow-x-auto">
+        <div className="flex items-center gap-1 mb-12 border-b border-warm-gray/30 overflow-x-auto" role="tablist">
           {statuses.map((status, index) => (
             <motion.button
               key={status}
@@ -270,8 +270,8 @@ export default function Campaigns() {
           <AnimatePresence mode="wait">
             <motion.div
               key={`${filter}-${page}`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
+              animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
               className="space-y-16"
@@ -346,12 +346,15 @@ export default function Campaigns() {
                                   }
                                 </span>
                               </div>
-                              <div className="h-1.5 bg-warm-gray/30 w-full">
+                              <div className="h-1.5 bg-warm-gray/30 w-full overflow-hidden" role="progressbar" aria-valuenow={fundingPercent} aria-valuemin={0} aria-valuemax={100} aria-label={`${campaign.title} funding progress`}>
                                 <motion.div
-                                  {...(prefersReducedMotion ? { style: { width: `${Math.min(100, fundingPercent)}%` } } : { initial: { width: 0 }, whileInView: { width: `${Math.min(100, fundingPercent)}%` } })}
+                                  {...(prefersReducedMotion
+                                    ? { style: { transform: `scaleX(${Math.min(100, fundingPercent) / 100})` } }
+                                    : { initial: { scaleX: 0 }, whileInView: { scaleX: Math.min(100, fundingPercent) / 100 } }
+                                  )}
                                   viewport={{ once: true }}
                                   transition={{ duration: 1, delay: 0.3, type: 'spring', stiffness: 60, damping: 20 }}
-                                  className={`h-full ${isCompleted ? 'bg-sepia-mid' : 'bg-rust'}`}
+                                  className={`h-full origin-left ${isCompleted ? 'bg-sepia-mid' : 'bg-rust'}`}
                                 />
                               </div>
                             </div>
@@ -392,7 +395,7 @@ export default function Campaigns() {
           </AnimatePresence>
         ) : (
           <motion.div
-            initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 20 }}
+            initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
             animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             className="text-center py-24"
@@ -424,7 +427,7 @@ export default function Campaigns() {
                 key={p}
                 onClick={() => setPage(p)}
                 className={`
-                  w-10 h-10 font-body text-caption border transition-all cursor-pointer
+                  w-11 h-11 font-body text-caption border transition-all cursor-pointer
                   ${page === p
                     ? 'border-rust bg-rust text-paper'
                     : 'border-warm-gray/30 text-sepia-mid hover:border-rust hover:text-rust'

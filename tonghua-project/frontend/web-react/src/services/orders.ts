@@ -1,9 +1,10 @@
 import api from './api';
-import type { Order, Address } from '@/types';
+import type { Order } from '@/types';
 
 export interface CreateOrderRequest {
-  items: { productId: string; quantity: number }[];
-  shippingAddress: Address;
+  items: { product_id: number; quantity: number }[];
+  shipping_address?: string;
+  payment_method?: 'wechat' | 'alipay' | 'stripe' | 'paypal';
 }
 
 export const ordersApi = {

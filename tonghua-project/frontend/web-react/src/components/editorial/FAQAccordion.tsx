@@ -23,7 +23,7 @@ export default function FAQAccordion({ items, className = '' }: FAQAccordionProp
     <div className={`space-y-4 ${className}`}>
       {items.map((item, index) => (
         <div
-          key={index}
+          key={item.question}
           className="border-b border-warm-gray/30 last:border-b-0"
         >
           <button

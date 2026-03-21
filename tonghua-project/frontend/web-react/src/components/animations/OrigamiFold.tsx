@@ -60,6 +60,7 @@ export function OrigamiCorner({
   className = '',
 }: OrigamiCornerProps) {
   const colors = cornerColorClasses[color];
+  const prefersReducedMotion = useReducedMotion();
 
   return (
     <div
@@ -74,9 +75,9 @@ export function OrigamiCorner({
 
       {/* Folded corner triangle */}
       <motion.div
-        initial={{ rotate: 0, opacity: 0 }}
-        animate={{ rotate: -180, opacity: 1 }}
-        transition={{ duration: 0.6, ease: [0.34, 1.56, 0.64, 1] }}
+        initial={prefersReducedMotion ? undefined : { rotate: 0, opacity: 0 }}
+        animate={prefersReducedMotion ? { opacity: 1 } : { rotate: -180, opacity: 1 }}
+        transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6, ease: [0.34, 1.56, 0.64, 1] }}
         className={`
           absolute
           ${position === 'top-left' || position === 'bottom-right' ? 'top-0 right-0' : 'top-0 left-0'}

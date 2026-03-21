@@ -7,6 +7,7 @@ import TiltCard from '@/components/animations/TiltCard';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import { VintageInput } from '@/components/editorial/VintageInput';
 import type { Product } from '@/types';
+import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 
 interface ProductCardProps {
   product: Product;
@@ -16,7 +17,7 @@ interface ProductCardProps {
 
 function getSustainabilityTier(score: number): { label: string; colorClass: string; barColor: string } {
   if (score >= 90) return { label: 'Exceptional', colorClass: 'text-rust', barColor: 'bg-rust' };
-  if (score >= 80) return { label: 'Excellent', colorClass: 'text-eco-green', barColor: 'bg-eco-green' };
+  if (score >= 80) return { label: 'Excellent', colorClass: 'text-sage', barColor: 'bg-sage' };
   return { label: 'Good', colorClass: 'text-sepia-mid', barColor: 'bg-sepia-mid' };
 }
 
@@ -68,10 +69,7 @@ export default function ProductCard({
           {/* Vintage frame effect */}
           <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/3 via-transparent to-archive-brown/5" aria-hidden="true" />
 
-          {/* Grain overlay */}
-          <div className="absolute inset-0 z-20 pointer-events-none opacity-[0.06]"
-               style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")' }}
-               aria-hidden="true" />
+          <SectionGrainOverlay className="z-20" />
 
           {/* Loading skeleton */}
           {!imageLoaded && <ImageSkeleton className="absolute inset-0" aspectRatio="aspect-[3/4]" />}
@@ -136,11 +134,11 @@ export default function ProductCard({
                   {sustainability.label}
                 </span>
               </div>
-              <div className="w-12 h-px bg-warm-gray/30 mt-0.5">
+              <div className="w-12 h-px bg-warm-gray/30 mt-0.5 overflow-hidden">
                 <motion.div
-                  className={`h-full ${sustainability.barColor}`}
-                  initial={{ width: 0 }}
-                  animate={isVisible ? { width: `${product.sustainabilityScore}%` } : {}}
+                  className={`h-full origin-left ${sustainability.barColor}`}
+                  initial={prefersReducedMotion ? { scaleX: product.sustainabilityScore / 100 } : { scaleX: 0 }}
+                  animate={isVisible ? { scaleX: product.sustainabilityScore / 100 } : {}}
                   transition={{ duration: 0.8, delay: 0.3, ease: [0, 0, 0.2, 1] }}
                 />
               </div>
@@ -159,23 +157,23 @@ export default function ProductCard({
                     e.stopPropagation();
                     setShowNotifyInput(true);
                   }}
-                  className="w-full font-body text-overline tracking-[0.15em] uppercase text-sepia-mid py-2 px-4 border border-dashed border-sepia-mid/50 hover:border-sepia-mid hover:text-ink transition-all duration-200 bg-transparent"
+                  className="w-full font-body text-overline tracking-[0.15em] uppercase text-sepia-mid py-2 px-4 border border-dashed border-sepia-mid/50 hover:border-sepia-mid hover:text-ink transition-all duration-200 bg-transparent cursor-pointer"
                 >
                   Notify Me
                 </motion.button>
               ) : notifySubmitted ? (
                 <motion.p
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="font-body text-overline text-eco-green tracking-wide text-center py-2"
+                  initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 5 }}
+                  animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+                  className="font-body text-overline text-sage tracking-wide text-center py-2"
                 >
                   We will let you know when this is back.
                 </motion.p>
               ) : (
                 <AnimatePresence>
                   <motion.form
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
+                    initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, height: 0 }}
+                    animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
                     onSubmit={handleNotifySubmit}
                     className="flex items-end gap-2"
