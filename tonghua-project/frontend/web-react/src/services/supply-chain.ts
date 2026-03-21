@@ -28,18 +28,8 @@ export const supplyChainApi = {
     return response.data.data ?? [];
   },
 
-  getRecordById: async (id: string): Promise<SupplyChainRecord> => {
-    const response = await api.get(`/supply-chain/records/${id}`);
-    return response.data.data;
-  },
-
   getProductJourney: async (productId: string): Promise<SupplyChainRecord[]> => {
-    const response = await api.get(`/supply-chain/products/${productId}/journey`);
+    const response = await api.get(`/supply-chain/trace/${productId}`);
     return response.data.data ?? [];
-  },
-
-  verifyCertificate: async (certificateId: string): Promise<{ valid: boolean; details: Record<string, unknown> }> => {
-    const response = await api.get(`/supply-chain/verify/${certificateId}`);
-    return response.data.data;
   },
 };

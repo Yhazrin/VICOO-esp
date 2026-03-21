@@ -229,6 +229,7 @@ export default function Shop() {
         </p>
 
         {/* Product grid */}
+        <div role="tabpanel" id="panel-shop" aria-labelledby={`tab-shop-${activeCategory}`}>
         {filtered.length === 0 ? (
           <p className="font-body text-body-sm text-sepia-mid py-20 text-center">
             {t('shop.empty')}
@@ -249,6 +250,7 @@ export default function Shop() {
             </motion.div>
           </AnimatePresence>
         )}
+        </div>
       </SectionContainer>
 
       {/* Sustainability note */}

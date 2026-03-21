@@ -269,6 +269,7 @@ export default function Campaigns() {
         </p>
 
         {/* Campaign list */}
+        <div role="tabpanel" id="panel-campaigns" aria-labelledby={`tab-campaign-${filter}`}>
         {isLoading ? (
           <div className="space-y-16">
             {[1, 2, 3].map((i) => (
@@ -428,6 +429,7 @@ export default function Campaigns() {
             </p>
           </motion.div>
         )}
+        </div>
 
         {/* Pagination */}
         {totalPages > 1 && (

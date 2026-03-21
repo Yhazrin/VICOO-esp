@@ -215,7 +215,7 @@ async def create_donation(body: DonationCreate, db: AsyncSession = Depends(get_d
              # Ensure we handle string representation if any
              try:
                  body_dump["amount"] = str(Decimal(body_dump["amount"]).quantize(Decimal("0.00")))
-             except:
+             except Exception:
                  pass
         else:
              # Should be Decimal, quantize it

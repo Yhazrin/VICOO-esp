@@ -1,5 +1,39 @@
 # Changelog
 
+## 2026-03-22 — Cycle 11: P0/P1 ARIA Tabpanel, Backend Hardening, Service Alignment
+
+### Security — P0
+
+- **Bare `except:` clause** (`donations.py`) — Changed `except:` to `except Exception:` in mock fallback path; bare except catches `SystemExit`/`KeyboardInterrupt` and prevents clean shutdown.
+- **Silent startup error swallowing** (`main.py`) — Lifespan `except Exception: pass` replaced with `logging.warning()` so DB init failures are observable in production logs.
+
+### Accessibility — P0
+
+- **Missing `role="tabpanel"` on 3 pages** — Campaigns, Stories, and Shop category filter panels had `role="tab"` with `aria-controls="panel-*"` but no matching `role="tabpanel"` container. Added wrapper divs with `role="tabpanel"`, `id`, and dynamic `aria-labelledby` matching the active tab. Reference: Profile/index.tsx pattern.
+- **Header dropdown missing ARIA menu pattern** (`Header.tsx`) — User avatar dropdown had no keyboard navigation or ARIA semantics. Added `aria-haspopup="menu"` on trigger, `role="menu"` + `aria-label="User menu"` on dropdown container, `role="menuitem"` on each item, Escape key handler (closes menu + returns focus to trigger), and ArrowDown/ArrowUp cycling through menu items.
+
+### Accessibility — P1
+
+- **CampaignDetail progress bar missing ARIA** (`CampaignDetail.tsx`) — Added `role="progressbar"`, `aria-valuenow`, `aria-valuemin`, `aria-valuemax`, and `aria-label` to the funding progress bar.
+
+### Backend — P1
+
+- **Rate limiter memory leak** (`contact.py`) — Per-IP rate limiter dict grew unbounded. Added `_evict_expired_entries()` that purges stale entries on each request, preventing memory exhaustion under sustained traffic.
+- **UserCreate.email missing EmailStr** (`schemas/user.py`) — `email` field was plain `str`, accepting any string. Changed to `EmailStr` for proper email format validation.
+
+### Frontend — P1
+
+- **Supply-chain API endpoint mismatches** (`supply-chain.ts`) — `getProductJourney` called nonexistent `GET /supply-chain/products/{id}/journey`; fixed to `GET /supply-chain/trace/{id}` matching backend. Removed `getRecordById` and `verifyCertificate` methods (no backend endpoints exist; confirmed no consumers via grep).
+- **Payment ID type inconsistency** (`types/index.ts`) — `Payment.id`, `orderId`, `donationId` were `number` while all other entities use `string`. Aligned to `string` for consistency.
+
+### Verification
+
+- TypeScript `tsc --noEmit`: zero errors
+- Vite production build: 2.64s, 594 modules
+- Python syntax check: all 4 modified files pass `py_compile`
+
+---
+
 ## 2026-03-22 — Cycle 10: P0 Security Hardening + Accessibility Heading/ARIA
 
 ### Security — P0

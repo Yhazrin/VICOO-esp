@@ -383,6 +383,7 @@ export default function Stories() {
         </div>
 
         {/* Magazine spread stories */}
+        <div role="tabpanel" id="panel-stories" aria-labelledby={`tab-story-${activeCategory}`}>
         <AnimatePresence mode="wait">
           {filtered.length > 0 ? (
             <motion.div
@@ -488,6 +489,7 @@ export default function Stories() {
             <EmptyState onBrowseAll={() => setActiveCategory('all')} />
           )}
         </AnimatePresence>
+        </div>
       </SectionContainer>
 
       {/* Newsletter CTA */}

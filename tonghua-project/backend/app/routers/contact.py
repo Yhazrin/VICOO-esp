@@ -14,6 +14,15 @@ _CONTACT_RATE_WINDOW = 60  # seconds
 _CONTACT_RATE_MAX = 5  # max submissions per window
 
 
+def _evict_expired_entries(now: float) -> None:
+    """Remove expired rate limit entries to prevent unbounded memory growth."""
+    cutoff = now - _CONTACT_RATE_WINDOW
+    expired = [k for k, v in _contact_rate_limit.items() if not k.endswith("_count") and v < cutoff]
+    for k in expired:
+        _contact_rate_limit.pop(k, None)
+        _contact_rate_limit.pop(f"{k}_count", None)
+
+
 class ContactForm(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     email: EmailStr
@@ -30,6 +39,7 @@ async def submit_contact_form(body: ContactForm, request: Request):
     # Per-IP rate limiting
     client_ip = request.client.host if request.client else "unknown"
     now = time.time()
+    _evict_expired_entries(now)
     window_start = _contact_rate_limit.get(client_ip, 0)
     if now - window_start < _CONTACT_RATE_WINDOW:
         # Same window — count submissions

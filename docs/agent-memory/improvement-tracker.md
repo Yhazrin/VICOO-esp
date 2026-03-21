@@ -1,6 +1,6 @@
 # Improvement Tracker
 
-> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 10)
+> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 11)
 
 ## Completed
 
@@ -174,6 +174,42 @@
 | # | Issue | Priority | Notes |
 |---|-------|----------|-------|
 | 122 | Donate — console.log/console.error instead of user-facing feedback | Medium | ✅ done — success/error status banners |
+
+## Completed — Cycle 11 (2026-03-22)
+
+### P0 Backend
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 123 | donations.py bare `except:` catches SystemExit/KeyboardInterrupt | P0 | ✅ done — changed to `except Exception:` |
+| 124 | main.py lifespan silently swallows startup errors (`except Exception: pass`) | P0 | ✅ done — added `logging.warning()` |
+
+### P0 Accessibility
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 125 | Campaigns/Stories/Shop — tab buttons have `aria-controls` but no matching `role="tabpanel"` | P0 | ✅ done — added wrapper divs with role="tabpanel", id, aria-labelledby |
+| 126 | Header user dropdown — no ARIA menu semantics or keyboard navigation | P0 | ✅ done — role="menu"/"menuitem", aria-haspopup, Escape/Arrow key handlers |
+
+### P1 Accessibility
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 127 | CampaignDetail progress bar — missing ARIA attributes | P1 | ✅ done — role="progressbar", aria-valuenow/min/max, aria-label |
+
+### P1 Backend
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 128 | contact.py rate limiter dict grows unbounded (memory leak) | P1 | ✅ done — added _evict_expired_entries() on each request |
+| 129 | schemas/user.py UserCreate.email uses str instead of EmailStr | P1 | ✅ done — changed to EmailStr |
+
+### P1 Frontend
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 130 | supply-chain.ts — getProductJourney hits nonexistent endpoint | P1 | ✅ done — fixed to /supply-chain/trace/{id}; removed getRecordById + verifyCertificate (no backend endpoints) |
+| 131 | types/index.ts — Payment.id/orderId/donationId type number vs string | P1 | ✅ done — aligned all to string |
 
 ## Pending
 
