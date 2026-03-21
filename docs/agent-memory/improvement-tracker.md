@@ -1,6 +1,6 @@
 # Improvement Tracker
 
-> Auto-maintained by agent loop. Last updated: 2026-03-21 (cycle 6)
+> Auto-maintained by agent loop. Last updated: 2026-03-21 (cycle 6+)
 
 ## Completed
 
@@ -77,6 +77,29 @@
 | 64 | Backend — DonationCreate schema accepts `donor_user_id` from client (IDOR vector) | High | ✅ done — removed field from schema; server already overrides from current_user |
 | 65 | Frontend — API services snake_case mismatches (pageSize, campaignId, vote response) | Medium | ✅ done — fixed artworks.ts, products.ts, campaigns.ts, donations.ts; ArtworkDetail.tsx, Campaigns/index.tsx |
 | 66 | Donate — progress bar animates `width` instead of `scaleX` | Medium | ✅ done — converted to scaleX with origin-left for GPU compositing |
+| 67 | ProductCard — notify submitted text unguarded reduced-motion initial | High | ✅ done — guarded with prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 5 } |
+| 68 | ProductCard — notify email form unguarded reduced-motion initial (height) | High | ✅ done — guarded with prefersReducedMotion ? { opacity: 1 } : { opacity: 0, height: 0 } |
+| 69 | ArtworkDetail — image fade-in unguarded reduced-motion initial | High | ✅ done — guarded with prefersReducedMotion ? { opacity: 1 } : { opacity: 0 } |
+| 70 | Campaigns — paginated list transition unguarded reduced-motion initial | High | ✅ done — guarded with prefersReducedMotion ? { opacity: 1 } : { opacity: 0 } |
+| 71 | Campaigns — empty state false-guard (opacity: 0 in reduced-motion branch) | High | ✅ done — fixed to { opacity: 1 } in reduced-motion branch |
+| 72 | Traceability — search spinner unguarded reduced-motion initial (height) | High | ✅ done — guarded with prefersReducedMotion ? { opacity: 1 } : { opacity: 0, height: 0 } |
+| 73 | Traceability — search result card unguarded reduced-motion initial | High | ✅ done — guarded with prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 } |
+| 74 | Traceability — highlight detail unguarded reduced-motion initial (height) | High | ✅ done — guarded with prefersReducedMotion ? { opacity: 1 } : { opacity: 0, height: 0 } |
+| 75 | Contact — validation error message unguarded reduced-motion initial | High | ✅ done — guarded with prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: -5 } |
+| 76 | Contact — submit error state unguarded reduced-motion initial | High | ✅ done — guarded with prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 } |
+| 77 | ProductDetail — image fade-in unguarded reduced-motion initial | High | ✅ done — guarded with prefersReducedMotion ? { opacity: 1 } : { opacity: 0 } |
+
+## Completed — P0 Backend Security (2026-03-21)
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 78 | Backend — orders.py real DB path allows non-admin to set any order status | P0 | ✅ done — added `body.status != "cancelled"` restriction to real DB path (mock fallback already had it) |
+| 79 | Backend — RegisterRequest missing EmailStr validation | P0 | ✅ done — changed `email: str` to `email: EmailStr` |
+| 80 | Backend — RegisterRequest missing password constraints | P0 | ✅ done — added `min_length=8, max_length=128` |
+| 81 | Backend — users.py update_me fallback mass-assignment vulnerability | P0 | ✅ done — explicitly whitelisted nickname/avatar/phone fields |
+| 82 | Backend — update_user_role missing self-modification guard | P0 | ✅ done — admin cannot modify their own role (prevents lock-out) |
+| 83 | Backend — update_user_status missing self-modification guard | P0 | ✅ done — admin cannot modify their own status (prevents lock-out) |
+| 84 | Backend — UserUpdate.phone missing max_length constraint | P0 | ✅ done — added `max_length=20` to prevent oversized encryption input |
 
 ## Pending
 

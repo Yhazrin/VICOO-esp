@@ -347,6 +347,9 @@ async def update_order_status(
             raise HTTPException(status_code=404, detail="Order not found")
         if current_user.get("role") != "admin" and order.user_id != current_user["id"]:
             raise HTTPException(status_code=403, detail="Forbidden")
+        # Non-admin users can only cancel their own orders
+        if current_user.get("role") != "admin" and body.status != "cancelled":
+            raise HTTPException(status_code=403, detail="Only admins can change order status to non-cancelled states")
         order.status = body.status
         await db.flush()
         return ApiResponse(data=OrderOut.model_validate(order).model_dump())

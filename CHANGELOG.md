@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-03-21 — P0 Backend Security Fixes
+
+### Security
+
+- **Backend: orders.py status update authorization bypass** (`orders.py`) — The real DB path for `PUT /orders/{id}/status` previously allowed non-admin order owners to set arbitrary statuses (completed, paid, shipped). Added `body.status != "cancelled"` restriction matching the mock fallback.
+- **Backend: RegisterRequest missing email validation** (`common.py`) — Changed `email: str` to `email: EmailStr` to reject malformed email addresses at the schema level.
+- **Backend: RegisterRequest missing password constraints** (`common.py`) — Added `min_length=8, max_length=128` to enforce password policy at the API boundary.
+- **Backend: update_me mass-assignment** (`users.py`) — The mock fallback used `body.model_dump()` which could inject arbitrary fields. Replaced with explicit whitelisting of `nickname`, `avatar`, `phone` only.
+- **Backend: admin self-modification guards** (`users.py`) — `PUT /users/{id}/role` and `PUT /users/{id}/status` now reject requests when the target user is the current admin, preventing privilege escalation or self-lockout.
+- **Backend: phone field length validation** (`schemas/user.py`) — Added `max_length=20` to `UserUpdate.phone` to prevent DoS via oversized encryption input.
+
+## 2026-03-21 — Cycle 6+
+
+### Accessibility
+
+- **prefers-reduced-motion: P0 invisible elements fix** — Fixed 11 remaining unguarded Framer Motion `initial` props across 6 files where elements were permanently invisible (opacity: 0) when users prefer reduced motion. Pattern: `initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: N }}`.
+  - ProductCard: "Notify Me" submitted text + email form (height animation)
+  - ArtworkDetail: image fade-in
+  - Campaigns: paginated list transition + empty state false-guard (was `opacity: 0` in reduced-motion branch)
+  - Traceability: search spinner + result card + highlighted record detail (height animations)
+  - Contact: validation error message + submit error state
+  - ProductDetail: image fade-in
+
 ## 2026-03-21 — Cycle 6
 
 ### Security
