@@ -122,6 +122,13 @@ async def list_artworks(
         )
 
 
+@router.get("/featured", response_model=ApiResponse)
+async def list_featured_artworks():
+    """List featured artworks (limit 8)."""
+    featured = [a for a in _mock_artworks if a["status"] == "featured"][:8]
+    return ApiResponse(data=featured)
+
+
 @router.get("/{artwork_id}", response_model=ApiResponse)
 async def get_artwork(artwork_id: int, db: AsyncSession = Depends(get_db)):
     """Get a single artwork by ID."""
@@ -266,7 +273,7 @@ async def get_artwork_status(artwork_id: int, db: AsyncSession = Depends(get_db)
 
 
 @router.put("/{artwork_id}/status", response_model=ApiResponse)
-async def update_artwork_status(artwork_id: int, body: ArtworkStatusUpdate, db: AsyncSession = Depends(get_db)):
+async def update_artwork_status(artwork_id: int, body: ArtworkStatusUpdate, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user), _admin: dict = Depends(require_role("admin"))):
     """Update artwork status."""
     try:
         stmt = select(Artwork).options(selectinload(Artwork.child_participant)).where(Artwork.id == artwork_id)

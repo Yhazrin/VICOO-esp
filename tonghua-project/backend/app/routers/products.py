@@ -93,6 +93,13 @@ async def list_categories(db: AsyncSession = Depends(get_db)):
         return ApiResponse(data=categories)
 
 
+@router.get("/featured", response_model=ApiResponse)
+async def list_featured_products():
+    """List featured products (active with stock, limit 8)."""
+    featured = [p for p in _mock_products if p["status"] == "active" and p["stock"] > 0][:8]
+    return ApiResponse(data=featured)
+
+
 @router.get("/{product_id}", response_model=ApiResponse)
 async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
     """Get a single product by ID."""

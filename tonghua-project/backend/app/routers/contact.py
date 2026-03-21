@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
 
 from app.schemas import ApiResponse
+from app.deps import require_role
 
 router = APIRouter(prefix="/contact", tags=["Contact"])
 
@@ -31,6 +32,6 @@ async def submit_contact_form(body: ContactForm):
 
 
 @router.get("/messages", response_model=ApiResponse)
-async def list_contact_messages():
+async def list_contact_messages(_admin: dict = Depends(require_role("admin"))):
     """List all contact form messages (admin only in production)."""
     return ApiResponse(data=_mock_messages)
