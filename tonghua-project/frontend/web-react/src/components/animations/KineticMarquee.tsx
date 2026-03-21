@@ -1,5 +1,5 @@
 import { useRef, ReactNode } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
 interface KineticMarqueeProps {
@@ -48,6 +48,7 @@ export default function KineticMarquee({
   const containerRef = useRef<HTMLDivElement>(null);
   const [contentWidth, setContentWidth] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const prefersReducedMotion = useReducedMotion();
 
   // Measure content width after mount
   useEffect(() => {
@@ -83,9 +84,9 @@ export default function KineticMarquee({
       <motion.div
         className={`flex ${gap} whitespace-nowrap marquee-content`}
         animate={{
-          x: isPaused ? undefined : [0, translateDistance],
+          x: prefersReducedMotion ? undefined : isPaused ? undefined : [0, translateDistance],
         }}
-        transition={{
+        transition={prefersReducedMotion ? undefined : {
           x: {
             duration: contentWidth / (50 * speed),
             repeat: Infinity,

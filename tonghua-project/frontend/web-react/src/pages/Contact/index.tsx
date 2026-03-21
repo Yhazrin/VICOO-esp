@@ -485,7 +485,7 @@ export default function Contact() {
                           w-full font-body text-sm py-3 px-3
                           border-b-2 bg-transparent
                           transition-all duration-300
-                          focus:outline-none focus:border-rust
+                          focus:outline-none focus-visible:ring-2 focus-visible:ring-rust/50 focus:border-rust
                           appearance-none cursor-pointer
                           ${errors.subject ? 'border-archive-brown' : 'border-warm-gray/60'}
                           ${!formData.subject ? 'text-ink-faded/80' : 'text-ink'}
@@ -540,7 +540,7 @@ export default function Contact() {
                           border-b-2 bg-transparent
                           transition-all duration-300
                           placeholder:text-ink-faded/80
-                          focus:outline-none focus:border-rust
+                          focus:outline-none focus-visible:ring-2 focus-visible:ring-rust/50 focus:border-rust
                           ${errors.message ? 'border-archive-brown' : 'border-warm-gray/60'}
                         `}
                       />

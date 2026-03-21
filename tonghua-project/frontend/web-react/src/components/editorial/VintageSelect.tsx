@@ -37,7 +37,7 @@ export const VintageSelect = forwardRef<HTMLSelectElement, VintageSelectProps>(
             className={`
               w-full font-body text-sm bg-transparent border-b-2 border-warm-gray/40
               py-2.5 pr-8 appearance-none cursor-pointer transition-all duration-300
-              focus:outline-none focus:border-rust text-ink
+              focus:outline-none focus-visible:ring-2 focus-visible:ring-rust/50 focus:border-rust text-ink
               ${props.disabled ? 'opacity-50 cursor-not-allowed' : ''}
             `}
             {...props}
@@ -48,7 +48,7 @@ export const VintageSelect = forwardRef<HTMLSelectElement, VintageSelectProps>(
               </option>
             ))}
           </select>
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none">
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true">
             <svg
               className="w-4 h-4 text-sepia-mid"
               fill="none"

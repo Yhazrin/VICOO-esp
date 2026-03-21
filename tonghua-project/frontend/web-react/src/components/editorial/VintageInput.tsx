@@ -23,6 +23,7 @@ export const VintageInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, V
       transition-all duration-300 ease-editorial
       placeholder:text-ink-faded/80
       focus:outline-none
+      focus-visible:ring-2 focus-visible:ring-rust/50
       focus:border-rust
       ${error ? 'border-archive-brown' : ''}
     `;

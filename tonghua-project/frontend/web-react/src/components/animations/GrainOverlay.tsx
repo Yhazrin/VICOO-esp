@@ -18,7 +18,7 @@ import { useGrainAnimation } from '../../hooks/useGrainAnimation';
  * <GrainOverlay respectReducedMotion />
  */
 export interface GrainOverlayProps {
-  /** Opacity of the grain overlay (0-1). Default: 0.07 */
+  /** Opacity of the grain overlay (0-1). Default: 0.06 */
   opacity?: number;
   /** Whether to respect prefers-reduced-motion. Default: true */
   respectReducedMotion?: boolean;
@@ -35,7 +35,7 @@ export interface GrainOverlayProps {
 }
 
 export default function GrainOverlay({
-  opacity = 0.07,
+  opacity = 0.06,
   respectReducedMotion = true,
   duration = 10,
   scaleFrom = 1,

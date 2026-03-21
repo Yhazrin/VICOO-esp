@@ -300,7 +300,7 @@ function EnhancedTimelineEntry({ record, index, t }: {
               <p className="font-body text-sm text-ink-faded leading-relaxed mb-3">
                 {record.description}
               </p>
-              <p className="font-body text-[11px] italic text-sepia-mid leading-relaxed border-l-2 border-rust/20 pl-3">
+              <p className="font-body text-[11px] italic text-sepia-mid leading-relaxed border-l-2 border-rust/30 pl-3">
                 "{record.story}"
               </p>
             </div>
@@ -482,7 +482,7 @@ export default function Traceability() {
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
                 placeholder={t('traceability.lookup.placeholder')}
-                className="w-full font-body text-sm py-3 px-3 bg-transparent focus:outline-none placeholder:text-ink-faded/60"
+                className="w-full font-body text-sm py-3 px-3 bg-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-rust/50 placeholder:text-ink-faded/60"
                 aria-label={t('traceability.lookup.ariaLabel')}
               />
             </div>

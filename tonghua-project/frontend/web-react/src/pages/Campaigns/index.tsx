@@ -363,7 +363,7 @@ export default function Campaigns() {
                               whileInView={{ opacity: 1, x: 0 }}
                               viewport={{ once: true }}
                               transition={{ duration: 0.6, delay: 0.5 }}
-                              className="border-l-2 border-rust/40 pl-4 mt-5"
+                              className="border-l-2 border-rust/30 pl-4 mt-5"
                             >
                               <p className="font-display italic text-sm text-ink-faded leading-relaxed">
                                 &ldquo;{campaign.featuredChild.quote}&rdquo;

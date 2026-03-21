@@ -183,7 +183,7 @@ export default function EditorialFooter() {
               <motion.input
                 type="email"
                 placeholder="your@email.com"
-                className="bg-transparent border-b border-sepia-mid/30 text-paper font-body text-xs py-2 outline-none focus:border-pale-gold transition-colors placeholder:text-sepia-mid/40"
+                className="bg-transparent border-b border-sepia-mid/30 text-paper font-body text-xs py-2 outline-none focus-visible:ring-2 focus-visible:ring-pale-gold/50 focus:border-pale-gold transition-colors placeholder:text-sepia-mid/40"
                 aria-label="Email address"
                 whileFocus={{ scale: 1.01 }}
               />

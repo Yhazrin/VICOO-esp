@@ -25,7 +25,7 @@ export interface UseGrainAnimationResult {
 export interface UseGrainAnimationOptions {
   /** Whether to respect the prefers-reduced-motion media query. Default: true */
   respectReducedMotion?: boolean;
-  /** Base opacity of the grain. Default: 0.07 */
+  /** Base opacity of the grain. Default: 0.06 */
   baseOpacity?: number;
   /** Minimum scale value. Default: 1 */
   scaleFrom?: number;
@@ -46,7 +46,7 @@ export function useGrainAnimation(
 ): UseGrainAnimationResult {
   const {
     respectReducedMotion = true,
-    baseOpacity = 0.07,
+    baseOpacity = 0.06,
     scaleFrom = 1,
     scaleTo = 1.03,
   } = options;
@@ -98,11 +98,11 @@ export const grainBreathingKeyframes = `
 @keyframes grain-breathing {
   0%, 100% {
     transform: scale(1);
-    opacity: 0.07;
+    opacity: 0.06;
   }
   50% {
     transform: scale(1.03);
-    opacity: 0.07;
+    opacity: 0.06;
   }
 }
 
