@@ -1,5 +1,7 @@
 import os
 import logging
+import hmac
+import hashlib
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
@@ -65,11 +67,15 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
             raise HTTPException(status_code=500, detail="WeChat configuration is missing")
 
         async with httpx.AsyncClient() as client:
-            wx_response = await client.get(
-                f"https://api.weixin.qq.com/sns/jscode2session?"
-                f"appid={settings.WECHAT_APP_ID}&"
-                f"secret={settings.WECHAT_APP_SECRET}&"
-                f"js_code={body.wechat_code}&grant_type=authorization_code"
+            # Use POST with form data to keep app_secret out of access logs and referrer headers
+            wx_response = await client.post(
+                "https://api.weixin.qq.com/sns/jscode2session",
+                data={
+                    "appid": settings.WECHAT_APP_ID,
+                    "secret": settings.WECHAT_APP_SECRET,
+                    "js_code": body.wechat_code,
+                    "grant_type": "authorization_code",
+                },
             )
 
             if wx_response.status_code != 200:
@@ -79,8 +85,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
 
             # 检查微信 API 返回的错误
             if "errcode" in session_data and session_data["errcode"] != 0:
-                error_msg = session_data.get("errmsg", "WeChat authentication failed")
-                raise HTTPException(status_code=401, detail=f"WeChat authentication failed: {error_msg}")
+                raise HTTPException(status_code=401, detail="WeChat authentication failed")
 
             openid = session_data.get("openid")
             if not openid:
@@ -104,9 +109,6 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
                 status_code=200,
                 content=response_data.model_dump(),
             )
-            # Set refresh token as httpOnly cookie
-            # Use samesite="lax" for development (works with HTTP)
-            # In production, use samesite="lax" for better security
             json_response.set_cookie(
                 key="refresh_token",
                 value=refresh,
@@ -115,7 +117,6 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
                 samesite="lax",
                 max_age=7 * 24 * 60 * 60,  # 7 days
             )
-            # Set access token as regular cookie (not httpOnly) so frontend can read it
             json_response.set_cookie(
                 key="access_token",
                 value=token,
@@ -131,7 +132,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Email and password are required")
 
     # ── DB lookup ──
-    logger.debug(f"DB lookup for email: {body.email}")
+    logger.debug("DB lookup initiated")
     try:
         stmt = select(User).where(User.email == body.email)
         result = await db.execute(stmt)
@@ -186,7 +187,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
         raise
     except Exception as e:
         # DB error - continue to mock fallback in development mode
-        logger.debug(f"DB error during user lookup: {e}")
+        logger.debug("DB error during user lookup")
         pass
 
     # ── Mock fallback (development only) ──
@@ -195,14 +196,14 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
     if settings.APP_ENV == "development":
         logger.debug("Development mode, checking mock users")
         mock = _get_mock_user(body.email)
-        logger.debug(f"Mock lookup: email={body.email}, mock={mock}")
+        logger.debug("Mock lookup initiated")
         if mock:
             logger.debug(f"Mock user found: id={mock['id']}, role={mock['role']}")
             # Security: Validate password even for mock users
             # Use environment variable for mock password (no default)
             mock_password = settings.MOCK_USER_PASSWORD
             logger.debug("Verifying mock password")
-            if mock_password != body.password:
+            if not hmac.compare_digest(mock_password, body.password):
                 logger.debug("Mock password verification failed")
                 raise HTTPException(status_code=401, detail="Invalid credentials")
             logger.debug("Mock password verification passed")
@@ -383,11 +384,14 @@ async def wx_login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=500, detail="WeChat configuration is missing")
 
     async with httpx.AsyncClient() as client:
-        wx_response = await client.get(
-            f"https://api.weixin.qq.com/sns/jscode2session?"
-            f"appid={settings.WECHAT_APP_ID}&"
-            f"secret={settings.WECHAT_APP_SECRET}&"
-            f"js_code={body.wechat_code}&grant_type=authorization_code"
+        wx_response = await client.post(
+            "https://api.weixin.qq.com/sns/jscode2session",
+            data={
+                "appid": settings.WECHAT_APP_ID,
+                "secret": settings.WECHAT_APP_SECRET,
+                "js_code": body.wechat_code,
+                "grant_type": "authorization_code",
+            },
         )
 
         if wx_response.status_code != 200:
@@ -397,8 +401,7 @@ async def wx_login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
 
         # 检查微信 API 返回的错误
         if "errcode" in session_data and session_data["errcode"] != 0:
-            error_msg = session_data.get("errmsg", "WeChat authentication failed")
-            raise HTTPException(status_code=401, detail=f"WeChat authentication failed: {error_msg}")
+            raise HTTPException(status_code=401, detail="WeChat authentication failed")
 
         openid = session_data.get("openid")
         if not openid:

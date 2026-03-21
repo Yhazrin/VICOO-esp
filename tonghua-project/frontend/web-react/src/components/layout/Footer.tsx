@@ -94,6 +94,7 @@ export default function Footer() {
             >
               <input
                 type="email"
+                aria-label={t('common.emailPlaceholder')}
                 placeholder={t('common.emailPlaceholder')}
                 className="bg-transparent border-b border-sepia-mid/50 text-paper font-body text-caption py-2 focus:outline-none focus:border-pale-gold transition-colors placeholder:text-sepia-mid/50"
               />

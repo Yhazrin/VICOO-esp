@@ -1,5 +1,42 @@
 # Changelog
 
+## 2026-03-22 — Cycle 10: P0 Security Hardening + Accessibility Heading/ARIA
+
+### Security — P0
+
+- **CORS wildcard rejection** (`config.py`) — New `model_validator` rejects `CORS_ORIGINS="*"` when `allow_credentials=True`, preventing credential leakage via wildcard CORS.
+- **TrustedHostMiddleware re-enabled** (`main.py`) — Enabled in non-development environments; dev environment skips for convenience.
+- **WeChat API secret exposure** (`auth.py`) — Both `login` and `wx_login` endpoints switched from GET with query params to POST with form data, keeping `WECHAT_APP_SECRET` out of access logs and referrer headers.
+- **Mock password timing attack** (`auth.py`) — Mock user password comparison changed from `==` to `hmac.compare_digest` to prevent timing side-channel attacks.
+- **WeChat error detail leakage** (`auth.py`) — Removed WeChat API error message from HTTP 401 responses; now returns generic "WeChat authentication failed".
+- **Debug print removal** (`artworks.py`) — Removed `print(f"DEBUG create_artwork: ...")` statement.
+- **PII-safe logging** (`auth.py`) — Removed email addresses from debug log messages.
+
+### Security — P1
+
+- **API secret key hardening** (`api.ts`) — Removed hardcoded fallback `'your-secret-key'` for `VITE_API_SECRET_KEY`; now throws if env var is unset.
+- **Contact form rate limiting** (`contact.py`) — Added per-IP rate limiter (5 submissions per 60-second window) with 429 response.
+- **Contact form email validation** (`contact.py`) — Changed email field from `str` to `EmailStr`.
+- **Alipay callback protection** (`payments.py`) — `alipay_notify` now returns 501 in production until RSA2 signature verification is configured.
+- **Webhook HMAC verification** (`payments.py`) — Generic webhook endpoint now computes HMAC-SHA256 over sorted JSON payload using `APP_SECRET_KEY` and verifies via `hmac.compare_digest`.
+- **WeChatPay signature comparison** (`payment_service.py`) — Changed `==` to `hmac.compare_digest` for constant-time comparison.
+- **Password strength** (`schemas/user.py`) — Minimum password length increased from 6 to 8 characters.
+- **CORS headers** (`main.py`) — Added `X-Nonce` to allowed CORS headers.
+
+### Accessibility
+
+- **Heading hierarchy** — Added `<h1 className="sr-only">` to 6 pages that use `hideHero={true}` on EditorialHero: Campaigns, Stories, Traceability, Shop, Profile, CampaignDetail. Fixes WCAG 2.4.6 heading hierarchy violations.
+- **ARIA tab pattern** — Category filter buttons on Campaigns, Stories, and Shop pages now use `role="tab"`, `aria-selected`, `aria-controls`, `tabIndex`, and keyboard arrow navigation (ArrowLeft/ArrowRight), matching the reference implementation in Profile.
+- **MagazineDivider component** — All 3 variants (numbered, decorative, default) now have `aria-hidden="true"` on their container divs, preventing decorative dividers from appearing in the accessibility tree.
+- **Footer email input** — Added `aria-label` attribute for screen reader identification.
+- **Decorative elements** — Added `aria-hidden="true"` to 15+ decorative elements across 9 files: editorial-divider divs, corner accent borders, gradient overlays, and inset box-shadow overlays.
+
+### Frontend UX
+
+- **Donate submission feedback** (`Donate/index.tsx`) — Replaced `console.log`/`console.error` with user-facing success/error status banners using editorial-styled containers.
+- **Null price guards** (`ProductDetail.tsx`, `Profile/index.tsx`) — Added `?? 0` fallback on `price.toFixed()` and `amount.toFixed()` calls to prevent crashes on null API data.
+- **Profile error states** (`Profile/index.tsx`) — Added `errorOrders`/`errorDonations` boolean states with user-facing error messages when API calls fail.
+
 ## 2026-03-22 — Cycle 7: Frontend Page Expansion & Service Completion
 
 ### Features

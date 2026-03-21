@@ -158,6 +158,7 @@ export default function Shop() {
         subtitle={t('shop.hero.subtitle')}
         hideHero={true}
       />
+      <h1 className="sr-only">{t('shop.hero.title')}</h1>
 
       <SectionContainer noTopSpacing>
         <NumberedSectionHeading number="01" title="Collection" />
@@ -165,11 +166,27 @@ export default function Shop() {
         {/* Filters and sort row */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
           {/* Category filter */}
-          <div className="flex items-center gap-1 border-b border-warm-gray/30 overflow-x-auto flex-1">
+          <div className="flex items-center gap-1 border-b border-warm-gray/30 overflow-x-auto flex-1" role="tablist">
             {categories.map((cat, index) => (
               <motion.button
                 key={cat}
+                role="tab"
+                id={`tab-shop-${cat}`}
+                aria-selected={activeCategory === cat}
+                aria-controls="panel-shop"
+                tabIndex={activeCategory === cat ? 0 : -1}
                 onClick={() => setActiveCategory(cat)}
+                onKeyDown={(e) => {
+                  if (e.key === 'ArrowRight') {
+                    const next = categories[(index + 1) % categories.length];
+                    setActiveCategory(next);
+                    document.getElementById(`tab-shop-${next}`)?.focus();
+                  } else if (e.key === 'ArrowLeft') {
+                    const prev = categories[(index - 1 + categories.length) % categories.length];
+                    setActiveCategory(prev);
+                    document.getElementById(`tab-shop-${prev}`)?.focus();
+                  }
+                }}
                 initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
                 animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
@@ -353,7 +370,7 @@ export default function Shop() {
         </div>
       </SectionContainer>
 
-      <div className="editorial-divider" />
+      <div className="editorial-divider" aria-hidden="true" />
     </PageWrapper>
   );
 }

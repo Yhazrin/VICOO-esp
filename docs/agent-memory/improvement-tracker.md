@@ -1,6 +1,6 @@
 # Improvement Tracker
 
-> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 7)
+> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 10)
 
 ## Completed
 
@@ -124,6 +124,56 @@
 | 96 | Frontend — auth.ts missing updateProfile method | Medium | ✅ done — added `updateProfile` mapping to PUT /users/me |
 | 97 | Frontend — products.ts missing getCategories method | Low | ✅ done — added `getCategories` mapping to GET /products/categories |
 | 98 | Frontend — payments.ts service file missing | Medium | ✅ done — created with create + getById methods, added Payment type to types/index.ts |
+
+## Completed — Cycle 10 (2026-03-22)
+
+### P0 Backend Security
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 100 | CORS — wildcard origins with credentials enabled | P0 | ✅ done — config.py model_validator rejects `*` when allow_credentials |
+| 101 | TrustedHostMiddleware disabled in all environments | P0 | ✅ done — enabled in non-development; dev skips |
+| 102 | WeChat API secret exposed in GET query string (access logs) | P0 | ✅ done — both login + wx_login switched to POST form data |
+| 103 | Mock password comparison using `==` (timing attack) | P0 | ✅ done — replaced with `hmac.compare_digest` |
+| 104 | WeChat error detail leaked in HTTP 401 response | P0 | ✅ done — generic "WeChat authentication failed" message |
+| 105 | Debug print statement in artworks.py create endpoint | P0 | ✅ done — removed |
+| 106 | PII in auth.py debug logs (email addresses) | P0 | ✅ done — removed email from log messages |
+
+### P0/P1 Frontend Security
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 107 | VITE_API_SECRET_KEY fallback to hardcoded default | P0 | ✅ done — removed fallback, throws if unset |
+| 108 | ProductDetail — `product.price.toFixed()` crashes on null | P1 | ✅ done — `(product.price ?? 0).toFixed(2)` |
+| 109 | Profile — no error states for failed order/donation loads | P1 | ✅ done — added errorOrders/errorDonations states + UI |
+
+### P1 Backend Hardening
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 110 | Contact form — no per-IP rate limiting | P1 | ✅ done — 5 submissions per 60s window |
+| 111 | Contact form — email field missing EmailStr validation | P1 | ✅ done — changed to EmailStr |
+| 112 | Alipay notify — accepts unverified callbacks in production | P1 | ✅ done — 501 in production until RSA2 verification configured |
+| 113 | Payment webhook — mock HMAC verification | P1 | ✅ done — proper HMAC-SHA256 with APP_SECRET_KEY |
+| 114 | WeChatPayService — `==` for signature comparison | P1 | ✅ done — `hmac.compare_digest` |
+| 115 | Password min_length=6 (too weak) | P1 | ✅ done — changed to min_length=8 |
+| 116 | X-Nonce missing from CORS allowed headers | P1 | ✅ done — added to main.py CORS config |
+
+### Accessibility — Heading Hierarchy + ARIA
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 117 | 6 pages missing sr-only h1 when hideHero=true | P1 | ✅ done — Campaigns, Stories, Traceability, Shop, Profile, CampaignDetail |
+| 118 | 3 category filter tabs missing ARIA tab pattern | P1 | ✅ done — Campaigns statuses, Stories categories, Shop categories |
+| 119 | MagazineDivider — 3 variants missing aria-hidden on container | P1 | ✅ done — numbered, decorative, and default variants |
+| 120 | Footer email input missing aria-label | P1 | ✅ done |
+| 121 | 15+ decorative elements missing aria-hidden across 9 files | P1 | ✅ done — editorial-dividers, corner accents, gradient overlays |
+
+### UX Improvements
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 122 | Donate — console.log/console.error instead of user-facing feedback | Medium | ✅ done — success/error status banners |
 
 ## Pending
 

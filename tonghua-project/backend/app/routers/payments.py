@@ -5,6 +5,8 @@ from decimal import Decimal
 import xml.etree.ElementTree as ET
 import secrets
 import logging
+import hmac
+import hashlib
 
 from app.database import get_db
 from app.models.payment import PaymentTransaction
@@ -13,6 +15,7 @@ from app.models.donation import Donation
 from app.schemas import ApiResponse, PaymentCreate, PaymentOut, PaginatedResponse, WeChatPaymentParams
 from app.deps import get_current_user
 from app.services.payment_service import payment_service
+from app.config import settings
 from app.routers.orders import _mock_orders
 from app.routers.donations import _mock_donations
 
@@ -244,9 +247,18 @@ async def wechat_notify(request: Request, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/alipay-notify", response_model=ApiResponse)
-async def alipay_notify():
-    """Handle Alipay payment notification callback."""
-    # In production: verify signature, update payment status, update order/donation
+async def alipay_notify(request: Request):
+    """Handle Alipay payment notification callback.
+
+    Security: In production, must verify RSA2 signature against Alipay's public key
+    before processing. Reject unverified requests.
+    """
+    # TODO: Implement Alipay RSA2 signature verification with alipay_public_key
+    # For now, reject unverified notifications to prevent spoofing
+    if settings.APP_ENV == "production":
+        raise HTTPException(status_code=501, detail="Alipay verification not configured")
+
+    # Development-only passthrough
     return ApiResponse(data={"message": "Alipay notification received"})
 
 
@@ -254,17 +266,23 @@ async def alipay_notify():
 async def payment_webhook(request: Request, body: dict):
     """Handle generic payment webhook from various providers.
 
-    Security: Verifies HMAC signature from the X-Webhook-Signature header.
+    Security: Verifies HMAC-SHA256 signature from the X-Webhook-Signature header.
     """
     signature = request.headers.get("X-Webhook-Signature")
 
-    # Simple validation: in production, verify HMAC with shared secret
-    # For now, accept "valid-hmac-signature" as valid
     if not signature:
         raise HTTPException(status_code=400, detail="Missing signature")
 
-    # Mock verification - in production use: hmac.compare_digest(expected, signature)
-    if signature != "valid-hmac-signature":
+    # Verify HMAC-SHA256 signature using APP_SECRET_KEY
+    import json
+    payload_bytes = json.dumps(body, sort_keys=True, separators=(",", ":")).encode()
+    expected = hmac.new(
+        settings.APP_SECRET_KEY.encode(),
+        payload_bytes,
+        hashlib.sha256,
+    ).hexdigest()
+
+    if not hmac.compare_digest(signature, expected):
         raise HTTPException(status_code=401, detail="Invalid signature")
 
     # Process webhook payload

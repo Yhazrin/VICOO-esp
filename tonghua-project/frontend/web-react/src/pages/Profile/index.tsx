@@ -35,6 +35,8 @@ export default function Profile() {
   const [donations, setDonations] = useState<Donation[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [loadingDonations, setLoadingDonations] = useState(true);
+  const [errorOrders, setErrorOrders] = useState(false);
+  const [errorDonations, setErrorDonations] = useState(false);
   const [activeTab, setActiveTab] = useState<'orders' | 'donations'>('orders');
 
   useEffect(() => {
@@ -51,7 +53,10 @@ export default function Profile() {
         }
       })
       .catch(() => {
-        if (!cancelled) setLoadingOrders(false);
+        if (!cancelled) {
+          setErrorOrders(true);
+          setLoadingOrders(false);
+        }
       });
 
     donationsApi
@@ -64,7 +69,10 @@ export default function Profile() {
         }
       })
       .catch(() => {
-        if (!cancelled) setLoadingDonations(false);
+        if (!cancelled) {
+          setErrorDonations(true);
+          setLoadingDonations(false);
+        }
       });
 
     return () => { cancelled = true; };
@@ -125,6 +133,7 @@ export default function Profile() {
       <PaperTextureBackground variant="paper" className="py-16 md:py-24 relative">
         <GrainOverlay />
         <SectionContainer>
+          <h1 className="sr-only">{t('profile.title')}</h1>
           <NumberedSectionHeading number="10" title={t('profile.title')} />
 
           <motion.div
@@ -242,6 +251,10 @@ export default function Profile() {
               <NumberedSectionHeading number="01" title={t('profile.orderHistory', 'Order History')} />
               {loadingOrders ? (
                 <p className="font-body text-body-sm text-ink-faded">{t('common.loading', 'Loading...')}</p>
+              ) : errorOrders ? (
+                <p className="font-body text-body-sm text-rust text-center py-12">
+                  {t('profile.errorLoadingOrders', 'Could not load your orders. Please try again later.')}
+                </p>
               ) : orders.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="font-body text-body-sm text-ink-faded mb-4">
@@ -288,7 +301,7 @@ export default function Profile() {
                           {t('profile.total', 'Total')}
                         </span>
                         <span className="font-display text-base text-ink">
-                          {order.currency} {order.totalAmount.toFixed(2)}
+                          {order.currency} {(order.totalAmount ?? 0).toFixed(2)}
                         </span>
                       </div>
                     </EditorialCard>
@@ -304,6 +317,10 @@ export default function Profile() {
               <NumberedSectionHeading number="02" title={t('profile.donationHistory', 'Donation History')} />
               {loadingDonations ? (
                 <p className="font-body text-body-sm text-ink-faded">{t('common.loading', 'Loading...')}</p>
+              ) : errorDonations ? (
+                <p className="font-body text-body-sm text-rust text-center py-12">
+                  {t('profile.errorLoadingDonations', 'Could not load your donations. Please try again later.')}
+                </p>
               ) : donations.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="font-body text-body-sm text-ink-faded mb-4">
@@ -321,7 +338,7 @@ export default function Profile() {
                   {donations.map((donation, index) => (
                     <EditorialCard
                       key={donation.id}
-                      title={`${donation.currency} ${donation.amount.toFixed(2)}`}
+                      title={`${donation.currency} ${(donation.amount ?? 0).toFixed(2)}`}
                       subtitle={new Date(donation.createdAt).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'short',

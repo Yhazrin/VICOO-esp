@@ -69,8 +69,9 @@ allowed_hosts = list(set(allowed_hosts))
 if not allowed_hosts:
     allowed_hosts = ["localhost"]
 logger.info(f"Allowed hosts: {allowed_hosts}")
-# Temporarily disable TrustedHostMiddleware for development
-# app.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)
+# Enable TrustedHostMiddleware in non-development environments
+if settings.APP_ENV != "development":
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)
 
 # CORS - Restrict to specific origins (no wildcard)
 logger.info(f"CORS Origins: {settings.CORS_ORIGINS}")
@@ -85,6 +86,7 @@ app.add_middleware(
         "X-Requested-With",
         "X-Signature",
         "X-Timestamp",
+        "X-Nonce",
     ],
 )
 

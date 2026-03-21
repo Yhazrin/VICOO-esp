@@ -516,6 +516,7 @@ export default function Traceability() {
         subtitle={t('traceability.hero.subtitle')}
         hideHero={true}
       />
+      <h1 className="sr-only">{t('traceability.hero.title')}</h1>
 
       {/* Section 01: Trace Your Product — Interactive Lookup */}
       <SectionContainer noTopSpacing>
@@ -536,8 +537,8 @@ export default function Traceability() {
         >
           <div className="relative">
             {/* Decorative corner accents */}
-            <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-rust/30 pointer-events-none z-10" />
-            <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-rust/30 pointer-events-none z-10" />
+            <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-rust/30 pointer-events-none z-10" aria-hidden="true" />
+            <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-rust/30 pointer-events-none z-10" aria-hidden="true" />
 
             <div className="flex items-center border-b-2 border-warm-gray/60 focus-within:border-rust transition-colors">
               <svg className="w-4 h-4 text-sepia-mid ml-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
@@ -853,7 +854,7 @@ export default function Traceability() {
       </section>
 
       {/* Bottom CTA */}
-      <div className="editorial-divider" />
+      <div className="editorial-divider" aria-hidden="true" />
 
       <SectionContainer narrow>
         <motion.div
@@ -883,7 +884,7 @@ export default function Traceability() {
         </motion.div>
       </SectionContainer>
 
-      <div className="editorial-divider" />
+      <div className="editorial-divider" aria-hidden="true" />
     </PageWrapper>
   );
 }

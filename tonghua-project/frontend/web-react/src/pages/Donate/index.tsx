@@ -209,6 +209,7 @@ export default function Donate() {
   const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   const handleDonate = async (data: {
     amount: number;
@@ -218,6 +219,7 @@ export default function Donate() {
     paymentMethod?: 'wechat' | 'alipay' | 'stripe' | 'paypal';
   }) => {
     setIsSubmitting(true);
+    setSubmitStatus('idle');
     try {
       const { user } = useAuthStore.getState();
       await donationsApi.create({
@@ -228,9 +230,9 @@ export default function Donate() {
         is_anonymous: data.anonymous,
         message: data.message || undefined,
       });
-      console.log('Donation successful');
-    } catch (error) {
-      console.error('Donation failed:', error);
+      setSubmitStatus('success');
+    } catch {
+      setSubmitStatus('error');
     } finally {
       setIsSubmitting(false);
     }
@@ -308,6 +310,20 @@ export default function Donate() {
 
           {/* Right: Donation panel */}
           <div className="md:col-span-7">
+            {submitStatus === 'success' && (
+              <div className="mb-4 p-4 border border-sepia-light bg-paper-warm">
+                <p className="font-body text-body-sm text-ink">
+                  {t('donate.success', 'Thank you for your donation! Your generosity helps children explore their creativity.')}
+                </p>
+              </div>
+            )}
+            {submitStatus === 'error' && (
+              <div className="mb-4 p-4 border border-rust bg-red-50">
+                <p className="font-body text-body-sm text-rust">
+                  {t('donate.error', 'Something went wrong. Please try again.')}
+                </p>
+              </div>
+            )}
             <DonationPanel
               onSubmit={handleDonate}
               isSubmitting={isSubmitting}
@@ -344,8 +360,8 @@ export default function Donate() {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start relative z-10">
             <div className="md:col-span-5 relative">
               {/* Decorative corner accents */}
-              <div className="absolute -top-2 -left-2 w-4 h-4 border-t-2 border-l-2 border-sage/30 pointer-events-none" />
-              <div className="absolute -bottom-2 -right-2 w-4 h-4 border-b-2 border-r-2 border-sage/30 pointer-events-none" />
+              <div className="absolute -top-2 -left-2 w-4 h-4 border-t-2 border-l-2 border-sage/30 pointer-events-none" aria-hidden="true" />
+              <div className="absolute -bottom-2 -right-2 w-4 h-4 border-b-2 border-r-2 border-sage/30 pointer-events-none" aria-hidden="true" />
 
               <h3 className="font-display text-h3 font-bold text-ink mb-4">
                 {t('donate.transparency.title')}
@@ -413,8 +429,8 @@ export default function Donate() {
                     className="border border-warm-gray/30 p-6 bg-paper hover:border-sage/30 transition-colors cursor-pointer relative"
                   >
                     {/* Corner accents */}
-                    <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-sage/30 pointer-events-none" />
-                    <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-sage/30 pointer-events-none" />
+                    <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-sage/30 pointer-events-none" aria-hidden="true" />
+                    <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-sage/30 pointer-events-none" aria-hidden="true" />
 
                     <span className="font-body text-caption text-sepia-mid tracking-[0.15em]">
                       FINANCIAL REPORT
@@ -523,7 +539,7 @@ export default function Donate() {
         </SectionContainer>
       </section>
 
-      <div className="editorial-divider" />
+      <div className="editorial-divider" aria-hidden="true" />
     </PageWrapper>
   );
 }

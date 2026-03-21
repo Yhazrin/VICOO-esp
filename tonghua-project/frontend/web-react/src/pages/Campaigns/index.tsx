@@ -186,6 +186,7 @@ export default function Campaigns() {
         subtitle={t('campaigns.hero.subtitle')}
         hideHero={true}
       />
+      <h1 className="sr-only">{t('campaigns.hero.title')}</h1>
 
       <SectionContainer noTopSpacing>
         <NumberedSectionHeading
@@ -214,7 +215,23 @@ export default function Campaigns() {
           {statuses.map((status, index) => (
             <motion.button
               key={status}
+              role="tab"
+              id={`tab-campaign-${status}`}
+              aria-selected={filter === status}
+              aria-controls="panel-campaigns"
+              tabIndex={filter === status ? 0 : -1}
               onClick={() => handleFilterChange(status)}
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowRight') {
+                  const next = statuses[(index + 1) % statuses.length];
+                  handleFilterChange(next);
+                  document.getElementById(`tab-campaign-${next}`)?.focus();
+                } else if (e.key === 'ArrowLeft') {
+                  const prev = statuses[(index - 1 + statuses.length) % statuses.length];
+                  handleFilterChange(prev);
+                  document.getElementById(`tab-campaign-${prev}`)?.focus();
+                }
+              }}
               {...(prefersReducedMotion ? {} : {
                 initial: { opacity: 0, y: 10 },
                 animate: { opacity: 1, y: 0 },
@@ -386,7 +403,7 @@ export default function Campaigns() {
                     </Link>
 
                     {index < paginated.length - 1 && (
-                      <div className="editorial-divider mt-16" />
+                      <div className="editorial-divider mt-16" aria-hidden="true" />
                     )}
                   </motion.article>
                 );
@@ -474,7 +491,7 @@ export default function Campaigns() {
         </div>
       </SectionContainer>
 
-      <div className="editorial-divider" />
+      <div className="editorial-divider" aria-hidden="true" />
     </PageWrapper>
   );
 }

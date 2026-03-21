@@ -184,7 +184,7 @@ export default function Login() {
         </div>
       </PaperTextureBackground>
 
-      <div className="editorial-divider" />
+      <div className="editorial-divider" aria-hidden="true" />
     </PageWrapper>
   );
 }

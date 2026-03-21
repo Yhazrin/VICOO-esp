@@ -312,6 +312,7 @@ export default function Stories() {
         subtitle={t('stories.hero.subtitle')}
         hideHero={true}
       />
+      <h1 className="sr-only">{t('stories.hero.title')}</h1>
 
       {/* Kinetic marquee with attributed quotes */}
       <KineticTextMarquee
@@ -324,10 +325,26 @@ export default function Stories() {
       <SectionContainer noTopSpacing>
         {/* Category filter with count badges */}
         <div className="flex items-center gap-1 mb-12 border-b border-warm-gray/30 overflow-x-auto" role="tablist">
-          {categories.map((cat) => (
+          {categories.map((cat, catIndex) => (
             <motion.button
               key={cat}
+              role="tab"
+              id={`tab-story-${cat}`}
+              aria-selected={activeCategory === cat}
+              aria-controls="panel-stories"
+              tabIndex={activeCategory === cat ? 0 : -1}
               onClick={() => setActiveCategory(cat)}
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowRight') {
+                  const next = categories[(catIndex + 1) % categories.length];
+                  setActiveCategory(next);
+                  document.getElementById(`tab-story-${next}`)?.focus();
+                } else if (e.key === 'ArrowLeft') {
+                  const prev = categories[(catIndex - 1 + categories.length) % categories.length];
+                  setActiveCategory(prev);
+                  document.getElementById(`tab-story-${prev}`)?.focus();
+                }
+              }}
               initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
               animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
@@ -460,7 +477,7 @@ export default function Stories() {
                       )}
 
                       {index < filtered.length - 1 && index !== 0 && (
-                        <div className="editorial-divider mt-16 md:mt-24" />
+                        <div className="editorial-divider mt-16 md:mt-24" aria-hidden="true" />
                       )}
                     </motion.article>
                   </PagePeel>
@@ -565,7 +582,7 @@ export default function Stories() {
         </SectionContainer>
       </section>
 
-      <div className="editorial-divider" />
+      <div className="editorial-divider" aria-hidden="true" />
     </PageWrapper>
   );
 }

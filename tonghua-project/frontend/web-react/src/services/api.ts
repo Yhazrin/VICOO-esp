@@ -24,7 +24,10 @@ function addRefreshSubscriber(cb: (token: string) => void) {
  */
 async function generateSignature(method: string, path: string, timestamp: string, nonce: string, body: string): Promise<string> {
   // Use the same secret key as the backend
-  const secretKey = import.meta.env.VITE_API_SECRET_KEY || 'your-secret-key';
+  const secretKey = import.meta.env.VITE_API_SECRET_KEY;
+  if (!secretKey) {
+    throw new Error('VITE_API_SECRET_KEY is required. Set it in .env file.');
+  }
 
   // Build the string to sign: method + "\n" + path + "\n" + timestamp + "\n" + nonce + "\n" + body
   const stringToSign = `${method}\n${path}\n${timestamp}\n${nonce}\n${body}`;

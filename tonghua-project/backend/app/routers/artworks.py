@@ -188,7 +188,6 @@ async def create_artwork(
         image_url = f"/static/artworks/{image_filename}"
 
         # Construct artwork data
-        print(f"DEBUG create_artwork: user={current_user}, campaign_id={campaign_id}")
         artwork_data = {
             "title": title,
             "description": description,
