@@ -23,6 +23,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Legal pages editorial upgrade**: Privacy, Terms, and ChildrenSafety pages upgraded from ⭐⭐ to ⭐⭐⭐⭐ — added `GrainOverlay`, `MagazineDivider` between sections, decorative corner accents, vertical accent line, `whileInView` scroll-reveal animations. Fixed `useMediaQuery` → `useReducedMotion` inconsistency.
+- **Routes**: Registered `/privacy`, `/terms`, `/children-safety` routes in App.tsx.
+- **Footer**: Updated legal links to match registered route paths (`/children-safety` instead of `/children`).
+- **Agent docs**: Created `docs/agent-memory/codebase-index.md` and `improvement-tracker.md` for persistent codebase tracking.
 - **Login page**: Upgraded from ⭐⭐ to ⭐⭐⭐⭐ — added `PaperTextureBackground` wrapping, `MagazineDivider` decorative separator, decorative vertical accent line, animated "Vol. IX" header with decorative divider. Removed redundant GrainOverlay opacity wrapper.
 - **Register page**: Same editorial upgrade as Login — `PaperTextureBackground`, `MagazineDivider`, decorative accents, animated header with divider. Consistent editorial treatment across auth pages.
 - **Tailwind config**: Added 17 missing color tokens from `tokens.css` — ink-light, sepia-dark, sepia-light, rust-light, rust-dark, pale-gold-light, muted-gray, cream, editorial-red, editorial-navy, editorial-olive, editorial-burgundy, success, error, warning, info.
@@ -39,5 +43,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 
-- **Contact page**: Removed unused `FAQItem` and `ChevronIcon` inline components (replaced by `FAQAccordion`).
+- **Contact page**: Removed unused `FAQItem`, `ChevronIcon` inline components, `GRAIN_STYLE` constant, and `openFaqIndex` state (dead code from merge).
 - **Dead code cleanup**: Removed 8 dead barrel files (`HomePage.tsx`, `AboutPage.tsx`, etc.) that only re-exported from subdirectories.

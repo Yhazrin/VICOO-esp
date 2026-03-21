@@ -135,11 +135,15 @@ export default function EditorialFooter() {
               {t('footer.sections.legal')}
             </h4>
             <ul className="space-y-3">
-              {['privacy', 'terms', 'children'].map((key) => (
+              {[
+                { key: 'privacy', path: '/privacy' },
+                { key: 'terms', path: '/terms' },
+                { key: 'children', path: '/children-safety' },
+              ].map(({ key, path }) => (
                 <li key={key}>
                   <motion.div whileHover={prefersReducedMotion ? undefined : { x: 4 }}>
                     <Link
-                      to={`/${key}`}
+                      to={path}
                       className="font-body text-body-sm text-warm-gray hover:text-paper transition-colors duration-200 inline-block cursor-pointer"
                     >
                       {t(`footer.links.${key}`)}

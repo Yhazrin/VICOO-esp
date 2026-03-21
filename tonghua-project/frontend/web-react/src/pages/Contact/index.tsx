@@ -12,8 +12,6 @@ import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
 import { VintageInput } from '@/components/editorial/VintageInput';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 
-const GRAIN_STYLE: React.CSSProperties = { backgroundImage: 'var(--grain-overlay)' };
-
 const MAX_MESSAGE_LENGTH = 1000;
 
 type FormStatus = 'idle' | 'validation' | 'sending' | 'success' | 'error';
@@ -90,25 +88,6 @@ function CheckmarkIcon({ prefersReducedMotion }: { prefersReducedMotion: boolean
   );
 }
 
-function ChevronIcon({ isOpen }: { isOpen: boolean }) {
-  const prefersReducedMotion = useReducedMotion();
-  return (
-    <motion.svg
-      aria-hidden="true"
-      className="w-4 h-4 text-sepia-mid flex-shrink-0"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={1.5}
-      animate={prefersReducedMotion ? {} : { rotate: isOpen ? 180 : 0 }}
-      transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3, ease: [0, 0, 0.2, 1] }}
-      style={prefersReducedMotion ? { transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' } : undefined}
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-    </motion.svg>
-  );
-}
-
 interface ContactCardData {
   icon: React.ReactNode;
   titleKey: string;
@@ -136,59 +115,6 @@ const CONTACT_CARDS: ContactCardData[] = [
     imageSeed: 'contact-clock',
   },
 ];
-
-function FAQItem({
-  question,
-  answer,
-  isOpen,
-  onToggle,
-  index,
-}: {
-  question: string;
-  answer: string;
-  isOpen: boolean;
-  onToggle: () => void;
-  index: number;
-}) {
-  const prefersReducedMotion = useReducedMotion();
-
-  return (
-    <motion.div
-      {...(prefersReducedMotion ? {} : { initial: { opacity: 0, y: 20 }, whileInView: { opacity: 1, y: 0 } })}
-      viewport={{ once: true, margin: '-40px' }}
-      transition={{ duration: 0.5, delay: index * 0.08 }}
-      className="border-b border-warm-gray/30"
-    >
-      <button
-        type="button"
-        onClick={onToggle}
-        className="w-full flex items-start justify-between gap-4 py-5 text-left group cursor-pointer"
-        aria-expanded={isOpen}
-      >
-        <span className="font-display text-body md:text-h3 font-semibold text-ink group-hover:text-rust transition-colors duration-200">
-          {question}
-        </span>
-        <ChevronIcon isOpen={isOpen} />
-      </button>
-
-      <AnimatePresence initial={false}>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.35, ease: [0, 0, 0.2, 1] }}
-            className="overflow-hidden"
-          >
-            <p className="font-body text-body-sm md:text-body text-ink-faded leading-[1.75] pb-6 pr-8">
-              {answer}
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-}
 
 function ContactInfoCard({
   card,
@@ -305,7 +231,6 @@ export default function Contact() {
   });
   const [status, setStatus] = useState<FormStatus>('idle');
   const [errors, setErrors] = useState<FormErrors>({});
-  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const pullQuoteRef = useRef<HTMLDivElement>(null);
 
   // FAQ items from translations
