@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-03-22 — Cycle 21: P0 Security, A11y & Stability Fixes
+
+### Security
+
+- **payment_service.py lazy singleton** — Replaced module-level `payment_service = WeChatPayService()` instantiation with lazy `get_payment_service()` factory. Prevents startup crash (import-time `ValueError`) when WeChat env vars are unconfigured. All callers (`payments.py`, `donations.py`) updated.
+- **api.ts null guard on error.config** — Added early return in Axios response interceptor when `error.config` is undefined, preventing TypeError on network-level failures (DNS, CORS, timeout).
+- **authStore init sets isAuthenticated** — `initializeAuth()` now calls `set({ accessToken, isAuthenticated: true })` instead of only setting the token. Fixes a race condition where the app renders the login page briefly before rehydrating auth state from localStorage.
+- **main.py rate limiting — fail-closed logging** — Rate limiting middleware now logs unexpected errors (`logger.error` with `exc_info=True`) instead of silently passing. HTTPException re-raised; only truly unexpected errors fail-open.
+- **deps.py rate limiting — fail-closed logging** — Added `logger.error` to catch-all except block in `rate_limit_check()`, matching the fail-open-for-availability pattern with observability.
+
+### Accessibility
+
+- **Layout.tsx skip-to-content link** — Added WCAG 2.4.1 bypass block: sr-only `<a href="#main-content">Skip to content</a>` that becomes visible on focus. Added `id="main-content"` to `<main>` element.
+- **Header.tsx nav aria-label** — Added `aria-label="Main navigation"` to desktop `<nav>` element for screen reader landmark identification.
+- **global.css reduced-motion guard** — Added `@media (prefers-reduced-motion: reduce)` block disabling all animations, transitions, and smooth scroll globally. Complements per-component reduced-motion guards with a CSS-level safety net.
+
+### Frontend
+
+- **PagePeel.tsx Rules of Hooks fix** — Replaced `useTransform()` calls inside a `switch` statement (inside `getTransforms()` function) with 16 unconditional top-level `useTransform()` calls + a pure selector IIFE. Fixes React "Rules of Hooks" violation that could cause crashes with strict mode.
+
 ## 2026-03-22 — Cycle 8b: Backend Security Hardening
 
 ### Security

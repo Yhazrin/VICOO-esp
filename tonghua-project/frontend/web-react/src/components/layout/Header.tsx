@@ -80,7 +80,7 @@ export default function Header() {
 
         {/* Desktop Navigation */}
         {!isMobile && (
-          <nav className="flex items-center gap-1">
+          <nav className="flex items-center gap-1" aria-label="Main navigation">
             {NAV_ITEMS.map((item, index) => {
               const isActive = location.pathname === item.path;
               return (

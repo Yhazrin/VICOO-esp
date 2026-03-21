@@ -9,7 +9,7 @@ from app.models.donation import Donation
 from app.models.campaign import Campaign
 from app.schemas import ApiResponse, DonationCreate, DonationOut, PaginatedResponse, WeChatPaymentParams
 from app.deps import get_current_user, get_optional_current_user
-from app.services.payment_service import payment_service
+from app.services.payment_service import get_payment_service
 
 router = APIRouter(prefix="/donations", tags=["Donations"])
 
@@ -222,7 +222,7 @@ async def create_donation(body: DonationCreate, db: AsyncSession = Depends(get_d
 
         # Add WeChat payment parameters if payment method is WeChat Pay
         if body.payment_method == "wechat":
-            payment_params = payment_service.create_unified_order(
+            payment_params = get_payment_service().create_unified_order(
                 order_no=f"DON{donation.id}",
                 amount=body.amount,
                 description=f"公益捐赠 - {body.donor_name}" if not body.is_anonymous else "公益捐赠",
@@ -261,7 +261,7 @@ async def create_donation(body: DonationCreate, db: AsyncSession = Depends(get_d
 
         # Add WeChat payment parameters if payment method is WeChat Pay
         if body.payment_method == "wechat":
-            payment_params = payment_service.create_unified_order(
+            payment_params = get_payment_service().create_unified_order(
                 order_no=f"DON{new_id}",
                 amount=body.amount,
                 description=f"公益捐赠 - {body.donor_name}" if not body.is_anonymous else "公益捐赠",

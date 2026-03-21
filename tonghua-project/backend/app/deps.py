@@ -174,8 +174,9 @@ async def rate_limit_check(request: Request, current_user: Optional[dict] = None
         return True
     except HTTPException:
         raise
-    except Exception:
-        # If rate limiting fails for any reason, allow the request
+    except Exception as e:
+        # Log unexpected errors but still allow request (fail-open for availability)
+        logger.error(f"Rate limiting dependency error: {e}", exc_info=True)
         return True
 
 

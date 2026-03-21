@@ -61,57 +61,40 @@ export default function PagePeel({
     offset: ['start end', 'end start'],
   });
 
-  // Map scroll progress to rotation and transform based on corner
-  const getTransforms = () => {
+  // Pre-compute transforms for ALL corners unconditionally (Rules of Hooks)
+  const brRotateX = useTransform(scrollYProgress, [0, 0.5], [maxRotation, 0]);
+  const brRotateY = useTransform(scrollYProgress, [0, 0.5], [-maxRotation, 0]);
+  const brTranslateX = useTransform(scrollYProgress, [0, 0.5], [20, 0]);
+  const brTranslateY = useTransform(scrollYProgress, [0, 0.5], [10, 0]);
+
+  const blRotateX = useTransform(scrollYProgress, [0, 0.5], [maxRotation, 0]);
+  const blRotateY = useTransform(scrollYProgress, [0, 0.5], [maxRotation, 0]);
+  const blTranslateX = useTransform(scrollYProgress, [0, 0.5], [-20, 0]);
+  const blTranslateY = useTransform(scrollYProgress, [0, 0.5], [10, 0]);
+
+  const trRotateX = useTransform(scrollYProgress, [0, 0.5], [-maxRotation, 0]);
+  const trRotateY = useTransform(scrollYProgress, [0, 0.5], [-maxRotation, 0]);
+  const trTranslateX = useTransform(scrollYProgress, [0, 0.5], [20, 0]);
+  const trTranslateY = useTransform(scrollYProgress, [0, 0.5], [-10, 0]);
+
+  const tlRotateX = useTransform(scrollYProgress, [0, 0.5], [-maxRotation, 0]);
+  const tlRotateY = useTransform(scrollYProgress, [0, 0.5], [maxRotation, 0]);
+  const tlTranslateX = useTransform(scrollYProgress, [0, 0.5], [-20, 0]);
+  const tlTranslateY = useTransform(scrollYProgress, [0, 0.5], [-10, 0]);
+
+  // Select the right transforms based on corner prop
+  const transforms = (() => {
     switch (corner) {
       case 'bottom-right':
-        return {
-          rotateX: useTransform(scrollYProgress, [0, 0.5], [maxRotation, 0]),
-          rotateY: useTransform(scrollYProgress, [0, 0.5], [-maxRotation, 0]),
-          translateX: useTransform(scrollYProgress, [0, 0.5], [20, 0]),
-          translateY: useTransform(scrollYProgress, [0, 0.5], [10, 0]),
-          transformOrigin: 'right bottom',
-          shadowX: 15,
-          shadowY: 15,
-          shadowBlur: 25,
-        };
+        return { rotateX: brRotateX, rotateY: brRotateY, translateX: brTranslateX, translateY: brTranslateY, transformOrigin: 'right bottom' as const, shadowX: 15, shadowY: 15, shadowBlur: 25 };
       case 'bottom-left':
-        return {
-          rotateX: useTransform(scrollYProgress, [0, 0.5], [maxRotation, 0]),
-          rotateY: useTransform(scrollYProgress, [0, 0.5], [maxRotation, 0]),
-          translateX: useTransform(scrollYProgress, [0, 0.5], [-20, 0]),
-          translateY: useTransform(scrollYProgress, [0, 0.5], [10, 0]),
-          transformOrigin: 'left bottom',
-          shadowX: -15,
-          shadowY: 15,
-          shadowBlur: 25,
-        };
+        return { rotateX: blRotateX, rotateY: blRotateY, translateX: blTranslateX, translateY: blTranslateY, transformOrigin: 'left bottom' as const, shadowX: -15, shadowY: 15, shadowBlur: 25 };
       case 'top-right':
-        return {
-          rotateX: useTransform(scrollYProgress, [0, 0.5], [-maxRotation, 0]),
-          rotateY: useTransform(scrollYProgress, [0, 0.5], [-maxRotation, 0]),
-          translateX: useTransform(scrollYProgress, [0, 0.5], [20, 0]),
-          translateY: useTransform(scrollYProgress, [0, 0.5], [-10, 0]),
-          transformOrigin: 'right top',
-          shadowX: 15,
-          shadowY: -15,
-          shadowBlur: 25,
-        };
+        return { rotateX: trRotateX, rotateY: trRotateY, translateX: trTranslateX, translateY: trTranslateY, transformOrigin: 'right top' as const, shadowX: 15, shadowY: -15, shadowBlur: 25 };
       case 'top-left':
-        return {
-          rotateX: useTransform(scrollYProgress, [0, 0.5], [-maxRotation, 0]),
-          rotateY: useTransform(scrollYProgress, [0, 0.5], [maxRotation, 0]),
-          translateX: useTransform(scrollYProgress, [0, 0.5], [-20, 0]),
-          translateY: useTransform(scrollYProgress, [0, 0.5], [-10, 0]),
-          transformOrigin: 'left top',
-          shadowX: -15,
-          shadowY: -15,
-          shadowBlur: 25,
-        };
+        return { rotateX: tlRotateX, rotateY: tlRotateY, translateX: tlTranslateX, translateY: tlTranslateY, transformOrigin: 'left top' as const, shadowX: -15, shadowY: -15, shadowBlur: 25 };
     }
-  };
-
-  const transforms = getTransforms();
+  })();
 
   // Shadow opacity follows inverse of rotation
   const shadowOpacity = useTransform(

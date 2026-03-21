@@ -1,6 +1,6 @@
 # Improvement Tracker
 
-> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 7)
+> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 21)
 > Scope broadened: now covers frontend UI/UX + backend architecture + software architecture + sustainability + code quality
 
 ## Completed
@@ -165,6 +165,20 @@
 | 126 | Backend — list_donations exposes PII to unauthenticated users | High | ✅ done — optional auth via get_optional_current_user, redact donor_name/message/donor_user_id |
 | 127 | Backend — deps.py missing optional auth dependency | Medium | ✅ done — get_optional_current_user() returns user dict or None, no exception on auth failure |
 | 128 | Backend — donations.py missing name redaction helper | Medium | ✅ done — _redact_name() masks names to first char + asterisks, handles anonymous flag |
+
+## Completed — Cycle 21 (2026-03-22)
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 129 | payment_service.py module-level singleton crashes on import when WeChat env vars missing | P0 | ✅ done — lazy singleton via get_payment_service() factory; all callers updated |
+| 130 | api.ts response interceptor null reference on error.config | P0 | ✅ done — early return guard when error.config is undefined |
+| 131 | authStore initializeAuth sets accessToken but not isAuthenticated | P0 | ✅ done — set({ accessToken, isAuthenticated: true }) |
+| 132 | main.py rate limiting middleware — silent exception swallowing | P0 | ✅ done — logger.error with exc_info=True on unexpected errors |
+| 133 | deps.py rate_limit_check — silent exception swallowing | P0 | ✅ done — logger.error with exc_info=True on unexpected errors |
+| 134 | PagePeel — useTransform calls inside switch statement (Rules of Hooks) | P0 | ✅ done — 16 unconditional top-level useTransform calls + pure IIFE selector |
+| 135 | Layout — missing skip-to-content link (WCAG 2.4.1) | P0 | ✅ done — sr-only link + main#main-content id |
+| 136 | Header — desktop nav missing aria-label landmark | P1 | ✅ done — aria-label="Main navigation" |
+| 137 | global.css — no reduced-motion CSS-level fallback | P0 | ✅ done — @media (prefers-reduced-motion: reduce) block |
 
 ## Pending
 

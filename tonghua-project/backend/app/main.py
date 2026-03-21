@@ -180,9 +180,9 @@ async def rate_limit_middleware(request: Request, call_next):
         except HTTPException:
             # Re-raise rate limit errors (429) or auth errors (401)
             raise
-        except Exception:
-            # Fail open if DB connection or other system errors occur
-            pass
+        except Exception as e:
+            # Log unexpected errors but still allow request (fail-open for availability)
+            logger.error(f"Rate limiting middleware error: {e}", exc_info=True)
     response = await call_next(request)
     return response
 

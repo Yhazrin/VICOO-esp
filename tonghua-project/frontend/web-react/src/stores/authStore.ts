@@ -79,7 +79,7 @@ export const useAuthStore = create<AuthState>()((set, _get) => ({
     // Initialize auth state from localStorage on app load
     const storedToken = localStorage.getItem(ACCESS_TOKEN_KEY);
     if (storedToken) {
-      set({ accessToken: storedToken });
+      set({ accessToken: storedToken, isAuthenticated: true });
     }
   },
 }));
