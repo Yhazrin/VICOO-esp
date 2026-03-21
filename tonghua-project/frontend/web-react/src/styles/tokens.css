@@ -15,6 +15,7 @@
   --color-sepia-dark: #3D3228;
   --color-sepia-mid: #5C4D3D;
   --color-sepia-light: #8B7B66;
+  --color-sepia-on-dark: #B5A595; /* WCAG AA on ink (#1A1A16) */
   --color-rust: #8B3A2A;
   --color-rust-light: #A85A4A;
   --color-rust-dark: #6B2A1A;

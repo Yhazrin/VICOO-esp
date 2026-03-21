@@ -16,6 +16,7 @@ export default {
         'rust': '#8B3A2A',
         'archive-brown': '#5C4033',
         'pale-gold': '#C4A45A',
+        'sepia-on-dark': '#B5A595',
       },
       fontFamily: {
         'display': ['"Playfair Display"', 'Georgia', 'serif'],

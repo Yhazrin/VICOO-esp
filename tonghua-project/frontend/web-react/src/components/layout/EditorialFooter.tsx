@@ -54,7 +54,7 @@ export default function EditorialFooter() {
         className="absolute top-6 right-0 pointer-events-none"
       />
 
-      <div className="max-w-[14000px] mx-auto px-6 md:px-10 py-16 md:py-24 relative z-10">
+      <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-16 md:py-24 relative z-10">
         {/* Top section — Magazine colophon style */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8 mb-16">
           {/* Brand column */}
@@ -82,14 +82,14 @@ export default function EditorialFooter() {
               {t('footer.brand.description')}
             </p>
             <div className="w-12 h-px bg-pale-gold mb-6" aria-hidden="true" />
-            <p className="font-body text-overline tracking-[0.2em] uppercase text-sepia-mid">
+            <p className="font-body text-overline tracking-[0.2em] uppercase text-sepia-on-dark">
               {t('footer.issueNo')}
             </p>
           </div>
 
           {/* Publication */}
           <div className="md:col-span-2">
-            <h4 className="font-body text-overline tracking-[0.2em] uppercase text-sepia-mid mb-6">
+            <h4 className="font-body text-overline tracking-[0.2em] uppercase text-sepia-on-dark mb-6">
               {t('footer.sections.publication')}
             </h4>
             <ul className="space-y-3">
@@ -110,7 +110,7 @@ export default function EditorialFooter() {
 
           {/* Connect */}
           <div className="md:col-span-2">
-            <h4 className="font-body text-overline tracking-[0.2em] uppercase text-sepia-mid mb-6">
+            <h4 className="font-body text-overline tracking-[0.2em] uppercase text-sepia-on-dark mb-6">
               {t('footer.sections.connect')}
             </h4>
             <ul className="space-y-3">
@@ -131,7 +131,7 @@ export default function EditorialFooter() {
 
           {/* Legal */}
           <div className="md:col-span-2">
-            <h4 className="font-body text-overline tracking-[0.2em] uppercase text-sepia-mid mb-6">
+            <h4 className="font-body text-overline tracking-[0.2em] uppercase text-sepia-on-dark mb-6">
               {t('footer.sections.legal')}
             </h4>
             <ul className="space-y-3">
@@ -168,7 +168,7 @@ export default function EditorialFooter() {
               className="absolute -bottom-1 -right-1 pointer-events-none"
             />
 
-            <h4 className="font-body text-overline tracking-[0.2em] uppercase text-sepia-mid mb-6">
+            <h4 className="font-body text-overline tracking-[0.2em] uppercase text-sepia-on-dark mb-6">
               {t('footer.newsletter.title')}
             </h4>
             <p className="font-body text-caption text-warm-gray mb-4 leading-relaxed">
@@ -184,7 +184,7 @@ export default function EditorialFooter() {
               <motion.input
                 type="email"
                 placeholder="your@email.com"
-                className="bg-transparent border-b border-sepia-mid/30 text-paper font-body text-caption py-2 outline-none focus-visible:ring-2 focus-visible:ring-pale-gold/50 focus:border-pale-gold transition-colors placeholder:text-sepia-mid/40"
+                className="bg-transparent border-b border-sepia-mid/30 text-paper font-body text-caption py-2 outline-none focus-visible:ring-2 focus-visible:ring-pale-gold/50 focus:border-pale-gold transition-colors placeholder:text-sepia-on-dark/40"
                 aria-label={t('common.emailAriaLabel')}
                 whileFocus={prefersReducedMotion ? undefined : { scale: 1.01 }}
               />
@@ -201,14 +201,14 @@ export default function EditorialFooter() {
 
         {/* Divider */}
         <div className="border-t border-sepia-mid/20 pt-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <p className="font-body text-label text-sepia-mid">
+          <p className="font-body text-label text-sepia-on-dark">
             &copy; {year} VICOO. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
-            <span className="font-body text-label text-sepia-mid">
+            <span className="font-body text-label text-sepia-on-dark">
               {t('common.location.shanghai')}
             </span>
-            <span className="font-body text-label text-sepia-mid">
+            <span className="font-body text-label text-sepia-on-dark">
               {t('footer.builtWith')}
             </span>
           </div>
