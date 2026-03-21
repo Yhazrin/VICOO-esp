@@ -166,4 +166,15 @@ export interface PaginatedResponse<T> {
   totalPages: number;
 }
 
+export interface Payment {
+  id: number;
+  orderId?: number;
+  donationId?: number;
+  amount: number;
+  method: 'wechat' | 'alipay' | 'stripe' | 'paypal';
+  providerTransactionId?: string;
+  status: 'pending' | 'success' | 'failed' | 'refunded';
+  createdAt: string;
+}
+
 export type Locale = 'en' | 'zh';

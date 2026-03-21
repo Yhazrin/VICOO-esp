@@ -96,4 +96,7 @@ export const authApi = {
     const response = await api.put<{ success: boolean; data: User }>('/users/me', data);
     return response.data.data;
   },
+
+  // REMOVED: Legacy method that injected token in request body
+  // The correct approach uses httpOnly cookies managed by api.ts interceptor
 };

@@ -139,12 +139,19 @@ export default function Profile() {
             <div className="space-y-6">
               {/* User Info */}
               <div className="flex items-center gap-6 pb-6 border-b border-warm-gray/20">
-                <div className="w-16 h-16 bg-warm-gray/20 flex items-center justify-center border-2 border-rust/20 relative">
+                <motion.div
+                  whileHover={prefersReducedMotion ? undefined : { scale: 1.03 }}
+                  className="w-20 h-20 bg-warm-gray/20 flex items-center justify-center border-2 border-rust/20 relative cursor-default"
+                >
                   <SectionGrainOverlay />
-                  <span className="font-display text-xl text-ink relative z-10">
+                  <div className="absolute top-1.5 left-1.5 w-3 h-3 border-t border-l border-rust/30 pointer-events-none" aria-hidden="true" />
+                  <div className="absolute top-1.5 right-1.5 w-3 h-3 border-t border-r border-rust/30 pointer-events-none" aria-hidden="true" />
+                  <div className="absolute bottom-1.5 left-1.5 w-3 h-3 border-b border-l border-rust/30 pointer-events-none" aria-hidden="true" />
+                  <div className="absolute bottom-1.5 right-1.5 w-3 h-3 border-b border-r border-rust/30 pointer-events-none" aria-hidden="true" />
+                  <span className="font-display text-2xl text-ink relative z-10">
                     {user.nickname ? user.nickname.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
                   </span>
-                </div>
+                </motion.div>
                 <div>
                   <h2 className="font-display text-xl text-ink">{user.nickname || user.email}</h2>
                   <p className="font-body text-body-sm text-ink-faded">{user.email}</p>

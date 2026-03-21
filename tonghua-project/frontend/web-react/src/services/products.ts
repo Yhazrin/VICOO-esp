@@ -39,4 +39,9 @@ export const productsApi = {
       totalPages: Math.ceil((d.total ?? 0) / (d.page_size ?? 20)),
     };
   },
+
+  getCategories: async (): Promise<string[]> => {
+    const response = await api.get<{ success: boolean; data: string[] }>('/products/categories');
+    return response.data.data;
+  },
 };
