@@ -12,6 +12,7 @@ import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import MagneticButton from '@/components/animations/MagneticButton';
 import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
+import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 
 /* ─── Gallery Item (extracted to fix useState-in-map bug) ─── */
 
@@ -38,15 +39,7 @@ function GalleryItem({ src, alt, index }: GalleryItemProps) {
       whileHover={prefersReducedMotion ? undefined : { y: -4 }}
       className="relative aspect-square overflow-hidden border-2 border-warm-gray/50 bg-aged-stock group"
     >
-      {/* Grain overlay */}
-      <div
-        className="absolute inset-0 z-10 pointer-events-none opacity-[0.06]"
-        style={{
-          backgroundImage:
-            'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")',
-        }}
-        aria-hidden="true"
-      />
+      <SectionGrainOverlay className="z-10" />
 
       {/* Sepia frame effect */}
       <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/8 via-transparent to-archive-brown/8" aria-hidden="true" />
@@ -112,15 +105,7 @@ function LatestArtworkCard({
           wide ? 'aspect-[16/10]' : 'aspect-[3/4]'
         }`}
       >
-        {/* Grain overlay */}
-        <div
-          className="absolute inset-0 z-10 pointer-events-none opacity-[0.06]"
-          style={{
-            backgroundImage:
-              'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")',
-          }}
-          aria-hidden="true"
-        />
+        <SectionGrainOverlay className="z-10" />
         <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/5 via-transparent to-archive-brown/5" aria-hidden="true" />
 
         {!imageLoaded && (

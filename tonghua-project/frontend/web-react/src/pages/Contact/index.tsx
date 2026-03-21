@@ -12,6 +12,8 @@ import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
 import { VintageInput } from '@/components/editorial/VintageInput';
 import { VintageSelect } from '@/components/editorial/VintageSelect';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
+import { contactApi } from '@/services/contact';
+import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 
 const MAX_MESSAGE_LENGTH = 1000;
 
@@ -144,14 +146,7 @@ function ContactInfoCard({
       className="group"
     >
       <div className="relative border-2 border-warm-gray/50 bg-paper overflow-hidden">
-        {/* Grain overlay */}
-        <div
-          className="absolute inset-0 z-0 pointer-events-none opacity-[0.06]"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-          }}
-          aria-hidden="true"
-        />
+        <SectionGrainOverlay />
 
         {/* Corner accents — diagonal pattern */}
         <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-rust/30 pointer-events-none" aria-hidden="true" />
@@ -284,11 +279,18 @@ export default function Contact() {
     setErrors({});
     setStatus('sending');
 
-    // API call would go here
-    setTimeout(() => {
+    try {
+      await contactApi.submit({
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        subject: formData.subject,
+        message: formData.message.trim(),
+      });
       setStatus('success');
       setFormData({ name: '', email: '', subject: '', message: '' });
-    }, 2000);
+    } catch {
+      setStatus('error');
+    }
   };
 
   const handleChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -367,14 +369,7 @@ export default function Contact() {
                   {...(prefersReducedMotion ? {} : { initial: { opacity: 0, scale: 0.95 }, animate: { opacity: 1, scale: 1 }, exit: { opacity: 0, scale: 0.95 }, transition: { duration: 0.5, ease: [0, 0, 0.2, 1] } })}
                   className="border-2 border-rust/30 bg-paper p-10 md:p-14 text-center relative"
                 >
-                  {/* Grain overlay */}
-                  <div
-                    className="absolute inset-0 z-0 pointer-events-none opacity-[0.06]"
-                    style={{
-                      backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-                    }}
-                    aria-hidden="true"
-                  />
+                  <SectionGrainOverlay />
 
                   {/* Corner accents — diagonal pattern */}
                   <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-rust/30 pointer-events-none" aria-hidden="true" />

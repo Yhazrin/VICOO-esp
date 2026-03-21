@@ -7,6 +7,7 @@ import SectionContainer from '@/components/layout/SectionContainer';
 import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeading';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
 import GrainOverlay from '@/components/editorial/GrainOverlay';
+import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 import { MagazineDivider } from '@/components/editorial/MagazineDivider';
 import { EditorialCard } from '@/components/editorial/EditorialCard';
 import { useAuthStore } from '@/stores/authStore';
@@ -139,10 +140,7 @@ export default function Profile() {
               {/* User Info */}
               <div className="flex items-center gap-6 pb-6 border-b border-warm-gray/20">
                 <div className="w-16 h-16 bg-warm-gray/20 flex items-center justify-center border-2 border-rust/20 relative">
-                  <div className="absolute inset-0 pointer-events-none opacity-[0.06]"
-                    style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
-                    aria-hidden="true"
-                  />
+                  <SectionGrainOverlay />
                   <span className="font-display text-xl text-ink relative z-10">
                     {user.nickname ? user.nickname.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
                   </span>

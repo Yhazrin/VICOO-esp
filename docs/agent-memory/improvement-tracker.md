@@ -55,6 +55,18 @@
 | 52 | Stories empty-state "Browse All" button — add missing `cursor-pointer` | Low | ✅ done |
 | 53 | SepiaImageFrame — replace `as any` with `Exclude<typeof accentPosition, 'diagonal'>` type narrowing | Medium | ✅ done |
 
+## In Progress — Cycle 5
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 54 | SectionGrainOverlay — consolidate ALL 18 inline grain SVGs across 15 files | Medium | ✅ done — layouts (Header, MagazineNav, EditorialFooter), editorial components (EditorialCard x2, ImageSkeleton, TraceabilityTimeline, ProductCard, ArtworkCard, DonationPanel), pages (About, Home x2, Contact x2, Traceability x3, Profile) |
+| 55 | Backend — artworks PUT/DELETE missing admin role check | High | ✅ done — added `require_role("admin")` to both endpoints |
+| 56 | Backend — donation certificate endpoint missing auth + ownership check | High | ✅ done — added `get_current_user` dependency + donor/admin authorization |
+| 57 | Backend — order status update mock fallback missing ownership check | High | ✅ done — added user_id vs current_user ownership check in mock fallback |
+| 58 | Frontend — donations.ts request schema misaligned with backend | Medium | ✅ done — fixed field names (tierId→amount, campaignId→campaign_id, anonymous→is_anonymous) |
+| 59 | Frontend — orders.ts request schema misaligned with backend | Medium | ✅ done — fixed field names (productId→product_id, shippingAddress→shipping_address+payment_method) |
+| 60 | Frontend — contact.ts API service file creation | Low | ✅ done — created `/services/contact.ts` with ContactFormRequest interface |
+
 ## Pending
 
 | # | Issue | Priority | Notes |

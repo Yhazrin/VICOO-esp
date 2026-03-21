@@ -7,6 +7,7 @@ import TiltCard from '@/components/animations/TiltCard';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import { VintageInput } from '@/components/editorial/VintageInput';
 import type { Product } from '@/types';
+import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 
 interface ProductCardProps {
   product: Product;
@@ -68,10 +69,7 @@ export default function ProductCard({
           {/* Vintage frame effect */}
           <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/3 via-transparent to-archive-brown/5" aria-hidden="true" />
 
-          {/* Grain overlay */}
-          <div className="absolute inset-0 z-20 pointer-events-none opacity-[0.06]"
-               style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")' }}
-               aria-hidden="true" />
+          <SectionGrainOverlay className="z-20" />
 
           {/* Loading skeleton */}
           {!imageLoaded && <ImageSkeleton className="absolute inset-0" aspectRatio="aspect-[3/4]" />}

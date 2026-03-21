@@ -246,14 +246,16 @@ async def create_donation(body: DonationCreate, db: AsyncSession = Depends(get_d
 
 
 @router.get("/{donation_id}/certificate", response_model=ApiResponse)
-async def get_donation_certificate(donation_id: int, db: AsyncSession = Depends(get_db)):
-    """Get donation certificate data for a completed donation."""
+async def get_donation_certificate(donation_id: int, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    """Get donation certificate data for a completed donation (donor or admin only)."""
     try:
         stmt = select(Donation).where(Donation.id == donation_id)
         result = await db.execute(stmt)
         donation = result.scalar_one_or_none()
         if not donation:
             raise HTTPException(status_code=404, detail="Donation not found")
+        if current_user.get("role") != "admin" and donation.donor_user_id and donation.donor_user_id != current_user["id"]:
+            raise HTTPException(status_code=403, detail="Forbidden")
         if donation.status != "completed":
             raise HTTPException(status_code=400, detail="Certificate available only for completed donations")
         return ApiResponse(data={
@@ -271,6 +273,8 @@ async def get_donation_certificate(donation_id: int, db: AsyncSession = Depends(
     except Exception:
         for d in _mock_donations:
             if d["id"] == donation_id:
+                if current_user.get("role") != "admin" and d.get("donor_user_id") and d["donor_user_id"] != current_user["id"]:
+                    raise HTTPException(status_code=403, detail="Forbidden")
                 if d["status"] != "completed":
                     raise HTTPException(status_code=400, detail="Certificate available only for completed donations")
                 return ApiResponse(data={

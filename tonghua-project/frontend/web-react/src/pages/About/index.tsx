@@ -9,6 +9,7 @@ import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
+import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 
 const VALUES = ['transparency', 'childFirst', 'sustainability', 'community'] as const;
 
@@ -43,10 +44,7 @@ function TeamMemberCard({ name, roleKey, initials, imageIndex }: TeamMemberCardP
       className="group"
     >
       <div className="relative aspect-[3/4] overflow-hidden border-2 border-warm-gray/50 bg-aged-stock mb-4">
-        {/* Grain overlay */}
-        <div className="absolute inset-0 z-10 pointer-events-none opacity-[0.06]" style={{
-          backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")'
-        }} aria-hidden="true" />
+        <SectionGrainOverlay className="z-10" />
 
         {/* Sepia frame effect */}
         <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/5 via-transparent to-archive-brown/5" aria-hidden="true" />

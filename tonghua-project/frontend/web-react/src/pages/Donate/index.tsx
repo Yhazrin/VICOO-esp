@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
+import { useAuthStore } from '@/stores/authStore';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import EditorialHero from '@/components/editorial/EditorialHero';
@@ -214,15 +215,18 @@ export default function Donate() {
     frequency: 'once' | 'monthly';
     anonymous: boolean;
     message: string;
+    paymentMethod?: 'wechat' | 'alipay' | 'stripe' | 'paypal';
   }) => {
     setIsSubmitting(true);
     try {
+      const { user } = useAuthStore.getState();
       await donationsApi.create({
+        donor_name: data.anonymous ? 'Anonymous' : (user?.nickname || user?.email || 'Guest'),
         amount: data.amount,
         currency: 'CNY',
-        anonymous: data.anonymous,
-        message: data.message,
-        frequency: data.frequency,
+        payment_method: data.paymentMethod || 'wechat',
+        is_anonymous: data.anonymous,
+        message: data.message || undefined,
       });
       console.log('Donation successful');
     } catch (error) {

@@ -10,6 +10,7 @@ import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
 import type { SupplyChainRecord } from '@/types';
+import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 
 // Extended record with story, image, and status for enhanced timeline
 interface EnhancedSupplyChainRecord extends SupplyChainRecord {
@@ -230,10 +231,7 @@ function CertificationBadge({ title, description, delay }: {
       whileHover={prefersReducedMotion ? undefined : { y: -4, borderColor: 'color-mix(in srgb, var(--color-rust) 50%, transparent)' }}
       className="border-2 border-rust/30 bg-paper p-5 text-center transition-all duration-300 hover:shadow-[0_4px_20px_color-mix(in_srgb,var(--color-rust)_8%,transparent)] relative overflow-hidden group"
     >
-      {/* Grain overlay */}
-      <div className="absolute inset-0 z-10 pointer-events-none opacity-[0.06]" style={{
-        backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")'
-      }} aria-hidden="true" />
+      <SectionGrainOverlay className="z-10" />
 
       {/* Corner accents */}
       <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-rust/30 group-hover:border-rust/30 transition-colors" />
@@ -298,10 +296,7 @@ function EnhancedTimelineEntry({ record, index, t }: {
         transition={{ duration: 0.3 }}
         className="relative p-6 border-2 border-rust/30 bg-paper transition-all duration-300 hover:border-rust/50 overflow-hidden"
       >
-        {/* Grain overlay */}
-        <div className="absolute inset-0 z-10 pointer-events-none opacity-[0.06]" style={{
-          backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")'
-        }} aria-hidden="true" />
+        <SectionGrainOverlay className="z-10" />
 
         {/* Sepia corner accents */}
         <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-rust/30" />
@@ -717,10 +712,7 @@ export default function Traceability() {
                 })}
                 className="border-2 border-sage/30 p-8 text-center bg-paper relative overflow-hidden"
               >
-                {/* Grain */}
-                <div className="absolute inset-0 z-10 pointer-events-none opacity-[0.06]" style={{
-                  backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")'
-                }} aria-hidden="true" />
+                <SectionGrainOverlay className="z-10" />
 
                 {/* Corner accents */}
                 <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-sage/20" />

@@ -355,6 +355,8 @@ async def update_order_status(
     except Exception:
         for o in _mock_orders:
             if o["id"] == order_id:
+                if current_user.get("role") != "admin" and o.get("user_id") != current_user["id"]:
+                    raise HTTPException(status_code=403, detail="Forbidden")
                 o["status"] = body.status
                 return ApiResponse(data=o)
         raise HTTPException(status_code=404, detail="Order not found")

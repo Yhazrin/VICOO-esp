@@ -5,6 +5,7 @@ import { useUIStore } from '@/stores/uiStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { useRef, useEffect, useState } from 'react';
+import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 
 const NAV_ITEMS = [
   { key: 'home', path: '/' },
@@ -61,10 +62,7 @@ export default function MagazineNav() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-paper/95 backdrop-blur-sm border-b border-warm-gray/30">
-      {/* Grain overlay */}
-      <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.06]" style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
-      }} aria-hidden="true" />
+      <SectionGrainOverlay />
 
       <div className="relative max-w-[1400px] mx-auto px-6 md:px-10 flex items-center justify-between h-16 md:h-20">
         {/* Logo */}
