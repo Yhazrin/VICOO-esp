@@ -1,6 +1,6 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
-import FlipPageTransition from '@/components/transitions/FlipPageTransition';
+import HorizontalScrollTransition from '@/components/transitions/HorizontalScrollTransition';
 import ErrorBoundary from '@/components/editorial/ErrorBoundary';
 import Home from '@/pages/Home';
 import About from '@/pages/About';
@@ -28,7 +28,7 @@ function AnimatedRoutes() {
 
   return (
     <ErrorBoundary>
-      <FlipPageTransition>
+      <HorizontalScrollTransition>
         <Routes location={location} key={location.pathname}>
           <Route element={<Layout />}>
             <Route index element={<ErrorBoundary><Home /></ErrorBoundary>} />
