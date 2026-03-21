@@ -1,5 +1,5 @@
 import { forwardRef, useId } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 
 interface VintageInputProps extends React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement> {
   label?: string;
@@ -12,6 +12,7 @@ interface VintageInputProps extends React.InputHTMLAttributes<HTMLInputElement |
 export const VintageInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, VintageInputProps>(
   ({ label, type = 'text', helperText, error, icon, className = '', ...props }, ref) => {
     const id = useId();
+    const prefersReducedMotion = useReducedMotion();
     const inputId = `${id}-input`;
     const helperId = `${id}-helper`;
     const errorId = `${id}-error`;
@@ -118,8 +119,9 @@ export const VintageInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, V
           <motion.p
             role="alert"
             id={errorId}
-            initial={{ opacity: 0, y: -5 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={prefersReducedMotion ? false : { opacity: 0, y: -5 }}
+            animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
+            transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3 }}
             className="font-body text-overline text-archive-brown"
           >
             {error}

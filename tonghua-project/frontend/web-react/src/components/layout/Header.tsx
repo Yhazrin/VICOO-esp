@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useUIStore } from '@/stores/uiStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useIsMobile } from '@/hooks/useMediaQuery';
@@ -26,6 +26,7 @@ export default function Header() {
     useUIStore();
   const { user, isAuthenticated, logout } = useAuthStore();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const prefersReducedMotion = useReducedMotion();
 
   const menuTriggerRef = useRef<HTMLButtonElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -175,15 +176,15 @@ export default function Header() {
               aria-controls="mobile-navigation"
             >
               <motion.span
-                animate={mobileNavOpen ? { rotate: 45, y: 6 } : { rotate: 0, y: 0 }}
+                animate={prefersReducedMotion ? {} : (mobileNavOpen ? { rotate: 45, y: 6 } : { rotate: 0, y: 0 })}
                 className="block w-6 h-px bg-ink"
               />
               <motion.span
-                animate={mobileNavOpen ? { opacity: 0 } : { opacity: 1 }}
+                animate={prefersReducedMotion ? {} : (mobileNavOpen ? { opacity: 0 } : { opacity: 1 })}
                 className="block w-6 h-px bg-ink"
               />
               <motion.span
-                animate={mobileNavOpen ? { rotate: -45, y: -6 } : { rotate: 0, y: 0 }}
+                animate={prefersReducedMotion ? {} : (mobileNavOpen ? { rotate: -45, y: -6 } : { rotate: 0, y: 0 })}
                 className="block w-6 h-px bg-ink"
               />
             </button>

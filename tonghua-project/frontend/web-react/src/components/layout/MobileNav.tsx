@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useUIStore } from '@/stores/uiStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useRef, useEffect, useState } from 'react';
@@ -23,6 +23,7 @@ export default function MobileNav() {
   const { mobileNavOpen, setMobileNavOpen, menuTriggerRef } = useUIStore();
   const { user, isAuthenticated, logout } = useAuthStore();
   const [_userMenuOpen, setUserMenuOpen] = useState(false);
+  const prefersReducedMotion = useReducedMotion();
 
   // ref for the dialog container
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -66,10 +67,10 @@ export default function MobileNav() {
     <AnimatePresence>
       {mobileNavOpen && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
+          initial={prefersReducedMotion ? false : { opacity: 0 }}
+          animate={prefersReducedMotion ? {} : { opacity: 1 }}
+          exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0 }}
+          transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3 }}
           className="fixed inset-0 z-40 bg-paper/98 backdrop-blur-md flex flex-col justify-center"
           ref={dialogRef}
           id="mobile-navigation"
@@ -83,9 +84,9 @@ export default function MobileNav() {
               return (
                 <motion.div
                   key={item.key}
-                  initial={{ opacity: 0, x: -30 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.05, duration: 0.3 }}
+                  initial={prefersReducedMotion ? false : { opacity: 0, x: -30 }}
+                  animate={prefersReducedMotion ? {} : { opacity: 1, x: 0 }}
+                  transition={prefersReducedMotion ? { duration: 0 } : { delay: index * 0.05, duration: 0.3 }}
                   className="w-full"
                 >
                   <Link
@@ -111,9 +112,9 @@ export default function MobileNav() {
           </nav>
 
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
+            initial={prefersReducedMotion ? false : { opacity: 0 }}
+            animate={prefersReducedMotion ? {} : { opacity: 1 }}
+            transition={prefersReducedMotion ? { duration: 0 } : { delay: 0.4 }}
             className="px-8 mt-8 flex gap-4"
           >
             {isAuthenticated && user ? (

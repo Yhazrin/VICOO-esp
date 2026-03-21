@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 
 interface FlipPageTransitionProps {
@@ -33,14 +33,21 @@ const pageVariants = {
   },
 };
 
+const reducedMotionVariants = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1, transition: { duration: 0 } },
+  exit: { opacity: 0, transition: { duration: 0 } },
+};
+
 export default function FlipPageTransition({ children }: FlipPageTransitionProps) {
   const location = useLocation();
+  const prefersReducedMotion = useReducedMotion();
 
   return (
     <AnimatePresence mode="wait" initial={false}>
       <motion.div
         key={location.pathname}
-        variants={pageVariants}
+        variants={prefersReducedMotion ? reducedMotionVariants : pageVariants}
         initial="initial"
         animate="animate"
         exit="exit"

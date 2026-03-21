@@ -1,5 +1,5 @@
 import { useRef, useCallback, type ReactNode } from 'react';
-import { motion, useMotionValue, useSpring } from 'framer-motion';
+import { motion, useMotionValue, useSpring, useReducedMotion } from 'framer-motion';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 interface MagneticButtonProps {
@@ -24,6 +24,7 @@ export default function MagneticButton({
 }: MagneticButtonProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const isTouchDevice = useMediaQuery('(hover: none)');
+  const prefersReducedMotion = useReducedMotion();
 
   // Motion values for x and y displacement
   const mouseX = useMotionValue(0);
@@ -68,8 +69,8 @@ export default function MagneticButton({
     mouseY.set(0);
   }, [disabled, isTouchDevice, mouseX, mouseY]);
 
-  // Touch devices: render without magnetic effect
-  if (isTouchDevice) {
+  // Touch devices or reduced motion: render without magnetic effect
+  if (isTouchDevice || prefersReducedMotion) {
     return (
       <div className={className}>
         {children}
