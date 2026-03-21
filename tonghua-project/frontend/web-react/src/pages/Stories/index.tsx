@@ -379,7 +379,7 @@ export default function Stories() {
                     inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-sm text-overline font-medium leading-none
                     ${activeCategory === cat
                       ? 'bg-rust/10 text-rust'
-                      : 'bg-warm-gray/20 text-sepia-mid/60'
+                      : 'bg-warm-gray/20 text-ink-light'
                     }
                   `}
                 >

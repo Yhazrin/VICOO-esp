@@ -485,7 +485,7 @@ export default function Contact() {
                         className={`font-body text-overline tracking-wide transition-colors duration-200 ${
                           formData.message.length > MAX_MESSAGE_LENGTH * 0.9
                             ? 'text-archive-brown'
-                            : 'text-sepia-mid/60'
+                            : 'text-sepia-mid'
                         }`}
                       >
                         {formData.message.length} / {MAX_MESSAGE_LENGTH}

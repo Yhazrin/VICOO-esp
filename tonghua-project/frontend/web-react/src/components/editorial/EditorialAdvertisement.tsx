@@ -36,7 +36,7 @@ export default function EditorialAdvertisement({
       `}
     >
       {/* Advertisement label */}
-      <span className="absolute top-3 left-1/2 -translate-x-1/2 font-mono text-[10px] tracking-[0.2em] uppercase text-muted-gray">
+      <span className="absolute top-3 left-1/2 -translate-x-1/2 font-mono text-[10px] tracking-[0.2em] uppercase text-ink-light">
         {label}
       </span>
 

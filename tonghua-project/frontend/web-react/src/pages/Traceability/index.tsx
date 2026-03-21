@@ -587,7 +587,7 @@ export default function Traceability() {
             </div>
           </div>
 
-          <p className="font-body text-overline text-sepia-mid/70 mt-2 tracking-wide">
+          <p className="font-body text-overline text-sepia-mid mt-2 tracking-wide">
             {t('traceability.lookup.hint')}
           </p>
 
