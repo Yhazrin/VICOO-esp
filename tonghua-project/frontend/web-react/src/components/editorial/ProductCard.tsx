@@ -68,7 +68,7 @@ export default function ProductCard({
           <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/3 via-transparent to-archive-brown/5" />
 
           {/* Grain overlay */}
-          <div className="absolute inset-0 z-20 pointer-events-none opacity-10"
+          <div className="absolute inset-0 z-20 pointer-events-none opacity-[0.06]"
                style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")' }} />
 
           {/* Loading skeleton */}
@@ -105,14 +105,14 @@ export default function ProductCard({
             <h3 className="font-display text-base md:text-lg font-semibold text-ink group-hover:text-rust transition-colors leading-tight">
               {product.name}
             </h3>
-            <span className="font-body text-[10px] text-sepia-mid uppercase tracking-wider flex-shrink-0 mt-1">
+            <span className="font-body text-overline text-sepia-mid uppercase tracking-wider flex-shrink-0 mt-1">
               {product.category}
             </span>
           </div>
 
           {/* Artwork attribution */}
           {product.artworkBy && (
-            <p className="font-body text-[10px] text-sepia-mid tracking-wide mb-2">
+            <p className="font-body text-overline text-sepia-mid tracking-wide mb-2">
               Artwork by {product.artworkBy.childName}, age {product.artworkBy.age}
               {' '}&mdash; {product.artworkBy.campaign} campaign
             </p>
@@ -127,10 +127,10 @@ export default function ProductCard({
             {/* Sustainability score with tier */}
             <div className="flex flex-col items-end">
               <div className="flex items-center gap-1.5">
-                <span className="font-mono text-[10px] text-sepia-mid">
+                <span className="font-body text-overline text-sepia-mid">
                   {product.sustainabilityScore}
                 </span>
-                <span className={`font-body text-[10px] tracking-wide ${sustainability.colorClass}`}>
+                <span className={`font-body text-overline tracking-wide ${sustainability.colorClass}`}>
                   {sustainability.label}
                 </span>
               </div>
@@ -157,7 +157,7 @@ export default function ProductCard({
                     e.stopPropagation();
                     setShowNotifyInput(true);
                   }}
-                  className="w-full font-body text-[10px] tracking-[0.15em] uppercase text-sepia-mid py-2 px-4 border border-dashed border-sepia-mid/50 hover:border-sepia-mid hover:text-ink transition-all duration-200 bg-transparent"
+                  className="w-full font-body text-overline tracking-[0.15em] uppercase text-sepia-mid py-2 px-4 border border-dashed border-sepia-mid/50 hover:border-sepia-mid hover:text-ink transition-all duration-200 bg-transparent"
                 >
                   Notify Me
                 </motion.button>
@@ -165,7 +165,7 @@ export default function ProductCard({
                 <motion.p
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="font-body text-[10px] text-[#6B7C3E] tracking-wide text-center py-2"
+                  className="font-body text-overline text-[#6B7C3E] tracking-wide text-center py-2"
                 >
                   We will let you know when this is back.
                 </motion.p>
@@ -192,7 +192,7 @@ export default function ProductCard({
                       type="submit"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className="font-body text-[10px] tracking-[0.1em] uppercase text-paper bg-rust px-3 py-3 border border-rust hover:bg-rust/90 transition-colors flex-shrink-0"
+                      className="font-body text-overline tracking-[0.1em] uppercase text-paper bg-rust px-3 py-3 border border-rust hover:bg-rust/90 transition-colors flex-shrink-0"
                     >
                       Send
                     </motion.button>
@@ -205,7 +205,7 @@ export default function ProductCard({
           {/* Decorative divider */}
           <div className="flex items-center gap-2 mt-3">
             <div className="flex-1 h-px bg-ink/20" />
-            <span className="font-mono text-[9px] text-sepia-mid tracking-widest">
+            <span className="font-body text-[9px] text-sepia-mid tracking-widest">
               {String(product.id).padStart(3, '0')}
             </span>
             <div className="flex-1 h-px bg-ink/20" />

@@ -157,9 +157,9 @@ function ReadingProgressBar({ readTimeMinutes }: { readTimeMinutes: number }) {
   const widthPercent = Math.min((readTimeMinutes / maxReadTime) * 100, 100);
 
   return (
-    <div className="mt-4 h-[2px] w-full bg-warm-gray/20 rounded-full overflow-hidden">
+    <div className="mt-4 h-[2px] w-full bg-warm-gray/20 rounded-sm overflow-hidden">
       <motion.div
-        className="h-full bg-rust/60 rounded-full"
+        className="h-full bg-rust/60 rounded-sm"
         initial={{ width: 0 }}
         whileInView={{ width: `${widthPercent}%` }}
         viewport={{ once: true }}
@@ -243,7 +243,7 @@ function EmptyState({ onBrowseAll }: { onBrowseAll: () => void }) {
         onClick={onBrowseAll}
         whileHover={{ y: -2 }}
         whileTap={{ scale: 0.98 }}
-        className="font-body text-xs tracking-[0.15em] uppercase text-rust border-b border-rust/40 pb-1 hover:text-ink hover:border-ink/40 transition-colors"
+        className="font-body text-xs tracking-[0.15em] uppercase text-rust border-b border-rust/30 pb-1 hover:text-ink hover:border-ink/30 transition-colors"
       >
         {t('stories.empty.browseAll')}
       </motion.button>
@@ -323,7 +323,7 @@ export default function Stories() {
                 {t(`stories.categories.${cat}`)}
                 <span
                   className={`
-                    inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-medium leading-none
+                    inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-sm text-overline font-medium leading-none
                     ${activeCategory === cat
                       ? 'bg-rust/10 text-rust'
                       : 'bg-warm-gray/20 text-sepia-mid/60'
@@ -387,7 +387,7 @@ export default function Stories() {
                           {/* Text */}
                           <div className={`md:col-span-5 ${index % 2 === 1 ? 'md:order-1' : ''}`}>
                             {/* Category pill tag */}
-                            <span className="inline-block font-body text-[10px] text-rust tracking-[0.25em] uppercase mb-4 px-3 py-1 border border-rust/30 rounded-full">
+                            <span className="inline-block font-body text-overline text-rust tracking-[0.25em] uppercase mb-4 px-3 py-1 border border-rust/30 rounded-sm">
                               {t(`stories.categories.${story.category}`)}
                             </span>
 

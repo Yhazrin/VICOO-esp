@@ -17,7 +17,7 @@ export const VintageSelect = forwardRef<HTMLSelectElement, VintageSelectProps>(
         {label && (
           <label
             htmlFor={selectId}
-            className="font-body text-[10px] text-sepia-mid tracking-[0.2em] uppercase"
+            className="font-body text-overline text-sepia-mid tracking-[0.2em] uppercase"
           >
             {label}
           </label>

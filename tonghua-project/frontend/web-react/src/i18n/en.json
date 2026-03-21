@@ -15,7 +15,10 @@
   },
   "profile": {
     "title": "My Profile",
-    "notLoggedIn": "Please log in to view your profile."
+    "notLoggedIn": "Please log in to view your profile.",
+    "accountDetails": "Account Details",
+    "userId": "User ID",
+    "role": "Role"
   },
   "home": {
     "hero": {
@@ -418,7 +421,9 @@
     "register": "Create an Account",
     "forgotPassword": "Forgot Password?",
     "orContinueWith": "Or continue with",
-    "wechat": "WeChat"
+    "wechat": "WeChat",
+    "rememberMe": "Remember me",
+    "submitting": "Signing In..."
   },
   "register": {
     "title": "Join Our Community",
@@ -428,6 +433,7 @@
     "password": "Password",
     "confirmPassword": "Confirm Password",
     "submit": "Create Account",
+    "submitting": "Creating Account...",
     "login": "Sign In",
     "orContinueWith": "Or continue with",
     "wechat": "WeChat",

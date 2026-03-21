@@ -35,7 +35,7 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
 
       return (
         <div className="flex flex-col items-center justify-center min-h-[50vh] px-6 py-16 text-center">
-          <span className="font-body text-[10px] tracking-[0.3em] uppercase text-sepia-mid mb-4">
+          <span className="font-body text-overline tracking-[0.3em] uppercase text-sepia-mid mb-4">
             Something went wrong
           </span>
           <h2 className="font-display text-h2 text-ink mb-4">

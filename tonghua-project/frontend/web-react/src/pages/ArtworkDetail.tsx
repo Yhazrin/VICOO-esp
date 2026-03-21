@@ -98,7 +98,7 @@ export default function ArtworkDetail() {
 
             {/* Details */}
             <div className="md:col-span-5 md:col-start-8">
-              <p className="font-body text-[10px] tracking-[0.3em] uppercase text-sepia-mid mb-2">
+              <p className="font-body text-overline tracking-[0.3em] uppercase text-sepia-mid mb-2">
                 {t('artwork.detail.heading')}
               </p>
               <h1 className="font-display text-3xl md:text-4xl text-ink font-bold leading-tight mb-4">

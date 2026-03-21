@@ -166,7 +166,7 @@ export default function ProductDetail() {
 
             {/* Details */}
             <div className="md:col-span-5 md:col-start-8">
-              <p className="font-body text-[10px] tracking-[0.3em] uppercase text-sepia-mid mb-2">
+              <p className="font-body text-overline tracking-[0.3em] uppercase text-sepia-mid mb-2">
                 {product.category}
               </p>
               <h1 className="font-display text-3xl md:text-4xl text-ink font-bold leading-tight mb-4">
@@ -199,7 +199,7 @@ export default function ProductDetail() {
                     {[1, 2, 3, 4, 5].map((level) => (
                       <div
                         key={level}
-                        className={`w-4 h-4 rounded-full ${
+                        className={`w-4 h-4 rounded-sm ${
                           level <= product.sustainabilityScore / 20
                             ? 'bg-archive-brown'
                             : 'bg-warm-gray/40'

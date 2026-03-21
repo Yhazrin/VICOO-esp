@@ -114,7 +114,7 @@ export default function TraceabilityTimeline({
             {/* Dot */}
             <div
               className={`
-                absolute left-[-33px] top-1 w-4 h-4 rounded-full border-[3px] border-paper z-[2]
+                absolute left-[-33px] top-1 w-4 h-4 rounded-sm border-[3px] border-paper z-[2]
                 ${record.verified ? 'bg-rust' : 'bg-warm-gray'}
               `}
             />
@@ -129,7 +129,7 @@ export default function TraceabilityTimeline({
               className="relative p-6 border-2 border-rust/30 bg-paper transition-all duration-300 hover:border-rust/50 overflow-hidden"
             >
               {/* Grain overlay */}
-              <div className="absolute inset-0 z-10 pointer-events-none opacity-[0.08]" style={{
+              <div className="absolute inset-0 z-10 pointer-events-none opacity-[0.06]" style={{
                 backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")'
               }} />
 
@@ -143,7 +143,7 @@ export default function TraceabilityTimeline({
                     {record.stage}
                   </h4>
                   {record.verified && (
-                    <span className="font-body text-[10px] tracking-[0.1em] uppercase px-3 py-1 bg-rust/10 text-rust border border-rust/20">
+                    <span className="font-body text-overline tracking-[0.1em] uppercase px-3 py-1 bg-rust/10 text-rust border border-rust/30">
                       {t('traceability.verified')}
                     </span>
                   )}
@@ -154,15 +154,15 @@ export default function TraceabilityTimeline({
                 </p>
 
                 <div className="flex flex-wrap gap-6">
-                  <div className="font-body text-[11px] text-sepia-mid">
+                  <div className="font-body text-label text-sepia-mid">
                     <span className="uppercase tracking-[0.1em]">Location:</span>{' '}
                     <span className="text-ink-faded font-medium">{record.location}</span>
                   </div>
-                  <div className="font-body text-[11px] text-sepia-mid">
+                  <div className="font-body text-label text-sepia-mid">
                     <span className="uppercase tracking-[0.1em]">Partner:</span>{' '}
                     <span className="text-ink-faded font-medium">{record.partnerName}</span>
                   </div>
-                  <div className="font-body text-[11px] text-sepia-mid">
+                  <div className="font-body text-label text-sepia-mid">
                     <span className="uppercase tracking-[0.1em]">Date:</span>{' '}
                     <span className="text-ink-faded font-medium">
                       {new Date(record.date).toLocaleDateString('en-US', {
@@ -173,7 +173,7 @@ export default function TraceabilityTimeline({
                     </span>
                   </div>
                   {record.carbonFootprint !== undefined && (
-                    <div className="font-body text-[11px] text-sepia-mid">
+                    <div className="font-body text-label text-sepia-mid">
                       <span className="uppercase tracking-[0.1em]">{t('traceability.carbon')}:</span>{' '}
                       <span className="text-archive-brown font-medium">
                         {record.carbonFootprint} kg CO2

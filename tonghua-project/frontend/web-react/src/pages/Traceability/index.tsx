@@ -159,7 +159,7 @@ function CarbonBar({ label, value, maxValue, isEco, delay }: {
       className="space-y-2"
     >
       <div className="flex justify-between items-baseline">
-        <span className="font-body text-[11px] tracking-[0.15em] uppercase text-sepia-mid">
+        <span className="font-body text-label tracking-[0.15em] uppercase text-sepia-mid">
           {label}
         </span>
         <span className={`font-display text-h3 font-bold ${isEco ? 'text-[#5a7a5a]' : 'text-archive-brown'}`}>
@@ -183,7 +183,7 @@ function SearchSpinner() {
   return (
     <div className="flex items-center gap-3 py-4">
       <motion.div
-        className="w-5 h-5 border-2 border-warm-gray/30 border-t-rust rounded-full"
+        className="w-5 h-5 border-2 border-warm-gray/30 border-t-rust rounded"
         animate={{ rotate: 360 }}
         transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
       />
@@ -206,8 +206,8 @@ function CertificationBadge({ title, description, delay }: {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay }}
-      whileHover={{ y: -4, borderColor: 'rgba(139, 58, 42, 0.5)' }}
-      className="border-2 border-rust/20 bg-paper p-5 text-center transition-all duration-300 hover:shadow-[0_4px_20px_rgba(139,58,42,0.08)] relative overflow-hidden group"
+      whileHover={{ y: -4, borderColor: 'color-mix(in srgb, var(--color-rust) 50%, transparent)' }}
+      className="border-2 border-rust/30 bg-paper p-5 text-center transition-all duration-300 hover:shadow-[0_4px_20px_rgba(139,58,42,0.08)] relative overflow-hidden group"
     >
       {/* Grain overlay */}
       <div className="absolute inset-0 z-10 pointer-events-none opacity-[0.06]" style={{
@@ -215,12 +215,12 @@ function CertificationBadge({ title, description, delay }: {
       }} />
 
       {/* Corner accents */}
-      <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-rust/20 group-hover:border-rust/40 transition-colors" />
-      <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-rust/20 group-hover:border-rust/40 transition-colors" />
+      <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-rust/30 group-hover:border-rust/30 transition-colors" />
+      <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-rust/30 group-hover:border-rust/30 transition-colors" />
 
       <div className="relative z-20">
         {/* Badge icon */}
-        <div className="w-12 h-12 mx-auto mb-3 border border-rust/30 rounded-full flex items-center justify-center bg-aged-stock">
+        <div className="w-12 h-12 mx-auto mb-3 border border-rust/30 rounded-sm flex items-center justify-center bg-aged-stock">
           <svg className="w-5 h-5 text-rust" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
           </svg>
@@ -229,7 +229,7 @@ function CertificationBadge({ title, description, delay }: {
         <h4 className="font-display text-sm font-bold text-ink mb-1">
           {title}
         </h4>
-        <p className="font-body text-[10px] text-sepia-mid leading-relaxed tracking-wide">
+        <p className="font-body text-overline text-sepia-mid leading-relaxed tracking-wide">
           {description}
         </p>
       </div>
@@ -265,17 +265,17 @@ function EnhancedTimelineEntry({ record, index, t }: {
     >
       {/* Dot */}
       <div
-        className={`absolute left-[-33px] top-1 w-4 h-4 rounded-full border-[3px] border-paper z-[2] ${config.dot}`}
+        className={`absolute left-[-33px] top-1 w-4 h-4 rounded-sm border-[3px] border-paper z-[2] ${config.dot}`}
       />
 
       {/* Card */}
       <motion.div
-        whileHover={{ y: -3, borderColor: 'rgba(139, 58, 42, 0.4)' }}
+        whileHover={{ y: -3, borderColor: 'color-mix(in srgb, var(--color-rust) 40%, transparent)' }}
         transition={{ duration: 0.3 }}
         className="relative p-6 border-2 border-rust/30 bg-paper transition-all duration-300 hover:border-rust/50 overflow-hidden"
       >
         {/* Grain overlay */}
-        <div className="absolute inset-0 z-10 pointer-events-none opacity-[0.08]" style={{
+        <div className="absolute inset-0 z-10 pointer-events-none opacity-[0.06]" style={{
           backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")'
         }} />
 
@@ -289,7 +289,7 @@ function EnhancedTimelineEntry({ record, index, t }: {
             <h4 className="font-display text-[clamp(18px,2vw,24px)] font-bold text-ink">
               {t(`traceability.stages.${record.stage}`)}
             </h4>
-            <span className={`font-body text-[10px] tracking-[0.1em] uppercase px-3 py-1 ${config.bg} ${config.text} border ${config.border}`}>
+            <span className={`font-body text-overline tracking-[0.1em] uppercase px-3 py-1 ${config.bg} ${config.text} border ${config.border}`}>
               {config.label}
             </span>
           </div>
@@ -300,7 +300,7 @@ function EnhancedTimelineEntry({ record, index, t }: {
               <p className="font-body text-sm text-ink-faded leading-relaxed mb-3">
                 {record.description}
               </p>
-              <p className="font-body text-[11px] italic text-sepia-mid leading-relaxed border-l-2 border-rust/30 pl-3">
+              <p className="font-body text-label italic text-sepia-mid leading-relaxed border-l-2 border-rust/30 pl-3">
                 "{record.story}"
               </p>
             </div>
@@ -320,15 +320,15 @@ function EnhancedTimelineEntry({ record, index, t }: {
 
           {/* Meta info */}
           <div className="flex flex-wrap gap-6">
-            <div className="font-body text-[11px] text-sepia-mid">
+            <div className="font-body text-label text-sepia-mid">
               <span className="uppercase tracking-[0.1em]">Location:</span>{' '}
               <span className="text-ink-faded font-medium">{record.location}</span>
             </div>
-            <div className="font-body text-[11px] text-sepia-mid">
+            <div className="font-body text-label text-sepia-mid">
               <span className="uppercase tracking-[0.1em]">Partner:</span>{' '}
               <span className="text-ink-faded font-medium">{record.partnerName}</span>
             </div>
-            <div className="font-body text-[11px] text-sepia-mid">
+            <div className="font-body text-label text-sepia-mid">
               <span className="uppercase tracking-[0.1em]">Date:</span>{' '}
               <span className="text-ink-faded font-medium">
                 {new Date(record.date).toLocaleDateString('en-US', {
@@ -339,7 +339,7 @@ function EnhancedTimelineEntry({ record, index, t }: {
               </span>
             </div>
             {record.carbonFootprint !== undefined && (
-              <div className="font-body text-[11px] text-sepia-mid">
+              <div className="font-body text-label text-sepia-mid">
                 <span className="uppercase tracking-[0.1em]">{t('traceability.carbon')}:</span>{' '}
                 <span className="text-archive-brown font-medium">
                   {record.carbonFootprint} kg CO2
@@ -488,7 +488,7 @@ export default function Traceability() {
             </div>
           </div>
 
-          <p className="font-body text-[10px] text-sepia-mid/70 mt-2 tracking-wide">
+          <p className="font-body text-overline text-sepia-mid/70 mt-2 tracking-wide">
             {t('traceability.lookup.hint')}
           </p>
 
@@ -517,7 +517,7 @@ export default function Traceability() {
                 <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-[#5a7a5a]/30" />
                 <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-[#5a7a5a]/30" />
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 flex-shrink-0 border border-[#5a7a5a]/30 rounded-full flex items-center justify-center bg-[#5a7a5a]/10">
+                  <div className="w-10 h-10 flex-shrink-0 border border-[#5a7a5a]/30 rounded-sm flex items-center justify-center bg-[#5a7a5a]/10">
                     <svg className="w-4 h-4 text-[#5a7a5a]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
@@ -588,7 +588,7 @@ export default function Traceability() {
                     transition={{ duration: 0.4 }}
                     className="mt-4 border-2 border-[#5a7a5a]/30 p-5 bg-[#5a7a5a]/5"
                   >
-                    <span className="font-body text-[10px] text-[#5a7a5a] tracking-[0.15em] uppercase">
+                    <span className="font-body text-overline text-[#5a7a5a] tracking-[0.15em] uppercase">
                       {t('traceability.lookup.highlighted')}
                     </span>
                     <p className="font-body text-xs text-ink-faded mt-1 leading-relaxed">
@@ -694,7 +694,7 @@ export default function Traceability() {
                 <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-[#5a7a5a]/20" />
 
                 <div className="relative z-20">
-                  <span className="font-body text-[10px] tracking-[0.2em] uppercase text-[#5a7a5a] block mb-3">
+                  <span className="font-body text-overline tracking-[0.2em] uppercase text-[#5a7a5a] block mb-3">
                     {t('traceability.carbon.reduction')}
                   </span>
                   <div className="font-display text-[clamp(48px,8vw,72px)] font-bold text-[#5a7a5a] leading-none">
@@ -792,7 +792,7 @@ export default function Traceability() {
           transition={{ duration: 0.7, ease: [0, 0, 0.2, 1] }}
           className="text-center py-8"
         >
-          <span className="font-body text-[10px] tracking-[0.3em] uppercase text-sepia-mid block mb-4">
+          <span className="font-body text-overline tracking-[0.3em] uppercase text-sepia-mid block mb-4">
             {t('traceability.cta.label')}
           </span>
           <h2 className="font-display text-[clamp(28px,4vw,48px)] font-bold text-ink leading-tight mb-6">
@@ -803,7 +803,7 @@ export default function Traceability() {
           </p>
           <Link
             to="/shop"
-            className="inline-block font-body text-[11px] tracking-[0.2em] uppercase px-10 py-4 border-2 border-rust text-rust hover:bg-rust hover:text-paper transition-all duration-300"
+            className="inline-block font-body text-label tracking-[0.2em] uppercase px-10 py-4 border-2 border-rust text-rust hover:bg-rust hover:text-paper transition-all duration-300"
           >
             {t('traceability.cta.button')}
           </Link>

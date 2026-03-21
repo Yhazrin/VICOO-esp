@@ -89,7 +89,7 @@ export default function SepiaImageFrame({
         <div
           className="absolute inset-0 z-10 pointer-events-none"
           style={{
-            boxShadow: 'inset 0 0 60px rgba(26, 26, 22, 0.12)',
+            boxShadow: 'inset 0 0 60px color-mix(in srgb, var(--color-ink) 12%, transparent)',
           }}
         />
 

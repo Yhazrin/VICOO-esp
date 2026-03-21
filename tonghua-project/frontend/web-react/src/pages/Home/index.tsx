@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import EditorialHero from '@/components/editorial/EditorialHero';
@@ -40,7 +40,7 @@ function GalleryItem({ src, alt, index }: GalleryItemProps) {
     >
       {/* Grain overlay */}
       <div
-        className="absolute inset-0 z-10 pointer-events-none opacity-15"
+        className="absolute inset-0 z-10 pointer-events-none opacity-[0.06]"
         style={{
           backgroundImage:
             'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")',
@@ -51,8 +51,8 @@ function GalleryItem({ src, alt, index }: GalleryItemProps) {
       <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/8 via-transparent to-archive-brown/8" />
 
       {/* Decorative corner accents */}
-      <div className="absolute top-2 left-2 w-6 h-6 border-t border-l border-rust/40 z-20 pointer-events-none" />
-      <div className="absolute bottom-2 right-2 w-6 h-6 border-b border-r border-rust/40 z-20 pointer-events-none" />
+      <div className="absolute top-2 left-2 w-6 h-6 border-t border-l border-rust/30 z-20 pointer-events-none" />
+      <div className="absolute bottom-2 right-2 w-6 h-6 border-b border-r border-rust/30 z-20 pointer-events-none" />
 
       {/* Loading skeleton */}
       {!imageLoaded && (
@@ -113,7 +113,7 @@ function LatestArtworkCard({
       >
         {/* Grain overlay */}
         <div
-          className="absolute inset-0 z-10 pointer-events-none opacity-10"
+          className="absolute inset-0 z-10 pointer-events-none opacity-[0.06]"
           style={{
             backgroundImage:
               'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")',
@@ -163,17 +163,20 @@ interface BrandPillarProps {
 }
 
 function BrandPillar({ label, value, index }: BrandPillarProps) {
+  const prefersReducedMotion = useReducedMotion();
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{
-        type: 'spring',
-        stiffness: 380,
-        damping: 30,
-        delay: index * 0.1,
-      }}
+      {...(prefersReducedMotion ? {} : {
+        initial: { opacity: 0, y: 20 },
+        whileInView: { opacity: 1, y: 0 },
+        viewport: { once: true },
+        transition: {
+          type: 'spring',
+          stiffness: 380,
+          damping: 30,
+          delay: index * 0.1,
+        },
+      })}
       className="border-l border-warm-gray/40 pl-6"
     >
       <p className="font-display text-h3 md:text-h2 font-bold text-ink leading-[0.95]">

@@ -14,7 +14,7 @@ export const MagazineDivider = ({
     return (
       <div className={`flex items-center gap-4 my-8 ${className}`}>
         <div className="flex-1 h-px bg-ink/20" />
-        <span className="font-mono text-[10px] text-sepia-mid tracking-[0.3em]">
+        <span className="font-body text-overline text-sepia-mid tracking-[0.3em]">
           {number}
         </span>
         <div className="flex-1 h-px bg-ink/20" />

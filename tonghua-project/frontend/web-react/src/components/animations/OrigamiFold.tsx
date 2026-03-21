@@ -436,8 +436,7 @@ export function OrigamiFoldAccent({
         <path
           d="M0 0 L40 0 L40 40 Z"
           fill="#EDE6D6"
-          stroke="rgba(26, 26, 22, 0.08)"
-          strokeWidth="0.5"
+          style={{ stroke: 'color-mix(in srgb, var(--color-ink) 8%, transparent)', strokeWidth: 0.5 }}
         />
 
         {/* Back face (showing through) */}
@@ -453,8 +452,7 @@ export function OrigamiFoldAccent({
           y1="0"
           x2="40"
           y2="40"
-          stroke="rgba(26, 26, 22, 0.1)"
-          strokeWidth="0.5"
+          style={{ stroke: 'color-mix(in srgb, var(--color-ink) 10%, transparent)', strokeWidth: 0.5 }}
         />
 
         {/* Highlight on fold edge */}
@@ -492,9 +490,9 @@ export function OrigamiPaperStrip({
   className = '',
 }: OrigamiPaperStripProps) {
   const colors = {
-    paper: { front: '#F5F0E8', back: '#EDE6D6', shadow: 'rgba(26, 26, 22, 0.06)' },
-    aged: { front: '#EDE6D6', back: '#D4CFC4', shadow: 'rgba(26, 26, 22, 0.1)' },
-    sepia: { front: '#5C4D3D', back: '#5C4033', shadow: 'rgba(26, 26, 22, 0.15)' },
+    paper: { front: '#F5F0E8', back: '#EDE6D6', shadow: 'color-mix(in srgb, var(--color-ink) 6%, transparent)' },
+    aged: { front: '#EDE6D6', back: '#D4CFC4', shadow: 'color-mix(in srgb, var(--color-ink) 10%, transparent)' },
+    sepia: { front: '#5C4D3D', back: '#5C4033', shadow: 'color-mix(in srgb, var(--color-ink) 15%, transparent)' },
   }[color];
 
   const isHorizontal = orientation === 'horizontal';

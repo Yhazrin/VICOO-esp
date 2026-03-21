@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import EditorialHero from '@/components/editorial/EditorialHero';
@@ -126,6 +126,7 @@ type StatusFilter = 'all' | 'active' | 'upcoming' | 'completed';
 
 export default function Campaigns() {
   const { t } = useTranslation();
+  const prefersReducedMotion = useReducedMotion();
   const [filter, setFilter] = useState<StatusFilter>('all');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -214,19 +215,21 @@ export default function Campaigns() {
             <motion.button
               key={status}
               onClick={() => handleFilterChange(status)}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-              whileHover={{ y: -2 }}
+              {...(prefersReducedMotion ? {} : {
+                initial: { opacity: 0, y: 10 },
+                animate: { opacity: 1, y: 0 },
+                transition: { delay: index * 0.05 },
+                whileHover: { y: -2 },
+              })}
               className={`
-                font-body text-xs tracking-[0.15em] uppercase px-4 py-3 transition-all duration-200 border-b-2 -mb-px whitespace-nowrap relative
+                font-body text-xs tracking-[0.15em] uppercase px-4 py-3 transition-all duration-200 border-b-2 -mb-px whitespace-nowrap relative cursor-pointer
                 ${filter === status
                   ? 'border-rust text-rust'
                   : 'border-transparent text-sepia-mid hover:text-ink'
                 }
               `}
             >
-              <span className="font-body text-[10px] text-sepia-mid/60 mr-1.5">
+              <span className="font-body text-overline text-sepia-mid/60 mr-1.5">
                 {String(index + 1).padStart(2, '0')}
               </span>
               {status === 'all'
@@ -305,7 +308,7 @@ export default function Campaigns() {
                         <div className={`md:col-span-5 ${index % 2 === 1 ? 'md:order-1' : ''}`}>
                           <div className="flex items-center gap-3 mb-4">
                             <span className={`
-                              font-body text-[10px] tracking-[0.2em] uppercase px-3 py-1 border
+                              font-body text-overline tracking-[0.2em] uppercase px-3 py-1 border
                               ${campaign.status === 'active' ? 'border-rust text-rust' : ''}
                               ${campaign.status === 'upcoming' ? 'border-pale-gold text-pale-gold' : ''}
                               ${campaign.status === 'completed' ? 'border-sepia-mid text-sepia-mid' : ''}
@@ -313,7 +316,7 @@ export default function Campaigns() {
                               {t(`campaigns.status.${campaign.status}`)}
                             </span>
                             {isCompleted && fundingPercent >= 100 && (
-                              <span className="font-body text-[10px] tracking-[0.2em] uppercase px-3 py-1 border border-sepia-mid text-sepia-mid flex items-center gap-1.5">
+                              <span className="font-body text-overline tracking-[0.2em] uppercase px-3 py-1 border border-sepia-mid text-sepia-mid flex items-center gap-1.5">
                                 <svg className="w-3 h-3" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
                                   <path d="M3 8.5l3.5 3.5 6.5-7" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
@@ -337,7 +340,7 @@ export default function Campaigns() {
                                 <span className="font-body text-xs text-sepia-mid">
                                   ¥{campaign.raisedAmount.toLocaleString()} / ¥{campaign.goalAmount.toLocaleString()}
                                 </span>
-                                <span className={`font-body text-xs ${isCompleted ? 'text-sepia-mid' : 'text-sepia-mid'}`}>
+                                <span className="font-body text-xs text-sepia-mid">
                                   {isCompleted
                                     ? `${fundingPercent}% funded`
                                     : `${fundingPercent}%`
@@ -368,7 +371,7 @@ export default function Campaigns() {
                               <p className="font-display italic text-sm text-ink-faded leading-relaxed">
                                 &ldquo;{campaign.featuredChild.quote}&rdquo;
                               </p>
-                              <p className="font-body text-[11px] text-sepia-mid mt-1.5 tracking-wider uppercase">
+                              <p className="font-body text-label text-sepia-mid mt-1.5 tracking-wider uppercase">
                                 {campaign.featuredChild.name}, age {campaign.featuredChild.age}
                               </p>
                             </motion.div>
@@ -415,7 +418,7 @@ export default function Campaigns() {
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="font-body text-caption tracking-wider uppercase px-4 py-2 border border-warm-gray/30 text-sepia-mid hover:border-rust hover:text-rust disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              className="font-body text-caption tracking-wider uppercase px-4 py-2 border border-warm-gray/30 text-sepia-mid hover:border-rust hover:text-rust disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all"
             >
               {t('campaigns.pagination.prev')}
             </button>
@@ -424,7 +427,7 @@ export default function Campaigns() {
                 key={p}
                 onClick={() => setPage(p)}
                 className={`
-                  w-10 h-10 font-body text-caption border transition-all
+                  w-10 h-10 font-body text-caption border transition-all cursor-pointer
                   ${page === p
                     ? 'border-rust bg-rust text-paper'
                     : 'border-warm-gray/30 text-sepia-mid hover:border-rust hover:text-rust'
@@ -437,7 +440,7 @@ export default function Campaigns() {
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              className="font-body text-caption tracking-wider uppercase px-4 py-2 border border-warm-gray/30 text-sepia-mid hover:border-rust hover:text-rust disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              className="font-body text-caption tracking-wider uppercase px-4 py-2 border border-warm-gray/30 text-sepia-mid hover:border-rust hover:text-rust disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all"
             >
               {t('campaigns.pagination.next')}
             </button>

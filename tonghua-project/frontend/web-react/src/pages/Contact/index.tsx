@@ -206,7 +206,7 @@ function ContactInfoCard({
         {/* Image */}
         <div className="relative aspect-[16/9] overflow-hidden">
           <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/10 via-transparent to-archive-brown/10" />
-          <div className="absolute inset-0 z-10 pointer-events-none" style={{ boxShadow: 'inset 0 0 40px rgba(26, 26, 22, 0.15)' }} />
+          <div className="absolute inset-0 z-10 pointer-events-none" style={{ boxShadow: 'inset 0 0 40px color-mix(in srgb, var(--color-ink) 15%, transparent)' }} />
           <img
             src={`https://picsum.photos/seed/${card.imageSeed}/600/338`}
             alt={t(card.titleKey)}
@@ -241,7 +241,7 @@ function LoadingDots() {
       {[0, 1, 2].map((i) => (
         <motion.span
           key={i}
-          className="inline-block w-1 h-1 rounded-full bg-paper"
+          className="inline-block w-1 h-1 rounded-sm bg-paper"
           animate={{ opacity: [0.3, 1, 0.3] }}
           transition={{
             duration: 1,
@@ -470,7 +470,7 @@ export default function Contact() {
                   <div className="space-y-2">
                     <label
                       htmlFor="contact-subject"
-                      className="font-body text-[10px] tracking-[0.2em] uppercase text-sepia-mid block"
+                      className="font-body text-overline tracking-[0.2em] uppercase text-sepia-mid block"
                     >
                       {t('contact.form.subject')}
                     </label>
@@ -511,7 +511,7 @@ export default function Contact() {
                       <motion.p
                         initial={{ opacity: 0, y: -5 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="font-body text-[10px] text-archive-brown"
+                        className="font-body text-overline text-archive-brown"
                       >
                         {errors.subject}
                       </motion.p>
@@ -522,7 +522,7 @@ export default function Contact() {
                   <div className="space-y-2">
                     <label
                       htmlFor="contact-message"
-                      className="font-body text-[10px] tracking-[0.2em] uppercase text-sepia-mid block"
+                      className="font-body text-overline tracking-[0.2em] uppercase text-sepia-mid block"
                     >
                       {t('contact.form.message')}
                     </label>
@@ -550,7 +550,7 @@ export default function Contact() {
                         <motion.p
                           initial={{ opacity: 0, y: -5 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="font-body text-[10px] text-archive-brown"
+                          className="font-body text-overline text-archive-brown"
                         >
                           {errors.message}
                         </motion.p>
@@ -558,7 +558,7 @@ export default function Contact() {
                         <span />
                       )}
                       <span
-                        className={`font-body text-[10px] tracking-wide transition-colors duration-200 ${
+                        className={`font-body text-overline tracking-wide transition-colors duration-200 ${
                           formData.message.length > MAX_MESSAGE_LENGTH * 0.9
                             ? 'text-archive-brown'
                             : 'text-sepia-mid/60'

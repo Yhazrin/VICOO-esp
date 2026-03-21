@@ -105,7 +105,7 @@ function ImpactProgressBar({
           }}
           className="h-full rounded-sm"
           style={{
-            background: 'linear-gradient(90deg, rgba(139, 58, 42, 0.5), rgba(139, 58, 42, 0.8))',
+            background: 'linear-gradient(90deg, color-mix(in srgb, var(--color-rust) 50%, transparent), color-mix(in srgb, var(--color-rust) 80%, transparent))',
           }}
         />
       </div>
@@ -132,7 +132,7 @@ function TrustBadge({ label, index }: { label: string; index: number }) {
       }}
       className="flex items-center gap-2 border border-warm-gray/30 px-4 py-2.5 bg-paper"
     >
-      <span className="w-2 h-2 bg-rust/60 rounded-full" />
+      <span className="w-2 h-2 bg-rust/60 rounded-sm" />
       <span className="font-body text-xs text-ink tracking-[0.08em] uppercase">
         {label}
       </span>
@@ -323,7 +323,7 @@ export default function Donate() {
       <section className="bg-aged-stock section-spacing relative">
         {/* Grain overlay */}
         <div
-          className="absolute inset-0 z-0 pointer-events-none opacity-[0.08]"
+          className="absolute inset-0 z-0 pointer-events-none opacity-[0.06]"
           style={{
             backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")',
           }}
@@ -347,19 +347,19 @@ export default function Donate() {
               {/* Specific transparency data points */}
               <div className="space-y-3 mb-8">
                 <div className="flex items-start gap-3">
-                  <span className="w-1.5 h-1.5 bg-rust/60 rounded-full mt-2 shrink-0" />
+                  <span className="w-1.5 h-1.5 bg-rust/60 rounded-sm mt-2 shrink-0" />
                   <span className="font-body text-sm text-ink">
                     {t('donate.transparency.lastAudit')}
                   </span>
                 </div>
                 <div className="flex items-start gap-3">
-                  <span className="w-1.5 h-1.5 bg-rust/60 rounded-full mt-2 shrink-0" />
+                  <span className="w-1.5 h-1.5 bg-rust/60 rounded-sm mt-2 shrink-0" />
                   <span className="font-body text-sm text-ink">
                     {t('donate.transparency.onChain')}
                   </span>
                 </div>
                 <div className="flex items-start gap-3">
-                  <span className="w-1.5 h-1.5 bg-rust/60 rounded-full mt-2 shrink-0" />
+                  <span className="w-1.5 h-1.5 bg-rust/60 rounded-sm mt-2 shrink-0" />
                   <span className="font-body text-sm text-ink">
                     {t('donate.transparency.quarterly')}
                   </span>
@@ -403,8 +403,8 @@ export default function Donate() {
                     className="border border-warm-gray/30 p-6 bg-paper hover:border-rust/30 transition-colors cursor-pointer relative"
                   >
                     {/* Corner accents */}
-                    <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-rust/20 pointer-events-none" />
-                    <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-rust/20 pointer-events-none" />
+                    <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-rust/30 pointer-events-none" />
+                    <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-rust/30 pointer-events-none" />
 
                     <span className="font-body text-caption text-sepia-mid tracking-[0.15em]">
                       FINANCIAL REPORT

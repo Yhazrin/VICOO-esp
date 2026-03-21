@@ -102,7 +102,7 @@ export default function CampaignDetail() {
         <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/20 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
           <div className="max-w-[1400px] mx-auto">
-            <span className="font-body text-[10px] tracking-[0.3em] uppercase text-pale-gold mb-3 block">
+            <span className="font-body text-overline tracking-[0.3em] uppercase text-pale-gold mb-3 block">
               {t(`campaigns.status.${campaign.status}`)} Campaign
             </span>
             <BleedTitleBlock>
@@ -141,24 +141,24 @@ export default function CampaignDetail() {
                       {t('campaigns.detail.progress')}
                     </span>
                   </div>
-                  <div className="w-full h-1.5 bg-warm-gray/30 rounded-full overflow-hidden mb-4">
+                  <div className="w-full h-1.5 bg-warm-gray/30 rounded-sm overflow-hidden mb-4">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${progress}%` }}
                       transition={{ duration: 1.2, ease: 'easeOut' }}
-                      className="h-full bg-archive-brown rounded-full"
+                      className="h-full bg-archive-brown rounded-sm"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4 text-center">
                     <div>
                       <p className="font-display text-xl text-ink">{campaign.participantCount}</p>
-                      <p className="font-body text-[10px] text-sepia-mid tracking-wider uppercase">
+                      <p className="font-body text-overline text-sepia-mid tracking-wider uppercase">
                         {t('campaigns.detail.participants')}
                       </p>
                     </div>
                     <div>
                       <p className="font-display text-xl text-ink">{campaign.artworkCount}</p>
-                      <p className="font-body text-[10px] text-sepia-mid tracking-wider uppercase">
+                      <p className="font-body text-overline text-sepia-mid tracking-wider uppercase">
                         Artworks
                       </p>
                     </div>

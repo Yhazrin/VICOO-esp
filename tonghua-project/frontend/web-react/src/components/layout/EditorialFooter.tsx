@@ -11,7 +11,7 @@ export default function EditorialFooter() {
     <footer className="bg-ink text-paper mt-auto relative overflow-hidden">
       {/* Grain overlay */}
       <div
-        className="absolute inset-0 z-0 pointer-events-none opacity-10"
+        className="absolute inset-0 z-0 pointer-events-none opacity-[0.06]"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
         }}
@@ -22,7 +22,7 @@ export default function EditorialFooter() {
       <div
         className="absolute inset-0 z-0 pointer-events-none opacity-5"
         style={{
-          background: 'linear-gradient(to bottom, transparent 0%, rgba(139, 90, 43, 0.1) 100%)'
+          background: 'linear-gradient(to bottom, transparent 0%, color-mix(in srgb, var(--color-rust) 10%, transparent) 100%)'
         }}
         aria-hidden="true"
       />
@@ -81,14 +81,14 @@ export default function EditorialFooter() {
               Vision In Creative Opportunity
             </p>
             <div className="w-12 h-px bg-pale-gold mb-6" aria-hidden="true" />
-            <p className="font-body text-[10px] tracking-[0.2em] uppercase text-sepia-mid">
+            <p className="font-body text-overline tracking-[0.2em] uppercase text-sepia-mid">
               {t('footer.issueNo')}
             </p>
           </div>
 
           {/* Publication */}
           <div className="md:col-span-2">
-            <h4 className="font-body text-[10px] tracking-[0.2em] uppercase text-sepia-mid mb-6">
+            <h4 className="font-body text-overline tracking-[0.2em] uppercase text-sepia-mid mb-6">
               {t('footer.sections.publication')}
             </h4>
             <ul className="space-y-3">
@@ -109,7 +109,7 @@ export default function EditorialFooter() {
 
           {/* Connect */}
           <div className="md:col-span-2">
-            <h4 className="font-body text-[10px] tracking-[0.2em] uppercase text-sepia-mid mb-6">
+            <h4 className="font-body text-overline tracking-[0.2em] uppercase text-sepia-mid mb-6">
               {t('footer.sections.connect')}
             </h4>
             <ul className="space-y-3">
@@ -130,7 +130,7 @@ export default function EditorialFooter() {
 
           {/* Legal */}
           <div className="md:col-span-2">
-            <h4 className="font-body text-[10px] tracking-[0.2em] uppercase text-sepia-mid mb-6">
+            <h4 className="font-body text-overline tracking-[0.2em] uppercase text-sepia-mid mb-6">
               {t('footer.sections.legal')}
             </h4>
             <ul className="space-y-3">
@@ -167,7 +167,7 @@ export default function EditorialFooter() {
               className="absolute -bottom-1 -right-1 pointer-events-none"
             />
 
-            <h4 className="font-body text-[10px] tracking-[0.2em] uppercase text-sepia-mid mb-6">
+            <h4 className="font-body text-overline tracking-[0.2em] uppercase text-sepia-mid mb-6">
               Newsletter
             </h4>
             <p className="font-body text-xs text-warm-gray mb-4 leading-relaxed">
@@ -189,7 +189,7 @@ export default function EditorialFooter() {
               />
               <motion.button
                 type="submit"
-                className="font-body text-[10px] tracking-[0.15em] uppercase text-pale-gold hover:text-paper transition-colors text-left cursor-pointer"
+                className="font-body text-overline tracking-[0.15em] uppercase text-pale-gold hover:text-paper transition-colors text-left cursor-pointer"
                 whileHover={{ x: 4 }}
               >
                 Subscribe &rarr;
@@ -200,14 +200,14 @@ export default function EditorialFooter() {
 
         {/* Divider */}
         <div className="border-t border-sepia-mid/20 pt-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <p className="font-body text-[11px] text-sepia-mid">
+          <p className="font-body text-label text-sepia-mid">
             &copy; {year} VICOO. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
-            <span className="font-body text-[11px] text-sepia-mid">
+            <span className="font-body text-label text-sepia-mid">
               Shanghai, China
             </span>
-            <span className="font-body text-[11px] text-sepia-mid">
+            <span className="font-body text-label text-sepia-mid">
               Built with care
             </span>
           </div>

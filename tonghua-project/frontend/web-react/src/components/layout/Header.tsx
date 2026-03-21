@@ -66,7 +66,7 @@ export default function Header() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-paper/90 backdrop-blur-sm border-b border-warm-gray/30">
       {/* Grain overlay */}
-      <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.08]" style={{
+      <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.06]" style={{
         backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
       }} />
       <div className="relative max-w-[1400px] mx-auto px-6 md:px-10 flex items-center justify-between h-16 md:h-20">
@@ -93,7 +93,7 @@ export default function Header() {
                     ${isActive ? 'text-rust' : 'text-ink-faded hover:text-ink'}
                   `}
                 >
-                  <span className="text-[9px] tracking-[0.2em] text-sepia-mid mr-2 font-mono">
+                  <span className="text-[9px] tracking-[0.2em] text-sepia-mid mr-2 font-body">
                     {String(index + 1).padStart(2, '0')}
                   </span>
                   {t(`nav.${item.key}`)}
@@ -122,7 +122,7 @@ export default function Header() {
                 aria-label="User menu"
                 aria-expanded={userMenuOpen}
               >
-                <span className="text-[9px] tracking-[0.2em] text-sepia-mid font-mono">USER</span>
+                <span className="text-[9px] tracking-[0.2em] text-sepia-mid font-body">USER</span>
                 <span className="max-w-[120px] truncate">{user.nickname || user.email}</span>
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -135,7 +135,7 @@ export default function Header() {
                   <div className="py-2">
                     <div className="px-4 py-2 border-b border-warm-gray/20">
                       <p className="font-body text-xs text-ink-faded">{user.nickname || user.email}</p>
-                      <p className="font-body text-[10px] text-sepia-mid capitalize">{user.role}</p>
+                      <p className="font-body text-overline text-sepia-mid capitalize">{user.role}</p>
                     </div>
                     <Link
                       to="/profile"

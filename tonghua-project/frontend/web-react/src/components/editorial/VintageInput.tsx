@@ -67,7 +67,7 @@ export const VintageInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, V
         {label && (
           <label
             htmlFor={inputId}
-            className="font-body text-[10px] tracking-[0.2em] uppercase text-sepia-mid block"
+            className="font-body text-overline tracking-[0.2em] uppercase text-sepia-mid block"
           >
             {label}
           </label>
@@ -109,7 +109,7 @@ export const VintageInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, V
         </div>
 
         {helperText && (
-          <p id={helperId} className="font-body text-[10px] text-sepia-mid/70">
+          <p id={helperId} className="font-body text-overline text-sepia-mid/70">
             {helperText}
           </p>
         )}
@@ -119,7 +119,7 @@ export const VintageInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, V
             id={errorId}
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
-            className="font-body text-[10px] text-archive-brown"
+            className="font-body text-overline text-archive-brown"
           >
             {error}
           </motion.p>

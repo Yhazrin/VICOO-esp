@@ -15,7 +15,10 @@
   },
   "profile": {
     "title": "个人中心",
-    "notLoggedIn": "请登录以查看您的个人资料。"
+    "notLoggedIn": "请登录以查看您的个人资料。",
+    "accountDetails": "账户详情",
+    "userId": "用户ID",
+    "role": "角色"
   },
   "home": {
     "hero": {
@@ -418,7 +421,9 @@
     "register": "创建账户",
     "forgotPassword": "忘记密码？",
     "orContinueWith": "或使用以下方式继续",
-    "wechat": "微信"
+    "wechat": "微信",
+    "rememberMe": "记住我",
+    "submitting": "登录中..."
   },
   "register": {
     "title": "加入我们的社区",
@@ -428,6 +433,7 @@
     "password": "密码",
     "confirmPassword": "确认密码",
     "submit": "创建账户",
+    "submitting": "创建中...",
     "login": "登录",
     "orContinueWith": "或使用以下方式继续",
     "wechat": "微信",

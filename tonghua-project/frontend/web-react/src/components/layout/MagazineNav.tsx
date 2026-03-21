@@ -61,7 +61,7 @@ export default function MagazineNav() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-paper/95 backdrop-blur-sm border-b border-warm-gray/30">
       {/* Grain overlay */}
-      <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.08]" style={{
+      <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.06]" style={{
         backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
       }} />
 
@@ -90,7 +90,7 @@ export default function MagazineNav() {
                   key={item.key}
                   to={item.path}
                   className={`
-                    relative font-body text-[11px] tracking-wide px-4 py-2.5 transition-all duration-300 overflow-hidden
+                    relative font-body text-label tracking-wide px-4 py-2.5 transition-all duration-300 overflow-hidden
                     ${isActive ? 'text-rust' : 'text-ink-faded hover:text-ink'}
                   `}
                 >
@@ -104,7 +104,7 @@ export default function MagazineNav() {
 
                   {/* Content */}
                   <div className="relative z-10 flex items-center">
-                    <span className="text-[9px] tracking-[0.2em] text-sepia-mid mr-2 font-mono">
+                    <span className="text-[9px] tracking-[0.2em] text-sepia-mid mr-2 font-body">
                       {String(index + 1).padStart(2, '0')}
                     </span>
                     <span className="relative">
@@ -128,7 +128,7 @@ export default function MagazineNav() {
         <div className="flex items-center gap-3">
           <button
             onClick={toggleLocale}
-            className="relative font-body text-[10px] tracking-[0.1em] uppercase text-ink-faded hover:text-ink transition-colors px-3 py-1.5 border border-warm-gray/40 rounded-sm cursor-pointer overflow-hidden group"
+            className="relative font-body text-overline tracking-[0.1em] uppercase text-ink-faded hover:text-ink transition-colors px-3 py-1.5 border border-warm-gray/40 rounded-sm cursor-pointer overflow-hidden group"
             aria-label="Toggle language"
           >
             <span className="relative z-10">{currentLocale === 'en' ? '中文' : 'EN'}</span>
@@ -145,7 +145,7 @@ export default function MagazineNav() {
             <div className="relative" ref={userMenuRef}>
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="hidden md:flex items-center gap-2 font-body text-[11px] tracking-[0.05em] text-ink-faded hover:text-ink transition-colors px-4 py-2 border border-warm-gray/40 rounded-sm overflow-hidden group"
+                className="hidden md:flex items-center gap-2 font-body text-label tracking-[0.05em] text-ink-faded hover:text-ink transition-colors px-4 py-2 border border-warm-gray/40 rounded-sm overflow-hidden group"
                 aria-label="User menu"
                 aria-expanded={userMenuOpen}
               >
@@ -167,7 +167,7 @@ export default function MagazineNav() {
                   <div className="py-2">
                     <div className="px-4 py-2 border-b border-warm-gray/20">
                       <p className="font-body text-xs text-ink-faded">{user.nickname || user.email}</p>
-                      <p className="font-body text-[10px] text-sepia-mid capitalize">{user.role}</p>
+                      <p className="font-body text-overline text-sepia-mid capitalize">{user.role}</p>
                     </div>
                     <Link
                       to="/profile"
@@ -191,7 +191,7 @@ export default function MagazineNav() {
             <>
               <Link
                 to="/login"
-                className="hidden md:inline-block relative font-body text-[11px] tracking-[0.05em] text-ink-faded hover:text-ink transition-colors px-4 py-2 border border-warm-gray/40 rounded-sm overflow-hidden group"
+                className="hidden md:inline-block relative font-body text-label tracking-[0.05em] text-ink-faded hover:text-ink transition-colors px-4 py-2 border border-warm-gray/40 rounded-sm overflow-hidden group"
               >
                 <span className="relative z-10">{t('nav.login')}</span>
                 <motion.div
@@ -204,7 +204,7 @@ export default function MagazineNav() {
 
               <Link
                 to="/register"
-                className="hidden md:inline-block relative font-body text-[11px] tracking-[0.05em] text-paper bg-ink hover:bg-rust transition-colors px-4 py-2 rounded-sm overflow-hidden group"
+                className="hidden md:inline-block relative font-body text-label tracking-[0.05em] text-paper bg-ink hover:bg-rust transition-colors px-4 py-2 rounded-sm overflow-hidden group"
               >
                 <span className="relative z-10">{t('nav.register')}</span>
                 <motion.div

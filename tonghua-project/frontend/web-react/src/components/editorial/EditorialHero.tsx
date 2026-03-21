@@ -95,7 +95,7 @@ export default function EditorialHero({
             {/* Large decorative circle top-right */}
             <div
               className="absolute -top-20 -right-20 w-[40vw] h-[40vw] max-w-[600px] max-h-[600px]
-                         rounded-full border border-sepia-mid/10"
+                         rounded border border-sepia-mid/10"
             />
             {/* Large faded rectangle bottom-left */}
             <div
@@ -138,15 +138,15 @@ export default function EditorialHero({
                     0deg,
                     transparent,
                     transparent 2px,
-                    rgba(92, 77, 61, 0.3) 2px,
-                    rgba(92, 77, 61, 0.3) 4px
+                    color-mix(in srgb, var(--color-sepia-mid) 30%, transparent) 2px,
+                    color-mix(in srgb, var(--color-sepia-mid) 30%, transparent) 4px
                   ),
                   repeating-linear-gradient(
                     90deg,
                     transparent,
                     transparent 2px,
-                    rgba(92, 77, 61, 0.3) 2px,
-                    rgba(92, 77, 61, 0.3) 4px
+                    color-mix(in srgb, var(--color-sepia-mid) 30%, transparent) 2px,
+                    color-mix(in srgb, var(--color-sepia-mid) 30%, transparent) 4px
                   )
                 `,
               }}
@@ -227,7 +227,7 @@ export default function EditorialHero({
           transition={{ delay: 1, duration: 0.6 }}
           className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
         >
-          <span className="font-body text-[10px] tracking-[0.2em] uppercase text-sepia-mid">
+          <span className="font-body text-overline tracking-[0.2em] uppercase text-sepia-mid">
             Scroll
           </span>
           <motion.div
@@ -262,7 +262,7 @@ export default function EditorialHero({
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: 'linear-gradient(to top, rgba(26, 26, 22, 0.04), transparent)',
+            background: 'linear-gradient(to top, color-mix(in srgb, var(--color-ink) 4%, transparent), transparent)',
           }}
         />
       </motion.div>
