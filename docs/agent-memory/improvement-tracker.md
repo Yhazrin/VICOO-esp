@@ -139,6 +139,22 @@
 | 105 | Backend — auth.py duplicated cookie-setting code (7 occurrences) | Medium | ✅ done — extracted `_set_auth_cookies()` helper, 528→406 lines |
 | 106 | Backend — auth.py info-leaking logger calls | High | ✅ done — removed 4 lines logging `is_secure`, `APP_ENV`, response headers |
 | 107 | Backend — products.py route ordering: `/{product_id}` shadows `/{product_id}/supply-chain` | High | ✅ done — moved supply-chain route before wildcard |
+| 108 | Backend — deps.py auth fallback returns user data from JWT when DB fails | High | ✅ done — raises HTTP 503 on DB error, HTTP 401 if user not found |
+| 109 | Backend — payments.py hardcoded HMAC signature check | High | ✅ done — replaced with proper HMAC-SHA256 verification using APP_SECRET_KEY |
+| 110 | Frontend — types/index.ts all entity IDs string→number | High | ✅ done — User, Artwork, Campaign, Story, Product, SupplyChainRecord, DonationTier, Donation, Order |
+| 111 | Frontend — types: imageUrls→image_url, anonymous→is_anonymous, shippingAddress→shipping_address | High | ✅ done — aligned with backend schema |
+| 112 | Frontend — all services response unwrapping `response.data`→`response.data.data` | High | ✅ done — 9 service files fixed |
+| 113 | Frontend — supply-chain.ts service file missing | Medium | ✅ done — created with trace/getRecords/getStages |
+| 114 | Accessibility — Header/MagazineNav missing keyboard nav + ARIA roles | Medium | ✅ done — role=menu/menuitem, Escape/Arrow keys, aria-haspopup |
+| 115 | Accessibility — VintageSelect missing error ARIA | Medium | ✅ done — added error prop with aria-describedby/aria-invalid |
+| 116 | Accessibility — EditorialHeroV2 text-gray-400 insufficient contrast | Medium | ✅ done — changed to text-ink-faded |
+| 117 | Accessibility — ProductCard <form> inside <a> invalid nesting | Medium | ✅ done — moved Notify Me section outside Link wrapper |
+| 118 | Sustainability — Traceability page not wired to API | Medium | ✅ done — useQuery + supplyChainApi.trace() with mock fallback |
+| 119 | Sustainability — Donate page impact stats not dynamic | Low | ✅ done — wired to donationsApi.getImpactStats() |
+| 120 | Sustainability — Stories page not wired to API | Medium | ✅ done — wired to artworksApi.getAll(), fixed artwork links |
+| 121 | Content — ChildrenSafety placeholder text | Medium | ✅ done — 8 real content sections |
+| 122 | Content — Privacy placeholder text | Medium | ✅ done — 9 real content sections |
+| 123 | i18n — missing translation keys for new features | Low | ✅ done — 88 lines added to en.json/zh.json |
 
 ## Pending
 
