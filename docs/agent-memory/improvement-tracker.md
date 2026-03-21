@@ -1,6 +1,6 @@
 # Improvement Tracker
 
-> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 7)
+> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 17)
 > Scope broadened: now covers frontend UI/UX + backend architecture + software architecture + sustainability + code quality
 
 ## Completed
@@ -165,6 +165,20 @@
 | 126 | Backend — list_donations exposes PII to unauthenticated users | High | ✅ done — optional auth via get_optional_current_user, redact donor_name/message/donor_user_id |
 | 127 | Backend — deps.py missing optional auth dependency | Medium | ✅ done — get_optional_current_user() returns user dict or None, no exception on auth failure |
 | 128 | Backend — donations.py missing name redaction helper | Medium | ✅ done — _redact_name() masks names to first char + asterisks, handles anonymous flag |
+
+## Completed — Cycle 17 (2026-03-22)
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 129 | Security — RegisterRequest missing EmailStr validation | High | ✅ done — changed `email: str` to `email: EmailStr` in schemas/user.py |
+| 130 | Reduced-motion — ArtworkCard broken pattern (initial=false → invisible) | High | ✅ done — `initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 40 }}` |
+| 131 | Reduced-motion — SepiaImageFrame broken pattern (initial=false → invisible) | High | ✅ done — same pattern fix as ArtworkCard |
+| 132 | Reduced-motion — StoryQuoteBlock broken pattern (initial=false → invisible) | High | ✅ done — same pattern fix as ArtworkCard |
+| 133 | Accessibility — Login social buttons missing aria-label + SVG aria-hidden | Medium | ✅ done — 3 aria-labels (Sign in with GitHub/Google/WeChat) + 3 SVG aria-hidden |
+| 134 | Accessibility — Register social buttons missing aria-label + SVG aria-hidden | Medium | ✅ done — 3 aria-labels (Sign up with GitHub/Google/WeChat) + 3 SVG aria-hidden |
+| 135 | Accessibility — DonationPanel amount presets missing aria-pressed | Low | ✅ done — `aria-pressed={selectedAmount === amount && !customAmount}` |
+| 136 | Accessibility — Campaigns pagination missing aria-label + aria-current | Low | ✅ done — aria-label on prev/next/page buttons, aria-current="page" on active |
+| 137 | TypeScript — Donation.tierId/campaignId string→number | Medium | ✅ done — aligned with entity ID number convention |
 
 ## Pending
 

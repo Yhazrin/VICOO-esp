@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-03-22 — Cycle 17: Reduced-Motion, ARIA, Type Safety
+
+### Accessibility
+
+- **Login social buttons** — Added `aria-label` to GitHub/Google/WeChat buttons; added `aria-hidden="true"` to all 3 SVG icons (6 attributes)
+- **Register social buttons** — Same as Login, with "Sign up" labels instead of "Sign in"
+- **DonationPanel amount presets** — Added `aria-pressed` to 4 preset amount buttons indicating selection state
+- **Campaigns pagination** — Added `aria-label` to prev/next buttons + page number buttons; added `aria-current="page"` to active page
+
+### Reduced-Motion
+
+- **ArtworkCard** — Fixed broken reduced-motion pattern: `initial={prefersReducedMotion ? false : ...}` → `initial={prefersReducedMotion ? { opacity: 1 } : ...}`; simplified `animate` to always apply final state
+- **SepiaImageFrame** — Same pattern fix — elements were invisible when reduced motion preferred
+- **StoryQuoteBlock** — Same pattern fix — quote block was invisible when reduced motion preferred
+
+### Security
+
+- **schemas/user.py** — Imported `EmailStr` for email field validation on `UserCreate`; increased password `min_length` from 6 to 8
+
+### TypeScript
+
+- **types/index.ts** — Fixed `Donation.tierId` and `Donation.campaignId` from `string` to `number` to match entity ID conventions
+
 ## 2026-03-22 — Cycle 8b: Backend Security Hardening
 
 ### Security

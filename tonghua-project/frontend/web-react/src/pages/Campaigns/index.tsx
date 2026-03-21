@@ -421,6 +421,7 @@ export default function Campaigns() {
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
+              aria-label={t('campaigns.pagination.prev')}
               className="font-body text-caption tracking-wider uppercase px-4 py-2 border border-warm-gray/30 text-sepia-mid hover:border-rust hover:text-rust disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all"
             >
               {t('campaigns.pagination.prev')}
@@ -429,6 +430,8 @@ export default function Campaigns() {
               <button
                 key={p}
                 onClick={() => setPage(p)}
+                aria-label={`Page ${p}`}
+                aria-current={page === p ? 'page' : undefined}
                 className={`
                   w-11 h-11 font-body text-caption border transition-all cursor-pointer
                   ${page === p
@@ -443,6 +446,7 @@ export default function Campaigns() {
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
+              aria-label={t('campaigns.pagination.next')}
               className="font-body text-caption tracking-wider uppercase px-4 py-2 border border-warm-gray/30 text-sepia-mid hover:border-rust hover:text-rust disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all"
             >
               {t('campaigns.pagination.next')}
