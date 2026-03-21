@@ -1,12 +1,10 @@
 import { type ReactNode, useRef, useEffect, useState } from 'react';
-import { motion, AnimatePresence, useReducedMotion, useScroll, useTransform, useSpring, motionValue } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 
 interface HorizontalScrollTransitionProps {
   children: ReactNode;
 }
-
-const springConfig = { stiffness: 300, damping: 30, mass: 0.5 };
 
 export default function HorizontalScrollTransition({ children }: HorizontalScrollTransitionProps) {
   const location = useLocation();
@@ -14,7 +12,6 @@ export default function HorizontalScrollTransition({ children }: HorizontalScrol
   const containerRef = useRef<HTMLDivElement>(null);
   const [mousePosition, setMousePosition] = useState({ x: 0.5, y: 0.5 });
 
-  // Track mouse position for parallax
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (containerRef.current) {
@@ -47,7 +44,6 @@ export default function HorizontalScrollTransition({ children }: HorizontalScrol
     );
   }
 
-  // Direction-aware animation: slide from right on enter, slide to left on exit
   const slideVariants = {
     initial: {
       opacity: 0,
@@ -61,7 +57,6 @@ export default function HorizontalScrollTransition({ children }: HorizontalScrol
       transition: {
         duration: 0.6,
         ease: [0.22, 1, 0.36, 1],
-        ...springConfig,
       },
     },
     exit: {
@@ -75,21 +70,15 @@ export default function HorizontalScrollTransition({ children }: HorizontalScrol
     },
   };
 
-  // Parallax layers for depth effect
-  const parallaxVariants = {
-    animate: {
-      x: (mousePosition.x - 0.5) * -20,
-      y: (mousePosition.y - 0.5) * -10,
-    },
-  };
+  const parallaxX = (mousePosition.x - 0.5) * -20;
+  const parallaxY = (mousePosition.y - 0.5) * -10;
 
   return (
     <div ref={containerRef} className="relative overflow-hidden">
       {/* Background decorative layer with parallax */}
       <motion.div
         className="absolute inset-0 pointer-events-none opacity-[0.03]"
-        variants={parallaxVariants}
-        animate="animate"
+        animate={{ x: parallaxX, y: parallaxY }}
         transition={{ type: 'spring', stiffness: 100, damping: 20 }}
       >
         <div
@@ -111,7 +100,7 @@ export default function HorizontalScrollTransition({ children }: HorizontalScrol
       />
 
       {/* Main content with animations */}
-      <AnimatePresence mode="wait" initial={false">
+      <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={location.pathname}
           variants={slideVariants}
@@ -152,12 +141,11 @@ export default function HorizontalScrollTransition({ children }: HorizontalScrol
             </svg>
           </motion.div>
 
-          {/* Content */}
           {children}
         </motion.div>
       </AnimatePresence>
 
-      {/* Corner unfold accent */}
+      {/* Corner unfold accents */}
       <motion.div
         className="absolute top-0 right-0 w-32 h-32 pointer-events-none overflow-hidden"
         initial={{ opacity: 0 }}
@@ -176,7 +164,6 @@ export default function HorizontalScrollTransition({ children }: HorizontalScrol
         </motion.div>
       </motion.div>
 
-      {/* Bottom corner unfold */}
       <motion.div
         className="absolute bottom-0 left-0 w-32 h-32 pointer-events-none overflow-hidden"
         initial={{ opacity: 0 }}
