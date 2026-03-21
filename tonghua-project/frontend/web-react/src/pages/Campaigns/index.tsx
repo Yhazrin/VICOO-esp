@@ -285,8 +285,7 @@ export default function Campaigns() {
                 return (
                   <motion.article
                     key={campaign.id}
-                    initial={{ opacity: 0, y: 40 }}
-                    whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+                    {...(prefersReducedMotion ? {} : { initial: { opacity: 0, y: 40 }, whileInView: { opacity: 1, y: 0 } })}
                     viewport={{ once: true, margin: '-80px' }}
                     transition={{ duration: 0.7, ease: [0, 0, 0.2, 1] }}
                   >
@@ -349,8 +348,7 @@ export default function Campaigns() {
                               </div>
                               <div className="h-1.5 bg-warm-gray/30 w-full">
                                 <motion.div
-                                  initial={{ width: 0 }}
-                                  whileInView={prefersReducedMotion ? undefined : { width: `${Math.min(100, fundingPercent)}%` }}
+                                  {...(prefersReducedMotion ? { style: { width: `${Math.min(100, fundingPercent)}%` } } : { initial: { width: 0 }, whileInView: { width: `${Math.min(100, fundingPercent)}%` } })}
                                   viewport={{ once: true }}
                                   transition={{ duration: 1, delay: 0.3, type: 'spring', stiffness: 60, damping: 20 }}
                                   className={`h-full ${isCompleted ? 'bg-sepia-mid' : 'bg-rust'}`}
@@ -362,8 +360,7 @@ export default function Campaigns() {
                           {/* Featured child quote */}
                           {campaign.featured && campaign.featuredChild && (
                             <motion.div
-                              initial={{ opacity: 0, x: -10 }}
-                              whileInView={prefersReducedMotion ? undefined : { opacity: 1, x: 0 }}
+                              {...(prefersReducedMotion ? {} : { initial: { opacity: 0, x: -10 }, whileInView: { opacity: 1, x: 0 } })}
                               viewport={{ once: true }}
                               transition={{ duration: 0.6, delay: 0.5 }}
                               className="border-l-2 border-rust/30 pl-4 mt-5"

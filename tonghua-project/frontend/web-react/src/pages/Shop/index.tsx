@@ -245,8 +245,7 @@ export default function Shop() {
             {/* Left: Lead pillar — wider, more emphasis */}
             <motion.div
               className="md:col-span-7 md:border-r border-warm-gray/30 md:pr-12"
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={prefersReducedMotion ? undefined : { opacity: 1, x: 0 }}
+              {...(prefersReducedMotion ? {} : { initial: { opacity: 0, x: -20 }, whileInView: { opacity: 1, x: 0 } })}
               viewport={{ once: true }}
               transition={{ duration: 0.6, ease: [0, 0, 0.2, 1] }}
             >
@@ -266,8 +265,7 @@ export default function Shop() {
             {/* Right: Secondary pillars stacked */}
             <div className="md:col-span-5 flex flex-col gap-8">
               <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={prefersReducedMotion ? undefined : { opacity: 1, x: 0 }}
+                {...(prefersReducedMotion ? {} : { initial: { opacity: 0, x: 20 }, whileInView: { opacity: 1, x: 0 } })}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.1, ease: [0, 0, 0.2, 1] }}
               >
@@ -285,8 +283,7 @@ export default function Shop() {
               <div className="h-px bg-warm-gray/30" />
 
               <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={prefersReducedMotion ? undefined : { opacity: 1, x: 0 }}
+                {...(prefersReducedMotion ? {} : { initial: { opacity: 0, x: 20 }, whileInView: { opacity: 1, x: 0 } })}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.2, ease: [0, 0, 0.2, 1] }}
               >
@@ -313,8 +310,7 @@ export default function Shop() {
           {/* Left: Workshop image — 8/12 columns */}
           <motion.div
             className="md:col-span-8"
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={prefersReducedMotion ? undefined : { opacity: 1, x: 0 }}
+            {...(prefersReducedMotion ? {} : { initial: { opacity: 0, x: -30 }, whileInView: { opacity: 1, x: 0 } })}
             viewport={{ once: true }}
             transition={{ duration: 0.7, ease: [0, 0, 0.2, 1] }}
           >
@@ -332,8 +328,7 @@ export default function Shop() {
           {/* Right: Editorial text — 4/12 columns */}
           <motion.div
             className="md:col-span-4 flex flex-col justify-center"
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={prefersReducedMotion ? undefined : { opacity: 1, x: 0 }}
+            {...(prefersReducedMotion ? {} : { initial: { opacity: 0, x: 30 }, whileInView: { opacity: 1, x: 0 } })}
             viewport={{ once: true }}
             transition={{ duration: 0.7, delay: 0.15, ease: [0, 0, 0.2, 1] }}
           >
