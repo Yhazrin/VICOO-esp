@@ -4,7 +4,7 @@
 
 **Base URL:** `https://api.tonghua.org/api/v1`
 **Version:** 1.0.0
-**Last Updated:** 2026-03-19
+**Last Updated:** 2026-03-21
 
 ---
 
@@ -42,6 +42,9 @@
 - [Payments](#payments)
   - [POST /payments/create](#post-paymentscreate)
   - [POST /payments/webhook/{provider}](#post-paymentswebhookprovider)
+- [Contact](#contact)
+  - [POST /contact](#post-contact)
+  - [GET /contact/messages](#get-contactmessages)
 - [Admin](#admin)
   - [GET /admin/audit](#get-adminaudit)
   - [GET /admin/analytics](#get-adminanalytics)
@@ -1525,6 +1528,109 @@ Receive payment provider callback notifications. This endpoint is called by paym
 
 ---
 
+## Contact
+
+### POST /contact
+
+Submit a contact form message.
+
+**Authentication:** Not required
+**Rate Limit:** 10 requests/hour per IP
+
+**Request Body:**
+
+```json
+{
+  "name": "Jane Doe",
+  "email": "jane@example.com",
+  "subject": "Partnership inquiry",
+  "message": "I would like to discuss a potential partnership for our school district's art program."
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| name | string | Yes | Sender name (1-100 chars) |
+| email | string | Yes | Sender email (5-255 chars) |
+| subject | string | Yes | Message subject (1-200 chars) |
+| message | string | Yes | Message body (10-5000 chars) |
+
+**Success Response (201):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "message": "Contact form submitted successfully"
+  }
+}
+```
+
+**Error Responses:**
+
+400 - Validation error:
+```json
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Message must be at least 10 characters"
+  }
+}
+```
+
+**Example curl:**
+
+```bash
+curl -X POST https://api.tonghua.org/api/v1/contact \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Jane Doe",
+    "email": "jane@example.com",
+    "subject": "Partnership inquiry",
+    "message": "I would like to discuss a potential partnership for our school district art program."
+  }'
+```
+
+---
+
+### GET /contact/messages
+
+List all contact form messages. Admin only in production.
+
+**Authentication:** Required (Bearer token, admin role)
+**Rate Limit:** 60 requests/minute per user
+
+**Success Response (200):**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "name": "Jane Doe",
+      "email": "jane@example.com",
+      "subject": "Partnership inquiry",
+      "message": "I would like to discuss a potential partnership...",
+      "created_at": "2026-03-21T10:30:00",
+      "status": "unread"
+    }
+  ]
+}
+```
+
+**Example curl:**
+
+```bash
+curl "https://api.tonghua.org/api/v1/contact/messages" \
+  -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIs..."
+```
+
+---
+
 ## Admin
 
 ### GET /admin/audit
@@ -1727,4 +1833,4 @@ curl -X PUT https://api.tonghua.org/api/v1/admin/campaigns/cmp_spring2026 \
 ---
 
 *API Version: v1*
-*Last updated: 2026-03-19*
+*Last updated: 2026-03-21*

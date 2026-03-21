@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
@@ -10,7 +10,41 @@ import PaperTextureBackground from '@/components/editorial/PaperTextureBackgroun
 import TraceabilityTimeline from '@/components/editorial/TraceabilityTimeline';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import { useCartStore } from '@/stores/cartStore';
+import { productsApi } from '@/services/products';
 import type { Product, SupplyChainRecord } from '@/types';
+
+function ThumbnailButton({
+  url,
+  index,
+  selected,
+  onSelect,
+}: {
+  url: string;
+  index: number;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <button
+      onClick={onSelect}
+      aria-label={'View image ' + (index + 1)}
+      className={`w-16 h-16 overflow-hidden border-2 transition-colors relative cursor-pointer ${
+        selected ? 'border-ink' : 'border-transparent'
+      }`}
+    >
+      {!loaded && <ImageSkeleton className="absolute inset-0" aspectRatio="aspect-square" />}
+      <img
+        src={url}
+        alt=""
+        aria-hidden="true"
+        className={`w-full h-full object-cover ${loaded ? 'opacity-100' : 'opacity-0'}`}
+        style={{ filter: 'sepia(0.2) contrast(1.05) brightness(0.97)' }}
+        onLoad={() => setLoaded(true)}
+      />
+    </button>
+  );
+}
 
 const MOCK_SUPPLY_CHAIN: SupplyChainRecord[] = [
   {
@@ -97,19 +131,70 @@ const MOCK_PRODUCT: Product = {
 };
 
 export default function ProductDetail() {
+  const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
-  const product = MOCK_PRODUCT;
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
 
+  useEffect(() => {
+    if (!id) {
+      setProduct(MOCK_PRODUCT);
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    productsApi
+      .getById(id)
+      .then((data: any) => {
+        if (!cancelled) {
+          const raw = data?.data ?? data;
+          const imageUrls = raw.image_urls ?? raw.imageUrls ?? MOCK_PRODUCT.imageUrls;
+          setProduct({
+            ...MOCK_PRODUCT,
+            ...raw,
+            id: String(raw.id ?? id),
+            imageUrls: Array.isArray(imageUrls) ? imageUrls : [imageUrls],
+            price: Number(raw.price ?? MOCK_PRODUCT.price),
+            inStock: raw.stock != null ? raw.stock > 0 : (raw.inStock ?? MOCK_PRODUCT.inStock),
+            stockCount: raw.stock ?? raw.stockCount ?? MOCK_PRODUCT.stockCount,
+            sustainabilityScore: raw.sustainability_score ?? raw.sustainabilityScore ?? MOCK_PRODUCT.sustainabilityScore,
+            supplyChain: raw.supply_chain ?? raw.supplyChain ?? MOCK_PRODUCT.supplyChain,
+          });
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setProduct(MOCK_PRODUCT);
+          setLoading(false);
+        }
+      });
+    return () => { cancelled = true; };
+  }, [id]);
+
   const handleAddToCart = () => {
+    if (!product) return;
     addItem(product, quantity);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
+
+  if (loading || !product) {
+    return (
+      <PageWrapper>
+        <PaperTextureBackground variant="paper" className="py-16 md:py-24">
+          <SectionContainer>
+            <p className="font-body text-sepia-mid">{t('shop.loading', 'Loading product...')}</p>
+          </SectionContainer>
+        </PaperTextureBackground>
+      </PageWrapper>
+    );
+  }
 
   const totalCarbon = product.supplyChain.reduce(
     (sum, r) => sum + (r.carbonFootprint ?? 0),
@@ -138,29 +223,15 @@ export default function ProductDetail() {
               </motion.div>
               {product.imageUrls.length > 1 && (
                 <div className="flex gap-3 mt-4">
-                  {product.imageUrls.map((url, index) => {
-                    const [thumbLoaded, setThumbLoaded] = useState(false);
-                    return (
-                      <button
-                        key={index}
-                        onClick={() => setSelectedImage(index)}
-                        aria-label={'View image ' + (index + 1)}
-                        className={`w-16 h-16 overflow-hidden border-2 transition-colors relative cursor-pointer ${
-                          selectedImage === index ? 'border-ink' : 'border-transparent'
-                        }`}
-                      >
-                        {!thumbLoaded && <ImageSkeleton className="absolute inset-0" aspectRatio="aspect-square" />}
-                        <img
-                          src={url}
-                          alt=""
-                          aria-hidden="true"
-                          className={`w-full h-full object-cover ${thumbLoaded ? 'opacity-100' : 'opacity-0'}`}
-                          style={{ filter: 'sepia(0.2) contrast(1.05) brightness(0.97)' }}
-                          onLoad={() => setThumbLoaded(true)}
-                        />
-                      </button>
-                    );
-                  })}
+                  {product.imageUrls.map((url, index) => (
+                    <ThumbnailButton
+                      key={index}
+                      url={url}
+                      index={index}
+                      selected={selectedImage === index}
+                      onSelect={() => setSelectedImage(index)}
+                    />
+                  ))}
                 </div>
               )}
             </div>

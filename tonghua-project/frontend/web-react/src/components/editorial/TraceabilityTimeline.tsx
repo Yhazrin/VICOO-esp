@@ -48,7 +48,7 @@ export default function TraceabilityTimeline({
         <motion.path
           d={`M 7 0 L 7 ${pathHeight}`}
           fill="none"
-          stroke="#D4CFC4"
+          stroke="var(--color-warm-gray)"
           strokeWidth="1"
           strokeLinecap="round"
           style={{

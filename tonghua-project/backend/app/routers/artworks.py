@@ -223,7 +223,7 @@ async def create_artwork(
 
 
 @router.put("/{artwork_id}", response_model=ApiResponse)
-async def update_artwork(artwork_id: int, body: ArtworkUpdate, db: AsyncSession = Depends(get_db)):
+async def update_artwork(artwork_id: int, body: ArtworkUpdate, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
     """Update an artwork."""
     try:
         stmt = select(Artwork).options(selectinload(Artwork.child_participant)).where(Artwork.id == artwork_id)
@@ -337,7 +337,7 @@ async def vote_artwork(artwork_id: int, db: AsyncSession = Depends(get_db), redi
 
 
 @router.delete("/{artwork_id}", response_model=ApiResponse)
-async def delete_artwork(artwork_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_artwork(artwork_id: int, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
     """Delete an artwork."""
     try:
         stmt = select(Artwork).where(Artwork.id == artwork_id)
