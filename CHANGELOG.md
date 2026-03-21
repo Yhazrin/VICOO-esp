@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-03-21 — Cycle 6
+
+### Security
+
+- **Backend: campaigns.py role check fix** (`campaigns.py`) — Replaced 3 references to non-existent roles (`super_admin`, `content_admin`) with `require_role("admin")`. The UserRole enum only defines `admin`/`editor`/`user`, so previous checks silently bypassed authorization.
+- **Backend: orders.py status update privilege escalation fix** (`orders.py`) — Non-admin users can now only cancel their own orders (`status=cancelled`). Previously any authenticated order owner could set arbitrary status values (completed, paid, shipped).
+- **Backend: payments.py ownership verification** (`payments.py`) — `POST /payments/create` now verifies the requesting user owns the referenced order or donation. Also gated the `test-wechat-params` debug endpoint behind admin auth.
+- **Backend: DonationCreate IDOR fix** (`schemas/donation.py`) — Removed `donor_user_id` field from DonationCreate schema. The server already sets this from `current_user`, but the schema accepting it from the client was an IDOR vector.
+
+### API Alignment
+
+- **Frontend: artworks.ts vote response type** — Fixed `voteCount` → `like_count` to match backend response shape.
+- **Frontend: products.ts getByCategory** — Fixed from non-existent route `/products/category/${category}` to query param `/products?category=X`. Return type corrected to `PaginatedResponse<Product>`.
+- **Frontend: campaigns.ts query params** — Fixed `pageSize` → `page_size`.
+- **Frontend: donations.ts impact stats** — Fixed `getImpactStats` return type to `{ total_amount: string, total_donors: number, currency: string }` matching backend.
+- **Frontend: ArtworkDetail.tsx + Campaigns/index.tsx** — Updated consumers to use corrected API property names.
+
+### Performance
+
+- **Donate page progress bar** — Converted `width` animation to `scaleX` transform with `origin-left` for GPU compositing instead of layout reflow.
+
 ## 2026-03-21 — Cycle 5
 
 ### Security

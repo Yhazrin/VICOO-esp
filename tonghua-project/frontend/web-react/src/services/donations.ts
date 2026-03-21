@@ -33,10 +33,9 @@ export const donationsApi = {
   },
 
   getImpactStats: async (): Promise<{
-    totalRaised: number;
-    childrenHelped: number;
-    artworksCreated: number;
-    productsSold: number;
+    total_amount: string;
+    total_donors: number;
+    currency: string;
   }> => {
     const response = await api.get('/donations/stats');
     return response.data;

@@ -1,6 +1,6 @@
 # Improvement Tracker
 
-> Auto-maintained by agent loop. Last updated: 2026-03-21 (cycle 4)
+> Auto-maintained by agent loop. Last updated: 2026-03-21 (cycle 6)
 
 ## Completed
 
@@ -55,7 +55,7 @@
 | 52 | Stories empty-state "Browse All" button — add missing `cursor-pointer` | Low | ✅ done |
 | 53 | SepiaImageFrame — replace `as any` with `Exclude<typeof accentPosition, 'diagonal'>` type narrowing | Medium | ✅ done |
 
-## In Progress — Cycle 5
+## Completed — Cycle 5
 
 | # | Issue | Priority | Notes |
 |---|-------|----------|-------|
@@ -66,6 +66,17 @@
 | 58 | Frontend — donations.ts request schema misaligned with backend | Medium | ✅ done — fixed field names (tierId→amount, campaignId→campaign_id, anonymous→is_anonymous) |
 | 59 | Frontend — orders.ts request schema misaligned with backend | Medium | ✅ done — fixed field names (productId→product_id, shippingAddress→shipping_address+payment_method) |
 | 60 | Frontend — contact.ts API service file creation | Low | ✅ done — created `/services/contact.ts` with ContactFormRequest interface |
+
+## Completed — Cycle 6
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 61 | Backend — campaigns.py role check references non-existent roles (`super_admin`, `content_admin`) | High | ✅ done — all 3 occurrences changed to `require_role("admin")` |
+| 62 | Backend — orders.py status update privilege escalation (owner can set any status) | High | ✅ done — non-admin users restricted to `cancelled` status only |
+| 63 | Backend — payments.py create endpoint missing ownership verification | High | ✅ done — added order/donation ownership check + gated test endpoint behind admin |
+| 64 | Backend — DonationCreate schema accepts `donor_user_id` from client (IDOR vector) | High | ✅ done — removed field from schema; server already overrides from current_user |
+| 65 | Frontend — API services snake_case mismatches (pageSize, campaignId, vote response) | Medium | ✅ done — fixed artworks.ts, products.ts, campaigns.ts, donations.ts; ArtworkDetail.tsx, Campaigns/index.tsx |
+| 66 | Donate — progress bar animates `width` instead of `scaleX` | Medium | ✅ done — converted to scaleX with origin-left for GPU compositing |
 
 ## Pending
 

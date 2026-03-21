@@ -9,7 +9,6 @@ from pydantic import BaseModel, Field
 
 class DonationCreate(BaseModel):
     donor_name: str = Field(..., min_length=1, max_length=100, description="Donor display name")
-    donor_user_id: Optional[int] = Field(None, description="Registered user ID if logged in")
     amount: Decimal = Field(..., gt=0, le=1000000, description="Donation amount in CNY")
     currency: str = Field("CNY", pattern="^(CNY|USD)$", description="Currency code")
     payment_method: str = Field(..., pattern="^(wechat|alipay|stripe|paypal)$", description="Payment method")

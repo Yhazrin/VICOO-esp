@@ -137,7 +137,7 @@ export default function Campaigns() {
       try {
         const result = await campaignsApi.getAll({
           page,
-          pageSize: PAGE_SIZE,
+          page_size: PAGE_SIZE,
           status: filter === 'all' ? undefined : filter,
         });
         return result;

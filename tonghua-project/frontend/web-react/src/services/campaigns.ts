@@ -4,7 +4,7 @@ import type { Campaign, PaginatedResponse } from '@/types';
 export const campaignsApi = {
   getAll: async (params?: {
     page?: number;
-    pageSize?: number;
+    page_size?: number;
     status?: string;
   }): Promise<PaginatedResponse<Campaign>> => {
     const response = await api.get<PaginatedResponse<Campaign>>('/campaigns', {

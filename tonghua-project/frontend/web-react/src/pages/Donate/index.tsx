@@ -101,8 +101,8 @@ function ImpactProgressBar({
       <div className="h-2 bg-warm-gray/15 rounded-sm overflow-hidden">
         <motion.div
           {...(prefersReducedMotion ? {} : {
-            initial: { width: 0 },
-            whileInView: { width: `${pct}%` },
+            initial: { scaleX: 0 },
+            whileInView: { scaleX: pct / 100 },
             viewport: { once: true },
             transition: {
               type: 'spring',
@@ -111,7 +111,7 @@ function ImpactProgressBar({
               delay: index * 0.12 + 0.2,
             },
           })}
-          className="h-full rounded-sm"
+          className="h-full rounded-sm origin-left"
           style={{
             background: 'linear-gradient(90deg, color-mix(in srgb, var(--color-rust) 50%, transparent), color-mix(in srgb, var(--color-rust) 80%, transparent))',
             ...(prefersReducedMotion ? { width: `${pct}%` } : {}),

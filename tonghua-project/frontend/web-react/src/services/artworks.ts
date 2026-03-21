@@ -4,8 +4,8 @@ import type { Artwork, PaginatedResponse } from '@/types';
 export const artworksApi = {
   getAll: async (params?: {
     page?: number;
-    pageSize?: number;
-    campaignId?: string;
+    page_size?: number;
+    campaign_id?: string;
     status?: string;
   }): Promise<PaginatedResponse<Artwork>> => {
     const response = await api.get<PaginatedResponse<Artwork>>('/artworks', {
@@ -24,8 +24,8 @@ export const artworksApi = {
     return response.data;
   },
 
-  vote: async (id: string): Promise<{ voteCount: number }> => {
-    const response = await api.post<{ voteCount: number }>(
+  vote: async (id: string): Promise<{ like_count: number }> => {
+    const response = await api.post<{ like_count: number }>(
       `/artworks/${id}/vote`
     );
     return response.data;
