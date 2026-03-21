@@ -31,13 +31,13 @@ export default function Login() {
 
   return (
     <PageWrapper>
-      <PaperTextureBackground variant="paper" className="min-h-[100dvh] flex items-center relative">
+      <PaperTextureBackground variant="paper" className="min-h-[100dvh] flex items-center justify-center relative">
         <GrainOverlay />
 
         {/* Decorative vertical line — left accent */}
         <div className="absolute left-6 top-1/4 bottom-1/4 w-px bg-rust/15 hidden md:block" aria-hidden="true" />
 
-        <div className="w-full max-w-md relative mx-auto py-12 px-4">
+        <div className="w-full max-w-md relative mx-auto py-12 px-6">
           {/* Header */}
           <div className="text-center mb-10">
             <motion.span
