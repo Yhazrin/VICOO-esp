@@ -16,7 +16,7 @@ interface ProductCardProps {
 
 function getSustainabilityTier(score: number): { label: string; colorClass: string; barColor: string } {
   if (score >= 90) return { label: 'Exceptional', colorClass: 'text-rust', barColor: 'bg-rust' };
-  if (score >= 80) return { label: 'Excellent', colorClass: 'text-eco-green', barColor: 'bg-eco-green' };
+  if (score >= 80) return { label: 'Excellent', colorClass: 'text-sage', barColor: 'bg-sage' };
   return { label: 'Good', colorClass: 'text-sepia-mid', barColor: 'bg-sepia-mid' };
 }
 
@@ -167,7 +167,7 @@ export default function ProductCard({
                 <motion.p
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="font-body text-overline text-eco-green tracking-wide text-center py-2"
+                  className="font-body text-overline text-sage tracking-wide text-center py-2"
                 >
                   We will let you know when this is back.
                 </motion.p>

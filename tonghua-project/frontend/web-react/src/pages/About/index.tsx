@@ -111,7 +111,7 @@ export default function About() {
           </div>
           <div className="md:col-span-7 md:pt-8 relative">
             {/* Decorative vertical line alongside mission text */}
-            <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-rust/40 via-rust/20 to-transparent" aria-hidden="true" />
+            <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-sage/40 via-sage/20 to-transparent" aria-hidden="true" />
             <p className="font-body text-base md:text-lg text-ink-faded leading-[1.85] editorial-drop-cap pl-6">
               {t('about.mission.body')}
             </p>
@@ -165,7 +165,7 @@ export default function About() {
               key={key}
               {...(prefersReducedMotion ? {} : { initial: { opacity: 0, y: 20 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, margin: '-50px' }, transition: { duration: 0.5, delay: i * 0.12 } })}
               whileHover={prefersReducedMotion ? undefined : { y: -3 }}
-              className="border-t border-warm-gray/30 pt-6 cursor-default"
+              className="border-t border-sage/20 pt-6 cursor-default"
             >
               <h3 className="font-display text-h3 font-bold text-ink mb-3">
                 {t(`about.values.${key}.title`)}

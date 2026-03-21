@@ -23,6 +23,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Sage green accent system**: Introduced low-saturation sage green (#3F4F45) as a complementary cool-tone accent across the site. Semantic color language: rust = urgency/action, sage = trust/transparency/sustainability. Applied to:
+  - **Traceability page**: Migrated all 17 `eco-green` references to `sage` tokens (CarbonBar, status indicators, search results, highlighted records, carbon reduction counter).
+  - **ProductCard**: Sustainability score tier (≥80) now uses `text-sage`/`bg-sage` instead of `eco-green`.
+  - **Home page**: Brand pillar borders (`border-sage/40`), featured/artworks "View All" links (`text-sage`), shop CTA secondary button (`border-sage/40 hover:border-sage`).
+  - **Donate page**: Transparency section corner accents, bullet dots, trust badge dots all use sage. Financial report card hover/corner accents use sage. Final CTA decorative lines use `bg-sage/50`. "Learn More" button uses `border-sage/40`.
+  - **About page**: Value card top borders use `border-sage/20`. Mission section vertical accent line uses sage gradient.
 - **Legal pages editorial upgrade**: Privacy, Terms, and ChildrenSafety pages upgraded from ⭐⭐ to ⭐⭐⭐⭐ — added `GrainOverlay`, `MagazineDivider` between sections, decorative corner accents, vertical accent line, `whileInView` scroll-reveal animations. Fixed `useMediaQuery` → `useReducedMotion` inconsistency.
 - **Routes**: Registered `/privacy`, `/terms`, `/children-safety` routes in App.tsx.
 - **Footer**: Updated legal links to match registered route paths (`/children-safety` instead of `/children`).

@@ -179,7 +179,7 @@ function BrandPillar({ label, value, index }: BrandPillarProps) {
           delay: index * 0.1,
         },
       })}
-      className="border-l border-warm-gray/40 pl-6"
+      className="border-l border-sage/40 pl-6"
     >
       <p className="font-display text-h3 md:text-h2 font-bold text-ink leading-[0.95]">
         {value}
@@ -273,7 +273,7 @@ export default function Home() {
             </p>
             <Link
               to="/campaigns"
-              className="font-body text-caption text-rust tracking-[0.15em] uppercase cursor-pointer hover:text-ink transition-colors"
+              className="font-body text-caption text-sage tracking-[0.15em] uppercase cursor-pointer hover:text-ink transition-colors"
             >
               {t('home.featured.viewAll')} &rarr;
             </Link>
@@ -349,7 +349,7 @@ export default function Home() {
         <div className="mt-8 text-center">
           <Link
             to="/campaigns"
-            className="font-body text-caption text-rust tracking-[0.15em] uppercase cursor-pointer hover:text-ink transition-colors"
+            className="font-body text-caption text-sage tracking-[0.15em] uppercase cursor-pointer hover:text-ink transition-colors"
           >
             {t('home.artworks.viewAll')} &rarr;
           </Link>
@@ -380,7 +380,7 @@ export default function Home() {
               <MagneticButton strength={0.35}>
                 <Link
                   to="/shop"
-                  className="inline-block font-body text-body-sm tracking-[0.15em] uppercase border border-warm-gray/40 text-paper px-8 py-4 cursor-pointer hover:border-pale-gold hover:text-pale-gold transition-all duration-300"
+                  className="inline-block font-body text-body-sm tracking-[0.15em] uppercase border border-sage/40 text-paper px-8 py-4 cursor-pointer hover:border-sage hover:text-sage-pale transition-all duration-300"
                 >
                   {t('home.cta.shop')}
                 </Link>
