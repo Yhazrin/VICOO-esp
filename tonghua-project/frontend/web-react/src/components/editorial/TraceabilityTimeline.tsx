@@ -107,7 +107,7 @@ export default function TraceabilityTimeline({
           <motion.div
             key={record.id}
             initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            whileInView={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, x: 0 }}
             viewport={{ once: true, margin: '-30px' }}
             transition={{ duration: 0.5, delay: index * 0.1 }}
             className="relative pb-12 last:pb-0"
@@ -123,7 +123,7 @@ export default function TraceabilityTimeline({
             {/* Card */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              whileInView={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: index * 0.1 }}
               whileHover={prefersReducedMotion ? undefined : { y: -2 }}
@@ -156,15 +156,15 @@ export default function TraceabilityTimeline({
 
                 <div className="flex flex-wrap gap-6">
                   <div className="font-body text-label text-sepia-mid">
-                    <span className="uppercase tracking-[0.1em]">Location:</span>{' '}
+                    <span className="uppercase tracking-[0.1em]">{t('traceability.location')}:</span>{' '}
                     <span className="text-ink-faded font-medium">{record.location}</span>
                   </div>
                   <div className="font-body text-label text-sepia-mid">
-                    <span className="uppercase tracking-[0.1em]">Partner:</span>{' '}
+                    <span className="uppercase tracking-[0.1em]">{t('traceability.partner')}:</span>{' '}
                     <span className="text-ink-faded font-medium">{record.partnerName}</span>
                   </div>
                   <div className="font-body text-label text-sepia-mid">
-                    <span className="uppercase tracking-[0.1em]">Date:</span>{' '}
+                    <span className="uppercase tracking-[0.1em]">{t('traceability.date')}:</span>{' '}
                     <span className="text-ink-faded font-medium">
                       {new Date(record.date).toLocaleDateString('en-US', {
                         year: 'numeric',

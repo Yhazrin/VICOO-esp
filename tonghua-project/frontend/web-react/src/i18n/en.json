@@ -535,7 +535,10 @@
       "vote": "Vote for this Artwork",
       "votes": "Votes",
       "tags": "Tags"
-    }
+    },
+    "loading": "Loading...",
+    "notFound": "Artwork not found",
+    "backToStories": "Back to Stories"
   },
   "common": {
     "loading": "Loading...",
@@ -554,6 +557,20 @@
     "location": {
       "shanghai": "Shanghai, China"
     },
-    "emailAriaLabel": "Email address"
-  }
+    "emailAriaLabel": "Email address",
+    "emailPlaceholder": "your@email.com",
+    "allRightsReserved": "All rights reserved."
+  },
+  "error": {
+    "somethingWentWrong": "Something went wrong",
+    "weHitASnag": "We hit a snag",
+    "unexpectedError": "The page encountered an unexpected error. Please try refreshing.",
+    "tryAgain": "Try again",
+    "goHome": "Home"
+  },
+  "campaigns.detail.about": "About This Campaign",
+  "campaigns.detail.backToAll": "to all campaigns",
+  "traceability.location": "Location",
+  "traceability.partner": "Partner",
+  "traceability.date": "Date"
 }

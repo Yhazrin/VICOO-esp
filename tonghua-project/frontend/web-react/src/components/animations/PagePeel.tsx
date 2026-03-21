@@ -196,6 +196,7 @@ export default function PagePeel({
             className="absolute bottom-0 right-0"
             style={{ width: 80, height: 80, transform: 'rotate(90deg)' }}
             viewBox="0 0 80 80"
+            aria-hidden="true"
           >
             <path
               d="M0 80 Q0 0 80 0"
@@ -210,6 +211,7 @@ export default function PagePeel({
             className="absolute bottom-0 left-0"
             style={{ width: 80, height: 80, transform: 'rotate(0deg)' }}
             viewBox="0 0 80 80"
+            aria-hidden="true"
           >
             <path
               d="M0 80 Q0 0 80 0"
@@ -224,6 +226,7 @@ export default function PagePeel({
             className="absolute top-0 right-0"
             style={{ width: 80, height: 80, transform: 'rotate(180deg)' }}
             viewBox="0 0 80 80"
+            aria-hidden="true"
           >
             <path
               d="M0 80 Q0 0 80 0"
@@ -238,6 +241,7 @@ export default function PagePeel({
             className="absolute top-0 left-0"
             style={{ width: 80, height: 80, transform: 'rotate(270deg)' }}
             viewBox="0 0 80 80"
+            aria-hidden="true"
           >
             <path
               d="M0 80 Q0 0 80 0"

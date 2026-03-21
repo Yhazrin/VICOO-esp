@@ -83,10 +83,10 @@ export default function Footer() {
           {/* Newsletter */}
           <div className="md:col-span-2">
             <h4 className="font-body text-caption tracking-[0.2em] uppercase text-sepia-mid mb-6">
-              Newsletter
+              {t('footer.newsletter.title')}
             </h4>
             <p className="font-body text-caption text-warm-gray mb-4">
-              Quarterly dispatches from the editor's desk.
+              {t('footer.newsletter.description')}
             </p>
             <form
               onSubmit={(e) => e.preventDefault()}
@@ -94,14 +94,14 @@ export default function Footer() {
             >
               <input
                 type="email"
-                placeholder="your@email.com"
+                placeholder={t('common.emailPlaceholder')}
                 className="bg-transparent border-b border-sepia-mid/50 text-paper font-body text-caption py-2 focus:outline-none focus:border-pale-gold transition-colors placeholder:text-sepia-mid/50"
               />
               <button
                 type="submit"
                 className="font-body text-caption text-pale-gold hover:text-paper transition-colors text-left mt-1 tracking-wider uppercase cursor-pointer"
               >
-                Subscribe &rarr;
+                {t('footer.newsletter.subscribe')} &rarr;
               </button>
             </form>
           </div>
@@ -114,10 +114,10 @@ export default function Footer() {
           </p>
           <div className="flex items-center gap-6">
             <span className="font-body text-caption text-sepia-mid">
-              Shanghai, China
+              {t('common.location.shanghai')}
             </span>
             <span className="font-body text-caption text-sepia-mid">
-              Built with care
+              {t('footer.builtWith')}
             </span>
           </div>
         </div>

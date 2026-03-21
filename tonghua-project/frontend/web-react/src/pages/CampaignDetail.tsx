@@ -119,7 +119,7 @@ export default function CampaignDetail() {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-16">
             {/* Main content */}
             <div className="md:col-span-7">
-              <NumberedSectionHeading number="01" title="About This Campaign" />
+              <NumberedSectionHeading number="01" title={t('campaigns.detail.about')} />
               <p className="font-body text-body-sm text-ink-faded leading-[1.8] mb-6">
                 {campaign.description}
               </p>
@@ -162,7 +162,7 @@ export default function CampaignDetail() {
                     <div>
                       <p className="font-display text-xl text-ink">{campaign.artworkCount}</p>
                       <p className="font-body text-overline text-sepia-mid tracking-wider uppercase">
-                        Artworks
+                        {t('campaigns.detail.artworks')}
                       </p>
                     </div>
                   </div>
@@ -199,7 +199,7 @@ export default function CampaignDetail() {
           to="/campaigns"
           className="font-body text-caption tracking-[0.15em] uppercase text-ink-faded hover:text-rust transition-colors"
         >
-          &larr; {t('common.back')} to all campaigns
+          &larr; {t('campaigns.detail.backToAll')}
         </Link>
       </SectionContainer>
     </PageWrapper>

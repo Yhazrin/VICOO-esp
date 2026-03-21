@@ -233,7 +233,7 @@ export default function MagazineNav() {
                 transition={{ duration: 0.2 }}
               />
               <motion.span
-                animate={mobileNavOpen ? { rotate: 45, y: 6 } : { rotate: 0, y: 0 }}
+                animate={prefersReducedMotion ? undefined : (mobileNavOpen ? { rotate: 45, y: 6 } : { rotate: 0, y: 0 })}
                 transition={{ duration: 0.3 }}
                 className="relative block w-5 h-px bg-ink"
               />
@@ -243,7 +243,7 @@ export default function MagazineNav() {
                 className="relative block w-5 h-px bg-ink"
               />
               <motion.span
-                animate={mobileNavOpen ? { rotate: -45, y: -6 } : { rotate: 0, y: 0 }}
+                animate={prefersReducedMotion ? undefined : (mobileNavOpen ? { rotate: -45, y: -6 } : { rotate: 0, y: 0 })}
                 transition={{ duration: 0.3 }}
                 className="relative block w-5 h-px bg-ink"
               />

@@ -46,7 +46,7 @@ export default function ArtworkDetail() {
       <PageWrapper>
         <PaperTextureBackground variant="paper" className="py-16 md:py-24">
           <SectionContainer>
-            <p className="font-body text-sepia-mid">Loading...</p>
+            <p className="font-body text-sepia-mid">{t('artwork.loading')}</p>
           </SectionContainer>
         </PaperTextureBackground>
       </PageWrapper>
@@ -60,13 +60,13 @@ export default function ArtworkDetail() {
           <SectionContainer>
             <div className="text-center" role="alert">
               <h1 className="font-display text-2xl text-ink mb-4">
-                Artwork not found
+                {t('artwork.notFound')}
               </h1>
               <Link
                 to="/stories"
                 className="font-body text-caption tracking-[0.15em] uppercase text-rust hover:text-ink transition-colors cursor-pointer"
               >
-                &larr; Back to Stories
+                &larr; {t('artwork.backToStories')}
               </Link>
             </div>
           </SectionContainer>
@@ -173,7 +173,7 @@ export default function ArtworkDetail() {
           to="/stories"
           className="font-body text-caption tracking-[0.15em] uppercase text-ink-faded hover:text-rust transition-colors cursor-pointer"
         >
-          &larr; {t('common.back')} to Stories
+          &larr; {t('artwork.backToStories')}
         </Link>
       </SectionContainer>
     </PageWrapper>

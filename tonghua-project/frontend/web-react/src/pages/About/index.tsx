@@ -167,7 +167,7 @@ export default function About() {
             <motion.article
               key={key}
               initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              whileInView={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-50px' }}
               transition={{ duration: 0.5, delay: i * 0.12 }}
               whileHover={prefersReducedMotion ? undefined : { y: -3 }}

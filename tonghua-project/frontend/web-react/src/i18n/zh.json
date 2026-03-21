@@ -535,7 +535,10 @@
       "vote": "为作品投票",
       "votes": "票",
       "tags": "标签"
-    }
+    },
+    "loading": "加载中...",
+    "notFound": "未找到作品",
+    "backToStories": "返回故事"
   },
   "common": {
     "loading": "加载中...",
@@ -554,6 +557,20 @@
     "location": {
       "shanghai": "中国上海"
     },
-    "emailAriaLabel": "电子邮箱"
-  }
+    "emailAriaLabel": "电子邮箱",
+    "emailPlaceholder": "your@email.com",
+    "allRightsReserved": "保留所有权利。"
+  },
+  "error": {
+    "somethingWentWrong": "出了点问题",
+    "weHitASnag": "遇到了问题",
+    "unexpectedError": "页面遇到了意外错误，请尝试刷新页面。",
+    "tryAgain": "重试",
+    "goHome": "首页"
+  },
+  "campaigns.detail.about": "关于此活动",
+  "campaigns.detail.backToAll": "返回全部活动",
+  "traceability.location": "地点",
+  "traceability.partner": "合作方",
+  "traceability.date": "日期"
 }

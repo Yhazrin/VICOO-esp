@@ -164,7 +164,7 @@ export default function EditorialHero({
       >
         <motion.span
           initial={{ opacity: 0, y: 20 }}
-          animate={isVisible ? { opacity: 1, y: 0 } : {}}
+          animate={prefersReducedMotion ? (isVisible ? { opacity: 1 } : {}) : (isVisible ? { opacity: 1, y: 0 } : {})}
           transition={{ duration: 0.6, ease: [0, 0, 0.2, 1] }}
           className="block font-body text-caption text-sepia-mid tracking-[0.3em] mb-6 md:mb-8"
         >
@@ -173,7 +173,7 @@ export default function EditorialHero({
 
         <motion.h1
           initial={{ opacity: 0, y: 40 }}
-          animate={isVisible ? { opacity: 1, y: 0 } : {}}
+          animate={prefersReducedMotion ? (isVisible ? { opacity: 1 } : {}) : (isVisible ? { opacity: 1, y: 0 } : {})}
           transition={{ duration: 0.8, ease: [0, 0, 0.2, 1], delay: 0.1 }}
           className="font-display text-hero font-black leading-[0.92] tracking-[-0.035em] text-ink"
           style={{
@@ -197,7 +197,7 @@ export default function EditorialHero({
         {subtitle && (
           <motion.p
             initial={{ opacity: 0, y: 20 }}
-            animate={isVisible ? { opacity: 1, y: 0 } : {}}
+            animate={prefersReducedMotion ? (isVisible ? { opacity: 1 } : {}) : (isVisible ? { opacity: 1, y: 0 } : {})}
             transition={{ duration: 0.7, ease: [0, 0, 0.2, 1], delay: 0.25 }}
             className={`
               font-body text-base md:text-lg text-ink-faded mt-6 md:mt-8 leading-relaxed max-w-xl
@@ -211,7 +211,7 @@ export default function EditorialHero({
         {children && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={isVisible ? { opacity: 1, y: 0 } : {}}
+            animate={prefersReducedMotion ? (isVisible ? { opacity: 1 } : {}) : (isVisible ? { opacity: 1, y: 0 } : {})}
             transition={{ duration: 0.7, ease: [0, 0, 0.2, 1], delay: 0.4 }}
             className="mt-8 md:mt-10"
           >
@@ -248,8 +248,8 @@ export default function EditorialHero({
 
       {/* Origami folded paper effect at bottom */}
       <motion.div
-        initial={{ opacity: 0, scaleX: 0 }}
-        animate={{ opacity: 1, scaleX: 1 }}
+        initial={prefersReducedMotion ? undefined : { opacity: 0, scaleX: 0 }}
+        animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, scaleX: 1 }}
         transition={{ duration: 0.8, delay: 0.5, ease: [0.34, 1.56, 0.64, 1] }}
         className="absolute bottom-0 left-0 right-0 flex justify-center"
         aria-hidden="true"

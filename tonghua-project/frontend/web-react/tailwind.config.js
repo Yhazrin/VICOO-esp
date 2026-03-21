@@ -17,6 +17,7 @@ export default {
         'archive-brown': '#5C4033',
         'pale-gold': '#C4A45A',
         'sepia-on-dark': '#B5A595',
+        'eco-green': '#5a7a5a',
       },
       fontFamily: {
         'display': ['"Playfair Display"', 'Georgia', 'serif'],
