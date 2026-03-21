@@ -25,12 +25,12 @@ export interface Artwork {
   id: number;
   title: string;
   description: string;
-  imageUrl: string;
+  image_url: string;
   childParticipant: ChildParticipant;
-  campaignId?: number;
+  campaign_id?: number;
   status: 'pending' | 'approved' | 'featured' | 'rejected';
-  voteCount: number;
-  createdAt: string;
+  vote_count: number;
+  created_at: string;
   tags: string[];
 }
 

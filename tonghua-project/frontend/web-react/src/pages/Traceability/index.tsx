@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { motion, useInView, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import EditorialHero from '@/components/editorial/EditorialHero';
@@ -20,47 +19,6 @@ interface EnhancedSupplyChainRecord extends SupplyChainRecord {
   story: string;
   imageUrl: string;
   status: 'verified' | 'in-progress' | 'pending';
-}
-
-// Map backend stage keys to frontend stage keys
-const STAGE_MAP: Record<string, string> = {
-  material_sourcing: 'material',
-  processing: 'production',
-  manufacturing: 'production',
-  quality_check: 'quality',
-  shipping: 'shipping',
-};
-
-// Build enhanced records from API trace data, merging with narrative stories
-function buildRecordsFromApi(
-  apiRecords: Array<{
-    id: number;
-    stage: string;
-    description: string | null;
-    location: string | null;
-    certified: boolean;
-    timestamp: string | null;
-  }>,
-  mockRecords: EnhancedSupplyChainRecord[],
-  t: TFunction,
-): EnhancedSupplyChainRecord[] {
-  return apiRecords.map((r) => {
-    const frontendStage = STAGE_MAP[r.stage] || r.stage;
-    const narrative = mockRecords.find((m) => m.stage === frontendStage);
-    return {
-      id: r.id,
-      stage: frontendStage,
-      description: r.description ?? narrative?.description ?? '',
-      location: r.location ?? narrative?.location ?? '',
-      date: r.timestamp ? r.timestamp.split('T')[0] : narrative?.date ?? '',
-      verified: r.certified,
-      partnerName: narrative?.partnerName ?? t('traceability.fallback.partnerName'),
-      carbonFootprint: narrative?.carbonFootprint,
-      story: narrative?.story ?? '',
-      imageUrl: narrative?.imageUrl ?? `https://picsum.photos/seed/${frontendStage}/200/200`,
-      status: r.certified ? 'verified' as const : 'in-progress' as const,
-    };
-  });
 }
 
 function createMockRecords(t: TFunction): EnhancedSupplyChainRecord[] {
@@ -464,7 +422,7 @@ export default function Traceability() {
         // Fallback: local search through records
         const found = records.find(
           (r) =>
-            r.id === query.trim() ||
+            String(r.id) === query.trim() ||
             r.partnerName.toLowerCase().includes(query.toLowerCase()) ||
             query.toUpperCase().includes('VICOO')
         );

@@ -111,7 +111,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
 
             # 使用 openid 创建 JWT token
             token = create_access_token(subject=openid, role="user", extra={"openid": openid})
-            refresh = create_refresh_token(subject=openid)
+            refresh = create_refresh_token(subject=openid, role="user")
 
             response_data = ApiResponse(
                 success=True,
@@ -133,7 +133,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Email and password are required")
 
     # ── DB lookup ──
-    logger.debug(f"DB lookup for email: {body.email}")
+    logger.debug("DB lookup for user")
     try:
         stmt = select(User).where(User.email == body.email)
         result = await db.execute(stmt)
@@ -142,7 +142,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
         if user:
             if verify_password(body.password, user.password_hash):
                 token = create_access_token(subject=str(user.id), role=user.role)
-                refresh = create_refresh_token(subject=str(user.id))
+                refresh = create_refresh_token(subject=str(user.id), role=user.role)
                 response_data = ApiResponse(
                     success=True,
                     data={
@@ -159,7 +159,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
                 return json_response
             else:
                 # User exists but password is wrong
-                logger.debug(f"Password verification failed for user: {user.id}")
+                logger.debug("Password verification failed")
                 raise HTTPException(status_code=401, detail="Invalid credentials")
         # User not found in DB - continue to mock fallback in development mode
         logger.debug("User not found in DB, checking mock fallback")
@@ -167,7 +167,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
         raise
     except Exception as e:
         # DB error - continue to mock fallback in development mode
-        logger.debug(f"DB error during user lookup: {e}")
+        logger.debug("DB error during user lookup", exc_info=True)
         pass
 
     # ── Mock fallback (development only) ──
@@ -188,7 +188,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
                 raise HTTPException(status_code=401, detail="Invalid credentials")
             logger.debug("Mock password verification passed")
             token = create_access_token(subject=str(mock["id"]), role=mock["role"])
-            refresh = create_refresh_token(subject=str(mock["id"]))
+            refresh = create_refresh_token(subject=str(mock["id"]), role=mock["role"])
             response_data = ApiResponse(
                 success=True,
                 data={
@@ -231,7 +231,7 @@ async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
         db.add(user)
         await db.flush()
         token = create_access_token(subject=str(user.id), role=user.role)
-        refresh = create_refresh_token(subject=str(user.id))
+        refresh = create_refresh_token(subject=str(user.id), role=user.role)
 
         response_data = ApiResponse(
             success=True,
@@ -267,7 +267,7 @@ async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
         new_user = {"id": new_id, "email": body.email, "nickname": body.nickname, "role": "user"}
         _mock_users.append(new_user)
         token = create_access_token(subject=str(new_id), role="user")
-        refresh = create_refresh_token(subject=str(new_id))
+        refresh = create_refresh_token(subject=str(new_id), role="user")
 
         response_data = ApiResponse(
             success=True,
@@ -335,7 +335,7 @@ async def wx_login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
 
         # 使用 openid 创建 JWT token
         token = create_access_token(subject=openid, role="user", extra={"openid": openid})
-        refresh = create_refresh_token(subject=openid)
+        refresh = create_refresh_token(subject=openid, role="user")
 
         response_data = ApiResponse(
             success=True,
@@ -369,7 +369,7 @@ async def refresh(request: Request):
         sub = payload["sub"]
         role = payload.get("role", "user")
         new_access = create_access_token(subject=sub, role=role)
-        new_refresh = create_refresh_token(subject=sub)
+        new_refresh = create_refresh_token(subject=sub, role=role)
 
         response_data = ApiResponse(
             success=True,

@@ -178,6 +178,18 @@
 | — | TFunction import fix (Traceability/Shop/Stories) | Medium | ✅ done — split react-i18next + i18next imports |
 | — | en.json/zh.json — ~95 new traceability + donate translation keys | Medium | ✅ done — both locale files expanded |
 
+## Completed — Cycle 19 (2026-03-22)
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 153 | Backend — security.py create_refresh_token missing role param → admin downgrade | P0 | ✅ done — added role param, all 7 callers pass user.role |
+| 154 | Backend — payments.py Alipay fail-open + payment_service.py timing attack | P0 | ✅ done — fail-closed on missing config, hmac.compare_digest() |
+| 155 | Frontend — supply-chain.ts service rewritten + Traceability API alignment | P0 | ✅ done — correct endpoints, response mapping, TraceResponse export |
+| 156 | TypeScript — tsc --noEmit zero errors verification | P0 | ✅ done — removed 4 unused imports/functions, fixed 4 mock field names |
+| 157 | Backend — auth.py PII logging (email/password in logs) | P0 | ✅ done — 4 log statements sanitized, exc_info=True for errors |
+| 158 | Backend — contact.py + schemas/user.py EmailStr + deps.py signature leak | P0 | ✅ done — EmailStr validation, removed signature prefix from warning log |
+| 159 | Backend — artworks.py vote race condition (read-modify-write) | P0 | ✅ done — atomic SQL UPDATE with like_count + 1 |
+
 ## Pending
 
 | # | Issue | Priority | Notes |

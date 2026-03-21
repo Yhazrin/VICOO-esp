@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-03-22 — Cycle 19: P0 Security Fixes + Type Safety
+
+### Security
+
+- **auth.py — privilege downgrade on refresh** — `create_refresh_token()` now accepts `role` parameter; all 7 callers in auth.py pass the user's actual role instead of defaulting to `"user"`. Prevents admin→user privilege loss on token refresh.
+- **auth.py — PII logging** — Removed 4 instances of logging email/credentials: DB lookup, password verification, DB errors now use `exc_info=True` instead of string interpolation.
+- **payments.py — Alipay fail-open** — `alipay_notify` now rejects callbacks (returns "failure") when `ALIPAY_PUBLIC_KEY` is unconfigured, instead of silently accepting them with a warning.
+- **payment_service.py — timing attack** — Signature comparison changed from `==` to `hmac.compare_digest()` for constant-time comparison.
+- **artworks.py — vote race condition** — Replaced read-modify-write (`artwork.like_count += 1`) with atomic SQL `UPDATE artworks SET like_count = like_count + 1`.
+- **deps.py — signature material leak** — Removed signature prefix from warning log (`Expected: ... Got: ...`).
+- **contact.py + schemas/user.py — EmailStr** — Changed `email: str` to `email: EmailStr` in both `ContactForm` and `UserCreate` schemas.
+
+### TypeScript
+
+- **CampaignDetail.tsx** — Fixed 4 mock data entries: `imageUrl`→`image_url`, `voteCount`→`vote_count`, `createdAt`→`created_at` to match `Artwork` type.
+- **Login/index.tsx** — Removed unused `MagazineDivider` import.
+- **Register/index.tsx** — Removed unused `MagazineDivider` import.
+- **Traceability/index.tsx** — Removed unused `useQuery` import, unused `buildRecordsFromApi` function, and unused `STAGE_MAP` constant.
+
+### Verification
+
+- TypeScript `tsc --noEmit`: zero errors.
+
 ## 2026-03-22 — Cycle 18: i18n Hardcoded String Extraction
 
 ### i18n

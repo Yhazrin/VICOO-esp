@@ -305,7 +305,8 @@ async def alipay_notify(request: Request, db: AsyncSession = Depends(get_db)):
                 logger.error(f"Alipay signature verification failed: {verify_error}")
                 return PlainTextResponse("failure")
         else:
-            logger.warning("ALIPAY_PUBLIC_KEY not configured, skipping signature verification")
+            logger.error("ALIPAY_PUBLIC_KEY not configured, rejecting callback")
+            return PlainTextResponse("failure")
 
         # --- Check trade status ---
         trade_status = params.get("trade_status", "")

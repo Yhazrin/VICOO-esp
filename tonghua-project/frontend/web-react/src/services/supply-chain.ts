@@ -1,40 +1,39 @@
 import api from './api';
+import type { SupplyChainRecord, PaginatedResponse } from '@/types';
 
-export interface SupplyChainRecord {
-  id: string;
-  productId: string;
-  productName: string;
-  stage: string;
-  location: string;
-  timestamp: string;
-  description: string;
-  certifications: string[];
-  artisan?: {
-    name: string;
-    location: string;
-    imageUrl?: string;
-  };
-  materials?: {
-    name: string;
-    origin: string;
-    certified: boolean;
-  }[];
+interface GetRecordsParams {
+  page?: number;
+  page_size?: number;
+  product_id?: number;
+  stage?: string;
+}
+
+export interface TraceResponse {
+  product_id: number;
+  product_name: string;
+  records: SupplyChainRecord[];
 }
 
 export const supplyChainApi = {
-  getRecords: async (productId?: string): Promise<SupplyChainRecord[]> => {
-    const params = productId ? { product_id: productId } : {};
+  getRecords: async (params?: GetRecordsParams): Promise<PaginatedResponse<SupplyChainRecord>> => {
     const response = await api.get('/supply-chain/records', { params });
-    return response.data.data ?? [];
+    const d = response.data;
+    return {
+      items: d.data ?? [],
+      total: d.total ?? 0,
+      page: d.page ?? 1,
+      pageSize: d.page_size ?? 20,
+      totalPages: Math.ceil((d.total ?? 0) / (d.page_size ?? 20)),
+    };
   },
 
-  getRecordById: async (id: string): Promise<SupplyChainRecord> => {
-    const response = await api.get(`/supply-chain/records/${id}`);
+  trace: async (productId: string): Promise<TraceResponse> => {
+    const response = await api.get(`/supply-chain/trace/${productId}`);
     return response.data.data;
   },
 
-  getProductJourney: async (productId: string): Promise<SupplyChainRecord[]> => {
-    const response = await api.get(`/supply-chain/products/${productId}/journey`);
+  getStages: async (): Promise<{ key: string; label: string; order: number }[]> => {
+    const response = await api.get('/supply-chain/stages');
     return response.data.data ?? [];
   },
 

@@ -47,7 +47,7 @@ export default function ArtworkCard({
           {!imageLoaded && <ImageSkeleton className="absolute inset-0" />}
 
           <img
-            src={artwork.imageUrl}
+            src={artwork.image_url}
             alt={artwork.title}
             className={`w-full h-full object-cover sepia-[0.08] transition-transform duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:scale-105 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
             loading="lazy"
@@ -63,12 +63,12 @@ export default function ArtworkCard({
             </h3>
             <p className="font-body text-caption text-sepia-mid mt-1">
               Age {artwork.childParticipant.age} &middot;{' '}
-              {new Date(artwork.createdAt).getFullYear()}
+              {new Date(artwork.created_at).getFullYear()}
             </p>
           </div>
 
           <span className="font-body text-caption text-sepia-mid whitespace-nowrap flex-shrink-0">
-            {artwork.voteCount} votes
+            {artwork.vote_count} votes
           </span>
         </div>
       </Link>
