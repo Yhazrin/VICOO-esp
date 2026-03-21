@@ -157,9 +157,9 @@ export default function ArtworkDetail() {
                     {t('artwork.detail.tags')}
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {artwork.tags.map((tag, index) => (
+                    {artwork.tags.map((tag) => (
                       <span
-                        key={index}
+                        key={tag}
                         className="font-body text-caption px-3 py-1 border border-warm-gray/50 text-sepia-mid"
                       >
                         {tag}

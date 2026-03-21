@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 
 interface CurtainTransitionProps {
   children: React.ReactNode;
@@ -14,19 +14,7 @@ interface CurtainTransitionProps {
 export default function CurtainTransition({ children }: CurtainTransitionProps) {
   const location = useLocation();
   const [isAnimating, setIsAnimating] = useState(false);
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setPrefersReducedMotion(mediaQuery.matches);
-
-    const handleChange = (e: MediaQueryListEvent) => {
-      setPrefersReducedMotion(e.matches);
-    };
-
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
+  const prefersReducedMotion = useReducedMotion();
 
   // Trigger curtain animation on location change
   useEffect(() => {

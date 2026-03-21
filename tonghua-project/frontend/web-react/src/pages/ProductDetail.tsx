@@ -150,20 +150,19 @@ export default function ProductDetail() {
     let cancelled = false;
     productsApi
       .getById(id)
-      .then((data: any) => {
+      .then((data: Product) => {
         if (!cancelled) {
-          const raw = data?.data ?? data;
-          const imageUrls = raw.image_urls ?? raw.imageUrls ?? MOCK_PRODUCT.imageUrls;
+          const imageUrls = data.imageUrls ?? MOCK_PRODUCT.imageUrls;
           setProduct({
             ...MOCK_PRODUCT,
-            ...raw,
-            id: String(raw.id ?? id),
+            ...data,
+            id: String(data.id ?? id),
             imageUrls: Array.isArray(imageUrls) ? imageUrls : [imageUrls],
-            price: Number(raw.price ?? MOCK_PRODUCT.price),
-            inStock: raw.stock != null ? raw.stock > 0 : (raw.inStock ?? MOCK_PRODUCT.inStock),
-            stockCount: raw.stock ?? raw.stockCount ?? MOCK_PRODUCT.stockCount,
-            sustainabilityScore: raw.sustainability_score ?? raw.sustainabilityScore ?? MOCK_PRODUCT.sustainabilityScore,
-            supplyChain: raw.supply_chain ?? raw.supplyChain ?? MOCK_PRODUCT.supplyChain,
+            price: Number(data.price ?? MOCK_PRODUCT.price),
+            inStock: data.inStock ?? MOCK_PRODUCT.inStock,
+            stockCount: data.stockCount ?? MOCK_PRODUCT.stockCount,
+            sustainabilityScore: data.sustainabilityScore ?? MOCK_PRODUCT.sustainabilityScore,
+            supplyChain: data.supplyChain ?? MOCK_PRODUCT.supplyChain,
           });
           setLoading(false);
         }
@@ -225,7 +224,7 @@ export default function ProductDetail() {
                 <div className="flex gap-3 mt-4">
                   {product.imageUrls.map((url, index) => (
                     <ThumbnailButton
-                      key={index}
+                      key={url}
                       url={url}
                       index={index}
                       selected={selectedImage === index}

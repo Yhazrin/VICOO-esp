@@ -42,9 +42,9 @@ export default function Profile() {
 
     ordersApi
       .getMyOrders()
-      .then((data: any) => {
+      .then((data: Order[]) => {
         if (!cancelled) {
-          const raw = data?.data ?? data;
+          const raw = data;
           setOrders(Array.isArray(raw) ? raw : []);
           setLoadingOrders(false);
         }
@@ -55,9 +55,9 @@ export default function Profile() {
 
     donationsApi
       .getMyDonations()
-      .then((data: any) => {
+      .then((data: Donation[]) => {
         if (!cancelled) {
-          const raw = data?.data ?? data;
+          const raw = data;
           setDonations(Array.isArray(raw) ? raw : []);
           setLoadingDonations(false);
         }

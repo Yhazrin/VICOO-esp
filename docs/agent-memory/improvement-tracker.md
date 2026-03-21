@@ -1,6 +1,6 @@
 # Improvement Tracker
 
-> Auto-maintained by agent loop. Last updated: 2026-03-21
+> Auto-maintained by agent loop. Last updated: 2026-03-21 (cycle 2)
 
 ## Completed
 
@@ -28,6 +28,11 @@
 | 25 | App.tsx — register 3 legal page routes | High | ✅ done |
 | 26 | Contact page — dead code cleanup (FAQItem, ChevronIcon, GRAIN_STYLE, openFaqIndex) | Low | ✅ done |
 | 27 | Sage green accent system — integrate #3F4F45 across Home, Donate, About, Traceability, ProductCard | Medium | ✅ done |
+| 28 | TypeScript — remove `any` types from API callbacks (Profile, CampaignDetail, ProductDetail) | High | ✅ done |
+| 29 | TypeScript — remove snake_case property fallbacks (CampaignDetail 7 props, ProductDetail 4 props) | High | ✅ done |
+| 30 | React — replace `key={index}` with semantic keys (KineticMarquee, FAQAccordion, ArtworkDetail) | Medium | ✅ done |
+| 31 | EditorialHero — fix `boolean | null` vs `boolean | undefined` on TextScramble reducedMotion prop | Low | ✅ done |
+| 32 | Contact page — replace raw `<select>` with VintageSelect editorial component | Medium | ✅ done |
 
 ## Pending
 

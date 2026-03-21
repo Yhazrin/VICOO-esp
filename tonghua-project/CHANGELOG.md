@@ -51,3 +51,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **Contact page**: Removed unused `FAQItem`, `ChevronIcon` inline components, `GRAIN_STYLE` constant, and `openFaqIndex` state (dead code from merge).
 - **Dead code cleanup**: Removed 8 dead barrel files (`HomePage.tsx`, `AboutPage.tsx`, etc.) that only re-exported from subdirectories.
+
+### Fixed (2026-03-21)
+
+- **TypeScript type safety**: Removed `any` type annotations from `.then()` callbacks in Profile (`Order[]`, `Donation[]`), CampaignDetail (`Campaign`), and ProductDetail (`Product`). Eliminated unnecessary `const raw = data?.data ?? data` pattern — service layer already returns properly typed `response.data`.
+- **Snake_case fallback removal**: CampaignDetail — removed 7 `raw.snake_case ??` fallbacks (`cover_image`, `start_date`, `end_date`, `artwork_count`, `participant_count`, `goal_amount`, `current_amount`). ProductDetail — removed 4 snake_case fallbacks (`image_urls`, `stock`, `sustainability_score`, `supply_chain`). Service layer returns camelCase typed data.
+- **React list keys**: Replaced `key={index}` with semantic unique keys in KineticMarquee (`marquee-${item}`, `stat-${stat.value}`), FAQAccordion (`item.question`), and ArtworkDetail (`tag`).
+- **EditorialHero**: Fixed `boolean | null` → `boolean | undefined` type mismatch on `TextScramble.reducedMotion` prop (`prefersReducedMotion ?? undefined`).
+- **Contact page**: Replaced raw `<select>` element with `VintageSelect` editorial component for consistent form styling.

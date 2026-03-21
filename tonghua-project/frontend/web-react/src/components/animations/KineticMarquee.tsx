@@ -163,9 +163,9 @@ export function KineticTextMarquee({
         pauseOnHover={pauseOnHover}
         gap="gap-12"
       >
-        {items.map((item, index) => (
+        {items.map((item) => (
           <span
-            key={index}
+            key={`marquee-${item}`}
             className="flex items-center"
           >
             <span className="font-display text-h4 md:text-h3 text-ink-faded italic px-6">
@@ -224,9 +224,9 @@ export function KineticStatsMarquee({
         pauseOnHover={pauseOnHover}
         gap="gap-16"
       >
-        {stats.map((stat, index) => (
+        {stats.map((stat) => (
           <div
-            key={index}
+            key={`stat-${stat.value}`}
             className="flex flex-col items-center px-8 min-w-[180px]"
           >
             <span className="font-display text-display font-bold text-pale-gold tracking-tight">

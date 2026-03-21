@@ -95,20 +95,19 @@ export default function CampaignDetail() {
     let cancelled = false;
     campaignsApi
       .getById(id)
-      .then((data: any) => {
+      .then((data: Campaign) => {
         if (!cancelled) {
-          const raw = data?.data ?? data;
           setCampaign({
             ...MOCK_CAMPAIGN,
-            ...raw,
-            id: String(raw.id ?? id),
-            coverImageUrl: raw.cover_image ?? raw.coverImageUrl ?? MOCK_CAMPAIGN.coverImageUrl,
-            startDate: raw.start_date ?? raw.startDate ?? MOCK_CAMPAIGN.startDate,
-            endDate: raw.end_date ?? raw.endDate ?? MOCK_CAMPAIGN.endDate,
-            artworkCount: raw.artwork_count ?? raw.artworkCount ?? MOCK_CAMPAIGN.artworkCount,
-            participantCount: raw.participant_count ?? raw.participantCount ?? MOCK_CAMPAIGN.participantCount,
-            goalAmount: Number(raw.goal_amount ?? raw.goalAmount ?? MOCK_CAMPAIGN.goalAmount),
-            raisedAmount: Number(raw.current_amount ?? raw.raisedAmount ?? MOCK_CAMPAIGN.raisedAmount),
+            ...data,
+            id: String(data.id ?? id),
+            coverImageUrl: data.coverImageUrl ?? MOCK_CAMPAIGN.coverImageUrl,
+            startDate: data.startDate ?? MOCK_CAMPAIGN.startDate,
+            endDate: data.endDate ?? MOCK_CAMPAIGN.endDate,
+            artworkCount: data.artworkCount ?? MOCK_CAMPAIGN.artworkCount,
+            participantCount: data.participantCount ?? MOCK_CAMPAIGN.participantCount,
+            goalAmount: Number(data.goalAmount ?? MOCK_CAMPAIGN.goalAmount),
+            raisedAmount: Number(data.raisedAmount ?? MOCK_CAMPAIGN.raisedAmount),
           });
           setLoading(false);
         }

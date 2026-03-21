@@ -1,7 +1,7 @@
 import { type ReactNode } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
-import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { useReducedMotion } from 'framer-motion';
 import { TextScramble } from '@/components/animations/TextScramble';
 import { OrigamiPaperStrip } from '@/components/animations/OrigamiFold';
 
@@ -29,7 +29,7 @@ export default function EditorialHero({
   scrambleDuration = 1200,
 }: EditorialHeroProps) {
   const [ref, isVisible] = useScrollReveal<HTMLDivElement>();
-  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+  const prefersReducedMotion = useReducedMotion();
 
   // Scroll-linked parallax values
   const { scrollYProgress } = useScroll({
@@ -187,7 +187,7 @@ export default function EditorialHero({
               trigger="onMount"
               duration={scrambleDuration}
               className="inline-block"
-              reducedMotion={prefersReducedMotion}
+              reducedMotion={prefersReducedMotion ?? undefined}
             />
           ) : (
             title

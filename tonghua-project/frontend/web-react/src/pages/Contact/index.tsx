@@ -10,6 +10,7 @@ import FAQAccordion from '@/components/editorial/FAQAccordion';
 import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
 import { VintageInput } from '@/components/editorial/VintageInput';
+import { VintageSelect } from '@/components/editorial/VintageSelect';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 
 const MAX_MESSAGE_LENGTH = 1000;
@@ -429,57 +430,23 @@ export default function Contact() {
                   </div>
 
                   {/* Subject dropdown */}
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="contact-subject"
-                      className="font-body text-overline tracking-[0.2em] uppercase text-sepia-mid block"
-                    >
-                      {t('contact.form.subject')}
-                    </label>
-                    <div className="relative">
-                      <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-rust/30 pointer-events-none z-10" />
-                      <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-rust/30 pointer-events-none z-10" />
-                      <select
-                        id="contact-subject"
-                        value={formData.subject}
-                        onChange={handleSubjectChange}
-                        className={`
-                          w-full font-body text-body-sm py-3 px-3
-                          border-b-2 bg-transparent
-                          transition-all duration-300
-                          focus:outline-none focus-visible:ring-2 focus-visible:ring-rust/50 focus:border-rust
-                          appearance-none cursor-pointer
-                          ${errors.subject ? 'border-archive-brown' : 'border-warm-gray/60'}
-                          ${!formData.subject ? 'text-ink-faded/80' : 'text-ink'}
-                        `}
-                      >
-                        <option value="" disabled>
-                          {t('contact.form.subjectPlaceholder')}
-                        </option>
-                        {subjectOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                      {/* Dropdown arrow */}
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                        <svg className="w-4 h-4 text-sepia-mid" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                        </svg>
-                      </div>
-                    </div>
-                    {errors.subject && (
-                      <motion.p
-                        initial={{ opacity: 0, y: -5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        role="alert"
-                        className="font-body text-overline text-archive-brown"
-                      >
-                        {errors.subject}
-                      </motion.p>
-                    )}
-                  </div>
+                  <VintageSelect
+                    id="contact-subject"
+                    label={t('contact.form.subject')}
+                    options={[
+                      { value: '', label: t('contact.form.subjectPlaceholder') },
+                      ...subjectOptions,
+                    ]}
+                    value={formData.subject}
+                    onChange={handleSubjectChange}
+                    className={errors.subject ? '[&_select]:border-archive-brown' : ''}
+                    required
+                  />
+                  {errors.subject && (
+                    <p role="alert" className="font-body text-overline text-archive-brown -mt-2">
+                      {errors.subject}
+                    </p>
+                  )}
 
                   {/* Message textarea with character counter */}
                   <div className="space-y-2">

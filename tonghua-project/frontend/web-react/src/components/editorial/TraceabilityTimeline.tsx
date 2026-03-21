@@ -61,8 +61,8 @@ export default function TraceabilityTimeline({
           cx="7"
           cy="0"
           r="3"
-          fill="#8B3A2A"
           style={{
+            fill: 'var(--color-rust)',
             opacity: useTransform(scrollYProgress, [0, 0.1], [0, 1]),
           }}
         />
@@ -70,8 +70,8 @@ export default function TraceabilityTimeline({
           cx="7"
           cy={pathHeight}
           r="3"
-          fill="#8B3A2A"
           style={{
+            fill: 'var(--color-rust)',
             opacity: useTransform(scrollYProgress, [0.9, 1], [0, 1]),
           }}
         />
@@ -79,10 +79,10 @@ export default function TraceabilityTimeline({
         <motion.path
           d="M 7 20 Q 15 25 7 35"
           fill="none"
-          stroke="#8B3A2A"
           strokeWidth="1"
           strokeLinecap="round"
           style={{
+            stroke: 'var(--color-rust)',
             opacity: useTransform(scrollYProgress, [0, 0.15], [0, 1]),
             strokeDasharray: 30,
             strokeDashoffset: useTransform(scrollYProgress, [0, 0.2], [30, 0]),
@@ -91,10 +91,10 @@ export default function TraceabilityTimeline({
         <motion.path
           d="M 7 60 Q 15 65 7 75"
           fill="none"
-          stroke="#8B3A2A"
           strokeWidth="1"
           strokeLinecap="round"
           style={{
+            stroke: 'var(--color-rust)',
             opacity: useTransform(scrollYProgress, [0.05, 0.2], [0, 1]),
             strokeDasharray: 30,
             strokeDashoffset: useTransform(scrollYProgress, [0.05, 0.25], [30, 0]),

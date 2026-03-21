@@ -392,25 +392,25 @@ function EnhancedTimeline({ records, t }: { records: EnhancedSupplyChainRecord[]
       >
         <line
           x1="7" y1="0" x2="7" y2={pathHeight}
-          stroke="#D4CFC4"
+          style={{ stroke: 'var(--color-warm-gray)' }}
           strokeWidth="1"
           strokeLinecap="round"
         />
-        <circle cx="7" cy="0" r="3" fill="#8B3A2A" />
-        <circle cx="7" cy={pathHeight} r="3" fill="#8B3A2A" />
+        <circle cx="7" cy="0" r="3" style={{ fill: 'var(--color-rust)' }} />
+        <circle cx="7" cy={pathHeight} r="3" style={{ fill: 'var(--color-rust)' }} />
         <path
           d="M 7 20 Q 15 25 7 35"
           fill="none"
-          stroke="#8B3A2A"
           strokeWidth="1"
           strokeLinecap="round"
+          style={{ stroke: 'var(--color-rust)' }}
         />
         <path
           d="M 7 60 Q 15 65 7 75"
           fill="none"
-          stroke="#8B3A2A"
           strokeWidth="1"
           strokeLinecap="round"
+          style={{ stroke: 'var(--color-rust)' }}
         />
       </svg>
 
@@ -637,7 +637,7 @@ export default function Traceability() {
             <div className="absolute top-0 -left-6 bottom-0 w-px hidden md:block" aria-hidden="true">
               <ScrollPathDrawInline
                 path="M0,0 L0,800"
-                strokeColor="#A0896E"
+                strokeColor="var(--color-sepia-mid)"
                 strokeWidth={1}
                 className="h-full w-4"
                 containerRef={timelineRef}
@@ -660,7 +660,7 @@ export default function Traceability() {
       <div className="flex justify-center py-4" aria-hidden="true">
         <ScrollPathDrawInline
           path="M0,20 C60,5 120,35 180,20 S300,5 360,20"
-          strokeColor="#A0896E"
+          strokeColor="var(--color-sepia-mid)"
           strokeWidth={1}
           className="w-64 h-10"
         />
