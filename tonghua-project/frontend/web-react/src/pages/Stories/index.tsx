@@ -265,7 +265,7 @@ function EmptyState({ onBrowseAll }: { onBrowseAll: () => void }) {
         onClick={onBrowseAll}
         whileHover={prefersReducedMotion ? undefined : { y: -2 }}
         whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
-        className="font-body text-caption tracking-[0.15em] uppercase text-rust border-b border-rust/30 pb-1 hover:text-ink hover:border-ink/30 transition-colors cursor-pointer"
+        className="font-body text-caption tracking-[0.15em] uppercase text-rust border-b border-rust/30 pb-1 hover:text-ink hover:border-ink/30 transition-colors cursor-pointer min-h-[44px] px-4 py-3"
       >
         {t('stories.empty.browseAll')}
       </motion.button>
@@ -357,6 +357,8 @@ export default function Stories() {
           {categories.map((cat) => (
             <motion.button
               key={cat}
+              role="tab"
+              aria-selected={activeCategory === cat}
               onClick={() => setActiveCategory(cat)}
               initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
               animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
@@ -533,6 +535,7 @@ export default function Stories() {
                   <VintageInput
                     type="email"
                     placeholder={t('stories.newsletter.placeholder')}
+                    aria-label={t('stories.newsletter.placeholder')}
                     className="flex-1"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -544,7 +547,7 @@ export default function Stories() {
                     onClick={handleSubscribe}
                     whileHover={prefersReducedMotion ? undefined : { y: -1 }}
                     whileTap={prefersReducedMotion ? undefined : { scale: 0.97 }}
-                    className="font-body text-caption tracking-[0.15em] uppercase text-rust hover:text-ink transition-colors flex-shrink-0"
+                    className="font-body text-caption tracking-[0.15em] uppercase text-rust hover:text-ink transition-colors flex-shrink-0 min-h-[44px] px-4 py-3"
                   >
                     {t('stories.newsletter.subscribe')} &rarr;
                   </motion.button>

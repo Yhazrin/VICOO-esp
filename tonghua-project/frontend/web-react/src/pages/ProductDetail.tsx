@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
 import { motion, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
@@ -131,8 +132,13 @@ export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
-  const [product, setProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: product, isLoading: loading } = useQuery({
+    queryKey: ['product', id],
+    queryFn: () => productsApi.getById(id!),
+    enabled: !!id,
+    placeholderData: MOCK_PRODUCT,
+  });
+
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
@@ -144,39 +150,6 @@ export default function ProductDetail() {
       if (addedTimeoutRef.current) clearTimeout(addedTimeoutRef.current);
     };
   }, []);
-
-  useEffect(() => {
-    if (!id) {
-      setProduct(MOCK_PRODUCT);
-      setLoading(false);
-      return;
-    }
-    let cancelled = false;
-    productsApi
-      .getById(id)
-      .then((data: Product) => {
-        if (!cancelled) {
-          setProduct({
-            ...MOCK_PRODUCT,
-            ...data,
-            id: Number(data.id ?? id),
-            price: Number(data.price ?? MOCK_PRODUCT.price),
-            inStock: data.inStock ?? MOCK_PRODUCT.inStock,
-            stockCount: data.stockCount ?? MOCK_PRODUCT.stockCount,
-            sustainabilityScore: data.sustainabilityScore ?? MOCK_PRODUCT.sustainabilityScore,
-            supplyChain: data.supplyChain ?? MOCK_PRODUCT.supplyChain,
-          });
-          setLoading(false);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setProduct(MOCK_PRODUCT);
-          setLoading(false);
-        }
-      });
-    return () => { cancelled = true; };
-  }, [id]);
 
   const handleAddToCart = () => {
     if (!product) return;

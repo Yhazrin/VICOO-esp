@@ -47,10 +47,17 @@ async def get_current_user(
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
     # Try DB lookup
+    sub = payload["sub"]
+    try:
+        user_id = int(sub)
+    except (ValueError, TypeError):
+        # WeChat openid (non-numeric subject) — no DB lookup possible
+        raise HTTPException(status_code=401, detail="User not found")
+
     try:
         from sqlalchemy import select
 
-        stmt = select(User).where(User.id == int(payload["sub"]))
+        stmt = select(User).where(User.id == user_id)
         result = await db.execute(stmt)
         user = result.scalar_one_or_none()
         if user and user.status == "banned":
@@ -188,9 +195,16 @@ async def get_current_user_from_request(request: Request, db: AsyncSession) -> O
             return None
 
         # Try DB lookup
+        sub = payload["sub"]
+        try:
+            user_id = int(sub)
+        except (ValueError, TypeError):
+            # WeChat openid (non-numeric subject) — no DB lookup possible
+            return None
+
         try:
             from sqlalchemy import select
-            stmt = select(User).where(User.id == int(payload["sub"]))
+            stmt = select(User).where(User.id == user_id)
             result = await db.execute(stmt)
             user = result.scalar_one_or_none()
             if user and user.status == "banned":
@@ -205,6 +219,37 @@ async def get_current_user_from_request(request: Request, db: AsyncSession) -> O
         return None
     except Exception:
         return None
+
+
+async def get_optional_current_user(
+    request: Request,
+    authorization: Optional[str] = Header(None),
+    db: AsyncSession = Depends(get_db),
+) -> Optional[dict]:
+    """Return the current user dict or None if not authenticated (no exception)."""
+    if not authorization or not authorization.startswith("Bearer "):
+        return None
+    token = authorization.split(" ", 1)[1]
+    try:
+        payload = decode_token(token)
+        if payload.get("type") != "access":
+            return None
+        sub = payload["sub"]
+        try:
+            user_id = int(sub)
+        except (ValueError, TypeError):
+            return None
+        from sqlalchemy import select
+        stmt = select(User).where(User.id == user_id)
+        result = await db.execute(stmt)
+        user = result.scalar_one_or_none()
+        if user and user.status == "banned":
+            return None
+        if user:
+            return {"id": user.id, "email": user.email, "role": user.role, "nickname": user.nickname}
+    except Exception:
+        return None
+    return None
 
 
 async def verify_request_signature(request: Request) -> tuple[bool, Optional[str]]:

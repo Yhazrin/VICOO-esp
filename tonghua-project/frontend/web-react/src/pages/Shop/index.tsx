@@ -165,10 +165,12 @@ export default function Shop() {
         {/* Filters and sort row */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
           {/* Category filter */}
-          <div className="flex items-center gap-1 border-b border-warm-gray/30 overflow-x-auto flex-1">
+          <div className="flex items-center gap-1 border-b border-warm-gray/30 overflow-x-auto flex-1" role="tablist">
             {categories.map((cat, index) => (
               <motion.button
                 key={cat}
+                role="tab"
+                aria-selected={activeCategory === cat}
                 onClick={() => setActiveCategory(cat)}
                 initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
                 animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
