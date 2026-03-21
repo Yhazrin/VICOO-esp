@@ -99,7 +99,7 @@ export default function DonationPanel({
             <motion.button
               key={amount}
               type="button"
-              initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 10 }}
+              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
               animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.05 }}
               whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
@@ -125,7 +125,7 @@ export default function DonationPanel({
               {selectedAmount === amount && !customAmount && (
                 <motion.div
                   className="absolute inset-0 z-0 bg-rust/[0.04]"
-                  initial={{ opacity: 0 }}
+                  initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
                   animate={{ opacity: 1 }}
                 />
               )}
@@ -160,7 +160,7 @@ export default function DonationPanel({
         {/* Error Message */}
         {error && !customAmount && (
           <motion.div
-            initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -10 }}
+            initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: -10 }}
             animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
             role="alert"
             className="mb-6 p-3 bg-archive-brown/10 border border-archive-brown/30"

@@ -405,7 +405,7 @@ export default function Donate() {
                 {['Q1 2026', 'Q4 2025', 'Q3 2025', 'Q2 2025'].map((quarter, index) => (
                   <motion.div
                     key={quarter}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
                     whileInView={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}

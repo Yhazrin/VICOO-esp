@@ -137,7 +137,7 @@ export default function ProductCard({
               <div className="w-12 h-px bg-warm-gray/30 mt-0.5 overflow-hidden">
                 <motion.div
                   className={`h-full origin-left ${sustainability.barColor}`}
-                  initial={{ scaleX: 0 }}
+                  initial={prefersReducedMotion ? { scaleX: product.sustainabilityScore / 100 } : { scaleX: 0 }}
                   animate={isVisible ? { scaleX: product.sustainabilityScore / 100 } : {}}
                   transition={{ duration: 0.8, delay: 0.3, ease: [0, 0, 0.2, 1] }}
                 />
@@ -163,8 +163,8 @@ export default function ProductCard({
                 </motion.button>
               ) : notifySubmitted ? (
                 <motion.p
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 5 }}
+                  animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
                   className="font-body text-overline text-sage tracking-wide text-center py-2"
                 >
                   We will let you know when this is back.
@@ -172,8 +172,8 @@ export default function ProductCard({
               ) : (
                 <AnimatePresence>
                   <motion.form
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
+                    initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, height: 0 }}
+                    animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
                     onSubmit={handleNotifySubmit}
                     className="flex items-end gap-2"

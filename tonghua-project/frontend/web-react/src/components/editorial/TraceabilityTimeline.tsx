@@ -107,7 +107,7 @@ export default function TraceabilityTimeline({
         {records.map((record, index) => (
           <motion.div
             key={record.id}
-            initial={{ opacity: 0, x: -20 }}
+            initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, x: -20 }}
             whileInView={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, x: 0 }}
             viewport={{ once: true, margin: '-30px' }}
             transition={{ duration: 0.5, delay: index * 0.1 }}
@@ -123,7 +123,7 @@ export default function TraceabilityTimeline({
 
             {/* Card */}
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
+              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
               whileInView={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: index * 0.1 }}

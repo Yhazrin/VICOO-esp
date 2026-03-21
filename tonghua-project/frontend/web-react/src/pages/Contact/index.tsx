@@ -473,8 +473,8 @@ export default function Contact() {
                     <div className="flex items-center justify-between">
                       {errors.message ? (
                         <motion.p
-                          initial={{ opacity: 0, y: -5 }}
-                          animate={{ opacity: 1, y: 0 }}
+                          initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: -5 }}
+                          animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
                           role="alert"
                           className="font-body text-overline text-archive-brown"
                         >
@@ -518,8 +518,8 @@ export default function Contact() {
                   {/* Error state */}
                   {status === 'error' && (
                     <motion.p
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
+                      initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
+                      animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
                       role="alert"
                       className="font-body text-body-sm text-archive-brown"
                     >

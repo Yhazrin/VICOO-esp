@@ -96,7 +96,7 @@ export default function MagazineNav() {
                   {/* Hover background */}
                   <motion.div
                     className="absolute inset-0 bg-rust/5 opacity-0"
-                    initial={{ opacity: 0 }}
+                    initial={prefersReducedMotion ? {} : { opacity: 0 }}
                     whileHover={prefersReducedMotion ? undefined : { opacity: 1 }}
                     transition={{ duration: 0.2 }}
                   />

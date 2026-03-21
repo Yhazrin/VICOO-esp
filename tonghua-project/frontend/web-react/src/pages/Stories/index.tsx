@@ -189,8 +189,8 @@ function EmptyState({ onBrowseAll }: { onBrowseAll: () => void }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
+      animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.6, ease: [0, 0, 0.2, 1] }}
       className="py-20 md:py-32 flex flex-col items-center text-center"
@@ -328,7 +328,7 @@ export default function Stories() {
             <motion.button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 10 }}
+              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
               animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
               whileHover={prefersReducedMotion ? undefined : { y: -2 }}
@@ -370,7 +370,7 @@ export default function Stories() {
           {filtered.length > 0 ? (
             <motion.div
               key={activeCategory}
-              initial={{ opacity: 0 }}
+              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}

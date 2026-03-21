@@ -170,7 +170,7 @@ export default function Shop() {
               <motion.button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
-                initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 10 }}
+                initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
                 animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
                 whileHover={prefersReducedMotion ? undefined : { y: -2 }}
@@ -220,7 +220,7 @@ export default function Shop() {
           <AnimatePresence mode="wait">
             <motion.div
               key={`${activeCategory}-${sortBy}`}
-              initial={{ opacity: 0 }}
+              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}

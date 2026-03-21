@@ -517,8 +517,8 @@ export default function Traceability() {
           <AnimatePresence>
             {isSearching && (
               <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
+                initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, height: 0 }}
+                animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.3 }}
               >
@@ -530,8 +530,8 @@ export default function Traceability() {
           <AnimatePresence>
             {searchResult && !isSearching && (
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
+                animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.4 }}
                 className="mt-4 p-5 border-2 border-sage/30 bg-sage/5 relative overflow-hidden"
@@ -606,8 +606,8 @@ export default function Traceability() {
               <AnimatePresence>
                 {highlightedId && (
                   <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
+                    initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, height: 0 }}
+                    animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.4 }}
                     className="mt-4 border-2 border-sage/30 p-5 bg-sage/5"

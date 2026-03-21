@@ -209,8 +209,8 @@ export default function ProductDetail() {
             {/* Images */}
             <div className="md:col-span-6">
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+                initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
+                animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1 }}
                 transition={{ duration: 0.5 }}
               >
                 <SepiaImageFrame
