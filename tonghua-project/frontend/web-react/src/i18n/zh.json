@@ -18,7 +18,8 @@
     "notLoggedIn": "请登录以查看您的个人资料。",
     "accountDetails": "账户详情",
     "userId": "用户ID",
-    "role": "角色"
+    "role": "角色",
+    "productFallback": "商品"
   },
   "home": {
     "hero": {
@@ -263,7 +264,16 @@
         "verified": "已验证",
         "transparent": "透明公开",
         "impactReported": "影响报告"
-      }
+      },
+      "trustIndicators": "信任指标",
+      "financialReport": "财务报告",
+      "pdfSize": "PDF · 2.4 MB",
+      "transparencyQuote": "透明不是一种功能，而是一种责任。",
+      "transparencyQuoteAuthor": "2025年度报告"
+    },
+    "counters": {
+      "fundsRaised": "筹集善款",
+      "childrenHelped": "受助儿童"
     },
     "stories": {
       "title": "您的捐赠在行动",
@@ -336,7 +346,30 @@
       "sustainability": "可持续评分"
     },
     "results": "{{count}} 件商品",
-    "empty": "此分类下没有商品。"
+    "empty": "此分类下没有商品。",
+    "collection": "全部商品",
+    "sustainability": {
+      "certifiedMaterials": "认证材料",
+      "certifiedMaterialsDesc": "所有面料均为 GOTS 认证有机棉或再生聚酯纤维。每种材料均可追溯至源头，证书经独立审计师验证后方可进入我们的供应链。",
+      "ethicalProduction": "道德生产",
+      "ethicalProductionDesc": "公平薪酬、安全条件、全程供应链透明。",
+      "carbonMeasured": "碳排放测算",
+      "carbonMeasuredDesc": "每件产品的碳足迹均已计算并抵消。"
+    },
+    "behindCollection": "系列背后",
+    "workshop": {
+      "imageAlt": "孩子们在 VICOO 工作坊中创作",
+      "imageCaption": "成都的一个周六上午工作坊，孩子们在这里绘制将成为我们下一个系列的梦想。"
+    },
+    "editorial": {
+      "paragraph1": "这个系列中的每一件服装都始于同一种方式——一个孩子、一张白纸、以及想象的自由。我们与十二个城市的学校和社区中心合作，开展工作坊，让孩子们画出他们对世界的希望。",
+      "paragraph2": "我们的设计师随后将这些原始、真挚的艺术品转化为图案、印花和刺绣——从不改变孩子最初的愿景。最终呈现的是承载真实故事的服装，而非人为制造的故事。"
+    },
+    "quote": {
+      "text": "我画了海洋，因为我希望它永远是蓝色的。",
+      "author": "小林",
+      "role": "8岁，海洋之梦活动"
+    }
   },
   "traceability": {
     "hero": {
@@ -385,6 +418,55 @@
       "headline": "知你所穿，信你所购。",
       "body": "我们系列中的每一件服装都附带完整、可验证的供应链记录。没有隐藏环节，没有未经验证的声明。",
       "button": "浏览系列"
+    },
+    "tracing": "正在追踪供应链...",
+    "example": {
+      "title": "梦境T恤 — 完整旅程",
+      "subtitle": "跟随一件产品的完整生命周期，从孩子的画笔到您的衣橱。"
+    },
+    "carbonTotal": {
+      "value": "5.3 千克 CO2",
+      "offset": "通过云南省经认证的造林项目进行碳抵消。"
+    },
+    "quote": {
+      "text": "如果你能追溯它，你就能信任它。每一针都讲述着一个值得了解的故事。",
+      "author": "供应链宣言",
+      "role": "童画公益，2025"
+    },
+    "howItWorks": {
+      "title": "溯源如何运作",
+      "steps": {
+        "record": {
+          "title": "记录",
+          "desc": "供应链中的每一步都以照片、日期、地点和合作方验证进行记录。"
+        },
+        "verify": {
+          "title": "验证",
+          "desc": "第三方审计师验证每条记录。未验证的步骤将被透明标记。"
+        },
+        "publish": {
+          "title": "公开",
+          "desc": "完整旅程在我们的平台上公开发布，供每位客户查验。"
+        }
+      }
+    },
+    "certs": {
+      "gots": {
+        "title": "GOTS 认证",
+        "desc": "全球有机纺织品标准验证的有机纤维和负责任加工。"
+      },
+      "fairTrade": {
+        "title": "公平贸易认证",
+        "desc": "为每位工人提供生活工资、安全条件和道德待遇。"
+      },
+      "carbonNeutral": {
+        "title": "碳中和",
+        "desc": "通过经认证的造林和可再生能源抵消运营碳排放。"
+      },
+      "childSafe": {
+        "title": "儿童安全生产",
+        "desc": "完全符合儿童保护法规和知情同意协议。"
+      }
     }
   },
   "contact": {

@@ -46,7 +46,7 @@ async def get_current_user(
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
-    # Try DB lookup; fallback to payload data
+    # Try DB lookup
     try:
         from sqlalchemy import select
 
@@ -60,10 +60,11 @@ async def get_current_user(
     except HTTPException:
         raise
     except Exception:
-        pass
+        # Fail closed: do not fall back to token payload when DB is unavailable
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
-    # Fallback from token payload
-    return {"id": int(payload["sub"]), "role": payload.get("role", "user"), "email": "", "nickname": ""}
+    # User not found in DB — reject rather than trusting the token payload
+    raise HTTPException(status_code=401, detail="User not found")
 
 
 def require_role(*roles: str):
@@ -197,10 +198,11 @@ async def get_current_user_from_request(request: Request, db: AsyncSession) -> O
             if user:
                 return {"id": user.id, "email": user.email, "role": user.role, "nickname": user.nickname}
         except Exception:
-            pass
+            # Fail closed: do not fall back to token payload when DB is unavailable
+            return None
 
-        # Fallback from token payload
-        return {"id": int(payload["sub"]), "role": payload.get("role", "user"), "email": "", "nickname": ""}
+        # User not found in DB — reject
+        return None
     except Exception:
         return None
 

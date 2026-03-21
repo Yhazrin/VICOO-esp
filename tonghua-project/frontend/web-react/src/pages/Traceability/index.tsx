@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, useInView, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import EditorialHero from '@/components/editorial/EditorialHero';
@@ -9,6 +10,7 @@ import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeadin
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
+import { supplyChainApi } from '@/services/supply-chain';
 import type { SupplyChainRecord } from '@/types';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 import { supplyChainApi } from '@/services/supply-chain';
@@ -20,9 +22,46 @@ interface EnhancedSupplyChainRecord extends SupplyChainRecord {
   status: 'verified' | 'in-progress' | 'pending';
 }
 
+// Map backend stage keys to frontend stage keys
+const STAGE_MAP: Record<string, string> = {
+  material_sourcing: 'material',
+  processing: 'production',
+  manufacturing: 'production',
+  quality_check: 'quality',
+  shipping: 'shipping',
+};
+
+// Build enhanced records from API trace data, merging with narrative stories
+function buildRecordsFromApi(apiRecords: Array<{
+  id: number;
+  stage: string;
+  description: string | null;
+  location: string | null;
+  certified: boolean;
+  timestamp: string | null;
+}>): EnhancedSupplyChainRecord[] {
+  return apiRecords.map((r) => {
+    const frontendStage = STAGE_MAP[r.stage] || r.stage;
+    const narrative = MOCK_RECORDS.find((m) => m.stage === frontendStage);
+    return {
+      id: r.id,
+      stage: frontendStage,
+      description: r.description ?? narrative?.description ?? '',
+      location: r.location ?? narrative?.location ?? '',
+      date: r.timestamp ? r.timestamp.split('T')[0] : narrative?.date ?? '',
+      verified: r.certified,
+      partnerName: narrative?.partnerName ?? 'Verified Partner',
+      carbonFootprint: narrative?.carbonFootprint,
+      story: narrative?.story ?? '',
+      imageUrl: narrative?.imageUrl ?? `https://picsum.photos/seed/${frontendStage}/200/200`,
+      status: r.certified ? 'verified' as const : 'in-progress' as const,
+    };
+  });
+}
+
 const MOCK_RECORDS: EnhancedSupplyChainRecord[] = [
   {
-    id: '1',
+    id: 1,
     stage: 'artwork',
     description: 'Xiao Lin, age 8, created her ocean painting during a Saturday workshop at Dongfeng Elementary School. The artwork was selected by peer vote.',
     location: 'Shanghai, China',
@@ -35,7 +74,7 @@ const MOCK_RECORDS: EnhancedSupplyChainRecord[] = [
     imageUrl: 'https://picsum.photos/seed/artwork-studio/200/200',
   },
   {
-    id: '2',
+    id: 2,
     stage: 'design',
     description: 'Our design team adapted the artwork for textile printing, maintaining the child\'s original brushstrokes and color palette. Xiao Lin approved the final design.',
     location: 'Shanghai, China',
@@ -48,7 +87,7 @@ const MOCK_RECORDS: EnhancedSupplyChainRecord[] = [
     imageUrl: 'https://picsum.photos/seed/design-studio/200/200',
   },
   {
-    id: '3',
+    id: 3,
     stage: 'material',
     description: 'GOTS-certified organic cotton sourced from Xinjiang cooperative. Fair trade pricing verified by third-party auditor.',
     location: 'Xinjiang, China',
@@ -61,7 +100,7 @@ const MOCK_RECORDS: EnhancedSupplyChainRecord[] = [
     imageUrl: 'https://picsum.photos/seed/cotton-fields/200/200',
   },
   {
-    id: '4',
+    id: 4,
     stage: 'production',
     description: 'Screen-printed and sewn at SA8000-certified factory. Living wages paid. Working conditions audited quarterly.',
     location: 'Guangzhou, China',
@@ -74,7 +113,7 @@ const MOCK_RECORDS: EnhancedSupplyChainRecord[] = [
     imageUrl: 'https://picsum.photos/seed/factory-floor/200/200',
   },
   {
-    id: '5',
+    id: 5,
     stage: 'quality',
     description: 'Quality inspection passed. Color fastness, seam strength, and sizing verified against specifications.',
     location: 'Guangzhou, China',
@@ -87,7 +126,7 @@ const MOCK_RECORDS: EnhancedSupplyChainRecord[] = [
     imageUrl: 'https://picsum.photos/seed/quality-check/200/200',
   },
   {
-    id: '6',
+    id: 6,
     stage: 'shipping',
     description: 'Shipped via consolidated freight to reduce emissions. Carbon offset purchased through certified program.',
     location: 'Guangzhou to Shanghai',
@@ -193,7 +232,7 @@ function CarbonBar({ label, value, maxValue, isEco, delay }: {
 }
 
 // Loading spinner for product lookup
-function SearchSpinner() {
+function SearchSpinner({ t }: { t: (key: string) => string }) {
   const prefersReducedMotion = useReducedMotion();
 
   return (
@@ -208,7 +247,7 @@ function SearchSpinner() {
         />
       )}
       <span className="font-body text-caption text-sepia-mid tracking-[0.1em] uppercase">
-        Tracing supply chain...
+        {t('traceability.tracing')}
       </span>
     </div>
   );
@@ -425,7 +464,7 @@ export default function Traceability() {
   const timelineRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [highlightedId, setHighlightedId] = useState<string | null>(null);
+  const [highlightedId, setHighlightedId] = useState<number | null>(null);
   const [searchResult, setSearchResult] = useState<EnhancedSupplyChainRecord | null>(null);
   const [records, setRecords] = useState<EnhancedSupplyChainRecord[]>(MOCK_RECORDS);
 
@@ -497,10 +536,10 @@ export default function Traceability() {
   );
 
   const certifications = [
-    { title: 'GOTS Certified', description: 'Global Organic Textile Standard verified organic fibers and responsible processing.' },
-    { title: 'Fair Trade Verified', description: 'Living wages, safe conditions, and ethical treatment for every worker.' },
-    { title: 'Carbon Neutral', description: 'Operations offset through verified reforestation and renewable energy.' },
-    { title: 'Child-Safe Production', description: 'Full compliance with child protection regulations and consent protocols.' },
+    { title: t('traceability.certs.gots.title'), description: t('traceability.certs.gots.desc') },
+    { title: t('traceability.certs.fairTrade.title'), description: t('traceability.certs.fairTrade.desc') },
+    { title: t('traceability.certs.carbonNeutral.title'), description: t('traceability.certs.carbonNeutral.desc') },
+    { title: t('traceability.certs.childSafe.title'), description: t('traceability.certs.childSafe.desc') },
   ];
 
   return (
@@ -560,7 +599,7 @@ export default function Traceability() {
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <SearchSpinner />
+                <SearchSpinner t={t} />
               </motion.div>
             )}
           </AnimatePresence>
@@ -605,8 +644,8 @@ export default function Traceability() {
       <SectionContainer>
         <NumberedSectionHeading
           number="02"
-          title="Dreamscape Tee — Full Journey"
-          subtitle="Follow the complete lifecycle of one product, from a child's brushstroke to your wardrobe."
+          title={t('traceability.example.title')}
+          subtitle={t('traceability.example.subtitle')}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
@@ -630,13 +669,13 @@ export default function Traceability() {
                 className="mt-6 border border-warm-gray/30 p-6 bg-aged-stock"
               >
                 <span className="font-body text-caption text-sepia-mid tracking-[0.2em] uppercase">
-                  {t('traceability.carbon')} — Total
+                  {t('traceability.carbon')}
                 </span>
                 <div className="font-display text-h3 font-bold text-ink mt-2">
-                  5.3 kg CO2
+                  {t('traceability.carbonTotal.value')}
                 </div>
                 <p className="font-body text-caption text-ink-faded mt-2 leading-relaxed">
-                  Offset through verified reforestation project in Yunnan Province.
+                  {t('traceability.carbonTotal.offset')}
                 </p>
               </motion.div>
 
@@ -683,9 +722,9 @@ export default function Traceability() {
       {/* Quote */}
       <SectionContainer narrow>
         <StoryQuoteBlock
-          quote="If you can trace it, you can trust it. Every stitch tells a story worth knowing."
-          author="Supply Chain Manifesto"
-          role="Tonghua Public Welfare, 2025"
+          quote={t('traceability.quote.text')}
+          author={t('traceability.quote.author')}
+          role={t('traceability.quote.role')}
         />
       </SectionContainer>
 
@@ -778,25 +817,25 @@ export default function Traceability() {
         <SectionContainer>
           <NumberedSectionHeading
             number="04"
-            title="How Traceability Works"
+            title={t('traceability.howItWorks.title')}
           />
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
                 num: '01',
-                title: 'Record',
-                desc: 'Every step in the supply chain is documented with photos, dates, locations, and partner verification.',
+                title: t('traceability.howItWorks.steps.record.title'),
+                desc: t('traceability.howItWorks.steps.record.desc'),
               },
               {
                 num: '02',
-                title: 'Verify',
-                desc: 'Third-party auditors verify each record. Unverified steps are flagged transparently.',
+                title: t('traceability.howItWorks.steps.verify.title'),
+                desc: t('traceability.howItWorks.steps.verify.desc'),
               },
               {
                 num: '03',
-                title: 'Publish',
-                desc: 'The complete journey is published on our platform for every customer to inspect.',
+                title: t('traceability.howItWorks.steps.publish.title'),
+                desc: t('traceability.howItWorks.steps.publish.desc'),
               },
             ].map((step) => (
               <motion.div

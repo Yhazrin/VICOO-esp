@@ -6,6 +6,10 @@ import xml.etree.ElementTree as ET
 import secrets
 import logging
 
+import hmac as hmac_mod
+import hashlib
+
+from app.config import settings
 from app.database import get_db
 from app.models.payment import PaymentTransaction
 from app.models.order import Order
@@ -258,13 +262,19 @@ async def payment_webhook(request: Request, body: dict):
     """
     signature = request.headers.get("X-Webhook-Signature")
 
-    # Simple validation: in production, verify HMAC with shared secret
-    # For now, accept "valid-hmac-signature" as valid
     if not signature:
         raise HTTPException(status_code=400, detail="Missing signature")
 
-    # Mock verification - in production use: hmac.compare_digest(expected, signature)
-    if signature != "valid-hmac-signature":
+    # Verify HMAC-SHA256 signature using APP_SECRET_KEY
+    body_bytes = await request.body()
+    secret_key = settings.APP_SECRET_KEY
+    if isinstance(secret_key, str):
+        secret_key = secret_key.encode("utf-8")
+    expected_signature = hmac_mod.new(
+        secret_key, body_bytes, hashlib.sha256
+    ).hexdigest()
+
+    if not hmac_mod.compare_digest(expected_signature, signature):
         raise HTTPException(status_code=401, detail="Invalid signature")
 
     # Process webhook payload

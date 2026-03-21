@@ -48,7 +48,7 @@ function ThumbnailButton({
 
 const MOCK_SUPPLY_CHAIN: SupplyChainRecord[] = [
   {
-    id: 'sc1',
+    id: 1,
     stage: 'artwork',
     description: 'Mei, age 8, painted the original design during a workshop in Bijie, Guizhou.',
     location: 'Bijie, Guizhou',
@@ -58,7 +58,7 @@ const MOCK_SUPPLY_CHAIN: SupplyChainRecord[] = [
     carbonFootprint: 0,
   },
   {
-    id: 'sc2',
+    id: 2,
     stage: 'design',
     description:
       'Our creative team adapted the watercolor for screen printing while preserving brushstroke authenticity.',
@@ -69,7 +69,7 @@ const MOCK_SUPPLY_CHAIN: SupplyChainRecord[] = [
     carbonFootprint: 0.2,
   },
   {
-    id: 'sc3',
+    id: 3,
     stage: 'material',
     description:
       '100% mulberry silk sourced from a six-generation cooperative using traditional sericulture methods.',
@@ -80,7 +80,7 @@ const MOCK_SUPPLY_CHAIN: SupplyChainRecord[] = [
     carbonFootprint: 1.8,
   },
   {
-    id: 'sc4',
+    id: 4,
     stage: 'production',
     description:
       'Screen-printed by hand using water-based, non-toxic inks. Each scarf takes 45 minutes to print.',
@@ -91,7 +91,7 @@ const MOCK_SUPPLY_CHAIN: SupplyChainRecord[] = [
     carbonFootprint: 2.1,
   },
   {
-    id: 'sc5',
+    id: 5,
     stage: 'quality',
     description: 'Individually inspected for print clarity, color accuracy, and fabric integrity.',
     location: 'Shanghai',
@@ -101,7 +101,7 @@ const MOCK_SUPPLY_CHAIN: SupplyChainRecord[] = [
     carbonFootprint: 0.1,
   },
   {
-    id: 'sc6',
+    id: 6,
     stage: 'shipping',
     description: 'Packaged in recycled kraft paper. Carbon-offset delivery via SF Express.',
     location: 'Nationwide',
@@ -113,16 +113,13 @@ const MOCK_SUPPLY_CHAIN: SupplyChainRecord[] = [
 ];
 
 const MOCK_PRODUCT: Product = {
-  id: '1',
+  id: 1,
   name: "Typhoon Silk Scarf — Mei's Garden",
   description:
     "Hand-printed from 8-year-old Mei's watercolor of a swirling garden. Each scarf is individually printed by artisan Wang Laoshi in her Hangzhou workshop using traditional screen-printing methods. The mulberry silk is sourced from a cooperative in Zhejiang that has been producing silk for six generations. The design preserves Mei's original brushstrokes — the slightly uneven edges, the places where colors bled into each other — because that imperfection is the point.",
   price: 380,
   currency: 'CNY',
-  imageUrls: [
-    'https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=800&h=1000&fit=crop',
-    'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=400&h=400&fit=crop',
-  ],
+  image_url: 'https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=800&h=1000&fit=crop',
   category: 'accessories',
   inStock: true,
   stockCount: 12,
@@ -159,12 +156,10 @@ export default function ProductDetail() {
       .getById(id)
       .then((data: Product) => {
         if (!cancelled) {
-          const imageUrls = data.imageUrls ?? MOCK_PRODUCT.imageUrls;
           setProduct({
             ...MOCK_PRODUCT,
             ...data,
-            id: String(data.id ?? id),
-            imageUrls: Array.isArray(imageUrls) ? imageUrls : [imageUrls],
+            id: Number(data.id ?? id),
             price: Number(data.price ?? MOCK_PRODUCT.price),
             inStock: data.inStock ?? MOCK_PRODUCT.inStock,
             stockCount: data.stockCount ?? MOCK_PRODUCT.stockCount,
@@ -203,6 +198,7 @@ export default function ProductDetail() {
     );
   }
 
+  const productImages = product.image_url ? [product.image_url] : [];
   const totalCarbon = product.supplyChain.reduce(
     (sum, r) => sum + (r.carbonFootprint ?? 0),
     0
@@ -222,15 +218,15 @@ export default function ProductDetail() {
                 transition={{ duration: 0.5 }}
               >
                 <SepiaImageFrame
-                  src={product.imageUrls[selectedImage]}
+                  src={productImages[selectedImage]}
                   alt={product.name}
                   aspectRatio="portrait"
                   size="full"
                 />
               </motion.div>
-              {product.imageUrls.length > 1 && (
+              {productImages.length > 1 && (
                 <div className="flex gap-3 mt-4">
-                  {product.imageUrls.map((url, index) => (
+                  {productImages.map((url, index) => (
                     <ThumbnailButton
                       key={url}
                       url={url}
