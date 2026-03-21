@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { artworksApi } from '@/services/artworks';
@@ -28,72 +29,39 @@ interface StoryItem {
   category: 'impact' | 'fashion' | 'community' | 'education';
 }
 
-// Marquee quotes with attribution
-const STORY_QUOTES = [
-  { text: 'Every brushstroke a child makes is a window into a world they imagine', attribution: 'Chen Wei, Founder' },
-  { text: 'We don\'t just sell clothes, we sell the right to know where it came from', attribution: 'Zhang Hua, Production Lead' },
-  { text: 'Sustainability begins with seeing, not just buying', attribution: 'Li Mei, Community Director' },
-  { text: 'A classroom becomes a gallery when we open the doors', attribution: 'Wang Jun, Education Lead' },
-  { text: 'The ocean she painted was the bluest thing she had ever seen', attribution: 'Chen Wei, Founder' },
-];
+// Marquee quotes with attribution — factory function for i18n
+function createStoryQuotes(t: TFunction) {
+  return t('stories.quotes', { returnObjects: true }) as Array<{ text: string; attribution: string }>;
+}
 
-const MOCK_STORIES: StoryItem[] = [
-  {
-    id: '1',
-    title: 'The Girl Who Drew the Ocean',
-    excerpt: 'Xiao Lin had never seen the sea. But her painting of it became the most popular design in our Spring collection.',
-    pullQuote: '47 children participated in this workshop',
-    coverImage: 'https://picsum.photos/seed/ocean-girl/800/600',
-    author: 'Chen Wei',
-    publishedAt: '2026-02-15',
-    readTimeMinutes: 8,
-    category: 'impact',
-  },
-  {
-    id: '2',
-    title: 'From Waste to Wearable',
-    excerpt: 'How our production team turns deadstock fabric into limited-edition pieces that fund art workshops.',
-    pullQuote: '3.2 tonnes of fabric diverted from landfill',
-    coverImage: 'https://picsum.photos/seed/waste-wearable/800/600',
-    author: 'Zhang Hua',
-    publishedAt: '2026-02-01',
-    readTimeMinutes: 12,
-    category: 'fashion',
-  },
-  {
-    id: '3',
-    title: 'A Classroom Becomes a Gallery',
-    excerpt: 'When Dongfeng Elementary opened its doors for our workshop, nobody expected the walls to become canvases.',
-    pullQuote: '120 artworks created in a single afternoon',
-    coverImage: 'https://picsum.photos/seed/classroom-gallery/800/600',
-    author: 'Li Mei',
-    publishedAt: '2026-01-20',
-    readTimeMinutes: 6,
-    category: 'community',
-  },
-  {
-    id: '4',
-    title: 'Teaching Sustainability Through Art',
-    excerpt: 'Our new curriculum helps children understand environmental impact through creative expression.',
-    pullQuote: '14 schools adopted the curriculum this semester',
-    coverImage: 'https://picsum.photos/seed/sustainability-art/800/600',
-    author: 'Wang Jun',
-    publishedAt: '2026-01-10',
-    readTimeMinutes: 10,
-    category: 'education',
-  },
-  {
-    id: '5',
-    title: 'The Numbers Behind the Mission',
-    excerpt: 'A transparent look at how every yuan of donation translates into real-world impact for children and communities.',
-    pullQuote: '92% of funds go directly to programs',
-    coverImage: 'https://picsum.photos/seed/numbers-mission/800/600',
-    author: 'Chen Wei',
-    publishedAt: '2025-12-28',
-    readTimeMinutes: 15,
-    category: 'impact',
-  },
-];
+// Mock stories — factory function for i18n
+function createMockStories(t: TFunction): StoryItem[] {
+  const raw = t('stories.mock', { returnObjects: true }) as Array<{
+    title: string; excerpt: string; pullQuote: string; author: string;
+  }>;
+  const covers = [
+    'https://picsum.photos/seed/ocean-girl/800/600',
+    'https://picsum.photos/seed/waste-wearable/800/600',
+    'https://picsum.photos/seed/classroom-gallery/800/600',
+    'https://picsum.photos/seed/sustainability-art/800/600',
+    'https://picsum.photos/seed/numbers-mission/800/600',
+  ];
+  const dates = ['2026-02-15', '2026-02-01', '2026-01-20', '2026-01-10', '2025-12-28'];
+  const readTimes = [8, 12, 6, 10, 15];
+  const cats: StoryItem['category'][] = ['impact', 'fashion', 'community', 'education', 'impact'];
+
+  return raw.map((item, i) => ({
+    id: String(i + 1),
+    title: item.title,
+    excerpt: item.excerpt,
+    pullQuote: item.pullQuote,
+    coverImage: covers[i],
+    author: item.author,
+    publishedAt: dates[i],
+    readTimeMinutes: readTimes[i],
+    category: cats[i],
+  }));
+}
 
 // Decorative SVG ornament for the newsletter section
 function EditorialOrnament({ className = '', prefersReducedMotion = false }: { className?: string; prefersReducedMotion?: boolean }) {
@@ -165,11 +133,12 @@ function EditorialOrnament({ className = '', prefersReducedMotion = false }: { c
 
 // Reading progress bar at the bottom of story cards
 function ReadingProgressBar({ readTimeMinutes, prefersReducedMotion = false }: { readTimeMinutes: number; prefersReducedMotion?: boolean }) {
+  const { t } = useTranslation();
   const maxReadTime = 20;
   const widthPercent = Math.min((readTimeMinutes / maxReadTime) * 100, 100);
 
   return (
-    <div className="mt-4 h-[2px] w-full bg-warm-gray/20 rounded-sm overflow-hidden" role="progressbar" aria-valuenow={readTimeMinutes} aria-valuemin={0} aria-valuemax={maxReadTime} aria-label={`${readTimeMinutes} minute read`}>
+    <div className="mt-4 h-[2px] w-full bg-warm-gray/20 rounded-sm overflow-hidden" role="progressbar" aria-valuenow={readTimeMinutes} aria-valuemin={0} aria-valuemax={maxReadTime} aria-label={t('stories.readTimeAria', { minutes: readTimeMinutes })}>
       <motion.div
         className="h-full bg-rust/60 rounded-sm origin-left"
         style={prefersReducedMotion ? { transform: `scaleX(${widthPercent / 100})` } : undefined}
@@ -298,16 +267,16 @@ export default function Stories() {
       return artworksData.items.map((artwork, i) => ({
         id: String(artwork.id),
         title: artwork.title,
-        excerpt: artwork.description || 'A child\'s artwork, created with imagination and heart.',
-        pullQuote: artwork.voteCount > 0 ? `${artwork.voteCount} supporters` : '120 artworks created in a single afternoon',
+        excerpt: artwork.description || t('stories.fallback.excerpt'),
+        pullQuote: artwork.voteCount > 0 ? t('stories.fallback.supporters', { count: artwork.voteCount }) : t('stories.fallback.defaultPullQuote'),
         coverImage: artwork.imageUrl || `https://picsum.photos/seed/artwork-${artwork.id}/800/600`,
-        author: artwork.childParticipant?.firstName || 'Anonymous Artist',
+        author: artwork.childParticipant?.firstName || t('stories.fallback.author'),
         publishedAt: artwork.createdAt ? artwork.createdAt.split('T')[0] : '2026-01-01',
         readTimeMinutes: 5 + (i % 4) * 3,
         category: ['impact', 'community', 'education', 'fashion'][i % 4] as StoryItem['category'],
       }));
     }
-    return MOCK_STORIES;
+    return createMockStories(t);
   }, [artworksData]);
 
   // Compute category counts
@@ -345,7 +314,7 @@ export default function Stories() {
 
       {/* Kinetic marquee with attributed quotes */}
       <KineticTextMarquee
-        items={STORY_QUOTES.map((q) => `${q.text} — ${q.attribution}`)}
+        items={createStoryQuotes(t).map((q) => `${q.text}${t('stories.marquee.separator')}${q.attribution}`)}
         direction="left"
         speed={0.8}
         pauseOnHover={true}
@@ -483,9 +452,9 @@ export default function Stories() {
                         <div className="mt-16 md:mt-24">
                           <PagePeel corner="top-right" maxRotation={8} shadowIntensity={0.2}>
                             <StoryQuoteBlock
-                              quote="Every brushstroke a child makes is a window into a world they imagine. Our job is to make that world visible."
-                              author="Chen Wei"
-                              role="Founder, VICOO"
+                              quote={t('stories.quoteBlock.quote')}
+                              author={t('stories.quoteBlock.author')}
+                              role={t('stories.quoteBlock.role')}
                             />
                           </PagePeel>
                         </div>

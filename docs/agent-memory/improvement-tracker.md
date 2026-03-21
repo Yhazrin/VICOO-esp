@@ -166,12 +166,19 @@
 | 127 | Backend — deps.py missing optional auth dependency | Medium | ✅ done — get_optional_current_user() returns user dict or None, no exception on auth failure |
 | 128 | Backend — donations.py missing name redaction helper | Medium | ✅ done — _redact_name() masks names to first char + asterisks, handles anonymous flag |
 
+## Completed — Cycle 18 (2026-03-22)
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 17 | Traceability — hardcoded English strings need i18n extraction | Low | ✅ done — ~55 t() keys, createMockRecords(t) factory, CarbonBar t prop |
+| 18 | Shop — hardcoded English strings need i18n extraction | Low | ✅ done — TFunction import fix, previously completed |
+| 19 | Donate — hardcoded English strings need i18n extraction | Low | ✅ done — ~40 t() keys, quarter array via returnObjects, donor name fallbacks |
+| 20 | Stories — hardcoded English strings need i18n extraction | Low | ✅ done — TFunction import fix, previously completed |
+| 21 | Contact — hardcoded English strings need i18n extraction | Low | ✅ done — character count i18n, previously completed |
+| — | TFunction import fix (Traceability/Shop/Stories) | Medium | ✅ done — split react-i18next + i18next imports |
+| — | en.json/zh.json — ~95 new traceability + donate translation keys | Medium | ✅ done — both locale files expanded |
+
 ## Pending
 
 | # | Issue | Priority | Notes |
 |---|-------|----------|-------|
-| 17 | Traceability — hardcoded English strings need i18n extraction | Low | |
-| 18 | Shop — hardcoded English strings need i18n extraction | Low | |
-| 19 | Donate — hardcoded English strings need i18n extraction | Low | |
-| 20 | Stories — hardcoded English strings need i18n extraction | Low | |
-| 21 | Contact — hardcoded English strings need i18n extraction | Low | |

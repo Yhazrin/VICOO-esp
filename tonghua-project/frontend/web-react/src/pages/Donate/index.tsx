@@ -236,7 +236,7 @@ export default function Donate() {
     }) => {
       const { user } = useAuthStore.getState();
       return donationsApi.create({
-        donor_name: data.anonymous ? 'Anonymous' : (user?.nickname || user?.email || 'Guest'),
+        donor_name: data.anonymous ? t('donate.donor.anonymous') : (user?.nickname || user?.email || t('donate.donor.guest')),
         amount: data.amount,
         currency: 'CNY',
         payment_method: data.paymentMethod || 'wechat',
@@ -412,7 +412,7 @@ export default function Donate() {
             </div>
             <div className="md:col-span-7">
               <div className="grid grid-cols-2 gap-4">
-                {['Q1 2026', 'Q4 2025', 'Q3 2025', 'Q2 2025'].map((quarter, index) => (
+                {(t('donate.transparency.quarters', { returnObjects: true }) as string[]).map((quarter: string, index: number) => (
                   <motion.div
                     key={quarter}
                     initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}

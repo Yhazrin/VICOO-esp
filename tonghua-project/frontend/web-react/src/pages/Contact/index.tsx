@@ -488,7 +488,7 @@ export default function Contact() {
                             : 'text-sepia-mid/60'
                         }`}
                       >
-                        {formData.message.length} / {MAX_MESSAGE_LENGTH}
+                        {t('contact.form.characterCount', { count: formData.message.length, max: MAX_MESSAGE_LENGTH })}
                       </span>
                     </div>
                   </div>

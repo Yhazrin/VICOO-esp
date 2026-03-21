@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-03-22 — Cycle 18: i18n Hardcoded String Extraction
+
+### i18n
+
+- **Traceability/index.tsx** — Extracted ~55+ t() keys: mock record data (6 records × 4 fields), status labels, stage names, carbon unit, date locale, hero/lookup/example section text, carbon chart labels, how-it-works steps, certifications, CTA. Created `createMockRecords(t: TFunction)` factory function for module-level mock data.
+- **Donate/index.tsx** — Extracted ~40 t() keys: hero/emotional/impact section text, counter labels, donor story content (3 items), donor name fallbacks (anonymous/guest), transparency section (audit/on-chain/quarterly labels, trust indicators, quarter array via `returnObjects: true`), FAQ (4 Q&A pairs), CTA.
+- **TFunction import fix** — Fixed 3 files (Traceability, Shop, Stories): split `import { useTranslation, type TFunction } from 'react-i18next'` into separate imports from `react-i18next` and `i18next` (react-i18next does not re-export TFunction).
+- **en.json** — Added ~95 new translation keys for traceability and donate namespaces.
+- **zh.json** — Added matching Chinese translations for all new keys.
+
+### Verification
+
+- TypeScript `tsc --noEmit`: zero new errors (all 18 errors are pre-existing in ArtworkDetail, Login/Register, Traceability API type mismatches).
+
 ## 2026-03-22 — Cycle 8b: Backend Security Hardening
 
 ### Security

@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
@@ -16,92 +17,32 @@ import type { Product } from '@/types';
 type Category = 'all' | 'apparel' | 'accessories' | 'stationery' | 'prints';
 type SortOption = 'default' | 'price-asc' | 'price-desc' | 'sustainability';
 
-const MOCK_PRODUCTS: Product[] = [
-  {
-    id: 1,
-    name: 'Dreamscape Tee',
-    description: 'A children\'s ocean painting transformed into a wearable story.',
-    price: 298,
+function createMockProducts(t: TFunction): Product[] {
+  const names = [0, 1, 2, 3, 4, 5].map((i) => t(`shop.mock.${i}.name`));
+  const descs = [0, 1, 2, 3, 4, 5].map((i) => t(`shop.mock.${i}.description`));
+  const staticData = [
+    { price: 298, image_url: 'https://picsum.photos/seed/dreamscape-tee/600/800', category: 'apparel' as const, inStock: true, stockCount: 24, sustainabilityScore: 87, childName: 'Xiao Lin', age: 8, campaign: 'Ocean Dreams' },
+    { price: 168, image_url: 'https://picsum.photos/seed/bloom-tote/600/800', category: 'accessories' as const, inStock: true, stockCount: 3, sustainabilityScore: 92, childName: 'Mei Hua', age: 7, campaign: 'Spring Garden' },
+    { price: 58, image_url: 'https://picsum.photos/seed/sketchbook/600/800', category: 'stationery' as const, inStock: true, stockCount: 156, sustainabilityScore: 95, childName: 'Tong Tong', age: 6, campaign: 'Winter Wonders' },
+    { price: 128, image_url: 'https://picsum.photos/seed/ocean-print/600/800', category: 'prints' as const, inStock: true, stockCount: 42, sustainabilityScore: 88, childName: 'Xiao Yu', age: 9, campaign: 'Ocean Dreams' },
+    { price: 458, image_url: 'https://picsum.photos/seed/cityscape-hoodie/600/800', category: 'apparel' as const, inStock: false, stockCount: 0, sustainabilityScore: 84, childName: 'Jia Wei', age: 10, campaign: 'My City' },
+    { price: 48, image_url: 'https://picsum.photos/seed/rainbow-pins/600/800', category: 'accessories' as const, inStock: true, stockCount: 89, sustainabilityScore: 90, childName: 'An Qi', age: 8, campaign: 'Colors of Hope' },
+  ];
+  return staticData.map((s, i) => ({
+    id: i + 1,
+    name: names[i],
+    description: descs[i],
+    price: s.price,
     currency: 'CNY',
-    image_url: 'https://picsum.photos/seed/dreamscape-tee/600/800',
-    category: 'apparel',
-    inStock: true,
-    stockCount: 24,
-    sustainabilityScore: 87,
+    image_url: s.image_url,
+    category: s.category,
+    inStock: s.inStock,
+    stockCount: s.stockCount,
+    sustainabilityScore: s.sustainabilityScore,
     supplyChain: [],
-    artworkBy: { childName: 'Xiao Lin', age: 8, campaign: 'Ocean Dreams' },
-  },
-  {
-    id: 2,
-    name: 'Bloom Tote Bag',
-    description: 'Hand-printed organic cotton tote featuring spring campaign artwork.',
-    price: 168,
-    currency: 'CNY',
-    image_url: 'https://picsum.photos/seed/bloom-tote/600/800',
-    category: 'accessories',
-    inStock: true,
-    stockCount: 3,
-    sustainabilityScore: 92,
-    supplyChain: [],
-    artworkBy: { childName: 'Mei Hua', age: 7, campaign: 'Spring Garden' },
-  },
-  {
-    id: 3,
-    name: 'Little Artists Sketchbook',
-    description: 'Recycled paper sketchbook with cover art from our winter campaign.',
-    price: 58,
-    currency: 'CNY',
-    image_url: 'https://picsum.photos/seed/sketchbook/600/800',
-    category: 'stationery',
-    inStock: true,
-    stockCount: 156,
-    sustainabilityScore: 95,
-    supplyChain: [],
-    artworkBy: { childName: 'Tong Tong', age: 6, campaign: 'Winter Wonders' },
-  },
-  {
-    id: 4,
-    name: 'Ocean Dreams Art Print',
-    description: 'Museum-quality giclee print on archival paper.',
-    price: 128,
-    currency: 'CNY',
-    image_url: 'https://picsum.photos/seed/ocean-print/600/800',
-    category: 'prints',
-    inStock: true,
-    stockCount: 42,
-    sustainabilityScore: 88,
-    supplyChain: [],
-    artworkBy: { childName: 'Xiao Yu', age: 9, campaign: 'Ocean Dreams' },
-  },
-  {
-    id: 5,
-    name: 'Cityscape Hoodie',
-    description: 'Organic cotton hoodie with embroidered children\'s city drawings.',
-    price: 458,
-    currency: 'CNY',
-    image_url: 'https://picsum.photos/seed/cityscape-hoodie/600/800',
-    category: 'apparel',
-    inStock: false,
-    stockCount: 0,
-    sustainabilityScore: 84,
-    supplyChain: [],
-    artworkBy: { childName: 'Jia Wei', age: 10, campaign: 'My City' },
-  },
-  {
-    id: 6,
-    name: 'Rainbow Pin Set',
-    description: 'Enamel pin set featuring five winning artworks from 2025.',
-    price: 48,
-    currency: 'CNY',
-    image_url: 'https://picsum.photos/seed/rainbow-pins/600/800',
-    category: 'accessories',
-    inStock: true,
-    stockCount: 89,
-    sustainabilityScore: 90,
-    supplyChain: [],
-    artworkBy: { childName: 'An Qi', age: 8, campaign: 'Colors of Hope' },
-  },
-];
+    artworkBy: { childName: s.childName, age: s.age, campaign: s.campaign },
+  }));
+}
 
 export default function Shop() {
   const { t } = useTranslation();
@@ -133,7 +74,7 @@ export default function Shop() {
   ];
 
   const filtered = useMemo(() => {
-    let list = data?.items ?? MOCK_PRODUCTS;
+    let list = data?.items ?? createMockProducts(t);
 
     if (activeCategory !== 'all') {
       list = list.filter((p) => p.category === activeCategory);
