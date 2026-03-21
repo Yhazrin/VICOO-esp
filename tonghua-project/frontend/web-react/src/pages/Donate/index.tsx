@@ -84,10 +84,10 @@ function ImpactProgressBar({
       <div className="flex items-center gap-3 mb-2">
         <ImpactIcon type={icon} />
         <div className="flex-1 flex items-baseline justify-between">
-          <span className="font-body text-sm text-ink font-medium">
+          <span className="font-body text-body-sm text-ink font-medium">
             {label}
           </span>
-          <span className="font-display text-sm font-bold text-rust">
+          <span className="font-display text-body-sm font-bold text-rust">
             {pct}%
           </span>
         </div>
@@ -109,7 +109,7 @@ function ImpactProgressBar({
           }}
         />
       </div>
-      <p className="font-body text-xs text-ink-faded mt-1.5 leading-relaxed pl-8">
+      <p className="font-body text-caption text-ink-faded mt-1.5 leading-relaxed pl-8">
         {description}
       </p>
     </motion.div>
@@ -133,7 +133,7 @@ function TrustBadge({ label, index }: { label: string; index: number }) {
       className="flex items-center gap-2 border border-warm-gray/30 px-4 py-2.5 bg-paper"
     >
       <span className="w-2 h-2 bg-rust/60 rounded-sm" />
-      <span className="font-body text-xs text-ink tracking-[0.08em] uppercase">
+      <span className="font-body text-caption text-ink tracking-[0.08em] uppercase">
         {label}
       </span>
     </motion.div>
@@ -181,7 +181,7 @@ function DonationStoryCard({
         <span className="font-display text-lg font-bold text-rust">
           {amount}
         </span>
-        <p className="font-body text-sm text-ink mt-1 leading-relaxed">
+        <p className="font-body text-body-sm text-ink mt-1 leading-relaxed">
           {impact}
         </p>
         <span className="font-body text-caption text-sepia-mid tracking-[0.1em] mt-2 block">
@@ -342,7 +342,7 @@ export default function Donate() {
               <h3 className="font-display text-h3 font-bold text-ink mb-4">
                 {t('donate.transparency.title')}
               </h3>
-              <p className="font-body text-sm text-ink-faded leading-relaxed mb-6">
+              <p className="font-body text-body-sm text-ink-faded leading-relaxed mb-6">
                 {t('donate.transparency.subtitle')}
               </p>
 
@@ -350,19 +350,19 @@ export default function Donate() {
               <div className="space-y-3 mb-8">
                 <div className="flex items-start gap-3">
                   <span className="w-1.5 h-1.5 bg-rust/60 rounded-sm mt-2 shrink-0" />
-                  <span className="font-body text-sm text-ink">
+                  <span className="font-body text-body-sm text-ink">
                     {t('donate.transparency.lastAudit')}
                   </span>
                 </div>
                 <div className="flex items-start gap-3">
                   <span className="w-1.5 h-1.5 bg-rust/60 rounded-sm mt-2 shrink-0" />
-                  <span className="font-body text-sm text-ink">
+                  <span className="font-body text-body-sm text-ink">
                     {t('donate.transparency.onChain')}
                   </span>
                 </div>
                 <div className="flex items-start gap-3">
                   <span className="w-1.5 h-1.5 bg-rust/60 rounded-sm mt-2 shrink-0" />
-                  <span className="font-body text-sm text-ink">
+                  <span className="font-body text-body-sm text-ink">
                     {t('donate.transparency.quarterly')}
                   </span>
                 </div>
@@ -386,7 +386,7 @@ export default function Donate() {
               </div>
 
               <motion.button
-                className="font-body text-xs text-rust tracking-[0.15em] uppercase hover:text-ink transition-colors"
+                className="font-body text-caption text-rust tracking-[0.15em] uppercase hover:text-ink transition-colors"
                 whileHover={prefersReducedMotion ? undefined : { x: 4 }}
               >
                 {t('donate.transparency.viewReport')} &rarr;
@@ -414,7 +414,7 @@ export default function Donate() {
                     <h4 className="font-display text-lg font-bold text-ink mt-2">
                       {quarter}
                     </h4>
-                    <span className="font-body text-xs text-sepia-mid mt-2 block">
+                    <span className="font-body text-caption text-sepia-mid mt-2 block">
                       PDF &middot; 2.4 MB
                     </span>
                   </motion.div>
@@ -507,7 +507,7 @@ export default function Donate() {
               <MagneticButton strength={0.35}>
                 <a
                   href="#top"
-                  className="inline-block font-body text-sm tracking-[0.15em] uppercase bg-rust text-paper px-10 py-4 hover:bg-pale-gold hover:text-ink transition-all duration-300"
+                  className="inline-block font-body text-body-sm tracking-[0.15em] uppercase bg-rust text-paper px-10 py-4 hover:bg-pale-gold hover:text-ink transition-all duration-300"
                 >
                   {t('donate.cta.donate')}
                 </a>
@@ -515,7 +515,7 @@ export default function Donate() {
               <MagneticButton strength={0.35}>
                 <Link
                   to="/about"
-                  className="inline-block font-body text-sm tracking-[0.15em] uppercase border border-warm-gray/40 text-paper px-10 py-4 hover:border-pale-gold hover:text-pale-gold transition-all duration-300"
+                  className="inline-block font-body text-body-sm tracking-[0.15em] uppercase border border-warm-gray/40 text-paper px-10 py-4 hover:border-pale-gold hover:text-pale-gold transition-all duration-300"
                 >
                   {t('donate.cta.learnMore')}
                 </Link>

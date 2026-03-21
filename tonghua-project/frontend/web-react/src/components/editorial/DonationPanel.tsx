@@ -168,13 +168,13 @@ export default function DonationPanel({
             role="alert"
             className="mb-6 p-3 bg-archive-brown/10 border border-archive-brown/30"
           >
-            <p className="font-body text-xs text-archive-brown">{error}</p>
+            <p className="font-body text-caption text-archive-brown">{error}</p>
           </motion.div>
         )}
 
         {/* Frequency */}
         <div className="mb-8">
-          <label className="block font-body text-xs tracking-[0.05em] text-sepia-mid mb-3">
+          <label className="block font-body text-caption tracking-[0.05em] text-sepia-mid mb-3">
             {t('donate.form.frequency.title')}
           </label>
           <div className="flex" role="group" aria-label={t('donate.form.frequency.title')}>
@@ -191,7 +191,7 @@ export default function DonationPanel({
                   }
                 }}
                 className={`
-                  flex-1 py-3 font-body text-xs tracking-[0.05em] uppercase text-center border transition-all cursor-pointer
+                  flex-1 py-3 font-body text-caption tracking-[0.05em] uppercase text-center border transition-all cursor-pointer
                   ${freq === 'once' ? 'border-r-0' : ''}
                   ${
                     frequency === freq
@@ -222,7 +222,7 @@ export default function DonationPanel({
               onChange={(e) => setAnonymous(e.target.checked)}
               className="w-4 h-4 accent-[var(--color-rust)] cursor-pointer"
             />
-            <span className="font-body text-xs text-sepia-mid">
+            <span className="font-body text-caption text-sepia-mid">
               {t('donate.form.anonymous')}
             </span>
           </label>
@@ -232,7 +232,7 @@ export default function DonationPanel({
         <button
           type="submit"
           disabled={activeAmount <= 0 || isSubmitting}
-          className="w-full py-4 font-body text-xs tracking-[0.1em] uppercase bg-rust text-paper border-none cursor-pointer transition-colors hover:bg-archive-brown disabled:bg-warm-gray disabled:cursor-not-allowed"
+          className="w-full py-4 font-body text-caption tracking-[0.1em] uppercase bg-rust text-paper border-none cursor-pointer transition-colors hover:bg-archive-brown disabled:bg-warm-gray disabled:cursor-not-allowed"
         >
           {isSubmitting ? t('donate.form.processing') : t('donate.form.submit')}
         </button>

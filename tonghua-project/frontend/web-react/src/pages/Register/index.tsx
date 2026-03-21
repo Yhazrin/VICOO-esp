@@ -69,7 +69,7 @@ export default function Register() {
               initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
               animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
               transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6, ease: [0, 0, 0.2, 1], delay: 0.1 }}
-              className="font-body text-sm text-ink-faded"
+              className="font-body text-body-sm text-ink-faded"
             >
               {t('register.subtitle')}
             </motion.p>
@@ -120,7 +120,7 @@ export default function Register() {
             />
 
             {(localError || registerError) && (
-              <div role="alert" className="font-body text-sm text-rust text-center border border-rust/20 px-4 py-3">
+              <div role="alert" className="font-body text-body-sm text-rust text-center border border-rust/20 px-4 py-3">
                 {localError || registerError}
               </div>
             )}
@@ -130,7 +130,7 @@ export default function Register() {
               disabled={isRegistering}
               whileHover={prefersReducedMotion ? undefined : { scale: 1.01 }}
               whileTap={prefersReducedMotion ? undefined : { scale: 0.99 }}
-              className="w-full font-body text-sm tracking-[0.15em] uppercase bg-ink text-paper px-10 py-4 hover:bg-rust transition-colors duration-300 disabled:opacity-50 cursor-pointer"
+              className="w-full font-body text-body-sm tracking-[0.15em] uppercase bg-ink text-paper px-10 py-4 hover:bg-rust transition-colors duration-300 disabled:opacity-50 cursor-pointer"
             >
               {isRegistering ? t('register.submitting') : t('register.submit')}
             </motion.button>
@@ -140,7 +140,7 @@ export default function Register() {
                 <div className="w-full border-t border-warm-gray/30" />
               </div>
               <div className="relative flex justify-center">
-                <span className="bg-paper px-4 font-body text-xs text-sepia-mid">
+                <span className="bg-paper px-4 font-body text-caption text-sepia-mid">
                   {t('register.orContinueWith')}
                 </span>
               </div>
@@ -150,18 +150,18 @@ export default function Register() {
               type="button"
               whileHover={prefersReducedMotion ? undefined : { scale: 1.01 }}
               whileTap={prefersReducedMotion ? undefined : { scale: 0.99 }}
-              className="w-full font-body text-sm tracking-[0.1em] border border-warm-gray/40 text-ink px-10 py-4 hover:border-ink transition-colors duration-300 cursor-pointer"
+              className="w-full font-body text-body-sm tracking-[0.1em] border border-warm-gray/40 text-ink px-10 py-4 hover:border-ink transition-colors duration-300 cursor-pointer"
             >
               {t('register.wechat')}
             </motion.button>
 
             <p className="text-center pt-4">
-              <span className="font-body text-xs text-sepia-mid mr-2">
+              <span className="font-body text-caption text-sepia-mid mr-2">
                 {t('register.alreadyHaveAccount')}
               </span>
               <Link
                 to="/login"
-                className="font-body text-xs text-rust hover:text-ink transition-colors tracking-[0.1em] uppercase cursor-pointer"
+                className="font-body text-caption text-rust hover:text-ink transition-colors tracking-[0.1em] uppercase cursor-pointer"
               >
                 {t('register.login')}
               </Link>

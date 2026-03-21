@@ -54,7 +54,7 @@ export default function Login() {
               initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
               animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
               transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6, ease: [0, 0, 0.2, 1], delay: 0.1 }}
-              className="font-body text-sm text-ink-faded"
+              className="font-body text-body-sm text-ink-faded"
             >
               {t('login.subtitle')}
             </motion.p>
@@ -90,18 +90,18 @@ export default function Login() {
 
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 cursor-pointer">
-                <span className="font-body text-xs text-ink-faded">{t('login.rememberMe')}</span>
+                <span className="font-body text-caption text-ink-faded">{t('login.rememberMe')}</span>
               </label>
               <Link
                 to="#"
-                className="font-body text-xs text-rust hover:text-ink transition-colors cursor-pointer"
+                className="font-body text-caption text-rust hover:text-ink transition-colors cursor-pointer"
               >
                 {t('login.forgotPassword')}
               </Link>
             </div>
 
             {loginError && (
-              <div role="alert" className="font-body text-sm text-rust text-center border border-rust/20 px-4 py-3 mb-4">
+              <div role="alert" className="font-body text-body-sm text-rust text-center border border-rust/20 px-4 py-3 mb-4">
                 {loginError}
               </div>
             )}
@@ -111,7 +111,7 @@ export default function Login() {
               disabled={isLoggingIn}
               whileHover={prefersReducedMotion ? undefined : { scale: 1.01 }}
               whileTap={prefersReducedMotion ? undefined : { scale: 0.99 }}
-              className="w-full font-body text-sm tracking-[0.15em] uppercase bg-ink text-paper px-10 py-4 hover:bg-rust transition-colors duration-300 disabled:opacity-50 cursor-pointer"
+              className="w-full font-body text-body-sm tracking-[0.15em] uppercase bg-ink text-paper px-10 py-4 hover:bg-rust transition-colors duration-300 disabled:opacity-50 cursor-pointer"
             >
               {isLoggingIn ? t('login.submitting') : t('login.submit')}
             </motion.button>
@@ -121,7 +121,7 @@ export default function Login() {
                 <div className="w-full border-t border-warm-gray/30" />
               </div>
               <div className="relative flex justify-center">
-                <span className="bg-paper px-4 font-body text-xs text-sepia-mid">
+                <span className="bg-paper px-4 font-body text-caption text-sepia-mid">
                   {t('login.orContinueWith')}
                 </span>
               </div>
@@ -131,7 +131,7 @@ export default function Login() {
               type="button"
               whileHover={prefersReducedMotion ? undefined : { scale: 1.01 }}
               whileTap={prefersReducedMotion ? undefined : { scale: 0.99 }}
-              className="w-full font-body text-sm tracking-[0.1em] border border-warm-gray/40 text-ink px-10 py-4 hover:border-ink transition-colors duration-300 cursor-pointer"
+              className="w-full font-body text-body-sm tracking-[0.1em] border border-warm-gray/40 text-ink px-10 py-4 hover:border-ink transition-colors duration-300 cursor-pointer"
             >
               {t('login.wechat')}
             </motion.button>
@@ -139,7 +139,7 @@ export default function Login() {
             <p className="text-center pt-4">
               <Link
                 to="/register"
-                className="font-body text-xs text-rust hover:text-ink transition-colors tracking-[0.1em] uppercase cursor-pointer"
+                className="font-body text-caption text-rust hover:text-ink transition-colors tracking-[0.1em] uppercase cursor-pointer"
               >
                 {t('login.register')}
               </Link>

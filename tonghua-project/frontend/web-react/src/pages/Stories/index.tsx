@@ -237,14 +237,14 @@ function EmptyState({ onBrowseAll }: { onBrowseAll: () => void }) {
       <h3 className="font-display text-h3 text-ink mb-3">
         {t('stories.empty.title')}
       </h3>
-      <p className="font-body text-sm text-sepia-mid max-w-sm leading-relaxed mb-8">
+      <p className="font-body text-body-sm text-sepia-mid max-w-sm leading-relaxed mb-8">
         {t('stories.empty.body')}
       </p>
       <motion.button
         onClick={onBrowseAll}
         whileHover={prefersReducedMotion ? undefined : { y: -2 }}
         whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
-        className="font-body text-xs tracking-[0.15em] uppercase text-rust border-b border-rust/30 pb-1 hover:text-ink hover:border-ink/30 transition-colors"
+        className="font-body text-caption tracking-[0.15em] uppercase text-rust border-b border-rust/30 pb-1 hover:text-ink hover:border-ink/30 transition-colors"
       >
         {t('stories.empty.browseAll')}
       </motion.button>
@@ -314,7 +314,7 @@ export default function Stories() {
               transition={{ duration: 0.3 }}
               whileHover={prefersReducedMotion ? undefined : { y: -2 }}
               className={`
-                font-body text-xs tracking-[0.15em] uppercase px-4 py-3 transition-all duration-200 border-b-2 -mb-px whitespace-nowrap relative
+                font-body text-caption tracking-[0.15em] uppercase px-4 py-3 transition-all duration-200 border-b-2 -mb-px whitespace-nowrap relative
                 ${activeCategory === cat
                   ? 'border-rust text-rust'
                   : 'border-transparent text-sepia-mid hover:text-ink'
@@ -397,16 +397,16 @@ export default function Stories() {
                               {story.title}
                             </h2>
 
-                            <p className="font-body text-sm text-ink-faded leading-relaxed mb-4">
+                            <p className="font-body text-body-sm text-ink-faded leading-relaxed mb-4">
                               {story.excerpt}
                             </p>
 
                             {/* Pull quote / key stat */}
-                            <p className="font-body text-xs text-rust/80 italic mb-4 pl-3 border-l-2 border-rust/30">
+                            <p className="font-body text-caption text-rust/80 italic mb-4 pl-3 border-l-2 border-rust/30">
                               {story.pullQuote}
                             </p>
 
-                            <div className="flex items-center gap-4 font-body text-xs text-sepia-mid">
+                            <div className="flex items-center gap-4 font-body text-caption text-sepia-mid">
                               <span>{story.author}</span>
                               <span className="text-sepia-mid/40">|</span>
                               <span>{story.readTimeMinutes} {t('stories.readTime')}</span>
@@ -419,7 +419,7 @@ export default function Stories() {
 
                             {/* Read more link */}
                             <div className="mt-4">
-                              <span className="font-body text-xs text-rust tracking-[0.15em] uppercase group-hover:text-ink transition-colors">
+                              <span className="font-body text-caption text-rust tracking-[0.15em] uppercase group-hover:text-ink transition-colors">
                                 {t('stories.readMore')} &rarr;
                               </span>
                             </div>
@@ -495,7 +495,7 @@ export default function Stories() {
                     onClick={handleSubscribe}
                     whileHover={prefersReducedMotion ? undefined : { y: -1 }}
                     whileTap={prefersReducedMotion ? undefined : { scale: 0.97 }}
-                    className="font-body text-xs tracking-[0.15em] uppercase text-rust hover:text-ink transition-colors flex-shrink-0"
+                    className="font-body text-caption tracking-[0.15em] uppercase text-rust hover:text-ink transition-colors flex-shrink-0"
                   >
                     {t('stories.newsletter.subscribe')} &rarr;
                   </motion.button>
@@ -541,7 +541,7 @@ export default function Stories() {
                     initial={{ opacity: 0, y: 5 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.7, duration: 0.4 }}
-                    className="font-body text-sm text-ink-faded"
+                    className="font-body text-body-sm text-ink-faded"
                   >
                     {t('stories.newsletter.success')}
                   </motion.p>

@@ -167,19 +167,19 @@ export default function MagazineNav() {
                 <div className="absolute right-0 top-full mt-2 w-48 bg-paper border border-warm-gray/40 rounded shadow-lg z-50">
                   <div className="py-2">
                     <div className="px-4 py-2 border-b border-warm-gray/20">
-                      <p className="font-body text-xs text-ink-faded">{user.nickname || user.email}</p>
+                      <p className="font-body text-caption text-ink-faded">{user.nickname || user.email}</p>
                       <p className="font-body text-overline text-sepia-mid capitalize">{user.role}</p>
                     </div>
                     <Link
                       to="/profile"
-                      className="block px-4 py-2 font-body text-sm text-ink hover:bg-warm-gray/10 transition-colors"
+                      className="block px-4 py-2 font-body text-body-sm text-ink hover:bg-warm-gray/10 transition-colors"
                       onClick={() => setUserMenuOpen(false)}
                     >
                       {t('nav.profile')}
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 font-body text-sm text-ink hover:bg-warm-gray/10 transition-colors"
+                      className="w-full text-left px-4 py-2 font-body text-body-sm text-ink hover:bg-warm-gray/10 transition-colors"
                     >
                       {t('nav.logout')}
                     </button>

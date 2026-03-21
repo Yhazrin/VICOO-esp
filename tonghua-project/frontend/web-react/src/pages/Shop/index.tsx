@@ -175,7 +175,7 @@ export default function Shop() {
                 transition={{ delay: index * 0.05 }}
                 whileHover={prefersReducedMotion ? undefined : { y: -2 }}
                 className={`
-                  font-body text-xs tracking-[0.15em] uppercase px-4 py-3 transition-all duration-200 border-b-2 -mb-px whitespace-nowrap relative cursor-pointer
+                  font-body text-caption tracking-[0.15em] uppercase px-4 py-3 transition-all duration-200 border-b-2 -mb-px whitespace-nowrap relative cursor-pointer
                   ${activeCategory === cat
                     ? 'border-rust text-rust'
                     : 'border-transparent text-sepia-mid hover:text-ink'
@@ -213,7 +213,7 @@ export default function Shop() {
 
         {/* Product grid */}
         {filtered.length === 0 ? (
-          <p className="font-body text-sm text-sepia-mid py-20 text-center">
+          <p className="font-body text-body-sm text-sepia-mid py-20 text-center">
             {t('shop.empty')}
           </p>
         ) : (
@@ -241,55 +241,66 @@ export default function Shop() {
           <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-rust/30 pointer-events-none" />
           <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-rust/30 pointer-events-none" />
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
+            {/* Left: Lead pillar — wider, more emphasis */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+              className="md:col-span-7 md:border-r border-warm-gray/30 md:pr-12"
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={prefersReducedMotion ? undefined : { opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
+              transition={{ duration: 0.6, ease: [0, 0, 0.2, 1] }}
             >
               <span className="font-body text-caption text-sepia-mid tracking-[0.2em]">
                 01
               </span>
-              <h4 className="font-display text-lg font-bold text-ink mt-2 mb-2">
+              <h4 className="font-display text-h3 font-bold text-ink mt-3 mb-3">
                 Certified Materials
               </h4>
-              <p className="font-body text-xs text-ink-faded leading-relaxed">
+              <p className="font-body text-body-sm text-ink-faded leading-relaxed max-w-[48ch]">
                 All fabrics are GOTS-certified organic cotton or recycled polyester.
+                Every material is traced back to its source, with certificates verified
+                by independent auditors before entering our supply chain.
               </p>
             </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              <span className="font-body text-caption text-sepia-mid tracking-[0.2em]">
-                02
-              </span>
-              <h4 className="font-display text-lg font-bold text-ink mt-2 mb-2">
-                Ethical Production
-              </h4>
-              <p className="font-body text-xs text-ink-faded leading-relaxed">
-                Fair wages, safe conditions, full supply chain transparency.
-              </p>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-            >
-              <span className="font-body text-caption text-sepia-mid tracking-[0.2em]">
-                03
-              </span>
-              <h4 className="font-display text-lg font-bold text-ink mt-2 mb-2">
-                Carbon Measured
-              </h4>
-              <p className="font-body text-xs text-ink-faded leading-relaxed">
-                Every product's carbon footprint is calculated and offset.
-              </p>
-            </motion.div>
+
+            {/* Right: Secondary pillars stacked */}
+            <div className="md:col-span-5 flex flex-col gap-8">
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={prefersReducedMotion ? undefined : { opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.1, ease: [0, 0, 0.2, 1] }}
+              >
+                <span className="font-body text-caption text-sepia-mid tracking-[0.2em]">
+                  02
+                </span>
+                <h4 className="font-display text-lg font-bold text-ink mt-2 mb-2">
+                  Ethical Production
+                </h4>
+                <p className="font-body text-caption text-ink-faded leading-relaxed">
+                  Fair wages, safe conditions, full supply chain transparency.
+                </p>
+              </motion.div>
+
+              <div className="h-px bg-warm-gray/30" />
+
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={prefersReducedMotion ? undefined : { opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.2, ease: [0, 0, 0.2, 1] }}
+              >
+                <span className="font-body text-caption text-sepia-mid tracking-[0.2em]">
+                  03
+                </span>
+                <h4 className="font-display text-lg font-bold text-ink mt-2 mb-2">
+                  Carbon Measured
+                </h4>
+                <p className="font-body text-caption text-ink-faded leading-relaxed">
+                  Every product's carbon footprint is calculated and offset.
+                </p>
+              </motion.div>
+            </div>
           </div>
         </div>
       </SectionContainer>
@@ -326,13 +337,13 @@ export default function Shop() {
             viewport={{ once: true }}
             transition={{ duration: 0.7, delay: 0.15, ease: [0, 0, 0.2, 1] }}
           >
-            <p className="font-body text-xs text-ink-faded leading-relaxed mb-4">
+            <p className="font-body text-caption text-ink-faded leading-relaxed mb-4">
               Every garment in this collection begins the same way -- with a child,
               a blank page, and the freedom to imagine. We partner with schools and
               community centres across twelve cities, running workshops where children
               draw their hopes for the world.
             </p>
-            <p className="font-body text-xs text-ink-faded leading-relaxed mb-6">
+            <p className="font-body text-caption text-ink-faded leading-relaxed mb-6">
               Our designers then translate these raw, honest artworks into patterns,
               prints, and embroideries -- never altering the child's original vision.
               The result is clothing that carries real stories, not manufactured ones.

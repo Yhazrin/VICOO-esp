@@ -106,7 +106,7 @@ export default function About() {
               <h3 className="font-display text-h3 font-bold text-ink mb-3">
                 {t(`about.values.${key}.title`)}
               </h3>
-              <p className="font-body text-sm text-ink-faded leading-relaxed">
+              <p className="font-body text-body-sm text-ink-faded leading-relaxed">
                 {t(`about.values.${key}.body`)}
               </p>
             </motion.article>
@@ -186,7 +186,7 @@ export default function About() {
                 <h4 className="font-display text-base font-semibold text-ink group-hover:text-rust transition-colors">
                   {member.name}
                 </h4>
-                <p className="font-body text-xs text-sepia-mid mt-1">{member.role}</p>
+                <p className="font-body text-caption text-sepia-mid mt-1">{member.role}</p>
               </motion.div>
             );
           })}

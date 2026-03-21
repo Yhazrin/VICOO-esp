@@ -176,23 +176,23 @@ export default function ProductDetail() {
               <p className="font-display text-2xl text-ink mb-6">
                 {product.currency} {product.price.toFixed(2)}
               </p>
-              <p className="font-body text-sm text-ink-faded leading-[1.8] mb-8">
+              <p className="font-body text-body-sm text-ink-faded leading-[1.8] mb-8">
                 {product.description}
               </p>
 
               {/* Artwork source */}
               <div className="border border-warm-gray/30 p-4 mb-8">
-                <p className="font-body text-xs text-sepia-mid tracking-wider uppercase mb-1">
+                <p className="font-body text-caption text-sepia-mid tracking-wider uppercase mb-1">
                   {t('shop.detail.artwork')} Mei, age 8
                 </p>
-                <p className="font-body text-xs text-ink-faded">
+                <p className="font-body text-caption text-ink-faded">
                   Guizhou Province, November 2025
                 </p>
               </div>
 
               {/* Sustainability score */}
               <div className="mb-8">
-                <p className="font-body text-xs tracking-wider uppercase text-sepia-mid mb-2">
+                <p className="font-body text-caption tracking-wider uppercase text-sepia-mid mb-2">
                   {t('shop.detail.sustainability')}
                 </p>
                 <div className="flex items-center gap-2">
@@ -208,7 +208,7 @@ export default function ProductDetail() {
                       />
                     ))}
                   </div>
-                  <span className="font-body text-xs text-sepia-mid">
+                  <span className="font-body text-caption text-sepia-mid">
                     {product.sustainabilityScore}/100
                   </span>
                 </div>
@@ -216,7 +216,7 @@ export default function ProductDetail() {
 
               {/* Quantity + Add to Cart */}
               <div className="flex items-center gap-4 mb-6">
-                <label className="font-body text-xs tracking-wider uppercase text-sepia-mid">
+                <label className="font-body text-caption tracking-wider uppercase text-sepia-mid">
                   {t('shop.detail.quantity')}
                 </label>
                 <div className="flex items-center border border-warm-gray/50">
@@ -227,7 +227,7 @@ export default function ProductDetail() {
                   >
                     -
                   </button>
-                  <span className="font-body text-sm px-4 py-2 text-ink" aria-live="polite">{quantity}</span>
+                  <span className="font-body text-body-sm px-4 py-2 text-ink" aria-live="polite">{quantity}</span>
                   <button
                     onClick={() => setQuantity(quantity + 1)}
                     aria-label="Increase quantity"
@@ -243,7 +243,7 @@ export default function ProductDetail() {
                 whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
                 onClick={handleAddToCart}
                 disabled={!product.inStock}
-                className={`w-full font-body text-sm tracking-[0.15em] uppercase py-4 transition-all duration-300 ${
+                className={`w-full font-body text-body-sm tracking-[0.15em] uppercase py-4 transition-all duration-300 ${
                   added
                     ? 'bg-archive-brown text-paper'
                     : product.inStock
@@ -278,7 +278,7 @@ export default function ProductDetail() {
       <SectionContainer className="py-8">
         <Link
           to="/shop"
-          className="font-body text-xs tracking-[0.15em] uppercase text-ink-faded hover:text-rust transition-colors"
+          className="font-body text-caption tracking-[0.15em] uppercase text-ink-faded hover:text-rust transition-colors"
         >
           &larr; {t('common.back')} to shop
         </Link>

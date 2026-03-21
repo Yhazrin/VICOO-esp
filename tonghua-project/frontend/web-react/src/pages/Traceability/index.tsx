@@ -193,7 +193,7 @@ function SearchSpinner() {
           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
         />
       )}
-      <span className="font-body text-xs text-sepia-mid tracking-[0.1em] uppercase">
+      <span className="font-body text-caption text-sepia-mid tracking-[0.1em] uppercase">
         Tracing supply chain...
       </span>
     </div>
@@ -233,7 +233,7 @@ function CertificationBadge({ title, description, delay }: {
           </svg>
         </div>
 
-        <h4 className="font-display text-sm font-bold text-ink mb-1">
+        <h4 className="font-display text-body-sm font-bold text-ink mb-1">
           {title}
         </h4>
         <p className="font-body text-overline text-sepia-mid leading-relaxed tracking-wide">
@@ -305,7 +305,7 @@ function EnhancedTimelineEntry({ record, index, t }: {
           {/* Main content with image */}
           <div className="flex gap-5 mb-4">
             <div className="flex-1">
-              <p className="font-body text-sm text-ink-faded leading-relaxed mb-3">
+              <p className="font-body text-body-sm text-ink-faded leading-relaxed mb-3">
                 {record.description}
               </p>
               <p className="font-body text-label italic text-sepia-mid leading-relaxed border-l-2 border-rust/30 pl-3">
@@ -490,7 +490,7 @@ export default function Traceability() {
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
                 placeholder={t('traceability.lookup.placeholder')}
-                className="w-full font-body text-sm py-3 px-3 bg-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-rust/50 placeholder:text-ink-faded/60"
+                className="w-full font-body text-body-sm py-3 px-3 bg-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-rust/50 placeholder:text-ink-faded/60"
                 aria-label={t('traceability.lookup.ariaLabel')}
               />
             </div>
@@ -531,10 +531,10 @@ export default function Traceability() {
                     </svg>
                   </div>
                   <div>
-                    <h4 className="font-display text-sm font-bold text-ink mb-1">
+                    <h4 className="font-display text-body-sm font-bold text-ink mb-1">
                       {t('traceability.lookup.found')}
                     </h4>
-                    <p className="font-body text-xs text-ink-faded leading-relaxed">
+                    <p className="font-body text-caption text-ink-faded leading-relaxed">
                       {searchResult.partnerName} &mdash; {searchResult.location},{' '}
                       {new Date(searchResult.date).toLocaleDateString('en-US', {
                         year: 'numeric',
@@ -581,7 +581,7 @@ export default function Traceability() {
                 <div className="font-display text-h3 font-bold text-ink mt-2">
                   5.3 kg CO2
                 </div>
-                <p className="font-body text-xs text-ink-faded mt-2 leading-relaxed">
+                <p className="font-body text-caption text-ink-faded mt-2 leading-relaxed">
                   Offset through verified reforestation project in Yunnan Province.
                 </p>
               </motion.div>
@@ -599,7 +599,7 @@ export default function Traceability() {
                     <span className="font-body text-overline text-[#5a7a5a] tracking-[0.15em] uppercase">
                       {t('traceability.lookup.highlighted')}
                     </span>
-                    <p className="font-body text-xs text-ink-faded mt-1 leading-relaxed">
+                    <p className="font-body text-caption text-ink-faded mt-1 leading-relaxed">
                       {MOCK_RECORDS.find((r) => r.id === highlightedId)?.description}
                     </p>
                   </motion.div>
@@ -677,7 +677,7 @@ export default function Traceability() {
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.5 }}
-                className="font-body text-xs text-ink-faded leading-relaxed border-l-2 border-[#5a7a5a]/30 pl-4 mt-4"
+                className="font-body text-caption text-ink-faded leading-relaxed border-l-2 border-[#5a7a5a]/30 pl-4 mt-4"
               >
                 {t('traceability.carbon.explanation')}
               </motion.p>
@@ -708,7 +708,7 @@ export default function Traceability() {
                   <div className="font-display text-[clamp(48px,8vw,72px)] font-bold text-[#5a7a5a] leading-none">
                     <AnimatedCounter value={reductionPercent} suffix="%" />
                   </div>
-                  <p className="font-body text-xs text-sepia-mid mt-4 leading-relaxed">
+                  <p className="font-body text-caption text-sepia-mid mt-4 leading-relaxed">
                     {t('traceability.carbon.reductionDesc')}
                   </p>
                 </div>
@@ -758,7 +758,7 @@ export default function Traceability() {
                 <h3 className="font-display text-h3 font-bold text-ink mt-2 mb-3">
                   {step.title}
                 </h3>
-                <p className="font-body text-sm text-ink-faded leading-relaxed">
+                <p className="font-body text-body-sm text-ink-faded leading-relaxed">
                   {step.desc}
                 </p>
               </motion.div>
@@ -806,7 +806,7 @@ export default function Traceability() {
           <h2 className="font-display text-[clamp(28px,4vw,48px)] font-bold text-ink leading-tight mb-6">
             {t('traceability.cta.headline')}
           </h2>
-          <p className="font-body text-sm text-ink-faded max-w-md mx-auto mb-8 leading-relaxed">
+          <p className="font-body text-body-sm text-ink-faded max-w-md mx-auto mb-8 leading-relaxed">
             {t('traceability.cta.body')}
           </p>
           <Link

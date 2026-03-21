@@ -17,7 +17,7 @@ export const VintageInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, V
     const errorId = `${id}-error`;
 
     const baseClasses = `
-      w-full font-body text-sm py-3 px-0
+      w-full font-body text-body-sm py-3 px-0
       border-b-2 border-warm-gray/60
       bg-transparent
       transition-all duration-300 ease-editorial

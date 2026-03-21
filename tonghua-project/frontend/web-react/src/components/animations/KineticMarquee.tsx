@@ -171,7 +171,7 @@ export function KineticTextMarquee({
             <span className="font-display text-h4 md:text-h3 text-ink-faded italic px-6">
               {item}
             </span>
-            <span className="text-rust/40 font-body text-sm">—</span>
+            <span className="text-rust/40 font-body text-body-sm">—</span>
           </span>
         ))}
       </KineticMarquee>

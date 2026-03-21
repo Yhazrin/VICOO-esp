@@ -78,7 +78,7 @@ export default function EditorialFooter() {
             <h3 className="font-display text-3xl md:text-4xl font-bold mb-4 tracking-tight">
               VICOO
             </h3>
-            <p className="font-body text-sm text-warm-gray leading-relaxed max-w-xs mb-6">
+            <p className="font-body text-body-sm text-warm-gray leading-relaxed max-w-xs mb-6">
               {t('footer.brand.description')}
             </p>
             <div className="w-12 h-px bg-pale-gold mb-6" aria-hidden="true" />
@@ -98,7 +98,7 @@ export default function EditorialFooter() {
                   <motion.div whileHover={prefersReducedMotion ? undefined : { x: 4 }}>
                     <Link
                       to={`/${key}`}
-                      className="font-body text-sm text-warm-gray hover:text-paper transition-colors duration-200 inline-block"
+                      className="font-body text-body-sm text-warm-gray hover:text-paper transition-colors duration-200 inline-block"
                     >
                       {t(`footer.links.${key}`)}
                     </Link>
@@ -119,7 +119,7 @@ export default function EditorialFooter() {
                   <motion.div whileHover={prefersReducedMotion ? undefined : { x: 4 }}>
                     <Link
                       to={`/${key}`}
-                      className="font-body text-sm text-warm-gray hover:text-paper transition-colors duration-200 inline-block"
+                      className="font-body text-body-sm text-warm-gray hover:text-paper transition-colors duration-200 inline-block"
                     >
                       {t(`footer.links.${key}`)}
                     </Link>
@@ -140,7 +140,7 @@ export default function EditorialFooter() {
                   <motion.div whileHover={prefersReducedMotion ? undefined : { x: 4 }}>
                     <Link
                       to={`/${key}`}
-                      className="font-body text-sm text-warm-gray hover:text-paper transition-colors duration-200 inline-block"
+                      className="font-body text-body-sm text-warm-gray hover:text-paper transition-colors duration-200 inline-block"
                     >
                       {t(`footer.links.${key}`)}
                     </Link>
@@ -171,7 +171,7 @@ export default function EditorialFooter() {
             <h4 className="font-body text-overline tracking-[0.2em] uppercase text-sepia-mid mb-6">
               {t('footer.newsletter.title')}
             </h4>
-            <p className="font-body text-xs text-warm-gray mb-4 leading-relaxed">
+            <p className="font-body text-caption text-warm-gray mb-4 leading-relaxed">
               {t('footer.newsletter.description')}
             </p>
             <motion.form
@@ -184,7 +184,7 @@ export default function EditorialFooter() {
               <motion.input
                 type="email"
                 placeholder="your@email.com"
-                className="bg-transparent border-b border-sepia-mid/30 text-paper font-body text-xs py-2 outline-none focus-visible:ring-2 focus-visible:ring-pale-gold/50 focus:border-pale-gold transition-colors placeholder:text-sepia-mid/40"
+                className="bg-transparent border-b border-sepia-mid/30 text-paper font-body text-caption py-2 outline-none focus-visible:ring-2 focus-visible:ring-pale-gold/50 focus:border-pale-gold transition-colors placeholder:text-sepia-mid/40"
                 aria-label={t('common.emailAriaLabel')}
                 whileFocus={prefersReducedMotion ? undefined : { scale: 1.01 }}
               />

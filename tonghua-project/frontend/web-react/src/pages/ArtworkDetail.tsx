@@ -64,7 +64,7 @@ export default function ArtworkDetail() {
               </h1>
               <Link
                 to="/stories"
-                className="font-body text-xs tracking-[0.15em] uppercase text-rust hover:text-ink transition-colors"
+                className="font-body text-caption tracking-[0.15em] uppercase text-rust hover:text-ink transition-colors"
               >
                 &larr; Back to Stories
               </Link>
@@ -105,20 +105,20 @@ export default function ArtworkDetail() {
               <h1 className="font-display text-3xl md:text-4xl text-ink font-bold leading-tight mb-4">
                 {artwork.title}
               </h1>
-              <p className="font-body text-sm text-ink-faded leading-[1.8] mb-8">
+              <p className="font-body text-body-sm text-ink-faded leading-[1.8] mb-8">
                 {artwork.description}
               </p>
 
               {/* Child participant info */}
               <div className="border border-warm-gray/30 p-4 mb-8">
-                <p className="font-body text-xs text-sepia-mid tracking-wider uppercase mb-1">
+                <p className="font-body text-caption text-sepia-mid tracking-wider uppercase mb-1">
                   {t('artwork.detail.artist')}
                 </p>
-                <p className="font-body text-xs text-ink-faded">
+                <p className="font-body text-caption text-ink-faded">
                   {artwork.childParticipant.firstName}, age {artwork.childParticipant.age}
                 </p>
                 {artwork.childParticipant.schoolName && (
-                  <p className="font-body text-xs text-ink-faded mt-1">
+                  <p className="font-body text-caption text-ink-faded mt-1">
                     {artwork.childParticipant.schoolName}
                   </p>
                 )}
@@ -131,13 +131,13 @@ export default function ArtworkDetail() {
                     whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
                     whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
                     onClick={handleVote}
-                    className="flex-1 font-body text-sm tracking-[0.15em] uppercase py-4 bg-rust text-paper transition-colors hover:bg-archive-brown"
+                    className="flex-1 font-body text-body-sm tracking-[0.15em] uppercase py-4 bg-rust text-paper transition-colors hover:bg-archive-brown"
                   >
                     {t('artwork.detail.vote')}
                   </motion.button>
                   <div className="flex items-center gap-2 text-sepia-mid">
-                    <span className="font-body text-sm">{artwork.voteCount}</span>
-                    <span className="font-body text-xs tracking-wider uppercase">
+                    <span className="font-body text-body-sm">{artwork.voteCount}</span>
+                    <span className="font-body text-caption tracking-wider uppercase">
                       {t('artwork.detail.votes')}
                     </span>
                   </div>
@@ -147,14 +147,14 @@ export default function ArtworkDetail() {
               {/* Tags */}
               {artwork.tags && artwork.tags.length > 0 && (
                 <div className="mb-8">
-                  <p className="font-body text-xs tracking-wider uppercase text-sepia-mid mb-2">
+                  <p className="font-body text-caption tracking-wider uppercase text-sepia-mid mb-2">
                     {t('artwork.detail.tags')}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {artwork.tags.map((tag, index) => (
                       <span
                         key={index}
-                        className="font-body text-xs px-3 py-1 border border-warm-gray/50 text-sepia-mid"
+                        className="font-body text-caption px-3 py-1 border border-warm-gray/50 text-sepia-mid"
                       >
                         {tag}
                       </span>
@@ -171,7 +171,7 @@ export default function ArtworkDetail() {
       <SectionContainer className="py-8">
         <Link
           to="/stories"
-          className="font-body text-xs tracking-[0.15em] uppercase text-ink-faded hover:text-rust transition-colors"
+          className="font-body text-caption tracking-[0.15em] uppercase text-ink-faded hover:text-rust transition-colors"
         >
           &larr; {t('common.back')} to Stories
         </Link>

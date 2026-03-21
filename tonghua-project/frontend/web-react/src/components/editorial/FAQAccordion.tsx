@@ -62,7 +62,7 @@ export default function FAQAccordion({ items, className = '' }: FAQAccordionProp
                 className="overflow-hidden"
               >
                 <div className="pb-4 pl-2">
-                  <p className="font-body text-sm text-ink-faded leading-relaxed">
+                  <p className="font-body text-body-sm text-ink-faded leading-relaxed">
                     {item.answer}
                   </p>
                 </div>

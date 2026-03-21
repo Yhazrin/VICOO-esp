@@ -15,17 +15,17 @@ export default function Footer() {
             <h3 className="font-display text-2xl md:text-3xl font-bold mb-4">
               Tonghua
             </h3>
-            <p className="font-body text-sm text-warm-gray leading-relaxed max-w-xs">
+            <p className="font-body text-body-sm text-warm-gray leading-relaxed max-w-xs">
               {t('footer.tagline')}
             </p>
-            <p className="font-body text-xs text-sepia-mid mt-6 tracking-widest uppercase">
+            <p className="font-body text-caption text-sepia-mid mt-6 tracking-widest uppercase">
               {t('footer.issueNo')}
             </p>
           </div>
 
           {/* Publication */}
           <div className="md:col-span-2">
-            <h4 className="font-body text-xs tracking-[0.2em] uppercase text-sepia-mid mb-6">
+            <h4 className="font-body text-caption tracking-[0.2em] uppercase text-sepia-mid mb-6">
               {t('footer.sections.publication')}
             </h4>
             <ul className="space-y-3">
@@ -33,7 +33,7 @@ export default function Footer() {
                 <li key={key}>
                   <Link
                     to={`/${key}`}
-                    className="font-body text-sm text-warm-gray hover:text-paper transition-colors"
+                    className="font-body text-body-sm text-warm-gray hover:text-paper transition-colors"
                   >
                     {t(`footer.links.${key}`)}
                   </Link>
@@ -44,7 +44,7 @@ export default function Footer() {
 
           {/* Connect */}
           <div className="md:col-span-2">
-            <h4 className="font-body text-xs tracking-[0.2em] uppercase text-sepia-mid mb-6">
+            <h4 className="font-body text-caption tracking-[0.2em] uppercase text-sepia-mid mb-6">
               {t('footer.sections.connect')}
             </h4>
             <ul className="space-y-3">
@@ -52,7 +52,7 @@ export default function Footer() {
                 <li key={key}>
                   <Link
                     to={`/${key}`}
-                    className="font-body text-sm text-warm-gray hover:text-paper transition-colors"
+                    className="font-body text-body-sm text-warm-gray hover:text-paper transition-colors"
                   >
                     {t(`footer.links.${key}`)}
                   </Link>
@@ -63,7 +63,7 @@ export default function Footer() {
 
           {/* Legal */}
           <div className="md:col-span-2">
-            <h4 className="font-body text-xs tracking-[0.2em] uppercase text-sepia-mid mb-6">
+            <h4 className="font-body text-caption tracking-[0.2em] uppercase text-sepia-mid mb-6">
               {t('footer.sections.legal')}
             </h4>
             <ul className="space-y-3">
@@ -71,7 +71,7 @@ export default function Footer() {
                 <li key={key}>
                   <Link
                     to={`/${key}`}
-                    className="font-body text-sm text-warm-gray hover:text-paper transition-colors"
+                    className="font-body text-body-sm text-warm-gray hover:text-paper transition-colors"
                   >
                     {t(`footer.links.${key}`)}
                   </Link>
@@ -82,10 +82,10 @@ export default function Footer() {
 
           {/* Newsletter */}
           <div className="md:col-span-2">
-            <h4 className="font-body text-xs tracking-[0.2em] uppercase text-sepia-mid mb-6">
+            <h4 className="font-body text-caption tracking-[0.2em] uppercase text-sepia-mid mb-6">
               Newsletter
             </h4>
-            <p className="font-body text-xs text-warm-gray mb-4">
+            <p className="font-body text-caption text-warm-gray mb-4">
               Quarterly dispatches from the editor's desk.
             </p>
             <form
@@ -95,11 +95,11 @@ export default function Footer() {
               <input
                 type="email"
                 placeholder="your@email.com"
-                className="bg-transparent border-b border-sepia-mid/50 text-paper font-body text-xs py-2 focus:outline-none focus:border-pale-gold transition-colors placeholder:text-sepia-mid/50"
+                className="bg-transparent border-b border-sepia-mid/50 text-paper font-body text-caption py-2 focus:outline-none focus:border-pale-gold transition-colors placeholder:text-sepia-mid/50"
               />
               <button
                 type="submit"
-                className="font-body text-xs text-pale-gold hover:text-paper transition-colors text-left mt-1 tracking-wider uppercase"
+                className="font-body text-caption text-pale-gold hover:text-paper transition-colors text-left mt-1 tracking-wider uppercase"
               >
                 Subscribe &rarr;
               </button>
@@ -109,14 +109,14 @@ export default function Footer() {
 
         {/* Divider */}
         <div className="border-t border-sepia-mid/20 pt-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <p className="font-body text-xs text-sepia-mid">
+          <p className="font-body text-caption text-sepia-mid">
             {t('footer.copyright').replace('2026', String(year))}
           </p>
           <div className="flex items-center gap-6">
-            <span className="font-body text-xs text-sepia-mid">
+            <span className="font-body text-caption text-sepia-mid">
               Shanghai, China
             </span>
-            <span className="font-body text-xs text-sepia-mid">
+            <span className="font-body text-caption text-sepia-mid">
               Built with care
             </span>
           </div>

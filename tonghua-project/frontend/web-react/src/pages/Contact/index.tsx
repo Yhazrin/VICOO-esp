@@ -158,7 +158,7 @@ function FAQItem({
             transition={{ duration: 0.35, ease: [0, 0, 0.2, 1] }}
             className="overflow-hidden"
           >
-            <p className="font-body text-sm md:text-base text-ink-faded leading-[1.75] pb-6 pr-8">
+            <p className="font-body text-body-sm md:text-base text-ink-faded leading-[1.75] pb-6 pr-8">
               {answer}
             </p>
           </motion.div>
@@ -226,7 +226,7 @@ function ContactInfoCard({
               {t(card.titleKey)}
             </h3>
           </div>
-          <p className="font-body text-sm text-ink-faded leading-relaxed">
+          <p className="font-body text-body-sm text-ink-faded leading-relaxed">
             {t(card.descKey)}
           </p>
         </div>
@@ -435,7 +435,7 @@ export default function Contact() {
                       {t('contact.form.successTitle')}
                     </h3>
 
-                    <p className="font-body text-sm md:text-base text-ink-faded mt-3 max-w-md leading-relaxed">
+                    <p className="font-body text-body-sm md:text-base text-ink-faded mt-3 max-w-md leading-relaxed">
                       {t('contact.form.success')}
                     </p>
 
@@ -444,7 +444,7 @@ export default function Contact() {
                       onClick={resetForm}
                       whileHover={prefersReducedMotion ? undefined : { scale: 1.01 }}
                       whileTap={prefersReducedMotion ? undefined : { scale: 0.99 }}
-                      className="mt-8 font-body text-sm tracking-[0.15em] uppercase border-2 border-ink text-ink px-8 py-3 hover:bg-ink hover:text-paper transition-colors duration-300"
+                      className="mt-8 font-body text-body-sm tracking-[0.15em] uppercase border-2 border-ink text-ink px-8 py-3 hover:bg-ink hover:text-paper transition-colors duration-300"
                     >
                       {t('contact.form.submit')}
                     </motion.button>
@@ -495,7 +495,7 @@ export default function Contact() {
                         value={formData.subject}
                         onChange={handleSubjectChange}
                         className={`
-                          w-full font-body text-sm py-3 px-3
+                          w-full font-body text-body-sm py-3 px-3
                           border-b-2 bg-transparent
                           transition-all duration-300
                           focus:outline-none focus-visible:ring-2 focus-visible:ring-rust/50 focus:border-rust
@@ -550,7 +550,7 @@ export default function Contact() {
                         rows={5}
                         whileFocus={{ scale: 1.005 }}
                         className={`
-                          w-full font-body text-sm py-3 px-3
+                          w-full font-body text-body-sm py-3 px-3
                           border-b-2 bg-transparent
                           transition-all duration-300
                           placeholder:text-ink-faded/80
@@ -591,7 +591,7 @@ export default function Contact() {
                       disabled={status === 'sending'}
                       whileHover={prefersReducedMotion ? undefined : { scale: 1.01 }}
                       whileTap={prefersReducedMotion ? undefined : { scale: 0.99 }}
-                      className="font-body text-sm tracking-[0.15em] uppercase bg-ink text-paper px-10 py-4 hover:bg-rust transition-colors duration-300 disabled:opacity-60 flex items-center gap-3"
+                      className="font-body text-body-sm tracking-[0.15em] uppercase bg-ink text-paper px-10 py-4 hover:bg-rust transition-colors duration-300 disabled:opacity-60 flex items-center gap-3"
                     >
                       {status === 'sending' ? (
                         <>
@@ -610,7 +610,7 @@ export default function Contact() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       role="alert"
-                      className="font-body text-sm text-archive-brown"
+                      className="font-body text-body-sm text-archive-brown"
                     >
                       {t('contact.form.error')}
                     </motion.p>

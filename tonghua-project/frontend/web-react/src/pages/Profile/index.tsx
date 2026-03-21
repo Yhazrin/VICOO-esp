@@ -25,7 +25,7 @@ export default function Profile() {
               whileHover={prefersReducedMotion ? undefined : { scale: 1.01 }}
               whileTap={prefersReducedMotion ? undefined : { scale: 0.99 }}
               onClick={() => navigate('/login')}
-              className="cursor-pointer font-body text-sm tracking-[0.15em] uppercase bg-ink text-paper px-10 py-4 hover:bg-rust transition-colors duration-300"
+              className="cursor-pointer font-body text-body-sm tracking-[0.15em] uppercase bg-ink text-paper px-10 py-4 hover:bg-rust transition-colors duration-300"
             >
               {t('nav.login')}
             </motion.button>
@@ -75,7 +75,7 @@ export default function Profile() {
                 </div>
                 <div>
                   <h2 className="font-display text-xl text-ink">{user.nickname || user.email}</h2>
-                  <p className="font-body text-sm text-ink-faded">{user.email}</p>
+                  <p className="font-body text-body-sm text-ink-faded">{user.email}</p>
                   <span className="inline-block mt-2 font-body text-overline tracking-[0.1em] uppercase text-sepia-mid bg-warm-gray/20 px-2 py-1">
                     {user.role}
                   </span>
@@ -84,17 +84,17 @@ export default function Profile() {
 
               {/* Account Details */}
               <div className="space-y-4">
-                <h3 className="font-body text-sm tracking-[0.1em] uppercase text-sepia-mid">
+                <h3 className="font-body text-body-sm tracking-[0.1em] uppercase text-sepia-mid">
                   {t('profile.accountDetails')}
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="font-body text-overline text-ink-faded mb-1">{t('profile.userId')}</p>
-                    <p className="font-body text-sm text-ink">{user.id}</p>
+                    <p className="font-body text-body-sm text-ink">{user.id}</p>
                   </div>
                   <div>
                     <p className="font-body text-overline text-ink-faded mb-1">{t('profile.role')}</p>
-                    <p className="font-body text-sm text-ink capitalize">{user.role}</p>
+                    <p className="font-body text-body-sm text-ink capitalize">{user.role}</p>
                   </div>
                 </div>
               </div>
@@ -105,7 +105,7 @@ export default function Profile() {
                   whileHover={prefersReducedMotion ? undefined : { scale: 1.01 }}
                   whileTap={prefersReducedMotion ? undefined : { scale: 0.99 }}
                   onClick={handleLogout}
-                  className="cursor-pointer flex-1 font-body text-sm tracking-[0.1em] uppercase border border-warm-gray/40 text-ink px-6 py-3 hover:bg-warm-gray/10 transition-colors duration-300"
+                  className="cursor-pointer flex-1 font-body text-body-sm tracking-[0.1em] uppercase border border-warm-gray/40 text-ink px-6 py-3 hover:bg-warm-gray/10 transition-colors duration-300"
                 >
                   {t('nav.logout')}
                 </motion.button>

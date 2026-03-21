@@ -111,7 +111,7 @@ export const EditorialCard = ({
         </h3>
 
         {description && (
-          <p className="font-body text-xs text-ink-faded leading-relaxed mb-4">
+          <p className="font-body text-caption text-ink-faded leading-relaxed mb-4">
             {description}
           </p>
         )}

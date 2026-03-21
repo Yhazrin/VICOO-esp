@@ -29,7 +29,7 @@ export default function TraceabilityTimeline({
   if (records.length === 0) {
     return (
       <div className={`text-center py-16 ${className}`}>
-        <p className="font-body text-sm text-sepia-mid">
+        <p className="font-body text-body-sm text-sepia-mid">
           No supply chain records available.
         </p>
       </div>
@@ -150,7 +150,7 @@ export default function TraceabilityTimeline({
                   )}
                 </div>
 
-                <p className="font-body text-sm text-ink-faded leading-relaxed mb-4">
+                <p className="font-body text-body-sm text-ink-faded leading-relaxed mb-4">
                   {record.description}
                 </p>
 

@@ -109,15 +109,15 @@ export default function StoryQuoteBlock({
         {(author || role) && (
           <footer className="mt-6 flex items-baseline gap-2">
             {author && (
-              <cite className="font-body text-sm text-ink not-italic font-medium">
+              <cite className="font-body text-body-sm text-ink not-italic font-medium">
                 {author}
               </cite>
             )}
             {author && role && (
-              <span className="font-body text-xs text-sepia-mid">/</span>
+              <span className="font-body text-caption text-sepia-mid">/</span>
             )}
             {role && (
-              <span className="font-body text-xs text-sepia-mid tracking-wide">
+              <span className="font-body text-caption text-sepia-mid tracking-wide">
                 {role}
               </span>
             )}

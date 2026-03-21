@@ -44,7 +44,7 @@ export default function NumberedSectionHeading({
           initial={{ opacity: 0, y: 15 }}
           animate={isVisible ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, ease: [0, 0, 0.2, 1], delay: 0.25 }}
-          className="font-body text-sm md:text-base text-ink-faded mt-4 max-w-lg leading-relaxed"
+          className="font-body text-body-sm md:text-base text-ink-faded mt-4 max-w-lg leading-relaxed"
         >
           {subtitle}
         </motion.p>

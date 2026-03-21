@@ -121,7 +121,7 @@ export default function ProductCard({
           )}
 
           <div className="flex items-center justify-between">
-            <span className="font-body text-sm text-ink font-medium">
+            <span className="font-body text-body-sm text-ink font-medium">
               {product.currency === 'CNY' ? '¥' : '$'}
               {product.price.toLocaleString()}
             </span>

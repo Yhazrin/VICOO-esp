@@ -66,13 +66,13 @@ export default function ArtworkCard({
             <h3 className="font-display text-base md:text-lg font-semibold text-ink truncate group-hover:text-rust transition-colors">
               {artwork.title}
             </h3>
-            <p className="font-body text-xs text-sepia-mid mt-1">
+            <p className="font-body text-caption text-sepia-mid mt-1">
               Age {artwork.childParticipant.age} &middot;{' '}
               {new Date(artwork.createdAt).getFullYear()}
             </p>
           </div>
 
-          <span className="font-body text-xs text-sepia-mid whitespace-nowrap flex-shrink-0">
+          <span className="font-body text-caption text-sepia-mid whitespace-nowrap flex-shrink-0">
             {artwork.voteCount} votes
           </span>
         </div>
