@@ -122,7 +122,7 @@ export const EditorialCard = ({
       {/* Hover indicator */}
       {onClick && (
         <div className="absolute bottom-4 right-4 w-6 h-6 rounded-sm border border-ink/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <span className="font-body text-[8px] text-ink/50">→</span>
+          <span className="font-body text-overline text-ink/50">→</span>
         </div>
       )}
     </motion.article>
