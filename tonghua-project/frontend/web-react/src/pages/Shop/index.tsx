@@ -18,12 +18,12 @@ type SortOption = 'default' | 'price-asc' | 'price-desc' | 'sustainability';
 
 const MOCK_PRODUCTS: Product[] = [
   {
-    id: '1',
+    id: 1,
     name: 'Dreamscape Tee',
     description: 'A children\'s ocean painting transformed into a wearable story.',
     price: 298,
     currency: 'CNY',
-    imageUrls: ['https://picsum.photos/seed/dreamscape-tee/600/800'],
+    image_url: 'https://picsum.photos/seed/dreamscape-tee/600/800',
     category: 'apparel',
     inStock: true,
     stockCount: 24,
@@ -32,12 +32,12 @@ const MOCK_PRODUCTS: Product[] = [
     artworkBy: { childName: 'Xiao Lin', age: 8, campaign: 'Ocean Dreams' },
   },
   {
-    id: '2',
+    id: 2,
     name: 'Bloom Tote Bag',
     description: 'Hand-printed organic cotton tote featuring spring campaign artwork.',
     price: 168,
     currency: 'CNY',
-    imageUrls: ['https://picsum.photos/seed/bloom-tote/600/800'],
+    image_url: 'https://picsum.photos/seed/bloom-tote/600/800',
     category: 'accessories',
     inStock: true,
     stockCount: 3,
@@ -46,12 +46,12 @@ const MOCK_PRODUCTS: Product[] = [
     artworkBy: { childName: 'Mei Hua', age: 7, campaign: 'Spring Garden' },
   },
   {
-    id: '3',
+    id: 3,
     name: 'Little Artists Sketchbook',
     description: 'Recycled paper sketchbook with cover art from our winter campaign.',
     price: 58,
     currency: 'CNY',
-    imageUrls: ['https://picsum.photos/seed/sketchbook/600/800'],
+    image_url: 'https://picsum.photos/seed/sketchbook/600/800',
     category: 'stationery',
     inStock: true,
     stockCount: 156,
@@ -60,12 +60,12 @@ const MOCK_PRODUCTS: Product[] = [
     artworkBy: { childName: 'Tong Tong', age: 6, campaign: 'Winter Wonders' },
   },
   {
-    id: '4',
+    id: 4,
     name: 'Ocean Dreams Art Print',
     description: 'Museum-quality giclee print on archival paper.',
     price: 128,
     currency: 'CNY',
-    imageUrls: ['https://picsum.photos/seed/ocean-print/600/800'],
+    image_url: 'https://picsum.photos/seed/ocean-print/600/800',
     category: 'prints',
     inStock: true,
     stockCount: 42,
@@ -74,12 +74,12 @@ const MOCK_PRODUCTS: Product[] = [
     artworkBy: { childName: 'Xiao Yu', age: 9, campaign: 'Ocean Dreams' },
   },
   {
-    id: '5',
+    id: 5,
     name: 'Cityscape Hoodie',
     description: 'Organic cotton hoodie with embroidered children\'s city drawings.',
     price: 458,
     currency: 'CNY',
-    imageUrls: ['https://picsum.photos/seed/cityscape-hoodie/600/800'],
+    image_url: 'https://picsum.photos/seed/cityscape-hoodie/600/800',
     category: 'apparel',
     inStock: false,
     stockCount: 0,
@@ -88,12 +88,12 @@ const MOCK_PRODUCTS: Product[] = [
     artworkBy: { childName: 'Jia Wei', age: 10, campaign: 'My City' },
   },
   {
-    id: '6',
+    id: 6,
     name: 'Rainbow Pin Set',
     description: 'Enamel pin set featuring five winning artworks from 2025.',
     price: 48,
     currency: 'CNY',
-    imageUrls: ['https://picsum.photos/seed/rainbow-pins/600/800'],
+    image_url: 'https://picsum.photos/seed/rainbow-pins/600/800',
     category: 'accessories',
     inStock: true,
     stockCount: 89,
@@ -160,7 +160,7 @@ export default function Shop() {
       />
 
       <SectionContainer noTopSpacing>
-        <NumberedSectionHeading number="01" title="Collection" />
+        <NumberedSectionHeading number="01" title={t('shop.collection')} />
 
         {/* Filters and sort row */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
@@ -253,12 +253,10 @@ export default function Shop() {
                 01
               </span>
               <h4 className="font-display text-h3 font-bold text-ink mt-3 mb-3">
-                Certified Materials
+                {t('shop.sustainability.certifiedMaterials')}
               </h4>
               <p className="font-body text-body-sm text-ink-faded leading-relaxed max-w-[48ch]">
-                All fabrics are GOTS-certified organic cotton or recycled polyester.
-                Every material is traced back to its source, with certificates verified
-                by independent auditors before entering our supply chain.
+                {t('shop.sustainability.certifiedMaterialsDesc')}
               </p>
             </motion.div>
 
@@ -273,10 +271,10 @@ export default function Shop() {
                   02
                 </span>
                 <h4 className="font-display text-lg font-bold text-ink mt-2 mb-2">
-                  Ethical Production
+                  {t('shop.sustainability.ethicalProduction')}
                 </h4>
                 <p className="font-body text-caption text-ink-faded leading-relaxed">
-                  Fair wages, safe conditions, full supply chain transparency.
+                  {t('shop.sustainability.ethicalProductionDesc')}
                 </p>
               </motion.div>
 
@@ -291,10 +289,10 @@ export default function Shop() {
                   03
                 </span>
                 <h4 className="font-display text-lg font-bold text-ink mt-2 mb-2">
-                  Carbon Measured
+                  {t('shop.sustainability.carbonMeasured')}
                 </h4>
                 <p className="font-body text-caption text-ink-faded leading-relaxed">
-                  Every product's carbon footprint is calculated and offset.
+                  {t('shop.sustainability.carbonMeasuredDesc')}
                 </p>
               </motion.div>
             </div>
@@ -304,7 +302,7 @@ export default function Shop() {
 
       {/* Behind the Collection */}
       <SectionContainer>
-        <NumberedSectionHeading number="02" title="Behind the Collection" />
+        <NumberedSectionHeading number="02" title={t('shop.behindCollection')} />
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 mt-10">
           {/* Left: Workshop image — 8/12 columns */}
@@ -316,8 +314,8 @@ export default function Shop() {
           >
             <SepiaImageFrame
               src="https://picsum.photos/seed/vicoo-workshop-art/800/500"
-              alt="Children creating artwork in a VICOO workshop"
-              caption="A Saturday morning workshop in Chengdu, where children paint the dreams that will become our next collection."
+              alt={t('shop.workshop.imageAlt')}
+              caption={t('shop.workshop.imageCaption')}
               aspectRatio="wide"
               size="full"
               showCornerAccents={true}
@@ -333,21 +331,16 @@ export default function Shop() {
             transition={{ duration: 0.7, delay: 0.15, ease: [0, 0, 0.2, 1] }}
           >
             <p className="font-body text-caption text-ink-faded leading-relaxed mb-4">
-              Every garment in this collection begins the same way -- with a child,
-              a blank page, and the freedom to imagine. We partner with schools and
-              community centres across twelve cities, running workshops where children
-              draw their hopes for the world.
+              {t('shop.editorial.paragraph1')}
             </p>
             <p className="font-body text-caption text-ink-faded leading-relaxed mb-6">
-              Our designers then translate these raw, honest artworks into patterns,
-              prints, and embroideries -- never altering the child's original vision.
-              The result is clothing that carries real stories, not manufactured ones.
+              {t('shop.editorial.paragraph2')}
             </p>
 
             <StoryQuoteBlock
-              quote="I drew the ocean because I want it to stay blue forever."
-              author="Xiao Lin"
-              role="Age 8, Ocean Dreams campaign"
+              quote={t('shop.quote.text')}
+              author={t('shop.quote.author')}
+              role={t('shop.quote.role')}
             />
           </motion.div>
         </div>

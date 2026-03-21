@@ -24,7 +24,11 @@ function addRefreshSubscriber(cb: (token: string) => void) {
  */
 async function generateSignature(method: string, path: string, timestamp: string, nonce: string, body: string): Promise<string> {
   // Use the same secret key as the backend
-  const secretKey = import.meta.env.VITE_API_SECRET_KEY || 'your-secret-key';
+  const secretKey = import.meta.env.VITE_API_SECRET_KEY;
+  if (!secretKey) {
+    console.warn('VITE_API_SECRET_KEY not set — request signing disabled');
+    return '';
+  }
 
   // Build the string to sign: method + "\n" + path + "\n" + timestamp + "\n" + nonce + "\n" + body
   const stringToSign = `${method}\n${path}\n${timestamp}\n${nonce}\n${body}`;
@@ -69,7 +73,7 @@ api.interceptors.request.use(
     // Get request body for signing
     const body = config.data ? (typeof config.data === 'string' ? config.data : JSON.stringify(config.data)) : '';
 
-    // Generate signature
+    // Generate signature (skipped if no secret key configured)
     const signature = await generateSignature(
       config.method?.toUpperCase() || 'GET',
       config.url || '',
@@ -78,9 +82,11 @@ api.interceptors.request.use(
       body
     );
 
-    config.headers['X-Signature'] = signature;
-    config.headers['X-Timestamp'] = timestamp;
-    config.headers['X-Nonce'] = nonce;
+    if (signature) {
+      config.headers['X-Signature'] = signature;
+      config.headers['X-Timestamp'] = timestamp;
+      config.headers['X-Nonce'] = nonce;
+    }
 
     return config;
   },

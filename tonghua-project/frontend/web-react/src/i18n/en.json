@@ -18,7 +18,8 @@
     "notLoggedIn": "Please log in to view your profile.",
     "accountDetails": "Account Details",
     "userId": "User ID",
-    "role": "Role"
+    "role": "Role",
+    "productFallback": "Product"
   },
   "home": {
     "hero": {
@@ -251,6 +252,10 @@
       "community": "Community Programs",
       "communityDesc": "School partnerships, after-school programs, exhibitions."
     },
+    "counters": {
+      "fundsRaised": "Funds Raised",
+      "childrenHelped": "Children Helped"
+    },
     "transparency": {
       "title": "Financial Transparency",
       "subtitle": "We publish quarterly financial reports. Every yuan is accounted for.",
@@ -263,7 +268,12 @@
         "verified": "Verified",
         "transparent": "Transparent",
         "impactReported": "Impact-Reported"
-      }
+      },
+      "trustIndicators": "Trust Indicators",
+      "financialReport": "FINANCIAL REPORT",
+      "pdfSize": "PDF · 2.4 MB",
+      "transparencyQuote": "Transparency is not a feature. It is a responsibility.",
+      "transparencyQuoteAuthor": "Annual Report 2025"
     },
     "stories": {
       "title": "Your Donations at Work",
@@ -336,7 +346,30 @@
       "sustainability": "Sustainability"
     },
     "results": "{{count}} products",
-    "empty": "No products found in this category."
+    "empty": "No products found in this category.",
+    "collection": "Collection",
+    "sustainability": {
+      "certifiedMaterials": "Certified Materials",
+      "certifiedMaterialsDesc": "All fabrics are GOTS-certified organic cotton or recycled polyester. Every material is traced back to its source, with certificates verified by independent auditors before entering our supply chain.",
+      "ethicalProduction": "Ethical Production",
+      "ethicalProductionDesc": "Fair wages, safe conditions, full supply chain transparency.",
+      "carbonMeasured": "Carbon Measured",
+      "carbonMeasuredDesc": "Every product's carbon footprint is calculated and offset."
+    },
+    "behindCollection": "Behind the Collection",
+    "workshop": {
+      "imageAlt": "Children creating artwork in a VICOO workshop",
+      "imageCaption": "A Saturday morning workshop in Chengdu, where children paint the dreams that will become our next collection."
+    },
+    "editorial": {
+      "paragraph1": "Every garment in this collection begins the same way — with a child, a blank page, and the freedom to imagine. We partner with schools and community centres across twelve cities, running workshops where children draw their hopes for the world.",
+      "paragraph2": "Our designers then translate these raw, honest artworks into patterns, prints, and embroideries — never altering the child's original vision. The result is clothing that carries real stories, not manufactured ones."
+    },
+    "quote": {
+      "text": "I drew the ocean because I want it to stay blue forever.",
+      "author": "Xiao Lin",
+      "role": "Age 8, Ocean Dreams campaign"
+    }
   },
   "traceability": {
     "hero": {
@@ -385,6 +418,55 @@
       "headline": "Know what you wear. Trust what you buy.",
       "body": "Every garment in our collection comes with a complete, verifiable supply chain record. No hidden steps, no unverified claims.",
       "button": "Browse the Collection"
+    },
+    "tracing": "Tracing supply chain...",
+    "example": {
+      "title": "Dreamscape Tee — Full Journey",
+      "subtitle": "Follow the complete lifecycle of one product, from a child's brushstroke to your wardrobe."
+    },
+    "carbonTotal": {
+      "value": "5.3 kg CO2",
+      "offset": "Offset through verified reforestation project in Yunnan Province."
+    },
+    "quote": {
+      "text": "If you can trace it, you can trust it. Every stitch tells a story worth knowing.",
+      "author": "Supply Chain Manifesto",
+      "role": "Tonghua Public Welfare, 2025"
+    },
+    "howItWorks": {
+      "title": "How Traceability Works",
+      "steps": {
+        "record": {
+          "title": "Record",
+          "desc": "Every step in the supply chain is documented with photos, dates, locations, and partner verification."
+        },
+        "verify": {
+          "title": "Verify",
+          "desc": "Third-party auditors verify each record. Unverified steps are flagged transparently."
+        },
+        "publish": {
+          "title": "Publish",
+          "desc": "The complete journey is published on our platform for every customer to inspect."
+        }
+      }
+    },
+    "certs": {
+      "gots": {
+        "title": "GOTS Certified",
+        "desc": "Global Organic Textile Standard verified organic fibers and responsible processing."
+      },
+      "fairTrade": {
+        "title": "Fair Trade Verified",
+        "desc": "Living wages, safe conditions, and ethical treatment for every worker."
+      },
+      "carbonNeutral": {
+        "title": "Carbon Neutral",
+        "desc": "Operations offset through verified reforestation and renewable energy."
+      },
+      "childSafe": {
+        "title": "Child-Safe Production",
+        "desc": "Full compliance with child protection regulations and consent protocols."
+      }
     }
   },
   "contact": {

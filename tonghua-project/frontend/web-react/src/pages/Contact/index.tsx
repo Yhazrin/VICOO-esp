@@ -434,14 +434,9 @@ export default function Contact() {
                     ]}
                     value={formData.subject}
                     onChange={handleSubjectChange}
-                    className={errors.subject ? '[&_select]:border-archive-brown' : ''}
+                    error={errors.subject}
                     required
                   />
-                  {errors.subject && (
-                    <p role="alert" className="font-body text-overline text-archive-brown -mt-2">
-                      {errors.subject}
-                    </p>
-                  )}
 
                   {/* Message textarea with character counter */}
                   <div className="space-y-2">
@@ -459,6 +454,8 @@ export default function Contact() {
                         value={formData.message}
                         onChange={handleChange('message')}
                         rows={5}
+                        aria-describedby={errors.message ? 'contact-message-error' : undefined}
+                        aria-invalid={!!errors.message}
                         whileFocus={prefersReducedMotion ? undefined : { scale: 1.005 }}
                         className={`
                           w-full font-body text-body-sm py-3 px-3
@@ -473,6 +470,7 @@ export default function Contact() {
                     <div className="flex items-center justify-between">
                       {errors.message ? (
                         <motion.p
+                          id="contact-message-error"
                           initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: -5 }}
                           animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
                           role="alert"

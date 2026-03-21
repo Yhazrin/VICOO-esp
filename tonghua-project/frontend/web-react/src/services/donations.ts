@@ -1,35 +1,25 @@
 import api from './api';
-import type { Donation, DonationTier } from '@/types';
-
-export interface CreateDonationRequest {
-  donor_name: string;
-  amount: number;
-  currency: string;
-  payment_method: 'wechat' | 'alipay' | 'stripe' | 'paypal';
-  campaign_id?: number;
-  message?: string;
-  is_anonymous: boolean;
-}
+import type { Donation, DonationTier, CreateDonationRequest } from '@/types';
 
 export const donationsApi = {
   getTiers: async (): Promise<DonationTier[]> => {
-    const response = await api.get<DonationTier[]>('/donations/tiers');
-    return response.data;
+    const response = await api.get('/donations/tiers');
+    return response.data.data;
   },
 
   create: async (data: CreateDonationRequest): Promise<Donation> => {
-    const response = await api.post<Donation>('/donations', data);
-    return response.data;
+    const response = await api.post('/donations', data);
+    return response.data.data;
   },
 
   getById: async (id: string): Promise<Donation> => {
-    const response = await api.get<Donation>(`/donations/${id}`);
-    return response.data;
+    const response = await api.get(`/donations/${id}`);
+    return response.data.data;
   },
 
   getMyDonations: async (): Promise<Donation[]> => {
-    const response = await api.get<Donation[]>('/donations/mine');
-    return response.data;
+    const response = await api.get('/donations/mine');
+    return response.data.data;
   },
 
   getImpactStats: async (): Promise<{
@@ -38,6 +28,6 @@ export const donationsApi = {
     currency: string;
   }> => {
     const response = await api.get('/donations/stats');
-    return response.data;
+    return response.data.data;
   },
 };

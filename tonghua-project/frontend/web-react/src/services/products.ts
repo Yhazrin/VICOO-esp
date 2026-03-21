@@ -7,31 +7,41 @@ export const productsApi = {
     page_size?: number;
     category?: string;
   }): Promise<PaginatedResponse<Product>> => {
-    const response = await api.get<PaginatedResponse<Product>>('/products', {
-      params,
-    });
-    return response.data;
+    const response = await api.get('/products', { params });
+    const d = response.data;
+    return {
+      items: d.data ?? [],
+      total: d.total ?? 0,
+      page: d.page ?? 1,
+      pageSize: d.page_size ?? 20,
+      totalPages: Math.ceil((d.total ?? 0) / (d.page_size ?? 20)),
+    };
   },
 
   getById: async (id: string): Promise<Product> => {
-    const response = await api.get<Product>(`/products/${id}`);
-    return response.data;
+    const response = await api.get(`/products/${id}`);
+    return response.data.data;
   },
 
   getFeatured: async (): Promise<Product[]> => {
-    const response = await api.get<Product[]>('/products/featured');
-    return response.data;
+    const response = await api.get('/products/featured');
+    return response.data.data;
   },
 
   getByCategory: async (category: string): Promise<PaginatedResponse<Product>> => {
-    const response = await api.get<PaginatedResponse<Product>>('/products', {
-      params: { category },
-    });
-    return response.data;
+    const response = await api.get('/products', { params: { category } });
+    const d = response.data;
+    return {
+      items: d.data ?? [],
+      total: d.total ?? 0,
+      page: d.page ?? 1,
+      pageSize: d.page_size ?? 20,
+      totalPages: Math.ceil((d.total ?? 0) / (d.page_size ?? 20)),
+    };
   },
 
   getCategories: async (): Promise<string[]> => {
-    const response = await api.get<{ success: boolean; data: string[] }>('/products/categories');
+    const response = await api.get('/products/categories');
     return response.data.data;
   },
 };

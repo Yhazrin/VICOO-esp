@@ -1,51 +1,35 @@
-import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
 import { artworksApi } from '@/services/artworks';
-import type { Artwork } from '@/types';
 
 export default function ArtworkDetail() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
-  const [artwork, setArtwork] = useState<Artwork | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    if (!id) return;
-    let cancelled = false;
-    artworksApi
-      .getById(id)
-      .then((data) => {
-        if (!cancelled) {
-          setArtwork(data);
-          setLoading(false);
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          setError(err.message || 'Failed to load artwork');
-          setLoading(false);
-        }
-      });
-    return () => { cancelled = true; };
-  }, [id]);
+  const { data: artwork, isLoading: loading, error: queryError } = useQuery({
+    queryKey: ['artwork', id],
+    queryFn: () => artworksApi.getById(id!),
+    enabled: !!id,
+  });
 
-  const handleVote = async () => {
-    if (!id) return;
-    try {
-      const result = await artworksApi.vote(id);
-      setArtwork((prev) => prev ? { ...prev, voteCount: result.like_count } : null);
-    } catch (err) {
-      console.error('Failed to vote', err);
-    }
-  };
+  const error = queryError ? (queryError instanceof Error ? queryError.message : t('artwork.notFound')) : null;
+
+  const voteMutation = useMutation({
+    mutationFn: () => artworksApi.vote(id!),
+    onSuccess: (result) => {
+      queryClient.setQueryData(['artwork', id], (prev: typeof artwork) =>
+        prev ? { ...prev, voteCount: result.like_count } : prev,
+      );
+    },
+  });
 
   if (loading) {
     return (
@@ -136,7 +120,7 @@ export default function ArtworkDetail() {
                   <motion.button
                     whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
                     whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
-                    onClick={handleVote}
+                    onClick={() => voteMutation.mutate()}
                     className="flex-1 font-body text-body-sm tracking-[0.15em] uppercase py-4 bg-rust text-paper transition-colors hover:bg-archive-brown cursor-pointer"
                   >
                     {t('artwork.detail.vote')}
