@@ -101,7 +101,12 @@ export default function Login() {
             />
 
             <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 cursor-pointer">
+              <label htmlFor="remember-me" className="flex items-center gap-2 cursor-pointer">
+                <input
+                  id="remember-me"
+                  type="checkbox"
+                  className="w-4 h-4 accent-rust border-warm-gray/50 rounded-sm cursor-pointer"
+                />
                 <span className="font-body text-caption text-ink-faded">{t('login.rememberMe')}</span>
               </label>
               <Link

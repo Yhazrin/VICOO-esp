@@ -11,6 +11,7 @@ import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import DonationPanel from '@/components/editorial/DonationPanel';
 import ImpactCounter from '@/components/editorial/ImpactCounter';
 import FAQAccordion from '@/components/editorial/FAQAccordion';
+import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 import MagneticButton from '@/components/animations/MagneticButton';
 import { donationsApi } from '@/services/donations';
 
@@ -333,14 +334,7 @@ export default function Donate() {
 
       {/* Transparency */}
       <section className="bg-aged-stock section-spacing relative">
-        {/* Grain overlay */}
-        <div
-          className="absolute inset-0 z-0 pointer-events-none opacity-[0.06]"
-          style={{
-            backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")',
-          }}
-          aria-hidden="true"
-        />
+        <SectionGrainOverlay />
 
         <SectionContainer>
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start relative z-10">
@@ -477,21 +471,14 @@ export default function Donate() {
 
       {/* Final CTA */}
       <section className="bg-ink text-paper section-spacing relative overflow-hidden">
-        {/* Grain overlay */}
-        <div
-          className="absolute inset-0 z-0 pointer-events-none opacity-[0.06]"
-          style={{
-            backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")',
-          }}
-          aria-hidden="true"
-        />
+        <SectionGrainOverlay />
 
         <SectionContainer>
           <div className="relative z-10 text-center max-w-2xl mx-auto">
             {/* Decorative line above */}
             <motion.div
-              {...(prefersReducedMotion ? {} : { initial: { width: 0 }, whileInView: { width: '80px' }, viewport: { once: true }, transition: { duration: 0.8, ease: [0, 0, 0.2, 1] } })}
-              className="h-px bg-sage/50 mx-auto mb-10"
+              {...(prefersReducedMotion ? {} : { initial: { scaleX: 0 }, whileInView: { scaleX: 1 }, viewport: { once: true }, transition: { duration: 0.8, ease: [0, 0, 0.2, 1] } })}
+              className="h-px w-20 bg-sage/50 mx-auto mb-10 origin-center"
             />
 
             <motion.h2
@@ -525,8 +512,8 @@ export default function Donate() {
 
             {/* Decorative line below */}
             <motion.div
-              {...(prefersReducedMotion ? {} : { initial: { width: 0 }, whileInView: { width: '80px' }, viewport: { once: true }, transition: { duration: 0.8, ease: [0, 0, 0.2, 1], delay: 0.3 } })}
-              className="h-px bg-sage/50 mx-auto mt-10"
+              {...(prefersReducedMotion ? {} : { initial: { scaleX: 0 }, whileInView: { scaleX: 1 }, viewport: { once: true }, transition: { duration: 0.8, ease: [0, 0, 0.2, 1], delay: 0.3 } })}
+              className="h-px w-20 bg-sage/50 mx-auto mt-10 origin-center"
             />
           </div>
         </SectionContainer>

@@ -1,6 +1,6 @@
 # Improvement Tracker
 
-> Auto-maintained by agent loop. Last updated: 2026-03-21 (cycle 2)
+> Auto-maintained by agent loop. Last updated: 2026-03-21 (cycle 3)
 
 ## Completed
 
@@ -33,6 +33,17 @@
 | 30 | React — replace `key={index}` with semantic keys (KineticMarquee, FAQAccordion, ArtworkDetail) | Medium | ✅ done |
 | 31 | EditorialHero — fix `boolean | null` vs `boolean | undefined` on TextScramble reducedMotion prop | Low | ✅ done |
 | 32 | Contact page — replace raw `<select>` with VintageSelect editorial component | Medium | ✅ done |
+| 33 | OrigamiFold — add `useReducedMotion()` to OrigamiCorner component (unconditional rotation animation) | High | ✅ done |
+| 34 | EditorialHero — fix TextScramble `reducedMotion` null coercion (`prefersReducedMotion ? true : undefined`) | Medium | ✅ done |
+| 35 | Stories — guard article `initial` prop with reduced-motion (was always applying y:50 causing invisible elements) | High | ✅ done |
+| 36 | Stories ReadingProgressBar — convert `width` animation to `scaleX` for GPU compositing | Medium | ✅ done |
+| 37 | Campaigns progress bar — convert `width` animation to `scaleX` for GPU compositing | Medium | ✅ done |
+| 38 | Donate — convert 2 decorative line `width` animations to `scaleX` | Medium | ✅ done |
+| 39 | Login — fix "Remember me" label (missing checkbox input and htmlFor attribute) | Medium | ✅ done |
+| 40 | Donate — replace 2 inline grain SVG data URLs with reusable SectionGrainOverlay component | Medium | ✅ done |
+| 41 | Campaigns — add `role="progressbar"` with aria-valuenow to funding progress bars | Low | ✅ done |
+| 42 | Campaigns/Stories — add `role="tablist"` to category filter containers | Low | ✅ done |
+| 43 | Stories — add `role="progressbar"` to ReadingProgressBar, `cursor-pointer` to category filter buttons | Low | ✅ done |
 
 ## Pending
 

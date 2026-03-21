@@ -210,7 +210,7 @@ export default function Campaigns() {
         </div>
 
         {/* Filter tabs */}
-        <div className="flex items-center gap-1 mb-12 border-b border-warm-gray/30 overflow-x-auto">
+        <div className="flex items-center gap-1 mb-12 border-b border-warm-gray/30 overflow-x-auto" role="tablist">
           {statuses.map((status, index) => (
             <motion.button
               key={status}
@@ -346,12 +346,15 @@ export default function Campaigns() {
                                   }
                                 </span>
                               </div>
-                              <div className="h-1.5 bg-warm-gray/30 w-full">
+                              <div className="h-1.5 bg-warm-gray/30 w-full overflow-hidden" role="progressbar" aria-valuenow={fundingPercent} aria-valuemin={0} aria-valuemax={100} aria-label={`${campaign.title} funding progress`}>
                                 <motion.div
-                                  {...(prefersReducedMotion ? { style: { width: `${Math.min(100, fundingPercent)}%` } } : { initial: { width: 0 }, whileInView: { width: `${Math.min(100, fundingPercent)}%` } })}
+                                  {...(prefersReducedMotion
+                                    ? { style: { transform: `scaleX(${Math.min(100, fundingPercent) / 100})` } }
+                                    : { initial: { scaleX: 0 }, whileInView: { scaleX: Math.min(100, fundingPercent) / 100 } }
+                                  )}
                                   viewport={{ once: true }}
                                   transition={{ duration: 1, delay: 0.3, type: 'spring', stiffness: 60, damping: 20 }}
-                                  className={`h-full ${isCompleted ? 'bg-sepia-mid' : 'bg-rust'}`}
+                                  className={`h-full origin-left ${isCompleted ? 'bg-sepia-mid' : 'bg-rust'}`}
                                 />
                               </div>
                             </div>

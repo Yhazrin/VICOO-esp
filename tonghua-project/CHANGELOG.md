@@ -59,3 +59,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **React list keys**: Replaced `key={index}` with semantic unique keys in KineticMarquee (`marquee-${item}`, `stat-${stat.value}`), FAQAccordion (`item.question`), and ArtworkDetail (`tag`).
 - **EditorialHero**: Fixed `boolean | null` → `boolean | undefined` type mismatch on `TextScramble.reducedMotion` prop (`prefersReducedMotion ?? undefined`).
 - **Contact page**: Replaced raw `<select>` element with `VintageSelect` editorial component for consistent form styling.
+- **OrigamiFold**: Added `useReducedMotion()` hook to `OrigamiCorner` component — was running unconditional rotation animation, violating accessibility.
+- **EditorialHero**: Fixed `TextScramble.reducedMotion` prop coercion — `prefersReducedMotion ?? undefined` passes `undefined` when `useReducedMotion()` returns `null`, which defaults to `false` (animations run). Changed to `prefersReducedMotion ? true : undefined`.
+- **Stories**: Fixed article `initial` prop — was always `{{ opacity: 0, y: 50 }}` regardless of reduced-motion, causing elements to start invisible with no reveal animation. Now fully guarded.
+- **Stories/Campaigns/Donate**: Converted `width`-based animations to `scaleX` transforms across 4 locations (Stories ReadingProgressBar, Campaigns funding progress bar, Donate 2 decorative lines) for GPU compositing and hardware acceleration compliance.
+- **Login**: Fixed "Remember me" label — was missing `<input type="checkbox">` element and `htmlFor` attribute. Added proper checkbox with `accent-rust` styling.
+- **Stories**: Added `cursor-pointer` to category filter buttons.
+
+### Added (2026-03-21)
+
+- **SectionGrainOverlay component**: Reusable section-scoped grain overlay component extracted from Donate page inline SVG data URLs. Supports configurable `frequency`, `octaves`, and `opacity` props. Replaces 2 inline grain SVG instances in Donate page.
+- **Aria attributes**: Added `role="progressbar"` with `aria-valuenow`/`aria-valuemin`/`aria-valuemax` to Campaigns funding progress bars and Stories ReadingProgressBar. Added `role="tablist"` to Campaigns and Stories category filter containers.

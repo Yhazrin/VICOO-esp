@@ -167,12 +167,13 @@ function ReadingProgressBar({ readTimeMinutes, prefersReducedMotion = false }: {
   const widthPercent = Math.min((readTimeMinutes / maxReadTime) * 100, 100);
 
   return (
-    <div className="mt-4 h-[2px] w-full bg-warm-gray/20 rounded-sm overflow-hidden">
+    <div className="mt-4 h-[2px] w-full bg-warm-gray/20 rounded-sm overflow-hidden" role="progressbar" aria-valuenow={readTimeMinutes} aria-valuemin={0} aria-valuemax={maxReadTime} aria-label={`${readTimeMinutes} minute read`}>
       <motion.div
-        className="h-full bg-rust/60 rounded-sm"
-        initial={{ width: 0 }}
+        className="h-full bg-rust/60 rounded-sm origin-left"
+        style={prefersReducedMotion ? { transform: `scaleX(${widthPercent / 100})` } : undefined}
         {...(prefersReducedMotion ? {} : {
-          whileInView: { width: `${widthPercent}%` },
+          initial: { scaleX: 0 },
+          whileInView: { scaleX: widthPercent / 100 },
           viewport: { once: true },
           transition: { duration: 0.8, delay: 0.3, ease: [0, 0, 0.2, 1] },
         })}
@@ -322,7 +323,7 @@ export default function Stories() {
 
       <SectionContainer noTopSpacing>
         {/* Category filter with count badges */}
-        <div className="flex items-center gap-1 mb-12 border-b border-warm-gray/30 overflow-x-auto">
+        <div className="flex items-center gap-1 mb-12 border-b border-warm-gray/30 overflow-x-auto" role="tablist">
           {categories.map((cat) => (
             <motion.button
               key={cat}
@@ -332,7 +333,7 @@ export default function Stories() {
               transition={{ duration: 0.3 }}
               whileHover={prefersReducedMotion ? undefined : { y: -2 }}
               className={`
-                font-body text-caption tracking-[0.15em] uppercase px-4 py-3 transition-all duration-200 border-b-2 -mb-px whitespace-nowrap relative
+                font-body text-caption tracking-[0.15em] uppercase px-4 py-3 transition-all duration-200 border-b-2 -mb-px whitespace-nowrap relative cursor-pointer
                 ${activeCategory === cat
                   ? 'border-rust text-rust'
                   : 'border-transparent text-sepia-mid hover:text-ink'
@@ -387,12 +388,10 @@ export default function Stories() {
                     className="mb-16 md:mb-24"
                   >
                     <motion.article
-                      initial={{ opacity: 0, y: 50 }}
-                      {...(prefersReducedMotion ? {} : {
-                        whileInView: { opacity: 1, y: 0 },
-                        viewport: { once: true, margin: '-100px' },
-                        transition: { duration: 0.8, ease: [0, 0, 0.2, 1] },
-                      })}
+                      {...(prefersReducedMotion
+                        ? { initial: { opacity: 0 }, whileInView: { opacity: 1 }, viewport: { once: true }, transition: { duration: 0.3 } }
+                        : { initial: { opacity: 0, y: 50 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, margin: '-100px' }, transition: { duration: 0.8, ease: [0, 0, 0.2, 1] } }
+                      )}
                     >
                       <Link to={`/stories/${story.id}`} className="group block cursor-pointer">
                         <div className={`grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center ${index % 2 === 1 ? '' : ''}`}>
