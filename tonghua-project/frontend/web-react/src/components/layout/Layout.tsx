@@ -7,7 +7,7 @@ import GrainOverlay from '../animations/GrainOverlay';
 
 export default function Layout() {
   return (
-    <div className="min-h-screen flex flex-col bg-paper text-ink">
+    <div className="min-h-[100dvh] flex flex-col bg-paper text-ink">
       <Header />
       <MobileNav />
       <main className="flex-1 pt-16 md:pt-20">

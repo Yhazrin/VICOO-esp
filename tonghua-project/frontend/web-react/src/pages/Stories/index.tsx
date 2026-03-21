@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import EditorialHero from '@/components/editorial/EditorialHero';
@@ -172,6 +172,7 @@ function ReadingProgressBar({ readTimeMinutes }: { readTimeMinutes: number }) {
 // Beautiful empty state with SVG illustration
 function EmptyState({ onBrowseAll }: { onBrowseAll: () => void }) {
   const { t } = useTranslation();
+  const prefersReducedMotion = useReducedMotion();
 
   return (
     <motion.div
@@ -241,8 +242,8 @@ function EmptyState({ onBrowseAll }: { onBrowseAll: () => void }) {
       </p>
       <motion.button
         onClick={onBrowseAll}
-        whileHover={{ y: -2 }}
-        whileTap={{ scale: 0.98 }}
+        whileHover={prefersReducedMotion ? undefined : { y: -2 }}
+        whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
         className="font-body text-xs tracking-[0.15em] uppercase text-rust border-b border-rust/30 pb-1 hover:text-ink hover:border-ink/30 transition-colors"
       >
         {t('stories.empty.browseAll')}
@@ -253,6 +254,7 @@ function EmptyState({ onBrowseAll }: { onBrowseAll: () => void }) {
 
 export default function Stories() {
   const { t } = useTranslation();
+  const prefersReducedMotion = useReducedMotion();
   const [activeCategory, setActiveCategory] = useState<Category>('all');
   const [email, setEmail] = useState('');
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -310,7 +312,7 @@ export default function Stories() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              whileHover={{ y: -2 }}
+              whileHover={prefersReducedMotion ? undefined : { y: -2 }}
               className={`
                 font-body text-xs tracking-[0.15em] uppercase px-4 py-3 transition-all duration-200 border-b-2 -mb-px whitespace-nowrap relative
                 ${activeCategory === cat
@@ -491,8 +493,8 @@ export default function Stories() {
                   />
                   <motion.button
                     onClick={handleSubscribe}
-                    whileHover={{ y: -1 }}
-                    whileTap={{ scale: 0.97 }}
+                    whileHover={prefersReducedMotion ? undefined : { y: -1 }}
+                    whileTap={prefersReducedMotion ? undefined : { scale: 0.97 }}
                     className="font-body text-xs tracking-[0.15em] uppercase text-rust hover:text-ink transition-colors flex-shrink-0"
                   >
                     {t('stories.newsletter.subscribe')} &rarr;

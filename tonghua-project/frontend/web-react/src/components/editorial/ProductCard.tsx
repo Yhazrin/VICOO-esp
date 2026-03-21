@@ -205,7 +205,7 @@ export default function ProductCard({
           {/* Decorative divider */}
           <div className="flex items-center gap-2 mt-3">
             <div className="flex-1 h-px bg-ink/20" />
-            <span className="font-body text-[9px] text-sepia-mid tracking-widest">
+            <span className="font-body text-overline text-sepia-mid tracking-widest">
               {String(product.id).padStart(3, '0')}
             </span>
             <div className="flex-1 h-px bg-ink/20" />

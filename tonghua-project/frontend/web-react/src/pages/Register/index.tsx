@@ -45,7 +45,7 @@ export default function Register() {
   return (
     <PageWrapper>
       {/* Centered auth layout - no hero section */}
-      <div className="min-h-screen flex items-center justify-center py-12 px-4 relative">
+      <div className="min-h-[100dvh] flex items-center justify-center py-12 px-4 relative">
         {/* Grain overlay */}
         <div style={{ opacity: 0.06 }} className="absolute inset-0">
           <GrainOverlay />

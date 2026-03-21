@@ -18,7 +18,7 @@ export default function Profile() {
   if (!isAuthenticated || !user) {
     return (
       <PageWrapper>
-        <div className="min-h-screen flex items-center justify-center py-12 px-4">
+        <div className="min-h-[100dvh] flex items-center justify-center py-12 px-4">
           <div className="text-center">
             <p className="font-body text-ink-faded mb-4">{t('profile.notLoggedIn')}</p>
             <motion.button
@@ -37,7 +37,7 @@ export default function Profile() {
 
   return (
     <PageWrapper>
-      <div className="min-h-screen py-12 px-4">
+      <div className="min-h-[100dvh] py-12 px-4">
         <div className="max-w-2xl mx-auto">
           {/* Header */}
           <div className="text-center mb-10">

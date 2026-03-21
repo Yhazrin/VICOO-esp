@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import EditorialHero from '@/components/editorial/EditorialHero';
@@ -155,6 +155,7 @@ function DonationStoryCard({
   imageSeed: string;
   index: number;
 }) {
+  const prefersReducedMotion = useReducedMotion();
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -166,7 +167,7 @@ function DonationStoryCard({
         damping: 30,
         delay: index * 0.15,
       }}
-      whileHover={{ y: -6 }}
+      whileHover={prefersReducedMotion ? undefined : { y: -6 }}
       className="group"
     >
       <SepiaImageFrame
@@ -195,6 +196,7 @@ function DonationStoryCard({
 
 export default function Donate() {
   const { t } = useTranslation();
+  const prefersReducedMotion = useReducedMotion();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleDonate = async (data: {
@@ -385,7 +387,7 @@ export default function Donate() {
 
               <motion.button
                 className="font-body text-xs text-rust tracking-[0.15em] uppercase hover:text-ink transition-colors"
-                whileHover={{ x: 4 }}
+                whileHover={prefersReducedMotion ? undefined : { x: 4 }}
               >
                 {t('donate.transparency.viewReport')} &rarr;
               </motion.button>
@@ -399,7 +401,7 @@ export default function Donate() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
-                    whileHover={{ y: -4 }}
+                    whileHover={prefersReducedMotion ? undefined : { y: -4 }}
                     className="border border-warm-gray/30 p-6 bg-paper hover:border-rust/30 transition-colors cursor-pointer relative"
                   >
                     {/* Corner accents */}

@@ -1,4 +1,4 @@
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
 import { useRef } from 'react';
 import type { SupplyChainRecord } from '@/types';
 import { useTranslation } from 'react-i18next';
@@ -13,6 +13,7 @@ export default function TraceabilityTimeline({
   className = '',
 }: TraceabilityTimelineProps) {
   const { t } = useTranslation();
+  const prefersReducedMotion = useReducedMotion();
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Scroll-linked animation for the vertical path line
@@ -125,7 +126,7 @@ export default function TraceabilityTimeline({
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: index * 0.1 }}
-              whileHover={{ y: -2 }}
+              whileHover={prefersReducedMotion ? undefined : { y: -2 }}
               className="relative p-6 border-2 border-rust/30 bg-paper transition-all duration-300 hover:border-rust/50 overflow-hidden"
             >
               {/* Grain overlay */}

@@ -104,7 +104,7 @@ export default function MagazineNav() {
 
                   {/* Content */}
                   <div className="relative z-10 flex items-center">
-                    <span className="text-[9px] tracking-[0.2em] text-sepia-mid mr-2 font-body">
+                    <span className="text-overline tracking-[0.2em] text-sepia-mid mr-2 font-body">
                       {String(index + 1).padStart(2, '0')}
                     </span>
                     <span className="relative">

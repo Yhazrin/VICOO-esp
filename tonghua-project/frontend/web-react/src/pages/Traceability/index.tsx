@@ -206,14 +206,15 @@ function CertificationBadge({ title, description, delay }: {
   description: string;
   delay: number;
 }) {
+  const prefersReducedMotion = useReducedMotion();
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay }}
-      whileHover={{ y: -4, borderColor: 'color-mix(in srgb, var(--color-rust) 50%, transparent)' }}
-      className="border-2 border-rust/30 bg-paper p-5 text-center transition-all duration-300 hover:shadow-[0_4px_20px_rgba(139,58,42,0.08)] relative overflow-hidden group"
+      whileHover={prefersReducedMotion ? undefined : { y: -4, borderColor: 'color-mix(in srgb, var(--color-rust) 50%, transparent)' }}
+      className="border-2 border-rust/30 bg-paper p-5 text-center transition-all duration-300 hover:shadow-[0_4px_20px_color-mix(in_srgb,var(--color-rust)_8%,transparent)] relative overflow-hidden group"
     >
       {/* Grain overlay */}
       <div className="absolute inset-0 z-10 pointer-events-none opacity-[0.06]" style={{
@@ -249,6 +250,7 @@ function EnhancedTimelineEntry({ record, index, t }: {
   index: number;
   t: (key: string) => string;
 }) {
+  const prefersReducedMotion = useReducedMotion();
   const statusConfig = {
     verified: { label: t('traceability.status.verified'), bg: 'bg-[#5a7a5a]/10', text: 'text-[#5a7a5a]', border: 'border-[#5a7a5a]/30', dot: 'bg-[#5a7a5a]' },
     'in-progress': { label: t('traceability.status.inProgress'), bg: 'bg-pale-gold/20', text: 'text-archive-brown', border: 'border-archive-brown/30', dot: 'bg-archive-brown' },
@@ -276,7 +278,7 @@ function EnhancedTimelineEntry({ record, index, t }: {
 
       {/* Card */}
       <motion.div
-        whileHover={{ y: -3, borderColor: 'color-mix(in srgb, var(--color-rust) 40%, transparent)' }}
+        whileHover={prefersReducedMotion ? undefined : { y: -3, borderColor: 'color-mix(in srgb, var(--color-rust) 40%, transparent)' }}
         transition={{ duration: 0.3 }}
         className="relative p-6 border-2 border-rust/30 bg-paper transition-all duration-300 hover:border-rust/50 overflow-hidden"
       >
@@ -311,7 +313,7 @@ function EnhancedTimelineEntry({ record, index, t }: {
               </p>
             </div>
             <motion.div
-              whileHover={{ scale: 1.03 }}
+              whileHover={prefersReducedMotion ? undefined : { scale: 1.03 }}
               transition={{ duration: 0.3 }}
               className="hidden sm:block flex-shrink-0 w-[100px] h-[100px] overflow-hidden border border-warm-gray/40"
             >

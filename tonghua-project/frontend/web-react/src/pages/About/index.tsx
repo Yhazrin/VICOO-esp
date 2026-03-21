@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import EditorialHero from '@/components/editorial/EditorialHero';
@@ -21,6 +21,7 @@ const TEAM_MEMBERS = [
 
 export default function About() {
   const { t } = useTranslation();
+  const prefersReducedMotion = useReducedMotion();
 
   return (
     <PageWrapper>
@@ -99,7 +100,7 @@ export default function About() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-50px' }}
               transition={{ duration: 0.5, delay: i * 0.12 }}
-              whileHover={{ y: -3 }}
+              whileHover={prefersReducedMotion ? undefined : { y: -3 }}
               className="border-t border-warm-gray/30 pt-6 cursor-default"
             >
               <h3 className="font-display text-h3 font-bold text-ink mb-3">
@@ -140,12 +141,12 @@ export default function About() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
-                whileHover={{ y: -4 }}
+                whileHover={prefersReducedMotion ? undefined : { y: -4 }}
                 className="group"
               >
                 <div className="relative aspect-[3/4] overflow-hidden border-2 border-warm-gray/50 bg-aged-stock mb-4">
                   {/* Grain overlay */}
-                  <div className="absolute inset-0 z-10 pointer-events-none opacity-12" style={{
+                  <div className="absolute inset-0 z-10 pointer-events-none opacity-[0.06]" style={{
                     backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")'
                   }} />
 

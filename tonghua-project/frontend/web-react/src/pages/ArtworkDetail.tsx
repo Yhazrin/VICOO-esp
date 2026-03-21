@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
@@ -12,6 +12,7 @@ import type { Artwork } from '@/types';
 export default function ArtworkDetail() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
+  const prefersReducedMotion = useReducedMotion();
   const [artwork, setArtwork] = useState<Artwork | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -127,8 +128,8 @@ export default function ArtworkDetail() {
               <div className="mb-8">
                 <div className="flex items-center gap-4">
                   <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
+                    whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
                     onClick={handleVote}
                     className="flex-1 font-body text-sm tracking-[0.15em] uppercase py-4 bg-rust text-paper transition-colors hover:bg-archive-brown"
                   >

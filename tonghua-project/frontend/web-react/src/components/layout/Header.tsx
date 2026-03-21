@@ -93,7 +93,7 @@ export default function Header() {
                     ${isActive ? 'text-rust' : 'text-ink-faded hover:text-ink'}
                   `}
                 >
-                  <span className="text-[9px] tracking-[0.2em] text-sepia-mid mr-2 font-body">
+                  <span className="text-overline tracking-[0.2em] text-sepia-mid mr-2 font-body">
                     {String(index + 1).padStart(2, '0')}
                   </span>
                   {t(`nav.${item.key}`)}
@@ -122,7 +122,7 @@ export default function Header() {
                 aria-label="User menu"
                 aria-expanded={userMenuOpen}
               >
-                <span className="text-[9px] tracking-[0.2em] text-sepia-mid font-body">USER</span>
+                <span className="text-overline tracking-[0.2em] text-sepia-mid font-body">USER</span>
                 <span className="max-w-[120px] truncate">{user.nickname || user.email}</span>
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { OrigamiCorner, OrigamiDivider, OrigamiFoldAccent } from '@/components/animations/OrigamiFold';
 
 export default function EditorialFooter() {
   const { t } = useTranslation();
+  const prefersReducedMotion = useReducedMotion();
   const year = new Date().getFullYear();
 
   return (
@@ -94,7 +95,7 @@ export default function EditorialFooter() {
             <ul className="space-y-3">
               {['about', 'campaigns', 'stories'].map((key) => (
                 <li key={key}>
-                  <motion.div whileHover={{ x: 4 }}>
+                  <motion.div whileHover={prefersReducedMotion ? undefined : { x: 4 }}>
                     <Link
                       to={`/${key}`}
                       className="font-body text-sm text-warm-gray hover:text-paper transition-colors duration-200 inline-block"
@@ -115,7 +116,7 @@ export default function EditorialFooter() {
             <ul className="space-y-3">
               {['shop', 'donate', 'contact'].map((key) => (
                 <li key={key}>
-                  <motion.div whileHover={{ x: 4 }}>
+                  <motion.div whileHover={prefersReducedMotion ? undefined : { x: 4 }}>
                     <Link
                       to={`/${key}`}
                       className="font-body text-sm text-warm-gray hover:text-paper transition-colors duration-200 inline-block"
@@ -136,7 +137,7 @@ export default function EditorialFooter() {
             <ul className="space-y-3">
               {['privacy', 'terms', 'children'].map((key) => (
                 <li key={key}>
-                  <motion.div whileHover={{ x: 4 }}>
+                  <motion.div whileHover={prefersReducedMotion ? undefined : { x: 4 }}>
                     <Link
                       to={`/${key}`}
                       className="font-body text-sm text-warm-gray hover:text-paper transition-colors duration-200 inline-block"
@@ -185,12 +186,12 @@ export default function EditorialFooter() {
                 placeholder="your@email.com"
                 className="bg-transparent border-b border-sepia-mid/30 text-paper font-body text-xs py-2 outline-none focus-visible:ring-2 focus-visible:ring-pale-gold/50 focus:border-pale-gold transition-colors placeholder:text-sepia-mid/40"
                 aria-label={t('common.emailAriaLabel')}
-                whileFocus={{ scale: 1.01 }}
+                whileFocus={prefersReducedMotion ? undefined : { scale: 1.01 }}
               />
               <motion.button
                 type="submit"
                 className="font-body text-overline tracking-[0.15em] uppercase text-pale-gold hover:text-paper transition-colors text-left cursor-pointer"
-                whileHover={{ x: 4 }}
+                whileHover={prefersReducedMotion ? undefined : { x: 4 }}
               >
                 {t('footer.newsletter.subscribe')} &rarr;
               </motion.button>

@@ -65,7 +65,7 @@ export default function EditorialHero({
   // Height based on viewport coverage
   let heightClass = 'min-h-[60dvh] md:min-h-[70dvh]';
   if (fullHeight) {
-    heightClass = 'min-h-screen';
+    heightClass = 'min-h-[100dvh]';
   } else if (fullBleed) {
     heightClass = 'min-h-[70dvh] md:min-h-[85dvh]';
   }

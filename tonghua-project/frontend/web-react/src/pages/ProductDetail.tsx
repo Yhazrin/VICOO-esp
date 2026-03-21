@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeading';
@@ -98,6 +98,7 @@ const MOCK_PRODUCT: Product = {
 
 export default function ProductDetail() {
   const { t } = useTranslation();
+  const prefersReducedMotion = useReducedMotion();
   const product = MOCK_PRODUCT;
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -238,8 +239,8 @@ export default function ProductDetail() {
               </div>
 
               <motion.button
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={prefersReducedMotion ? undefined : { scale: 1.01 }}
+                whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
                 onClick={handleAddToCart}
                 disabled={!product.inStock}
                 className={`w-full font-body text-sm tracking-[0.15em] uppercase py-4 transition-all duration-300 ${
