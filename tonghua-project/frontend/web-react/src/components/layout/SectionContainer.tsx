@@ -27,7 +27,7 @@ export default function SectionContainer({
     >
       {/* Optional decorative divider at top */}
       {decorativeDivider && (
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-px bg-rust/30" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-px bg-rust/30" aria-hidden="true" />
       )}
 
       <div

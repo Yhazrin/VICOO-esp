@@ -98,7 +98,7 @@ export default function EditorialFooter() {
                   <motion.div whileHover={prefersReducedMotion ? undefined : { x: 4 }}>
                     <Link
                       to={`/${key}`}
-                      className="font-body text-body-sm text-warm-gray hover:text-paper transition-colors duration-200 inline-block"
+                      className="font-body text-body-sm text-warm-gray hover:text-paper transition-colors duration-200 inline-block cursor-pointer"
                     >
                       {t(`footer.links.${key}`)}
                     </Link>
@@ -119,7 +119,7 @@ export default function EditorialFooter() {
                   <motion.div whileHover={prefersReducedMotion ? undefined : { x: 4 }}>
                     <Link
                       to={`/${key}`}
-                      className="font-body text-body-sm text-warm-gray hover:text-paper transition-colors duration-200 inline-block"
+                      className="font-body text-body-sm text-warm-gray hover:text-paper transition-colors duration-200 inline-block cursor-pointer"
                     >
                       {t(`footer.links.${key}`)}
                     </Link>
@@ -140,7 +140,7 @@ export default function EditorialFooter() {
                   <motion.div whileHover={prefersReducedMotion ? undefined : { x: 4 }}>
                     <Link
                       to={`/${key}`}
-                      className="font-body text-body-sm text-warm-gray hover:text-paper transition-colors duration-200 inline-block"
+                      className="font-body text-body-sm text-warm-gray hover:text-paper transition-colors duration-200 inline-block cursor-pointer"
                     >
                       {t(`footer.links.${key}`)}
                     </Link>

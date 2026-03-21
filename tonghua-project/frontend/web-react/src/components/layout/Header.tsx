@@ -107,7 +107,7 @@ export default function Header() {
         <div className="flex items-center gap-3">
           <button
             onClick={toggleLocale}
-            className="font-body text-caption text-ink-faded hover:text-ink transition-colors px-2 py-1 border border-warm-gray/40"
+            className="font-body text-caption text-ink-faded hover:text-ink transition-colors px-2 py-1 border border-warm-gray/40 cursor-pointer"
             aria-label="Toggle language"
           >
             {currentLocale === 'en' ? '中文' : 'EN'}
@@ -118,13 +118,13 @@ export default function Header() {
             <div className="relative" ref={userMenuRef}>
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="hidden md:flex items-center gap-2 font-body text-label text-ink-faded hover:text-ink transition-colors px-3 py-1.5 border border-warm-gray/40"
+                className="hidden md:flex items-center gap-2 font-body text-label text-ink-faded hover:text-ink transition-colors px-3 py-1.5 border border-warm-gray/40 cursor-pointer"
                 aria-label="User menu"
                 aria-expanded={userMenuOpen}
               >
                 <span className="text-overline tracking-[0.2em] text-sepia-mid font-body">USER</span>
                 <span className="max-w-[120px] truncate">{user.nickname || user.email}</span>
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
@@ -146,7 +146,7 @@ export default function Header() {
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 font-body text-body-sm text-ink hover:bg-warm-gray/10 transition-colors"
+                      className="w-full text-left px-4 py-2 font-body text-body-sm text-ink hover:bg-warm-gray/10 transition-colors cursor-pointer"
                     >
                       {t('nav.logout')}
                     </button>
@@ -169,7 +169,7 @@ export default function Header() {
             <button
               ref={menuTriggerRef}
               onClick={toggleMobileNav}
-              className="flex flex-col gap-1.5 p-2"
+              className="flex flex-col gap-1.5 p-2 cursor-pointer"
               aria-label="Toggle menu"
               aria-expanded={mobileNavOpen}
               aria-controls="mobile-navigation"

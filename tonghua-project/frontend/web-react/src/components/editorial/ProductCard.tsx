@@ -66,7 +66,7 @@ export default function ProductCard({
         {/* Image */}
         <div className="relative aspect-[3/4] overflow-hidden border-2 border-rust/30 bg-aged-stock mb-5 group-hover:border-rust/50 transition-colors duration-300">
           {/* Vintage frame effect */}
-          <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/3 via-transparent to-archive-brown/5" />
+          <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/3 via-transparent to-archive-brown/5" aria-hidden="true" />
 
           {/* Grain overlay */}
           <div className="absolute inset-0 z-20 pointer-events-none opacity-[0.06]"
@@ -98,7 +98,7 @@ export default function ProductCard({
           )}
 
           {/* Hover overlay */}
-          <div className="absolute inset-0 z-15 bg-ink/0 group-hover:bg-ink/5 transition-colors duration-300" />
+          <div className="absolute inset-0 z-15 bg-ink/0 group-hover:bg-ink/5 transition-colors duration-300" aria-hidden="true" />
         </div>
 
         {/* Info */}

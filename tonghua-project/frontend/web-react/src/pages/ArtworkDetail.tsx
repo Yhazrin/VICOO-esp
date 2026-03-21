@@ -58,13 +58,13 @@ export default function ArtworkDetail() {
       <PageWrapper>
         <PaperTextureBackground variant="paper" className="py-16 md:py-24">
           <SectionContainer>
-            <div className="text-center">
+            <div className="text-center" role="alert">
               <h1 className="font-display text-2xl text-ink mb-4">
                 Artwork not found
               </h1>
               <Link
                 to="/stories"
-                className="font-body text-caption tracking-[0.15em] uppercase text-rust hover:text-ink transition-colors"
+                className="font-body text-caption tracking-[0.15em] uppercase text-rust hover:text-ink transition-colors cursor-pointer"
               >
                 &larr; Back to Stories
               </Link>
@@ -131,7 +131,7 @@ export default function ArtworkDetail() {
                     whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
                     whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
                     onClick={handleVote}
-                    className="flex-1 font-body text-body-sm tracking-[0.15em] uppercase py-4 bg-rust text-paper transition-colors hover:bg-archive-brown"
+                    className="flex-1 font-body text-body-sm tracking-[0.15em] uppercase py-4 bg-rust text-paper transition-colors hover:bg-archive-brown cursor-pointer"
                   >
                     {t('artwork.detail.vote')}
                   </motion.button>
@@ -171,7 +171,7 @@ export default function ArtworkDetail() {
       <SectionContainer className="py-8">
         <Link
           to="/stories"
-          className="font-body text-caption tracking-[0.15em] uppercase text-ink-faded hover:text-rust transition-colors"
+          className="font-body text-caption tracking-[0.15em] uppercase text-ink-faded hover:text-rust transition-colors cursor-pointer"
         >
           &larr; {t('common.back')} to Stories
         </Link>

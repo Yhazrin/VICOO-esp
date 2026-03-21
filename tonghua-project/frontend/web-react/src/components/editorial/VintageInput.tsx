@@ -53,11 +53,11 @@ export const VintageInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, V
     };
 
     const iconSvg = icon === 'search' ? (
-      <svg className="w-4 h-4 text-sepia-mid mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <svg className="w-4 h-4 text-sepia-mid mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
         <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
       </svg>
     ) : icon === 'email' ? (
-      <svg className="w-4 h-4 text-sepia-mid mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <svg className="w-4 h-4 text-sepia-mid mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
         <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
       </svg>
     ) : null;
@@ -116,6 +116,7 @@ export const VintageInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, V
 
         {error && (
           <motion.p
+            role="alert"
             id={errorId}
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}

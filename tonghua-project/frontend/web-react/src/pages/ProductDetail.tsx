@@ -145,7 +145,7 @@ export default function ProductDetail() {
                         key={index}
                         onClick={() => setSelectedImage(index)}
                         aria-label={'View image ' + (index + 1)}
-                        className={`w-16 h-16 overflow-hidden border-2 transition-colors relative ${
+                        className={`w-16 h-16 overflow-hidden border-2 transition-colors relative cursor-pointer ${
                           selectedImage === index ? 'border-ink' : 'border-transparent'
                         }`}
                       >
@@ -223,7 +223,7 @@ export default function ProductDetail() {
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     aria-label="Decrease quantity"
-                    className="px-3 py-2 text-ink hover:bg-warm-gray/20 transition-colors"
+                    className="px-3 py-2 text-ink hover:bg-warm-gray/20 transition-colors cursor-pointer"
                   >
                     -
                   </button>
@@ -231,7 +231,7 @@ export default function ProductDetail() {
                   <button
                     onClick={() => setQuantity(quantity + 1)}
                     aria-label="Increase quantity"
-                    className="px-3 py-2 text-ink hover:bg-warm-gray/20 transition-colors"
+                    className="px-3 py-2 text-ink hover:bg-warm-gray/20 transition-colors cursor-pointer"
                   >
                     +
                   </button>
@@ -247,7 +247,7 @@ export default function ProductDetail() {
                   added
                     ? 'bg-archive-brown text-paper'
                     : product.inStock
-                      ? 'bg-ink text-paper hover:bg-ink-faded'
+                      ? 'bg-ink text-paper hover:bg-ink-faded cursor-pointer'
                       : 'bg-warm-gray text-ink-faded cursor-not-allowed'
                 }`}
               >
@@ -278,7 +278,7 @@ export default function ProductDetail() {
       <SectionContainer className="py-8">
         <Link
           to="/shop"
-          className="font-body text-caption tracking-[0.15em] uppercase text-ink-faded hover:text-rust transition-colors"
+          className="font-body text-caption tracking-[0.15em] uppercase text-ink-faded hover:text-rust transition-colors cursor-pointer"
         >
           &larr; {t('common.back')} to shop
         </Link>

@@ -317,7 +317,7 @@ export default function Campaigns() {
                             </span>
                             {isCompleted && fundingPercent >= 100 && (
                               <span className="font-body text-overline tracking-[0.2em] uppercase px-3 py-1 border border-sepia-mid text-sepia-mid flex items-center gap-1.5">
-                                <svg className="w-3 h-3" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+                                <svg className="w-3 h-3" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                                   <path d="M3 8.5l3.5 3.5 6.5-7" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
                                 {t('campaigns.goalReached')}

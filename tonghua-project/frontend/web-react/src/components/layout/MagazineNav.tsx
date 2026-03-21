@@ -70,7 +70,7 @@ export default function MagazineNav() {
         {/* Logo */}
         <Link
           to="/"
-          className="relative font-display text-ink text-xl md:text-2xl font-bold tracking-tight group"
+          className="relative font-display text-ink text-xl md:text-2xl font-bold tracking-tight group cursor-pointer"
           onClick={() => setMobileNavOpen(false)}
         >
           <span className="relative z-10">TONGHUA</span>
@@ -91,7 +91,7 @@ export default function MagazineNav() {
                   key={item.key}
                   to={item.path}
                   className={`
-                    relative font-body text-label tracking-wide px-4 py-2.5 transition-all duration-300 overflow-hidden
+                    relative font-body text-label tracking-wide px-4 py-2.5 transition-all duration-300 overflow-hidden cursor-pointer
                     ${isActive ? 'text-rust' : 'text-ink-faded hover:text-ink'}
                   `}
                 >
@@ -146,12 +146,12 @@ export default function MagazineNav() {
             <div className="relative" ref={userMenuRef}>
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="hidden md:flex items-center gap-2 font-body text-label tracking-[0.05em] text-ink-faded hover:text-ink transition-colors px-4 py-2 border border-warm-gray/40 rounded-sm overflow-hidden group"
+                className="hidden md:flex items-center gap-2 font-body text-label tracking-[0.05em] text-ink-faded hover:text-ink transition-colors px-4 py-2 border border-warm-gray/40 rounded-sm overflow-hidden group cursor-pointer"
                 aria-label="User menu"
                 aria-expanded={userMenuOpen}
               >
                 <span className="relative z-10">{user.nickname || user.email}</span>
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
                 <motion.div
@@ -172,14 +172,14 @@ export default function MagazineNav() {
                     </div>
                     <Link
                       to="/profile"
-                      className="block px-4 py-2 font-body text-body-sm text-ink hover:bg-warm-gray/10 transition-colors"
+                      className="block px-4 py-2 font-body text-body-sm text-ink hover:bg-warm-gray/10 transition-colors cursor-pointer"
                       onClick={() => setUserMenuOpen(false)}
                     >
                       {t('nav.profile')}
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 font-body text-body-sm text-ink hover:bg-warm-gray/10 transition-colors"
+                      className="w-full text-left px-4 py-2 font-body text-body-sm text-ink hover:bg-warm-gray/10 transition-colors cursor-pointer"
                     >
                       {t('nav.logout')}
                     </button>
@@ -192,7 +192,7 @@ export default function MagazineNav() {
             <>
               <Link
                 to="/login"
-                className="hidden md:inline-block relative font-body text-label tracking-[0.05em] text-ink-faded hover:text-ink transition-colors px-4 py-2 border border-warm-gray/40 rounded-sm overflow-hidden group"
+                className="hidden md:inline-block relative font-body text-label tracking-[0.05em] text-ink-faded hover:text-ink transition-colors px-4 py-2 border border-warm-gray/40 rounded-sm overflow-hidden group cursor-pointer"
               >
                 <span className="relative z-10">{t('nav.login')}</span>
                 <motion.div
@@ -205,7 +205,7 @@ export default function MagazineNav() {
 
               <Link
                 to="/register"
-                className="hidden md:inline-block relative font-body text-label tracking-[0.05em] text-paper bg-ink hover:bg-rust transition-colors px-4 py-2 rounded-sm overflow-hidden group"
+                className="hidden md:inline-block relative font-body text-label tracking-[0.05em] text-paper bg-ink hover:bg-rust transition-colors px-4 py-2 rounded-sm overflow-hidden group cursor-pointer"
               >
                 <span className="relative z-10">{t('nav.register')}</span>
                 <motion.div

@@ -48,13 +48,13 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
           <div className="flex gap-4">
             <button
               onClick={this.handleReset}
-              className="font-body text-caption tracking-[0.15em] uppercase px-6 py-3 bg-ink text-paper hover:bg-ink-faded transition-colors"
+              className="font-body text-caption tracking-[0.15em] uppercase px-6 py-3 bg-ink text-paper hover:bg-ink-faded transition-colors cursor-pointer"
             >
               Try again
             </button>
             <a
               href="/"
-              className="font-body text-caption tracking-[0.15em] uppercase px-6 py-3 border border-warm-gray/50 text-ink hover:bg-warm-gray/20 transition-colors"
+              className="font-body text-caption tracking-[0.15em] uppercase px-6 py-3 border border-warm-gray/50 text-ink hover:bg-warm-gray/20 transition-colors cursor-pointer"
             >
               Home
             </a>

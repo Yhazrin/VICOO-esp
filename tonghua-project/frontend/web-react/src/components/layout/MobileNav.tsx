@@ -94,7 +94,7 @@ export default function MobileNav() {
                     onClick={() => setMobileNavOpen(false)}
                     className={`
                       flex items-baseline gap-4 py-4 border-b border-warm-gray/20 w-full
-                      transition-colors duration-200
+                      transition-colors duration-200 cursor-pointer
                       ${isActive ? 'text-rust' : 'text-ink hover:text-rust'}
                     `}
                   >
@@ -125,13 +125,13 @@ export default function MobileNav() {
                 <Link
                   to="/profile"
                   onClick={() => setMobileNavOpen(false)}
-                  className="inline-block font-body text-body-sm text-ink-faded border border-warm-gray/40 px-6 py-3 rounded hover:text-ink transition-colors"
+                  className="inline-block font-body text-body-sm text-ink-faded border border-warm-gray/40 px-6 py-3 rounded hover:text-ink transition-colors cursor-pointer"
                 >
                   {t('nav.profile')}
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="inline-block font-body text-body-sm bg-ink text-paper border border-ink px-6 py-3 rounded hover:bg-rust transition-colors text-left"
+                  className="inline-block font-body text-body-sm bg-ink text-paper border border-ink px-6 py-3 rounded hover:bg-rust transition-colors text-left cursor-pointer"
                 >
                   {t('nav.logout')}
                 </button>
@@ -141,14 +141,14 @@ export default function MobileNav() {
                 <Link
                   to="/login"
                   onClick={() => setMobileNavOpen(false)}
-                  className="inline-block font-body text-body-sm text-ink-faded border border-warm-gray/40 px-6 py-3 rounded hover:text-ink transition-colors"
+                  className="inline-block font-body text-body-sm text-ink-faded border border-warm-gray/40 px-6 py-3 rounded hover:text-ink transition-colors cursor-pointer"
                 >
                   {t('nav.login')}
                 </Link>
                 <Link
                   to="/register"
                   onClick={() => setMobileNavOpen(false)}
-                  className="inline-block font-body text-body-sm bg-ink text-paper border border-ink px-6 py-3 rounded hover:bg-rust transition-colors"
+                  className="inline-block font-body text-body-sm bg-ink text-paper border border-ink px-6 py-3 rounded hover:bg-rust transition-colors cursor-pointer"
                 >
                   {t('nav.register')}
                 </Link>

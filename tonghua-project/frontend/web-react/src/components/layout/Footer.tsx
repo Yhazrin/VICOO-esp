@@ -33,7 +33,7 @@ export default function Footer() {
                 <li key={key}>
                   <Link
                     to={`/${key}`}
-                    className="font-body text-body-sm text-warm-gray hover:text-paper transition-colors"
+                    className="font-body text-body-sm text-warm-gray hover:text-paper transition-colors cursor-pointer"
                   >
                     {t(`footer.links.${key}`)}
                   </Link>
@@ -52,7 +52,7 @@ export default function Footer() {
                 <li key={key}>
                   <Link
                     to={`/${key}`}
-                    className="font-body text-body-sm text-warm-gray hover:text-paper transition-colors"
+                    className="font-body text-body-sm text-warm-gray hover:text-paper transition-colors cursor-pointer"
                   >
                     {t(`footer.links.${key}`)}
                   </Link>
@@ -71,7 +71,7 @@ export default function Footer() {
                 <li key={key}>
                   <Link
                     to={`/${key}`}
-                    className="font-body text-body-sm text-warm-gray hover:text-paper transition-colors"
+                    className="font-body text-body-sm text-warm-gray hover:text-paper transition-colors cursor-pointer"
                   >
                     {t(`footer.links.${key}`)}
                   </Link>
@@ -99,7 +99,7 @@ export default function Footer() {
               />
               <button
                 type="submit"
-                className="font-body text-caption text-pale-gold hover:text-paper transition-colors text-left mt-1 tracking-wider uppercase"
+                className="font-body text-caption text-pale-gold hover:text-paper transition-colors text-left mt-1 tracking-wider uppercase cursor-pointer"
               >
                 Subscribe &rarr;
               </button>

@@ -239,7 +239,7 @@ export default function Shop() {
         <div className="border-t border-warm-gray/30 pt-12 mt-8 relative">
           {/* Decorative corner accents */}
           <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-rust/30 pointer-events-none" />
-          <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-rust/30 pointer-events-none" />
+          <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-rust/30 pointer-events-none" />
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
             {/* Left: Lead pillar — wider, more emphasis */}
