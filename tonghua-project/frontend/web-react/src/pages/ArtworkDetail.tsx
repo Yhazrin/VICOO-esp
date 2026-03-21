@@ -20,15 +20,12 @@ export default function ArtworkDetail() {
     enabled: !!id,
   });
 
-  const handleVote = async () => {
-    if (!id) return;
-    try {
-      const result = await artworksApi.vote(id);
-      setArtwork((prev) => prev ? { ...prev, voteCount: result.voteCount } : null);
-    } catch (err) {
-      console.error('Failed to vote', err);
-    }
-  };
+  const voteMutation = useMutation({
+    mutationFn: () => artworksApi.vote(id!),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(['artwork', id], updated);
+    },
+  });
 
   if (loading) {
     return (
@@ -42,7 +39,7 @@ export default function ArtworkDetail() {
     );
   }
 
-  if (error || !artwork) {
+  if (queryError || !artwork) {
     return (
       <PageWrapper>
         <PaperTextureBackground variant="paper" className="py-16 md:py-24">

@@ -349,9 +349,9 @@ export default function Contact() {
           containerRef={pullQuoteRef}
         />
         <StoryQuoteBlock
-          quote={t('contact.pullQuote.quote', { defaultValue: 'Every question is an invitation to understand our mission more deeply — and every answer is a chance to weave another thread of trust.' })}
-          author={t('contact.pullQuote.author', { defaultValue: 'VICOO Editorial' })}
-          role={t('contact.pullQuote.role', { defaultValue: 'Community Engagement' })}
+          quote={t('contact.pullQuote.quote')}
+          author={t('contact.pullQuote.author')}
+          role={t('contact.pullQuote.role')}
         />
       </div>
 
@@ -488,7 +488,7 @@ export default function Contact() {
                             : 'text-sepia-mid/60'
                         }`}
                       >
-                        {formData.message.length} / {MAX_MESSAGE_LENGTH}
+                        {t('contact.form.characterCount', { count: formData.message.length, max: MAX_MESSAGE_LENGTH })}
                       </span>
                     </div>
                   </div>

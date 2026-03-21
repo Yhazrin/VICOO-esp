@@ -1,6 +1,6 @@
 # Improvement Tracker
 
-> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 7)
+> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 15)
 > Scope broadened: now covers frontend UI/UX + backend architecture + software architecture + sustainability + code quality
 
 ## Completed
@@ -165,6 +165,23 @@
 | 126 | Backend — list_donations exposes PII to unauthenticated users | High | ✅ done — optional auth via get_optional_current_user, redact donor_name/message/donor_user_id |
 | 127 | Backend — deps.py missing optional auth dependency | Medium | ✅ done — get_optional_current_user() returns user dict or None, no exception on auth failure |
 | 128 | Backend — donations.py missing name redaction helper | Medium | ✅ done — _redact_name() masks names to first char + asterisks, handles anonymous flag |
+
+## Completed — Cycle 15 (2026-03-22)
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 129 | ArtworkDetail.tsx — runtime bugs (null reference, missing guards) | P0 | ✅ done |
+| 130 | Traceability/index.tsx — API misalignment (service method calls, response mapping) | P0 | ✅ done |
+| 131 | Layout.tsx — missing skip-to-content link (WCAG 2.4.1) | P0 | ✅ done |
+| 132 | Backend — auth.py PII logging: email addresses in debug logs | P1 | ✅ done — replaced f-string email with generic message |
+| 133 | Backend — auth.py raw exception leaking in debug logs | P1 | ✅ done — removed raw exception from log message |
+| 134 | Backend — auth.py mock user object logged with email | P1 | ✅ done — removed mock object from log |
+| 135 | Backend — auth.py WeChat API error details forwarded to client | P1 | ✅ done — replaced with generic auth failed message |
+| 136 | Shop/index.tsx — missing WAI-ARIA Tabs keyboard navigation | P1 | ✅ done — id/aria-controls/tabIndex/Arrow keys + tabpanel role + aria-hidden decorative |
+| 137 | Profile/index.tsx — tab switcher missing keyboard navigation | P1 | ✅ done — ArrowLeft/ArrowRight handler + tabIndex roving focus |
+| 138 | HeroFloatingCards.tsx — unguarded 3D transforms in reduced-motion | P1 | ✅ done — rotateX/rotateY/preserve-3d + translateZ guarded |
+| 139 | Login/index.tsx — unused MagazineDivider import (TS error) | Low | ✅ done |
+| 140 | Register/index.tsx — unused MagazineDivider import (TS error) | Low | ✅ done |
 
 ## Pending
 

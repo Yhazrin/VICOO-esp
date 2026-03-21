@@ -102,8 +102,8 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
 
             # 检查微信 API 返回的错误
             if "errcode" in session_data and session_data["errcode"] != 0:
-                error_msg = session_data.get("errmsg", "WeChat authentication failed")
-                raise HTTPException(status_code=401, detail=f"WeChat authentication failed: {error_msg}")
+                logger.debug("WeChat code2Session returned error code: %s", session_data.get("errcode"))
+                raise HTTPException(status_code=401, detail="WeChat authentication failed")
 
             openid = session_data.get("openid")
             if not openid:
@@ -133,7 +133,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Email and password are required")
 
     # ── DB lookup ──
-    logger.debug(f"DB lookup for email: {body.email}")
+    logger.debug("DB lookup for user")
     try:
         stmt = select(User).where(User.email == body.email)
         result = await db.execute(stmt)
@@ -167,7 +167,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
         raise
     except Exception as e:
         # DB error - continue to mock fallback in development mode
-        logger.debug(f"DB error during user lookup: {e}")
+        logger.debug("DB error during user lookup")
         pass
 
     # ── Mock fallback (development only) ──
@@ -176,7 +176,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
     if settings.APP_ENV == "development":
         logger.debug("Development mode, checking mock users")
         mock = _get_mock_user(body.email)
-        logger.debug(f"Mock lookup: email={body.email}, mock={mock}")
+        logger.debug("Mock lookup performed")
         if mock:
             logger.debug(f"Mock user found: id={mock['id']}, role={mock['role']}")
             # Security: Validate password even for mock users
@@ -322,8 +322,8 @@ async def wx_login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
 
         # 检查微信 API 返回的错误
         if "errcode" in session_data and session_data["errcode"] != 0:
-            error_msg = session_data.get("errmsg", "WeChat authentication failed")
-            raise HTTPException(status_code=401, detail=f"WeChat authentication failed: {error_msg}")
+            logger.debug("WeChat code2Session returned error code: %s", session_data.get("errcode"))
+            raise HTTPException(status_code=401, detail="WeChat authentication failed")
 
         openid = session_data.get("openid")
         if not openid:

@@ -53,15 +53,14 @@ function FloatingCard({
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={{
-        rotateX,
-        rotateY,
-        transformStyle: 'preserve-3d',
+        ...(prefersReducedMotion ? {} : { rotateX, rotateY }),
+        transformStyle: prefersReducedMotion ? undefined : 'preserve-3d',
       }}
       className={`absolute cursor-pointer ${className}`}
     >
       <motion.div
         className="relative"
-        style={{ transform: 'translateZ(20px)' }}
+        style={prefersReducedMotion ? undefined : { transform: 'translateZ(20px)' }}
         whileHover={prefersReducedMotion ? undefined : { scale: 1.05, y: -8 }}
         transition={{ type: 'spring', stiffness: 300, damping: 20 }}
       >

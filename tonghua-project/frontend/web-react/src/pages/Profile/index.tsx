@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
@@ -32,6 +32,26 @@ export default function Profile() {
   const prefersReducedMotion = useReducedMotion();
   const { user, isAuthenticated, logout } = useAuthStore();
   const [activeTab, setActiveTab] = useState<'orders' | 'donations'>('orders');
+
+  const tabs: Array<'orders' | 'donations'> = ['orders', 'donations'];
+
+  const handleTabKeyDown = useCallback(
+    (e: React.KeyboardEvent, tab: 'orders' | 'donations') => {
+      const idx = tabs.indexOf(tab);
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        const next = tabs[(idx + 1) % tabs.length];
+        setActiveTab(next);
+        document.getElementById(`tab-${next}`)?.focus();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        const prev = tabs[(idx - 1 + tabs.length) % tabs.length];
+        setActiveTab(prev);
+        document.getElementById(`tab-${prev}`)?.focus();
+      }
+    },
+    [],
+  );
 
   const { data: orders = [], isLoading: loadingOrders } = useQuery({
     queryKey: ['my-orders'],
@@ -182,7 +202,9 @@ export default function Profile() {
               id="tab-orders"
               aria-selected={activeTab === 'orders'}
               aria-controls="panel-orders"
+              tabIndex={activeTab === 'orders' ? 0 : -1}
               onClick={() => setActiveTab('orders')}
+              onKeyDown={(e) => handleTabKeyDown(e, 'orders')}
               className={`cursor-pointer pb-4 font-body text-body-sm tracking-[0.15em] uppercase transition-colors ${
                 activeTab === 'orders'
                   ? 'text-ink border-b-2 border-ink'
@@ -196,7 +218,9 @@ export default function Profile() {
               id="tab-donations"
               aria-selected={activeTab === 'donations'}
               aria-controls="panel-donations"
+              tabIndex={activeTab === 'donations' ? 0 : -1}
               onClick={() => setActiveTab('donations')}
+              onKeyDown={(e) => handleTabKeyDown(e, 'donations')}
               className={`cursor-pointer pb-4 font-body text-body-sm tracking-[0.15em] uppercase transition-colors ${
                 activeTab === 'donations'
                   ? 'text-ink border-b-2 border-ink'

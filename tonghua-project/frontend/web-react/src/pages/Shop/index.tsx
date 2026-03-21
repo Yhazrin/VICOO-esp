@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
@@ -125,6 +125,25 @@ export default function Shop() {
   });
 
   const categories: Category[] = ['all', 'apparel', 'accessories', 'stationery', 'prints'];
+
+  const handleTabKeyDown = useCallback(
+    (e: React.KeyboardEvent, cat: Category) => {
+      const idx = categories.indexOf(cat);
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        const next = categories[(idx + 1) % categories.length];
+        setActiveCategory(next);
+        document.getElementById(`shop-tab-${next}`)?.focus();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        const prev = categories[(idx - 1 + categories.length) % categories.length];
+        setActiveCategory(prev);
+        document.getElementById(`shop-tab-${prev}`)?.focus();
+      }
+    },
+    [],
+  );
+
   const sortOptions: { value: SortOption; label: string }[] = [
     { value: 'default', label: t('shop.sort.default') },
     { value: 'price-asc', label: t('shop.sort.priceAsc') },
@@ -169,9 +188,13 @@ export default function Shop() {
             {categories.map((cat, index) => (
               <motion.button
                 key={cat}
+                id={`shop-tab-${cat}`}
                 role="tab"
                 aria-selected={activeCategory === cat}
+                aria-controls={`shop-panel-${cat}`}
+                tabIndex={activeCategory === cat ? 0 : -1}
                 onClick={() => setActiveCategory(cat)}
+                onKeyDown={(e) => handleTabKeyDown(e, cat)}
                 initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
                 animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
@@ -222,6 +245,9 @@ export default function Shop() {
           <AnimatePresence mode="wait">
             <motion.div
               key={`${activeCategory}-${sortBy}`}
+              role="tabpanel"
+              id={`shop-panel-${activeCategory}`}
+              aria-labelledby={`shop-tab-${activeCategory}`}
               initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -240,8 +266,8 @@ export default function Shop() {
       <SectionContainer>
         <div className="border-t border-warm-gray/30 pt-12 mt-8 relative">
           {/* Decorative corner accents */}
-          <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-rust/30 pointer-events-none" />
-          <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-rust/30 pointer-events-none" />
+          <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-rust/30 pointer-events-none" aria-hidden="true" />
+          <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-rust/30 pointer-events-none" aria-hidden="true" />
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
             {/* Left: Lead pillar — wider, more emphasis */}
