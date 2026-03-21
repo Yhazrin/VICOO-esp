@@ -1,6 +1,6 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
-import HorizontalScrollTransition from '@/components/transitions/HorizontalScrollTransition';
+import SmoothTransition from '@/components/transitions/SmoothTransition';
 import ErrorBoundary from '@/components/editorial/ErrorBoundary';
 import Home from '@/pages/Home';
 import About from '@/pages/About';
@@ -28,7 +28,7 @@ function AnimatedRoutes() {
 
   return (
     <ErrorBoundary>
-      <HorizontalScrollTransition>
+      <SmoothTransition>
         <Routes location={location} key={location.pathname}>
           <Route element={<Layout />}>
             <Route index element={<ErrorBoundary><Home /></ErrorBoundary>} />
@@ -51,7 +51,7 @@ function AnimatedRoutes() {
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
-      </FlipPageTransition>
+      </SmoothTransition>
     </ErrorBoundary>
   );
 }
