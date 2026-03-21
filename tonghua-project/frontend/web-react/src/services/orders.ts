@@ -9,22 +9,22 @@ export interface CreateOrderRequest {
 
 export const ordersApi = {
   create: async (data: CreateOrderRequest): Promise<Order> => {
-    const response = await api.post<Order>('/orders', data);
-    return response.data;
+    const response = await api.post('/orders', data);
+    return response.data.data;
   },
 
   getById: async (id: string): Promise<Order> => {
-    const response = await api.get<Order>(`/orders/${id}`);
-    return response.data;
+    const response = await api.get(`/orders/${id}`);
+    return response.data.data;
   },
 
   getMyOrders: async (): Promise<Order[]> => {
-    const response = await api.get<Order[]>('/orders/mine');
-    return response.data;
+    const response = await api.get('/orders/mine');
+    return response.data.data;
   },
 
   cancel: async (id: string): Promise<Order> => {
-    const response = await api.post<Order>(`/orders/${id}/cancel`);
-    return response.data;
+    const response = await api.post(`/orders/${id}/cancel`);
+    return response.data.data;
   },
 };

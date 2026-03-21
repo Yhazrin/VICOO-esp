@@ -8,9 +8,10 @@ interface FloatingCardProps {
   initialRotate?: number;
   delay?: number;
   x?: string;
-  top?: string;
-  right?: string;
-  bottom?: string;
+}
+
+interface HeroFloatingCardsProps {
+  className?: string;
 }
 
 function FloatingCard({
@@ -19,9 +20,6 @@ function FloatingCard({
   initialRotate = 0,
   delay = 0.3,
   x = '50px',
-  top,
-  right,
-  bottom,
 }: FloatingCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const mouseX = useMotionValue(0);

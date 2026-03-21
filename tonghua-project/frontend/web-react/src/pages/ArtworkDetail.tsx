@@ -41,7 +41,7 @@ export default function ArtworkDetail() {
     if (!id) return;
     try {
       const result = await artworksApi.vote(id);
-      setArtwork((prev) => prev ? { ...prev, voteCount: result.like_count } : null);
+      setArtwork((prev) => prev ? { ...prev, voteCount: result.voteCount } : null);
     } catch (err) {
       console.error('Failed to vote', err);
     }
