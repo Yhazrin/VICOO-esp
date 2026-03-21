@@ -1,6 +1,6 @@
 # Improvement Tracker
 
-> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 7)
+> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 19)
 > Scope broadened: now covers frontend UI/UX + backend architecture + software architecture + sustainability + code quality
 
 ## Completed
@@ -189,6 +189,11 @@
 | 157 | Backend — auth.py PII logging (email/password in logs) | P0 | ✅ done — 4 log statements sanitized, exc_info=True for errors |
 | 158 | Backend — contact.py + schemas/user.py EmailStr + deps.py signature leak | P0 | ✅ done — EmailStr validation, removed signature prefix from warning log |
 | 159 | Backend — artworks.py vote race condition (read-modify-write) | P0 | ✅ done — atomic SQL UPDATE with like_count + 1 |
+| 160 | Backend — unused imports cleanup (auth/contact/donations/orders/payments) | Low | ✅ done — removed os/Response/UserCreate/parse_qs/Union/require_role/PaginatedResponse/WeChatPaymentParams |
+| 161 | Git — __pycache__/ tracked despite .gitignore rule | Low | ✅ done — git rm --cached on 38 .pyc files |
+| 162 | Frontend — Login/Register i18n + social button a11y | Medium | ✅ done — aria-label on 6+6 social buttons, SVG aria-hidden |
+| 163 | Frontend — Donate progressbar ARIA (aria-valuenow/min/max) | Low | ✅ done — add role=progressbar + ARIA value attributes |
+| 164 | Frontend — Campaigns pagination ARIA (nav + aria-label + aria-current) | Low | ✅ done — div→nav, aria-label, aria-current="page" |
 
 ## Pending
 
