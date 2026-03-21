@@ -152,7 +152,11 @@
     },
     "pagination": {
       "prev": "Prev",
-      "next": "Next"
+      "next": "Next",
+      "ariaLabel": "Campaign pagination",
+      "prevAria": "Previous page",
+      "nextAria": "Next page",
+      "pageAria": "Page"
     },
     "empty": "No campaigns found matching your criteria.",
     "empty.title": "No campaigns found in this category.",

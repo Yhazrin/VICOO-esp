@@ -86,6 +86,11 @@ function ImpactProgressBar({
           delay: index * 0.12,
         },
       })}
+      role="progressbar"
+      aria-valuenow={pct}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-label={label}
     >
       <div className="flex items-center gap-3 mb-2">
         <ImpactIcon type={icon} />

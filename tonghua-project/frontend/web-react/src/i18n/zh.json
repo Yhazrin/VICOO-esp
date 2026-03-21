@@ -152,7 +152,11 @@
     },
     "pagination": {
       "prev": "上一页",
-      "next": "下一页"
+      "next": "下一页",
+      "ariaLabel": "活动分页导航",
+      "prevAria": "上一页",
+      "nextAria": "下一页",
+      "pageAria": "第"
     },
     "empty": "没有找到符合条件的活动。",
     "empty.title": "该类别下暂无活动",

@@ -19,9 +19,18 @@
 - **Register/index.tsx** — Removed unused `MagazineDivider` import.
 - **Traceability/index.tsx** — Removed unused `useQuery` import, unused `buildRecordsFromApi` function, and unused `STAGE_MAP` constant.
 
+### Code Quality
+
+- **auth.py** — Removed unused imports: `os`, `Response`, `UserCreate`.
+- **orders.py** — Removed unused imports: `Union`, `require_role`, `PaginatedResponse`, `WeChatPaymentParams`; moved inline `import random` to top-level.
+- **payments.py** — Removed unused imports: `parse_qs`, `PaginatedResponse`, `WeChatPaymentParams`.
+- **donations.py** — Removed unused import: `PaginatedResponse`, `WeChatPaymentParams`.
+- **contact.py** — Removed unused import: `HTTPException`.
+
 ### Verification
 
 - TypeScript `tsc --noEmit`: zero errors.
+- Python `ast.parse`: all 10 router files pass.
 
 ## 2026-03-22 — Cycle 18: i18n Hardcoded String Extraction
 
