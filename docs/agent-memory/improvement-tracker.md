@@ -156,6 +156,16 @@
 | 122 | Content — Privacy placeholder text | Medium | ✅ done — 9 real content sections |
 | 123 | i18n — missing translation keys for new features | Low | ✅ done — 88 lines added to en.json/zh.json |
 
+## Completed — Cycle 8b (2026-03-22)
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 124 | Backend — alipay_notify stub handler missing RSA2 signature verification | High | ✅ done — full verification with `cryptography` lib, RSA/SHA-256 PKCS1v15, form param filtering + sorting |
+| 125 | Backend — alipay_notify missing payment processing logic | High | ✅ done — trade status check, idempotency via provider_transaction_id, order lookup, payment tx creation |
+| 126 | Backend — list_donations exposes PII to unauthenticated users | High | ✅ done — optional auth via get_optional_current_user, redact donor_name/message/donor_user_id |
+| 127 | Backend — deps.py missing optional auth dependency | Medium | ✅ done — get_optional_current_user() returns user dict or None, no exception on auth failure |
+| 128 | Backend — donations.py missing name redaction helper | Medium | ✅ done — _redact_name() masks names to first char + asterisks, handles anonymous flag |
+
 ## Pending
 
 | # | Issue | Priority | Notes |

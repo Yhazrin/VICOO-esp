@@ -206,6 +206,7 @@ export default function Campaigns() {
             placeholder={t('campaigns.search.placeholder')}
             icon="search"
             className="py-2"
+            aria-label={t('campaigns.search.placeholder')}
           />
         </div>
 
@@ -214,6 +215,8 @@ export default function Campaigns() {
           {statuses.map((status, index) => (
             <motion.button
               key={status}
+              role="tab"
+              aria-selected={filter === status}
               onClick={() => handleFilterChange(status)}
               {...(prefersReducedMotion ? {} : {
                 initial: { opacity: 0, y: 10 },
