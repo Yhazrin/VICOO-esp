@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
@@ -9,8 +9,13 @@ import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeadin
 import ProductCard from '@/components/editorial/ProductCard';
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
+<<<<<<< HEAD
+=======
+import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
+>>>>>>> origin/main
 import VintageSelect from '@/components/editorial/VintageSelect';
 import { productsApi } from '@/services/products';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import type { Product } from '@/types';
 
 type Category = 'all' | 'apparel' | 'accessories' | 'stationery' | 'prints';
@@ -105,11 +110,16 @@ const MOCK_PRODUCTS: Product[] = [
 
 export default function Shop() {
   const { t } = useTranslation();
+<<<<<<< HEAD
   const prefersReducedMotion = useReducedMotion();
+=======
+  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+>>>>>>> origin/main
   const [activeCategory, setActiveCategory] = useState<Category>('all');
   const [sortBy, setSortBy] = useState<SortOption>('default');
+  const sustainabilityRef = useRef<HTMLDivElement>(null);
 
-  const { data } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['products', { category: activeCategory }],
     queryFn: async () => {
       try {
@@ -160,7 +170,14 @@ export default function Shop() {
       />
 
       <SectionContainer noTopSpacing>
-        <NumberedSectionHeading number="01" title="Collection" />
+        {/* Grain overlay */}
+        <div
+          className="absolute inset-0 z-0 pointer-events-none opacity-[0.06]"
+          style={{ backgroundImage: 'var(--grain-overlay)' }}
+          aria-hidden="true"
+        />
+
+        <NumberedSectionHeading number="01" title={t('shop.collection')} />
 
         {/* Filters and sort row */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
@@ -170,9 +187,16 @@ export default function Shop() {
               <motion.button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
+<<<<<<< HEAD
                 initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 10 }}
                 animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
+=======
+                aria-pressed={activeCategory === cat}
+                initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
+                animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+                transition={prefersReducedMotion ? { duration: 0 } : { delay: index * 0.05 }}
+>>>>>>> origin/main
                 whileHover={prefersReducedMotion ? undefined : { y: -2 }}
                 className={`
                   font-body text-caption tracking-[0.15em] uppercase px-4 py-3 transition-all duration-200 border-b-2 -mb-px whitespace-nowrap relative cursor-pointer
@@ -185,9 +209,9 @@ export default function Shop() {
                 {t(`shop.filters.${cat}`)}
                 {activeCategory === cat && (
                   <motion.span
-                    layoutId="category-indicator"
+                    layoutId={prefersReducedMotion ? undefined : "category-indicator"}
                     className="absolute bottom-0 left-0 right-0 h-px bg-rust"
-                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                    transition={prefersReducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 380, damping: 30 }}
                   />
                 )}
               </motion.button>
@@ -212,7 +236,26 @@ export default function Shop() {
         </p>
 
         {/* Product grid */}
+<<<<<<< HEAD
         {filtered.length === 0 ? (
+=======
+        {isLoading ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-10 md:gap-x-8 md:gap-y-14">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="space-y-3">
+                <div className={`aspect-[3/4] bg-aged-stock ${prefersReducedMotion ? '' : 'animate-pulse'} border border-warm-gray/30`} />
+                <div className={`h-4 bg-aged-stock ${prefersReducedMotion ? '' : 'animate-pulse'} w-3/4`} />
+                <div className={`h-3 bg-aged-stock ${prefersReducedMotion ? '' : 'animate-pulse'} w-1/2`} />
+              </div>
+            ))}
+          </div>
+        ) : error ? (
+          <div className="text-center py-20" role="alert" aria-live="assertive">
+            <p className="font-body text-body-sm text-rust">{t('common.error')}</p>
+            <p className="font-body text-caption text-sepia-mid mt-2">{t('common.retry')}</p>
+          </div>
+        ) : filtered.length === 0 ? (
+>>>>>>> origin/main
           <p className="font-body text-body-sm text-sepia-mid py-20 text-center">
             {t('shop.empty')}
           </p>
@@ -220,10 +263,10 @@ export default function Shop() {
           <AnimatePresence mode="wait">
             <motion.div
               key={`${activeCategory}-${sortBy}`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
+              initial={prefersReducedMotion ? false : { opacity: 0 }}
+              animate={prefersReducedMotion ? undefined : { opacity: 1 }}
+              exit={prefersReducedMotion ? undefined : { opacity: 0 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3 }}
               className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-10 md:gap-x-8 md:gap-y-14"
             >
               {filtered.map((product, index) => (
@@ -236,8 +279,9 @@ export default function Shop() {
 
       {/* Sustainability note */}
       <SectionContainer>
-        <div className="border-t border-warm-gray/30 pt-12 mt-8 relative">
+        <div ref={sustainabilityRef} className="border-t border-warm-gray/30 pt-12 mt-8 relative">
           {/* Decorative corner accents */}
+<<<<<<< HEAD
           <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-rust/30 pointer-events-none" />
           <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-rust/30 pointer-events-none" />
 
@@ -245,8 +289,7 @@ export default function Shop() {
             {/* Left: Lead pillar — wider, more emphasis */}
             <motion.div
               className="md:col-span-7 md:border-r border-warm-gray/30 md:pr-12"
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={prefersReducedMotion ? undefined : { opacity: 1, x: 0 }}
+              {...(prefersReducedMotion ? {} : { initial: { opacity: 0, x: -20 }, whileInView: { opacity: 1, x: 0 } })}
               viewport={{ once: true }}
               transition={{ duration: 0.6, ease: [0, 0, 0.2, 1] }}
             >
@@ -266,8 +309,7 @@ export default function Shop() {
             {/* Right: Secondary pillars stacked */}
             <div className="md:col-span-5 flex flex-col gap-8">
               <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={prefersReducedMotion ? undefined : { opacity: 1, x: 0 }}
+                {...(prefersReducedMotion ? {} : { initial: { opacity: 0, x: 20 }, whileInView: { opacity: 1, x: 0 } })}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.1, ease: [0, 0, 0.2, 1] }}
               >
@@ -285,8 +327,7 @@ export default function Shop() {
               <div className="h-px bg-warm-gray/30" />
 
               <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={prefersReducedMotion ? undefined : { opacity: 1, x: 0 }}
+                {...(prefersReducedMotion ? {} : { initial: { opacity: 0, x: 20 }, whileInView: { opacity: 1, x: 0 } })}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.2, ease: [0, 0, 0.2, 1] }}
               >
@@ -301,20 +342,64 @@ export default function Shop() {
                 </p>
               </motion.div>
             </div>
+=======
+          <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-rust/30 pointer-events-none" aria-hidden="true" />
+          <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-rust/30 pointer-events-none" aria-hidden="true" />
+          <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-rust/30 pointer-events-none" aria-hidden="true" />
+          <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-rust/30 pointer-events-none" aria-hidden="true" />
+
+          {/* Scroll path connector */}
+          <ScrollPathDrawInline
+            path="M 0 20 C 30 0, 60 40, 90 20 S 150 60, 180 30"
+            strokeColor="var(--color-pale-gold)"
+            strokeWidth={1}
+            className="absolute left-0 top-1/2 h-20 w-full pointer-events-none opacity-15"
+            containerRef={sustainabilityRef}
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              { key: 'materials', titleKey: 'shop.sustainability.materials', descKey: 'shop.sustainability.materialsDesc' },
+              { key: 'production', titleKey: 'shop.sustainability.production', descKey: 'shop.sustainability.productionDesc' },
+              { key: 'carbon', titleKey: 'shop.sustainability.carbon', descKey: 'shop.sustainability.carbonDesc' },
+            ].map((item, i) => (
+              <motion.div
+                key={item.key}
+                initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+                whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+                viewport={prefersReducedMotion ? undefined : { once: true }}
+                transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5, delay: 0.1 * (i + 1) }}
+              >
+                <span className="font-body text-overline tracking-[0.2em] uppercase text-sepia-mid">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <h4 className="font-display text-body-lg font-bold text-ink mt-2 mb-2">
+                  {t(item.titleKey)}
+                </h4>
+                <p className="font-body text-caption text-ink-faded leading-relaxed">
+                  {t(item.descKey)}
+                </p>
+              </motion.div>
+            ))}
+>>>>>>> origin/main
           </div>
         </div>
       </SectionContainer>
 
       {/* Behind the Collection */}
       <SectionContainer>
+<<<<<<< HEAD
         <NumberedSectionHeading number="02" title="Behind the Collection" />
+=======
+        <NumberedSectionHeading number="02" title={t('shop.behind.title')} />
+>>>>>>> origin/main
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 mt-10">
           {/* Left: Workshop image — 8/12 columns */}
           <motion.div
             className="md:col-span-8"
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={prefersReducedMotion ? undefined : { opacity: 1, x: 0 }}
+<<<<<<< HEAD
+            {...(prefersReducedMotion ? {} : { initial: { opacity: 0, x: -30 }, whileInView: { opacity: 1, x: 0 } })}
             viewport={{ once: true }}
             transition={{ duration: 0.7, ease: [0, 0, 0.2, 1] }}
           >
@@ -322,6 +407,17 @@ export default function Shop() {
               src="https://picsum.photos/seed/vicoo-workshop-art/800/500"
               alt="Children creating artwork in a VICOO workshop"
               caption="A Saturday morning workshop in Chengdu, where children paint the dreams that will become our next collection."
+=======
+            initial={prefersReducedMotion ? false : { opacity: 0, x: -30 }}
+            whileInView={prefersReducedMotion ? undefined : { opacity: 1, x: 0 }}
+            viewport={prefersReducedMotion ? undefined : { once: true }}
+            transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.7, ease: [0, 0, 0.2, 1] }}
+          >
+            <SepiaImageFrame
+              src="https://picsum.photos/seed/vicoo-workshop-art/800/500"
+              alt={t('shop.behind.alt')}
+              caption={t('shop.behind.caption')}
+>>>>>>> origin/main
               aspectRatio="wide"
               size="full"
               showCornerAccents={true}
@@ -332,8 +428,8 @@ export default function Shop() {
           {/* Right: Editorial text — 4/12 columns */}
           <motion.div
             className="md:col-span-4 flex flex-col justify-center"
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={prefersReducedMotion ? undefined : { opacity: 1, x: 0 }}
+<<<<<<< HEAD
+            {...(prefersReducedMotion ? {} : { initial: { opacity: 0, x: 30 }, whileInView: { opacity: 1, x: 0 } })}
             viewport={{ once: true }}
             transition={{ duration: 0.7, delay: 0.15, ease: [0, 0, 0.2, 1] }}
           >
@@ -353,12 +449,34 @@ export default function Shop() {
               quote="I drew the ocean because I want it to stay blue forever."
               author="Xiao Lin"
               role="Age 8, Ocean Dreams campaign"
+=======
+            initial={prefersReducedMotion ? false : { opacity: 0, x: 30 }}
+            whileInView={prefersReducedMotion ? undefined : { opacity: 1, x: 0 }}
+            viewport={prefersReducedMotion ? undefined : { once: true }}
+            transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.7, delay: 0.15, ease: [0, 0, 0.2, 1] }}
+          >
+            <p className="font-body text-caption text-ink-faded leading-relaxed mb-4">
+              {t('shop.behind.body1')}
+            </p>
+            <p className="font-body text-caption text-ink-faded leading-relaxed mb-6">
+              {t('shop.behind.body2')}
+            </p>
+
+            <StoryQuoteBlock
+              quote={t('shop.behind.quote')}
+              author={t('shop.behind.quoteAuthor')}
+              role={t('shop.behind.quoteRole')}
+>>>>>>> origin/main
             />
           </motion.div>
         </div>
       </SectionContainer>
 
+<<<<<<< HEAD
       <div className="editorial-divider" />
+=======
+      <div className="editorial-divider" aria-hidden="true" />
+>>>>>>> origin/main
     </PageWrapper>
   );
 }
