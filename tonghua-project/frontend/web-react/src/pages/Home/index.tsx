@@ -12,10 +12,6 @@ import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import MagneticButton from '@/components/animations/MagneticButton';
 import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
-<<<<<<< HEAD
-=======
-import { useMediaQuery } from '@/hooks/useMediaQuery';
->>>>>>> origin/main
 
 /* ─── Gallery Item (extracted to fix useState-in-map bug) ─── */
 
@@ -26,26 +22,15 @@ interface GalleryItemProps {
 }
 
 function GalleryItem({ src, alt, index }: GalleryItemProps) {
-<<<<<<< HEAD
   const prefersReducedMotion = useReducedMotion();
   const [imageLoaded, setImageLoaded] = useState(false);
 
   return (
     <motion.div
-      {...(prefersReducedMotion ? {} : { initial: { opacity: 0, y: 20 }, whileInView: { opacity: 1, y: 0 } })}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{
-=======
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
-
-  return (
-    <motion.div
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-      whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-      viewport={prefersReducedMotion ? undefined : { once: true }}
-      transition={prefersReducedMotion ? { duration: 0 } : {
->>>>>>> origin/main
         type: 'spring',
         stiffness: 380,
         damping: 30,
@@ -58,12 +43,8 @@ function GalleryItem({ src, alt, index }: GalleryItemProps) {
       <div
         className="absolute inset-0 z-10 pointer-events-none opacity-[0.06]"
         style={{
-<<<<<<< HEAD
           backgroundImage:
             'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")',
-=======
-          backgroundImage: 'var(--grain-overlay)',
->>>>>>> origin/main
         }}
         aria-hidden="true"
       />
@@ -72,15 +53,8 @@ function GalleryItem({ src, alt, index }: GalleryItemProps) {
       <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/8 via-transparent to-archive-brown/8" aria-hidden="true" />
 
       {/* Decorative corner accents */}
-<<<<<<< HEAD
       <div className="absolute top-2 left-2 w-6 h-6 border-t border-l border-rust/30 z-20 pointer-events-none" aria-hidden="true" />
       <div className="absolute bottom-2 right-2 w-6 h-6 border-b border-r border-rust/30 z-20 pointer-events-none" aria-hidden="true" />
-=======
-      <div className="absolute top-2 left-2 w-6 h-6 border-t-2 border-l-2 border-rust/30 z-20 pointer-events-none" aria-hidden="true" />
-      <div className="absolute top-2 right-2 w-6 h-6 border-t-2 border-r-2 border-rust/30 z-20 pointer-events-none" aria-hidden="true" />
-      <div className="absolute bottom-2 left-2 w-6 h-6 border-b-2 border-l-2 border-rust/30 z-20 pointer-events-none" aria-hidden="true" />
-      <div className="absolute bottom-2 right-2 w-6 h-6 border-b-2 border-r-2 border-rust/30 z-20 pointer-events-none" aria-hidden="true" />
->>>>>>> origin/main
 
       {/* Loading skeleton */}
       {!imageLoaded && (
@@ -119,27 +93,15 @@ function LatestArtworkCard({
   index,
   wide = false,
 }: LatestArtworkCardProps) {
-<<<<<<< HEAD
   const prefersReducedMotion = useReducedMotion();
   const [imageLoaded, setImageLoaded] = useState(false);
 
   return (
     <motion.div
-      {...(prefersReducedMotion ? {} : { initial: { opacity: 0, y: 30 }, whileInView: { opacity: 1, y: 0 } })}
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{
-=======
-  const { t } = useTranslation();
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
-
-  return (
-    <motion.div
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 30 }}
-      whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-      viewport={prefersReducedMotion ? undefined : { once: true }}
-      transition={prefersReducedMotion ? { duration: 0 } : {
->>>>>>> origin/main
         type: 'spring',
         stiffness: 380,
         damping: 30,
@@ -156,12 +118,8 @@ function LatestArtworkCard({
         <div
           className="absolute inset-0 z-10 pointer-events-none opacity-[0.06]"
           style={{
-<<<<<<< HEAD
             backgroundImage:
               'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")',
-=======
-            backgroundImage: 'var(--grain-overlay)',
->>>>>>> origin/main
           }}
           aria-hidden="true"
         />
@@ -176,11 +134,7 @@ function LatestArtworkCard({
 
         <img
           src={src}
-<<<<<<< HEAD
           alt={`Artwork by ${childName}`}
-=======
-          alt={t('home.artworkAlt', { childName })}
->>>>>>> origin/main
           className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 sepia-[0.1] ${
             imageLoaded ? 'opacity-100' : 'opacity-0'
           }`}
@@ -213,7 +167,6 @@ interface BrandPillarProps {
 }
 
 function BrandPillar({ label, value, index }: BrandPillarProps) {
-<<<<<<< HEAD
   const prefersReducedMotion = useReducedMotion();
   return (
     <motion.div
@@ -228,21 +181,6 @@ function BrandPillar({ label, value, index }: BrandPillarProps) {
           delay: index * 0.1,
         },
       })}
-=======
-  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
-
-  return (
-    <motion.div
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-      whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-      viewport={prefersReducedMotion ? undefined : { once: true }}
-      transition={prefersReducedMotion ? { duration: 0 } : {
-        type: 'spring',
-        stiffness: 380,
-        damping: 30,
-        delay: index * 0.1,
-      }}
->>>>>>> origin/main
       className="border-l border-warm-gray/40 pl-6"
     >
       <p className="font-display text-h3 md:text-h2 font-bold text-ink leading-[0.95]">
@@ -255,50 +193,10 @@ function BrandPillar({ label, value, index }: BrandPillarProps) {
   );
 }
 
-<<<<<<< HEAD
-=======
-/* ─── Static Data ─── */
-
-const galleryImages = [
-  { src: 'https://picsum.photos/seed/children-art-1/400/400' },
-  { src: 'https://picsum.photos/seed/children-art-2/400/400' },
-  { src: 'https://picsum.photos/seed/children-art-3/400/400' },
-  { src: 'https://picsum.photos/seed/children-art-4/400/400' },
-];
-
-const latestArtworks = [
-  {
-    src: 'https://picsum.photos/seed/spring-bloom-art/800/500',
-    childName: 'Lin Xiaomei',
-    campaignName: 'Spring Bloom Campaign',
-    date: 'Mar 2026',
-  },
-  {
-    src: 'https://picsum.photos/seed/ocean-dreams-art/400/533',
-    childName: 'Zhang Yufei',
-    campaignName: 'Ocean Dreams',
-    date: 'Feb 2026',
-  },
-  {
-    src: 'https://picsum.photos/seed/mountain-song-art/400/533',
-    childName: 'Wang Haoran',
-    campaignName: 'Mountain Song',
-    date: 'Jan 2026',
-  },
-];
-
-const brandPillars = [
-  { label: 'supplyChain', value: '100%' },
-  { label: 'children', value: '2,847' },
-  { label: 'reinvested', value: '890,000' },
-];
-
->>>>>>> origin/main
 /* ─── Home Page ─── */
 
 export default function Home() {
   const { t } = useTranslation();
-<<<<<<< HEAD
   const prefersReducedMotion = useReducedMotion();
 
   const galleryImages = [
@@ -334,9 +232,6 @@ export default function Home() {
     { label: t('home.pillars.children'), value: '2,847' },
     { label: t('home.pillars.reinvested'), value: '890,000' },
   ];
-=======
-  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
->>>>>>> origin/main
 
   return (
     <PageWrapper>
@@ -350,11 +245,7 @@ export default function Home() {
         <MagneticButton strength={0.4}>
           <Link
             to="/campaigns"
-<<<<<<< HEAD
             className="inline-block font-body text-body-sm tracking-[0.15em] uppercase bg-ink text-paper px-8 py-4 cursor-pointer hover:bg-rust transition-colors duration-300"
-=======
-            className="inline-block font-body text-body-sm tracking-[0.15em] uppercase bg-ink text-paper px-8 py-4 hover:bg-rust transition-colors duration-300 cursor-pointer"
->>>>>>> origin/main
           >
             {t('home.hero.cta')}
           </Link>
@@ -369,11 +260,7 @@ export default function Home() {
           <div className="md:col-span-7">
             <SepiaImageFrame
               src="https://picsum.photos/seed/spring-campaign/800/600"
-<<<<<<< HEAD
               alt={t('home.featured.imageAlt')}
-=======
-              alt={t('home.featured.alt')}
->>>>>>> origin/main
               caption={t('home.featured.caption')}
               aspectRatio="landscape"
               size="full"
@@ -384,19 +271,11 @@ export default function Home() {
               {t('home.featured.heading')}
             </h3>
             <p className="font-body text-body-sm text-ink-faded leading-relaxed mb-6">
-<<<<<<< HEAD
               {t('home.featured.body')}
             </p>
             <Link
               to="/campaigns"
               className="font-body text-caption text-rust tracking-[0.15em] uppercase cursor-pointer hover:text-ink transition-colors"
-=======
-              {t('home.featured.body1')}
-            </p>
-            <Link
-              to="/campaigns"
-              className="font-body text-caption text-rust tracking-[0.15em] uppercase hover:text-ink transition-colors cursor-pointer"
->>>>>>> origin/main
             >
               {t('home.featured.viewAll')} &rarr;
             </Link>
@@ -408,11 +287,7 @@ export default function Home() {
       <div className="flex justify-center py-2" aria-hidden="true">
         <ScrollPathDrawInline
           path="M0,10 L60,10 M80,10 L140,10 M160,10 L220,10"
-<<<<<<< HEAD
           strokeColor="var(--color-warm-gray, #D4CFC4)"
-=======
-          strokeColor="var(--color-warm-gray)"
->>>>>>> origin/main
           strokeWidth={1}
           className="w-56 h-5"
         />
@@ -421,9 +296,9 @@ export default function Home() {
       {/* Quote Interlude */}
       <SectionContainer narrow>
         <StoryQuoteBlock
-          quote={t('home.quote.body')}
-          author={t('home.quote.author')}
-          role={t('home.quote.role')}
+          quote="Every stitch carries a child's dream. Every garment is a chapter in a story that hasn't been written yet."
+          author="Chen Wei"
+          role="Founder, VICOO"
         />
       </SectionContainer>
 
@@ -434,18 +309,14 @@ export default function Home() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
           <ImpactCounter value={2847} label={t('home.impact.children')} />
           <ImpactCounter value={12563} label={t('home.impact.artworks')} />
-          <ImpactCounter value={890000} label={t('home.impact.donated')} prefix={t('common.currency.cny')} />
+          <ImpactCounter value={890000} label={t('home.impact.donated')} prefix="¥" />
           <ImpactCounter value={5420} label={t('home.impact.products')} />
         </div>
       </SectionContainer>
 
       {/* Latest Artworks */}
       <SectionContainer>
-<<<<<<< HEAD
         <NumberedSectionHeading number="03" title={t('home.latestArtworks.sectionTitle')} />
-=======
-        <NumberedSectionHeading number="03" title={t('home.latestArtworks')} />
->>>>>>> origin/main
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
           {latestArtworks.map((artwork, i) => (
@@ -471,11 +342,7 @@ export default function Home() {
             <GalleryItem
               key={img.src}
               src={img.src}
-<<<<<<< HEAD
               alt={img.alt}
-=======
-              alt={t(`home.gallery.alt${i + 1}`)}
->>>>>>> origin/main
               index={i}
             />
           ))}
@@ -484,11 +351,7 @@ export default function Home() {
         <div className="mt-8 text-center">
           <Link
             to="/campaigns"
-<<<<<<< HEAD
             className="font-body text-caption text-rust tracking-[0.15em] uppercase cursor-pointer hover:text-ink transition-colors"
-=======
-            className="font-body text-caption text-rust tracking-[0.15em] uppercase hover:text-ink transition-colors cursor-pointer"
->>>>>>> origin/main
           >
             {t('home.artworks.viewAll')} &rarr;
           </Link>
@@ -496,10 +359,7 @@ export default function Home() {
       </SectionContainer>
 
       {/* Call to Action */}
-      <section className="bg-ink text-paper section-spacing relative">
-        {/* Grain overlay */}
-        <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.06]" aria-hidden="true" style={{ backgroundImage: 'var(--grain-overlay)' }} />
-
+      <section className="bg-ink text-paper section-spacing">
         <SectionContainer>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div>
@@ -514,11 +374,7 @@ export default function Home() {
               <MagneticButton strength={0.35}>
                 <Link
                   to="/donate"
-<<<<<<< HEAD
                   className="inline-block font-body text-body-sm tracking-[0.15em] uppercase bg-rust text-paper px-8 py-4 cursor-pointer hover:bg-pale-gold hover:text-ink transition-all duration-300"
-=======
-                  className="inline-block font-body text-body-sm tracking-[0.15em] uppercase bg-rust text-paper px-8 py-4 hover:bg-pale-gold hover:text-ink transition-all duration-300 cursor-pointer"
->>>>>>> origin/main
                 >
                   {t('home.cta.donate')}
                 </Link>
@@ -526,11 +382,7 @@ export default function Home() {
               <MagneticButton strength={0.35}>
                 <Link
                   to="/shop"
-<<<<<<< HEAD
                   className="inline-block font-body text-body-sm tracking-[0.15em] uppercase border border-warm-gray/40 text-paper px-8 py-4 cursor-pointer hover:border-pale-gold hover:text-pale-gold transition-all duration-300"
-=======
-                  className="inline-block font-body text-body-sm tracking-[0.15em] uppercase border border-warm-gray/40 text-paper px-8 py-4 hover:border-pale-gold hover:text-pale-gold transition-all duration-300 cursor-pointer"
->>>>>>> origin/main
                 >
                   {t('home.cta.shop')}
                 </Link>
@@ -541,13 +393,13 @@ export default function Home() {
       </section>
 
       {/* Editorial divider before footer */}
-      <div className="editorial-divider" aria-hidden="true" />
+      <div className="editorial-divider" />
 
       {/* Bottom feature strip — 3 brand pillars */}
       <SectionContainer>
         <motion.div
-<<<<<<< HEAD
-          {...(prefersReducedMotion ? {} : { initial: { opacity: 0 }, whileInView: { opacity: 1 } })}
+          initial={{ opacity: 0 }}
+          whileInView={prefersReducedMotion ? undefined : { opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
           className="py-12 md:py-16"
@@ -559,21 +411,6 @@ export default function Home() {
             <span className="flex-1 h-px bg-warm-gray/40" />
             <span className="font-body text-caption text-sepia-mid tracking-[0.2em]">
               Est. 2026
-=======
-          initial={prefersReducedMotion ? false : { opacity: 0 }}
-          whileInView={prefersReducedMotion ? undefined : { opacity: 1 }}
-          viewport={prefersReducedMotion ? undefined : { once: true }}
-          transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.8 }}
-          className="section-spacing-sm"
-        >
-          <div className="flex items-baseline gap-3 mb-10">
-            <span className="font-body text-caption text-sepia-mid tracking-[0.2em]">
-              {t('home.location')}
-            </span>
-            <span className="flex-1 h-px bg-warm-gray/40" />
-            <span className="font-body text-caption text-sepia-mid tracking-[0.2em]">
-              {t('home.estYear')}
->>>>>>> origin/main
             </span>
           </div>
 
@@ -581,11 +418,7 @@ export default function Home() {
             {brandPillars.map((pillar, i) => (
               <BrandPillar
                 key={pillar.label}
-<<<<<<< HEAD
                 label={pillar.label}
-=======
-                label={t(`home.pillars.${pillar.label}`)}
->>>>>>> origin/main
                 value={pillar.value}
                 index={i}
               />

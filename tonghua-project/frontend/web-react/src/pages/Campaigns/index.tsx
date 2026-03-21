@@ -8,11 +8,8 @@ import SectionContainer from '@/components/layout/SectionContainer';
 import EditorialHero from '@/components/editorial/EditorialHero';
 import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeading';
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
-import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
-import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
 import { VintageInput } from '@/components/editorial/VintageInput';
 import { campaignsApi } from '@/services/campaigns';
-import { useMediaQuery } from '@/hooks/useMediaQuery';
 import type { Campaign } from '@/types';
 
 const MOCK_CAMPAIGNS: Campaign[] = [
@@ -134,7 +131,7 @@ export default function Campaigns() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['campaigns', { status: filter, page, search }],
     queryFn: async () => {
       try {
@@ -224,7 +221,6 @@ export default function Campaigns() {
                 transition: { delay: index * 0.05 },
                 whileHover: { y: -2 },
               })}
-              aria-pressed={filter === status}
               className={`
                 font-body text-caption tracking-[0.15em] uppercase px-4 py-3 transition-all duration-200 border-b-2 -mb-px whitespace-nowrap relative cursor-pointer
                 ${filter === status
@@ -241,9 +237,9 @@ export default function Campaigns() {
                 : t(`campaigns.status.${status}`)}
               {filter === status && (
                 <motion.span
-                  layoutId={prefersReducedMotion ? undefined : "campaign-category-indicator"}
+                  layoutId="campaign-category-indicator"
                   className="absolute bottom-0 left-0 right-0 h-px bg-rust"
-                  transition={prefersReducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 380, damping: 30 }}
+                  transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                 />
               )}
             </motion.button>
@@ -256,15 +252,10 @@ export default function Campaigns() {
         </p>
 
         {/* Campaign list */}
-        {error ? (
-          <div className="text-center py-20" role="alert" aria-live="assertive">
-            <p className="font-body text-body-sm text-rust">{t('common.error')}</p>
-            <p className="font-body text-caption text-sepia-mid mt-2">{t('common.retry')}</p>
-          </div>
-        ) : isLoading ? (
+        {isLoading ? (
           <div className="space-y-16">
             {[1, 2, 3].map((i) => (
-              <div key={i} className={`${prefersReducedMotion ? '' : 'animate-pulse'} grid grid-cols-1 md:grid-cols-12 gap-8 items-center`}>
+              <div key={i} className="animate-pulse grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
                 <div className="md:col-span-7 bg-warm-gray/20 aspect-[16/10] border border-warm-gray/20" />
                 <div className="md:col-span-5 space-y-3">
                   <div className="h-4 bg-warm-gray/20 w-24" />
@@ -279,10 +270,10 @@ export default function Campaigns() {
           <AnimatePresence mode="wait">
             <motion.div
               key={`${filter}-${page}`}
-              initial={prefersReducedMotion ? false : { opacity: 0 }}
-              animate={prefersReducedMotion ? undefined : { opacity: 1 }}
-              exit={prefersReducedMotion ? undefined : { opacity: 0 }}
-              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
               className="space-y-16"
             >
               {paginated.map((campaign, index) => {
@@ -294,7 +285,8 @@ export default function Campaigns() {
                 return (
                   <motion.article
                     key={campaign.id}
-                    {...(prefersReducedMotion ? {} : { initial: { opacity: 0, y: 40 }, whileInView: { opacity: 1, y: 0 } })}
+                    initial={{ opacity: 0, y: 40 }}
+                    whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
                     viewport={{ once: true, margin: '-80px' }}
                     transition={{ duration: 0.7, ease: [0, 0, 0.2, 1] }}
                   >
@@ -325,7 +317,6 @@ export default function Campaigns() {
                             </span>
                             {isCompleted && fundingPercent >= 100 && (
                               <span className="font-body text-overline tracking-[0.2em] uppercase px-3 py-1 border border-sepia-mid text-sepia-mid flex items-center gap-1.5">
-<<<<<<< HEAD
                                 <svg className="w-3 h-3" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                                   <path d="M3 8.5l3.5 3.5 6.5-7" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
@@ -334,7 +325,6 @@ export default function Campaigns() {
                             )}
                           </div>
 
-<<<<<<< HEAD
                           <h3 className="font-display text-h3 md:text-h2 font-bold text-ink mb-3 group-hover:text-rust transition-colors">
                             {campaign.title}
                           </h3>
@@ -350,13 +340,7 @@ export default function Campaigns() {
                                 <span className="font-body text-caption text-sepia-mid">
                                   ¥{campaign.raisedAmount.toLocaleString()} / ¥{campaign.goalAmount.toLocaleString()}
                                 </span>
-<<<<<<< HEAD
                                 <span className="font-body text-caption text-sepia-mid">
-                                  {isCompleted
-                                    ? t('campaigns.funded', { percent: fundingPercent })
-                                    : `${fundingPercent}%`
-=======
-                                <span className={`font-body text-caption ${isCompleted ? 'text-ink-faded' : 'text-sepia-mid'}`}>
                                   {isCompleted
                                     ? t('campaigns.funded', { percent: fundingPercent })
                                     : `${fundingPercent}%`
@@ -365,16 +349,10 @@ export default function Campaigns() {
                               </div>
                               <div className="h-1.5 bg-warm-gray/30 w-full">
                                 <motion.div
-<<<<<<< HEAD
-                                  {...(prefersReducedMotion ? { style: { width: `${Math.min(100, fundingPercent)}%` } } : { initial: { width: 0 }, whileInView: { width: `${Math.min(100, fundingPercent)}%` } })}
+                                  initial={{ width: 0 }}
+                                  whileInView={prefersReducedMotion ? undefined : { width: `${Math.min(100, fundingPercent)}%` }}
                                   viewport={{ once: true }}
                                   transition={{ duration: 1, delay: 0.3, type: 'spring', stiffness: 60, damping: 20 }}
-=======
-                                  initial={prefersReducedMotion ? false : { width: 0 }}
-                                  whileInView={prefersReducedMotion ? undefined : { width: `${Math.min(100, fundingPercent)}%` }}
-                                  viewport={prefersReducedMotion ? undefined : { once: true }}
-                                  transition={prefersReducedMotion ? { duration: 0 } : { duration: 1, delay: 0.3, type: 'spring', stiffness: 60, damping: 20 }}
->>>>>>> origin/main
                                   className={`h-full ${isCompleted ? 'bg-sepia-mid' : 'bg-rust'}`}
                                 />
                               </div>
@@ -384,7 +362,8 @@ export default function Campaigns() {
                           {/* Featured child quote */}
                           {campaign.featured && campaign.featuredChild && (
                             <motion.div
-                              {...(prefersReducedMotion ? {} : { initial: { opacity: 0, x: -10 }, whileInView: { opacity: 1, x: 0 } })}
+                              initial={{ opacity: 0, x: -10 }}
+                              whileInView={prefersReducedMotion ? undefined : { opacity: 1, x: 0 }}
                               viewport={{ once: true }}
                               transition={{ duration: 0.6, delay: 0.5 }}
                               className="border-l-2 border-rust/30 pl-4 mt-5"
@@ -435,7 +414,7 @@ export default function Campaigns() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <nav className="flex items-center justify-center gap-2 mt-16" aria-label={t('campaigns.pagination.ariaLabel', 'Pagination')}>
+          <div className="flex items-center justify-center gap-2 mt-16">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
@@ -447,13 +426,12 @@ export default function Campaigns() {
               <button
                 key={p}
                 onClick={() => setPage(p)}
-                aria-current={page === p ? 'page' : undefined}
                 className={`
                   w-10 h-10 font-body text-caption border transition-all cursor-pointer
                   ${page === p
                     ? 'border-rust bg-rust text-paper'
                     : 'border-warm-gray/30 text-sepia-mid hover:border-rust hover:text-rust'
-                  } cursor-pointer
+                  }
                 `}
               >
                 {String(p).padStart(2, '0')}
@@ -466,29 +444,11 @@ export default function Campaigns() {
             >
               {t('campaigns.pagination.next')}
             </button>
-          </nav>
+          </div>
         )}
       </SectionContainer>
 
-      {/* Editorial pull quote connector */}
-      <div className="flex justify-center py-2" aria-hidden="true">
-        <ScrollPathDrawInline
-          path="M0,10 L60,10 M80,10 L140,10 M160,10 L220,10"
-          strokeColor="var(--color-warm-gray)"
-          strokeWidth={1}
-          className="w-56 h-5"
-        />
-      </div>
-
-      <SectionContainer narrow>
-        <StoryQuoteBlock
-          quote={t('campaigns.quote')}
-          author={t('campaigns.quoteAuthor')}
-          role={t('campaigns.quoteRole')}
-        />
-      </SectionContainer>
-
-      <div className="editorial-divider" aria-hidden="true" />
+      <div className="editorial-divider" />
     </PageWrapper>
   );
 }
