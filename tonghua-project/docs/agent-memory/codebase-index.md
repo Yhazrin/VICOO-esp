@@ -1,6 +1,6 @@
 # 代码库索引 — Agent 持久化记忆
 
-> 最后更新: 2026-03-21
+> 最后更新: 2026-03-21 (Profile 升级)
 > 每次循环只需读本文件 + git diff，无需全量扫描。
 
 ## 前端页面清单
@@ -17,7 +17,7 @@
 | Donate | `pages/Donate/index.tsx` | ⭐⭐⭐⭐⭐ | EditorialHero, NumberedSectionHeading, StoryQuoteBlock, SepiaImageFrame, DonationPanel, ImpactCounter, FAQAccordion, MagneticButton |
 | Traceability | `pages/Traceability/index.tsx` | ⭐⭐⭐⭐⭐ | EditorialHero, NumberedSectionHeading, SepiaImageFrame, StoryQuoteBlock, ScrollPathDrawInline |
 | Contact | `pages/Contact/index.tsx` | ⭐⭐⭐⭐⭐ | EditorialHero, NumberedSectionHeading, SepiaImageFrame, VintageInput, FAQAccordion |
-| Profile | `pages/Profile/index.tsx` | ⭐⭐⭐ | NumberedSectionHeading, PaperTextureBackground |
+| Profile | `pages/Profile/index.tsx` | ⭐⭐⭐⭐ | NumberedSectionHeading, PaperTextureBackground, GrainOverlay, MagazineDivider, EditorialCard |
 | Login | `pages/Login/index.tsx` | ⭐⭐⭐⭐ | PaperTextureBackground, GrainOverlay, VintageInput, MagazineDivider, motion animations with reduced-motion guard, decorative vertical accent |
 | Register | `pages/Register/index.tsx` | ⭐⭐⭐⭐ | PaperTextureBackground, GrainOverlay, VintageInput, MagazineDivider, motion animations with reduced-motion guard, decorative vertical accent |
 | NotFound | `pages/NotFound/index.tsx` | ⭐⭐⭐⭐ | PaperTextureBackground, GrainOverlay, motion animations with reduced-motion guard, corner accents |
@@ -35,7 +35,7 @@
 | BleedTitleBlock | BleedTitleBlock.tsx | 溢出视口标题 | Home, CampaignDetail, ArtworkDetail |
 | SepiaImageFrame | SepiaImageFrame.tsx | 棕褐色图片框 | 多个页面 |
 | PaperTextureBackground | PaperTextureBackground.tsx | 纸张纹理背景 | ProductDetail, Profile, CampaignDetail, NotFound, Login, Register |
-| GrainOverlay | GrainOverlay.tsx | 颗粒噪点叠加 | Login, Register, Home, NotFound |
+| GrainOverlay | GrainOverlay.tsx | 颗粒噪点叠加 | Login, Register, Home, NotFound, Profile |
 | StoryQuoteBlock | StoryQuoteBlock.tsx | 故事引用块 | 多个页面 |
 | DonationPanel | DonationPanel.tsx | 捐赠面板 | CampaignDetail, Donate |
 | TraceabilityTimeline | TraceabilityTimeline.tsx | 溯源时间线 | ProductDetail |
@@ -50,12 +50,13 @@
 | VintageInput | VintageInput.tsx | 复古输入框 | Login, Register, Contact, Stories |
 | VintageSelect | VintageSelect.tsx | 复古下拉框 | Shop |
 
-| MagazineDivider | MagazineDivider.tsx | 装饰性分隔线 | Login, Register |
+| MagazineDivider | MagazineDivider.tsx | 装饰性分隔线 | Login, Register, Profile |
+| EditorialCard | EditorialCard.tsx | 编辑式卡片 | Profile (订单/捐赠历史) |
 
 ### 未被使用的 Editorial 组件
 | 组件 | 文件 | 状态 |
 |------|------|------|
-| EditorialCard | EditorialCard.tsx | ❌ 未被任何页面使用 |
+| (无) | — | ✅ 全部 Editorial 组件已被使用 |
 
 ### Animation 组件 (9个)
 路径: `src/components/animation/`

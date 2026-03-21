@@ -6,6 +6,9 @@ import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeading';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
+import GrainOverlay from '@/components/editorial/GrainOverlay';
+import { MagazineDivider } from '@/components/editorial/MagazineDivider';
+import { EditorialCard } from '@/components/editorial/EditorialCard';
 import { useAuthStore } from '@/stores/authStore';
 import { ordersApi } from '@/services/orders';
 import { donationsApi } from '@/services/donations';
@@ -74,10 +77,34 @@ export default function Profile() {
   if (!isAuthenticated || !user) {
     return (
       <PageWrapper>
-        <div className="min-h-[100dvh] flex items-center justify-center py-12 px-4">
-          <div className="text-center">
-            <p className="font-body text-ink-faded mb-4">{t('profile.notLoggedIn')}</p>
+        <PaperTextureBackground variant="paper" className="min-h-[100dvh] flex items-center justify-center relative">
+          <GrainOverlay />
+          <div className="absolute left-6 top-1/4 bottom-1/4 w-px bg-rust/15 hidden md:block" aria-hidden="true" />
+          <div className="text-center relative">
+            <motion.span
+              initial={prefersReducedMotion ? false : { opacity: 0 }}
+              animate={prefersReducedMotion ? undefined : { opacity: 1 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.8, delay: 0.1 }}
+              className="font-body text-overline tracking-[0.3em] uppercase text-sepia-mid block mb-6"
+            >
+              Vol. IX · No. 11
+            </motion.span>
+            <motion.p
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
+              animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6, ease: [0, 0, 0.2, 1] }}
+              className="font-body text-body-sm text-ink-faded mb-6"
+            >
+              {t('profile.notLoggedIn')}
+            </motion.p>
+            <motion.div
+              {...(prefersReducedMotion ? {} : { initial: { width: 0 }, animate: { width: '60px' }, transition: { duration: 0.8, delay: 0.3 } })}
+              className="h-px bg-rust/40 mx-auto mb-8"
+            />
             <motion.button
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+              animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6, ease: [0, 0, 0.2, 1], delay: 0.2 }}
               whileHover={prefersReducedMotion ? undefined : { scale: 1.01 }}
               whileTap={prefersReducedMotion ? undefined : { scale: 0.99 }}
               onClick={() => navigate('/login')}
@@ -86,7 +113,7 @@ export default function Profile() {
               {t('nav.login')}
             </motion.button>
           </div>
-        </div>
+        </PaperTextureBackground>
       </PageWrapper>
     );
   }
@@ -94,7 +121,8 @@ export default function Profile() {
   return (
     <PageWrapper>
       {/* Profile Header */}
-      <PaperTextureBackground variant="paper" className="py-16 md:py-24">
+      <PaperTextureBackground variant="paper" className="py-16 md:py-24 relative">
+        <GrainOverlay />
         <SectionContainer>
           <NumberedSectionHeading number="10" title={t('profile.title')} />
 
@@ -110,8 +138,12 @@ export default function Profile() {
             <div className="space-y-6">
               {/* User Info */}
               <div className="flex items-center gap-6 pb-6 border-b border-warm-gray/20">
-                <div className="w-16 h-16 bg-warm-gray/20 flex items-center justify-center">
-                  <span className="font-display text-xl text-ink">
+                <div className="w-16 h-16 bg-warm-gray/20 flex items-center justify-center border-2 border-rust/20 relative">
+                  <div className="absolute inset-0 pointer-events-none opacity-[0.06]"
+                    style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
+                    aria-hidden="true"
+                  />
+                  <span className="font-display text-xl text-ink relative z-10">
                     {user.nickname ? user.nickname.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
                   </span>
                 </div>
@@ -157,8 +189,11 @@ export default function Profile() {
         </SectionContainer>
       </PaperTextureBackground>
 
+      <MagazineDivider variant="decorative" />
+
       {/* Orders & Donations */}
-      <PaperTextureBackground variant="aged" className="py-16 md:py-24">
+      <PaperTextureBackground variant="aged" className="py-16 md:py-24 relative">
+        <GrainOverlay />
         <SectionContainer>
           {/* Tab switcher */}
           <div className="flex gap-8 mb-12 border-b border-warm-gray/30">
@@ -203,51 +238,43 @@ export default function Profile() {
                   </Link>
                 </div>
               ) : (
-                <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {orders.map((order, index) => (
-                    <motion.div
+                    <EditorialCard
                       key={order.id}
-                      initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
-                      animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-                      transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.4, delay: index * 0.08 }}
-                      className="border border-warm-gray/30 p-6"
+                      title={`${t('profile.orderId', 'Order')} #${order.id}`}
+                      subtitle={new Date(order.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                      index={index}
+                      hoverEffect="border"
                     >
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <p className="font-body text-overline text-ink-faded tracking-wider">
-                            {t('profile.orderId', 'Order')} #{order.id}
-                          </p>
-                          <p className="font-body text-caption text-sepia-mid mt-1">
-                            {new Date(order.createdAt).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric',
-                            })}
-                          </p>
-                        </div>
+                      <div className="flex justify-between items-center mb-3">
                         <span className={`font-body text-overline tracking-[0.1em] uppercase ${STATUS_COLORS[order.status] ?? 'text-sepia-mid'}`}>
                           {order.status}
                         </span>
                       </div>
                       {order.items?.map((item, i) => (
-                        <div key={i} className="flex justify-between py-2 border-t border-warm-gray/10">
-                          <span className="font-body text-body-sm text-ink-faded">
+                        <div key={i} className="flex justify-between py-1.5 border-t border-warm-gray/10">
+                          <span className="font-body text-caption text-ink-faded">
                             {item.product?.name ?? 'Product'} × {item.quantity}
                           </span>
-                          <span className="font-body text-body-sm text-ink">
+                          <span className="font-body text-caption text-ink">
                             {order.currency} {((item.product?.price ?? 0) * item.quantity).toFixed(2)}
                           </span>
                         </div>
                       ))}
-                      <div className="flex justify-between pt-3 border-t border-warm-gray/20 mt-2">
-                        <span className="font-body text-body-sm tracking-wider uppercase text-sepia-mid">
+                      <div className="flex justify-between pt-2 border-t border-warm-gray/20 mt-1">
+                        <span className="font-body text-caption tracking-wider uppercase text-sepia-mid">
                           {t('profile.total', 'Total')}
                         </span>
-                        <span className="font-display text-lg text-ink">
+                        <span className="font-display text-base text-ink">
                           {order.currency} {order.totalAmount.toFixed(2)}
                         </span>
                       </div>
-                    </motion.div>
+                    </EditorialCard>
                   ))}
                 </div>
               )}
@@ -273,34 +300,26 @@ export default function Profile() {
                   </Link>
                 </div>
               ) : (
-                <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {donations.map((donation, index) => (
-                    <motion.div
+                    <EditorialCard
                       key={donation.id}
-                      initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
-                      animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-                      transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.4, delay: index * 0.08 }}
-                      className="border border-warm-gray/30 p-6"
+                      title={`${donation.currency} ${donation.amount.toFixed(2)}`}
+                      subtitle={new Date(donation.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                      index={index}
+                      hoverEffect="border"
                     >
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <p className="font-display text-xl text-ink">
-                            {donation.currency} {donation.amount.toFixed(2)}
-                          </p>
-                          <p className="font-body text-caption text-sepia-mid mt-1">
-                            {new Date(donation.createdAt).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric',
-                            })}
-                          </p>
-                        </div>
+                      <div className="flex justify-between items-center mb-2">
                         <span className={`font-body text-overline tracking-[0.1em] uppercase ${STATUS_COLORS[donation.status] ?? 'text-sepia-mid'}`}>
                           {donation.status}
                         </span>
                       </div>
                       {donation.message && (
-                        <p className="font-body text-body-sm text-ink-faded italic mt-2 pl-4 border-l-2 border-warm-gray/20">
+                        <p className="font-body text-caption text-ink-faded italic mt-2 pl-4 border-l-2 border-warm-gray/20">
                           &ldquo;{donation.message}&rdquo;
                         </p>
                       )}
@@ -309,7 +328,7 @@ export default function Profile() {
                           {t('profile.anonymous', 'Anonymous donation')}
                         </p>
                       )}
-                    </motion.div>
+                    </EditorialCard>
                   ))}
                 </div>
               )}

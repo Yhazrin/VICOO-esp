@@ -34,6 +34,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Backend - orders.py**: `GET /orders/mine` — returns current user's orders (auth required).
 - **Backend - orders.py**: `POST /orders/{id}/cancel` — cancels pending orders (auth required, ownership validated).
 - **Profile page**: Enhanced with order history and donation history tabs. Fetches from `ordersApi.getMyOrders()` and `donationsApi.getMyDonations()`. Tab switcher with editorial styling.
+- **Profile page**: Upgraded from ⭐⭐⭐ to ⭐⭐⭐⭐ — integrated `EditorialCard` for order/donation items (2-column grid), added `GrainOverlay` to both sections, added `MagazineDivider` between sections, upgraded not-logged-in state with `PaperTextureBackground` + animated header, enhanced avatar with grain texture. All 19 editorial components now in use.
 - **Backend - contact.py**: New contact form submission endpoint (`POST /contact`, `GET /contact/messages`). Registered in `main.py`.
 
 ### Removed

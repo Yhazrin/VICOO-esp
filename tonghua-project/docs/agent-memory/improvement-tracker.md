@@ -1,6 +1,6 @@
 # 优化追踪 — Agent 持久化记忆
 
-> 最后更新: 2026-03-21
+> 最后更新: 2026-03-21 (Profile 升级)
 > 状态: pending | in_progress | done | skip
 
 ## 高优先级
@@ -26,7 +26,7 @@
 | 12 | 后端缺少 GET /products/featured | backend/app/routers/products.py | done | 2026-03-21 |
 | 13 | 后端缺少 GET /orders/mine | backend/app/routers/orders.py | done | 2026-03-21 |
 | 14 | 后端缺少 POST /orders/{id}/cancel | backend/app/routers/orders.py | done | 2026-03-21 |
-| 15 | EditorialCard 组件未被使用，评估是否需要 | components/editorial/EditorialCard.tsx | pending | |
+| 15 | EditorialCard 组件未被使用，评估是否需要 | components/editorial/EditorialCard.tsx | done | 2026-03-21 |
 | 16 | MagazineDivider 组件未被使用，评估是否需要 | components/editorial/MagazineDivider.tsx | done | 2026-03-21 |
 
 ## 中优先级（页面升级）
@@ -60,3 +60,5 @@
 | 8-14 | 7 个缺失后端端点全部补全 | 各 router 文件 | 2026-03-21 |
 | 16 | MagazineDivider 集成到 Login/Register | pages/Login, Register | 2026-03-21 |
 | 22-23 | Login/Register editorial 升级 (⭐⭐ → ⭐⭐⭐⭐) | pages/Login, Register | 2026-03-21 |
+| 15 | EditorialCard 集成到 Profile 页面 | pages/Profile/index.tsx | 2026-03-21 |
+| 24 | Profile 页面 editorial 升级 (⭐⭐⭐ → ⭐⭐⭐⭐) | pages/Profile/index.tsx | 2026-03-21 |
