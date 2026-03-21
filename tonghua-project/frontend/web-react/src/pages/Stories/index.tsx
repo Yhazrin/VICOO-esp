@@ -372,7 +372,7 @@ export default function Stories() {
                       viewport={{ once: true, margin: '-100px' }}
                       transition={{ duration: 0.8, ease: [0, 0, 0.2, 1] }}
                     >
-                      <Link to={`/stories/${story.id}`} className="group block">
+                      <Link to={`/stories/${story.id}`} className="group block cursor-pointer">
                         <div className={`grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center ${index % 2 === 1 ? '' : ''}`}>
                           {/* Image */}
                           <div className={`md:col-span-7 ${index % 2 === 1 ? 'md:order-2' : ''}`}>

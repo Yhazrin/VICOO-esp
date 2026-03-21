@@ -520,6 +520,7 @@ export default function Contact() {
                       <motion.p
                         initial={{ opacity: 0, y: -5 }}
                         animate={{ opacity: 1, y: 0 }}
+                        role="alert"
                         className="font-body text-overline text-archive-brown"
                       >
                         {errors.subject}
@@ -559,6 +560,7 @@ export default function Contact() {
                         <motion.p
                           initial={{ opacity: 0, y: -5 }}
                           animate={{ opacity: 1, y: 0 }}
+                          role="alert"
                           className="font-body text-overline text-archive-brown"
                         >
                           {errors.message}
@@ -603,6 +605,7 @@ export default function Contact() {
                     <motion.p
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
+                      role="alert"
                       className="font-body text-sm text-archive-brown"
                     >
                       {t('contact.form.error')}

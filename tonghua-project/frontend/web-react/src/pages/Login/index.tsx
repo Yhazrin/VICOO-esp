@@ -68,10 +68,8 @@ export default function Login() {
             onSubmit={handleSubmit}
             className="space-y-6 relative"
           >
-            {/* Corner accents */}
+            {/* Corner accents — diagonal pattern */}
             <div className="absolute -top-2 -left-2 w-4 h-4 border-t-2 border-l-2 border-rust/30 pointer-events-none" aria-hidden="true" />
-            <div className="absolute -top-2 -right-2 w-4 h-4 border-t-2 border-r-2 border-rust/30 pointer-events-none" aria-hidden="true" />
-            <div className="absolute -bottom-2 -left-2 w-4 h-4 border-b-2 border-l-2 border-rust/30 pointer-events-none" aria-hidden="true" />
             <div className="absolute -bottom-2 -right-2 w-4 h-4 border-b-2 border-r-2 border-rust/30 pointer-events-none" aria-hidden="true" />
 
             <VintageInput

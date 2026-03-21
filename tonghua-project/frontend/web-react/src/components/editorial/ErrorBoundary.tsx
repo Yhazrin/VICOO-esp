@@ -34,7 +34,7 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
       if (this.props.fallback) return this.props.fallback;
 
       return (
-        <div className="flex flex-col items-center justify-center min-h-[50vh] px-6 py-16 text-center">
+        <div role="alert" className="flex flex-col items-center justify-center min-h-[50dvh] px-6 py-16 text-center">
           <span className="font-body text-overline tracking-[0.3em] uppercase text-sepia-mid mb-4">
             Something went wrong
           </span>

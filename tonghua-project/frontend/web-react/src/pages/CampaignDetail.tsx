@@ -85,7 +85,7 @@ export default function CampaignDetail() {
   return (
     <PageWrapper>
       {/* Hero Image */}
-      <section className="relative h-[50vh] md:h-[60vh]">
+      <section className="relative h-[50dvh] md:h-[60dvh]">
         <ImageSkeleton className="absolute inset-0" aspectRatio="aspect-video" />
         <img
           src={campaign.coverImageUrl}

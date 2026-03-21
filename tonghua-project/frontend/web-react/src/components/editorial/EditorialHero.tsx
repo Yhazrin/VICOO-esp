@@ -63,11 +63,11 @@ export default function EditorialHero({
   }
 
   // Height based on viewport coverage
-  let heightClass = 'min-h-[60vh] md:min-h-[70vh]';
+  let heightClass = 'min-h-[60dvh] md:min-h-[70dvh]';
   if (fullHeight) {
     heightClass = 'min-h-screen';
   } else if (fullBleed) {
-    heightClass = 'min-h-[70vh] md:min-h-[85vh]';
+    heightClass = 'min-h-[70dvh] md:min-h-[85dvh]';
   }
 
   return (
@@ -99,7 +99,7 @@ export default function EditorialHero({
             />
             {/* Large faded rectangle bottom-left */}
             <div
-              className="absolute -bottom-10 -left-10 w-[50vw] h-[30vh]
+              className="absolute -bottom-10 -left-10 w-[50vw] h-[30dvh]
                          bg-gradient-to-br from-warm-gray/20 to-transparent transform rotate-[-5deg]"
             />
           </motion.div>

@@ -290,7 +290,7 @@ export default function Campaigns() {
                     viewport={{ once: true, margin: '-80px' }}
                     transition={{ duration: 0.7, ease: [0, 0, 0.2, 1] }}
                   >
-                    <Link to={`/campaigns/${campaign.id}`} className="group block">
+                    <Link to={`/campaigns/${campaign.id}`} className="group block cursor-pointer">
                       <div className={`grid grid-cols-1 md:grid-cols-12 gap-8 items-center ${index % 2 === 1 ? '' : ''}`}>
                         {/* Image */}
                         <div className={`md:col-span-7 ${index % 2 === 1 ? 'md:order-2' : ''}`}>

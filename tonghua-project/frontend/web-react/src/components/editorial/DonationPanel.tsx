@@ -164,6 +164,7 @@ export default function DonationPanel({
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
+            role="alert"
             className="mb-6 p-3 bg-archive-brown/10 border border-archive-brown/30"
           >
             <p className="font-body text-xs text-archive-brown">{error}</p>

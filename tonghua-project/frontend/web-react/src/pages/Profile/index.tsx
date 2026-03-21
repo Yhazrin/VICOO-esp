@@ -61,10 +61,8 @@ export default function Profile() {
             transition={{ duration: 0.6, ease: [0, 0, 0.2, 1], delay: 0.2 }}
             className="relative bg-paper border border-warm-gray/30 p-8"
           >
-            {/* Corner accents */}
+            {/* Corner accents — diagonal pattern */}
             <div className="absolute top-0 left-0 w-5 h-5 border-t-2 border-l-2 border-rust/30 pointer-events-none" aria-hidden="true" />
-            <div className="absolute top-0 right-0 w-5 h-5 border-t-2 border-r-2 border-rust/30 pointer-events-none" aria-hidden="true" />
-            <div className="absolute bottom-0 left-0 w-5 h-5 border-b-2 border-l-2 border-rust/30 pointer-events-none" aria-hidden="true" />
             <div className="absolute bottom-0 right-0 w-5 h-5 border-b-2 border-r-2 border-rust/30 pointer-events-none" aria-hidden="true" />
 
             <div className="space-y-6">

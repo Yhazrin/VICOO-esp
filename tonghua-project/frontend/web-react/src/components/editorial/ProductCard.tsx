@@ -61,7 +61,7 @@ export default function ProductCard({
         }}
         className="h-full"
       >
-        <Link to={`/shop/${product.id}`} className="block h-full">
+        <Link to={`/shop/${product.id}`} className="block h-full cursor-pointer">
         {/* Image */}
         <div className="relative aspect-[3/4] overflow-hidden border-2 border-rust/30 bg-aged-stock mb-5 group-hover:border-rust/50 transition-colors duration-300">
           {/* Vintage frame effect */}
