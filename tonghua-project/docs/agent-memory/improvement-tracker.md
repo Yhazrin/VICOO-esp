@@ -27,7 +27,14 @@
 | 13 | 后端缺少 GET /orders/mine | backend/app/routers/orders.py | done | 2026-03-21 |
 | 14 | 后端缺少 POST /orders/{id}/cancel | backend/app/routers/orders.py | done | 2026-03-21 |
 | 15 | EditorialCard 组件未被使用，评估是否需要 | components/editorial/EditorialCard.tsx | pending | |
-| 16 | MagazineDivider 组件未被使用，评估是否需要 | components/editorial/MagazineDivider.tsx | pending | |
+| 16 | MagazineDivider 组件未被使用，评估是否需要 | components/editorial/MagazineDivider.tsx | done | 2026-03-21 |
+
+## 中优先级（页面升级）
+
+| # | 问题 | 文件 | 状态 | 完成日期 |
+|---|------|------|------|----------|
+| 22 | Login 页面 editorial 升级 (PaperTexture, MagazineDivider, decorative accents) | pages/Login/index.tsx | done | 2026-03-21 |
+| 23 | Register 页面 editorial 升级 (同 Login) | pages/Register/index.tsx | done | 2026-03-21 |
 
 ## 低优先级（i18n 相关）
 
@@ -51,3 +58,5 @@
 | 6 | PUT /artworks/{id}/status 添加 admin 认证 | backend/app/routers/artworks.py | 2026-03-21 |
 | 7 | GET /contact/messages 添加 admin 认证 | backend/app/routers/contact.py | 2026-03-21 |
 | 8-14 | 7 个缺失后端端点全部补全 | 各 router 文件 | 2026-03-21 |
+| 16 | MagazineDivider 集成到 Login/Register | pages/Login, Register | 2026-03-21 |
+| 22-23 | Login/Register editorial 升级 (⭐⭐ → ⭐⭐⭐⭐) | pages/Login, Register | 2026-03-21 |
