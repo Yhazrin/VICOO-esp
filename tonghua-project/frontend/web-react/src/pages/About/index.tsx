@@ -13,11 +13,81 @@ import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
 const VALUES = ['transparency', 'childFirst', 'sustainability', 'community'] as const;
 
 const TEAM_MEMBERS = [
-  { name: 'Chen Wei', role: 'Founder & Director', initials: 'CW' },
-  { name: 'Li Mei', role: 'Head of Operations', initials: 'LM' },
-  { name: 'Zhang Hua', role: 'Design Lead', initials: 'ZH' },
-  { name: 'Wang Jun', role: 'Supply Chain Manager', initials: 'WJ' },
+  { name: 'Chen Wei', roleKey: 'founder', initials: 'CW' },
+  { name: 'Li Mei', roleKey: 'operations', initials: 'LM' },
+  { name: 'Zhang Hua', roleKey: 'design', initials: 'ZH' },
+  { name: 'Wang Jun', roleKey: 'supplyChain', initials: 'WJ' },
 ];
+
+/* ─── Team Member Card (extracted to fix hooks-in-loops) ─── */
+
+interface TeamMemberCardProps {
+  name: string;
+  roleKey: string;
+  initials: string;
+  imageIndex: number;
+}
+
+function TeamMemberCard({ name, roleKey, initials, imageIndex }: TeamMemberCardProps) {
+  const { t } = useTranslation();
+  const prefersReducedMotion = useReducedMotion();
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5, delay: imageIndex * 0.1 }}
+      whileHover={prefersReducedMotion ? undefined : { y: -4 }}
+      className="group"
+    >
+      <div className="relative aspect-[3/4] overflow-hidden border-2 border-warm-gray/50 bg-aged-stock mb-4">
+        {/* Grain overlay */}
+        <div className="absolute inset-0 z-10 pointer-events-none opacity-[0.06]" style={{
+          backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")'
+        }} aria-hidden="true" />
+
+        {/* Sepia frame effect */}
+        <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/5 via-transparent to-archive-brown/5" />
+
+        {/* Decorative corner accents */}
+        <div className="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 border-rust/30 z-20 pointer-events-none" />
+        <div className="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 border-rust/30 z-20 pointer-events-none" />
+
+        {/* Loading skeleton */}
+        {!imageLoaded && <ImageSkeleton className="absolute inset-0" aspectRatio="aspect-[3/4]" />}
+
+        {/* Fallback initials placeholder */}
+        <div
+          className="team-fallback absolute inset-0 z-5 hidden items-center justify-center bg-aged-stock"
+        >
+          <span className="font-display text-4xl font-bold text-rust/40">
+            {initials}
+          </span>
+        </div>
+
+        <img
+          src={`https://picsum.photos/seed/vicoo-team-${imageIndex}/400/533`}
+          alt={name}
+          className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 sepia-[0.05] ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+          loading="lazy"
+          onLoad={() => setImageLoaded(true)}
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'none';
+            const fallback = target.parentElement?.querySelector('.team-fallback');
+            if (fallback) (fallback as HTMLElement).style.display = 'flex';
+          }}
+        />
+      </div>
+      <h4 className="font-display text-base font-semibold text-ink group-hover:text-rust transition-colors">
+        {name}
+      </h4>
+      <p className="font-body text-caption text-sepia-mid mt-1">{t(`about.team.roles.${roleKey}`)}</p>
+    </motion.div>
+  );
+}
 
 export default function About() {
   const { t } = useTranslation();
@@ -68,8 +138,8 @@ export default function About() {
           <div className="md:col-span-8">
             <SepiaImageFrame
               src="https://picsum.photos/seed/vicoo-workshop/1000/563"
-              alt="Children in a workshop"
-              caption="A Saturday workshop in Shanghai — where it all begins"
+              alt={t('about.images.workshop.alt')}
+              caption={t('about.images.workshop.caption')}
               aspectRatio="wide"
               size="full"
             />
@@ -77,7 +147,7 @@ export default function About() {
           <div className="md:col-span-4 flex items-end">
             <SepiaImageFrame
               src="https://picsum.photos/seed/vicoo-supplies/500/667"
-              alt="Art supplies"
+              alt={t('about.images.supplies.alt')}
               aspectRatio="portrait"
               size="full"
             />
@@ -117,9 +187,9 @@ export default function About() {
       {/* Quote */}
       <SectionContainer narrow>
         <StoryQuoteBlock
-          quote="We don't just sell clothes. We sell the right to say: I know where this came from, and it came from somewhere good."
-          author="Li Mei"
-          role="Head of Operations"
+          quote={t('about.quote.body')}
+          author={t('about.quote.author')}
+          role={t('about.quote.role')}
         />
       </SectionContainer>
 
@@ -132,64 +202,15 @@ export default function About() {
         />
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-          {TEAM_MEMBERS.map((member, i) => {
-            const [imageLoaded, setImageLoaded] = useState(false);
-            return (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                whileHover={prefersReducedMotion ? undefined : { y: -4 }}
-                className="group"
-              >
-                <div className="relative aspect-[3/4] overflow-hidden border-2 border-warm-gray/50 bg-aged-stock mb-4">
-                  {/* Grain overlay */}
-                  <div className="absolute inset-0 z-10 pointer-events-none opacity-[0.06]" style={{
-                    backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")'
-                  }} aria-hidden="true" />
-
-                  {/* Sepia frame effect */}
-                  <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/5 via-transparent to-archive-brown/5" />
-
-                  {/* Decorative corner accents */}
-                  <div className="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 border-rust/30 z-20 pointer-events-none" />
-                  <div className="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 border-rust/30 z-20 pointer-events-none" />
-
-                  {/* Loading skeleton */}
-                  {!imageLoaded && <ImageSkeleton className="absolute inset-0" aspectRatio="aspect-[3/4]" />}
-
-                  {/* Fallback initials placeholder */}
-                  <div
-                    className="team-fallback absolute inset-0 z-5 hidden items-center justify-center bg-aged-stock"
-                  >
-                    <span className="font-display text-4xl font-bold text-rust/40">
-                      {member.initials}
-                    </span>
-                  </div>
-
-                  <img
-                    src={`https://picsum.photos/seed/vicoo-team-${i}/400/533`}
-                    alt={member.name}
-                    className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 sepia-[0.05] ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-                    loading="lazy"
-                    onLoad={() => setImageLoaded(true)}
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                      const fallback = target.parentElement?.querySelector('.team-fallback');
-                      if (fallback) (fallback as HTMLElement).style.display = 'flex';
-                    }}
-                  />
-                </div>
-                <h4 className="font-display text-base font-semibold text-ink group-hover:text-rust transition-colors">
-                  {member.name}
-                </h4>
-                <p className="font-body text-caption text-sepia-mid mt-1">{member.role}</p>
-              </motion.div>
-            );
-          })}
+          {TEAM_MEMBERS.map((member, i) => (
+            <TeamMemberCard
+              key={member.roleKey}
+              name={member.name}
+              roleKey={member.roleKey}
+              initials={member.initials}
+              imageIndex={i}
+            />
+          ))}
         </div>
       </SectionContainer>
 

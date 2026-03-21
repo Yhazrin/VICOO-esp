@@ -98,7 +98,27 @@
     },
     "team": {
       "title": "The People Behind the Pages",
-      "subtitle": "A small team with an oversized purpose."
+      "subtitle": "A small team with an oversized purpose.",
+      "roles": {
+        "founder": "Founder & Editor-in-Chief",
+        "operations": "Operations Director",
+        "design": "Lead Designer",
+        "supplyChain": "Supply Chain Manager"
+      }
+    },
+    "images": {
+      "workshop": {
+        "alt": "Children painting in a VICOO community workshop",
+        "caption": "A Saturday morning workshop in Chengdu, where children paint the dreams that will become our next collection."
+      },
+      "supplies": {
+        "alt": "Organic cotton and natural dye materials used in VICOO production"
+      }
+    },
+    "quote": {
+      "body": "We don't just make clothes. We translate the unfiltered imagination of children into something you can wear — and in doing so, we fund the education that made that imagination possible.",
+      "author": "Chen Wei",
+      "role": "Founder, VICOO"
     }
   },
   "campaigns": {
