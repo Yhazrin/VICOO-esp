@@ -17,13 +17,14 @@ from app.deps import rate_limit_check, get_current_user_from_request, verify_req
 MAX_REQUEST_BODY_SIZE = 10 * 1024 * 1024
 
 logger = logging.getLogger("tonghua")
+_log_level = logging.DEBUG if settings.APP_ENV == "development" else logging.WARNING
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=_log_level,
     format="%(asctime)s %(levelname)s %(name)s - %(message)s",
 )
 # Ensure all "tonghua" loggers propagate and use the same level
-logging.getLogger("tonghua").setLevel(logging.DEBUG)
-logging.getLogger("tonghua.auth").setLevel(logging.DEBUG)
+logging.getLogger("tonghua").setLevel(_log_level)
+logging.getLogger("tonghua.auth").setLevel(_log_level)
 
 
 @asynccontextmanager
@@ -165,12 +166,10 @@ async def signature_verification_middleware(request: Request, call_next):
 async def rate_limit_middleware(request: Request, call_next):
     # Apply rate limiting (skip for health check endpoint and testing)
     testing = settings.TESTING
-    logger.info(f"Rate limit middleware: path={request.url.path}, TESTING={testing}, type={type(testing)}")
     # Skip rate limiting for health check and when TESTING=1
     if request.url.path == "/health" or testing == "1":
-        logger.info(f"Rate limit middleware: Skipping rate limiting (path={request.url.path}, testing={testing})")
+        pass
     else:
-        logger.info(f"Rate limit middleware: Applying rate limiting")
         try:
             # Create DB session for user extraction
             async with AsyncSessionLocal() as db:
@@ -213,10 +212,6 @@ async def request_logging_middleware(request: Request, call_next):
         elapsed,
         response.status_code,
     )
-    # Log Set-Cookie headers for debugging
-    set_cookie_headers = [v for k, v in response.headers.items() if k.lower() == "set-cookie"]
-    if set_cookie_headers:
-        logger.info(f"Set-Cookie headers: {set_cookie_headers}")
     response.headers["X-Process-Time"] = f"{elapsed:.3f}"
     return response
 

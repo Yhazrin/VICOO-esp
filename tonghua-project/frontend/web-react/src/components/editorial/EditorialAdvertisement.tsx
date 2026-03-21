@@ -29,7 +29,7 @@ export default function EditorialAdvertisement({
       className={`
         relative
         bg-aged-stock/70
-        border: 1px dashed border-warm-gray
+        border border-dashed border-warm-gray
         text-center
         ${variantStyles[variant]}
         ${className}

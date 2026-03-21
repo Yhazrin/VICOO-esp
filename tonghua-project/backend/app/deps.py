@@ -285,8 +285,7 @@ async def verify_request_signature(request: Request) -> tuple[bool, Optional[str
     # 使用 constant-time comparison 防止时序攻击
     if not hmac.compare_digest(expected_signature, signature):
         logger.warning(
-            f"Invalid signature for {request.method} {request.url.path}. "
-            f"Expected: {expected_signature[:16]}..., Got: {signature[:16]}..."
+            f"Invalid signature for {request.method} {request.url.path}"
         )
         return False, "Invalid signature"
 

@@ -238,7 +238,7 @@ async def wechat_notify(request: Request, db: AsyncSession = Depends(get_db)):
     except Exception as e:
         logger.error(f"WeChat callback processing error: {str(e)}")
         return Response(
-            content=f"<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[{str(e)}]]></return_msg></xml>",
+            content="<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[Internal processing error]]></return_msg></xml>",
             media_type="application/xml"
         )
 

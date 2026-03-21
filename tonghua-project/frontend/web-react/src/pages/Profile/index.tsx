@@ -201,9 +201,15 @@ export default function Profile() {
         <GrainOverlay />
         <SectionContainer>
           {/* Tab switcher */}
-          <div className="flex gap-8 mb-12 border-b border-warm-gray/30">
+          <div role="tablist" className="flex gap-8 mb-12 border-b border-warm-gray/30">
             <button
+              role="tab"
+              id="tab-orders"
+              aria-selected={activeTab === 'orders'}
+              aria-controls="panel-orders"
+              tabIndex={activeTab === 'orders' ? 0 : -1}
               onClick={() => setActiveTab('orders')}
+              onKeyDown={(e) => { if (e.key === 'ArrowRight') { setActiveTab('donations'); document.getElementById('tab-donations')?.focus(); } }}
               className={`cursor-pointer pb-4 font-body text-body-sm tracking-[0.15em] uppercase transition-colors ${
                 activeTab === 'orders'
                   ? 'text-ink border-b-2 border-ink'
@@ -213,7 +219,13 @@ export default function Profile() {
               {t('profile.orders', 'Orders')} ({orders.length})
             </button>
             <button
+              role="tab"
+              id="tab-donations"
+              aria-selected={activeTab === 'donations'}
+              aria-controls="panel-donations"
+              tabIndex={activeTab === 'donations' ? 0 : -1}
               onClick={() => setActiveTab('donations')}
+              onKeyDown={(e) => { if (e.key === 'ArrowLeft') { setActiveTab('orders'); document.getElementById('tab-orders')?.focus(); } }}
               className={`cursor-pointer pb-4 font-body text-body-sm tracking-[0.15em] uppercase transition-colors ${
                 activeTab === 'donations'
                   ? 'text-ink border-b-2 border-ink'
@@ -226,7 +238,7 @@ export default function Profile() {
 
           {/* Orders tab */}
           {activeTab === 'orders' && (
-            <div>
+            <div role="tabpanel" id="panel-orders" aria-labelledby="tab-orders">
               <NumberedSectionHeading number="01" title={t('profile.orderHistory', 'Order History')} />
               {loadingOrders ? (
                 <p className="font-body text-body-sm text-ink-faded">{t('common.loading', 'Loading...')}</p>
@@ -288,7 +300,7 @@ export default function Profile() {
 
           {/* Donations tab */}
           {activeTab === 'donations' && (
-            <div>
+            <div role="tabpanel" id="panel-donations" aria-labelledby="tab-donations">
               <NumberedSectionHeading number="02" title={t('profile.donationHistory', 'Donation History')} />
               {loadingDonations ? (
                 <p className="font-body text-body-sm text-ink-faded">{t('common.loading', 'Loading...')}</p>

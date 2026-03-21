@@ -23,11 +23,13 @@ logger = logging.getLogger("tonghua.auth")
 # Ensure the logger has a handler and level set
 if not logger.handlers:
     handler = logging.StreamHandler()
-    handler.setLevel(logging.DEBUG)
+    _log_level = logging.DEBUG if settings.APP_ENV == "development" else logging.WARNING
+    handler.setLevel(_log_level)
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(name)s - %(message)s')
     handler.setFormatter(formatter)
     logger.addHandler(handler)
-logger.setLevel(logging.DEBUG)
+_log_level = logging.DEBUG if settings.APP_ENV == "development" else logging.WARNING
+logger.setLevel(_log_level)
 logger.propagate = True
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -53,7 +55,7 @@ def _get_mock_user(email: str) -> dict | None:
 @router.post("/login")
 async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
     """Login via email+password or WeChat code."""
-    logger.debug(f"Login attempt: email={body.email}, has_wechat_code={bool(body.wechat_code)}, APP_ENV={settings.APP_ENV}")
+    logger.debug("Login attempt received")
 
     # ── WeChat login ──
     if body.wechat_code:
@@ -137,6 +139,8 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
         logger.debug(f"DB user found: {user is not None}")
         if user:
             if verify_password(body.password, user.password_hash):
+                if user.status == "banned":
+                    raise HTTPException(status_code=403, detail="Account is banned")
                 token = create_access_token(subject=str(user.id), role=user.role)
                 refresh = create_refresh_token(subject=str(user.id))
                 # Set refresh token as httpOnly cookie
@@ -187,7 +191,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
 
     # ── Mock fallback (development only) ──
     # Only use mock users in explicit development mode
-    logger.debug(f"Mock fallback: APP_ENV={settings.APP_ENV}, MOCK_USER_PASSWORD={settings.MOCK_USER_PASSWORD[:4] if settings.MOCK_USER_PASSWORD else 'None'}...")
+    logger.debug("Checking mock fallback")
     if settings.APP_ENV == "development":
         logger.debug("Development mode, checking mock users")
         mock = _get_mock_user(body.email)
@@ -197,7 +201,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
             # Security: Validate password even for mock users
             # Use environment variable for mock password (no default)
             mock_password = settings.MOCK_USER_PASSWORD
-            logger.debug(f"Mock password check: expected={mock_password[:4] if mock_password else 'None'}..., provided={body.password[:4] if body.password else 'None'}...")
+            logger.debug("Verifying mock password")
             if mock_password != body.password:
                 logger.debug("Mock password verification failed")
                 raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -271,8 +275,6 @@ async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
         # In development, secure=False to allow HTTP cookies
         is_secure = settings.APP_ENV != "development"
 
-        logger.info(f"Register: is_secure={is_secure}, APP_ENV={settings.APP_ENV}")
-
         response_data = ApiResponse(
             success=True,
             data={
@@ -287,7 +289,6 @@ async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
             status_code=201,
             content=response_data.model_dump(),
         )
-        logger.info(f"Register: About to set cookie, refresh_token={refresh[:20]}...")
         json_response.set_cookie(
             key="refresh_token",
             value=refresh,
@@ -305,7 +306,7 @@ async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
             samesite="lax",
             max_age=15 * 60,  # 15 minutes
         )
-        logger.info(f"Register: Cookie set, headers={dict(json_response.headers)}")
+        logger.info("Registration successful")
         return json_response
     except HTTPException:
         raise
@@ -344,8 +345,6 @@ async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
             status_code=201,
             content=response_data.model_dump(),
         )
-        logger.info(f"Mock Register: is_secure={is_secure}, APP_ENV={settings.APP_ENV}")
-        logger.info(f"Mock Register: About to set cookie, refresh_token={refresh[:20]}...")
         json_response.set_cookie(
             key="refresh_token",
             value=refresh,
@@ -363,7 +362,6 @@ async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
             samesite="lax",
             max_age=15 * 60,  # 15 minutes
         )
-        logger.info(f"Mock Register: Cookie set, headers={dict(json_response.headers)}")
         return json_response
 
 
@@ -451,7 +449,7 @@ async def wx_login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/refresh")
-async def refresh(request: Request):
+async def refresh(request: Request, db: AsyncSession = Depends(get_db)):
     """Refresh access token using a valid refresh token from httpOnly cookie."""
     # Read refresh token from httpOnly cookie
     refresh_token = request.cookies.get("refresh_token")
@@ -465,6 +463,20 @@ async def refresh(request: Request):
             raise HTTPException(status_code=400, detail="Invalid refresh token")
         sub = payload["sub"]
         role = payload.get("role", "user")
+
+        # Verify user is not banned before issuing new tokens
+        try:
+            user_id = int(sub)
+            stmt = select(User).where(User.id == user_id)
+            result = await db.execute(stmt)
+            user = result.scalar_one_or_none()
+            if user and user.status == "banned":
+                raise HTTPException(status_code=403, detail="Account is banned")
+        except HTTPException:
+            raise
+        except (ValueError, Exception):
+            pass  # sub is not an integer (e.g. WeChat openid) or DB unavailable
+
         new_access = create_access_token(subject=sub, role=role)
         new_refresh = create_refresh_token(subject=sub)
         # Set new refresh token as httpOnly cookie
