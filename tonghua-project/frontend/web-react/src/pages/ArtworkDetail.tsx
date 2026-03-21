@@ -20,16 +20,15 @@ export default function ArtworkDetail() {
     enabled: !!id,
   });
 
-  const error = queryError ? (queryError instanceof Error ? queryError.message : t('artwork.notFound')) : null;
-
-  const voteMutation = useMutation({
-    mutationFn: () => artworksApi.vote(id!),
-    onSuccess: (result) => {
-      queryClient.setQueryData(['artwork', id], (prev: typeof artwork) =>
-        prev ? { ...prev, voteCount: result.like_count } : prev,
-      );
-    },
-  });
+  const handleVote = async () => {
+    if (!id) return;
+    try {
+      const result = await artworksApi.vote(id);
+      setArtwork((prev) => prev ? { ...prev, voteCount: result.voteCount } : null);
+    } catch (err) {
+      console.error('Failed to vote', err);
+    }
+  };
 
   if (loading) {
     return (

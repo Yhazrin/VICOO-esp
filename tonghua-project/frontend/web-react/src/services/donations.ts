@@ -30,4 +30,9 @@ export const donationsApi = {
     const response = await api.get('/donations/stats');
     return response.data.data;
   },
+
+  getCertificate: async (id: string): Promise<{ url: string }> => {
+    const response = await api.get(`/donations/${id}/certificate`);
+    return response.data.data;
+  },
 };

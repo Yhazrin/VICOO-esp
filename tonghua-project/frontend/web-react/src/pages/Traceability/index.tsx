@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, useInView, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Link } from 'react-router-dom';
@@ -13,6 +13,7 @@ import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
 import { supplyChainApi } from '@/services/supply-chain';
 import type { SupplyChainRecord } from '@/types';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
+import { supplyChainApi } from '@/services/supply-chain';
 
 // Extended record with story, image, and status for enhanced timeline
 interface EnhancedSupplyChainRecord extends SupplyChainRecord {
@@ -465,33 +466,31 @@ export default function Traceability() {
   const [isSearching, setIsSearching] = useState(false);
   const [highlightedId, setHighlightedId] = useState<number | null>(null);
   const [searchResult, setSearchResult] = useState<EnhancedSupplyChainRecord | null>(null);
+  const [records, setRecords] = useState<EnhancedSupplyChainRecord[]>(MOCK_RECORDS);
 
-  const { data: traceData } = useQuery({
-    queryKey: ['supply-chain-trace', 4],
-    queryFn: async () => {
-      try {
-        return await supplyChainApi.trace(4);
-      } catch {
-        return null;
-      }
-    },
-    staleTime: 5 * 60 * 1000,
-  });
+  // Fetch supply chain records from API on mount (fallback to mock)
+  useEffect(() => {
+    let cancelled = false;
+    supplyChainApi
+      .getRecords({ page_size: 50 })
+      .then((res) => {
+        if (cancelled || !res.items.length) return;
+        const mapped: EnhancedSupplyChainRecord[] = res.items.map((r, i) => ({
+          ...r,
+          story: MOCK_RECORDS[i]?.story ?? r.description,
+          imageUrl: MOCK_RECORDS[i]?.imageUrl ?? `https://picsum.photos/seed/stage-${r.stage}/200/200`,
+          status: (r.verified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
+        }));
+        setRecords(mapped);
+      })
+      .catch(() => {
+        // Keep mock data on failure
+      });
+    return () => { cancelled = true; };
+  }, []);
 
-  // Use API data when available, otherwise fall back to mock
-  const records: EnhancedSupplyChainRecord[] = traceData?.records?.length
-    ? buildRecordsFromApi(traceData.records as unknown as Array<{
-        id: number;
-        stage: string;
-        description: string | null;
-        location: string | null;
-        certified: boolean;
-        timestamp: string | null;
-      }>)
-    : MOCK_RECORDS;
-
-  // Handle product lookup
-  const handleSearch = (query: string) => {
+  // Handle product lookup — try API trace, fallback to local search
+  const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
     setHighlightedId(null);
     setSearchResult(null);
@@ -500,22 +499,37 @@ export default function Traceability() {
 
     setIsSearching(true);
 
-    // Simulate lookup delay
-    setTimeout(() => {
-      const found = records.find(
-        (r) =>
-          String(r.id) === query.trim() ||
-          r.partnerName.toLowerCase().includes(query.toLowerCase()) ||
-          query.toUpperCase().includes('VICOO')
-      );
-
-      if (found) {
-        setHighlightedId(found.id);
-        setSearchResult(found);
-      }
-      setIsSearching(false);
-    }, 1200);
-  };
+    supplyChainApi
+      .trace(query.trim())
+      .then((trace) => {
+        if (trace.records.length > 0) {
+          const first = trace.records[0];
+          const enhanced: EnhancedSupplyChainRecord = {
+            ...first,
+            story: MOCK_RECORDS.find((m) => m.stage === first.stage)?.story ?? first.description,
+            imageUrl: MOCK_RECORDS.find((m) => m.stage === first.stage)?.imageUrl ?? `https://picsum.photos/seed/${first.stage}/200/200`,
+            status: (first.verified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
+          };
+          setHighlightedId(enhanced.id);
+          setSearchResult(enhanced);
+        }
+        setIsSearching(false);
+      })
+      .catch(() => {
+        // Fallback: local search through records
+        const found = records.find(
+          (r) =>
+            r.id === query.trim() ||
+            r.partnerName.toLowerCase().includes(query.toLowerCase()) ||
+            query.toUpperCase().includes('VICOO')
+        );
+        if (found) {
+          setHighlightedId(found.id);
+          setSearchResult(found);
+        }
+        setIsSearching(false);
+      });
+  }, [records]);
 
   const reductionPercent = Math.round(
     ((CARBON_DATA.conventional - CARBON_DATA.vicoo) / CARBON_DATA.conventional) * 100

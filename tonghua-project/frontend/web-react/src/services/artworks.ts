@@ -29,8 +29,29 @@ export const artworksApi = {
     return response.data.data;
   },
 
-  vote: async (id: string): Promise<{ like_count: number }> => {
+  vote: async (id: string): Promise<Artwork> => {
     const response = await api.post(`/artworks/${id}/vote`);
+    return response.data.data;
+  },
+
+  create: async (data: {
+    title: string;
+    image: File;
+    description?: string;
+    campaign_id?: number;
+    child_display_name?: string;
+    guardian_consent?: string;
+  }): Promise<Artwork> => {
+    const formData = new FormData();
+    formData.append('title', data.title);
+    formData.append('image', data.image);
+    if (data.description) formData.append('description', data.description);
+    if (data.campaign_id != null) formData.append('campaign_id', String(data.campaign_id));
+    if (data.child_display_name) formData.append('child_display_name', data.child_display_name);
+    if (data.guardian_consent) formData.append('guardian_consent', data.guardian_consent);
+    const response = await api.post('/artworks', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     return response.data.data;
   },
 };
