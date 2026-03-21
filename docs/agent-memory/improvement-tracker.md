@@ -27,6 +27,7 @@
 | 24 | Footer — legal page links to correct routes | Low | ✅ done |
 | 25 | App.tsx — register 3 legal page routes | High | ✅ done |
 | 26 | Contact page — dead code cleanup (FAQItem, ChevronIcon, GRAIN_STYLE, openFaqIndex) | Low | ✅ done |
+| 27 | Sage green accent system — integrate #3F4F45 across Home, Donate, About, Traceability, ProductCard | Medium | ✅ done |
 
 ## Pending
 
