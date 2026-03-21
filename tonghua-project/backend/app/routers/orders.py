@@ -7,7 +7,7 @@ import random
 from app.database import get_db
 from app.models.order import Order, OrderItem
 from app.models.product import Product
-from app.schemas import ApiResponse, OrderCreate, OrderOut, OrderStatusUpdate
+from app.schemas import ApiResponse, OrderCreate, OrderOut, OrderStatusUpdate, PaginatedResponse
 from app.deps import get_current_user
 from app.security import generate_order_no
 from app.services.payment_service import payment_service

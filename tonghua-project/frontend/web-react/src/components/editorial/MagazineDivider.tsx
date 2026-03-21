@@ -33,7 +33,7 @@ export const MagazineDivider = ({
   }
 
   return (
-    <div className={`editorial-divider ${className}`} />
+    <div className={`editorial-divider ${className}`} aria-hidden="true" />
   );
 };
 

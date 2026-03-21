@@ -7,7 +7,7 @@ from datetime import datetime
 from app.database import get_db
 from app.models.donation import Donation
 from app.models.campaign import Campaign
-from app.schemas import ApiResponse, DonationCreate, DonationOut
+from app.schemas import ApiResponse, DonationCreate, DonationOut, PaginatedResponse
 from app.deps import get_current_user, get_optional_current_user
 from app.services.payment_service import payment_service
 

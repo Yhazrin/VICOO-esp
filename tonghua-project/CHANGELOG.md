@@ -75,3 +75,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **SectionGrainOverlay component**: Reusable section-scoped grain overlay component extracted from Donate page inline SVG data URLs. Supports configurable `frequency`, `octaves`, and `opacity` props. Replaces 2 inline grain SVG instances in Donate page.
 - **Aria attributes**: Added `role="progressbar"` with `aria-valuenow`/`aria-valuemin`/`aria-valuemax` to Campaigns funding progress bars and Stories ReadingProgressBar. Added `role="tablist"` to Campaigns and Stories category filter containers.
+
+### Fixed (2026-03-22 — Cycle 20)
+
+- **Profile/index.tsx**: Added `as const` to `tabIds` array in ARIA tab keyboard navigation handler. TypeScript was inferring `string[]`, causing `SetStateAction<"orders" | "donations">` type mismatch on `setActiveTab()` calls. Fixed TS2345 errors at lines 190, 195.
+
+### Added (2026-03-22 — Cycle 20)
+
+- **Deployment guide — Performance Alerts**: Alert thresholds table (10 metrics with warning/critical levels), Prometheus alert rules YAML (`deploy/monitoring/alert-rules.yml`) covering API p95 latency, 5xx error rate, CPU/memory/disk utilization, MySQL connection pool, Redis memory, RabbitMQ queue depth. Grafana dashboard panel recommendations.
+- **Deployment guide — Budget Alerts**: Alibaba Cloud budget setup (费用中心 → 预算管理), AWS budget configuration, GHCR storage monitoring. Cost monitoring shell script (`deploy/scripts/cost-check.sh`) for daily resource usage tracking. Cost optimization tips (Alpine images, layer caching, Redis maxmemory, MySQL log rotation, CDN).
+- **Deployment guide — Expanded Troubleshooting**: 8 new scenarios — High Memory/OOM Kills, Slow API Responses (MySQL slow query log, Redis latency, RabbitMQ queue checks), JWT Authentication Failures (clock sync, key mismatch), Payment Webhook Failures (WeChat Pay + Alipay diagnostics), RabbitMQ Connection Refused, Docker Build Out of Disk Space, CI/CD Pipeline Failures (common failures table), Intermittent 503 Errors.

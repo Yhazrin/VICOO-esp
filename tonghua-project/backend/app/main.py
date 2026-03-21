@@ -34,7 +34,7 @@ async def lifespan(app: FastAPI):
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
     except Exception:
-        pass  # DB may not be available; mock data will be used
+        logger.warning("Database initialization failed — mock data fallback will be used", exc_info=True)
     yield
     # Shutdown
     await engine.dispose()
@@ -179,9 +179,15 @@ async def rate_limit_middleware(request: Request, call_next):
         except HTTPException:
             # Re-raise rate limit errors (429) or auth errors (401)
             raise
-        except Exception:
-            # Fail open if DB connection or other system errors occur
-            pass
+        except Exception as e:
+            # Fail closed in production, fail open in development
+            if settings.APP_ENV != "development":
+                logger.error(f"Rate limiting error (failing closed): {e}")
+                return JSONResponse(
+                    status_code=503,
+                    content={"success": False, "data": None, "message": "Service temporarily unavailable"},
+                )
+            logger.warning(f"Rate limiting error (development mode, failing open): {e}")
     response = await call_next(request)
     return response
 

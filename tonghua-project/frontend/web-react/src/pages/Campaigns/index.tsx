@@ -211,12 +211,34 @@ export default function Campaigns() {
         </div>
 
         {/* Filter tabs */}
-        <div className="flex items-center gap-1 mb-12 border-b border-warm-gray/30 overflow-x-auto" role="tablist">
+        {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
+        <div
+          className="flex items-center gap-1 mb-12 border-b border-warm-gray/30 overflow-x-auto"
+          role="tablist"
+          onKeyDown={(e) => {
+            const tabs = e.currentTarget.querySelectorAll('[role="tab"]');
+            const currentIndex = statuses.indexOf(filter);
+            if (e.key === 'ArrowRight') {
+              e.preventDefault();
+              const next = statuses[(currentIndex + 1) % statuses.length];
+              handleFilterChange(next);
+              (tabs[(currentIndex + 1) % tabs.length] as HTMLElement)?.focus();
+            } else if (e.key === 'ArrowLeft') {
+              e.preventDefault();
+              const prev = statuses[(currentIndex - 1 + statuses.length) % statuses.length];
+              handleFilterChange(prev);
+              (tabs[(currentIndex - 1 + tabs.length) % tabs.length] as HTMLElement)?.focus();
+            }
+          }}
+        >
           {statuses.map((status, index) => (
             <motion.button
               key={status}
               role="tab"
+              id={`tab-campaign-${status}`}
               aria-selected={filter === status}
+              aria-controls="panel-campaigns"
+              tabIndex={filter === status ? 0 : -1}
               onClick={() => handleFilterChange(status)}
               {...(prefersReducedMotion ? {} : {
                 initial: { opacity: 0, y: 10 },
@@ -249,6 +271,7 @@ export default function Campaigns() {
           ))}
         </div>
 
+        <div role="tabpanel" id="panel-campaigns" aria-labelledby={`tab-campaign-${filter}`}>
         {/* Results count */}
         <p className="font-body text-caption text-sepia-mid mb-8 tracking-wider">
           {t('campaigns.results', { count: campaigns.length })}
@@ -479,6 +502,7 @@ export default function Campaigns() {
             </Link>
           </motion.div>
         </div>
+        </div>{/* end tabpanel */}
       </SectionContainer>
 
       <div className="editorial-divider" />

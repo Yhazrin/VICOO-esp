@@ -1,6 +1,6 @@
 # 优化追踪 — Agent 持久化记忆
 
-> 最后更新: 2026-03-21 (Profile 升级)
+> 最后更新: 2026-03-22 (Cycle 20 — TS fix + deployment docs)
 > 状态: pending | in_progress | done | skip
 
 ## 高优先级
@@ -40,11 +40,11 @@
 
 | # | 问题 | 文件 | 状态 | 完成日期 |
 |---|------|------|------|----------|
-| 17 | Traceability 大量硬编码英文 | pages/Traceability/index.tsx | pending | |
-| 18 | Shop 硬编码英文 (sustainability pillars, quote) | pages/Shop/index.tsx | pending | |
-| 19 | Donate 硬编码英文 (impact labels, transparency) | pages/Donate/index.tsx | pending | |
-| 20 | Stories 硬编码英文 (quotes, mock stories) | pages/Stories/index.tsx | pending | |
-| 21 | Contact 硬编码英文 (section titles, labels) | pages/Contact/index.tsx | pending | |
+| 17 | Traceability 大量硬编码英文 | pages/Traceability/index.tsx | done | 2026-03-22 |
+| 18 | Shop 硬编码英文 (sustainability pillars, quote) | pages/Shop/index.tsx | done | 2026-03-22 |
+| 19 | Donate 硬编码英文 (impact labels, transparency) | pages/Donate/index.tsx | done | 2026-03-22 |
+| 20 | Stories 硬编码英文 (quotes, mock stories) | pages/Stories/index.tsx | done | 2026-03-22 |
+| 21 | Contact 硬编码英文 (section titles, labels) | pages/Contact/index.tsx | done | 2026-03-22 |
 
 ## 已完成
 
@@ -62,3 +62,12 @@
 | 22-23 | Login/Register editorial 升级 (⭐⭐ → ⭐⭐⭐⭐) | pages/Login, Register | 2026-03-21 |
 | 15 | EditorialCard 集成到 Profile 页面 | pages/Profile/index.tsx | 2026-03-21 |
 | 24 | Profile 页面 editorial 升级 (⭐⭐⭐ → ⭐⭐⭐⭐) | pages/Profile/index.tsx | 2026-03-21 |
+
+## Cycle 20 (2026-03-22)
+
+| # | 问题 | 文件 | 状态 | 完成日期 |
+|---|------|------|------|----------|
+| 166 | TypeScript tsc --noEmit 验证 (Profile tabIds as const) | pages/Profile/index.tsx | done | 2026-03-22 |
+| — | Deployment guide: Performance Alerts (Prometheus rules, Grafana panels) | docs/deployment/deployment-guide.md | done | 2026-03-22 |
+| — | Deployment guide: Budget Alerts (Alibaba Cloud/AWS/GHCR + cost-check.sh) | docs/deployment/deployment-guide.md | done | 2026-03-22 |
+| — | Deployment guide: 8 expanded troubleshooting scenarios | docs/deployment/deployment-guide.md | done | 2026-03-22 |

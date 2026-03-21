@@ -322,12 +322,34 @@ export default function Stories() {
 
       <SectionContainer noTopSpacing>
         {/* Category filter with count badges */}
-        <div className="flex items-center gap-1 mb-12 border-b border-warm-gray/30 overflow-x-auto" role="tablist">
+        {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
+        <div
+          className="flex items-center gap-1 mb-12 border-b border-warm-gray/30 overflow-x-auto"
+          role="tablist"
+          onKeyDown={(e) => {
+            const tabs = e.currentTarget.querySelectorAll('[role="tab"]');
+            const currentIndex = categories.indexOf(activeCategory);
+            if (e.key === 'ArrowRight') {
+              e.preventDefault();
+              const next = categories[(currentIndex + 1) % categories.length];
+              setActiveCategory(next);
+              (tabs[(currentIndex + 1) % tabs.length] as HTMLElement)?.focus();
+            } else if (e.key === 'ArrowLeft') {
+              e.preventDefault();
+              const prev = categories[(currentIndex - 1 + categories.length) % categories.length];
+              setActiveCategory(prev);
+              (tabs[(currentIndex - 1 + tabs.length) % tabs.length] as HTMLElement)?.focus();
+            }
+          }}
+        >
           {categories.map((cat) => (
             <motion.button
               key={cat}
               role="tab"
+              id={`tab-story-${cat}`}
               aria-selected={activeCategory === cat}
+              aria-controls="panel-stories"
+              tabIndex={activeCategory === cat ? 0 : -1}
               onClick={() => setActiveCategory(cat)}
               initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
               animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
@@ -366,6 +388,7 @@ export default function Stories() {
           ))}
         </div>
 
+        <div role="tabpanel" id="panel-stories" aria-labelledby={`tab-story-${activeCategory}`}>
         {/* Magazine spread stories */}
         <AnimatePresence mode="wait">
           {filtered.length > 0 ? (
@@ -472,6 +495,7 @@ export default function Stories() {
             <EmptyState onBrowseAll={() => setActiveCategory('all')} />
           )}
         </AnimatePresence>
+        </div>{/* end tabpanel */}
       </SectionContainer>
 
       {/* Newsletter CTA */}

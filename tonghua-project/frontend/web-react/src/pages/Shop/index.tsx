@@ -106,12 +106,34 @@ export default function Shop() {
         {/* Filters and sort row */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
           {/* Category filter */}
-          <div className="flex items-center gap-1 border-b border-warm-gray/30 overflow-x-auto flex-1" role="tablist">
+          {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
+          <div
+            className="flex items-center gap-1 border-b border-warm-gray/30 overflow-x-auto flex-1"
+            role="tablist"
+            onKeyDown={(e) => {
+              const tabs = e.currentTarget.querySelectorAll('[role="tab"]');
+              const currentIndex = categories.indexOf(activeCategory);
+              if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                const next = categories[(currentIndex + 1) % categories.length];
+                setActiveCategory(next);
+                (tabs[(currentIndex + 1) % tabs.length] as HTMLElement)?.focus();
+              } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                const prev = categories[(currentIndex - 1 + categories.length) % categories.length];
+                setActiveCategory(prev);
+                (tabs[(currentIndex - 1 + tabs.length) % tabs.length] as HTMLElement)?.focus();
+              }
+            }}
+          >
             {categories.map((cat, index) => (
               <motion.button
                 key={cat}
                 role="tab"
+                id={`tab-shop-${cat}`}
                 aria-selected={activeCategory === cat}
+                aria-controls="panel-shop"
+                tabIndex={activeCategory === cat ? 0 : -1}
                 onClick={() => setActiveCategory(cat)}
                 initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
                 animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
@@ -149,6 +171,7 @@ export default function Shop() {
           </div>
         </div>
 
+        <div role="tabpanel" id="panel-shop" aria-labelledby={`tab-shop-${activeCategory}`}>
         {/* Results count */}
         <p className="font-body text-caption text-sepia-mid mb-8 tracking-wider">
           {t('shop.results', { count: filtered.length })}
@@ -175,6 +198,7 @@ export default function Shop() {
             </motion.div>
           </AnimatePresence>
         )}
+        </div>{/* end tabpanel */}
       </SectionContainer>
 
       {/* Sustainability note */}
