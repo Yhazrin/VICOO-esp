@@ -103,7 +103,7 @@ export default function Login() {
             </div>
 
             {loginError && (
-              <div role="alert" className="text-red-600 text-sm text-center mb-4">
+              <div role="alert" className="font-body text-sm text-rust text-center border border-rust/20 px-4 py-3 mb-4">
                 {loginError}
               </div>
             )}

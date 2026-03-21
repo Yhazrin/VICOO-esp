@@ -78,7 +78,7 @@ export default function EditorialFooter() {
               VICOO
             </h3>
             <p className="font-body text-sm text-warm-gray leading-relaxed max-w-xs mb-6">
-              Vision In Creative Opportunity
+              {t('footer.brand.description')}
             </p>
             <div className="w-12 h-px bg-pale-gold mb-6" aria-hidden="true" />
             <p className="font-body text-overline tracking-[0.2em] uppercase text-sepia-mid">
@@ -168,10 +168,10 @@ export default function EditorialFooter() {
             />
 
             <h4 className="font-body text-overline tracking-[0.2em] uppercase text-sepia-mid mb-6">
-              Newsletter
+              {t('footer.newsletter.title')}
             </h4>
             <p className="font-body text-xs text-warm-gray mb-4 leading-relaxed">
-              Quarterly dispatches from the editor's desk. No spam, only stories.
+              {t('footer.newsletter.description')}
             </p>
             <motion.form
               onSubmit={(e) => e.preventDefault()}
@@ -184,7 +184,7 @@ export default function EditorialFooter() {
                 type="email"
                 placeholder="your@email.com"
                 className="bg-transparent border-b border-sepia-mid/30 text-paper font-body text-xs py-2 outline-none focus-visible:ring-2 focus-visible:ring-pale-gold/50 focus:border-pale-gold transition-colors placeholder:text-sepia-mid/40"
-                aria-label="Email address"
+                aria-label={t('common.emailAriaLabel')}
                 whileFocus={{ scale: 1.01 }}
               />
               <motion.button
@@ -192,7 +192,7 @@ export default function EditorialFooter() {
                 className="font-body text-overline tracking-[0.15em] uppercase text-pale-gold hover:text-paper transition-colors text-left cursor-pointer"
                 whileHover={{ x: 4 }}
               >
-                Subscribe &rarr;
+                {t('footer.newsletter.subscribe')} &rarr;
               </motion.button>
             </motion.form>
           </div>
@@ -205,10 +205,10 @@ export default function EditorialFooter() {
           </p>
           <div className="flex items-center gap-6">
             <span className="font-body text-label text-sepia-mid">
-              Shanghai, China
+              {t('common.location.shanghai')}
             </span>
             <span className="font-body text-label text-sepia-mid">
-              Built with care
+              {t('footer.builtWith')}
             </span>
           </div>
         </div>

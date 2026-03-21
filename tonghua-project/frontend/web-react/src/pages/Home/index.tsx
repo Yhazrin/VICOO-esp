@@ -195,10 +195,10 @@ export default function Home() {
   const { t } = useTranslation();
 
   const galleryImages = [
-    { src: 'https://picsum.photos/seed/children-art-1/400/400', alt: "Child's watercolor landscape" },
-    { src: 'https://picsum.photos/seed/children-art-2/400/400', alt: "Child's abstract crayon drawing" },
-    { src: 'https://picsum.photos/seed/children-art-3/400/400', alt: "Child's pastel portrait" },
-    { src: 'https://picsum.photos/seed/children-art-4/400/400', alt: "Child's ink illustration" },
+    { src: 'https://picsum.photos/seed/children-art-1/400/400', alt: t('home.gallery.alt.watercolor') },
+    { src: 'https://picsum.photos/seed/children-art-2/400/400', alt: t('home.gallery.alt.crayon') },
+    { src: 'https://picsum.photos/seed/children-art-3/400/400', alt: t('home.gallery.alt.pastel') },
+    { src: 'https://picsum.photos/seed/children-art-4/400/400', alt: t('home.gallery.alt.ink') },
   ];
 
   const latestArtworks = [
@@ -223,9 +223,9 @@ export default function Home() {
   ];
 
   const brandPillars = [
-    { label: 'Traceable Supply Chain', value: '100%' },
-    { label: 'Children Empowered', value: '2,847' },
-    { label: 'Yuan Reinvested', value: '890,000' },
+    { label: t('home.pillars.traceable'), value: '100%' },
+    { label: t('home.pillars.children'), value: '2,847' },
+    { label: t('home.pillars.reinvested'), value: '890,000' },
   ];
 
   return (
@@ -255,20 +255,18 @@ export default function Home() {
           <div className="md:col-span-7">
             <SepiaImageFrame
               src="https://picsum.photos/seed/spring-campaign/800/600"
-              alt="Children creating art in a community workshop"
-              caption="Spring Campaign 2026 — Artwork Collection Phase"
+              alt={t('home.featured.imageAlt')}
+              caption={t('home.featured.caption')}
               aspectRatio="landscape"
               size="full"
             />
           </div>
           <div className="md:col-span-5 flex flex-col justify-center">
             <h3 className="font-display text-h3 md:text-h2 font-bold text-ink leading-tight mb-4">
-              Where Little Hands Shape Big Ideas
+              {t('home.featured.heading')}
             </h3>
             <p className="font-body text-sm text-ink-faded leading-relaxed mb-6">
-              Each campaign begins in a classroom, a community center, a shelter.
-              We collect children's artwork — raw, honest, unfiltered — and transform
-              it into sustainable fashion that funds their future.
+              {t('home.featured.body')}
             </p>
             <Link
               to="/campaigns"
@@ -313,7 +311,7 @@ export default function Home() {
 
       {/* Latest Artworks */}
       <SectionContainer>
-        <NumberedSectionHeading number="03" title="Latest Artworks" />
+        <NumberedSectionHeading number="03" title={t('home.latestArtworks.sectionTitle')} />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
           {latestArtworks.map((artwork, i) => (
@@ -403,7 +401,7 @@ export default function Home() {
         >
           <div className="flex items-baseline gap-3 mb-10">
             <span className="font-body text-caption text-sepia-mid tracking-[0.2em]">
-              Shanghai, China
+              {t('common.location.shanghai')}
             </span>
             <span className="flex-1 h-px bg-warm-gray/40" />
             <span className="font-body text-caption text-sepia-mid tracking-[0.2em]">

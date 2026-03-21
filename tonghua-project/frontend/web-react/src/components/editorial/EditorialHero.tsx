@@ -224,17 +224,21 @@ export default function EditorialHero({
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 1, duration: 0.6 }}
+          transition={prefersReducedMotion ? { duration: 0 } : { delay: 1, duration: 0.6 }}
           className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
         >
           <span className="font-body text-overline tracking-[0.2em] uppercase text-sepia-mid">
             Scroll
           </span>
-          <motion.div
-            animate={{ y: [0, 6, 0] }}
-            transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
-            className="w-px h-8 bg-gradient-to-b from-sepia-mid/40 to-transparent"
-          />
+          {prefersReducedMotion ? (
+            <div className="w-px h-8 bg-gradient-to-b from-sepia-mid/40 to-transparent" />
+          ) : (
+            <motion.div
+              animate={{ y: [0, 6, 0] }}
+              transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
+              className="w-px h-8 bg-gradient-to-b from-sepia-mid/40 to-transparent"
+            />
+          )}
         </motion.div>
       )}
 

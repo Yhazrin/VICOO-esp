@@ -320,7 +320,7 @@ export default function Campaigns() {
                                 <svg className="w-3 h-3" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
                                   <path d="M3 8.5l3.5 3.5 6.5-7" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
-                                Goal Reached
+                                {t('campaigns.goalReached')}
                               </span>
                             )}
                           </div>
@@ -342,7 +342,7 @@ export default function Campaigns() {
                                 </span>
                                 <span className="font-body text-xs text-sepia-mid">
                                   {isCompleted
-                                    ? `${fundingPercent}% funded`
+                                    ? t('campaigns.funded', { percent: fundingPercent })
                                     : `${fundingPercent}%`
                                   }
                                 </span>
@@ -404,10 +404,10 @@ export default function Campaigns() {
               &ldquo;
             </span>
             <p className="font-display text-lg text-ink-faded mb-2">
-              No campaigns found in this category.
+              {t('campaigns.empty.title')}
             </p>
             <p className="font-body text-sm text-sepia-mid">
-              Check back soon.
+              {t('campaigns.empty.subtitle')}
             </p>
           </motion.div>
         )}

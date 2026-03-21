@@ -28,11 +28,31 @@
     },
     "featured": {
       "sectionTitle": "精选活动",
-      "viewAll": "查看全部活动"
+      "viewAll": "查看全部活动",
+      "heading": "小手创造大梦想",
+      "body": "每一次活动都始于一间教室、一个社区中心、一处庇护所。我们收集孩子们的画作——原始、真挚、不加修饰——并将其转化为可持续时尚，为他们的未来提供资金。",
+      "imageAlt": "孩子们在社区工作坊中创作",
+      "caption": "2026春季活动 — 作品征集阶段"
     },
     "artworks": {
       "sectionTitle": "儿童画廊",
       "viewAll": "查看完整画廊"
+    },
+    "gallery": {
+      "alt": {
+        "watercolor": "儿童水彩风景画",
+        "crayon": "儿童抽象蜡笔画",
+        "pastel": "儿童粉彩肖像画",
+        "ink": "儿童墨水插画"
+      }
+    },
+    "pillars": {
+      "traceable": "可追溯供应链",
+      "children": "赋能儿童",
+      "reinvested": "再投资善款"
+    },
+    "latestArtworks": {
+      "sectionTitle": "最新作品"
     },
     "impact": {
       "title": "我们的影响力",
@@ -113,7 +133,11 @@
       "prev": "上一页",
       "next": "下一页"
     },
-    "empty": "没有找到符合条件的活动。"
+    "empty": "没有找到符合条件的活动。",
+    "empty.title": "该类别下暂无活动",
+    "empty.subtitle": "请稍后再来",
+    "goalReached": "目标达成",
+    "funded": "已筹{{percent}}%"
   },
   "stories": {
     "hero": {
@@ -161,7 +185,13 @@
       "anonymous": "匿名捐赠",
       "message": "留言（可选）",
       "submit": "完成捐赠",
-      "processing": "处理中..."
+      "processing": "处理中...",
+      "errors": {
+        "invalidAmount": "请输入有效金额",
+        "minAmount": "最低捐赠金额为 ¥{{min}}",
+        "maxAmount": "最高捐赠金额为 ¥{{max}}"
+      },
+      "amountRange": "范围：¥{{min}} – ¥{{max}}"
     },
     "tiers": {
       "seedling": {
@@ -467,7 +497,16 @@
       "children": "儿童保护"
     },
     "copyright": "© 2026 童画公益。保留所有权利。",
-    "issueNo": "第01期 — 创刊号"
+    "issueNo": "第01期 — 创刊号",
+    "newsletter": {
+      "title": "通讯订阅",
+      "description": "来自编辑部的季度通讯。不发垃圾邮件，只发故事。",
+      "subscribe": "订阅"
+    },
+    "brand": {
+      "description": "创意机遇中的愿景"
+    },
+    "builtWith": "用心打造"
   },
   "artwork": {
     "detail": {
@@ -491,6 +530,10 @@
     "sort": "排序",
     "viewAll": "查看全部",
     "learnMore": "了解更多",
-    "getStarted": "开始使用"
+    "getStarted": "开始使用",
+    "location": {
+      "shanghai": "中国上海"
+    },
+    "emailAriaLabel": "电子邮箱"
   }
 }

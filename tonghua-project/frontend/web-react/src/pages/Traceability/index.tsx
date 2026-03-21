@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { motion, useInView, AnimatePresence } from 'framer-motion';
+import { motion, useInView, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
@@ -180,13 +180,19 @@ function CarbonBar({ label, value, maxValue, isEco, delay }: {
 
 // Loading spinner for product lookup
 function SearchSpinner() {
+  const prefersReducedMotion = useReducedMotion();
+
   return (
     <div className="flex items-center gap-3 py-4">
-      <motion.div
-        className="w-5 h-5 border-2 border-warm-gray/30 border-t-rust rounded"
-        animate={{ rotate: 360 }}
-        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-      />
+      {prefersReducedMotion ? (
+        <div className="w-5 h-5 border-2 border-warm-gray/30 border-t-rust rounded" />
+      ) : (
+        <motion.div
+          className="w-5 h-5 border-2 border-warm-gray/30 border-t-rust rounded"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+        />
+      )}
       <span className="font-body text-xs text-sepia-mid tracking-[0.1em] uppercase">
         Tracing supply chain...
       </span>

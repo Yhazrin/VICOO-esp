@@ -28,11 +28,31 @@
     },
     "featured": {
       "sectionTitle": "Featured Campaigns",
-      "viewAll": "View All Campaigns"
+      "viewAll": "View All Campaigns",
+      "heading": "Where Little Hands Shape Big Ideas",
+      "body": "Each campaign begins in a classroom, a community center, a shelter. We collect children's artwork — raw, honest, unfiltered — and transform it into sustainable fashion that funds their future.",
+      "imageAlt": "Children creating art in a community workshop",
+      "caption": "Spring Campaign 2026 — Artwork Collection Phase"
     },
     "artworks": {
       "sectionTitle": "Children's Gallery",
       "viewAll": "View Full Gallery"
+    },
+    "gallery": {
+      "alt": {
+        "watercolor": "Child's watercolor landscape",
+        "crayon": "Child's abstract crayon drawing",
+        "pastel": "Child's pastel portrait",
+        "ink": "Child's ink illustration"
+      }
+    },
+    "pillars": {
+      "traceable": "Traceable Supply Chain",
+      "children": "Children Empowered",
+      "reinvested": "Yuan Reinvested"
+    },
+    "latestArtworks": {
+      "sectionTitle": "Latest Artworks"
     },
     "impact": {
       "title": "Our Impact in Numbers",
@@ -113,7 +133,11 @@
       "prev": "Prev",
       "next": "Next"
     },
-    "empty": "No campaigns found matching your criteria."
+    "empty": "No campaigns found matching your criteria.",
+    "empty.title": "No campaigns found in this category.",
+    "empty.subtitle": "Check back soon.",
+    "goalReached": "Goal Reached",
+    "funded": "{{percent}}% funded"
   },
   "stories": {
     "hero": {
@@ -161,7 +185,13 @@
       "anonymous": "Make this donation anonymous",
       "message": "Leave a message (optional)",
       "submit": "Complete Donation",
-      "processing": "Processing..."
+      "processing": "Processing...",
+      "errors": {
+        "invalidAmount": "Please enter a valid amount",
+        "minAmount": "Minimum donation is ¥{{min}}",
+        "maxAmount": "Maximum donation is ¥{{max}}"
+      },
+      "amountRange": "Range: ¥{{min}} – ¥{{max}}"
     },
     "tiers": {
       "seedling": {
@@ -467,7 +497,16 @@
       "children": "Children's Protection"
     },
     "copyright": "© 2026 Tonghua Public Welfare. All rights reserved.",
-    "issueNo": "Issue No. 01 — Inaugural Edition"
+    "issueNo": "Issue No. 01 — Inaugural Edition",
+    "newsletter": {
+      "title": "Newsletter",
+      "description": "Quarterly dispatches from the editor's desk. No spam, only stories.",
+      "subscribe": "Subscribe"
+    },
+    "brand": {
+      "description": "Vision In Creative Opportunity"
+    },
+    "builtWith": "Built with care"
   },
   "artwork": {
     "detail": {
@@ -491,6 +530,10 @@
     "sort": "Sort",
     "viewAll": "View All",
     "learnMore": "Learn More",
-    "getStarted": "Get Started"
+    "getStarted": "Get Started",
+    "location": {
+      "shanghai": "Shanghai, China"
+    },
+    "emailAriaLabel": "Email address"
   }
 }

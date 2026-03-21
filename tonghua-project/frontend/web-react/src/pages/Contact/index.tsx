@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import EditorialHero from '@/components/editorial/EditorialHero';
@@ -197,11 +197,9 @@ function ContactInfoCard({
           }}
         />
 
-        {/* Corner accents */}
-        <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-rust/30 z-10" />
-        <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-rust/30 z-10" />
-        <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-rust/30 z-10" />
-        <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-rust/30 z-10" />
+        {/* Corner accents — diagonal pattern */}
+        <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-rust/30 pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-rust/30 pointer-events-none" />
 
         {/* Image */}
         <div className="relative aspect-[16/9] overflow-hidden">
@@ -236,6 +234,18 @@ function ContactInfoCard({
 
 // Loading dots animation for submit button
 function LoadingDots() {
+  const prefersReducedMotion = useReducedMotion();
+
+  if (prefersReducedMotion) {
+    return (
+      <span className="inline-flex items-center gap-1">
+        {[0, 1, 2].map((i) => (
+          <span key={i} className="inline-block w-1 h-1 rounded-sm bg-paper" />
+        ))}
+      </span>
+    );
+  }
+
   return (
     <span className="inline-flex items-center gap-1">
       {[0, 1, 2].map((i) => (
@@ -257,6 +267,7 @@ function LoadingDots() {
 
 export default function Contact() {
   const { t } = useTranslation();
+  const prefersReducedMotion = useReducedMotion();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -409,11 +420,9 @@ export default function Contact() {
                     }}
                   />
 
-                  {/* Corner accents */}
-                  <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-rust/30 z-10" />
-                  <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-rust/30 z-10" />
-                  <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-rust/30 z-10" />
-                  <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-rust/30 z-10" />
+                  {/* Corner accents — diagonal pattern */}
+                  <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-rust/30 pointer-events-none" />
+                  <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-rust/30 pointer-events-none" />
 
                   <div className="relative z-10 flex flex-col items-center">
                     <CheckmarkIcon />
@@ -429,8 +438,8 @@ export default function Contact() {
                     <motion.button
                       type="button"
                       onClick={resetForm}
-                      whileHover={{ scale: 1.01 }}
-                      whileTap={{ scale: 0.99 }}
+                      whileHover={prefersReducedMotion ? undefined : { scale: 1.01 }}
+                      whileTap={prefersReducedMotion ? undefined : { scale: 0.99 }}
                       className="mt-8 font-body text-sm tracking-[0.15em] uppercase border-2 border-ink text-ink px-8 py-3 hover:bg-ink hover:text-paper transition-colors duration-300"
                     >
                       {t('contact.form.submit')}
@@ -574,8 +583,8 @@ export default function Contact() {
                     <motion.button
                       type="submit"
                       disabled={status === 'sending'}
-                      whileHover={{ scale: 1.01 }}
-                      whileTap={{ scale: 0.99 }}
+                      whileHover={prefersReducedMotion ? undefined : { scale: 1.01 }}
+                      whileTap={prefersReducedMotion ? undefined : { scale: 0.99 }}
                       className="font-body text-sm tracking-[0.15em] uppercase bg-ink text-paper px-10 py-4 hover:bg-rust transition-colors duration-300 disabled:opacity-60 flex items-center gap-3"
                     >
                       {status === 'sending' ? (

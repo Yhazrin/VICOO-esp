@@ -122,7 +122,7 @@ export default function Register() {
             />
 
             {(localError || registerError) && (
-              <div role="alert" className="text-red-600 text-sm text-center">
+              <div role="alert" className="font-body text-sm text-rust text-center border border-rust/20 px-4 py-3">
                 {localError || registerError}
               </div>
             )}
