@@ -1,6 +1,6 @@
 # Improvement Tracker
 
-> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 7)
+> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 14)
 > Scope broadened: now covers frontend UI/UX + backend architecture + software architecture + sustainability + code quality
 
 ## Completed
@@ -165,6 +165,25 @@
 | 126 | Backend — list_donations exposes PII to unauthenticated users | High | ✅ done — optional auth via get_optional_current_user, redact donor_name/message/donor_user_id |
 | 127 | Backend — deps.py missing optional auth dependency | Medium | ✅ done — get_optional_current_user() returns user dict or None, no exception on auth failure |
 | 128 | Backend — donations.py missing name redaction helper | Medium | ✅ done — _redact_name() masks names to first char + asterisks, handles anonymous flag |
+
+## Completed — Cycle 14 (2026-03-22)
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 129 | Backend — payments.py alipay_notify accepts forged callbacks when ALIPAY_PUBLIC_KEY missing | P0 | ✅ done — fail-closed: returns HTTP 500 instead of logging warning and continuing |
+| 130 | Backend — contact.py email field uses `str` instead of `EmailStr` | P1 | ✅ done — changed to `EmailStr` (already imported but unused) |
+| 131 | Frontend — cookies.ts setCookie missing `secure` flag, deleteCookie missing `samesite=lax` | P0 | ✅ done — added both flags for CSRF protection |
+| 132 | Accessibility — Login social buttons missing aria-label, SVGs missing aria-hidden | P1 | ✅ done — aria-label for GitHub/Google/WeChat buttons, aria-hidden on SVGs |
+| 133 | Accessibility — Register social buttons missing aria-label, SVGs missing aria-hidden | P1 | ✅ done — same fix as Login |
+| 134 | Accessibility — Footer newsletter input missing label + poor placeholder contrast | P1 | ✅ done — sr-only label, id, placeholder contrast sepia-mid/50→warm-gray/60 |
+| 135 | Accessibility — Donate transparency cards not keyboard-focusable (motion.div) | P1 | ✅ done — changed to motion.button with text-left w-full |
+| 136 | Accessibility — Donate progress bars missing role="progressbar" + ARIA attrs | P1 | ✅ done — role/aria-valuenow/min/max/label added |
+| 137 | Accessibility — Donate decorative corners missing aria-hidden | P1 | ✅ done — added aria-hidden="true" |
+| 138 | Accessibility — Campaigns pagination buttons missing aria-label + aria-current | P1 | ✅ done — aria-label on prev/next/page buttons, aria-current="page" on active |
+| 139 | Accessibility — DonationPanel amount presets missing aria-pressed | P1 | ✅ done — aria-pressed={selectedAmount === amount && !customAmount} |
+| 140 | Code Quality — campaigns.ts getActive() returns Campaign[] but backend returns single Campaign | P0 | ✅ done — return type changed to Promise<Campaign> |
+| 141 | Code Quality — donations.ts getCertificate() returns {url} but backend returns {certificate_url} | P0 | ✅ done — return type aligned to { certificate_url: string } |
+| 142 | Code Quality — types/index.ts Donation.tierId/campaignId typed as string but backend uses number | P0 | ✅ done — both changed to number |
 
 ## Pending
 

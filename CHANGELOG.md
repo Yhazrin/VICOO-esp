@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-03-22 — Cycle 14: Security, Accessibility & Code Quality Fixes
+
+### Security
+
+- **payments.py fail-closed** — alipay_notify handler now returns HTTP 500 when `ALIPAY_PUBLIC_KEY` is not configured, instead of logging a warning and continuing (allowing forged callbacks).
+- **contact.py EmailStr** — Email field changed from `str` to `EmailStr` for proper format validation (was already imported but unused).
+- **cookies.ts secure flag** — `setCookie` now includes `secure` flag; `deleteCookie` now includes `samesite=lax` for CSRF protection.
+
+### Accessibility
+
+- **Login/Register social buttons** — Added `aria-label` to GitHub, Google, WeChat social login buttons; added `aria-hidden="true"` to decorative SVG icons.
+- **Footer newsletter input** — Added sr-only `<label>` element and `id` for the email input; improved placeholder contrast from `sepia-mid/50` to `warm-gray/60`.
+- **Donate transparency cards** — Changed from `<motion.div>` to `<motion.button>` for keyboard focusability; added `role="progressbar"` with `aria-valuenow/min/max` to impact progress bars; added `aria-hidden` to decorative corner accents.
+- **Campaigns pagination** — Added `aria-label` to prev/next buttons and numbered page buttons; added `aria-current="page"` to active page button.
+- **DonationPanel presets** — Added `aria-pressed` to amount preset buttons.
+
+### Code Quality
+
+- **campaigns.ts getActive()** — Return type corrected from `Campaign[]` to `Campaign` (backend returns single object).
+- **donations.ts getCertificate()** — Return type corrected from `{ url: string }` to `{ certificate_url: string }` matching backend response.
+- **types/index.ts** — `Donation.tierId` and `Donation.campaignId` changed from `string` to `number` matching backend schema.
+
 ## 2026-03-22 — Cycle 8b: Backend Security Hardening
 
 ### Security
