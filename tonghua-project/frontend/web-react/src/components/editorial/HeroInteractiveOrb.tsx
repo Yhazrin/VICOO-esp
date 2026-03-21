@@ -1,9 +1,9 @@
-'use client';
 import { useRef } from 'react';
-import { motion, useMotionValue } from 'framer-motion';
+import { motion, useMotionValue, useReducedMotion } from 'framer-motion';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 export default function HeroInteractiveOrb() {
+  const prefersReducedMotion = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
   const rotateX = useMotionValue(0);
   const rotateY = useMotionValue(0);
@@ -48,31 +48,31 @@ export default function HeroInteractiveOrb() {
       {/* Outermost ring - slowest rotation */}
       <motion.div
         className="absolute inset-0 rounded-full border border-rust/20"
-        animate={{ rotate: [0, 360] }}
-        transition={{ duration: 40, repeat: Infinity, ease: 'linear' }}
+        animate={prefersReducedMotion ? {} : { rotate: [0, 360] }}
+        transition={prefersReducedMotion ? { duration: 0 } : { duration: 40, repeat: Infinity, ease: 'linear' }}
         style={{ transform: 'translateZ(-30px)' }}
       />
 
       {/* Second ring */}
       <motion.div
         className="absolute inset-4 rounded-full border border-pale-gold/30"
-        animate={{ rotate: [0, -360] }}
-        transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
+        animate={prefersReducedMotion ? {} : { rotate: [0, -360] }}
+        transition={prefersReducedMotion ? { duration: 0 } : { duration: 30, repeat: Infinity, ease: 'linear' }}
         style={{ transform: 'translateZ(-20px)' }}
       />
 
       {/* Third ring */}
       <motion.div
         className="absolute inset-8 rounded-full border border-sepia-mid/40"
-        animate={{ rotate: [0, 360] }}
-        transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+        animate={prefersReducedMotion ? {} : { rotate: [0, 360] }}
+        transition={prefersReducedMotion ? { duration: 0 } : { duration: 20, repeat: Infinity, ease: 'linear' }}
         style={{ transform: 'translateZ(-10px)' }}
       />
 
       {/* Core orb - gradient filled */}
       <motion.div
         className="absolute inset-12 rounded-full bg-gradient-to-br from-rust/40 via-archive-brown/30 to-pale-gold/20"
-        animate={{
+        animate={prefersReducedMotion ? {} : {
           scale: [1, 1.05, 1],
           background: [
             'linear-gradient(135deg, rgba(139,58,42,0.4) 0%, rgba(92,77,61,0.3) 50%, rgba(212,175,128,0.2) 100%)',
@@ -80,15 +80,15 @@ export default function HeroInteractiveOrb() {
             'linear-gradient(135deg, rgba(139,58,42,0.4) 0%, rgba(92,77,61,0.3) 50%, rgba(212,175,128,0.2) 100%)',
           ],
         }}
-        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        transition={prefersReducedMotion ? { duration: 0 } : { duration: 4, repeat: Infinity, ease: 'easeInOut' }}
         style={{ transform: 'translateZ(0)' }}
       />
 
       {/* Inner highlight orb */}
       <motion.div
         className="absolute inset-16 rounded-full bg-gradient-to-tr from-paper/60 to-transparent"
-        animate={{ opacity: [0.6, 0.9, 0.6] }}
-        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+        animate={prefersReducedMotion ? { opacity: 0.75 } : { opacity: [0.6, 0.9, 0.6] }}
+        transition={prefersReducedMotion ? { duration: 0 } : { duration: 3, repeat: Infinity, ease: 'easeInOut' }}
         style={{
           transform: 'translateZ(10px) translateX(-20%) translateY(-20%)',
           filter: 'blur(8px)',
@@ -100,12 +100,12 @@ export default function HeroInteractiveOrb() {
         <motion.div
           key={i}
           className="absolute w-2 h-2 rounded-full bg-pale-gold/60"
-          animate={{
+          animate={prefersReducedMotion ? { opacity: 0.5 } : {
             y: [0, -30, 0],
             opacity: [0.3, 0.8, 0.3],
             scale: [0.8, 1.2, 0.8],
           }}
-          transition={{
+          transition={prefersReducedMotion ? { duration: 0 } : {
             duration: 3 + i * 0.5,
             repeat: Infinity,
             delay: i * 0.4,

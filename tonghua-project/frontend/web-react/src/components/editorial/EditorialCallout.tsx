@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 
 interface EditorialCalloutProps {
   children: ReactNode;
@@ -14,6 +14,7 @@ export default function EditorialCallout({
   title,
   className = '',
 }: EditorialCalloutProps) {
+  const prefersReducedMotion = useReducedMotion();
   const variantStyles = {
     default: 'border-rust',
     info: 'border-[var(--color-info)]',
@@ -32,10 +33,9 @@ export default function EditorialCallout({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      {...(prefersReducedMotion ? {} : { initial: { opacity: 0, y: 10 }, whileInView: { opacity: 1, y: 0 } })}
       viewport={{ once: true }}
-      transition={{ duration: 0.4 }}
+      transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.4 }}
       className={`
         relative
         p-6 md:p-8
