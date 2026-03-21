@@ -183,12 +183,17 @@
 | 139 | Login/index.tsx — unused MagazineDivider import (TS error) | Low | ✅ done |
 | 140 | Register/index.tsx — unused MagazineDivider import (TS error) | Low | ✅ done |
 
+## Completed — Cycle 15 i18n (2026-03-22)
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 17 | Traceability — hardcoded English strings i18n extraction | Low | ✅ done — mock data stories, stage names, search placeholders extracted to t() |
+| 18 | Shop — hardcoded English strings i18n extraction | Low | ✅ done — mock product names/descriptions, ProductCard labels (Notify Me, sustainability tiers, artwork attribution) extracted to t() |
+| 19 | Donate — hardcoded English strings i18n extraction | Low | ✅ done — Anonymous/Guest donor name labels extracted to t() |
+| 20 | Stories — hardcoded English strings i18n extraction | Low | ✅ done — marquee quotes, mock story titles/excerpts/pull quotes, featured quote extracted to t() |
+| 21 | Contact — hardcoded English strings i18n extraction | Low | ✅ done — pull quote defaults removed, character count label extracted to t() |
+
 ## Pending
 
 | # | Issue | Priority | Notes |
 |---|-------|----------|-------|
-| 17 | Traceability — hardcoded English strings need i18n extraction | Low | |
-| 18 | Shop — hardcoded English strings need i18n extraction | Low | |
-| 19 | Donate — hardcoded English strings need i18n extraction | Low | |
-| 20 | Stories — hardcoded English strings need i18n extraction | Low | |
-| 21 | Contact — hardcoded English strings need i18n extraction | Low | |
