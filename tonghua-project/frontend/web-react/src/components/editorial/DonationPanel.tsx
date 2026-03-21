@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { VintageInput } from '@/components/editorial/VintageInput';
 
@@ -24,6 +24,7 @@ export default function DonationPanel({
   className = '',
 }: DonationPanelProps) {
   const { t } = useTranslation();
+  const prefersReducedMotion = useReducedMotion();
   const [selectedAmount, setSelectedAmount] = useState<number>(100);
   const [customAmount, setCustomAmount] = useState<string>('');
   const [frequency, setFrequency] = useState<'once' | 'monthly'>('once');
@@ -82,7 +83,7 @@ export default function DonationPanel({
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5 }}
       className={className}
@@ -101,8 +102,8 @@ export default function DonationPanel({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.05 }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
+              whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
               onClick={() => {
                 setSelectedAmount(amount);
                 setCustomAmount('');
@@ -118,7 +119,7 @@ export default function DonationPanel({
               {/* Grain overlay */}
               <div className="absolute inset-0 z-10 pointer-events-none opacity-[0.06]" style={{
                 backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")'
-              }} />
+              }} aria-hidden="true" />
 
               {/* Sepia accent gradient */}
               <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/3 via-transparent to-archive-brown/5" />

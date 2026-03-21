@@ -68,12 +68,12 @@ export default function Header() {
       {/* Grain overlay */}
       <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.06]" style={{
         backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
-      }} />
+      }} aria-hidden="true" />
       <div className="relative max-w-[1400px] mx-auto px-6 md:px-10 flex items-center justify-between h-16 md:h-20">
         {/* Logo */}
         <Link
           to="/"
-          className="font-display text-ink text-lg md:text-xl font-bold tracking-tight"
+          className="font-display text-ink text-lg md:text-xl font-bold tracking-tight cursor-pointer"
           onClick={() => setMobileNavOpen(false)}
         >
           Tonghua
@@ -89,7 +89,7 @@ export default function Header() {
                   key={item.key}
                   to={item.path}
                   className={`
-                    font-body text-label tracking-wide px-3 py-2 transition-colors duration-200
+                    font-body text-label tracking-wide px-3 py-2 transition-colors duration-200 cursor-pointer
                     ${isActive ? 'text-rust' : 'text-ink-faded hover:text-ink'}
                   `}
                 >
@@ -107,7 +107,7 @@ export default function Header() {
         <div className="flex items-center gap-3">
           <button
             onClick={toggleLocale}
-            className="font-body text-caption text-ink-faded hover:text-ink transition-colors px-2 py-1 border border-warm-gray/40 rounded"
+            className="font-body text-caption text-ink-faded hover:text-ink transition-colors px-2 py-1 border border-warm-gray/40"
             aria-label="Toggle language"
           >
             {currentLocale === 'en' ? '中文' : 'EN'}
@@ -118,7 +118,7 @@ export default function Header() {
             <div className="relative" ref={userMenuRef}>
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="hidden md:flex items-center gap-2 font-body text-label text-ink-faded hover:text-ink transition-colors px-3 py-1.5 border border-warm-gray/40 rounded"
+                className="hidden md:flex items-center gap-2 font-body text-label text-ink-faded hover:text-ink transition-colors px-3 py-1.5 border border-warm-gray/40"
                 aria-label="User menu"
                 aria-expanded={userMenuOpen}
               >
@@ -131,7 +131,7 @@ export default function Header() {
 
               {/* Dropdown menu */}
               {userMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-paper border border-warm-gray/40 rounded shadow-lg z-50">
+                <div className="absolute right-0 top-full mt-2 w-48 bg-paper border border-warm-gray/40 shadow-lg z-50">
                   <div className="py-2">
                     <div className="px-4 py-2 border-b border-warm-gray/20">
                       <p className="font-body text-xs text-ink-faded">{user.nickname || user.email}</p>
@@ -139,7 +139,7 @@ export default function Header() {
                     </div>
                     <Link
                       to="/profile"
-                      className="block px-4 py-2 font-body text-sm text-ink hover:bg-warm-gray/10 transition-colors"
+                      className="block px-4 py-2 font-body text-sm text-ink hover:bg-warm-gray/10 transition-colors cursor-pointer"
                       onClick={() => setUserMenuOpen(false)}
                     >
                       {t('nav.profile')}
@@ -158,7 +158,7 @@ export default function Header() {
             /* Login link - shown when not authenticated */
             <Link
               to="/login"
-              className="hidden md:inline-block font-body text-label text-ink-faded hover:text-ink transition-colors px-3 py-1.5 border border-warm-gray/40 rounded"
+              className="hidden md:inline-block font-body text-label text-ink-faded hover:text-ink transition-colors px-3 py-1.5 border border-warm-gray/40 cursor-pointer"
             >
               {t('nav.login')}
             </Link>

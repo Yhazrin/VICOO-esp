@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
+import { motion, useInView, useReducedMotion } from 'framer-motion';
 
 interface ImpactCounterProps {
   value: number;
@@ -17,12 +17,18 @@ function AnimatedNumber({
   value: number;
   duration: number;
 }) {
+  const prefersReducedMotion = useReducedMotion();
   const [displayValue, setDisplayValue] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
 
   useEffect(() => {
     if (!isInView) return;
+
+    if (prefersReducedMotion) {
+      setDisplayValue(value);
+      return;
+    }
 
     let startTime: number;
     let animationFrame: number;
@@ -42,7 +48,7 @@ function AnimatedNumber({
 
     animationFrame = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationFrame);
-  }, [isInView, value, duration]);
+  }, [isInView, value, duration, prefersReducedMotion]);
 
   return <span ref={ref}>{displayValue.toLocaleString()}</span>;
 }
@@ -55,10 +61,12 @@ export default function ImpactCounter({
   duration = 2000,
   className = '',
 }: ImpactCounterProps) {
+  const prefersReducedMotion = useReducedMotion();
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-80px' }}
       transition={{ duration: 0.6, ease: [0, 0, 0.2, 1] }}
       className={`text-center ${className}`}

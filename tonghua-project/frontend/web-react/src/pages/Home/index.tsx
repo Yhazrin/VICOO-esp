@@ -22,12 +22,13 @@ interface GalleryItemProps {
 }
 
 function GalleryItem({ src, alt, index }: GalleryItemProps) {
+  const prefersReducedMotion = useReducedMotion();
   const [imageLoaded, setImageLoaded] = useState(false);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{
         type: 'spring',
@@ -35,7 +36,7 @@ function GalleryItem({ src, alt, index }: GalleryItemProps) {
         damping: 30,
         delay: index * 0.08,
       }}
-      whileHover={{ y: -4 }}
+      whileHover={prefersReducedMotion ? undefined : { y: -4 }}
       className="relative aspect-square overflow-hidden border-2 border-warm-gray/50 bg-aged-stock group"
     >
       {/* Grain overlay */}
@@ -45,6 +46,7 @@ function GalleryItem({ src, alt, index }: GalleryItemProps) {
           backgroundImage:
             'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")',
         }}
+        aria-hidden="true"
       />
 
       {/* Sepia frame effect */}
@@ -91,12 +93,13 @@ function LatestArtworkCard({
   index,
   wide = false,
 }: LatestArtworkCardProps) {
+  const prefersReducedMotion = useReducedMotion();
   const [imageLoaded, setImageLoaded] = useState(false);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{
         type: 'spring',
@@ -118,6 +121,7 @@ function LatestArtworkCard({
             backgroundImage:
               'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")',
           }}
+          aria-hidden="true"
         />
         <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/5 via-transparent to-archive-brown/5" />
 
@@ -193,6 +197,7 @@ function BrandPillar({ label, value, index }: BrandPillarProps) {
 
 export default function Home() {
   const { t } = useTranslation();
+  const prefersReducedMotion = useReducedMotion();
 
   const galleryImages = [
     { src: 'https://picsum.photos/seed/children-art-1/400/400', alt: t('home.gallery.alt.watercolor') },
@@ -240,7 +245,7 @@ export default function Home() {
         <MagneticButton strength={0.4}>
           <Link
             to="/campaigns"
-            className="inline-block font-body text-sm tracking-[0.15em] uppercase bg-ink text-paper px-8 py-4 hover:bg-rust transition-colors duration-300"
+            className="inline-block font-body text-sm tracking-[0.15em] uppercase bg-ink text-paper px-8 py-4 cursor-pointer hover:bg-rust transition-colors duration-300"
           >
             {t('home.hero.cta')}
           </Link>
@@ -270,7 +275,7 @@ export default function Home() {
             </p>
             <Link
               to="/campaigns"
-              className="font-body text-xs text-rust tracking-[0.15em] uppercase hover:text-ink transition-colors"
+              className="font-body text-xs text-rust tracking-[0.15em] uppercase cursor-pointer hover:text-ink transition-colors"
             >
               {t('home.featured.viewAll')} &rarr;
             </Link>
@@ -282,7 +287,7 @@ export default function Home() {
       <div className="flex justify-center py-2" aria-hidden="true">
         <ScrollPathDrawInline
           path="M0,10 L60,10 M80,10 L140,10 M160,10 L220,10"
-          strokeColor="#D4CFC4"
+          strokeColor="var(--color-warm-gray, #D4CFC4)"
           strokeWidth={1}
           className="w-56 h-5"
         />
@@ -346,7 +351,7 @@ export default function Home() {
         <div className="mt-8 text-center">
           <Link
             to="/campaigns"
-            className="font-body text-xs text-rust tracking-[0.15em] uppercase hover:text-ink transition-colors"
+            className="font-body text-xs text-rust tracking-[0.15em] uppercase cursor-pointer hover:text-ink transition-colors"
           >
             {t('home.artworks.viewAll')} &rarr;
           </Link>
@@ -369,7 +374,7 @@ export default function Home() {
               <MagneticButton strength={0.35}>
                 <Link
                   to="/donate"
-                  className="inline-block font-body text-sm tracking-[0.15em] uppercase bg-rust text-paper px-8 py-4 hover:bg-pale-gold hover:text-ink transition-all duration-300"
+                  className="inline-block font-body text-sm tracking-[0.15em] uppercase bg-rust text-paper px-8 py-4 cursor-pointer hover:bg-pale-gold hover:text-ink transition-all duration-300"
                 >
                   {t('home.cta.donate')}
                 </Link>
@@ -377,7 +382,7 @@ export default function Home() {
               <MagneticButton strength={0.35}>
                 <Link
                   to="/shop"
-                  className="inline-block font-body text-sm tracking-[0.15em] uppercase border border-warm-gray/40 text-paper px-8 py-4 hover:border-pale-gold hover:text-pale-gold transition-all duration-300"
+                  className="inline-block font-body text-sm tracking-[0.15em] uppercase border border-warm-gray/40 text-paper px-8 py-4 cursor-pointer hover:border-pale-gold hover:text-pale-gold transition-all duration-300"
                 >
                   {t('home.cta.shop')}
                 </Link>
@@ -394,7 +399,7 @@ export default function Home() {
       <SectionContainer>
         <motion.div
           initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
+          whileInView={prefersReducedMotion ? undefined : { opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
           className="py-12 md:py-16"
