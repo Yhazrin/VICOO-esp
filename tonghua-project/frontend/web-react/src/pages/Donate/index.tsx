@@ -62,24 +62,28 @@ function ImpactProgressBar({
   pct,
   icon,
   index,
+  prefersReducedMotion,
 }: {
   label: string;
   description: string;
   pct: number;
   icon: string;
   index: number;
+  prefersReducedMotion: boolean | null;
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true }}
-      transition={{
-        type: 'spring',
-        stiffness: 300,
-        damping: 30,
-        delay: index * 0.12,
-      }}
+      {...(prefersReducedMotion ? {} : {
+        initial: { opacity: 0, x: -20 },
+        whileInView: { opacity: 1, x: 0 },
+        viewport: { once: true },
+        transition: {
+          type: 'spring',
+          stiffness: 300,
+          damping: 30,
+          delay: index * 0.12,
+        },
+      })}
     >
       <div className="flex items-center gap-3 mb-2">
         <ImpactIcon type={icon} />
@@ -94,18 +98,21 @@ function ImpactProgressBar({
       </div>
       <div className="h-2 bg-warm-gray/15 rounded-sm overflow-hidden">
         <motion.div
-          initial={{ width: 0 }}
-          whileInView={{ width: `${pct}%` }}
-          viewport={{ once: true }}
-          transition={{
-            type: 'spring',
-            stiffness: 80,
-            damping: 20,
-            delay: index * 0.12 + 0.2,
-          }}
+          {...(prefersReducedMotion ? {} : {
+            initial: { width: 0 },
+            whileInView: { width: `${pct}%` },
+            viewport: { once: true },
+            transition: {
+              type: 'spring',
+              stiffness: 80,
+              damping: 20,
+              delay: index * 0.12 + 0.2,
+            },
+          })}
           className="h-full rounded-sm"
           style={{
             background: 'linear-gradient(90deg, color-mix(in srgb, var(--color-rust) 50%, transparent), color-mix(in srgb, var(--color-rust) 80%, transparent))',
+            ...(prefersReducedMotion ? { width: `${pct}%` } : {}),
           }}
         />
       </div>
@@ -118,18 +125,20 @@ function ImpactProgressBar({
 
 /* ─── Trust Badge ─── */
 
-function TrustBadge({ label, index }: { label: string; index: number }) {
+function TrustBadge({ label, index, prefersReducedMotion }: { label: string; index: number; prefersReducedMotion: boolean | null }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{
-        type: 'spring',
-        stiffness: 380,
-        damping: 30,
-        delay: index * 0.08,
-      }}
+      {...(prefersReducedMotion ? {} : {
+        initial: { opacity: 0, y: 10 },
+        whileInView: { opacity: 1, y: 0 },
+        viewport: { once: true },
+        transition: {
+          type: 'spring',
+          stiffness: 380,
+          damping: 30,
+          delay: index * 0.08,
+        },
+      })}
       className="flex items-center gap-2 border border-warm-gray/30 px-4 py-2.5 bg-paper"
     >
       <span className="w-2 h-2 bg-rust/60 rounded-sm" />
@@ -280,6 +289,7 @@ export default function Donate() {
                   pct={area.pct}
                   icon={area.icon}
                   index={index}
+                  prefersReducedMotion={prefersReducedMotion}
                 />
               ))}
             </div>
@@ -380,13 +390,13 @@ export default function Donate() {
                     t('donate.transparency.trust.transparent'),
                     t('donate.transparency.trust.impactReported'),
                   ].map((badge, i) => (
-                    <TrustBadge key={badge} label={badge} index={i} />
+                    <TrustBadge key={badge} label={badge} index={i} prefersReducedMotion={prefersReducedMotion} />
                   ))}
                 </div>
               </div>
 
               <motion.button
-                className="font-body text-caption text-rust tracking-[0.15em] uppercase hover:text-ink transition-colors"
+                className="font-body text-caption text-rust tracking-[0.15em] uppercase hover:text-ink transition-colors cursor-pointer"
                 whileHover={prefersReducedMotion ? undefined : { x: 4 }}
               >
                 {t('donate.transparency.viewReport')} &rarr;
@@ -480,34 +490,25 @@ export default function Donate() {
           <div className="relative z-10 text-center max-w-2xl mx-auto">
             {/* Decorative line above */}
             <motion.div
-              initial={{ width: 0 }}
-              whileInView={{ width: '80px' }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, ease: [0, 0, 0.2, 1] }}
+              {...(prefersReducedMotion ? {} : { initial: { width: 0 }, whileInView: { width: '80px' }, viewport: { once: true }, transition: { duration: 0.8, ease: [0, 0, 0.2, 1] } })}
               className="h-px bg-rust/50 mx-auto mb-10"
             />
 
             <motion.h2
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              {...(prefersReducedMotion ? {} : { initial: { opacity: 0, y: 30 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true }, transition: { type: 'spring', stiffness: 300, damping: 30 } })}
               className="font-display text-h2 md:text-h1 font-bold leading-[0.95] mb-10"
             >
               {t('donate.cta.title')}
             </motion.h2>
 
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.15 }}
+              {...(prefersReducedMotion ? {} : { initial: { opacity: 0, y: 20 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true }, transition: { type: 'spring', stiffness: 300, damping: 30, delay: 0.15 } })}
               className="flex flex-col sm:flex-row gap-4 justify-center items-center"
             >
               <MagneticButton strength={0.35}>
                 <a
                   href="#top"
-                  className="inline-block font-body text-body-sm tracking-[0.15em] uppercase bg-rust text-paper px-10 py-4 hover:bg-pale-gold hover:text-ink transition-all duration-300"
+                  className="inline-block font-body text-body-sm tracking-[0.15em] uppercase bg-rust text-paper px-10 py-4 hover:bg-pale-gold hover:text-ink transition-all duration-300 cursor-pointer"
                 >
                   {t('donate.cta.donate')}
                 </a>
@@ -515,7 +516,7 @@ export default function Donate() {
               <MagneticButton strength={0.35}>
                 <Link
                   to="/about"
-                  className="inline-block font-body text-body-sm tracking-[0.15em] uppercase border border-warm-gray/40 text-paper px-10 py-4 hover:border-pale-gold hover:text-pale-gold transition-all duration-300"
+                  className="inline-block font-body text-body-sm tracking-[0.15em] uppercase border border-warm-gray/40 text-paper px-10 py-4 hover:border-pale-gold hover:text-pale-gold transition-all duration-300 cursor-pointer"
                 >
                   {t('donate.cta.learnMore')}
                 </Link>
@@ -524,10 +525,7 @@ export default function Donate() {
 
             {/* Decorative line below */}
             <motion.div
-              initial={{ width: 0 }}
-              whileInView={{ width: '80px' }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, ease: [0, 0, 0.2, 1], delay: 0.3 }}
+              {...(prefersReducedMotion ? {} : { initial: { width: 0 }, whileInView: { width: '80px' }, viewport: { once: true }, transition: { duration: 0.8, ease: [0, 0, 0.2, 1], delay: 0.3 } })}
               className="h-px bg-rust/50 mx-auto mt-10"
             />
           </div>

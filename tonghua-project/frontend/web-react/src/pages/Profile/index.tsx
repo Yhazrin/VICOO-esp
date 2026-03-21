@@ -2,6 +2,8 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
+import SectionContainer from '@/components/layout/SectionContainer';
+import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeading';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function Profile() {
@@ -37,28 +39,14 @@ export default function Profile() {
 
   return (
     <PageWrapper>
-      <div className="min-h-[100dvh] py-12 px-4">
-        <div className="max-w-2xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-10">
-            <span className="font-body text-caption text-sepia-mid tracking-[0.3em] uppercase mb-4 block">
-              10
-            </span>
-            <motion.h1
-              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-              animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: [0, 0, 0.2, 1] }}
-              className="font-display text-3xl md:text-4xl font-bold text-ink mb-4"
-            >
-              {t('profile.title')}
-            </motion.h1>
-          </div>
+      <SectionContainer>
+        <NumberedSectionHeading number="10" title={t('profile.title')} />
 
           {/* Profile Card */}
           <motion.div
             initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
             animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0, 0, 0.2, 1], delay: 0.2 }}
+            transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6, ease: [0, 0, 0.2, 1], delay: 0.2 }}
             className="relative bg-paper border border-warm-gray/30 p-8"
           >
             {/* Corner accents — diagonal pattern */}
@@ -112,8 +100,9 @@ export default function Profile() {
               </div>
             </div>
           </motion.div>
-        </div>
-      </div>
+      </SectionContainer>
+
+      <div className="editorial-divider" />
     </PageWrapper>
   );
 }

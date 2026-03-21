@@ -94,7 +94,7 @@ const MOCK_STORIES: StoryItem[] = [
 ];
 
 // Decorative SVG ornament for the newsletter section
-function EditorialOrnament({ className = '' }: { className?: string }) {
+function EditorialOrnament({ className = '', prefersReducedMotion = false }: { className?: string; prefersReducedMotion?: boolean }) {
   return (
     <svg
       viewBox="0 0 200 24"
@@ -105,54 +105,64 @@ function EditorialOrnament({ className = '' }: { className?: string }) {
         x1="0" y1="12" x2="70" y2="12"
         stroke="#8B3A2A"
         strokeWidth="0.5"
-        initial={{ pathLength: 0 }}
-        whileInView={{ pathLength: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 1, ease: 'easeInOut' }}
+        {...(prefersReducedMotion ? {} : {
+          initial: { pathLength: 0 },
+          whileInView: { pathLength: 1 },
+          viewport: { once: true },
+          transition: { duration: 1, ease: 'easeInOut' as const },
+        })}
       />
       <motion.circle
         cx="85" cy="12" r="3"
         fill="none"
         stroke="#8B3A2A"
         strokeWidth="0.75"
-        initial={{ scale: 0 }}
-        whileInView={{ scale: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.5, delay: 0.5, type: 'spring', stiffness: 300 }}
+        {...(prefersReducedMotion ? {} : {
+          initial: { scale: 0 },
+          whileInView: { scale: 1 },
+          viewport: { once: true },
+          transition: { duration: 0.5, delay: 0.5, type: 'spring' as const, stiffness: 300 },
+        })}
       />
       <motion.circle
         cx="100" cy="12" r="1.5"
         fill="#8B3A2A"
-        initial={{ scale: 0 }}
-        whileInView={{ scale: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.5, delay: 0.7, type: 'spring', stiffness: 300 }}
+        {...(prefersReducedMotion ? {} : {
+          initial: { scale: 0 },
+          whileInView: { scale: 1 },
+          viewport: { once: true },
+          transition: { duration: 0.5, delay: 0.7, type: 'spring' as const, stiffness: 300 },
+        })}
       />
       <motion.circle
         cx="115" cy="12" r="3"
         fill="none"
         stroke="#8B3A2A"
         strokeWidth="0.75"
-        initial={{ scale: 0 }}
-        whileInView={{ scale: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.5, delay: 0.9, type: 'spring', stiffness: 300 }}
+        {...(prefersReducedMotion ? {} : {
+          initial: { scale: 0 },
+          whileInView: { scale: 1 },
+          viewport: { once: true },
+          transition: { duration: 0.5, delay: 0.9, type: 'spring' as const, stiffness: 300 },
+        })}
       />
       <motion.line
         x1="130" y1="12" x2="200" y2="12"
         stroke="#8B3A2A"
         strokeWidth="0.5"
-        initial={{ pathLength: 0 }}
-        whileInView={{ pathLength: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 1, ease: 'easeInOut', delay: 0.3 }}
+        {...(prefersReducedMotion ? {} : {
+          initial: { pathLength: 0 },
+          whileInView: { pathLength: 1 },
+          viewport: { once: true },
+          transition: { duration: 1, ease: 'easeInOut' as const, delay: 0.3 },
+        })}
       />
     </svg>
   );
 }
 
 // Reading progress bar at the bottom of story cards
-function ReadingProgressBar({ readTimeMinutes }: { readTimeMinutes: number }) {
+function ReadingProgressBar({ readTimeMinutes, prefersReducedMotion = false }: { readTimeMinutes: number; prefersReducedMotion?: boolean }) {
   const maxReadTime = 20;
   const widthPercent = Math.min((readTimeMinutes / maxReadTime) * 100, 100);
 
@@ -161,9 +171,11 @@ function ReadingProgressBar({ readTimeMinutes }: { readTimeMinutes: number }) {
       <motion.div
         className="h-full bg-rust/60 rounded-sm"
         initial={{ width: 0 }}
-        whileInView={{ width: `${widthPercent}%` }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.8, delay: 0.3, ease: [0, 0, 0.2, 1] }}
+        {...(prefersReducedMotion ? {} : {
+          whileInView: { width: `${widthPercent}%` },
+          viewport: { once: true },
+          transition: { duration: 0.8, delay: 0.3, ease: [0, 0, 0.2, 1] },
+        })}
       />
     </div>
   );
@@ -195,39 +207,45 @@ function EmptyState({ onBrowseAll }: { onBrowseAll: () => void }) {
           stroke="currentColor"
           strokeWidth="1.5"
           strokeLinecap="round"
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: 1 }}
-          transition={{ duration: 1.5, ease: 'easeInOut' }}
+          {...(prefersReducedMotion ? {} : {
+            initial: { pathLength: 0 },
+            animate: { pathLength: 1 },
+            transition: { duration: 1.5, ease: 'easeInOut' as const },
+          })}
         />
         {/* Spine */}
         <motion.line
           x1="60" y1="42" x2="60" y2="85"
           stroke="currentColor"
           strokeWidth="1"
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: 1 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
+          {...(prefersReducedMotion ? {} : {
+            initial: { pathLength: 0 },
+            animate: { pathLength: 1 },
+            transition: { duration: 0.8, delay: 0.5 },
+          })}
         />
         {/* Blank page lines left */}
         <motion.line x1="30" y1="52" x2="52" y2="52" stroke="currentColor" strokeWidth="0.5" opacity="0.4"
-          initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.4, delay: 1 }} />
+          {...(prefersReducedMotion ? {} : { initial: { pathLength: 0 }, animate: { pathLength: 1 }, transition: { duration: 0.4, delay: 1 } })} />
         <motion.line x1="30" y1="58" x2="50" y2="58" stroke="currentColor" strokeWidth="0.5" opacity="0.4"
-          initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.4, delay: 1.1 }} />
+          {...(prefersReducedMotion ? {} : { initial: { pathLength: 0 }, animate: { pathLength: 1 }, transition: { duration: 0.4, delay: 1.1 } })} />
         <motion.line x1="30" y1="64" x2="48" y2="64" stroke="currentColor" strokeWidth="0.5" opacity="0.4"
-          initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.4, delay: 1.2 }} />
+          {...(prefersReducedMotion ? {} : { initial: { pathLength: 0 }, animate: { pathLength: 1 }, transition: { duration: 0.4, delay: 1.2 } })} />
         {/* Blank page lines right */}
         <motion.line x1="68" y1="52" x2="90" y2="52" stroke="currentColor" strokeWidth="0.5" opacity="0.4"
-          initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.4, delay: 1 }} />
+          {...(prefersReducedMotion ? {} : { initial: { pathLength: 0 }, animate: { pathLength: 1 }, transition: { duration: 0.4, delay: 1 } })} />
         <motion.line x1="68" y1="58" x2="88" y2="58" stroke="currentColor" strokeWidth="0.5" opacity="0.4"
-          initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.4, delay: 1.1 }} />
+          {...(prefersReducedMotion ? {} : { initial: { pathLength: 0 }, animate: { pathLength: 1 }, transition: { duration: 0.4, delay: 1.1 } })} />
         <motion.line x1="68" y1="64" x2="86" y2="64" stroke="currentColor" strokeWidth="0.5" opacity="0.4"
-          initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.4, delay: 1.2 }} />
+          {...(prefersReducedMotion ? {} : { initial: { pathLength: 0 }, animate: { pathLength: 1 }, transition: { duration: 0.4, delay: 1.2 } })} />
         {/* Small pencil */}
         <motion.g
-          initial={{ opacity: 0, rotate: -20 }}
-          animate={{ opacity: 1, rotate: 0 }}
-          transition={{ duration: 0.6, delay: 1.4, type: 'spring', stiffness: 200 }}
           style={{ transformOrigin: '95px 30px' }}
+          {...(prefersReducedMotion ? {} : {
+            initial: { opacity: 0, rotate: -20 },
+            animate: { opacity: 1, rotate: 0 },
+            transition: { duration: 0.6, delay: 1.4, type: 'spring' as const, stiffness: 200 },
+          })}
         >
           <line x1="88" y1="38" x2="98" y2="22" stroke="#8B3A2A" strokeWidth="1.5" strokeLinecap="round" />
           <polygon points="98,22 100,19 96,19" fill="#8B3A2A" />
@@ -370,9 +388,11 @@ export default function Stories() {
                   >
                     <motion.article
                       initial={{ opacity: 0, y: 50 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true, margin: '-100px' }}
-                      transition={{ duration: 0.8, ease: [0, 0, 0.2, 1] }}
+                      {...(prefersReducedMotion ? {} : {
+                        whileInView: { opacity: 1, y: 0 },
+                        viewport: { once: true, margin: '-100px' },
+                        transition: { duration: 0.8, ease: [0, 0, 0.2, 1] },
+                      })}
                     >
                       <Link to={`/stories/${story.id}`} className="group block cursor-pointer">
                         <div className={`grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center ${index % 2 === 1 ? '' : ''}`}>
@@ -415,7 +435,7 @@ export default function Stories() {
                             </div>
 
                             {/* Reading progress indicator */}
-                            <ReadingProgressBar readTimeMinutes={story.readTimeMinutes} />
+                            <ReadingProgressBar readTimeMinutes={story.readTimeMinutes} prefersReducedMotion={prefersReducedMotion ?? false} />
 
                             {/* Read more link */}
                             <div className="mt-4">
@@ -470,7 +490,7 @@ export default function Stories() {
             </p>
 
             {/* Decorative ornament */}
-            <EditorialOrnament className="mb-8" />
+            <EditorialOrnament className="mb-8" prefersReducedMotion={prefersReducedMotion ?? false} />
 
             <AnimatePresence mode="wait">
               {!isSubscribed ? (
@@ -503,9 +523,7 @@ export default function Stories() {
               ) : (
                 <motion.div
                   key="success"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                  {...(prefersReducedMotion ? {} : { initial: { opacity: 0, scale: 0.9 }, animate: { opacity: 1, scale: 1 }, transition: { type: 'spring', stiffness: 300, damping: 20 } })}
                   className="flex flex-col items-center gap-3 py-4"
                 >
                   {/* Animated checkmark */}
@@ -519,28 +537,24 @@ export default function Stories() {
                       cy="20"
                       r="18"
                       fill="none"
-                      stroke="#8B3A2A"
+                      stroke="currentColor"
+                      className="text-rust"
                       strokeWidth="1.5"
-                      initial={{ pathLength: 0 }}
-                      animate={{ pathLength: 1 }}
-                      transition={{ duration: 0.6, ease: 'easeOut' }}
+                      {...(prefersReducedMotion ? {} : { initial: { pathLength: 0 }, animate: { pathLength: 1 }, transition: { duration: 0.6, ease: 'easeOut' } })}
                     />
                     <motion.path
                       d="M12 20 L18 26 L28 14"
                       fill="none"
-                      stroke="#8B3A2A"
+                      stroke="currentColor"
+                      className="text-rust"
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      initial={{ pathLength: 0 }}
-                      animate={{ pathLength: 1 }}
-                      transition={{ duration: 0.4, delay: 0.4, ease: 'easeOut' }}
+                      {...(prefersReducedMotion ? {} : { initial: { pathLength: 0 }, animate: { pathLength: 1 }, transition: { duration: 0.4, delay: 0.4, ease: 'easeOut' } })}
                     />
                   </motion.svg>
                   <motion.p
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.7, duration: 0.4 }}
+                    {...(prefersReducedMotion ? {} : { initial: { opacity: 0, y: 5 }, animate: { opacity: 1, y: 0 }, transition: { delay: 0.7, duration: 0.4 } })}
                     className="font-body text-body-sm text-ink-faded"
                   >
                     {t('stories.newsletter.success')}

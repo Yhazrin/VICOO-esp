@@ -46,7 +46,7 @@ function ClockIcon() {
   );
 }
 
-function CheckmarkIcon() {
+function CheckmarkIcon({ prefersReducedMotion }: { prefersReducedMotion: boolean | null }) {
   return (
     <motion.svg
       className="w-12 h-12 text-rust"
@@ -54,17 +54,13 @@ function CheckmarkIcon() {
       fill="none"
       stroke="currentColor"
       strokeWidth={1.5}
-      initial={{ pathLength: 0 }}
-      animate={{ pathLength: 1 }}
-      transition={{ duration: 0.6, ease: [0, 0, 0.2, 1] }}
+      {...(prefersReducedMotion ? {} : { initial: { pathLength: 0 }, animate: { pathLength: 1 }, transition: { duration: 0.6, ease: [0, 0, 0.2, 1] } })}
     >
       <motion.path
         strokeLinecap="round"
         strokeLinejoin="round"
         d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-        initial={{ pathLength: 0 }}
-        animate={{ pathLength: 1 }}
-        transition={{ duration: 0.6, ease: [0, 0, 0.2, 1] }}
+        {...(prefersReducedMotion ? {} : { initial: { pathLength: 0 }, animate: { pathLength: 1 }, transition: { duration: 0.6, ease: [0, 0, 0.2, 1] } })}
       />
     </motion.svg>
   );
@@ -140,10 +136,10 @@ function FAQItem({
       <button
         type="button"
         onClick={onToggle}
-        className="w-full flex items-start justify-between gap-4 py-5 text-left group"
+        className="w-full flex items-start justify-between gap-4 py-5 text-left group cursor-pointer"
         aria-expanded={isOpen}
       >
-        <span className="font-display text-base md:text-lg font-semibold text-ink group-hover:text-rust transition-colors duration-200">
+        <span className="font-display text-body md:text-h3 font-semibold text-ink group-hover:text-rust transition-colors duration-200">
           {question}
         </span>
         <ChevronIcon isOpen={isOpen} />
@@ -158,7 +154,7 @@ function FAQItem({
             transition={{ duration: 0.35, ease: [0, 0, 0.2, 1] }}
             className="overflow-hidden"
           >
-            <p className="font-body text-body-sm md:text-base text-ink-faded leading-[1.75] pb-6 pr-8">
+            <p className="font-body text-body-sm md:text-body text-ink-faded leading-[1.75] pb-6 pr-8">
               {answer}
             </p>
           </motion.div>
@@ -171,9 +167,11 @@ function FAQItem({
 function ContactInfoCard({
   card,
   index,
+  prefersReducedMotion,
 }: {
   card: ContactCardData;
   index: number;
+  prefersReducedMotion: boolean | null;
 }) {
   const { t } = useTranslation();
   const [ref, isVisible] = useScrollReveal<HTMLDivElement>();
@@ -181,13 +179,15 @@ function ContactInfoCard({
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 30 }}
-      animate={isVisible ? { opacity: 1, y: 0 } : {}}
-      transition={{
-        duration: 0.6,
-        ease: [0, 0, 0.2, 1],
-        delay: index * 0.15,
-      }}
+      {...(prefersReducedMotion ? {} : {
+        initial: { opacity: 0, y: 30 },
+        animate: isVisible ? { opacity: 1, y: 0 } : {},
+        transition: {
+          duration: 0.6,
+          ease: [0, 0, 0.2, 1],
+          delay: index * 0.15,
+        },
+      })}
       className="group"
     >
       <div className="relative border-2 border-warm-gray/50 bg-paper overflow-hidden">
@@ -429,13 +429,13 @@ export default function Contact() {
                   <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-rust/30 pointer-events-none" />
 
                   <div className="relative z-10 flex flex-col items-center">
-                    <CheckmarkIcon />
+                    <CheckmarkIcon prefersReducedMotion={prefersReducedMotion} />
 
                     <h3 className="font-display text-h3 font-bold text-ink mt-6">
                       {t('contact.form.successTitle')}
                     </h3>
 
-                    <p className="font-body text-body-sm md:text-base text-ink-faded mt-3 max-w-md leading-relaxed">
+                    <p className="font-body text-body-sm md:text-body text-ink-faded mt-3 max-w-md leading-relaxed">
                       {t('contact.form.success')}
                     </p>
 
@@ -444,7 +444,7 @@ export default function Contact() {
                       onClick={resetForm}
                       whileHover={prefersReducedMotion ? undefined : { scale: 1.01 }}
                       whileTap={prefersReducedMotion ? undefined : { scale: 0.99 }}
-                      className="mt-8 font-body text-body-sm tracking-[0.15em] uppercase border-2 border-ink text-ink px-8 py-3 hover:bg-ink hover:text-paper transition-colors duration-300"
+                      className="mt-8 font-body text-body-sm tracking-[0.15em] uppercase border-2 border-ink text-ink px-8 py-3 hover:bg-ink hover:text-paper transition-colors duration-300 cursor-pointer"
                     >
                       {t('contact.form.submit')}
                     </motion.button>
@@ -548,7 +548,7 @@ export default function Contact() {
                         value={formData.message}
                         onChange={handleChange('message')}
                         rows={5}
-                        whileFocus={{ scale: 1.005 }}
+                        whileFocus={prefersReducedMotion ? undefined : { scale: 1.005 }}
                         className={`
                           w-full font-body text-body-sm py-3 px-3
                           border-b-2 bg-transparent
@@ -591,7 +591,7 @@ export default function Contact() {
                       disabled={status === 'sending'}
                       whileHover={prefersReducedMotion ? undefined : { scale: 1.01 }}
                       whileTap={prefersReducedMotion ? undefined : { scale: 0.99 }}
-                      className="font-body text-body-sm tracking-[0.15em] uppercase bg-ink text-paper px-10 py-4 hover:bg-rust transition-colors duration-300 disabled:opacity-60 flex items-center gap-3"
+                      className="font-body text-body-sm tracking-[0.15em] uppercase bg-ink text-paper px-10 py-4 hover:bg-rust transition-colors duration-300 disabled:opacity-60 flex items-center gap-3 cursor-pointer"
                     >
                       {status === 'sending' ? (
                         <>
@@ -631,7 +631,7 @@ export default function Contact() {
                 </span>
                 <a
                   href={`mailto:${t('contact.info.email')}`}
-                  className="block font-display text-xl font-semibold text-ink mt-2 hover:text-rust transition-colors"
+                  className="block font-display text-h3 font-semibold text-ink mt-2 hover:text-rust transition-colors cursor-pointer"
                 >
                   {t('contact.info.email')}
                 </a>
@@ -641,7 +641,7 @@ export default function Contact() {
                 <span className="font-body text-caption text-sepia-mid tracking-[0.2em] uppercase">
                   WeChat
                 </span>
-                <p className="font-display text-xl font-semibold text-ink mt-2">
+                <p className="font-display text-h3 font-semibold text-ink mt-2">
                   {t('contact.info.wechat')}
                 </p>
               </div>
@@ -650,7 +650,7 @@ export default function Contact() {
                 <span className="font-body text-caption text-sepia-mid tracking-[0.2em] uppercase">
                   Location
                 </span>
-                <p className="font-display text-xl font-semibold text-ink mt-2">
+                <p className="font-display text-h3 font-semibold text-ink mt-2">
                   {t('contact.info.address')}
                 </p>
               </div>
@@ -676,7 +676,7 @@ export default function Contact() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
           {CONTACT_CARDS.map((card, index) => (
-            <ContactInfoCard key={card.imageSeed} card={card} index={index} />
+            <ContactInfoCard key={card.imageSeed} card={card} index={index} prefersReducedMotion={prefersReducedMotion} />
           ))}
         </div>
       </SectionContainer>

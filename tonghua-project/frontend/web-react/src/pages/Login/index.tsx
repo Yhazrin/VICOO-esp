@@ -147,6 +147,8 @@ export default function Login() {
           </motion.form>
         </div>
       </div>
+
+      <div className="editorial-divider" />
     </PageWrapper>
   );
 }

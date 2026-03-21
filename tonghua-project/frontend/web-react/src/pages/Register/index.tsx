@@ -169,6 +169,8 @@ export default function Register() {
           </motion.form>
         </div>
       </div>
+
+      <div className="editorial-divider" />
     </PageWrapper>
   );
 }
