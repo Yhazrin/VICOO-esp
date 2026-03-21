@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-03-22 — Cycle 8: TypeScript Safety & Backend Code Quality
+
+### TypeScript
+
+- **CampaignDetail mock data IDs** — Converted 15 string-typed mock IDs (`'1'`, `'a1'`, `'c1'`, `'g1'`) to numeric literals matching `Product.id: number` type.
+- **Campaigns/index.tsx mock data IDs** — Converted 6 string-typed mock IDs (`'1'`–`'6'`) to numbers.
+- **Traceability mock data** — Fixed string→number IDs + `highlightedId` state type to `number | null`.
+- **ProductDetail supply chain mock** — Converted 7 string-typed mock IDs (`'sc1'`–`'sc6'`) to numbers.
+- **cartStore parameter types** — Changed `removeItem(productId: string)` and `updateQuantity(productId: string, ...)` to `number` matching `Product.id`.
+- **ProductDetail imageUrls** — Removed references to non-existent `imageUrls` property; derived local `productImages` from `product.image_url`.
+
+### Backend
+
+- **auth.py code deduplication** — Extracted `_set_auth_cookies()` helper, replacing 7 identical cookie-setting blocks. File reduced from 528 to 406 lines (~23%).
+- **auth.py info leakage** — Removed 4 logger lines that logged `is_secure` values, `APP_ENV`, and response headers in production.
+- **products.py route ordering** — Moved `GET /{product_id}/supply-chain` before wildcard `GET /{product_id}` to prevent route shadowing.
+
 ## 2026-03-22 — Cycle 7: Frontend Page Expansion & Service Completion
 
 ### Features

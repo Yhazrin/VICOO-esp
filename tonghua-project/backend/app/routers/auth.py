@@ -23,11 +23,11 @@ logger = logging.getLogger("tonghua.auth")
 # Ensure the logger has a handler and level set
 if not logger.handlers:
     handler = logging.StreamHandler()
-    handler.setLevel(logging.DEBUG)
+    handler.setLevel(logging.DEBUG if settings.APP_ENV == "development" else logging.INFO)
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(name)s - %(message)s')
     handler.setFormatter(formatter)
     logger.addHandler(handler)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.DEBUG if settings.APP_ENV == "development" else logging.INFO)
 logger.propagate = True
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -50,10 +50,32 @@ def _get_mock_user(email: str) -> dict | None:
     return None
 
 
+def _set_auth_cookies(response: JSONResponse, access_token: str, refresh_token: str) -> JSONResponse:
+    """Set auth tokens as httpOnly cookies."""
+    is_secure = settings.APP_ENV != "development"
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=is_secure,
+        samesite="lax",
+        max_age=7 * 24 * 60 * 60,  # 7 days
+    )
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=is_secure,
+        samesite="lax",
+        max_age=15 * 60,  # 15 minutes
+    )
+    return response
+
+
 @router.post("/login")
 async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
     """Login via email+password or WeChat code."""
-    logger.debug(f"Login attempt: email={body.email}, has_wechat_code={bool(body.wechat_code)}, APP_ENV={settings.APP_ENV}")
+    logger.debug("Login attempt")
 
     # ── WeChat login ──
     if body.wechat_code:
@@ -63,11 +85,14 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
             raise HTTPException(status_code=500, detail="WeChat configuration is missing")
 
         async with httpx.AsyncClient() as client:
-            wx_response = await client.get(
-                f"https://api.weixin.qq.com/sns/jscode2session?"
-                f"appid={settings.WECHAT_APP_ID}&"
-                f"secret={settings.WECHAT_APP_SECRET}&"
-                f"js_code={body.wechat_code}&grant_type=authorization_code"
+            wx_response = await client.post(
+                "https://api.weixin.qq.com/sns/jscode2session",
+                data={
+                    "appid": settings.WECHAT_APP_ID,
+                    "secret": settings.WECHAT_APP_SECRET,
+                    "js_code": body.wechat_code,
+                    "grant_type": "authorization_code",
+                },
             )
 
             if wx_response.status_code != 200:
@@ -88,8 +113,6 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
             token = create_access_token(subject=openid, role="user", extra={"openid": openid})
             refresh = create_refresh_token(subject=openid)
 
-            # Set refresh token as httpOnly cookie
-            is_secure = settings.APP_ENV != "development"
             response_data = ApiResponse(
                 success=True,
                 data={
@@ -102,26 +125,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
                 status_code=200,
                 content=response_data.model_dump(),
             )
-            # Set refresh token as httpOnly cookie
-            # Use samesite="lax" for development (works with HTTP)
-            # In production, use samesite="lax" for better security
-            json_response.set_cookie(
-                key="refresh_token",
-                value=refresh,
-                httponly=True,
-                secure=is_secure,
-                samesite="lax",
-                max_age=7 * 24 * 60 * 60,  # 7 days
-            )
-            # Set access token as regular cookie (not httpOnly) so frontend can read it
-            json_response.set_cookie(
-                key="access_token",
-                value=token,
-                httponly=False,
-                secure=is_secure,
-                samesite="lax",
-                max_age=15 * 60,  # 15 minutes
-            )
+            _set_auth_cookies(json_response, token, refresh)
             return json_response
 
     if not body.email or not body.password:
@@ -139,8 +143,6 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
             if verify_password(body.password, user.password_hash):
                 token = create_access_token(subject=str(user.id), role=user.role)
                 refresh = create_refresh_token(subject=str(user.id))
-                # Set refresh token as httpOnly cookie
-                is_secure = settings.APP_ENV != "development"
                 response_data = ApiResponse(
                     success=True,
                     data={
@@ -153,24 +155,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
                     status_code=200,
                     content=response_data.model_dump(),
                 )
-                # Set refresh token as httpOnly cookie
-                json_response.set_cookie(
-                    key="refresh_token",
-                    value=refresh,
-                    httponly=True,
-                    secure=is_secure,
-                    samesite="lax",
-                    max_age=7 * 24 * 60 * 60,  # 7 days
-                )
-                # Set access token as regular cookie (not httpOnly) so frontend can read it
-                json_response.set_cookie(
-                    key="access_token",
-                    value=token,
-                    httponly=False,
-                    secure=is_secure,
-                    samesite="lax",
-                    max_age=15 * 60,  # 15 minutes
-                )
+                _set_auth_cookies(json_response, token, refresh)
                 return json_response
             else:
                 # User exists but password is wrong
@@ -187,7 +172,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
 
     # ── Mock fallback (development only) ──
     # Only use mock users in explicit development mode
-    logger.debug(f"Mock fallback: APP_ENV={settings.APP_ENV}, MOCK_USER_PASSWORD={settings.MOCK_USER_PASSWORD[:4] if settings.MOCK_USER_PASSWORD else 'None'}...")
+    logger.debug(f"Mock fallback: APP_ENV={settings.APP_ENV}")
     if settings.APP_ENV == "development":
         logger.debug("Development mode, checking mock users")
         mock = _get_mock_user(body.email)
@@ -197,15 +182,13 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
             # Security: Validate password even for mock users
             # Use environment variable for mock password (no default)
             mock_password = settings.MOCK_USER_PASSWORD
-            logger.debug(f"Mock password check: expected={mock_password[:4] if mock_password else 'None'}..., provided={body.password[:4] if body.password else 'None'}...")
+            logger.debug("Mock password check: validating credentials")
             if mock_password != body.password:
                 logger.debug("Mock password verification failed")
                 raise HTTPException(status_code=401, detail="Invalid credentials")
             logger.debug("Mock password verification passed")
             token = create_access_token(subject=str(mock["id"]), role=mock["role"])
             refresh = create_refresh_token(subject=str(mock["id"]))
-            # Set refresh token as httpOnly cookie
-            is_secure = settings.APP_ENV != "development"
             response_data = ApiResponse(
                 success=True,
                 data={
@@ -219,25 +202,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
                 status_code=200,
                 content=response_data.model_dump(),
             )
-            # Use samesite="lax" for development (works with HTTP)
-            # In production, use samesite="lax" for better security
-            json_response.set_cookie(
-                key="refresh_token",
-                value=refresh,
-                httponly=True,
-                secure=is_secure,
-                samesite="lax",
-                max_age=7 * 24 * 60 * 60,  # 7 days
-            )
-            # Set access token as regular cookie (not httpOnly) so frontend can read it
-            json_response.set_cookie(
-                key="access_token",
-                value=token,
-                httponly=False,
-                secure=is_secure,
-                samesite="lax",
-                max_age=15 * 60,  # 15 minutes
-            )
+            _set_auth_cookies(json_response, token, refresh)
             return json_response
     else:
         # Production: no mock fallback, strict authentication
@@ -267,11 +232,6 @@ async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
         await db.flush()
         token = create_access_token(subject=str(user.id), role=user.role)
         refresh = create_refresh_token(subject=str(user.id))
-        # Set refresh token as httpOnly cookie
-        # In development, secure=False to allow HTTP cookies
-        is_secure = settings.APP_ENV != "development"
-
-        logger.info(f"Register: is_secure={is_secure}, APP_ENV={settings.APP_ENV}")
 
         response_data = ApiResponse(
             success=True,
@@ -282,30 +242,12 @@ async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
             message="Registration successful",
         )
 
-        # Create JSONResponse to preserve cookies
         json_response = JSONResponse(
             status_code=201,
             content=response_data.model_dump(),
         )
-        logger.info(f"Register: About to set cookie, refresh_token={refresh[:20]}...")
-        json_response.set_cookie(
-            key="refresh_token",
-            value=refresh,
-            httponly=True,
-            secure=is_secure,
-            samesite="lax",
-            max_age=7 * 24 * 60 * 60,  # 7 days
-        )
-        # Set access token as regular cookie (not httpOnly) so frontend can read it
-        json_response.set_cookie(
-            key="access_token",
-            value=token,
-            httponly=False,
-            secure=is_secure,
-            samesite="lax",
-            max_age=15 * 60,  # 15 minutes
-        )
-        logger.info(f"Register: Cookie set, headers={dict(json_response.headers)}")
+        logger.info("User registered successfully")
+        _set_auth_cookies(json_response, token, refresh)
         return json_response
     except HTTPException:
         raise
@@ -326,9 +268,6 @@ async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
         _mock_users.append(new_user)
         token = create_access_token(subject=str(new_id), role="user")
         refresh = create_refresh_token(subject=str(new_id))
-        # Set refresh token as httpOnly cookie
-        # In development, secure=False to allow HTTP cookies
-        is_secure = settings.APP_ENV != "development"
 
         response_data = ApiResponse(
             success=True,
@@ -339,31 +278,12 @@ async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
             message="Registration successful (mock development mode)",
         )
 
-        # Create JSONResponse to preserve cookies
         json_response = JSONResponse(
             status_code=201,
             content=response_data.model_dump(),
         )
-        logger.info(f"Mock Register: is_secure={is_secure}, APP_ENV={settings.APP_ENV}")
-        logger.info(f"Mock Register: About to set cookie, refresh_token={refresh[:20]}...")
-        json_response.set_cookie(
-            key="refresh_token",
-            value=refresh,
-            httponly=True,
-            secure=is_secure,
-            samesite="lax",
-            max_age=7 * 24 * 60 * 60,  # 7 days
-        )
-        # Set access token as regular cookie (not httpOnly) so frontend can read it
-        json_response.set_cookie(
-            key="access_token",
-            value=token,
-            httponly=False,
-            secure=is_secure,
-            samesite="lax",
-            max_age=15 * 60,  # 15 minutes
-        )
-        logger.info(f"Mock Register: Cookie set, headers={dict(json_response.headers)}")
+        logger.info("Mock user registered successfully")
+        _set_auth_cookies(json_response, token, refresh)
         return json_response
 
 
@@ -385,11 +305,14 @@ async def wx_login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=500, detail="WeChat configuration is missing")
 
     async with httpx.AsyncClient() as client:
-        wx_response = await client.get(
-            f"https://api.weixin.qq.com/sns/jscode2session?"
-            f"appid={settings.WECHAT_APP_ID}&"
-            f"secret={settings.WECHAT_APP_SECRET}&"
-            f"js_code={body.wechat_code}&grant_type=authorization_code"
+        wx_response = await client.post(
+            "https://api.weixin.qq.com/sns/jscode2session",
+            data={
+                "appid": settings.WECHAT_APP_ID,
+                "secret": settings.WECHAT_APP_SECRET,
+                "js_code": body.wechat_code,
+                "grant_type": "authorization_code",
+            },
         )
 
         if wx_response.status_code != 200:
@@ -414,10 +337,6 @@ async def wx_login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
         token = create_access_token(subject=openid, role="user", extra={"openid": openid})
         refresh = create_refresh_token(subject=openid)
 
-        # Set refresh token as httpOnly cookie
-        # In development, secure=False to allow HTTP cookies
-        is_secure = settings.APP_ENV != "development"
-
         response_data = ApiResponse(
             success=True,
             data=TokenResponse(
@@ -430,23 +349,7 @@ async def wx_login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
             status_code=200,
             content=response_data.model_dump(),
         )
-        json_response.set_cookie(
-            key="refresh_token",
-            value=refresh,
-            httponly=True,
-            secure=is_secure,
-            samesite="lax",
-            max_age=7 * 24 * 60 * 60,  # 7 days
-        )
-        # Set access token as regular cookie (not httpOnly) so frontend can read it
-        json_response.set_cookie(
-            key="access_token",
-            value=token,
-            httponly=False,
-            secure=is_secure,
-            samesite="lax",
-            max_age=15 * 60,  # 15 minutes
-        )
+        _set_auth_cookies(json_response, token, refresh)
         return json_response
 
 
@@ -467,8 +370,6 @@ async def refresh(request: Request):
         role = payload.get("role", "user")
         new_access = create_access_token(subject=sub, role=role)
         new_refresh = create_refresh_token(subject=sub)
-        # Set new refresh token as httpOnly cookie
-        is_secure = settings.APP_ENV != "development"
 
         response_data = ApiResponse(
             success=True,
@@ -481,24 +382,7 @@ async def refresh(request: Request):
             status_code=200,
             content=response_data.model_dump(),
         )
-        # Set refresh token as httpOnly cookie
-        json_response.set_cookie(
-            key="refresh_token",
-            value=new_refresh,
-            httponly=True,
-            secure=is_secure,
-            samesite="lax",
-            max_age=7 * 24 * 60 * 60,  # 7 days
-        )
-        # Set access token as regular cookie (not httpOnly) so frontend can read it
-        json_response.set_cookie(
-            key="access_token",
-            value=new_access,
-            httponly=False,
-            secure=is_secure,
-            samesite="lax",
-            max_age=15 * 60,  # 15 minutes
-        )
+        _set_auth_cookies(json_response, new_access, new_refresh)
         return json_response
     except HTTPException:
         raise

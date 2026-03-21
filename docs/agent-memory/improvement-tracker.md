@@ -1,6 +1,7 @@
 # Improvement Tracker
 
 > Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 7)
+> Scope broadened: now covers frontend UI/UX + backend architecture + software architecture + sustainability + code quality
 
 ## Completed
 
@@ -124,6 +125,20 @@
 | 96 | Frontend — auth.ts missing updateProfile method | Medium | ✅ done — added `updateProfile` mapping to PUT /users/me |
 | 97 | Frontend — products.ts missing getCategories method | Low | ✅ done — added `getCategories` mapping to GET /products/categories |
 | 98 | Frontend — payments.ts service file missing | Medium | ✅ done — created with create + getById methods, added Payment type to types/index.ts |
+
+## Completed — Cycle 8 (2026-03-22)
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 99 | TypeScript — CampaignDetail mock data string→number IDs (15 errors) | High | ✅ done — `'1'`→`1`, `'a1'`→`1`, `'c1'`→`1`, `'g1'`→`1` |
+| 100 | TypeScript — Campaigns/index.tsx mock data string→number IDs (6 errors) | High | ✅ done — `'1'`-`'6'` → `1`-`6` |
+| 101 | TypeScript — Traceability mock data string→number IDs + state type (6 errors) | High | ✅ done — mock IDs + `highlightedId: number \| null` |
+| 102 | TypeScript — ProductDetail supply chain mock string→number IDs (7 errors) | High | ✅ done — `'sc1'`-`'sc6'` → `1`-`6` |
+| 103 | TypeScript — cartStore removeItem/updateQuantity param string→number (3 errors) | High | ✅ done — params now `number` matching `Product.id` |
+| 104 | TypeScript — ProductDetail imageUrls non-existent property (4 errors) | High | ✅ done — derived local `productImages` from `product.image_url` |
+| 105 | Backend — auth.py duplicated cookie-setting code (7 occurrences) | Medium | ✅ done — extracted `_set_auth_cookies()` helper, 528→406 lines |
+| 106 | Backend — auth.py info-leaking logger calls | High | ✅ done — removed 4 lines logging `is_secure`, `APP_ENV`, response headers |
+| 107 | Backend — products.py route ordering: `/{product_id}` shadows `/{product_id}/supply-chain` | High | ✅ done — moved supply-chain route before wildcard |
 
 ## Pending
 
