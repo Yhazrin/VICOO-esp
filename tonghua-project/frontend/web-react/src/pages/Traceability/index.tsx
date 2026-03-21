@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, useInView, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Link } from 'react-router-dom';
@@ -11,6 +11,7 @@ import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
 import type { SupplyChainRecord } from '@/types';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
+import { supplyChainApi } from '@/services/supply-chain';
 
 // Extended record with story, image, and status for enhanced timeline
 interface EnhancedSupplyChainRecord extends SupplyChainRecord {
@@ -426,9 +427,31 @@ export default function Traceability() {
   const [isSearching, setIsSearching] = useState(false);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [searchResult, setSearchResult] = useState<EnhancedSupplyChainRecord | null>(null);
+  const [records, setRecords] = useState<EnhancedSupplyChainRecord[]>(MOCK_RECORDS);
 
-  // Handle product lookup
-  const handleSearch = (query: string) => {
+  // Fetch supply chain records from API on mount (fallback to mock)
+  useEffect(() => {
+    let cancelled = false;
+    supplyChainApi
+      .getRecords({ page_size: 50 })
+      .then((res) => {
+        if (cancelled || !res.items.length) return;
+        const mapped: EnhancedSupplyChainRecord[] = res.items.map((r, i) => ({
+          ...r,
+          story: MOCK_RECORDS[i]?.story ?? r.description,
+          imageUrl: MOCK_RECORDS[i]?.imageUrl ?? `https://picsum.photos/seed/stage-${r.stage}/200/200`,
+          status: (r.verified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
+        }));
+        setRecords(mapped);
+      })
+      .catch(() => {
+        // Keep mock data on failure
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  // Handle product lookup — try API trace, fallback to local search
+  const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
     setHighlightedId(null);
     setSearchResult(null);
@@ -437,22 +460,37 @@ export default function Traceability() {
 
     setIsSearching(true);
 
-    // Simulate lookup delay
-    setTimeout(() => {
-      const found = MOCK_RECORDS.find(
-        (r) =>
-          r.id === query.trim() ||
-          r.partnerName.toLowerCase().includes(query.toLowerCase()) ||
-          query.toUpperCase().includes('VICOO')
-      );
-
-      if (found) {
-        setHighlightedId(found.id);
-        setSearchResult(found);
-      }
-      setIsSearching(false);
-    }, 1200);
-  };
+    supplyChainApi
+      .trace(query.trim())
+      .then((trace) => {
+        if (trace.records.length > 0) {
+          const first = trace.records[0];
+          const enhanced: EnhancedSupplyChainRecord = {
+            ...first,
+            story: MOCK_RECORDS.find((m) => m.stage === first.stage)?.story ?? first.description,
+            imageUrl: MOCK_RECORDS.find((m) => m.stage === first.stage)?.imageUrl ?? `https://picsum.photos/seed/${first.stage}/200/200`,
+            status: (first.verified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
+          };
+          setHighlightedId(enhanced.id);
+          setSearchResult(enhanced);
+        }
+        setIsSearching(false);
+      })
+      .catch(() => {
+        // Fallback: local search through records
+        const found = records.find(
+          (r) =>
+            r.id === query.trim() ||
+            r.partnerName.toLowerCase().includes(query.toLowerCase()) ||
+            query.toUpperCase().includes('VICOO')
+        );
+        if (found) {
+          setHighlightedId(found.id);
+          setSearchResult(found);
+        }
+        setIsSearching(false);
+      });
+  }, [records]);
 
   const reductionPercent = Math.round(
     ((CARBON_DATA.conventional - CARBON_DATA.vicoo) / CARBON_DATA.conventional) * 100
@@ -616,7 +654,7 @@ export default function Traceability() {
                       {t('traceability.lookup.highlighted')}
                     </span>
                     <p className="font-body text-caption text-ink-faded mt-1 leading-relaxed">
-                      {MOCK_RECORDS.find((r) => r.id === highlightedId)?.description}
+                      {records.find((r) => r.id === highlightedId)?.description}
                     </p>
                   </motion.div>
                 )}
@@ -626,7 +664,7 @@ export default function Traceability() {
 
           {/* Enhanced Timeline with scroll-drawn connector */}
           <div className="md:col-span-7 md:order-1 relative" ref={timelineRef}>
-            <EnhancedTimeline records={MOCK_RECORDS} t={t} />
+            <EnhancedTimeline records={records} t={t} />
 
             {/* Vertical scroll-drawn connecting line alongside timeline */}
             <div className="absolute top-0 -left-6 bottom-0 w-px hidden md:block" aria-hidden="true">
