@@ -1,5 +1,6 @@
 import os
 import logging
+import hmac
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
@@ -133,7 +134,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Email and password are required")
 
     # ── DB lookup ──
-    logger.debug(f"DB lookup for email: {body.email}")
+    logger.debug("DB lookup for login attempt")
     try:
         stmt = select(User).where(User.email == body.email)
         result = await db.execute(stmt)
@@ -159,7 +160,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
                 return json_response
             else:
                 # User exists but password is wrong
-                logger.debug(f"Password verification failed for user: {user.id}")
+                logger.debug("Password verification failed")
                 raise HTTPException(status_code=401, detail="Invalid credentials")
         # User not found in DB - continue to mock fallback in development mode
         logger.debug("User not found in DB, checking mock fallback")
@@ -167,7 +168,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
         raise
     except Exception as e:
         # DB error - continue to mock fallback in development mode
-        logger.debug(f"DB error during user lookup: {e}")
+        logger.debug("DB error during user lookup")
         pass
 
     # ── Mock fallback (development only) ──
@@ -176,14 +177,14 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
     if settings.APP_ENV == "development":
         logger.debug("Development mode, checking mock users")
         mock = _get_mock_user(body.email)
-        logger.debug(f"Mock lookup: email={body.email}, mock={mock}")
+        logger.debug("Mock lookup: checking mock users")
         if mock:
             logger.debug(f"Mock user found: id={mock['id']}, role={mock['role']}")
             # Security: Validate password even for mock users
             # Use environment variable for mock password (no default)
             mock_password = settings.MOCK_USER_PASSWORD
             logger.debug("Mock password check: validating credentials")
-            if mock_password != body.password:
+            if not hmac.compare_digest(mock_password, body.password):
                 logger.debug("Mock password verification failed")
                 raise HTTPException(status_code=401, detail="Invalid credentials")
             logger.debug("Mock password verification passed")

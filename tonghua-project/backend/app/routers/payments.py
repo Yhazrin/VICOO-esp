@@ -244,7 +244,7 @@ async def wechat_notify(request: Request, db: AsyncSession = Depends(get_db)):
     except Exception as e:
         logger.error(f"WeChat callback processing error: {str(e)}")
         return Response(
-            content=f"<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[{str(e)}]]></return_msg></xml>",
+            content="<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[Internal processing error]]></return_msg></xml>",
             media_type="application/xml"
         )
 
@@ -305,7 +305,8 @@ async def alipay_notify(request: Request, db: AsyncSession = Depends(get_db)):
                 logger.error(f"Alipay signature verification failed: {verify_error}")
                 return PlainTextResponse("failure")
         else:
-            logger.warning("ALIPAY_PUBLIC_KEY not configured, skipping signature verification")
+            logger.error("ALIPAY_PUBLIC_KEY not configured, rejecting callback")
+            return PlainTextResponse("failure")
 
         # --- Check trade status ---
         trade_status = params.get("trade_status", "")

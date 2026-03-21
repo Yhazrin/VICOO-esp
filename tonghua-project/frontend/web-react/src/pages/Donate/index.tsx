@@ -421,6 +421,10 @@ export default function Donate() {
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                     whileHover={prefersReducedMotion ? undefined : { y: -4 }}
                     className="border border-warm-gray/30 p-6 bg-paper hover:border-sage/30 transition-colors cursor-pointer relative"
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`${quarter} financial report`}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') e.preventDefault(); }}
                   >
                     {/* Corner accents */}
                     <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-sage/30 pointer-events-none" />

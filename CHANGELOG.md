@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-03-22 — Cycle 16: Comprehensive Security, Accessibility & TypeScript Fixes
+
+### Security
+
+- **auth.py timing attack fix** — Login password comparison and WeChat mock password check changed to `hmac.compare_digest()` to prevent timing-based user enumeration.
+- **auth.py PII log sanitization** — Removed email/password from error logs on login failure and email from registration success logs.
+- **payment_service.py timing attack fix** — WeChat Pay signature verification changed to `hmac.compare_digest()` for constant-time comparison.
+- **payments.py fail-open → fail-closed** — Alipay notify handler now rejects callbacks when `ALIPAY_PUBLIC_KEY` is missing (previously logged warning and continued accepting). Also removed exception detail leak in WeChat error response.
+
+### Accessibility
+
+- **ProductCard reduced-motion opacity fix** — Fixed unguarded `initial` prop on motion div where reduced-motion branch incorrectly set `opacity: 0` (elements invisible). Changed to `initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 5 }}`.
+- **HeroFloatingCards keyboard accessibility** — Added `role="button"`, `tabIndex={0}`, `aria-label`, and `onKeyDown` (Enter/Space) to organic badge interactive element.
+- **Donate quarter report cards keyboard accessibility** — Added `role="button"`, `tabIndex={0}`, `aria-label`, and `onKeyDown` to animated quarter financial report cards.
+
+### TypeScript
+
+- **Traceability API integration rewrite** — Replaced non-existent `.trace()` calls with `.getProductJourney()`. Fixed `.getRecords({ page_size: 50 })` → `.getRecords()` (method takes optional `productId: string`, not options object). Removed `.items` access (method returns plain array). Added explicit field mapping with `Number(r.id)` to resolve `@/types` (id: number) vs `@/services/supply-chain` (id: string) type mismatch. Replaced `r.verified` with `r.certifications.length > 0`.
+- **Traceability dead code cleanup** — Removed unused `import { useQuery }`, duplicate `import { supplyChainApi }`, and dead `buildRecordsFromApi` function.
+- **Login/Register unused import cleanup** — Removed unused `import { MagazineDivider }` from both pages.
+- **ArtworkDetail handleVote fix** — Replaced broken callback pattern with `useMutation` for vote submission.
+
 ## 2026-03-22 — Cycle 8b: Backend Security Hardening
 
 ### Security

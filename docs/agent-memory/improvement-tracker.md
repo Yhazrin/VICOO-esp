@@ -1,6 +1,6 @@
 # Improvement Tracker
 
-> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 7)
+> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 16)
 > Scope broadened: now covers frontend UI/UX + backend architecture + software architecture + sustainability + code quality
 
 ## Completed
@@ -165,6 +165,26 @@
 | 126 | Backend — list_donations exposes PII to unauthenticated users | High | ✅ done — optional auth via get_optional_current_user, redact donor_name/message/donor_user_id |
 | 127 | Backend — deps.py missing optional auth dependency | Medium | ✅ done — get_optional_current_user() returns user dict or None, no exception on auth failure |
 | 128 | Backend — donations.py missing name redaction helper | Medium | ✅ done — _redact_name() masks names to first char + asterisks, handles anonymous flag |
+
+## Completed — Cycle 16 (2026-03-22)
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 129 | Backend — auth.py login password comparison vulnerable to timing attack | High | ✅ done — changed to hmac.compare_digest() |
+| 130 | Backend — auth.py login failure logs email/password (PII leak) | High | ✅ done — removed email/password from error log, email from register log |
+| 131 | Backend — payment_service.py WeChat sign verification timing attack | High | ✅ done — changed to hmac.compare_digest() |
+| 132 | Backend — payments.py alipay_notify fail-open when ALIPAY_PUBLIC_KEY missing | High | ✅ done — now raises HTTP 500 instead of logging warning and accepting |
+| 133 | Backend — payments.py WeChat error response leaks exception details | Medium | ✅ done — generic error message to client, details in server log only |
+| 134 | Frontend — ProductCard reduced-motion initial sets opacity:0 (invisible elements) | High | ✅ done — corrected to prefersReducedMotion ? { opacity:1 } : { opacity:0, y:5 } |
+| 135 | Frontend — HeroFloatingCards organic badge missing keyboard accessibility | Medium | ✅ done — added role=button, tabIndex, aria-label, onKeyDown |
+| 136 | Frontend — Donate quarter report cards missing keyboard accessibility | Medium | ✅ done — added role=button, tabIndex, aria-label, onKeyDown |
+| 137 | Frontend — Traceability .trace() non-existent method call | High | ✅ done — replaced with .getProductJourney() |
+| 138 | Frontend — Traceability .getRecords() wrong call signature (object vs string) | High | ✅ done — changed to .getRecords() no args |
+| 139 | Frontend — Traceability .items access on plain array return | High | ✅ done — treat result as array directly |
+| 140 | Frontend — Traceability type mismatch: service id:string vs types id:number | High | ✅ done — explicit Number(r.id) mapping |
+| 141 | Frontend — Traceability dead code: unused useQuery import, duplicate supplyChainApi import, dead buildRecordsFromApi function | Low | ✅ done — removed 3 unused code blocks |
+| 142 | Frontend — Login/Register unused MagazineDivider import | Low | ✅ done — removed from both files |
+| 143 | Frontend — ArtworkDetail broken handleVote callback pattern | Medium | ✅ done — replaced with useMutation |
 
 ## Pending
 
