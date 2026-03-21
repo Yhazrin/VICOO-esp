@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
@@ -7,8 +7,12 @@ import EditorialHero from '@/components/editorial/EditorialHero';
 import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeading';
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import FAQAccordion from '@/components/editorial/FAQAccordion';
+import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
+import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
 import { VintageInput } from '@/components/editorial/VintageInput';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
+
+const GRAIN_STYLE: React.CSSProperties = { backgroundImage: 'var(--grain-overlay)' };
 
 const MAX_MESSAGE_LENGTH = 1000;
 
@@ -34,7 +38,7 @@ function LocationIcon() {
   return (
     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.2} aria-hidden="true">
       <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 0115 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
     </svg>
   );
 }
@@ -48,6 +52,25 @@ function ClockIcon() {
 }
 
 function CheckmarkIcon({ prefersReducedMotion }: { prefersReducedMotion: boolean | null }) {
+  if (prefersReducedMotion) {
+    return (
+      <svg
+        aria-hidden="true"
+        className="w-12 h-12 text-rust"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={1.5}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
+      </svg>
+    );
+  }
+
   return (
     <motion.svg
       className="w-12 h-12 text-rust"
@@ -63,6 +86,25 @@ function CheckmarkIcon({ prefersReducedMotion }: { prefersReducedMotion: boolean
         d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
         {...(prefersReducedMotion ? {} : { initial: { pathLength: 0 }, animate: { pathLength: 1 }, transition: { duration: 0.6, ease: [0, 0, 0.2, 1] } })}
       />
+    </motion.svg>
+  );
+}
+
+function ChevronIcon({ isOpen }: { isOpen: boolean }) {
+  const prefersReducedMotion = useReducedMotion();
+  return (
+    <motion.svg
+      aria-hidden="true"
+      className="w-4 h-4 text-sepia-mid flex-shrink-0"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      animate={prefersReducedMotion ? {} : { rotate: isOpen ? 180 : 0 }}
+      transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3, ease: [0, 0, 0.2, 1] }}
+      style={prefersReducedMotion ? { transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' } : undefined}
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
     </motion.svg>
   );
 }
@@ -94,6 +136,59 @@ const CONTACT_CARDS: ContactCardData[] = [
     imageSeed: 'contact-clock',
   },
 ];
+
+function FAQItem({
+  question,
+  answer,
+  isOpen,
+  onToggle,
+  index,
+}: {
+  question: string;
+  answer: string;
+  isOpen: boolean;
+  onToggle: () => void;
+  index: number;
+}) {
+  const prefersReducedMotion = useReducedMotion();
+
+  return (
+    <motion.div
+      {...(prefersReducedMotion ? {} : { initial: { opacity: 0, y: 20 }, whileInView: { opacity: 1, y: 0 } })}
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.5, delay: index * 0.08 }}
+      className="border-b border-warm-gray/30"
+    >
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-start justify-between gap-4 py-5 text-left group cursor-pointer"
+        aria-expanded={isOpen}
+      >
+        <span className="font-display text-body md:text-h3 font-semibold text-ink group-hover:text-rust transition-colors duration-200">
+          {question}
+        </span>
+        <ChevronIcon isOpen={isOpen} />
+      </button>
+
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.35, ease: [0, 0, 0.2, 1] }}
+            className="overflow-hidden"
+          >
+            <p className="font-body text-body-sm md:text-body text-ink-faded leading-[1.75] pb-6 pr-8">
+              {answer}
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
 
 function ContactInfoCard({
   card,
@@ -210,6 +305,9 @@ export default function Contact() {
   });
   const [status, setStatus] = useState<FormStatus>('idle');
   const [errors, setErrors] = useState<FormErrors>({});
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+  const pullQuoteRef = useRef<HTMLDivElement>(null);
+
   // FAQ items from translations
   const faqItems = t('contact.faq.items', { returnObjects: true }) as Array<{
     question: string;
@@ -313,21 +411,34 @@ export default function Contact() {
         </div>
       </SectionContainer>
 
+      {/* Pull quote connector */}
+      <div ref={pullQuoteRef} className="relative max-w-[1400px] mx-auto px-6 md:px-10">
+        <ScrollPathDrawInline
+          path="M 0 0 C 20 40, 40 60, 60 30 S 100 80, 120 50"
+          strokeColor="var(--color-rust)"
+          strokeWidth={1}
+          className="absolute left-0 top-0 h-full w-16 pointer-events-none opacity-20"
+          containerRef={pullQuoteRef}
+        />
+        <StoryQuoteBlock
+          quote={t('contact.pullQuote.quote', { defaultValue: 'Every question is an invitation to understand our mission more deeply — and every answer is a chance to weave another thread of trust.' })}
+          author={t('contact.pullQuote.author', { defaultValue: 'VICOO Editorial' })}
+          role={t('contact.pullQuote.role', { defaultValue: 'Community Engagement' })}
+        />
+      </div>
+
       {/* Contact Form + Info */}
       <SectionContainer>
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-16">
           {/* Form */}
           <div className="md:col-span-7">
-            <NumberedSectionHeading number="02" title="Write to Us" />
+            <NumberedSectionHeading number="02" title={t('contact.formTitle')} />
 
             <AnimatePresence mode="wait">
               {status === 'success' ? (
                 <motion.div
                   key="success"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.5, ease: [0, 0, 0.2, 1] }}
+                  {...(prefersReducedMotion ? {} : { initial: { opacity: 0, scale: 0.95 }, animate: { opacity: 1, scale: 1 }, exit: { opacity: 0, scale: 0.95 }, transition: { duration: 0.5, ease: [0, 0, 0.2, 1] } })}
                   className="border-2 border-rust/30 bg-paper p-10 md:p-14 text-center relative"
                 >
                   {/* Grain overlay */}
@@ -368,11 +479,9 @@ export default function Contact() {
               ) : (
                 <motion.form
                   key="form"
+                  {...(prefersReducedMotion ? {} : { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 } })}
                   onSubmit={handleSubmit}
                   className="space-y-8"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
                   noValidate
                 >
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -542,7 +651,7 @@ export default function Contact() {
             <div className="space-y-8">
               <div>
                 <span className="font-body text-caption text-sepia-mid tracking-[0.2em] uppercase">
-                  Email
+                  {t('contact.info.emailLabel')}
                 </span>
                 <a
                   href={`mailto:${t('contact.info.email')}`}
@@ -554,7 +663,7 @@ export default function Contact() {
 
               <div>
                 <span className="font-body text-caption text-sepia-mid tracking-[0.2em] uppercase">
-                  WeChat
+                  {t('contact.info.wechatLabel')}
                 </span>
                 <p className="font-display text-h3 font-semibold text-ink mt-2">
                   {t('contact.info.wechat')}
@@ -563,7 +672,7 @@ export default function Contact() {
 
               <div>
                 <span className="font-body text-caption text-sepia-mid tracking-[0.2em] uppercase">
-                  Location
+                  {t('contact.info.locationLabel')}
                 </span>
                 <p className="font-display text-h3 font-semibold text-ink mt-2">
                   {t('contact.info.address')}
@@ -575,8 +684,8 @@ export default function Contact() {
             <div className="mt-12">
               <SepiaImageFrame
                 src="https://picsum.photos/seed/vicoo-shanghai-office/600/450"
-                alt="Our Shanghai office"
-                caption="Our Shanghai office"
+                alt={t('contact.info.officeCaption')}
+                caption={t('contact.info.officeCaption')}
                 aspectRatio="landscape"
                 size="full"
               />
@@ -587,7 +696,7 @@ export default function Contact() {
 
       {/* Contact Info Cards */}
       <SectionContainer>
-        <NumberedSectionHeading number="04" title="Get in Touch" />
+        <NumberedSectionHeading number="04" title={t('contact.contactTitle')} />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
           {CONTACT_CARDS.map((card, index) => (
@@ -596,7 +705,7 @@ export default function Contact() {
         </div>
       </SectionContainer>
 
-      <div className="editorial-divider" />
+      <div className="editorial-divider" aria-hidden="true" />
     </PageWrapper>
   );
 }

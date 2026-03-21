@@ -32,6 +32,7 @@ function TeamMemberCard({ name, roleKey, initials, imageIndex }: TeamMemberCardP
   const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   return (
     <motion.div
@@ -48,23 +49,25 @@ function TeamMemberCard({ name, roleKey, initials, imageIndex }: TeamMemberCardP
         }} aria-hidden="true" />
 
         {/* Sepia frame effect */}
-        <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/5 via-transparent to-archive-brown/5" />
+        <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/5 via-transparent to-archive-brown/5" aria-hidden="true" />
 
         {/* Decorative corner accents */}
-        <div className="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 border-rust/30 z-20 pointer-events-none" />
-        <div className="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 border-rust/30 z-20 pointer-events-none" />
+        <div className="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 border-rust/30 z-20 pointer-events-none" aria-hidden="true" />
+        <div className="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-rust/30 z-20 pointer-events-none" aria-hidden="true" />
+        <div className="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 border-rust/30 z-20 pointer-events-none" aria-hidden="true" />
+        <div className="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 border-rust/30 z-20 pointer-events-none" aria-hidden="true" />
 
         {/* Loading skeleton */}
-        {!imageLoaded && <ImageSkeleton className="absolute inset-0" aspectRatio="aspect-[3/4]" />}
+        {!imageLoaded && !imgError && <ImageSkeleton className="absolute inset-0" aspectRatio="aspect-[3/4]" />}
 
         {/* Fallback initials placeholder */}
-        <div
-          className="team-fallback absolute inset-0 z-5 hidden items-center justify-center bg-aged-stock"
-        >
-          <span className="font-display text-4xl font-bold text-rust/40">
-            {initials}
-          </span>
-        </div>
+        {imgError && (
+          <div className="absolute inset-0 z-[5] flex items-center justify-center bg-aged-stock">
+            <span className="font-display text-4xl font-bold text-rust/40">
+              {initials}
+            </span>
+          </div>
+        )}
 
         <img
           src={`https://picsum.photos/seed/vicoo-team-${imageIndex}/400/533`}
@@ -72,12 +75,7 @@ function TeamMemberCard({ name, roleKey, initials, imageIndex }: TeamMemberCardP
           className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 sepia-[0.05] ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
           loading="lazy"
           onLoad={() => setImageLoaded(true)}
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.style.display = 'none';
-            const fallback = target.parentElement?.querySelector('.team-fallback');
-            if (fallback) (fallback as HTMLElement).style.display = 'flex';
-          }}
+          onError={() => setImgError(true)}
         />
       </div>
       <h4 className="font-display text-base font-semibold text-ink group-hover:text-rust transition-colors">
@@ -113,7 +111,7 @@ export default function About() {
           </div>
           <div className="md:col-span-7 md:pt-8 relative">
             {/* Decorative vertical line alongside mission text */}
-            <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-rust/40 via-rust/20 to-transparent" />
+            <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-rust/40 via-rust/20 to-transparent" aria-hidden="true" />
             <p className="font-body text-base md:text-lg text-ink-faded leading-[1.85] editorial-drop-cap pl-6">
               {t('about.mission.body')}
             </p>
@@ -125,7 +123,7 @@ export default function About() {
       <div className="flex justify-center py-6" aria-hidden="true">
         <ScrollPathDrawInline
           path="M0,15 Q50,0 100,15 T200,15 T300,15 T400,15"
-          strokeColor="#8B3A2A"
+          strokeColor="var(--color-rust)"
           strokeWidth={1}
           className="w-80 h-8 opacity-60"
         />
@@ -165,10 +163,7 @@ export default function About() {
           {VALUES.map((key, i) => (
             <motion.article
               key={key}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-50px' }}
-              transition={{ duration: 0.5, delay: i * 0.12 }}
+              {...(prefersReducedMotion ? {} : { initial: { opacity: 0, y: 20 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, margin: '-50px' }, transition: { duration: 0.5, delay: i * 0.12 } })}
               whileHover={prefersReducedMotion ? undefined : { y: -3 }}
               className="border-t border-warm-gray/30 pt-6 cursor-default"
             >
@@ -213,7 +208,7 @@ export default function About() {
         </div>
       </SectionContainer>
 
-      <div className="editorial-divider" />
+      <div className="editorial-divider" aria-hidden="true" />
     </PageWrapper>
   );
 }
