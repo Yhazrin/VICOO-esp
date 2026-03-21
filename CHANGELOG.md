@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-03-22 — Cycle 13: TypeScript Fixes — Service/Type Alignment & Dead Code
+
+### TypeScript
+
+- **Login/index.tsx** — Removed unused `MagazineDivider` import (1 TS error).
+- **Register/index.tsx** — Removed unused `MagazineDivider` import (1 TS error).
+- **ArtworkDetail.tsx** — Added missing `useMutation`, `queryClient`, `error` from `@tanstack/react-query`; typed `useQuery` and `useMutation` properly; fixed `voteMutation` (7 TS errors).
+- **Traceability fetch effect** — Replaced `...r` spread (service `SupplyChainRecord` type) with explicit field mapping to match frontend `SupplyChainRecord` (`id: Number()`, `date: r.timestamp`, `verified` from `certifications.length`, `partnerName` from `productName`). Service type uses `id: string`/`timestamp`/`certifications` while frontend type uses `id: number`/`date`/`verified` (6 TS errors).
+- **Traceability search handler** — Replaced non-existent `supplyChainApi.trace()` with `supplyChainApi.getProductJourney()`. Fixed response shape: `getProductJourney` returns `SupplyChainRecord[]` directly, not `{ records: [...] }` wrapper. Fixed `first.verified` → derived from `first.certifications.length > 0` (3 TS errors).
+- **Traceability fallback search** — Fixed `r.id === query.trim()` (number vs string comparison) to `String(r.id) === query.trim()` (1 TS error).
+
+### Dead Code
+
+- **Traceability STAGE_MAP** — Removed unused constant leftover from deleted `buildRecordsFromApi` function.
+
 ## 2026-03-22 — Cycle 8b: Backend Security Hardening
 
 ### Security
