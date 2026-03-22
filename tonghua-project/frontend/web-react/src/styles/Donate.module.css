@@ -129,7 +129,7 @@
 }
 
 .customAmount__input::placeholder {
-  color: var(--color-warm-gray);
+  color: var(--color-sepia-mid);
 }
 
 .customAmount__input:focus {

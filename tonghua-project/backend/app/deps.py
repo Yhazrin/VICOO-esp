@@ -130,7 +130,7 @@ async def rate_limit_check(request: Request, current_user: Optional[dict] = None
                 raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
         # Public endpoint rate limit: 20 requests per minute per IP for auth endpoints
-        public_endpoints = ["/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/refresh", "/api/v1/auth/wx-login", "/api/v1/contact"]
+        public_endpoints = ["/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/refresh", "/api/v1/auth/wx-login"]
         if request.url.path in public_endpoints:
             public_key = f"rate_limit:public:{client_ip}:{int(current_time // 60)}"
             try:
@@ -175,9 +175,12 @@ async def rate_limit_check(request: Request, current_user: Optional[dict] = None
     except HTTPException:
         raise
     except Exception as e:
-        # Fail open but log warning for monitoring
-        logger.warning(f"Rate limiting failed unexpectedly (fail-open): {e}")
-        return True
+        # Fail closed in production: deny request when rate limiting is broken
+        if is_development:
+            logger.warning(f"Rate limiting error (development mode, failing open): {e}", exc_info=True)
+            return True
+        logger.error(f"Rate limiting error (failing closed): {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 async def get_current_user_from_request(request: Request, db: AsyncSession) -> Optional[dict]:
@@ -333,8 +336,7 @@ async def verify_request_signature(request: Request) -> tuple[bool, Optional[str
     # 使用 constant-time comparison 防止时序攻击
     if not hmac.compare_digest(expected_signature, signature):
         logger.warning(
-            f"Invalid signature for {request.method} {request.url.path}. "
-            f"Expected: {expected_signature[:16]}..., Got: {signature[:16]}..."
+            f"Invalid signature for {request.method} {request.url.path}"
         )
         return False, "Invalid signature"
 

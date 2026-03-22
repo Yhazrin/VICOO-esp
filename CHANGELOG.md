@@ -1,5 +1,126 @@
 # Changelog
 
+## 2026-03-22 — Cycle 25: P0 Security — Timing Attack + Payment Ownership Bypass
+
+### Backend
+
+- **auth.py timing attack fix** — Replaced `mock_password != body.password` (line 188) with `hmac.compare_digest(mock_password, body.password)`. Python's `!=` operator short-circuits on first mismatch, enabling character-by-character brute-force via timing side-channel. Added `import hmac`.
+- **payments.py ownership check bypass** — `create_payment` now raises HTTP 404 when `order_id` or `donation_id` references a non-existent record. Previously, if the order didn't exist in DB and wasn't found in mock fallback, the ownership check passed silently, allowing any authenticated user to create payment records against arbitrary non-existent orders. Added `order_found`/`donation_found` flags that must be `True` before proceeding.
+
+### Verification
+
+- Python `py_compile`: auth.py, payments.py pass
+- TypeScript `tsc --noEmit`: 0 errors
+
+---
+
+## 2026-03-22 — Cycle 24: Readability Fix, Home i18n, Import Cleanup
+
+### Frontend
+
+- **EditorialHeroV2 stat label readability** — Changed stat label font size from `text-[7px]` to `text-[9px]` (line 163). 7px is below readability threshold on most screens; 9px matches the eyebrow text size used elsewhere in the component.
+- **Home i18n — StoryQuoteBlock** — Replaced hardcoded `quote`, `author`, `role` props with `t('home.quote.text')`, `t('home.quote.author')`, `t('home.quote.role')`.
+- **Home i18n — Est. 2026** — Replaced hardcoded `"Est. 2026"` with `t('home.est')`. Added corresponding keys to en.json and zh.json.
+
+### Backend
+
+- **orders.py import cleanup** — Moved `import random` from inside `create_order` except block to top-level imports. Prevents potential `NameError` if the except path changes and eliminates a code quality anti-pattern.
+
+### Verification
+
+- TypeScript `tsc --noEmit`: 0 errors
+- Python `ast.parse`: all 10 router files pass
+
+## 2026-03-22 — Cycle 23: WAI-ARIA Tabs, Logging Cleanup, i18n Hardcoded Strings
+
+### Accessibility
+
+- **Stories WAI-ARIA tabs** — Added `id`, `aria-controls`, `tabIndex` (roving), `onKeyDown` (ArrowLeft/ArrowRight) to tab buttons. Wrapped content in `role="tabpanel"` with `id`/`aria-labelledby`. Added `aria-label` on tablist.
+- **Shop WAI-ARIA tabs** — Same treatment: full ARIA tab pattern with keyboard navigation and tabpanel wrapper.
+
+### Backend
+
+- **main.py rate limiting logging** — Changed 3 verbose `logger.info` calls in rate limit middleware to `logger.debug` to reduce production log noise.
+
+### Frontend
+
+- **Login i18n** — Replaced hardcoded Chinese "或" → `t('login.orContinueWith')`, "微信" → `t('login.wechat')`.
+- **Register i18n** — Replaced hardcoded Chinese "或" → `t('register.orContinueWith')`, "微信" → `t('register.wechat')`.
+
+### Verification
+
+- TypeScript `tsc --noEmit`: 0 errors
+- Python `ast.parse`: orders.py, donations.py, main.py all pass
+
+## 2026-03-22 — Cycle 22: TS Type Safety, Backend NameError Fix, Traceability Rewrite
+
+### Backend
+
+- **orders.py lazy singleton callers** — Fixed 2 call sites (WeChat + Alipay order creation) that referenced module-level `payment_service.create_unified_order(...)`. After Cycle 21's refactor to `get_payment_service()` lazy factory, these caused `NameError` at runtime. Changed to `get_payment_service().create_unified_order(...)`.
+- **auth.py /refresh privilege escalation** — `/refresh` endpoint now queries DB for the user's current role instead of trusting the JWT token payload. Prevents an attacker from crafting a refresh token with elevated `role: "admin"`. Added `db: AsyncSession` dependency.
+- **security.py refresh token role** — `create_refresh_token()` now accepts `role` parameter and includes it in the token payload. All 7 callers updated to pass `user.role`. Prevents admin→user downgrade if refresh token lacks role metadata.
+- **artworks.py vote race condition** — Replaced non-atomic `artwork.like_count += 1` (read-modify-write) with atomic `update(Artwork).where(...).values(like_count=Artwork.like_count + 1)` SQL statement. Prevents lost votes under concurrent requests.
+- **payments.py alipay fail-closed** — When `ALIPAY_PUBLIC_KEY` is not configured, the `alipay_notify` handler now returns `"failure"` instead of logging a warning and continuing to accept unverified callbacks.
+- **models/payment.py FK constraints** — Added `ForeignKey("orders.id")` and `ForeignKey("donations.id")` to `order_id` and `donation_id` columns. Ensures referential integrity at the database level.
+
+### Frontend
+
+- **ArtworkDetail.tsx voting fix** — Removed broken `handleVote` function that called non-existent `setArtwork()`. Replaced with proper `useMutation` + `queryClient.invalidateQueries({ queryKey: ['artwork', id] })` for cache invalidation. Fixed `error` → `queryError` variable reference mismatch.
+- **Traceability/index.tsx major rewrite** — Changed `EnhancedSupplyChainRecord` from extending `SupplyChainRecord` (which has different field names: `timestamp` not `date`, `id: string` not `number`, no `verified`/`partnerName`/`carbonFootprint`) to a standalone interface. Both `useEffect` initial load and `handleSearch` now use explicit field mapping via `r as unknown as Record<string, unknown>` with `Number()`, `String()`, `Boolean()` coercion and fallback values. Removed unused `STAGE_MAP`, `useQuery`, `buildRecordsFromApi`. Fixed `r.id === query.trim()` number-vs-string comparison → `String(r.id) === query.trim()`.
+- **Login/Register — dead import cleanup** — Removed unused `MagazineDivider` import from both Login and Register pages.
+- **Donate — anchor target fix** — Changed `href="#top"` to `href="#main-content"` to match the `id="main-content"` on `<main>` element.
+
+### Verification
+
+- TypeScript `tsc --noEmit`: 0 errors
+- Vite production build: 2.66s, success
+
+## 2026-03-22 — Cycle 21: P0 Security, A11y & Stability Fixes
+
+### Security
+
+- **payment_service.py lazy singleton** — Replaced module-level `payment_service = WeChatPayService()` instantiation with lazy `get_payment_service()` factory. Prevents startup crash (import-time `ValueError`) when WeChat env vars are unconfigured. All callers (`payments.py`, `donations.py`) updated.
+- **api.ts null guard on error.config** — Added early return in Axios response interceptor when `error.config` is undefined, preventing TypeError on network-level failures (DNS, CORS, timeout).
+- **authStore init sets isAuthenticated** — `initializeAuth()` now calls `set({ accessToken, isAuthenticated: true })` instead of only setting the token. Fixes a race condition where the app renders the login page briefly before rehydrating auth state from localStorage.
+- **main.py rate limiting — fail-closed logging** — Rate limiting middleware now logs unexpected errors (`logger.error` with `exc_info=True`) instead of silently passing. HTTPException re-raised; only truly unexpected errors fail-open.
+- **deps.py rate limiting — fail-closed logging** — Added `logger.error` to catch-all except block in `rate_limit_check()`, matching the fail-open-for-availability pattern with observability.
+
+### Accessibility
+
+- **Layout.tsx skip-to-content link** — Added WCAG 2.4.1 bypass block: sr-only `<a href="#main-content">Skip to content</a>` that becomes visible on focus. Added `id="main-content"` to `<main>` element.
+- **Header.tsx nav aria-label** — Added `aria-label="Main navigation"` to desktop `<nav>` element for screen reader landmark identification.
+- **global.css reduced-motion guard** — Added `@media (prefers-reduced-motion: reduce)` block disabling all animations, transitions, and smooth scroll globally. Complements per-component reduced-motion guards with a CSS-level safety net.
+
+### Frontend
+
+- **PagePeel.tsx Rules of Hooks fix** — Replaced `useTransform()` calls inside a `switch` statement (inside `getTransforms()` function) with 16 unconditional top-level `useTransform()` calls + a pure selector IIFE. Fixes React "Rules of Hooks" violation that could cause crashes with strict mode.
+
+## 2026-03-22 — Cycle 12: WCAG AA Contrast & Security Hardening
+
+### Security (P1)
+
+- **deps.py rate_limit_check bypass** — Changed bare `except Exception: return True` to fail-closed in production (raises HTTP 503) and fail-open only in development. Prevents rate limiting from being silently bypassed on any unexpected error.
+
+### Accessibility — WCAG AA Contrast Fixes (11 instances)
+
+**P0 (1 fix):**
+- **EditorialAdvertisement.tsx `text-muted-gray`** — #B8B2A7 on #F5F0E8 = 1.85:1 → `text-ink-light` (#6B665C) = 4.6:1 PASSES
+
+**P1 (10 fixes):**
+- **Contact/index.tsx character counter** — `text-sepia-mid/60` (2.68:1) → `text-sepia-mid` (5.78:1)
+- **VintageInput.tsx helper text** — `text-sepia-mid/70` (3.72:1) → `text-sepia-mid` (5.78:1)
+- **Stories/index.tsx inactive badge** — `text-sepia-mid/60` (2.68:1) → `text-ink-light` (4.6:1)
+- **Campaigns/index.tsx filter index** — `text-sepia-mid/60` (2.68:1) → `text-sepia-mid` (5.78:1)
+- **Traceability/index.tsx hint text** — `text-sepia-mid/70` (3.72:1) → `text-sepia-mid` (5.78:1)
+- **Donate.module.css placeholder** — warm-gray (1.43:1) → sepia-mid (5.78:1)
+- **Campaigns.module.css empty icon** — warm-gray (1.43:1) → sepia-mid (5.78:1)
+- **global.css advertisement-label** — muted-gray (1.85:1) → ink-light (4.6:1)
+- **global.css form-input placeholder** — muted-gray (1.85:1) → sepia-mid (5.78:1)
+
+### Design Note
+
+All contrast fixes use existing design tokens (`sepia-mid`, `ink-light`) to maintain the 1990s editorial aesthetic. No new colors introduced.
+
 ## 2026-03-22 — Cycle 8b: Backend Security Hardening
 
 ### Security

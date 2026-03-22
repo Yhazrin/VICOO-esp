@@ -212,13 +212,46 @@ export default function Campaigns() {
         </div>
 
         {/* Filter tabs */}
-        <div className="flex items-center gap-1 mb-12 border-b border-warm-gray/30 overflow-x-auto" role="tablist">
+        {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
+        <div
+          className="flex items-center gap-1 mb-12 border-b border-warm-gray/30 overflow-x-auto"
+          role="tablist"
+          onKeyDown={(e) => {
+            const tabs = e.currentTarget.querySelectorAll('[role="tab"]');
+            const currentIndex = statuses.indexOf(filter);
+            if (e.key === 'ArrowRight') {
+              e.preventDefault();
+              const next = statuses[(currentIndex + 1) % statuses.length];
+              handleFilterChange(next);
+              (tabs[(currentIndex + 1) % tabs.length] as HTMLElement)?.focus();
+            } else if (e.key === 'ArrowLeft') {
+              e.preventDefault();
+              const prev = statuses[(currentIndex - 1 + statuses.length) % statuses.length];
+              handleFilterChange(prev);
+              (tabs[(currentIndex - 1 + tabs.length) % tabs.length] as HTMLElement)?.focus();
+            }
+          }}
+        >
           {statuses.map((status, index) => (
             <motion.button
               key={status}
               role="tab"
+              id={`tab-campaign-${status}`}
               aria-selected={filter === status}
+              aria-controls="panel-campaigns"
+              tabIndex={filter === status ? 0 : -1}
               onClick={() => handleFilterChange(status)}
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowRight') {
+                  const next = statuses[(index + 1) % statuses.length];
+                  handleFilterChange(next);
+                  document.getElementById(`tab-campaign-${next}`)?.focus();
+                } else if (e.key === 'ArrowLeft') {
+                  const prev = statuses[(index - 1 + statuses.length) % statuses.length];
+                  handleFilterChange(prev);
+                  document.getElementById(`tab-campaign-${prev}`)?.focus();
+                }
+              }}
               {...(prefersReducedMotion ? {} : {
                 initial: { opacity: 0, y: 10 },
                 animate: { opacity: 1, y: 0 },
@@ -233,7 +266,7 @@ export default function Campaigns() {
                 }
               `}
             >
-              <span className="font-body text-overline text-sepia-mid/60 mr-1.5">
+              <span className="font-body text-overline text-sepia-mid mr-1.5">
                 {String(index + 1).padStart(2, '0')}
               </span>
               {status === 'all'
@@ -250,12 +283,14 @@ export default function Campaigns() {
           ))}
         </div>
 
+        <div role="tabpanel" id="panel-campaigns" aria-labelledby={`tab-campaign-${filter}`}>
         {/* Results count */}
         <p className="font-body text-caption text-sepia-mid mb-8 tracking-wider">
           {t('campaigns.results', { count: campaigns.length })}
         </p>
 
         {/* Campaign list */}
+        <div role="tabpanel" id="panel-campaigns" aria-labelledby={`tab-campaign-${filter}`}>
         {isLoading ? (
           <div className="space-y-16">
             {[1, 2, 3].map((i) => (
@@ -273,6 +308,9 @@ export default function Campaigns() {
         ) : paginated.length > 0 ? (
           <AnimatePresence mode="wait">
             <motion.div
+              id="panel-campaigns"
+              role="tabpanel"
+              aria-labelledby={`tab-campaign-${filter}`}
               key={`${filter}-${page}`}
               initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
               animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1 }}
@@ -415,13 +453,15 @@ export default function Campaigns() {
             </p>
           </motion.div>
         )}
+        </div>
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 mt-16">
+          <nav aria-label={t('campaigns.pagination.ariaLabel')} className="flex items-center justify-center gap-2 mt-16">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
+              aria-label={t('campaigns.pagination.prevAria')}
               className="font-body text-caption tracking-wider uppercase px-4 py-2 border border-warm-gray/30 text-sepia-mid hover:border-rust hover:text-rust disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all"
             >
               {t('campaigns.pagination.prev')}
@@ -430,6 +470,8 @@ export default function Campaigns() {
               <button
                 key={p}
                 onClick={() => setPage(p)}
+                aria-label={`${t('campaigns.pagination.pageAria')} ${p}`}
+                aria-current={page === p ? 'page' : undefined}
                 className={`
                   w-11 h-11 font-body text-caption border transition-all cursor-pointer
                   ${page === p
@@ -444,11 +486,12 @@ export default function Campaigns() {
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
+              aria-label={t('campaigns.pagination.nextAria')}
               className="font-body text-caption tracking-wider uppercase px-4 py-2 border border-warm-gray/30 text-sepia-mid hover:border-rust hover:text-rust disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all"
             >
               {t('campaigns.pagination.next')}
             </button>
-          </div>
+          </nav>
         )}
 
         {/* CTA */}
@@ -476,6 +519,7 @@ export default function Campaigns() {
             </Link>
           </motion.div>
         </div>
+        </div>{/* end tabpanel */}
       </SectionContainer>
 
       <div className="editorial-divider" />

@@ -3,6 +3,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
 from decimal import Decimal
+import logging
 
 from app.database import get_db
 from app.models.campaign import Campaign
@@ -10,6 +11,8 @@ from app.schemas import ApiResponse, CampaignCreate, CampaignOut, CampaignUpdate
 from app.deps import require_role
 
 router = APIRouter(prefix="/campaigns", tags=["Campaigns"])
+
+logger = logging.getLogger(__name__)
 
 # Use Decimal objects for amounts to match CampaignOut schema
 _mock_campaigns = [
@@ -153,19 +156,11 @@ async def create_campaign(
         db.add(campaign)
         await db.flush()
         return ApiResponse(data=CampaignOut.model_validate(campaign).model_dump())
-    except Exception:
-        new_id = max(c["id"] for c in _mock_campaigns) + 1 if _mock_campaigns else 1
-        new_campaign = {
-            "id": new_id,
-            **body.model_dump(mode="json"),
-            "current_amount": "0",
-            "status": "draft",
-            "participant_count": 0,
-            "artwork_count": 0,
-            "created_at": "2025-06-01T00:00:00",
-        }
-        _mock_campaigns.append(new_campaign)
-        return ApiResponse(data=new_campaign)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"DB write failed during create_campaign: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.put("/{campaign_id}", response_model=ApiResponse)
@@ -188,12 +183,9 @@ async def update_campaign(
         return ApiResponse(data=CampaignOut.model_validate(campaign).model_dump())
     except HTTPException:
         raise
-    except Exception:
-        for c in _mock_campaigns:
-            if c["id"] == campaign_id:
-                c.update({k: str(v) if isinstance(v, Decimal) else v for k, v in body.model_dump().items() if v is not None})
-                return ApiResponse(data=c)
-        raise HTTPException(status_code=404, detail="Campaign not found")
+    except Exception as e:
+        logger.error(f"DB write failed during update_campaign: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.delete("/{campaign_id}", response_model=ApiResponse)
@@ -214,7 +206,6 @@ async def delete_campaign(
         return ApiResponse(data={"deleted": campaign_id})
     except HTTPException:
         raise
-    except Exception:
-        global _mock_campaigns
-        _mock_campaigns = [c for c in _mock_campaigns if c["id"] != campaign_id]
-        return ApiResponse(data={"deleted": campaign_id})
+    except Exception as e:
+        logger.error(f"DB write failed during delete_campaign: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")

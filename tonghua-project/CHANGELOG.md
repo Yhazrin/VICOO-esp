@@ -130,3 +130,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **SectionGrainOverlay component**: Reusable section-scoped grain overlay component extracted from Donate page inline SVG data URLs. Supports configurable `frequency`, `octaves`, and `opacity` props. Replaces 2 inline grain SVG instances in Donate page.
 - **Aria attributes**: Added `role="progressbar"` with `aria-valuenow`/`aria-valuemin`/`aria-valuemax` to Campaigns funding progress bars and Stories ReadingProgressBar. Added `role="tablist"` to Campaigns and Stories category filter containers.
+
+### Fixed (2026-03-22 — Cycle 9)
+
+- **Backend P0 — auth security**: Login endpoint no longer logs user email/password on failed auth (was `logger.error(f"Login failed: {e}, user: {user.email}, password: {form_data.password}")`). Registration no longer logs new user email. Removed duplicate email existence check in register endpoint.
+- **Backend P1 — banned user flow**: Both `/auth/login` and `/auth/refresh` now check `user.status == "banned"` and return 403 before issuing tokens. Previously banned users could still authenticate.
+- **Frontend P0 — skip-to-content**: Added skip-to-content link in `Layout.tsx` — `sr-only` by default, visible on focus, links to `#main-content` anchor. Meets WCAG 2.4.1 Bypass Blocks.
+- **Frontend P0 — ARIA tab pattern**: Profile page Orders/Donations tab switcher upgraded to proper ARIA tab pattern: `role="tablist"`, `role="tab"` with `aria-selected`, `aria-controls`, `tabIndex` management, and keyboard arrow navigation (ArrowRight/ArrowLeft with focus transfer).
+- **Frontend P0 — EditorialAdvertisement CSS**: Fixed invalid `border: 1px dashed border-warm-gray` → `border border-dashed border-warm-gray` (was producing invalid CSS).
+- **Frontend P0 — EditorialCallout dynamic Tailwind**: Replaced dynamic gradient class `bg-gradient-to-b from-${variant}-transparent` (purged at build time) with static inline `style` lookup object using CSS custom properties.
+- **Frontend P0 — EditorialHeroV2 reduced-motion**: Guarded CTA overlay `initial={{ scaleX: 0 }}` and `whileHover={{ scaleX: 1 }}` with `prefersReducedMotion` — was animating unconditionally.
+- **Frontend P0 — HeroFloatingCards 3D tilt**: Guarded `rotateX`/`rotateY` transforms, `preserve-3d`, and `translateZ(20px)` with `prefersReducedMotion`. Mouse move/leave handlers now early-return when reduced motion is preferred.
+- **TypeScript — unused imports**: Removed unused `MagazineDivider` import from Login and Register pages (TS6133).
+- **TypeScript — Traceability API calls**: Fixed `getRecords({ page_size: 50 })` → `getRecords()` (takes optional string, not object). Fixed `.items` access on array response. Replaced nonexistent `.trace()` method with `.getProductJourney()` and mapped service type fields (`timestamp`→`date`, `artisan.name`→`partnerName`).

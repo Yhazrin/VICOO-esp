@@ -119,6 +119,7 @@ export default function TraceabilityTimeline({
                 absolute left-[-33px] top-1 w-4 h-4 rounded-sm border-[3px] border-paper z-[2]
                 ${record.verified ? 'bg-rust' : 'bg-warm-gray'}
               `}
+              aria-hidden="true"
             />
 
             {/* Card */}
@@ -133,8 +134,8 @@ export default function TraceabilityTimeline({
               <SectionGrainOverlay className="z-10" />
 
               {/* Sepia corner accents */}
-              <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-rust/30" />
-              <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-rust/30" />
+              <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-rust/30" aria-hidden="true" />
+              <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-rust/30" aria-hidden="true" />
 
               <div className="relative z-20">
                 <div className="flex justify-between items-start flex-wrap gap-3 mb-3">

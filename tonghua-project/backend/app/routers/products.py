@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from decimal import Decimal
+import logging
 
 from app.database import get_db
 from app.models.product import Product
@@ -10,6 +11,8 @@ from app.schemas import ApiResponse, PaginatedResponse, ProductCreate, ProductOu
 from app.deps import require_role, get_current_user
 
 router = APIRouter(prefix="/products", tags=["Products"])
+
+logger = logging.getLogger(__name__)
 
 _mock_products = [
     {"id": 1, "name": "彩虹鱼棉质 T 恤", "description": "采用有机棉面料，印有获奖作品《彩虹鱼》。每件 T 恤的收益 30% 用于乡村美育基金。", "price": "168.00", "currency": "CNY", "image_url": "/static/products/tshirt1.jpg", "category": "服装", "stock": 200, "status": "active", "created_at": "2025-04-01T10:00:00"},
@@ -144,16 +147,11 @@ async def create_product(body: ProductCreate, db: AsyncSession = Depends(get_db)
         db.add(product)
         await db.flush()
         return ApiResponse(data=ProductOut.model_validate(product).model_dump())
-    except Exception:
-        new_id = max(p["id"] for p in _mock_products) + 1 if _mock_products else 1
-        new_product = {
-            "id": new_id,
-            **body.model_dump(mode="json"),
-            "status": "active",
-            "created_at": "2025-06-01T00:00:00",
-        }
-        _mock_products.append(new_product)
-        return ApiResponse(data=new_product)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"DB write failed during create_product: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.put("/{product_id}", response_model=ApiResponse)
@@ -171,9 +169,6 @@ async def update_product(product_id: int, body: ProductUpdate, db: AsyncSession 
         return ApiResponse(data=ProductOut.model_validate(product).model_dump())
     except HTTPException:
         raise
-    except Exception:
-        for p in _mock_products:
-            if p["id"] == product_id:
-                p.update({k: str(v) if isinstance(v, Decimal) else v for k, v in body.model_dump().items() if v is not None})
-                return ApiResponse(data=p)
-        raise HTTPException(status_code=404, detail="Product not found")
+    except Exception as e:
+        logger.error(f"DB write failed during update_product: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")

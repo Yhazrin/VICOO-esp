@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 
 from app.config import settings
 from app.database import engine, Base, AsyncSessionLocal
-from app.deps import rate_limit_check, get_current_user_from_request, verify_request_signature
+from app.deps import rate_limit_check, get_current_user_from_request
 
 # Maximum allowed request body size (10 MB)
 MAX_REQUEST_BODY_SIZE = 10 * 1024 * 1024
@@ -34,7 +34,7 @@ async def lifespan(app: FastAPI):
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
     except Exception:
-        pass  # DB may not be available; mock data will be used
+        logger.warning("Database initialization failed — mock data fallback will be used", exc_info=True)
     yield
     # Shutdown
     await engine.dispose()
@@ -69,7 +69,7 @@ allowed_hosts = list(set(allowed_hosts))
 if not allowed_hosts:
     allowed_hosts = ["localhost"]
 logger.info(f"Allowed hosts: {allowed_hosts}")
-# Enable TrustedHostMiddleware in production, disable in development
+# Enable TrustedHostMiddleware in non-development environments
 if settings.APP_ENV != "development":
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)
 
@@ -86,6 +86,7 @@ app.add_middleware(
         "X-Requested-With",
         "X-Signature",
         "X-Timestamp",
+        "X-Nonce",
     ],
 )
 
@@ -114,11 +115,9 @@ async def request_size_limit_middleware(request: Request, call_next):
 
 
 # ── Signature verification middleware ─────────────────────────────────
-# DISABLED: HMAC signing secret was exposed in frontend bundle (P0 security).
-# Auth is handled by JWT Bearer tokens + httpOnly refresh cookie instead.
-# Kept verify_request_signature() in deps.py for future server-to-server use.
-# @app.middleware("http")
-# async def signature_verification_middleware(request: Request, call_next):
+# DISABLED: HMAC signing secret was exposed in the frontend bundle.
+# Auth is handled by JWT Bearer tokens + httpOnly refresh cookies instead.
+# The verification helper remains available in deps.py for future server-to-server use.
 
 
 # ── Rate Limiting middleware (applied before logging) ────────────
@@ -129,19 +128,19 @@ async def rate_limit_middleware(request: Request, call_next):
         return await call_next(request)
 
     try:
-        try:
-            # Create DB session for user extraction
-            async with AsyncSessionLocal() as db:
-                current_user = await get_current_user_from_request(request, db)
-                await rate_limit_check(request, current_user)
-        except HTTPException:
-            # Re-raise rate limit errors (429) or auth errors (401)
-            raise
-        except Exception:
-            # Fail open if DB connection or other system errors occur
-            pass
+        async with AsyncSessionLocal() as db:
+            current_user = await get_current_user_from_request(request, db)
+            await rate_limit_check(request, current_user)
     except HTTPException:
         raise
+    except Exception as e:
+        if settings.APP_ENV != "development":
+            logger.error(f"Rate limiting error (failing closed): {e}", exc_info=True)
+            return JSONResponse(
+                status_code=503,
+                content={"success": False, "data": None, "message": "Service temporarily unavailable"},
+            )
+        logger.warning(f"Rate limiting error (development mode, failing open): {e}", exc_info=True)
     response = await call_next(request)
     return response
 

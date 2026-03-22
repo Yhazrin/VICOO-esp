@@ -9,6 +9,7 @@ export default function HeroBackgroundArt({ className = '' }: HeroBackgroundArtP
       viewBox="0 0 900 580"
       preserveAspectRatio="xMidYMid slice"
       xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
     >
       {/* Top left blob */}
       <path d="M60 180 Q90 140 130 170 Q110 200 70 195 Z" fill="#E8C5A0" opacity="0.35"/>

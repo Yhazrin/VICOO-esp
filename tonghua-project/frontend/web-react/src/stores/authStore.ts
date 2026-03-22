@@ -1,8 +1,6 @@
 import { create } from 'zustand';
 import type { User } from '@/types';
 
-const ACCESS_TOKEN_KEY = 'tonghua_access_token';
-
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
@@ -21,13 +19,17 @@ export const useAuthStore = create<AuthState>()((set, _get) => ({
   user: null,
   isAuthenticated: false,
   isLoading: false,
+  // Security: Access token stored in memory only (not localStorage).
+  // Refresh token is in httpOnly cookie set by the server.
+  // This prevents token theft via XSS — an injected script cannot read
+  // JS runtime memory the way it can read localStorage/sessionStorage.
   accessToken: null,
 
   login: (user, accessToken, _refreshToken) => {
-    // Store access token in memory for API requests
-    // Refresh token is managed by httpOnly cookie set by server
-    // Also store in localStorage for session persistence across page refreshes
-    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+    // Store access token in memory for API requests.
+    // Refresh token is managed by httpOnly cookie set by server.
+    // No localStorage persistence — if the page refreshes, the app will
+    // call /auth/refresh using the httpOnly refresh_token cookie.
     set({
       user,
       isAuthenticated: true,
@@ -36,9 +38,6 @@ export const useAuthStore = create<AuthState>()((set, _get) => ({
   },
 
   logout: () => {
-    // Server will clear httpOnly cookies on /auth/logout
-    // Also clear localStorage
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
     set({
       user: null,
       isAuthenticated: false,
@@ -54,10 +53,6 @@ export const useAuthStore = create<AuthState>()((set, _get) => ({
   setLoading: (isLoading) => set({ isLoading }),
 
   restoreSession: (user, accessToken) => {
-    // Store access token in localStorage for persistence
-    if (accessToken) {
-      localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-    }
     set({
       user,
       isAuthenticated: true,
@@ -67,19 +62,12 @@ export const useAuthStore = create<AuthState>()((set, _get) => ({
   },
 
   setAccessToken: (token) => {
-    if (token) {
-      localStorage.setItem(ACCESS_TOKEN_KEY, token);
-    } else {
-      localStorage.removeItem(ACCESS_TOKEN_KEY);
-    }
     set({ accessToken: token });
   },
 
   initAuth: () => {
-    // Initialize auth state from localStorage on app load
-    const storedToken = localStorage.getItem(ACCESS_TOKEN_KEY);
-    if (storedToken) {
-      set({ accessToken: storedToken });
-    }
+    // On app load, do NOT read from localStorage.
+    // The app should call /auth/refresh (using httpOnly cookie) to restore session.
+    // This is handled by the App component's initialization logic.
   },
 }));

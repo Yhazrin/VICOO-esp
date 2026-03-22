@@ -31,7 +31,7 @@ export const donationsApi = {
     return response.data.data;
   },
 
-  getCertificate: async (id: string): Promise<{ url: string }> => {
+  getCertificate: async (id: string): Promise<{ certificate_url: string }> => {
     const response = await api.get(`/donations/${id}/certificate`);
     return response.data.data;
   },

@@ -45,9 +45,11 @@ export const VintageInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, V
       ...restProps
     } = props;
 
+    const describedBy = error ? errorId : helperText ? helperId : undefined;
+
     const inputProps = {
       id: inputId,
-      'aria-describedby': error ? errorId : helperId,
+      ...(describedBy ? { 'aria-describedby': describedBy } : {}),
       'aria-invalid': !!error,
       className: baseClasses + ' ' + className,
       ...restProps,
@@ -76,8 +78,8 @@ export const VintageInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, V
 
         <div className="relative">
           {/* Decorative corner accents */}
-          <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-rust/30 pointer-events-none z-10" />
-          <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-rust/30 pointer-events-none z-10" />
+          <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-rust/30 pointer-events-none z-10" aria-hidden="true" />
+          <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-rust/30 pointer-events-none z-10" aria-hidden="true" />
 
           {type === 'textarea' ? (
             <motion.textarea
@@ -110,7 +112,7 @@ export const VintageInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, V
         </div>
 
         {helperText && (
-          <p id={helperId} className="font-body text-overline text-sepia-mid/70">
+          <p id={helperId} className="font-body text-overline text-sepia-mid">
             {helperText}
           </p>
         )}

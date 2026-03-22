@@ -3,15 +3,18 @@ from sqlalchemy import select, func, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from decimal import Decimal
 from datetime import datetime
+import logging
 
 from app.database import get_db
 from app.models.donation import Donation
 from app.models.campaign import Campaign
-from app.schemas import ApiResponse, DonationCreate, DonationOut, PaginatedResponse, WeChatPaymentParams
+from app.schemas import ApiResponse, DonationCreate, DonationOut, PaginatedResponse
 from app.deps import get_current_user, get_optional_current_user
-from app.services.payment_service import payment_service
+from app.services.payment_service import get_payment_service
 
 router = APIRouter(prefix="/donations", tags=["Donations"])
+
+logger = logging.getLogger(__name__)
 
 
 def _redact_name(name: str | None, is_anonymous: bool | None = None) -> str:
@@ -23,6 +26,11 @@ def _redact_name(name: str | None, is_anonymous: bool | None = None) -> str:
         return "*"
     return name[0] + "*" * (len(name) - 1)
 
+# ── MOCK DATA (served when database is unavailable) ──────────────
+# These records are illustrative examples for development/demo purposes.
+# Real donation data is loaded from the database when available.
+# Donor names, payment IDs, and messages below are fictional.
+# ────────────────────────────────────────────────────────────────
 _mock_donations = [
     {"id": 1, "donor_name": "张先生", "donor_user_id": 3, "amount": "500.00", "currency": "CNY", "payment_method": "wechat", "payment_id": "wx20250301123456", "campaign_id": 1, "status": "completed", "is_anonymous": False, "message": "支持孩子们的艺术梦想！", "created_at": "2025-03-01T10:30:00"},
     {"id": 2, "donor_name": "李女士", "donor_user_id": 4, "amount": "1000.00", "currency": "CNY", "payment_method": "alipay", "payment_id": "ali20250302654321", "campaign_id": 1, "status": "completed", "is_anonymous": False, "message": "为乡村美育尽一份力", "created_at": "2025-03-02T14:20:00"},
@@ -226,7 +234,7 @@ async def create_donation(body: DonationCreate, db: AsyncSession = Depends(get_d
 
         # Add WeChat payment parameters if payment method is WeChat Pay
         if body.payment_method == "wechat":
-            payment_params = payment_service.create_unified_order(
+            payment_params = get_payment_service().create_unified_order(
                 order_no=f"DON{donation.id}",
                 amount=body.amount,
                 description=f"公益捐赠 - {body.donor_name}" if not body.is_anonymous else "公益捐赠",
@@ -236,46 +244,11 @@ async def create_donation(body: DonationCreate, db: AsyncSession = Depends(get_d
             response_data.update(payment_params)
 
         return ApiResponse(data=response_data)
-    except Exception:
-        new_id = max(d["id"] for d in _mock_donations) + 1 if _mock_donations else 1
-        # Round amount to 2 decimal places to match DB DECIMAL(12, 2) behavior
-        body_dump = body.model_dump(mode="json")
-        # Ensure donor_user_id is populated in mock data as well
-        if body_dump.get("donor_user_id") is None:
-            body_dump["donor_user_id"] = current_user["id"]
-
-        if isinstance(body_dump.get("amount"), str):
-             # Ensure we handle string representation if any
-             try:
-                 body_dump["amount"] = str(Decimal(body_dump["amount"]).quantize(Decimal("0.00")))
-             except Exception:
-                 pass
-        else:
-             # Should be Decimal, quantize it
-             body_dump["amount"] = str(body_dump["amount"].quantize(Decimal("0.00")))
-
-        new_donation = {
-            "id": new_id,
-            "donationId": new_id,  # Add camelCase alias for frontend
-            **body_dump,
-            "payment_id": None,
-            "status": "pending",
-            "created_at": "2025-06-01T00:00:00",
-        }
-
-        # Add WeChat payment parameters if payment method is WeChat Pay
-        if body.payment_method == "wechat":
-            payment_params = payment_service.create_unified_order(
-                order_no=f"DON{new_id}",
-                amount=body.amount,
-                description=f"公益捐赠 - {body.donor_name}" if not body.is_anonymous else "公益捐赠",
-                trade_type="JSAPI",
-                donation_id=new_id
-            )
-            new_donation.update(payment_params)
-
-        _mock_donations.append(new_donation)
-        return ApiResponse(data=new_donation)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"DB write failed during create_donation: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.get("/{donation_id}/certificate", response_model=ApiResponse)
