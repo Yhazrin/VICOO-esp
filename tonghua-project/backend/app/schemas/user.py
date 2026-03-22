@@ -3,12 +3,12 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 
 
 class UserCreate(BaseModel):
-    email: str = Field(..., description="User email address")
-    password: str = Field(..., min_length=6, max_length=128, description="Password (min 6 chars)")
+    email: EmailStr = Field(..., description="User email address")
+    password: str = Field(..., min_length=8, max_length=128, description="Password (min 8 chars)")
     nickname: str = Field(..., min_length=1, max_length=100, description="Display nickname")
     phone: Optional[str] = Field(None, description="Phone number (will be encrypted at rest)")
 
@@ -16,7 +16,7 @@ class UserCreate(BaseModel):
 class UserUpdate(BaseModel):
     nickname: Optional[str] = Field(None, min_length=1, max_length=100)
     avatar: Optional[str] = Field(None, max_length=500)
-    phone: Optional[str] = Field(None, max_length=20, description="Phone number (will be encrypted at rest)")
+    phone: Optional[str] = Field(None, max_length=20, pattern=r"^[\d\s\-\+\(\)]{5,20}$", description="Phone number (will be encrypted at rest)")
 
 
 class UserOut(BaseModel):

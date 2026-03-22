@@ -58,7 +58,8 @@ def _set_auth_cookies(response: JSONResponse, access_token: str, refresh_token: 
         value=refresh_token,
         httponly=True,
         secure=is_secure,
-        samesite="lax",
+        samesite="strict",
+        path="/",
         max_age=7 * 24 * 60 * 60,  # 7 days
     )
     response.set_cookie(
@@ -66,7 +67,8 @@ def _set_auth_cookies(response: JSONResponse, access_token: str, refresh_token: 
         value=access_token,
         httponly=True,
         secure=is_secure,
-        samesite="lax",
+        samesite="strict",
+        path="/",
         max_age=15 * 60,  # 15 minutes
     )
     return response
@@ -133,7 +135,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Email and password are required")
 
     # ── DB lookup ──
-    logger.debug(f"DB lookup for email: {body.email}")
+    logger.debug("DB lookup for user by email")
     try:
         stmt = select(User).where(User.email == body.email)
         result = await db.execute(stmt)
@@ -176,7 +178,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
     if settings.APP_ENV == "development":
         logger.debug("Development mode, checking mock users")
         mock = _get_mock_user(body.email)
-        logger.debug(f"Mock lookup: email={body.email}, mock={mock}")
+        logger.debug(f"Mock lookup: found={mock is not None}")
         if mock:
             logger.debug(f"Mock user found: id={mock['id']}, role={mock['role']}")
             # Security: Validate password even for mock users
@@ -405,6 +407,7 @@ async def logout():
         status_code=200,
         content=response_data.model_dump(),
     )
-    json_response.delete_cookie(key="refresh_token")
-    json_response.delete_cookie(key="access_token")
+    is_secure = settings.APP_ENV != "development"
+    json_response.delete_cookie(key="refresh_token", path="/", samesite="strict", secure=is_secure)
+    json_response.delete_cookie(key="access_token", path="/", samesite="strict", secure=is_secure)
     return json_response

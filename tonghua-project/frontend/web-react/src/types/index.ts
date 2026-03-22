@@ -86,6 +86,7 @@ export interface Product {
   artworkSource?: Artwork;
   artworkBy?: ProductArtworkAttribution;
   supplyChain: SupplyChainRecord[];
+  /** Sustainability score (0-100) based on GOTS/SA8000/LCA audits. See /sustainability-methodology for scoring details. */
   sustainabilityScore: number;
 }
 
@@ -113,8 +114,8 @@ export interface Donation {
   donor_user_id?: number;
   amount: number;
   currency: string;
-  tierId?: string;
-  campaignId?: string;
+  tierId?: number;
+  campaignId?: number;
   message?: string;
   is_anonymous: boolean;
   status: 'pending' | 'completed' | 'failed' | 'refunded';

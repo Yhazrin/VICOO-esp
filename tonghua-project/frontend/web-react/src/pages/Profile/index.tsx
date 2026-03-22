@@ -176,35 +176,34 @@ export default function Profile() {
         <GrainOverlay />
         <SectionContainer>
           {/* Tab switcher */}
-          <div className="flex gap-8 mb-12 border-b border-warm-gray/30" role="tablist">
-            <button
-              role="tab"
-              id="tab-orders"
-              aria-selected={activeTab === 'orders'}
-              aria-controls="panel-orders"
-              onClick={() => setActiveTab('orders')}
-              className={`cursor-pointer pb-4 font-body text-body-sm tracking-[0.15em] uppercase transition-colors ${
-                activeTab === 'orders'
-                  ? 'text-ink border-b-2 border-ink'
-                  : 'text-sepia-mid hover:text-ink'
-              }`}
-            >
-              {t('profile.orders', 'Orders')} ({orders.length})
-            </button>
-            <button
-              role="tab"
-              id="tab-donations"
-              aria-selected={activeTab === 'donations'}
-              aria-controls="panel-donations"
-              onClick={() => setActiveTab('donations')}
-              className={`cursor-pointer pb-4 font-body text-body-sm tracking-[0.15em] uppercase transition-colors ${
-                activeTab === 'donations'
-                  ? 'text-ink border-b-2 border-ink'
-                  : 'text-sepia-mid hover:text-ink'
-              }`}
-            >
-              {t('profile.donations', 'Donations')} ({donations.length})
-            </button>
+          <div className="flex gap-8 mb-12 border-b border-warm-gray/30" role="tablist" aria-label={t('profile.title')}>
+            {(['orders', 'donations'] as const).map((tab, index, arr) => (
+              <button
+                key={tab}
+                role="tab"
+                id={`tab-${tab}`}
+                aria-selected={activeTab === tab}
+                aria-controls={`panel-${tab}`}
+                tabIndex={activeTab === tab ? 0 : -1}
+                onClick={() => setActiveTab(tab)}
+                onKeyDown={(e) => {
+                  if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    const dir = e.key === 'ArrowRight' ? 1 : -1;
+                    const next = (index + dir + arr.length) % arr.length;
+                    setActiveTab(arr[next]);
+                    document.getElementById(`tab-${arr[next]}`)?.focus();
+                  }
+                }}
+                className={`cursor-pointer pb-4 font-body text-body-sm tracking-[0.15em] uppercase transition-colors ${
+                  activeTab === tab
+                    ? 'text-ink border-b-2 border-ink'
+                    : 'text-sepia-mid hover:text-ink'
+                }`}
+              >
+                {tab === 'orders' ? `${t('profile.orders', 'Orders')} (${orders.length})` : `${t('profile.donations', 'Donations')} (${donations.length})`}
+              </button>
+            ))}
           </div>
 
           {/* Orders tab */}

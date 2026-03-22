@@ -11,35 +11,33 @@ import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
 import { supplyChainApi } from '@/services/supply-chain';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
+import type { SupplyChainRecord } from '@/types';
 
 // Extended record with story, image, and status for enhanced timeline
-interface EnhancedSupplyChainRecord {
-  id: number;
-  stage: string;
-  description: string;
-  location: string;
-  date: string;
-  verified: boolean;
-  partnerName: string;
-  carbonFootprint?: number;
+interface EnhancedSupplyChainRecord extends SupplyChainRecord {
   story: string;
   imageUrl: string;
   status: 'verified' | 'in-progress' | 'pending';
 }
 
 const MOCK_RECORDS: EnhancedSupplyChainRecord[] = [
+  // ── DEMONSTRATION DATA ──────────────────────────────────────
+  // The following records are illustrative examples for development/demo purposes.
+  // Real supply chain data is loaded from the API when available.
+  // Partner names, carbon figures, and stories below are fictional.
+  // ─────────────────────────────────────────────────────────────
   {
     id: 1,
     stage: 'artwork',
-    description: 'Xiao Lin, age 8, created her ocean painting during a Saturday workshop at Dongfeng Elementary School. The artwork was selected by peer vote.',
+    description: 'A child, age 8, created an ocean painting during a Saturday workshop at a partner elementary school. The artwork was selected by peer vote.',
     location: 'Shanghai, China',
     date: '2025-11-15',
     verified: true,
-    partnerName: 'Dongfeng Elementary School',
+    partnerName: 'Partner Elementary School [DEMO]',
     carbonFootprint: 0,
     status: 'verified',
-    story: 'On a rainy Saturday morning, eight-year-old Xiao Lin picked up her brush and painted a whale leaping through ocean waves. Her classmates voted it best in show.',
-    imageUrl: 'https://picsum.photos/seed/artwork-studio/200/200',
+    story: 'On a rainy Saturday morning, a young artist picked up her brush and painted a whale leaping through ocean waves. Her classmates voted it best in show.',
+    imageUrl: 'https://picsum.photos/seed/artwork-studio/200/200', // placeholder image
   },
   {
     id: 2,
@@ -48,10 +46,10 @@ const MOCK_RECORDS: EnhancedSupplyChainRecord[] = [
     location: 'Shanghai, China',
     date: '2025-12-01',
     verified: true,
-    partnerName: 'Tonghua Design Studio',
+    partnerName: 'Tonghua Design Studio [DEMO]',
     carbonFootprint: 0.2,
     status: 'verified',
-    story: 'Lead designer Mei transformed the painting into a repeat pattern while preserving every brushstroke. Xiao Lin visited the studio and gave her final approval with a thumbs-up.',
+    story: 'Lead designer Mei transformed the painting into a repeat pattern while preserving every brushstroke. The young artist visited the studio and gave her final approval with a thumbs-up.',
     imageUrl: 'https://picsum.photos/seed/design-studio/200/200',
   },
   {
@@ -61,7 +59,7 @@ const MOCK_RECORDS: EnhancedSupplyChainRecord[] = [
     location: 'Xinjiang, China',
     date: '2025-12-20',
     verified: true,
-    partnerName: 'GreenCotton Cooperative',
+    partnerName: 'GreenCotton Cooperative [DEMO]',
     carbonFootprint: 1.8,
     status: 'verified',
     story: 'Harvested by hand from fields irrigated with rainwater collection systems. Each batch is tested for pesticide residue and certified organic before shipping.',
@@ -74,10 +72,10 @@ const MOCK_RECORDS: EnhancedSupplyChainRecord[] = [
     location: 'Guangzhou, China',
     date: '2026-01-10',
     verified: true,
-    partnerName: 'FairWear Manufacturing',
+    partnerName: 'FairWear Manufacturing [DEMO]',
     carbonFootprint: 2.4,
     status: 'verified',
-    story: 'Artisan Zhang has sewn garments for 15 years. He earns above living wage with full benefits. His team printed and assembled 200 units of this design.',
+    story: 'An experienced artisan has sewn garments for 15 years. He earns above living wage with full benefits. His team printed and assembled 200 units of this design.',
     imageUrl: 'https://picsum.photos/seed/factory-floor/200/200',
   },
   {
@@ -87,10 +85,10 @@ const MOCK_RECORDS: EnhancedSupplyChainRecord[] = [
     location: 'Guangzhou, China',
     date: '2026-01-25',
     verified: true,
-    partnerName: 'FairWear Manufacturing',
+    partnerName: 'FairWear Manufacturing [DEMO]',
     carbonFootprint: 0.1,
     status: 'verified',
-    story: 'Inspector Li tests every garment for color fastness after 20 washes, seam strength at stress points, and dimensional accuracy within 2mm tolerance.',
+    story: 'Quality inspectors test every garment for color fastness after 20 washes, seam strength at stress points, and dimensional accuracy within 2mm tolerance.',
     imageUrl: 'https://picsum.photos/seed/quality-check/200/200',
   },
   {
@@ -100,7 +98,7 @@ const MOCK_RECORDS: EnhancedSupplyChainRecord[] = [
     location: 'Guangzhou to Shanghai',
     date: '2026-02-05',
     verified: true,
-    partnerName: 'GreenLogistics Co.',
+    partnerName: 'GreenLogistics Co. [DEMO]',
     carbonFootprint: 0.8,
     status: 'in-progress',
     story: 'Consolidated with three other orders to fill one container. Remaining emissions offset through a verified reforestation project in Yunnan Province.',
@@ -108,6 +106,9 @@ const MOCK_RECORDS: EnhancedSupplyChainRecord[] = [
   },
 ];
 
+// Carbon comparison data — illustrative figures for demo purposes.
+// Real product carbon footprints are loaded from the API when available.
+// Methodology: cradle-to-gate LCA per ISO 14044; conventional baseline industry-average.
 const CARBON_DATA = {
   conventional: 33.4,
   vicoo: 8.2,
@@ -185,7 +186,7 @@ function CarbonBar({ label, value, maxValue, isEco, delay }: {
           {value} kg CO2
         </span>
       </div>
-      <div className="h-3 bg-warm-gray/20 border border-warm-gray/30 overflow-hidden">
+      <div className="h-3 bg-warm-gray/20 border border-warm-gray/30 overflow-hidden" role="progressbar" aria-valuenow={Math.round(percentage)} aria-valuemin={0} aria-valuemax={100} aria-label={`${label}: ${value} kg CO2`}>
         <motion.div
           className={`h-full origin-left ${isEco ? 'bg-sage-light' : 'bg-archive-brown/60'}`}
           {...(prefersReducedMotion ? { style: { transform: `scaleX(${percentage / 100})` } } : {
@@ -307,8 +308,8 @@ function EnhancedTimelineEntry({ record, index, t }: {
         <SectionGrainOverlay className="z-10" />
 
         {/* Sepia corner accents */}
-        <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-rust/30" />
-        <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-rust/30" />
+        <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-rust/30" aria-hidden="true" />
+        <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-rust/30" aria-hidden="true" />
 
         <div className="relative z-20">
           {/* Header with status */}
@@ -554,7 +555,7 @@ export default function Traceability() {
           })}
           className="max-w-xl mb-16"
         >
-          <div className="relative">
+          <div className="relative" role="search">
             {/* Decorative corner accents */}
             <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-rust/30 pointer-events-none z-10" />
             <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-rust/30 pointer-events-none z-10" />
@@ -779,8 +780,8 @@ export default function Traceability() {
                 <SectionGrainOverlay className="z-10" />
 
                 {/* Corner accents */}
-                <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-sage/20" />
-                <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-sage/20" />
+                <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-sage/20" aria-hidden="true" />
+                <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-sage/20" aria-hidden="true" />
 
                 <div className="relative z-20">
                   <span className="font-body text-overline tracking-[0.2em] uppercase text-sage block mb-3">
@@ -873,7 +874,7 @@ export default function Traceability() {
       </section>
 
       {/* Bottom CTA */}
-      <div className="editorial-divider" />
+      <div className="editorial-divider" aria-hidden="true" />
 
       <SectionContainer narrow>
         <motion.div
@@ -903,7 +904,7 @@ export default function Traceability() {
         </motion.div>
       </SectionContainer>
 
-      <div className="editorial-divider" />
+      <div className="editorial-divider" aria-hidden="true" />
     </PageWrapper>
   );
 }

@@ -6,8 +6,6 @@ from decimal import Decimal
 import xml.etree.ElementTree as ET
 import secrets
 import logging
-from urllib.parse import parse_qs
-
 import hmac as hmac_mod
 import hashlib
 
@@ -244,7 +242,7 @@ async def wechat_notify(request: Request, db: AsyncSession = Depends(get_db)):
     except Exception as e:
         logger.error(f"WeChat callback processing error: {str(e)}")
         return Response(
-            content=f"<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[{str(e)}]]></return_msg></xml>",
+            content="<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[Processing error]]></return_msg></xml>",
             media_type="application/xml"
         )
 
@@ -400,7 +398,6 @@ async def test_wechat_params(current_user: dict = Depends(get_current_user)):
     """Test endpoint to verify WeChat payment parameter generation (admin only)."""
     if current_user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Admin only")
-    """Test endpoint to verify WeChat payment parameter generation."""
     try:
         payment_params = get_payment_service().create_unified_order(
             order_no="TEST123",

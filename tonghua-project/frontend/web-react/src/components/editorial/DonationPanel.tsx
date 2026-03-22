@@ -94,11 +94,12 @@ export default function DonationPanel({
 
       <form onSubmit={handleSubmit}>
         {/* Amount Presets */}
-        <div className="grid grid-cols-2 gap-3 mb-8">
+        <div className="grid grid-cols-2 gap-3 mb-8" role="group" aria-label={t('donate.form.amountPresets', 'Donation amount presets')}>
           {AMOUNT_PRESETS.map((amount, index) => (
             <motion.button
               key={amount}
               type="button"
+              aria-pressed={selectedAmount === amount && !customAmount}
               initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
               animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.05 }}

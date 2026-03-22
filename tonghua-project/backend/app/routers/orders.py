@@ -2,13 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from decimal import Decimal
-from typing import Union
+import random
 
 from app.database import get_db
 from app.models.order import Order, OrderItem
 from app.models.product import Product
-from app.schemas import ApiResponse, OrderCreate, OrderOut, OrderStatusUpdate, PaginatedResponse, WeChatPaymentParams
-from app.deps import get_current_user, require_role
+from app.schemas import ApiResponse, OrderCreate, OrderOut, OrderStatusUpdate, PaginatedResponse
+from app.deps import get_current_user
 from app.security import generate_order_no
 from app.services.payment_service import get_payment_service
 
@@ -270,7 +270,6 @@ async def create_order(
         # If HTTPException (e.g., product not found), re-raise it
         if isinstance(e, HTTPException):
             raise
-        import random
         new_id = max(o["id"] for o in _mock_orders) + 1 if _mock_orders else 1
         order_no = generate_order_no()
         # Still need to validate products in mock mode

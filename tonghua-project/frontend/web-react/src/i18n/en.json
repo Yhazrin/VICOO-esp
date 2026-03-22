@@ -52,6 +52,12 @@
       "children": "Children Empowered",
       "reinvested": "Yuan Reinvested"
     },
+    "quote": {
+      "text": "Every stitch carries a child's dream. Every garment is a chapter in a story that hasn't been written yet.",
+      "author": "Chen Wei",
+      "role": "Founder, VICOO"
+    },
+    "est": "Est. 2026",
     "latestArtworks": {
       "sectionTitle": "Latest Artworks"
     },
@@ -327,7 +333,18 @@
     "card": {
       "viewDetails": "View Details",
       "soldOut": "Sold Out",
-      "lowStock": "Only {{count}} left"
+      "lowStock": "Only {{count}} left",
+      "notifyMe": "Notify Me",
+      "notifySuccess": "We will let you know when this is back.",
+      "email": "Email",
+      "send": "Send",
+      "artworkBy": "Artwork by {{childName}}, age {{age}} — {{campaign}} campaign",
+      "artworkConsent": "(displayed with guardian consent)",
+      "sustainability": {
+        "exceptional": "Exceptional",
+        "excellent": "Excellent",
+        "good": "Good"
+      }
     },
     "detail": {
       "addToCart": "Add to Cart",
@@ -618,6 +635,10 @@
       "votes": "Votes",
       "tags": "Tags"
     },
+    "card": {
+      "age": "Age {{age}}",
+      "votes": "{{count}} votes"
+    },
     "loading": "Loading...",
     "notFound": "Artwork not found",
     "backToStories": "Back to Stories"
@@ -641,7 +662,8 @@
     },
     "emailAriaLabel": "Email address",
     "emailPlaceholder": "your@email.com",
-    "allRightsReserved": "All rights reserved."
+    "allRightsReserved": "All rights reserved.",
+    "scroll": "Scroll"
   },
   "error": {
     "somethingWentWrong": "Something went wrong",

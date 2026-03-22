@@ -220,10 +220,10 @@ export default function About() {
             {t('about.cta.body', 'Whether you donate, volunteer, or simply share our stories — every action helps a child\'s imagination reach the world.')}
           </p>
           <div className="flex items-center justify-center gap-6">
-            <Link to="/donate" className="font-mono text-[10px] tracking-[0.18em] uppercase bg-ink text-paper px-8 py-4 hover:bg-rust transition-colors duration-300">
+            <Link to="/donate" className="font-body text-body-sm tracking-[0.15em] uppercase bg-ink text-paper px-8 py-4 hover:bg-rust transition-colors duration-300">
               {t('about.cta.donate', 'Donate')}
             </Link>
-            <Link to="/campaigns" className="font-mono text-[10px] tracking-[0.18em] uppercase text-rust hover:text-ink transition-colors border-b border-rust/40 pb-1 cursor-pointer">
+            <Link to="/campaigns" className="font-body text-body-sm tracking-[0.15em] uppercase text-rust hover:text-ink transition-colors border-b border-rust/40 pb-1 cursor-pointer">
               {t('about.cta.explore', 'Explore Campaigns')} &rarr;
             </Link>
           </div>

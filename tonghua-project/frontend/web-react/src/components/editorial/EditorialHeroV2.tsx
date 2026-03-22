@@ -160,7 +160,7 @@ export default function EditorialHeroV2({
                 <span className="font-display text-[24px] font-semibold text-ink block mb-1">
                   {stat.value}
                 </span>
-                <span className="font-mono text-[7px] tracking-[0.2em] text-ink-faded uppercase">
+                <span className="font-mono text-[9px] tracking-[0.2em] text-ink-faded uppercase">
                   {stat.label}
                 </span>
               </div>

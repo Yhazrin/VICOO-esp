@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
@@ -17,6 +18,7 @@ export default function ArtworkCard({
   index = 0,
   className = '',
 }: ArtworkCardProps) {
+  const { t } = useTranslation();
   const [ref, isVisible] = useScrollReveal<HTMLDivElement>();
   const prefersReducedMotion = useReducedMotion();
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -62,13 +64,13 @@ export default function ArtworkCard({
               {artwork.title}
             </h3>
             <p className="font-body text-caption text-sepia-mid mt-1">
-              Age {artwork.childParticipant.age} &middot;{' '}
+              {t('artwork.card.age', { age: artwork.childParticipant.age })} &middot;{' '}
               {new Date(artwork.createdAt).getFullYear()}
             </p>
           </div>
 
           <span className="font-body text-caption text-sepia-mid whitespace-nowrap flex-shrink-0">
-            {artwork.voteCount} votes
+            {t('artwork.card.votes', { count: artwork.voteCount })}
           </span>
         </div>
       </Link>

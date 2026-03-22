@@ -34,7 +34,7 @@ async def lifespan(app: FastAPI):
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
     except Exception:
-        pass  # DB may not be available; mock data will be used
+        logger.warning("Database not available at startup; mock data will be used")
     yield
     # Shutdown
     await engine.dispose()
@@ -69,8 +69,9 @@ allowed_hosts = list(set(allowed_hosts))
 if not allowed_hosts:
     allowed_hosts = ["localhost"]
 logger.info(f"Allowed hosts: {allowed_hosts}")
-# Temporarily disable TrustedHostMiddleware for development
-# app.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)
+# Enable TrustedHostMiddleware in non-development environments
+if settings.APP_ENV != "development":
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)
 
 # CORS - Restrict to specific origins (no wildcard)
 logger.info(f"CORS Origins: {settings.CORS_ORIGINS}")
@@ -166,12 +167,12 @@ async def signature_verification_middleware(request: Request, call_next):
 async def rate_limit_middleware(request: Request, call_next):
     # Apply rate limiting (skip for health check endpoint and testing)
     testing = settings.TESTING
-    logger.info(f"Rate limit middleware: path={request.url.path}, TESTING={testing}, type={type(testing)}")
+    logger.debug(f"Rate limit middleware: path={request.url.path}, TESTING={testing}, type={type(testing)}")
     # Skip rate limiting for health check and when TESTING=1
     if request.url.path == "/health" or testing == "1":
-        logger.info(f"Rate limit middleware: Skipping rate limiting (path={request.url.path}, testing={testing})")
+        logger.debug(f"Rate limit middleware: Skipping rate limiting (path={request.url.path}, testing={testing})")
     else:
-        logger.info(f"Rate limit middleware: Applying rate limiting")
+        logger.debug(f"Rate limit middleware: Applying rate limiting")
         try:
             # Create DB session for user extraction
             async with AsyncSessionLocal() as db:

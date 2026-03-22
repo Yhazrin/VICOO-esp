@@ -211,13 +211,25 @@ export default function Campaigns() {
         </div>
 
         {/* Filter tabs */}
-        <div className="flex items-center gap-1 mb-12 border-b border-warm-gray/30 overflow-x-auto" role="tablist">
+        <div className="flex items-center gap-1 mb-12 border-b border-warm-gray/30 overflow-x-auto" role="tablist" aria-label={t('campaigns.filter.all')}>
           {statuses.map((status, index) => (
             <motion.button
               key={status}
+              id={`campaign-tab-${status}`}
               role="tab"
               aria-selected={filter === status}
+              aria-controls={`campaign-tabpanel-${status}`}
+              tabIndex={filter === status ? 0 : -1}
               onClick={() => handleFilterChange(status)}
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+                  e.preventDefault();
+                  const dir = e.key === 'ArrowRight' ? 1 : -1;
+                  const next = (index + dir + statuses.length) % statuses.length;
+                  handleFilterChange(statuses[next]);
+                  document.getElementById(`campaign-tab-${statuses[next]}`)?.focus();
+                }
+              }}
               {...(prefersReducedMotion ? {} : {
                 initial: { opacity: 0, y: 10 },
                 animate: { opacity: 1, y: 0 },
@@ -249,6 +261,12 @@ export default function Campaigns() {
           ))}
         </div>
 
+        {/* Tab panel */}
+        <div
+          role="tabpanel"
+          id={`campaign-tabpanel-${filter}`}
+          aria-labelledby={`campaign-tab-${filter}`}
+        >
         {/* Results count */}
         <p className="font-body text-caption text-sepia-mid mb-8 tracking-wider">
           {t('campaigns.results', { count: campaigns.length })}
@@ -429,6 +447,8 @@ export default function Campaigns() {
               <button
                 key={p}
                 onClick={() => setPage(p)}
+                aria-label={`${t('campaigns.pagination.page', 'Page')} ${p}`}
+                aria-current={page === p ? 'page' : undefined}
                 className={`
                   w-11 h-11 font-body text-caption border transition-all cursor-pointer
                   ${page === p
@@ -449,6 +469,7 @@ export default function Campaigns() {
             </button>
           </div>
         )}
+        </div>{/* end tabpanel */}
 
         {/* CTA */}
         <div className="pt-8">
@@ -469,7 +490,7 @@ export default function Campaigns() {
             </p>
             <Link
               to="/contact"
-              className="inline-block font-mono text-[10px] tracking-[0.18em] uppercase bg-ink text-paper px-8 py-4 hover:bg-rust transition-colors duration-300 cursor-pointer"
+              className="inline-block font-body text-body-sm tracking-[0.15em] uppercase bg-ink text-paper px-8 py-4 hover:bg-rust transition-colors duration-300 cursor-pointer"
             >
               {t('campaigns.cta.button', 'Get in Touch')}
             </Link>
@@ -477,7 +498,7 @@ export default function Campaigns() {
         </div>
       </SectionContainer>
 
-      <div className="editorial-divider" />
+      <div className="editorial-divider" aria-hidden="true" />
     </PageWrapper>
   );
 }

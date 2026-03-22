@@ -17,7 +17,8 @@ import MagneticButton from '@/components/animations/MagneticButton';
 import { donationsApi } from '@/services/donations';
 
 /* ─── Impact Area Data ─── */
-
+// Illustrative allocation percentages for demo purposes.
+// Real fund allocation is disclosed in published quarterly financial reports.
 const IMPACT_AREAS = [
   { key: 'artSupplies', pct: 60, icon: 'brush' },
   { key: 'production', pct: 20, icon: 'fabric' },
@@ -98,7 +99,7 @@ function ImpactProgressBar({
           </span>
         </div>
       </div>
-      <div className="h-2 bg-warm-gray/15 rounded-sm overflow-hidden">
+      <div className="h-2 bg-warm-gray/15 rounded-sm overflow-hidden" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
         <motion.div
           {...(prefersReducedMotion ? {} : {
             initial: { scaleX: 0 },
@@ -221,6 +222,7 @@ export default function Donate() {
     staleTime: 5 * 60 * 1000,
   });
 
+  // Fallback values are illustrative — real stats come from the API.
   const totalAmount = impactStats?.total_amount
     ? parseFloat(impactStats.total_amount)
     : 890000;
@@ -354,8 +356,8 @@ export default function Donate() {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start relative z-10">
             <div className="md:col-span-5 relative">
               {/* Decorative corner accents */}
-              <div className="absolute -top-2 -left-2 w-4 h-4 border-t-2 border-l-2 border-sage/30 pointer-events-none" />
-              <div className="absolute -bottom-2 -right-2 w-4 h-4 border-b-2 border-r-2 border-sage/30 pointer-events-none" />
+              <div className="absolute -top-2 -left-2 w-4 h-4 border-t-2 border-l-2 border-sage/30 pointer-events-none" aria-hidden="true" />
+              <div className="absolute -bottom-2 -right-2 w-4 h-4 border-b-2 border-r-2 border-sage/30 pointer-events-none" aria-hidden="true" />
 
               <h3 className="font-display text-h3 font-bold text-ink mb-4">
                 {t('donate.transparency.title')}
@@ -404,8 +406,10 @@ export default function Donate() {
               </div>
 
               <motion.button
-                className="font-body text-caption text-sage tracking-[0.15em] uppercase hover:text-ink transition-colors cursor-pointer"
-                whileHover={prefersReducedMotion ? undefined : { x: 4 }}
+                aria-disabled="true"
+                tabIndex={-1}
+                className="font-body text-caption text-sage/60 tracking-[0.15em] uppercase cursor-default"
+                whileHover={prefersReducedMotion ? undefined : undefined}
               >
                 {t('donate.transparency.viewReport')} &rarr;
               </motion.button>
@@ -423,8 +427,8 @@ export default function Donate() {
                     className="border border-warm-gray/30 p-6 bg-paper hover:border-sage/30 transition-colors cursor-pointer relative"
                   >
                     {/* Corner accents */}
-                    <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-sage/30 pointer-events-none" />
-                    <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-sage/30 pointer-events-none" />
+                    <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-sage/30 pointer-events-none" aria-hidden="true" />
+                    <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-sage/30 pointer-events-none" aria-hidden="true" />
 
                     <span className="font-body text-caption text-sepia-mid tracking-[0.15em]">
                       {t('donate.transparency.financialReport')}
@@ -533,7 +537,7 @@ export default function Donate() {
         </SectionContainer>
       </section>
 
-      <div className="editorial-divider" />
+      <div className="editorial-divider" aria-hidden="true" />
     </PageWrapper>
   );
 }

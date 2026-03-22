@@ -52,6 +52,12 @@
       "children": "赋能儿童",
       "reinvested": "再投资善款"
     },
+    "quote": {
+      "text": "每一针都承载着一个孩子的梦想。每一件衣裳都是一个尚未书写的故事的篇章。",
+      "author": "陈伟",
+      "role": "童画公益创始人"
+    },
+    "est": "创立于 2026",
     "latestArtworks": {
       "sectionTitle": "最新作品"
     },
@@ -327,7 +333,18 @@
     "card": {
       "viewDetails": "查看详情",
       "soldOut": "已售罄",
-      "lowStock": "仅剩 {{count}} 件"
+      "lowStock": "仅剩 {{count}} 件",
+      "notifyMe": "到货通知",
+      "notifySuccess": "补货后我们会通知您。",
+      "email": "邮箱",
+      "send": "发送",
+      "artworkBy": "来自 {{childName}} 的作品，{{age}} 岁 — {{campaign}} 活动",
+      "artworkConsent": "（已获监护人同意展示）",
+      "sustainability": {
+        "exceptional": "卓越",
+        "excellent": "优秀",
+        "good": "良好"
+      }
     },
     "detail": {
       "addToCart": "加入购物车",
@@ -618,6 +635,10 @@
       "votes": "票",
       "tags": "标签"
     },
+    "card": {
+      "age": "{{age}} 岁",
+      "votes": "{{count}} 票"
+    },
     "loading": "加载中...",
     "notFound": "未找到作品",
     "backToStories": "返回故事"
@@ -641,7 +662,8 @@
     },
     "emailAriaLabel": "电子邮箱",
     "emailPlaceholder": "your@email.com",
-    "allRightsReserved": "保留所有权利。"
+    "allRightsReserved": "保留所有权利。",
+    "scroll": "向下滚动"
   },
   "error": {
     "somethingWentWrong": "出了点问题",

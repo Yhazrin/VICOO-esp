@@ -29,7 +29,7 @@ export default function EditorialAdvertisement({
       className={`
         relative
         bg-aged-stock/70
-        border: 1px dashed border-warm-gray
+        border border-dashed border-warm-gray
         text-center
         ${variantStyles[variant]}
         ${className}
@@ -41,10 +41,10 @@ export default function EditorialAdvertisement({
       </span>
 
       {/* Decorative corners */}
-      <div className="absolute top-2 left-2 w-3 h-3 border-t border-l border-warm-gray/40" />
-      <div className="absolute top-2 right-2 w-3 h-3 border-t border-r border-warm-gray/40" />
-      <div className="absolute bottom-2 left-2 w-3 h-3 border-b border-l border-warm-gray/40" />
-      <div className="absolute bottom-2 right-2 w-3 h-3 border-b border-r border-warm-gray/40" />
+      <div className="absolute top-2 left-2 w-3 h-3 border-t border-l border-warm-gray/40" aria-hidden="true" />
+      <div className="absolute top-2 right-2 w-3 h-3 border-t border-r border-warm-gray/40" aria-hidden="true" />
+      <div className="absolute bottom-2 left-2 w-3 h-3 border-b border-l border-warm-gray/40" aria-hidden="true" />
+      <div className="absolute bottom-2 right-2 w-3 h-3 border-b border-r border-warm-gray/40" aria-hidden="true" />
 
       {/* Content */}
       <div className="pt-6">

@@ -46,12 +46,16 @@ export default function EditorialCallout({
       `}
     >
       {/* Decorative corner */}
-      <div className="absolute top-0 right-0 w-8 h-8 border-t border-r border-warm-gray/30 opacity-50" />
+      <div className="absolute top-0 right-0 w-8 h-8 border-t border-r border-warm-gray/30 opacity-50" aria-hidden="true" />
 
       {/* Top accent line for non-editorial variants */}
       {variant !== 'editorial' && (
         <div
-          className={`absolute top-0 left-0 w-px h-full bg-gradient-to-b from-${variant === 'default' ? 'rust' : variant}-transparent`}
+          className="absolute top-0 left-0 w-px h-full"
+          style={{
+            background: `linear-gradient(to bottom, var(--color-${variant === 'default' ? 'rust' : variant}), transparent)`,
+          }}
+          aria-hidden="true"
         />
       )}
 

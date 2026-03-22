@@ -13,12 +13,17 @@ router = APIRouter(prefix="/supply-chain", tags=["Supply Chain"])
 
 STAGES_ORDER = ["material_sourcing", "processing", "manufacturing", "quality_check", "shipping"]
 
+# ── MOCK DATA (served when database is unavailable) ──────────────
+# These records are illustrative examples for development/demo purposes.
+# Real supply chain data is loaded from the database when available.
+# Certification references and partner names below are fictional.
+# ────────────────────────────────────────────────────────────────
 _mock_records = [
     {
         "id": 1,
         "product_id": 4,
         "stage": "material_sourcing",
-        "description": "有机棉花采自新疆阿克苏地区合作农场，获得GOTS全球有机纺织品标准认证。",
+        "description": "[MOCK] 有机棉花采自新疆阿克苏地区合作农场，获得GOTS全球有机纺织品标准认证。",
         "location": "新疆维吾尔自治区阿克苏市",
         "certified": True,
         "cert_image_url": "/static/certs/gots_cert_001.jpg",
@@ -29,7 +34,7 @@ _mock_records = [
         "id": 2,
         "product_id": 4,
         "stage": "processing",
-        "description": "棉花在经认证的纺纱厂进行清理、梳理和纺纱。工厂采用太阳能供电。",
+        "description": "[MOCK] 棉花在经认证的纺纱厂进行清理、梳理和纺纱。工厂采用太阳能供电。",
         "location": "山东省济南市",
         "certified": True,
         "cert_image_url": "/static/certs/processing_cert_001.jpg",
@@ -40,7 +45,7 @@ _mock_records = [
         "id": 3,
         "product_id": 4,
         "stage": "manufacturing",
-        "description": "成衣在公平贸易认证工厂制作，工人享受合理薪资和安全的工作环境。",
+        "description": "[MOCK] 成衣在公平贸易认证工厂制作，工人享受合理薪资和安全的工作环境。",
         "location": "广东省广州市",
         "certified": True,
         "cert_image_url": "/static/certs/fair_trade_cert_001.jpg",
@@ -51,7 +56,7 @@ _mock_records = [
         "id": 4,
         "product_id": 4,
         "stage": "quality_check",
-        "description": "通过第三方质检机构SGS检测，符合GB/T 18401-2010国家标准。",
+        "description": "[MOCK] 通过第三方质检机构SGS检测，符合GB/T 18401-2010国家标准。",
         "location": "广东省广州市",
         "certified": True,
         "cert_image_url": "/static/certs/sgs_cert_001.jpg",
@@ -62,7 +67,7 @@ _mock_records = [
         "id": 5,
         "product_id": 4,
         "stage": "shipping",
-        "description": "使用可降解包装材料，通过碳中和物流合作伙伴配送。",
+        "description": "[MOCK] 使用可降解包装材料，通过碳中和物流合作伙伴配送。",
         "location": "全国配送",
         "certified": True,
         "cert_image_url": "/static/certs/carbon_neutral_cert_001.jpg",
@@ -139,7 +144,7 @@ async def trace_product(product_id: int, db: AsyncSession = Depends(get_db)):
         records = [r for r in _mock_records if r["product_id"] == product_id]
         return ApiResponse(data={
             "product_id": product_id,
-            "product_name": "童画公益 × 可持续时尚 T恤",
+            "product_name": "[MOCK] 童画公益 × 可持续时尚 T恤",
             "records": records,
         })
 

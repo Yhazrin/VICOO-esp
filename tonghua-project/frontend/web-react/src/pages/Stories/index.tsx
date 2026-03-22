@@ -41,7 +41,7 @@ const MOCK_STORIES: StoryItem[] = [
   {
     id: '1',
     title: 'The Girl Who Drew the Ocean',
-    excerpt: 'Xiao Lin had never seen the sea. But her painting of it became the most popular design in our Spring collection.',
+    excerpt: 'A young girl had never seen the sea. But her painting of it became the most popular design in our Spring collection.',
     pullQuote: '47 children participated in this workshop',
     coverImage: 'https://picsum.photos/seed/ocean-girl/800/600',
     author: 'Chen Wei',
@@ -353,13 +353,25 @@ export default function Stories() {
 
       <SectionContainer noTopSpacing>
         {/* Category filter with count badges */}
-        <div className="flex items-center gap-1 mb-12 border-b border-warm-gray/30 overflow-x-auto" role="tablist">
-          {categories.map((cat) => (
+        <div className="flex items-center gap-1 mb-12 border-b border-warm-gray/30 overflow-x-auto" role="tablist" aria-label={t('stories.categories.all')}>
+          {categories.map((cat, index) => (
             <motion.button
               key={cat}
+              id={`story-tab-${cat}`}
               role="tab"
               aria-selected={activeCategory === cat}
+              aria-controls={`story-tabpanel-${cat}`}
+              tabIndex={activeCategory === cat ? 0 : -1}
               onClick={() => setActiveCategory(cat)}
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+                  e.preventDefault();
+                  const dir = e.key === 'ArrowRight' ? 1 : -1;
+                  const next = (index + dir + categories.length) % categories.length;
+                  setActiveCategory(categories[next]);
+                  document.getElementById(`story-tab-${categories[next]}`)?.focus();
+                }
+              }}
               initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
               animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
@@ -398,6 +410,11 @@ export default function Stories() {
         </div>
 
         {/* Magazine spread stories */}
+        <div
+          role="tabpanel"
+          id={`story-tabpanel-${activeCategory}`}
+          aria-labelledby={`story-tab-${activeCategory}`}
+        >
         <AnimatePresence mode="wait">
           {filtered.length > 0 ? (
             <motion.div
@@ -503,6 +520,7 @@ export default function Stories() {
             <EmptyState onBrowseAll={() => setActiveCategory('all')} />
           )}
         </AnimatePresence>
+        </div>{/* end tabpanel */}
       </SectionContainer>
 
       {/* Newsletter CTA */}
@@ -555,6 +573,8 @@ export default function Stories() {
               ) : (
                 <motion.div
                   key="success"
+                  role="status"
+                  aria-live="polite"
                   {...(prefersReducedMotion ? {} : { initial: { opacity: 0, scale: 0.9 }, animate: { opacity: 1, scale: 1 }, transition: { type: 'spring', stiffness: 300, damping: 20 } })}
                   className="flex flex-col items-center gap-3 py-4"
                 >
@@ -598,7 +618,7 @@ export default function Stories() {
         </SectionContainer>
       </section>
 
-      <div className="editorial-divider" />
+      <div className="editorial-divider" aria-hidden="true" />
     </PageWrapper>
   );
 }

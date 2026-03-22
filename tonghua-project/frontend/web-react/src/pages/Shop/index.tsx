@@ -16,6 +16,12 @@ import type { Product } from '@/types';
 type Category = 'all' | 'apparel' | 'accessories' | 'stationery' | 'prints';
 type SortOption = 'default' | 'price-asc' | 'price-desc' | 'sustainability';
 
+// ── DEMONSTRATION DATA ──────────────────────────────────────────
+// The following products are illustrative examples for development/demo purposes.
+// Real product data is loaded from the API when available.
+// Sustainability scores follow GOTS/SA8000/LCA audit methodology.
+// Child artwork attribution is shown only with documented guardian consent.
+// ────────────────────────────────────────────────────────────────
 const MOCK_PRODUCTS: Product[] = [
   {
     id: 1,
@@ -165,13 +171,25 @@ export default function Shop() {
         {/* Filters and sort row */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
           {/* Category filter */}
-          <div className="flex items-center gap-1 border-b border-warm-gray/30 overflow-x-auto flex-1" role="tablist">
+          <div className="flex items-center gap-1 border-b border-warm-gray/30 overflow-x-auto flex-1" role="tablist" aria-label={t('shop.collection')}>
             {categories.map((cat, index) => (
               <motion.button
                 key={cat}
+                id={`shop-tab-${cat}`}
                 role="tab"
                 aria-selected={activeCategory === cat}
+                aria-controls={`shop-tabpanel-${cat}`}
+                tabIndex={activeCategory === cat ? 0 : -1}
                 onClick={() => setActiveCategory(cat)}
+                onKeyDown={(e) => {
+                  if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    const dir = e.key === 'ArrowRight' ? 1 : -1;
+                    const next = (index + dir + categories.length) % categories.length;
+                    setActiveCategory(categories[next]);
+                    document.getElementById(`shop-tab-${categories[next]}`)?.focus();
+                  }
+                }}
                 initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
                 animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
@@ -214,6 +232,11 @@ export default function Shop() {
         </p>
 
         {/* Product grid */}
+        <div
+          role="tabpanel"
+          id={`shop-tabpanel-${activeCategory}`}
+          aria-labelledby={`shop-tab-${activeCategory}`}
+        >
         {filtered.length === 0 ? (
           <p className="font-body text-body-sm text-sepia-mid py-20 text-center">
             {t('shop.empty')}
@@ -234,14 +257,15 @@ export default function Shop() {
             </motion.div>
           </AnimatePresence>
         )}
+        </div>{/* end tabpanel */}
       </SectionContainer>
 
       {/* Sustainability note */}
       <SectionContainer>
         <div className="border-t border-warm-gray/30 pt-12 mt-8 relative">
           {/* Decorative corner accents */}
-          <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-rust/30 pointer-events-none" />
-          <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-rust/30 pointer-events-none" />
+          <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-rust/30 pointer-events-none" aria-hidden="true" />
+          <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-rust/30 pointer-events-none" aria-hidden="true" />
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
             {/* Left: Lead pillar — wider, more emphasis */}

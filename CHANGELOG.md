@@ -1,5 +1,43 @@
 # Changelog
 
+## 2026-03-22 — Cycle 24: Readability Fix, Home i18n, Import Cleanup
+
+### Frontend
+
+- **EditorialHeroV2 stat label readability** — Changed stat label font size from `text-[7px]` to `text-[9px]` (line 163). 7px is below readability threshold on most screens; 9px matches the eyebrow text size used elsewhere in the component.
+- **Home i18n — StoryQuoteBlock** — Replaced hardcoded `quote`, `author`, `role` props with `t('home.quote.text')`, `t('home.quote.author')`, `t('home.quote.role')`.
+- **Home i18n — Est. 2026** — Replaced hardcoded `"Est. 2026"` with `t('home.est')`. Added corresponding keys to en.json and zh.json.
+
+### Backend
+
+- **orders.py import cleanup** — Moved `import random` from inside `create_order` except block to top-level imports. Prevents potential `NameError` if the except path changes and eliminates a code quality anti-pattern.
+
+### Verification
+
+- TypeScript `tsc --noEmit`: 0 errors
+- Python `ast.parse`: all 10 router files pass
+
+## 2026-03-22 — Cycle 23: WAI-ARIA Tabs, Logging Cleanup, i18n Hardcoded Strings
+
+### Accessibility
+
+- **Stories WAI-ARIA tabs** — Added `id`, `aria-controls`, `tabIndex` (roving), `onKeyDown` (ArrowLeft/ArrowRight) to tab buttons. Wrapped content in `role="tabpanel"` with `id`/`aria-labelledby`. Added `aria-label` on tablist.
+- **Shop WAI-ARIA tabs** — Same treatment: full ARIA tab pattern with keyboard navigation and tabpanel wrapper.
+
+### Backend
+
+- **main.py rate limiting logging** — Changed 3 verbose `logger.info` calls in rate limit middleware to `logger.debug` to reduce production log noise.
+
+### Frontend
+
+- **Login i18n** — Replaced hardcoded Chinese "或" → `t('login.orContinueWith')`, "微信" → `t('login.wechat')`.
+- **Register i18n** — Replaced hardcoded Chinese "或" → `t('register.orContinueWith')`, "微信" → `t('register.wechat')`.
+
+### Verification
+
+- TypeScript `tsc --noEmit`: 0 errors
+- Python `ast.parse`: orders.py, donations.py, main.py all pass
+
 ## 2026-03-22 — Cycle 22: TS Type Safety, Backend NameError Fix, Traceability Rewrite
 
 ### Backend

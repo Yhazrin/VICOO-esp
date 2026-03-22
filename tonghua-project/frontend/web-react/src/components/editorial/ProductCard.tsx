@@ -15,10 +15,12 @@ interface ProductCardProps {
   className?: string;
 }
 
-function getSustainabilityTier(score: number): { label: string; colorClass: string; barColor: string } {
-  if (score >= 90) return { label: 'Exceptional', colorClass: 'text-rust', barColor: 'bg-rust' };
-  if (score >= 80) return { label: 'Excellent', colorClass: 'text-sage', barColor: 'bg-sage' };
-  return { label: 'Good', colorClass: 'text-sepia-mid', barColor: 'bg-sepia-mid' };
+// Sustainability tier mapping — illustrative thresholds for demo purposes.
+// Real scores are based on GOTS/SA8000/LCA audits; methodology details at /sustainability-methodology.
+function getSustainabilityTier(score: number, t: (key: string) => string): { label: string; colorClass: string; barColor: string } {
+  if (score >= 90) return { label: t('shop.card.sustainability.exceptional'), colorClass: 'text-rust', barColor: 'bg-rust' };
+  if (score >= 80) return { label: t('shop.card.sustainability.excellent'), colorClass: 'text-sage', barColor: 'bg-sage' };
+  return { label: t('shop.card.sustainability.good'), colorClass: 'text-sepia-mid', barColor: 'bg-sepia-mid' };
 }
 
 export default function ProductCard({
@@ -34,7 +36,7 @@ export default function ProductCard({
   const [notifyEmail, setNotifyEmail] = useState('');
   const [notifySubmitted, setNotifySubmitted] = useState(false);
 
-  const sustainability = getSustainabilityTier(product.sustainabilityScore);
+  const sustainability = getSustainabilityTier(product.sustainabilityScore, t);
 
   const handleNotifySubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,11 +112,11 @@ export default function ProductCard({
             </span>
           </div>
 
-          {/* Artwork attribution */}
+          {/* Artwork attribution — child name/age shown only with guardian consent */}
           {product.artworkBy && (
             <p className="font-body text-overline text-sepia-mid tracking-wide mb-2">
-              Artwork by {product.artworkBy.childName}, age {product.artworkBy.age}
-              {' '}&mdash; {product.artworkBy.campaign} campaign
+              {t('shop.card.artworkBy', { childName: product.artworkBy.childName, age: product.artworkBy.age, campaign: product.artworkBy.campaign })}
+              <span className="sr-only">{t('shop.card.artworkConsent')}</span>
             </p>
           )}
 
@@ -161,7 +163,7 @@ export default function ProductCard({
                 }}
                 className="w-full font-body text-overline tracking-[0.15em] uppercase text-sepia-mid py-2 px-4 border border-dashed border-sepia-mid/50 hover:border-sepia-mid hover:text-ink transition-all duration-200 bg-transparent cursor-pointer"
               >
-                Notify Me
+                {t('shop.card.notifyMe')}
               </motion.button>
             ) : notifySubmitted ? (
               <motion.p
@@ -169,7 +171,7 @@ export default function ProductCard({
                 animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
                 className="font-body text-overline text-sage tracking-wide text-center py-2"
               >
-                We will let you know when this is back.
+                {t('shop.card.notifySuccess')}
               </motion.p>
             ) : (
               <AnimatePresence>
@@ -183,7 +185,7 @@ export default function ProductCard({
                   <div className="flex-1">
                     <VintageInput
                       type="email"
-                      label="Email"
+                      label={t('shop.card.email')}
                       placeholder="your@email.com"
                       value={notifyEmail}
                       onChange={(e) => setNotifyEmail(e.target.value)}
@@ -196,7 +198,7 @@ export default function ProductCard({
                     whileTap={prefersReducedMotion ? undefined : { scale: 0.95 }}
                     className="font-body text-overline tracking-[0.1em] uppercase text-paper bg-rust px-3 py-3 border border-rust hover:bg-rust/90 transition-colors flex-shrink-0"
                   >
-                    Send
+                    {t('shop.card.send')}
                   </motion.button>
                 </motion.form>
               </AnimatePresence>
