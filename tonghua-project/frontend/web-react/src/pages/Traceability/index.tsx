@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, useInView, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import EditorialHero from '@/components/editorial/EditorialHero';
@@ -13,7 +12,6 @@ import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
 import { supplyChainApi } from '@/services/supply-chain';
 import type { SupplyChainRecord } from '@/types';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
-import { supplyChainApi } from '@/services/supply-chain';
 
 // Extended record with story, image, and status for enhanced timeline
 interface EnhancedSupplyChainRecord extends SupplyChainRecord {
@@ -31,119 +29,29 @@ const STAGE_MAP: Record<string, string> = {
   shipping: 'shipping',
 };
 
-// Build enhanced records from API trace data, merging with narrative stories
-function buildRecordsFromApi(apiRecords: Array<{
-  id: number;
-  stage: string;
-  description: string | null;
-  location: string | null;
-  certified: boolean;
-  timestamp: string | null;
-}>): EnhancedSupplyChainRecord[] {
-  return apiRecords.map((r) => {
-    const frontendStage = STAGE_MAP[r.stage] || r.stage;
-    const narrative = MOCK_RECORDS.find((m) => m.stage === frontendStage);
-    return {
-      id: r.id,
-      stage: frontendStage,
-      description: r.description ?? narrative?.description ?? '',
-      location: r.location ?? narrative?.location ?? '',
-      date: r.timestamp ? r.timestamp.split('T')[0] : narrative?.date ?? '',
-      verified: r.certified,
-      partnerName: narrative?.partnerName ?? 'Verified Partner',
-      carbonFootprint: narrative?.carbonFootprint,
-      story: narrative?.story ?? '',
-      imageUrl: narrative?.imageUrl ?? `https://picsum.photos/seed/${frontendStage}/200/200`,
-      status: r.certified ? 'verified' as const : 'in-progress' as const,
-    };
-  });
-}
-
-const MOCK_RECORDS: EnhancedSupplyChainRecord[] = [
-  {
-    id: 1,
-    stage: 'artwork',
-    description: 'Xiao Lin, age 8, created her ocean painting during a Saturday workshop at Dongfeng Elementary School. The artwork was selected by peer vote.',
-    location: 'Shanghai, China',
-    date: '2025-11-15',
-    verified: true,
-    partnerName: 'Dongfeng Elementary School',
-    carbonFootprint: 0,
-    status: 'verified',
-    story: 'On a rainy Saturday morning, eight-year-old Xiao Lin picked up her brush and painted a whale leaping through ocean waves. Her classmates voted it best in show.',
-    imageUrl: 'https://picsum.photos/seed/artwork-studio/200/200',
-  },
-  {
-    id: 2,
-    stage: 'design',
-    description: 'Our design team adapted the artwork for textile printing, maintaining the child\'s original brushstrokes and color palette. Xiao Lin approved the final design.',
-    location: 'Shanghai, China',
-    date: '2025-12-01',
-    verified: true,
-    partnerName: 'Tonghua Design Studio',
-    carbonFootprint: 0.2,
-    status: 'verified',
-    story: 'Lead designer Mei transformed the painting into a repeat pattern while preserving every brushstroke. Xiao Lin visited the studio and gave her final approval with a thumbs-up.',
-    imageUrl: 'https://picsum.photos/seed/design-studio/200/200',
-  },
-  {
-    id: 3,
-    stage: 'material',
-    description: 'GOTS-certified organic cotton sourced from Xinjiang cooperative. Fair trade pricing verified by third-party auditor.',
-    location: 'Xinjiang, China',
-    date: '2025-12-20',
-    verified: true,
-    partnerName: 'GreenCotton Cooperative',
-    carbonFootprint: 1.8,
-    status: 'verified',
-    story: 'Harvested by hand from fields irrigated with rainwater collection systems. Each batch is tested for pesticide residue and certified organic before shipping.',
-    imageUrl: 'https://picsum.photos/seed/cotton-fields/200/200',
-  },
-  {
-    id: 4,
-    stage: 'production',
-    description: 'Screen-printed and sewn at SA8000-certified factory. Living wages paid. Working conditions audited quarterly.',
-    location: 'Guangzhou, China',
-    date: '2026-01-10',
-    verified: true,
-    partnerName: 'FairWear Manufacturing',
-    carbonFootprint: 2.4,
-    status: 'verified',
-    story: 'Artisan Zhang has sewn garments for 15 years. He earns above living wage with full benefits. His team printed and assembled 200 units of this design.',
-    imageUrl: 'https://picsum.photos/seed/factory-floor/200/200',
-  },
-  {
-    id: 5,
-    stage: 'quality',
-    description: 'Quality inspection passed. Color fastness, seam strength, and sizing verified against specifications.',
-    location: 'Guangzhou, China',
-    date: '2026-01-25',
-    verified: true,
-    partnerName: 'FairWear Manufacturing',
-    carbonFootprint: 0.1,
-    status: 'verified',
-    story: 'Inspector Li tests every garment for color fastness after 20 washes, seam strength at stress points, and dimensional accuracy within 2mm tolerance.',
-    imageUrl: 'https://picsum.photos/seed/quality-check/200/200',
-  },
-  {
-    id: 6,
-    stage: 'shipping',
-    description: 'Shipped via consolidated freight to reduce emissions. Carbon offset purchased through certified program.',
-    location: 'Guangzhou to Shanghai',
-    date: '2026-02-05',
-    verified: true,
-    partnerName: 'GreenLogistics Co.',
-    carbonFootprint: 0.8,
-    status: 'in-progress',
-    story: 'Consolidated with three other orders to fill one container. Remaining emissions offset through a verified reforestation project in Yunnan Province.',
-    imageUrl: 'https://picsum.photos/seed/logistics-hub/200/200',
-  },
-];
-
 const CARBON_DATA = {
   conventional: 33.4,
   vicoo: 8.2,
 };
+
+// Static data for mock records (non-localized fields)
+const MOCK_RECORDS_STATIC = [
+  { id: 1, stage: 'artwork', location: 'Shanghai, China', date: '2025-11-15', verified: true, partnerName: 'Dongfeng Elementary School', carbonFootprint: 0, status: 'verified' as const, imageUrl: 'https://picsum.photos/seed/artwork-studio/200/200' },
+  { id: 2, stage: 'design', location: 'Shanghai, China', date: '2025-12-01', verified: true, partnerName: 'Tonghua Design Studio', carbonFootprint: 0.2, status: 'verified' as const, imageUrl: 'https://picsum.photos/seed/design-studio/200/200' },
+  { id: 3, stage: 'material', location: 'Xinjiang, China', date: '2025-12-20', verified: true, partnerName: 'GreenCotton Cooperative', carbonFootprint: 1.8, status: 'verified' as const, imageUrl: 'https://picsum.photos/seed/cotton-fields/200/200' },
+  { id: 4, stage: 'production', location: 'Guangzhou, China', date: '2026-01-10', verified: true, partnerName: 'FairWear Manufacturing', carbonFootprint: 2.4, status: 'verified' as const, imageUrl: 'https://picsum.photos/seed/factory-floor/200/200' },
+  { id: 5, stage: 'quality', location: 'Guangzhou, China', date: '2026-01-25', verified: true, partnerName: 'FairWear Manufacturing', carbonFootprint: 0.1, status: 'verified' as const, imageUrl: 'https://picsum.photos/seed/quality-check/200/200' },
+  { id: 6, stage: 'shipping', location: 'Guangzhou to Shanghai', date: '2026-02-05', verified: true, partnerName: 'GreenLogistics Co.', carbonFootprint: 0.8, status: 'in-progress' as const, imageUrl: 'https://picsum.photos/seed/logistics-hub/200/200' },
+];
+
+// Build localized mock records from i18n keys
+function getMockRecords(t: (key: string) => string): EnhancedSupplyChainRecord[] {
+  return MOCK_RECORDS_STATIC.map((r) => ({
+    ...r,
+    description: t(`traceability.mock.records.${r.id}.description`),
+    story: t(`traceability.mock.records.${r.id}.story`),
+  }));
+}
 
 // Animated counter for reduction percentage
 function AnimatedCounter({ value, suffix = '' }: { value: number; suffix?: string }) {
@@ -194,6 +102,7 @@ function CarbonBar({ label, value, maxValue, isEco, delay }: {
   isEco: boolean;
   delay: number;
 }) {
+  const { t } = useTranslation();
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: '-50px' });
   const prefersReducedMotion = useReducedMotion();
@@ -214,7 +123,7 @@ function CarbonBar({ label, value, maxValue, isEco, delay }: {
           {label}
         </span>
         <span className={`font-display text-h3 font-bold ${isEco ? 'text-sage' : 'text-archive-brown'}`}>
-          {value} kg CO2
+          {value} {t('traceability.kgCO2')}
         </span>
       </div>
       <div className="h-3 bg-warm-gray/20 border border-warm-gray/30 overflow-hidden">
@@ -302,6 +211,7 @@ function EnhancedTimelineEntry({ record, index, t }: {
   index: number;
   t: (key: string) => string;
 }) {
+  const { i18n } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
   const statusConfig = {
     verified: { label: t('traceability.status.verified'), bg: 'bg-sage/10', text: 'text-sage', border: 'border-sage/30', dot: 'bg-sage-light' },
@@ -390,7 +300,7 @@ function EnhancedTimelineEntry({ record, index, t }: {
             <div className="font-body text-label text-sepia-mid">
               <span className="uppercase tracking-[0.1em]">{t('traceability.date')}:</span>{' '}
               <span className="text-ink-faded font-medium">
-                {new Date(record.date).toLocaleDateString('en-US', {
+                {new Date(record.date).toLocaleDateString(i18n.language, {
                   year: 'numeric',
                   month: 'short',
                   day: 'numeric',
@@ -399,9 +309,9 @@ function EnhancedTimelineEntry({ record, index, t }: {
             </div>
             {record.carbonFootprint !== undefined && (
               <div className="font-body text-label text-sepia-mid">
-                <span className="uppercase tracking-[0.1em]">{t('traceability.carbon')}:</span>{' '}
+                <span className="uppercase tracking-[0.1em]">{t('traceability.carbon.sectionLabel')}:</span>{' '}
                 <span className="text-archive-brown font-medium">
-                  {record.carbonFootprint} kg CO2
+                  {record.carbonFootprint} {t('traceability.kgCO2')}
                 </span>
               </div>
             )}
@@ -459,28 +369,43 @@ function EnhancedTimeline({ records, t }: { records: EnhancedSupplyChainRecord[]
 }
 
 export default function Traceability() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
   const timelineRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [highlightedId, setHighlightedId] = useState<number | null>(null);
   const [searchResult, setSearchResult] = useState<EnhancedSupplyChainRecord | null>(null);
-  const [records, setRecords] = useState<EnhancedSupplyChainRecord[]>(MOCK_RECORDS);
+  const [records, setRecords] = useState<EnhancedSupplyChainRecord[]>(getMockRecords(t));
 
   // Fetch supply chain records from API on mount (fallback to mock)
   useEffect(() => {
     let cancelled = false;
     supplyChainApi
-      .getRecords({ page_size: 50 })
+      .getRecords()
       .then((res) => {
-        if (cancelled || !res.items.length) return;
-        const mapped: EnhancedSupplyChainRecord[] = res.items.map((r, i) => ({
-          ...r,
-          story: MOCK_RECORDS[i]?.story ?? r.description,
-          imageUrl: MOCK_RECORDS[i]?.imageUrl ?? `https://picsum.photos/seed/stage-${r.stage}/200/200`,
-          status: (r.verified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
-        }));
+        if (cancelled || !res.length) return;
+        const localizedMockRecords = getMockRecords(t);
+        const mapped: EnhancedSupplyChainRecord[] = res.map((r, i) => {
+          const stage = STAGE_MAP[r.stage] || r.stage;
+          const staticRecord = MOCK_RECORDS_STATIC.find((m) => m.stage === stage) ?? MOCK_RECORDS_STATIC[i];
+          const localizedRecord = localizedMockRecords.find((m) => m.stage === stage) ?? localizedMockRecords[i];
+          const verified = (r.certifications?.length ?? 0) > 0;
+
+          return {
+            id: Number(r.id) || staticRecord?.id || i + 1,
+            stage,
+            description: r.description,
+            location: r.location,
+            date: r.timestamp || staticRecord?.date || '',
+            verified,
+            partnerName: r.artisan?.name ?? r.productName ?? staticRecord?.partnerName ?? '',
+            carbonFootprint: staticRecord?.carbonFootprint,
+            story: localizedRecord?.story ?? r.description,
+            imageUrl: staticRecord?.imageUrl ?? r.artisan?.imageUrl ?? `https://picsum.photos/seed/stage-${stage}/200/200`,
+            status: (verified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
+          };
+        });
         setRecords(mapped);
       })
       .catch(() => {
@@ -500,15 +425,26 @@ export default function Traceability() {
     setIsSearching(true);
 
     supplyChainApi
-      .trace(query.trim())
-      .then((trace) => {
-        if (trace.records.length > 0) {
-          const first = trace.records[0];
+      .getProductJourney(query.trim())
+      .then((journey) => {
+        if (journey.length > 0) {
+          const first = journey[0];
+          const stage = STAGE_MAP[first.stage] || first.stage;
+          const staticRecord = MOCK_RECORDS_STATIC.find((m) => m.stage === stage);
+          const localizedRecord = getMockRecords(t).find((m) => m.stage === stage);
+          const verified = (first.certifications?.length ?? 0) > 0;
           const enhanced: EnhancedSupplyChainRecord = {
-            ...first,
-            story: MOCK_RECORDS.find((m) => m.stage === first.stage)?.story ?? first.description,
-            imageUrl: MOCK_RECORDS.find((m) => m.stage === first.stage)?.imageUrl ?? `https://picsum.photos/seed/${first.stage}/200/200`,
-            status: (first.verified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
+            id: Number(first.id) || staticRecord?.id || 1,
+            stage,
+            description: first.description,
+            location: first.location,
+            date: first.timestamp || staticRecord?.date || '',
+            verified,
+            partnerName: first.artisan?.name ?? first.productName ?? staticRecord?.partnerName ?? '',
+            carbonFootprint: staticRecord?.carbonFootprint,
+            story: localizedRecord?.story ?? first.description,
+            imageUrl: staticRecord?.imageUrl ?? first.artisan?.imageUrl ?? `https://picsum.photos/seed/${stage}/200/200`,
+            status: (verified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
           };
           setHighlightedId(enhanced.id);
           setSearchResult(enhanced);
@@ -519,7 +455,7 @@ export default function Traceability() {
         // Fallback: local search through records
         const found = records.find(
           (r) =>
-            r.id === query.trim() ||
+            String(r.id) === query.trim() ||
             r.partnerName.toLowerCase().includes(query.toLowerCase()) ||
             query.toUpperCase().includes('VICOO')
         );
@@ -627,7 +563,7 @@ export default function Traceability() {
                     </h4>
                     <p className="font-body text-caption text-ink-faded leading-relaxed">
                       {searchResult.partnerName} &mdash; {searchResult.location},{' '}
-                      {new Date(searchResult.date).toLocaleDateString('en-US', {
+                      {new Date(searchResult.date).toLocaleDateString(i18n.language, {
                         year: 'numeric',
                         month: 'short',
                       })}
@@ -654,7 +590,7 @@ export default function Traceability() {
             <div className="sticky top-28">
               <SepiaImageFrame
                 src="https://picsum.photos/seed/dreamscape-tee/600/800"
-                alt="Dreamscape Tee"
+                alt={t('traceability.imageAlt')}
                 aspectRatio="portrait"
                 size="full"
               />
@@ -669,7 +605,7 @@ export default function Traceability() {
                 className="mt-6 border border-warm-gray/30 p-6 bg-aged-stock"
               >
                 <span className="font-body text-caption text-sepia-mid tracking-[0.2em] uppercase">
-                  {t('traceability.carbon')}
+                  {t('traceability.carbon.sectionLabel')}
                 </span>
                 <div className="font-display text-h3 font-bold text-ink mt-2">
                   {t('traceability.carbonTotal.value')}

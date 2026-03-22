@@ -1,6 +1,6 @@
 # Improvement Tracker
 
-> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 7)
+> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 19)
 > Scope broadened: now covers frontend UI/UX + backend architecture + software architecture + sustainability + code quality
 
 ## Completed
@@ -165,6 +165,39 @@
 | 126 | Backend — list_donations exposes PII to unauthenticated users | High | ✅ done — optional auth via get_optional_current_user, redact donor_name/message/donor_user_id |
 | 127 | Backend — deps.py missing optional auth dependency | Medium | ✅ done — get_optional_current_user() returns user dict or None, no exception on auth failure |
 | 128 | Backend — donations.py missing name redaction helper | Medium | ✅ done — _redact_name() masks names to first char + asterisks, handles anonymous flag |
+
+## Completed — Cycle 12 (2026-03-22)
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 129 | Backend — deps.py rate_limit_check silent bypass via `except Exception: return True` | P1 | ✅ done — fail-closed in production (HTTP 503), fail-open only in development |
+| 130 | Accessibility — EditorialAdvertisement `text-muted-gray` on paper = 1.85:1 | P0 | ✅ done — changed to `text-ink-light` (#6B665C = 4.6:1) |
+| 131 | Accessibility — Contact character counter `text-sepia-mid/60` = 2.68:1 | P1 | ✅ done — changed to `text-sepia-mid` (5.78:1) |
+| 132 | Accessibility — VintageInput helper text `text-sepia-mid/70` = 3.72:1 | P1 | ✅ done — changed to `text-sepia-mid` (5.78:1) |
+| 133 | Accessibility — Stories inactive badge `text-sepia-mid/60` = 2.68:1 | P1 | ✅ done — changed to `text-ink-light` (4.6:1) |
+| 134 | Accessibility — Campaigns filter index `text-sepia-mid/60` = 2.68:1 | P1 | ✅ done — changed to `text-sepia-mid` (5.78:1) |
+| 135 | Accessibility — Traceability hint text `text-sepia-mid/70` = 3.72:1 | P1 | ✅ done — changed to `text-sepia-mid` (5.78:1) |
+| 136 | Accessibility — Donate.module.css placeholder warm-gray = 1.43:1 | P1 | ✅ done — changed to sepia-mid (5.78:1) |
+| 137 | Accessibility — Campaigns.module.css empty icon warm-gray = 1.43:1 | P1 | ✅ done — changed to sepia-mid (5.78:1) |
+| 138 | Accessibility — global.css advertisement-label muted-gray = 1.85:1 | P1 | ✅ done — changed to ink-light (4.6:1) |
+| 139 | Accessibility — global.css form-input placeholder muted-gray = 1.85:1 | P1 | ✅ done — changed to sepia-mid (5.78:1) |
+
+## Completed — Cycle 19 (2026-03-22)
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 153 | Backend — security.py create_refresh_token missing role param → admin downgrade | P0 | ✅ done — added role param, all 7 callers pass user.role |
+| 154 | Backend — payments.py Alipay fail-open + payment_service.py timing attack | P0 | ✅ done — fail-closed on missing config, hmac.compare_digest() |
+| 155 | Frontend — supply-chain.ts service rewritten + Traceability API alignment | P0 | ✅ done — correct endpoints, response mapping, TraceResponse export |
+| 156 | TypeScript — tsc --noEmit zero errors verification | P0 | ✅ done — removed 4 unused imports/functions, fixed 4 mock field names |
+| 157 | Backend — auth.py PII logging (email/password in logs) | P0 | ✅ done — 4 log statements sanitized, exc_info=True for errors |
+| 158 | Backend — contact.py + schemas/user.py EmailStr + deps.py signature leak | P0 | ✅ done — EmailStr validation, removed signature prefix from warning log |
+| 159 | Backend — artworks.py vote race condition (read-modify-write) | P0 | ✅ done — atomic SQL UPDATE with like_count + 1 |
+| 160 | Backend — unused imports cleanup (auth/contact/donations/orders/payments) | Low | ✅ done — removed os/Response/UserCreate/parse_qs/Union/require_role/PaginatedResponse/WeChatPaymentParams |
+| 161 | Git — __pycache__/ tracked despite .gitignore rule | Low | ✅ done — git rm --cached on 38 .pyc files |
+| 162 | Frontend — Login/Register i18n + social button a11y | Medium | ✅ done — aria-label on 6+6 social buttons, SVG aria-hidden |
+| 163 | Frontend — Donate progressbar ARIA (aria-valuenow/min/max) | Low | ✅ done — add role=progressbar + ARIA value attributes |
+| 164 | Frontend — Campaigns pagination ARIA (nav + aria-label + aria-current) | Low | ✅ done — div→nav, aria-label, aria-current="page" |
 
 ## Pending
 

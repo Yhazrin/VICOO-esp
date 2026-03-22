@@ -50,6 +50,7 @@ build/
 *.md
 !README.md
 !CLAUDE.md
+!CHANGELOG.md
 
 # Test files
 tests/test_ci_config.py

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
@@ -16,95 +16,95 @@ import type { Product } from '@/types';
 type Category = 'all' | 'apparel' | 'accessories' | 'stationery' | 'prints';
 type SortOption = 'default' | 'price-asc' | 'price-desc' | 'sustainability';
 
-const MOCK_PRODUCTS: Product[] = [
-  {
-    id: 1,
-    name: 'Dreamscape Tee',
-    description: 'A children\'s ocean painting transformed into a wearable story.',
-    price: 298,
-    currency: 'CNY',
-    image_url: 'https://picsum.photos/seed/dreamscape-tee/600/800',
-    category: 'apparel',
-    inStock: true,
-    stockCount: 24,
-    sustainabilityScore: 87,
-    supplyChain: [],
-    artworkBy: { childName: 'Xiao Lin', age: 8, campaign: 'Ocean Dreams' },
-  },
-  {
-    id: 2,
-    name: 'Bloom Tote Bag',
-    description: 'Hand-printed organic cotton tote featuring spring campaign artwork.',
-    price: 168,
-    currency: 'CNY',
-    image_url: 'https://picsum.photos/seed/bloom-tote/600/800',
-    category: 'accessories',
-    inStock: true,
-    stockCount: 3,
-    sustainabilityScore: 92,
-    supplyChain: [],
-    artworkBy: { childName: 'Mei Hua', age: 7, campaign: 'Spring Garden' },
-  },
-  {
-    id: 3,
-    name: 'Little Artists Sketchbook',
-    description: 'Recycled paper sketchbook with cover art from our winter campaign.',
-    price: 58,
-    currency: 'CNY',
-    image_url: 'https://picsum.photos/seed/sketchbook/600/800',
-    category: 'stationery',
-    inStock: true,
-    stockCount: 156,
-    sustainabilityScore: 95,
-    supplyChain: [],
-    artworkBy: { childName: 'Tong Tong', age: 6, campaign: 'Winter Wonders' },
-  },
-  {
-    id: 4,
-    name: 'Ocean Dreams Art Print',
-    description: 'Museum-quality giclee print on archival paper.',
-    price: 128,
-    currency: 'CNY',
-    image_url: 'https://picsum.photos/seed/ocean-print/600/800',
-    category: 'prints',
-    inStock: true,
-    stockCount: 42,
-    sustainabilityScore: 88,
-    supplyChain: [],
-    artworkBy: { childName: 'Xiao Yu', age: 9, campaign: 'Ocean Dreams' },
-  },
-  {
-    id: 5,
-    name: 'Cityscape Hoodie',
-    description: 'Organic cotton hoodie with embroidered children\'s city drawings.',
-    price: 458,
-    currency: 'CNY',
-    image_url: 'https://picsum.photos/seed/cityscape-hoodie/600/800',
-    category: 'apparel',
-    inStock: false,
-    stockCount: 0,
-    sustainabilityScore: 84,
-    supplyChain: [],
-    artworkBy: { childName: 'Jia Wei', age: 10, campaign: 'My City' },
-  },
-  {
-    id: 6,
-    name: 'Rainbow Pin Set',
-    description: 'Enamel pin set featuring five winning artworks from 2025.',
-    price: 48,
-    currency: 'CNY',
-    image_url: 'https://picsum.photos/seed/rainbow-pins/600/800',
-    category: 'accessories',
-    inStock: true,
-    stockCount: 89,
-    sustainabilityScore: 90,
-    supplyChain: [],
-    artworkBy: { childName: 'An Qi', age: 8, campaign: 'Colors of Hope' },
-  },
-];
-
 export default function Shop() {
   const { t } = useTranslation();
+
+  const MOCK_PRODUCTS: Product[] = [
+    {
+      id: 1,
+      name: t('shop.mock.product1.name'),
+      description: t('shop.mock.product1.description'),
+      price: 298,
+      currency: 'CNY',
+      image_url: 'https://picsum.photos/seed/dreamscape-tee/600/800',
+      category: 'apparel',
+      inStock: true,
+      stockCount: 24,
+      sustainabilityScore: 87,
+      supplyChain: [],
+      artworkBy: { childName: t('shop.mock.product1.childName'), age: 8, campaign: t('shop.mock.product1.campaign') },
+    },
+    {
+      id: 2,
+      name: t('shop.mock.product2.name'),
+      description: t('shop.mock.product2.description'),
+      price: 168,
+      currency: 'CNY',
+      image_url: 'https://picsum.photos/seed/bloom-tote/600/800',
+      category: 'accessories',
+      inStock: true,
+      stockCount: 3,
+      sustainabilityScore: 92,
+      supplyChain: [],
+      artworkBy: { childName: t('shop.mock.product2.childName'), age: 7, campaign: t('shop.mock.product2.campaign') },
+    },
+    {
+      id: 3,
+      name: t('shop.mock.product3.name'),
+      description: t('shop.mock.product3.description'),
+      price: 58,
+      currency: 'CNY',
+      image_url: 'https://picsum.photos/seed/sketchbook/600/800',
+      category: 'stationery',
+      inStock: true,
+      stockCount: 156,
+      sustainabilityScore: 95,
+      supplyChain: [],
+      artworkBy: { childName: t('shop.mock.product3.childName'), age: 6, campaign: t('shop.mock.product3.campaign') },
+    },
+    {
+      id: 4,
+      name: t('shop.mock.product4.name'),
+      description: t('shop.mock.product4.description'),
+      price: 128,
+      currency: 'CNY',
+      image_url: 'https://picsum.photos/seed/ocean-print/600/800',
+      category: 'prints',
+      inStock: true,
+      stockCount: 42,
+      sustainabilityScore: 88,
+      supplyChain: [],
+      artworkBy: { childName: t('shop.mock.product4.childName'), age: 9, campaign: t('shop.mock.product4.campaign') },
+    },
+    {
+      id: 5,
+      name: t('shop.mock.product5.name'),
+      description: t('shop.mock.product5.description'),
+      price: 458,
+      currency: 'CNY',
+      image_url: 'https://picsum.photos/seed/cityscape-hoodie/600/800',
+      category: 'apparel',
+      inStock: false,
+      stockCount: 0,
+      sustainabilityScore: 84,
+      supplyChain: [],
+      artworkBy: { childName: t('shop.mock.product5.childName'), age: 10, campaign: t('shop.mock.product5.campaign') },
+    },
+    {
+      id: 6,
+      name: t('shop.mock.product6.name'),
+      description: t('shop.mock.product6.description'),
+      price: 48,
+      currency: 'CNY',
+      image_url: 'https://picsum.photos/seed/rainbow-pins/600/800',
+      category: 'accessories',
+      inStock: true,
+      stockCount: 89,
+      sustainabilityScore: 90,
+      supplyChain: [],
+      artworkBy: { childName: t('shop.mock.product6.childName'), age: 8, campaign: t('shop.mock.product6.campaign') },
+    },
+  ];
   const prefersReducedMotion = useReducedMotion();
   const [activeCategory, setActiveCategory] = useState<Category>('all');
   const [sortBy, setSortBy] = useState<SortOption>('default');
@@ -125,6 +125,25 @@ export default function Shop() {
   });
 
   const categories: Category[] = ['all', 'apparel', 'accessories', 'stationery', 'prints'];
+
+  const handleTabKeyDown = useCallback(
+    (e: React.KeyboardEvent, cat: Category) => {
+      const idx = categories.indexOf(cat);
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        const next = categories[(idx + 1) % categories.length];
+        setActiveCategory(next);
+        document.getElementById(`shop-tab-${next}`)?.focus();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        const prev = categories[(idx - 1 + categories.length) % categories.length];
+        setActiveCategory(prev);
+        document.getElementById(`shop-tab-${prev}`)?.focus();
+      }
+    },
+    [],
+  );
+
   const sortOptions: { value: SortOption; label: string }[] = [
     { value: 'default', label: t('shop.sort.default') },
     { value: 'price-asc', label: t('shop.sort.priceAsc') },
@@ -169,9 +188,13 @@ export default function Shop() {
             {categories.map((cat, index) => (
               <motion.button
                 key={cat}
+                id={`shop-tab-${cat}`}
                 role="tab"
                 aria-selected={activeCategory === cat}
+                aria-controls={`shop-panel-${cat}`}
+                tabIndex={activeCategory === cat ? 0 : -1}
                 onClick={() => setActiveCategory(cat)}
+                onKeyDown={(e) => handleTabKeyDown(e, cat)}
                 initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
                 animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
@@ -214,34 +237,40 @@ export default function Shop() {
         </p>
 
         {/* Product grid */}
-        {filtered.length === 0 ? (
-          <p className="font-body text-body-sm text-sepia-mid py-20 text-center">
-            {t('shop.empty')}
-          </p>
-        ) : (
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`${activeCategory}-${sortBy}`}
-              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-10 md:gap-x-8 md:gap-y-14"
-            >
-              {filtered.map((product, index) => (
-                <ProductCard key={product.id} product={product} index={index} />
-              ))}
-            </motion.div>
-          </AnimatePresence>
-        )}
+        <div
+          role="tabpanel"
+          id={`shop-panel-${activeCategory}`}
+          aria-labelledby={`shop-tab-${activeCategory}`}
+        >
+          {filtered.length === 0 ? (
+            <p className="font-body text-body-sm text-sepia-mid py-20 text-center">
+              {t('shop.empty')}
+            </p>
+          ) : (
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`${activeCategory}-${sortBy}`}
+                initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-10 md:gap-x-8 md:gap-y-14"
+              >
+                {filtered.map((product, index) => (
+                  <ProductCard key={product.id} product={product} index={index} />
+                ))}
+              </motion.div>
+            </AnimatePresence>
+          )}
+        </div>
       </SectionContainer>
 
       {/* Sustainability note */}
       <SectionContainer>
         <div className="border-t border-warm-gray/30 pt-12 mt-8 relative">
           {/* Decorative corner accents */}
-          <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-rust/30 pointer-events-none" />
-          <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-rust/30 pointer-events-none" />
+          <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-rust/30 pointer-events-none" aria-hidden="true" />
+          <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-rust/30 pointer-events-none" aria-hidden="true" />
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
             {/* Left: Lead pillar — wider, more emphasis */}

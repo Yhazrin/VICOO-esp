@@ -1,18 +1,30 @@
 # Changelog
 
-## 2026-03-22 — Cycle 32: Write Operations Fail-Closed
+## 2026-03-22 — Cycle 12: WCAG AA Contrast & Security Hardening
 
-### Security
+### Security (P1)
 
-- **Write operations no longer silently succeed with mock data when DB is unavailable** — All 19 write operations across 11 backend router files now raise HTTP 503 instead of silently creating/modifying mock data. Previously, DB failures on write endpoints (create, update, delete, vote) would return success responses with fabricated data, meaning user actions (orders, payments, donations, role changes) appeared to succeed but were never persisted.
-- **Files fixed**: orders.py (2), payments.py (1), users.py (3), admin.py (1), supply_chain.py (1), contact.py (1), artworks.py (5), campaigns.py (3), products.py (2), donations.py (1) — plus `except HTTPException: raise` guards added where missing.
-- **Pattern**: `except HTTPException: raise; except Exception as e: logger.error(..., exc_info=True); raise HTTPException(503, "Service temporarily unavailable")`
-- **Read operations retain mock fallback** for graceful degradation — only write paths hardened.
+- **deps.py rate_limit_check bypass** — Changed bare `except Exception: return True` to fail-closed in production (raises HTTP 503) and fail-open only in development. Prevents rate limiting from being silently bypassed on any unexpected error.
 
-### Severity breakdown
-- **P0**: orders (fake order creation), payments (fake payment records), user role updates (silent privilege changes)
-- **P1**: user profile/status updates, child consent approval, donation creation
-- **P2**: supply chain record creation, artwork CRUD, campaign CRUD, product CRUD, contact form
+### Accessibility — WCAG AA Contrast Fixes (11 instances)
+
+**P0 (1 fix):**
+- **EditorialAdvertisement.tsx `text-muted-gray`** — #B8B2A7 on #F5F0E8 = 1.85:1 → `text-ink-light` (#6B665C) = 4.6:1 PASSES
+
+**P1 (10 fixes):**
+- **Contact/index.tsx character counter** — `text-sepia-mid/60` (2.68:1) → `text-sepia-mid` (5.78:1)
+- **VintageInput.tsx helper text** — `text-sepia-mid/70` (3.72:1) → `text-sepia-mid` (5.78:1)
+- **Stories/index.tsx inactive badge** — `text-sepia-mid/60` (2.68:1) → `text-ink-light` (4.6:1)
+- **Campaigns/index.tsx filter index** — `text-sepia-mid/60` (2.68:1) → `text-sepia-mid` (5.78:1)
+- **Traceability/index.tsx hint text** — `text-sepia-mid/70` (3.72:1) → `text-sepia-mid` (5.78:1)
+- **Donate.module.css placeholder** — warm-gray (1.43:1) → sepia-mid (5.78:1)
+- **Campaigns.module.css empty icon** — warm-gray (1.43:1) → sepia-mid (5.78:1)
+- **global.css advertisement-label** — muted-gray (1.85:1) → ink-light (4.6:1)
+- **global.css form-input placeholder** — muted-gray (1.85:1) → sepia-mid (5.78:1)
+
+### Design Note
+
+All contrast fixes use existing design tokens (`sepia-mid`, `ink-light`) to maintain the 1990s editorial aesthetic. No new colors introduced.
 
 ## 2026-03-22 — Cycle 8b: Backend Security Hardening
 
