@@ -167,9 +167,9 @@ export interface PaginatedResponse<T> {
 }
 
 export interface Payment {
-  id: number;
-  orderId?: number;
-  donationId?: number;
+  id: string;
+  orderId?: string;
+  donationId?: string;
   amount: number;
   method: 'wechat' | 'alipay' | 'stripe' | 'paypal';
   providerTransactionId?: string;

@@ -1,6 +1,6 @@
 # Improvement Tracker
 
-> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 13)
+> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 7)
 > Scope broadened: now covers frontend UI/UX + backend architecture + software architecture + sustainability + code quality
 
 ## Completed
@@ -166,17 +166,21 @@
 | 127 | Backend — deps.py missing optional auth dependency | Medium | ✅ done — get_optional_current_user() returns user dict or None, no exception on auth failure |
 | 128 | Backend — donations.py missing name redaction helper | Medium | ✅ done — _redact_name() masks names to first char + asterisks, handles anonymous flag |
 
-## Completed — Cycle 13 (2026-03-22)
+## Completed — Cycle 12 (2026-03-22)
 
 | # | Issue | Priority | Notes |
 |---|-------|----------|-------|
-| 129 | TypeScript — Login/index.tsx unused MagazineDivider import | High | ✅ done — removed dead import |
-| 130 | TypeScript — Register/index.tsx unused MagazineDivider import | High | ✅ done — removed dead import |
-| 131 | TypeScript — ArtworkDetail.tsx missing useMutation/queryClient/error types + voteMutation | High | ✅ done — added @tanstack/react-query imports, typed useQuery/useMutation/queryClient |
-| 132 | TypeScript — Traceability fetch effect service→types field mapping mismatch (6 errors) | High | ✅ done — explicit field mapping: id: Number(), date: r.timestamp, verified from certifications.length, partnerName from productName |
-| 133 | TypeScript — Traceability search handler calls non-existent trace() method | High | ✅ done — replaced with getProductJourney(), fixed response shape (array vs wrapper) |
-| 134 | TypeScript — Traceability fallback search compares number to string | High | ✅ done — String(r.id) === query.trim() |
-| 135 | Dead code — Traceability unused STAGE_MAP constant | Low | ✅ done — removed leftover from deleted buildRecordsFromApi |
+| 129 | Backend — deps.py rate_limit_check silent bypass via `except Exception: return True` | P1 | ✅ done — fail-closed in production (HTTP 503), fail-open only in development |
+| 130 | Accessibility — EditorialAdvertisement `text-muted-gray` on paper = 1.85:1 | P0 | ✅ done — changed to `text-ink-light` (#6B665C = 4.6:1) |
+| 131 | Accessibility — Contact character counter `text-sepia-mid/60` = 2.68:1 | P1 | ✅ done — changed to `text-sepia-mid` (5.78:1) |
+| 132 | Accessibility — VintageInput helper text `text-sepia-mid/70` = 3.72:1 | P1 | ✅ done — changed to `text-sepia-mid` (5.78:1) |
+| 133 | Accessibility — Stories inactive badge `text-sepia-mid/60` = 2.68:1 | P1 | ✅ done — changed to `text-ink-light` (4.6:1) |
+| 134 | Accessibility — Campaigns filter index `text-sepia-mid/60` = 2.68:1 | P1 | ✅ done — changed to `text-sepia-mid` (5.78:1) |
+| 135 | Accessibility — Traceability hint text `text-sepia-mid/70` = 3.72:1 | P1 | ✅ done — changed to `text-sepia-mid` (5.78:1) |
+| 136 | Accessibility — Donate.module.css placeholder warm-gray = 1.43:1 | P1 | ✅ done — changed to sepia-mid (5.78:1) |
+| 137 | Accessibility — Campaigns.module.css empty icon warm-gray = 1.43:1 | P1 | ✅ done — changed to sepia-mid (5.78:1) |
+| 138 | Accessibility — global.css advertisement-label muted-gray = 1.85:1 | P1 | ✅ done — changed to ink-light (4.6:1) |
+| 139 | Accessibility — global.css form-input placeholder muted-gray = 1.85:1 | P1 | ✅ done — changed to sepia-mid (5.78:1) |
 
 ## Pending
 
