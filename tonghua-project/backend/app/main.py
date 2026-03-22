@@ -139,10 +139,6 @@ async def signature_verification_middleware(request: Request, call_next):
     if request.url.path in public_endpoints:
         return await call_next(request)
 
-    # Skip signature verification in testing environment
-    if settings.TESTING == "1":
-        return await call_next(request)
-
     # Verify signature
     is_valid, error_message = await verify_request_signature(request)
 
@@ -164,14 +160,11 @@ async def signature_verification_middleware(request: Request, call_next):
 # ── Rate Limiting middleware (applied before logging) ────────────
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
-    # Apply rate limiting (skip for health check endpoint and testing)
-    testing = settings.TESTING
-    logger.info(f"Rate limit middleware: path={request.url.path}, TESTING={testing}, type={type(testing)}")
-    # Skip rate limiting for health check and when TESTING=1
-    if request.url.path == "/health" or testing == "1":
-        logger.info(f"Rate limit middleware: Skipping rate limiting (path={request.url.path}, testing={testing})")
-    else:
-        logger.info(f"Rate limit middleware: Applying rate limiting")
+    # Apply rate limiting (skip for health check endpoint)
+    if request.url.path == "/health":
+        return await call_next(request)
+
+    try:
         try:
             # Create DB session for user extraction
             async with AsyncSessionLocal() as db:
@@ -183,6 +176,8 @@ async def rate_limit_middleware(request: Request, call_next):
         except Exception:
             # Fail open if DB connection or other system errors occur
             pass
+    except HTTPException:
+        raise
     response = await call_next(request)
     return response
 

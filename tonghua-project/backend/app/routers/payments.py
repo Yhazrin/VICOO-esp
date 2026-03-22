@@ -44,40 +44,38 @@ async def create_payment(body: PaymentCreate, db: AsyncSession = Depends(get_db)
 
     Security: Verifies the current user owns the associated order or donation.
     """
-    # Ownership check: verify current user owns the order or donation
+    # Ownership check + amount validation: verify current user owns the order/donation and amount matches
     if body.order_id:
         try:
             stmt = select(Order).where(Order.id == body.order_id)
             result = await db.execute(stmt)
             order = result.scalar_one_or_none()
-            if order and order.user_id != current_user["id"] and current_user.get("role") != "admin":
+            if not order:
+                raise HTTPException(status_code=404, detail="Order not found")
+            if order.user_id != current_user["id"] and current_user.get("role") != "admin":
                 raise HTTPException(status_code=403, detail="Forbidden: you can only pay for your own orders")
+            if Decimal(str(body.amount)) != order.total_amount:
+                raise HTTPException(status_code=400, detail="Payment amount does not match order total")
         except HTTPException:
             raise
         except Exception:
-            # Mock fallback: check mock orders
-            for o in _mock_orders:
-                if o["id"] == body.order_id:
-                    if o["user_id"] != current_user["id"] and current_user.get("role") != "admin":
-                        raise HTTPException(status_code=403, detail="Forbidden: you can only pay for your own orders")
-                    break
+            raise HTTPException(status_code=503, detail="Payment service unavailable")
 
     if body.donation_id:
         try:
             stmt = select(Donation).where(Donation.id == body.donation_id)
             result = await db.execute(stmt)
             donation = result.scalar_one_or_none()
-            if donation and donation.donor_user_id and donation.donor_user_id != current_user["id"] and current_user.get("role") != "admin":
+            if not donation:
+                raise HTTPException(status_code=404, detail="Donation not found")
+            if donation.donor_user_id and donation.donor_user_id != current_user["id"] and current_user.get("role") != "admin":
                 raise HTTPException(status_code=403, detail="Forbidden: you can only pay for your own donations")
+            if Decimal(str(body.amount)) != donation.amount:
+                raise HTTPException(status_code=400, detail="Payment amount does not match donation amount")
         except HTTPException:
             raise
         except Exception:
-            # Mock fallback: check mock donations
-            for d in _mock_donations:
-                if d["id"] == body.donation_id:
-                    if d.get("donor_user_id") and d["donor_user_id"] != current_user["id"] and current_user.get("role") != "admin":
-                        raise HTTPException(status_code=403, detail="Forbidden: you can only pay for your own donations")
-                    break
+            raise HTTPException(status_code=503, detail="Payment service unavailable")
 
     try:
         tx = PaymentTransaction(
@@ -91,19 +89,8 @@ async def create_payment(body: PaymentCreate, db: AsyncSession = Depends(get_db)
         await db.flush()
         return ApiResponse(data=PaymentOut.model_validate(tx).model_dump())
     except Exception:
-        new_id = max(p["id"] for p in _mock_payments) + 1 if _mock_payments else 1
-        new_payment = {
-            "id": new_id,
-            "order_id": body.order_id,
-            "donation_id": body.donation_id,
-            "amount": str(body.amount),
-            "method": body.method,
-            "provider_transaction_id": f"{body.method}_pending_{secrets.randbelow(90000) + 10000}",
-            "status": "pending",
-            "created_at": "2025-06-01T00:00:00",
-        }
-        _mock_payments.append(new_payment)
-        return ApiResponse(data=new_payment)
+        logger.error("Payment creation failed", exc_info=True)
+        raise HTTPException(status_code=503, detail="Payment service unavailable")
 
 
 @router.post("/wechat-notify")

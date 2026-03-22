@@ -1,5 +1,6 @@
 import os
 import logging
+import hmac
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
@@ -166,9 +167,9 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
     except HTTPException:
         raise
     except Exception as e:
-        # DB error - continue to mock fallback in development mode
-        logger.debug(f"DB error during user lookup: {e}")
-        pass
+        # DB error - fail closed, do not fall through to mock auth
+        logger.error(f"DB error during login: {type(e).__name__}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Authentication service unavailable")
 
     # ── Mock fallback (development only) ──
     # Only use mock users in explicit development mode
@@ -183,7 +184,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
             # Use environment variable for mock password (no default)
             mock_password = settings.MOCK_USER_PASSWORD
             logger.debug("Mock password check: validating credentials")
-            if mock_password != body.password:
+            if not hmac.compare_digest(mock_password, body.password):
                 logger.debug("Mock password verification failed")
                 raise HTTPException(status_code=401, detail="Invalid credentials")
             logger.debug("Mock password verification passed")
@@ -354,7 +355,7 @@ async def wx_login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/refresh")
-async def refresh(request: Request):
+async def refresh(request: Request, db: AsyncSession = Depends(get_db)):
     """Refresh access token using a valid refresh token from httpOnly cookie."""
     # Read refresh token from httpOnly cookie
     refresh_token = request.cookies.get("refresh_token")
@@ -367,7 +368,23 @@ async def refresh(request: Request):
         if payload.get("type") != "refresh":
             raise HTTPException(status_code=400, detail="Invalid refresh token")
         sub = payload["sub"]
-        role = payload.get("role", "user")
+
+        # Look up user role from DB to prevent privilege changes
+        try:
+            stmt = select(User).where(User.id == int(sub))
+            result = await db.execute(stmt)
+            user = result.scalar_one_or_none()
+            if not user:
+                raise HTTPException(status_code=401, detail="User not found")
+            if user.status == "banned":
+                raise HTTPException(status_code=403, detail="Account is banned")
+            role = user.role.value if hasattr(user.role, "value") else str(user.role)
+        except HTTPException:
+            raise
+        except Exception:
+            # DB error during refresh - fail closed
+            raise HTTPException(status_code=503, detail="Authentication service unavailable")
+
         new_access = create_access_token(subject=sub, role=role)
         new_refresh = create_refresh_token(subject=sub)
 

@@ -4,9 +4,27 @@ All notable changes to the Tonghua Public Welfare x Sustainable Fashion project 
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [Unreleased] — Cycle 33
 
 ### Fixed
+
+- **Security (P0)**: Removed `TESTING=1` bypasses from `main.py` — signature verification and rate limiting middlewares no longer skip checks in test mode.
+- **Security (P0)**: `auth.py` — mock fallback login now uses `hmac.compare_digest` for password comparison (timing attack prevention). DB failure raises HTTP 503 (fail-closed). Refresh token endpoint looks up user role from DB instead of relying on token.
+- **Security (P0)**: `payments.py` — payment amount validated against actual order/donation amounts (prevents amount tampering). Alipay notify fail-closed when key missing. Webhook `APP_SECRET_KEY` null check added.
+- **Security (P0)**: Artwork file upload validation — MIME type whitelist (JPEG/PNG/WebP), 10MB size limit, magic byte content verification.
+- **Security (P1)**: `payments.py` webhook endpoint — `APP_SECRET_KEY` empty check (fail-closed, returns 500).
+- **Accessibility (P0)**: `MobileNav.tsx` — focus trap added (Tab/Shift+Tab cycles within dialog, WCAG 2.4.7 + 2.1.1).
+- **Accessibility (P0)**: `global.css` — `.form-input:focus` visible focus ring via `box-shadow` restored (WCAG 2.4.7).
+- **Accessibility (P0)**: 5 pages missing `<h1>` — added `sr-only` h1 to Profile, Campaigns, Shop, Stories, Traceability (WCAG heading hierarchy).
+- **Accessibility (P1)**: Checkbox touch targets — Login and DonationPanel checkboxes enlarged from 16px to 44px (`w-11 h-11 p-2.5`, WCAG 2.5.8).
+- **Frontend**: `supply-chain.ts` — corrected `getProductJourney` endpoint + removed methods without backend support.
+- **Frontend**: `ArtworkDetail.tsx` — `useMutation` for vote (replaced orphaned `handleVote` with proper mutation), `queryError` reference fix.
+- **TypeScript**: `Traceability/index.tsx` — removed unused `useQuery`, `buildRecordsFromApi`, `STAGE_MAP`. Fixed `number` vs `string` type comparison. `EnhancedSupplyChainRecord` as standalone interface (not extending backend type).
+- **TypeScript**: `Login/index.tsx`, `Register/index.tsx` — removed unused `MagazineDivider` import.
+- **Backend**: `orders.py` — `import random` moved to top-level (was inside except block).
+- **Backend**: Write operations fail-closed — mock write fallbacks replaced with HTTP 503 in 5 router files.
+
+### Fixed (continued from earlier cycles)
 
 - **NotFound page**: Upgraded from bare 404 to full editorial treatment — PaperTextureBackground, GrainOverlay, entrance animation with reduced-motion guard, corner accents, decorative divider.
 - **Donate page**: Fixed `DonationStoryCard` reduced-motion bug — `initial` prop was unconditional, now guarded with `prefersReducedMotion ? false : { opacity: 0, y: 30 }`.

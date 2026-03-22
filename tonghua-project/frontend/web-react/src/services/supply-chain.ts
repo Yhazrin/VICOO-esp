@@ -1,45 +1,53 @@
 import api from './api';
 
 export interface SupplyChainRecord {
-  id: string;
-  productId: string;
-  productName: string;
+  id: number;
+  product_id: number;
   stage: string;
-  location: string;
-  timestamp: string;
   description: string;
-  certifications: string[];
-  artisan?: {
-    name: string;
-    location: string;
-    imageUrl?: string;
-  };
-  materials?: {
-    name: string;
-    origin: string;
-    certified: boolean;
-  }[];
+  location: string;
+  certified: boolean;
+  cert_image_url: string | null;
+  timestamp: string;
+  created_at: string;
+}
+
+export interface SupplyChainTrace {
+  product_id: number;
+  product_name: string;
+  records: SupplyChainRecord[];
+}
+
+export interface SupplyChainStage {
+  key: string;
+  label: string;
+  order: number;
 }
 
 export const supplyChainApi = {
-  getRecords: async (productId?: string): Promise<SupplyChainRecord[]> => {
-    const params = productId ? { product_id: productId } : {};
+  getRecords: async (params?: {
+    product_id?: number;
+    stage?: string;
+    page?: number;
+    page_size?: number;
+  }): Promise<{ items: SupplyChainRecord[]; total: number; page: number; page_size: number }> => {
     const response = await api.get('/supply-chain/records', { params });
-    return response.data.data ?? [];
+    const paginated = response.data;
+    return {
+      items: paginated.data ?? [],
+      total: paginated.total ?? 0,
+      page: paginated.page ?? 1,
+      page_size: paginated.page_size ?? 20,
+    };
   },
 
-  getRecordById: async (id: string): Promise<SupplyChainRecord> => {
-    const response = await api.get(`/supply-chain/records/${id}`);
+  trace: async (productId: string | number): Promise<SupplyChainTrace> => {
+    const response = await api.get(`/supply-chain/trace/${productId}`);
     return response.data.data;
   },
 
-  getProductJourney: async (productId: string): Promise<SupplyChainRecord[]> => {
-    const response = await api.get(`/supply-chain/products/${productId}/journey`);
+  getStages: async (): Promise<SupplyChainStage[]> => {
+    const response = await api.get('/supply-chain/stages');
     return response.data.data ?? [];
-  },
-
-  verifyCertificate: async (certificateId: string): Promise<{ valid: boolean; details: Record<string, unknown> }> => {
-    const response = await api.get(`/supply-chain/verify/${certificateId}`);
-    return response.data.data;
   },
 };

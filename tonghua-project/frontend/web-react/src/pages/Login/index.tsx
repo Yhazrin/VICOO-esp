@@ -6,7 +6,6 @@ import PageWrapper from '@/components/layout/PageWrapper';
 import { VintageInput } from '@/components/editorial/VintageInput';
 import GrainOverlay from '@/components/editorial/GrainOverlay';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
-import { MagazineDivider } from '@/components/editorial/MagazineDivider';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function Login() {
@@ -94,7 +93,7 @@ export default function Login() {
                 <input
                   id="remember-me"
                   type="checkbox"
-                  className="w-4 h-4 accent-rust border-warm-gray/50 rounded-sm cursor-pointer"
+                  className="w-11 h-11 p-2.5 accent-rust border-warm-gray/50 rounded-sm cursor-pointer"
                 />
                 <span className="font-body text-caption text-ink-faded">{t('login.rememberMe')}</span>
               </label>

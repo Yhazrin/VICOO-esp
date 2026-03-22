@@ -1,6 +1,6 @@
 # Improvement Tracker
 
-> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 7)
+> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 33)
 > Scope broadened: now covers frontend UI/UX + backend architecture + software architecture + sustainability + code quality
 
 ## Completed
@@ -165,6 +165,29 @@
 | 126 | Backend — list_donations exposes PII to unauthenticated users | High | ✅ done — optional auth via get_optional_current_user, redact donor_name/message/donor_user_id |
 | 127 | Backend — deps.py missing optional auth dependency | Medium | ✅ done — get_optional_current_user() returns user dict or None, no exception on auth failure |
 | 128 | Backend — donations.py missing name redaction helper | Medium | ✅ done — _redact_name() masks names to first char + asterisks, handles anonymous flag |
+
+## Completed — Cycle 33 (2026-03-22)
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 129 | Backend — main.py TESTING=1 bypasses skip signature verification + rate limiting | P0 | ✅ done — removed both `if not TESTING` guards; middlewares always enforce |
+| 130 | Backend — auth.py mock fallback uses plain `!=` for password comparison (timing attack) | P0 | ✅ done — changed to `hmac.compare_digest`; DB failure raises HTTP 503 |
+| 131 | Backend — auth.py refresh token endpoint trusts token role (privilege escalation) | P0 | ✅ done — looks up user.role from DB instead of token payload |
+| 132 | Backend — payments.py amount not validated against actual order/donation (tampering) | P0 | ✅ done — validates amount matches DB record; rejects mismatched amounts |
+| 133 | Backend — payments.py alipay_notify ALIPAY_PUBLIC_KEY missing → fail-open | P0 | ✅ done — returns 500 when key missing instead of accepting unverified callback |
+| 134 | Backend — artworks.py file upload missing MIME/size/content validation | P0 | ✅ done — JPEG/PNG/WebP whitelist, 10MB limit, magic byte verification |
+| 135 | Backend — payments.py webhook APP_SECRET_KEY empty → fail-open | P1 | ✅ done — added empty string check, returns 500 |
+| 136 | Frontend — MobileNav.tsx missing focus trap (Tab escapes dialog) | P0 | ✅ done — Tab/Shift+Tab cycles within dialog (WCAG 2.4.7 + 2.1.1) |
+| 137 | Frontend — global.css .form-input:focus missing visible focus ring | P0 | ✅ done — restored box-shadow focus indicator (WCAG 2.4.7) |
+| 138 | Frontend — 5 pages missing <h1> (Profile, Campaigns, Shop, Stories, Traceability) | P0 | ✅ done — added sr-only h1 to each page (WCAG heading hierarchy) |
+| 139 | Frontend — Login/DonationPanel checkboxes below 44px touch target | P1 | ✅ done — enlarged to w-11 h-11 p-2.5 (WCAG 2.5.8) |
+| 140 | Frontend — supply-chain.ts wrong endpoint + unsupported methods | Medium | ✅ done — corrected getProductJourney endpoint, removed dead methods |
+| 141 | Frontend — ArtworkDetail.tsx orphaned handleVote + missing voteMutation | High | ✅ done — replaced with proper useMutation hook |
+| 142 | TypeScript — Traceability unused imports (useQuery, buildRecordsFromApi, STAGE_MAP) | Medium | ✅ done — removed 3 unused declarations |
+| 143 | TypeScript — Traceability number vs string ID comparison | Medium | ✅ done — `r.id === query` → `r.id.toString() === query` |
+| 144 | TypeScript — Login/Register unused MagazineDivider import | Low | ✅ done — removed from both files |
+| 145 | Backend — orders.py `import random` inside except block | Low | ✅ done — moved to top-level imports |
+| 146 | Backend — 5 router files mock write fallbacks (fail-open on DB error) | P0 | ✅ done — all replaced with HTTP 503 fail-closed |
 
 ## Pending
 

@@ -181,6 +181,7 @@ export default function Campaigns() {
 
   return (
     <PageWrapper>
+      <h1 className="sr-only">{t('campaigns.hero.title')}</h1>
       <EditorialHero
         title={t('campaigns.hero.title')}
         subtitle={t('campaigns.hero.subtitle')}

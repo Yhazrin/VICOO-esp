@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, useInView, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import EditorialHero from '@/components/editorial/EditorialHero';
@@ -11,52 +10,26 @@ import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
 import { supplyChainApi } from '@/services/supply-chain';
-import type { SupplyChainRecord } from '@/types';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
-import { supplyChainApi } from '@/services/supply-chain';
 
 // Extended record with story, image, and status for enhanced timeline
-interface EnhancedSupplyChainRecord extends SupplyChainRecord {
+interface EnhancedSupplyChainRecord {
+  id: number;
+  stage: string;
+  description: string;
+  location: string;
+  certified: boolean;
+  date: string;
+  partnerName: string;
+  carbonFootprint: number | null;
   story: string;
   imageUrl: string;
   status: 'verified' | 'in-progress' | 'pending';
-}
-
-// Map backend stage keys to frontend stage keys
-const STAGE_MAP: Record<string, string> = {
-  material_sourcing: 'material',
-  processing: 'production',
-  manufacturing: 'production',
-  quality_check: 'quality',
-  shipping: 'shipping',
-};
-
-// Build enhanced records from API trace data, merging with narrative stories
-function buildRecordsFromApi(apiRecords: Array<{
-  id: number;
-  stage: string;
-  description: string | null;
-  location: string | null;
-  certified: boolean;
-  timestamp: string | null;
-}>): EnhancedSupplyChainRecord[] {
-  return apiRecords.map((r) => {
-    const frontendStage = STAGE_MAP[r.stage] || r.stage;
-    const narrative = MOCK_RECORDS.find((m) => m.stage === frontendStage);
-    return {
-      id: r.id,
-      stage: frontendStage,
-      description: r.description ?? narrative?.description ?? '',
-      location: r.location ?? narrative?.location ?? '',
-      date: r.timestamp ? r.timestamp.split('T')[0] : narrative?.date ?? '',
-      verified: r.certified,
-      partnerName: narrative?.partnerName ?? 'Verified Partner',
-      carbonFootprint: narrative?.carbonFootprint,
-      story: narrative?.story ?? '',
-      imageUrl: narrative?.imageUrl ?? `https://picsum.photos/seed/${frontendStage}/200/200`,
-      status: r.certified ? 'verified' as const : 'in-progress' as const,
-    };
-  });
+  // Optional backend fields
+  product_id?: number;
+  cert_image_url?: string | null;
+  timestamp?: string;
+  created_at?: string;
 }
 
 const MOCK_RECORDS: EnhancedSupplyChainRecord[] = [
@@ -66,7 +39,7 @@ const MOCK_RECORDS: EnhancedSupplyChainRecord[] = [
     description: 'Xiao Lin, age 8, created her ocean painting during a Saturday workshop at Dongfeng Elementary School. The artwork was selected by peer vote.',
     location: 'Shanghai, China',
     date: '2025-11-15',
-    verified: true,
+    certified: true,
     partnerName: 'Dongfeng Elementary School',
     carbonFootprint: 0,
     status: 'verified',
@@ -79,7 +52,7 @@ const MOCK_RECORDS: EnhancedSupplyChainRecord[] = [
     description: 'Our design team adapted the artwork for textile printing, maintaining the child\'s original brushstrokes and color palette. Xiao Lin approved the final design.',
     location: 'Shanghai, China',
     date: '2025-12-01',
-    verified: true,
+    certified: true,
     partnerName: 'Tonghua Design Studio',
     carbonFootprint: 0.2,
     status: 'verified',
@@ -92,7 +65,7 @@ const MOCK_RECORDS: EnhancedSupplyChainRecord[] = [
     description: 'GOTS-certified organic cotton sourced from Xinjiang cooperative. Fair trade pricing verified by third-party auditor.',
     location: 'Xinjiang, China',
     date: '2025-12-20',
-    verified: true,
+    certified: true,
     partnerName: 'GreenCotton Cooperative',
     carbonFootprint: 1.8,
     status: 'verified',
@@ -105,7 +78,7 @@ const MOCK_RECORDS: EnhancedSupplyChainRecord[] = [
     description: 'Screen-printed and sewn at SA8000-certified factory. Living wages paid. Working conditions audited quarterly.',
     location: 'Guangzhou, China',
     date: '2026-01-10',
-    verified: true,
+    certified: true,
     partnerName: 'FairWear Manufacturing',
     carbonFootprint: 2.4,
     status: 'verified',
@@ -118,7 +91,7 @@ const MOCK_RECORDS: EnhancedSupplyChainRecord[] = [
     description: 'Quality inspection passed. Color fastness, seam strength, and sizing verified against specifications.',
     location: 'Guangzhou, China',
     date: '2026-01-25',
-    verified: true,
+    certified: true,
     partnerName: 'FairWear Manufacturing',
     carbonFootprint: 0.1,
     status: 'verified',
@@ -131,7 +104,7 @@ const MOCK_RECORDS: EnhancedSupplyChainRecord[] = [
     description: 'Shipped via consolidated freight to reduce emissions. Carbon offset purchased through certified program.',
     location: 'Guangzhou to Shanghai',
     date: '2026-02-05',
-    verified: true,
+    certified: true,
     partnerName: 'GreenLogistics Co.',
     carbonFootprint: 0.8,
     status: 'in-progress',
@@ -476,10 +449,17 @@ export default function Traceability() {
       .then((res) => {
         if (cancelled || !res.items.length) return;
         const mapped: EnhancedSupplyChainRecord[] = res.items.map((r, i) => ({
-          ...r,
+          id: r.id,
+          stage: r.stage,
+          description: r.description,
+          location: r.location,
+          certified: r.certified,
+          date: r.timestamp ? r.timestamp.split('T')[0] : MOCK_RECORDS[i]?.date ?? '',
+          partnerName: MOCK_RECORDS[i]?.partnerName ?? 'Verified Partner',
+          carbonFootprint: MOCK_RECORDS[i]?.carbonFootprint ?? null,
           story: MOCK_RECORDS[i]?.story ?? r.description,
           imageUrl: MOCK_RECORDS[i]?.imageUrl ?? `https://picsum.photos/seed/stage-${r.stage}/200/200`,
-          status: (r.verified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
+          status: (r.certified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
         }));
         setRecords(mapped);
       })
@@ -504,11 +484,19 @@ export default function Traceability() {
       .then((trace) => {
         if (trace.records.length > 0) {
           const first = trace.records[0];
+          const narrative = MOCK_RECORDS.find((m) => m.stage === first.stage);
           const enhanced: EnhancedSupplyChainRecord = {
-            ...first,
-            story: MOCK_RECORDS.find((m) => m.stage === first.stage)?.story ?? first.description,
-            imageUrl: MOCK_RECORDS.find((m) => m.stage === first.stage)?.imageUrl ?? `https://picsum.photos/seed/${first.stage}/200/200`,
-            status: (first.verified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
+            id: first.id,
+            stage: first.stage,
+            description: first.description,
+            location: first.location,
+            certified: first.certified,
+            date: first.timestamp ? first.timestamp.split('T')[0] : narrative?.date ?? '',
+            partnerName: narrative?.partnerName ?? 'Verified Partner',
+            carbonFootprint: narrative?.carbonFootprint ?? null,
+            story: narrative?.story ?? first.description,
+            imageUrl: narrative?.imageUrl ?? `https://picsum.photos/seed/${first.stage}/200/200`,
+            status: (first.certified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
           };
           setHighlightedId(enhanced.id);
           setSearchResult(enhanced);
@@ -519,7 +507,7 @@ export default function Traceability() {
         // Fallback: local search through records
         const found = records.find(
           (r) =>
-            r.id === query.trim() ||
+            r.id.toString() === query.trim() ||
             r.partnerName.toLowerCase().includes(query.toLowerCase()) ||
             query.toUpperCase().includes('VICOO')
         );
@@ -544,6 +532,7 @@ export default function Traceability() {
 
   return (
     <PageWrapper>
+      <h1 className="sr-only">{t('traceability.hero.title')}</h1>
       <EditorialHero
         title={t('traceability.hero.title')}
         subtitle={t('traceability.hero.subtitle')}
