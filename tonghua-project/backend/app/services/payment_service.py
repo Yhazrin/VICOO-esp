@@ -285,5 +285,13 @@ class WeChatPayService:
         return hmac.compare_digest(params["sign"], expected_sign)
 
 
-# Singleton instance
-payment_service = WeChatPayService()
+# Lazy singleton — deferred instantiation prevents startup crash when env vars are missing
+_payment_service_instance: Optional[WeChatPayService] = None
+
+
+def get_payment_service() -> WeChatPayService:
+    """Get or create the payment service singleton (lazy initialization)."""
+    global _payment_service_instance
+    if _payment_service_instance is None:
+        _payment_service_instance = WeChatPayService()
+    return _payment_service_instance

@@ -177,9 +177,9 @@ async def rate_limit_check(request: Request, current_user: Optional[dict] = None
     except Exception as e:
         # Fail closed in production: deny request when rate limiting is broken
         if is_development:
-            logger.warning(f"Rate limiting error (development mode, failing open): {e}")
+            logger.warning(f"Rate limiting error (development mode, failing open): {e}", exc_info=True)
             return True
-        logger.error(f"Rate limiting error (failing closed): {e}")
+        logger.error(f"Rate limiting error (failing closed): {e}", exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 

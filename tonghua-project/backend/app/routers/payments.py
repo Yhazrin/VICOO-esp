@@ -17,7 +17,7 @@ from app.models.order import Order
 from app.models.donation import Donation
 from app.schemas import ApiResponse, PaymentCreate, PaymentOut, PaginatedResponse, WeChatPaymentParams
 from app.deps import get_current_user
-from app.services.payment_service import payment_service
+from app.services.payment_service import get_payment_service
 from app.routers.orders import _mock_orders
 from app.routers.donations import _mock_donations
 
@@ -119,7 +119,7 @@ async def wechat_notify(request: Request, db: AsyncSession = Depends(get_db)):
         logger.info(f"WeChat callback received for trade_no: {params.get('out_trade_no')}")
 
         # Verify the signature
-        if not payment_service.verify_payment_signature(params):
+        if not get_payment_service().verify_payment_signature(params):
             logger.warning(f"Signature verification failed for trade_no: {params.get('out_trade_no')}")
             return Response(
                 content="<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[Signature verification failed]]></return_msg></xml>",
@@ -390,7 +390,7 @@ async def test_wechat_params(current_user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Admin only")
     """Test endpoint to verify WeChat payment parameter generation."""
     try:
-        payment_params = payment_service.create_unified_order(
+        payment_params = get_payment_service().create_unified_order(
             order_no="TEST123",
             amount=Decimal("100.00"),
             description="Test Donation",

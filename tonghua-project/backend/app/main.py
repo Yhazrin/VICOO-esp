@@ -183,12 +183,12 @@ async def rate_limit_middleware(request: Request, call_next):
         except Exception as e:
             # Fail closed in production, fail open in development
             if settings.APP_ENV != "development":
-                logger.error(f"Rate limiting error (failing closed): {e}")
+                logger.error(f"Rate limiting error (failing closed): {e}", exc_info=True)
                 return JSONResponse(
                     status_code=503,
                     content={"success": False, "data": None, "message": "Service temporarily unavailable"},
                 )
-            logger.warning(f"Rate limiting error (development mode, failing open): {e}")
+            logger.warning(f"Rate limiting error (development mode, failing open): {e}", exc_info=True)
     response = await call_next(request)
     return response
 
