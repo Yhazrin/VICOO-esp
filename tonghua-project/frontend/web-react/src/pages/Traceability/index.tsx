@@ -1,9 +1,7 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { TFunction } from 'i18next';
 import { motion, useInView, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import EditorialHero from '@/components/editorial/EditorialHero';
@@ -31,62 +29,29 @@ const STAGE_MAP: Record<string, string> = {
   shipping: 'shipping',
 };
 
-// Build enhanced records from API trace data, merging with narrative stories
-function buildRecordsFromApi(
-  apiRecords: Array<{
-    id: number;
-    stage: string;
-    description: string | null;
-    location: string | null;
-    certified: boolean;
-    timestamp: string | null;
-  }>,
-  mockRecords: EnhancedSupplyChainRecord[],
-  t: TFunction,
-): EnhancedSupplyChainRecord[] {
-  return apiRecords.map((r) => {
-    const frontendStage = STAGE_MAP[r.stage] || r.stage;
-    const narrative = mockRecords.find((m) => m.stage === frontendStage);
-    return {
-      id: r.id,
-      stage: frontendStage,
-      description: r.description ?? narrative?.description ?? '',
-      location: r.location ?? narrative?.location ?? '',
-      date: r.timestamp ? r.timestamp.split('T')[0] : narrative?.date ?? '',
-      verified: r.certified,
-      partnerName: narrative?.partnerName ?? t('traceability.fallback.partnerName'),
-      carbonFootprint: narrative?.carbonFootprint,
-      story: narrative?.story ?? '',
-      imageUrl: narrative?.imageUrl ?? `https://picsum.photos/seed/${frontendStage}/200/200`,
-      status: r.certified ? 'verified' as const : 'in-progress' as const,
-    };
-  });
-}
-
-function createMockRecords(t: TFunction): EnhancedSupplyChainRecord[] {
-  const stageKeys = ['artwork', 'design', 'material', 'production', 'quality', 'shipping'] as const;
-  const staticData = [
-    { id: 1, date: '2025-11-15', verified: true, carbonFootprint: 0, status: 'verified' as const, imageUrl: 'https://picsum.photos/seed/artwork-studio/200/200' },
-    { id: 2, date: '2025-12-01', verified: true, carbonFootprint: 0.2, status: 'verified' as const, imageUrl: 'https://picsum.photos/seed/design-studio/200/200' },
-    { id: 3, date: '2025-12-20', verified: true, carbonFootprint: 1.8, status: 'verified' as const, imageUrl: 'https://picsum.photos/seed/cotton-fields/200/200' },
-    { id: 4, date: '2026-01-10', verified: true, carbonFootprint: 2.4, status: 'verified' as const, imageUrl: 'https://picsum.photos/seed/factory-floor/200/200' },
-    { id: 5, date: '2026-01-25', verified: true, carbonFootprint: 0.1, status: 'verified' as const, imageUrl: 'https://picsum.photos/seed/quality-check/200/200' },
-    { id: 6, date: '2026-02-05', verified: true, carbonFootprint: 0.8, status: 'in-progress' as const, imageUrl: 'https://picsum.photos/seed/logistics-hub/200/200' },
-  ];
-  return stageKeys.map((stage, i) => ({
-    ...staticData[i],
-    stage,
-    description: t(`traceability.mock.${i}.description`),
-    location: t(`traceability.mock.${i}.location`),
-    partnerName: t(`traceability.mock.${i}.partnerName`),
-    story: t(`traceability.mock.${i}.story`),
-  }));
-}
-
 const CARBON_DATA = {
   conventional: 33.4,
   vicoo: 8.2,
 };
+
+// Static data for mock records (non-localized fields)
+const MOCK_RECORDS_STATIC = [
+  { id: 1, stage: 'artwork', location: 'Shanghai, China', date: '2025-11-15', verified: true, partnerName: 'Dongfeng Elementary School', carbonFootprint: 0, status: 'verified' as const, imageUrl: 'https://picsum.photos/seed/artwork-studio/200/200' },
+  { id: 2, stage: 'design', location: 'Shanghai, China', date: '2025-12-01', verified: true, partnerName: 'Tonghua Design Studio', carbonFootprint: 0.2, status: 'verified' as const, imageUrl: 'https://picsum.photos/seed/design-studio/200/200' },
+  { id: 3, stage: 'material', location: 'Xinjiang, China', date: '2025-12-20', verified: true, partnerName: 'GreenCotton Cooperative', carbonFootprint: 1.8, status: 'verified' as const, imageUrl: 'https://picsum.photos/seed/cotton-fields/200/200' },
+  { id: 4, stage: 'production', location: 'Guangzhou, China', date: '2026-01-10', verified: true, partnerName: 'FairWear Manufacturing', carbonFootprint: 2.4, status: 'verified' as const, imageUrl: 'https://picsum.photos/seed/factory-floor/200/200' },
+  { id: 5, stage: 'quality', location: 'Guangzhou, China', date: '2026-01-25', verified: true, partnerName: 'FairWear Manufacturing', carbonFootprint: 0.1, status: 'verified' as const, imageUrl: 'https://picsum.photos/seed/quality-check/200/200' },
+  { id: 6, stage: 'shipping', location: 'Guangzhou to Shanghai', date: '2026-02-05', verified: true, partnerName: 'GreenLogistics Co.', carbonFootprint: 0.8, status: 'in-progress' as const, imageUrl: 'https://picsum.photos/seed/logistics-hub/200/200' },
+];
+
+// Build localized mock records from i18n keys
+function getMockRecords(t: (key: string) => string): EnhancedSupplyChainRecord[] {
+  return MOCK_RECORDS_STATIC.map((r) => ({
+    ...r,
+    description: t(`traceability.mock.records.${r.id}.description`),
+    story: t(`traceability.mock.records.${r.id}.story`),
+  }));
+}
 
 // Animated counter for reduction percentage
 function AnimatedCounter({ value, suffix = '' }: { value: number; suffix?: string }) {
@@ -130,14 +95,14 @@ function AnimatedCounter({ value, suffix = '' }: { value: number; suffix?: strin
 }
 
 // Animated bar for carbon comparison
-function CarbonBar({ label, value, maxValue, isEco, delay, t }: {
+function CarbonBar({ label, value, maxValue, isEco, delay }: {
   label: string;
   value: number;
   maxValue: number;
   isEco: boolean;
   delay: number;
-  t: (key: string) => string;
 }) {
+  const { t } = useTranslation();
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: '-50px' });
   const prefersReducedMotion = useReducedMotion();
@@ -158,7 +123,7 @@ function CarbonBar({ label, value, maxValue, isEco, delay, t }: {
           {label}
         </span>
         <span className={`font-display text-h3 font-bold ${isEco ? 'text-sage' : 'text-archive-brown'}`}>
-          {value} {t('traceability.carbonUnit')}
+          {value} {t('traceability.kgCO2')}
         </span>
       </div>
       <div className="h-3 bg-warm-gray/20 border border-warm-gray/30 overflow-hidden">
@@ -246,6 +211,7 @@ function EnhancedTimelineEntry({ record, index, t }: {
   index: number;
   t: (key: string) => string;
 }) {
+  const { i18n } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
   const statusConfig = {
     verified: { label: t('traceability.status.verified'), bg: 'bg-sage/10', text: 'text-sage', border: 'border-sage/30', dot: 'bg-sage-light' },
@@ -334,7 +300,7 @@ function EnhancedTimelineEntry({ record, index, t }: {
             <div className="font-body text-label text-sepia-mid">
               <span className="uppercase tracking-[0.1em]">{t('traceability.date')}:</span>{' '}
               <span className="text-ink-faded font-medium">
-                {new Date(record.date).toLocaleDateString(t('traceability.dateLocale'), {
+                {new Date(record.date).toLocaleDateString(i18n.language, {
                   year: 'numeric',
                   month: 'short',
                   day: 'numeric',
@@ -343,9 +309,9 @@ function EnhancedTimelineEntry({ record, index, t }: {
             </div>
             {record.carbonFootprint !== undefined && (
               <div className="font-body text-label text-sepia-mid">
-                <span className="uppercase tracking-[0.1em]">{t('traceability.carbon')}:</span>{' '}
+                <span className="uppercase tracking-[0.1em]">{t('traceability.carbon.sectionLabel')}:</span>{' '}
                 <span className="text-archive-brown font-medium">
-                  {record.carbonFootprint} {t('traceability.carbonUnit')}
+                  {record.carbonFootprint} {t('traceability.kgCO2')}
                 </span>
               </div>
             )}
@@ -403,29 +369,43 @@ function EnhancedTimeline({ records, t }: { records: EnhancedSupplyChainRecord[]
 }
 
 export default function Traceability() {
-  const { t } = useTranslation();
-  const mockRecords = useMemo(() => createMockRecords(t), [t]);
+  const { t, i18n } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
   const timelineRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [highlightedId, setHighlightedId] = useState<number | null>(null);
   const [searchResult, setSearchResult] = useState<EnhancedSupplyChainRecord | null>(null);
-  const [records, setRecords] = useState<EnhancedSupplyChainRecord[]>(mockRecords);
+  const [records, setRecords] = useState<EnhancedSupplyChainRecord[]>(getMockRecords(t));
 
   // Fetch supply chain records from API on mount (fallback to mock)
   useEffect(() => {
     let cancelled = false;
     supplyChainApi
-      .getRecords({ page_size: 50 })
+      .getRecords()
       .then((res) => {
-        if (cancelled || !res.items.length) return;
-        const mapped: EnhancedSupplyChainRecord[] = res.items.map((r, i) => ({
-          ...r,
-          story: mockRecords[i]?.story ?? r.description,
-          imageUrl: mockRecords[i]?.imageUrl ?? `https://picsum.photos/seed/stage-${r.stage}/200/200`,
-          status: (r.verified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
-        }));
+        if (cancelled || !res.length) return;
+        const localizedMockRecords = getMockRecords(t);
+        const mapped: EnhancedSupplyChainRecord[] = res.map((r, i) => {
+          const stage = STAGE_MAP[r.stage] || r.stage;
+          const staticRecord = MOCK_RECORDS_STATIC.find((m) => m.stage === stage) ?? MOCK_RECORDS_STATIC[i];
+          const localizedRecord = localizedMockRecords.find((m) => m.stage === stage) ?? localizedMockRecords[i];
+          const verified = (r.certifications?.length ?? 0) > 0;
+
+          return {
+            id: Number(r.id) || staticRecord?.id || i + 1,
+            stage,
+            description: r.description,
+            location: r.location,
+            date: r.timestamp || staticRecord?.date || '',
+            verified,
+            partnerName: r.artisan?.name ?? r.productName ?? staticRecord?.partnerName ?? '',
+            carbonFootprint: staticRecord?.carbonFootprint,
+            story: localizedRecord?.story ?? r.description,
+            imageUrl: staticRecord?.imageUrl ?? r.artisan?.imageUrl ?? `https://picsum.photos/seed/stage-${stage}/200/200`,
+            status: (verified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
+          };
+        });
         setRecords(mapped);
       })
       .catch(() => {
@@ -445,15 +425,26 @@ export default function Traceability() {
     setIsSearching(true);
 
     supplyChainApi
-      .trace(query.trim())
-      .then((trace) => {
-        if (trace.records.length > 0) {
-          const first = trace.records[0];
+      .getProductJourney(query.trim())
+      .then((journey) => {
+        if (journey.length > 0) {
+          const first = journey[0];
+          const stage = STAGE_MAP[first.stage] || first.stage;
+          const staticRecord = MOCK_RECORDS_STATIC.find((m) => m.stage === stage);
+          const localizedRecord = getMockRecords(t).find((m) => m.stage === stage);
+          const verified = (first.certifications?.length ?? 0) > 0;
           const enhanced: EnhancedSupplyChainRecord = {
-            ...first,
-            story: mockRecords.find((m) => m.stage === first.stage)?.story ?? first.description,
-            imageUrl: mockRecords.find((m) => m.stage === first.stage)?.imageUrl ?? `https://picsum.photos/seed/${first.stage}/200/200`,
-            status: (first.verified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
+            id: Number(first.id) || staticRecord?.id || 1,
+            stage,
+            description: first.description,
+            location: first.location,
+            date: first.timestamp || staticRecord?.date || '',
+            verified,
+            partnerName: first.artisan?.name ?? first.productName ?? staticRecord?.partnerName ?? '',
+            carbonFootprint: staticRecord?.carbonFootprint,
+            story: localizedRecord?.story ?? first.description,
+            imageUrl: staticRecord?.imageUrl ?? first.artisan?.imageUrl ?? `https://picsum.photos/seed/${stage}/200/200`,
+            status: (verified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
           };
           setHighlightedId(enhanced.id);
           setSearchResult(enhanced);
@@ -464,7 +455,7 @@ export default function Traceability() {
         // Fallback: local search through records
         const found = records.find(
           (r) =>
-            r.id === query.trim() ||
+            String(r.id) === query.trim() ||
             r.partnerName.toLowerCase().includes(query.toLowerCase()) ||
             query.toUpperCase().includes('VICOO')
         );
@@ -572,7 +563,7 @@ export default function Traceability() {
                     </h4>
                     <p className="font-body text-caption text-ink-faded leading-relaxed">
                       {searchResult.partnerName} &mdash; {searchResult.location},{' '}
-                      {new Date(searchResult.date).toLocaleDateString(t('traceability.dateLocale'), {
+                      {new Date(searchResult.date).toLocaleDateString(i18n.language, {
                         year: 'numeric',
                         month: 'short',
                       })}
@@ -599,7 +590,7 @@ export default function Traceability() {
             <div className="sticky top-28">
               <SepiaImageFrame
                 src="https://picsum.photos/seed/dreamscape-tee/600/800"
-                alt={t('traceability.example.alt')}
+                alt={t('traceability.imageAlt')}
                 aspectRatio="portrait"
                 size="full"
               />
@@ -614,7 +605,7 @@ export default function Traceability() {
                 className="mt-6 border border-warm-gray/30 p-6 bg-aged-stock"
               >
                 <span className="font-body text-caption text-sepia-mid tracking-[0.2em] uppercase">
-                  {t('traceability.carbon')}
+                  {t('traceability.carbon.sectionLabel')}
                 </span>
                 <div className="font-display text-h3 font-bold text-ink mt-2">
                   {t('traceability.carbonTotal.value')}
@@ -701,7 +692,6 @@ export default function Traceability() {
                 maxValue={CARBON_DATA.conventional}
                 isEco={false}
                 delay={0}
-                t={t}
               />
               <CarbonBar
                 label={t('traceability.carbon.vicoo')}
@@ -709,7 +699,6 @@ export default function Traceability() {
                 maxValue={CARBON_DATA.conventional}
                 isEco={true}
                 delay={0.2}
-                t={t}
               />
 
               <motion.p

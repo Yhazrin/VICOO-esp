@@ -1,18 +1,30 @@
 # Changelog
 
-## 2026-03-22 — Cycle 18: i18n Hardcoded String Extraction
+## 2026-03-22 — Cycle 12: WCAG AA Contrast & Security Hardening
 
-### i18n
+### Security (P1)
 
-- **Traceability/index.tsx** — Extracted ~55+ t() keys: mock record data (6 records × 4 fields), status labels, stage names, carbon unit, date locale, hero/lookup/example section text, carbon chart labels, how-it-works steps, certifications, CTA. Created `createMockRecords(t: TFunction)` factory function for module-level mock data.
-- **Donate/index.tsx** — Extracted ~40 t() keys: hero/emotional/impact section text, counter labels, donor story content (3 items), donor name fallbacks (anonymous/guest), transparency section (audit/on-chain/quarterly labels, trust indicators, quarter array via `returnObjects: true`), FAQ (4 Q&A pairs), CTA.
-- **TFunction import fix** — Fixed 3 files (Traceability, Shop, Stories): split `import { useTranslation, type TFunction } from 'react-i18next'` into separate imports from `react-i18next` and `i18next` (react-i18next does not re-export TFunction).
-- **en.json** — Added ~95 new translation keys for traceability and donate namespaces.
-- **zh.json** — Added matching Chinese translations for all new keys.
+- **deps.py rate_limit_check bypass** — Changed bare `except Exception: return True` to fail-closed in production (raises HTTP 503) and fail-open only in development. Prevents rate limiting from being silently bypassed on any unexpected error.
 
-### Verification
+### Accessibility — WCAG AA Contrast Fixes (11 instances)
 
-- TypeScript `tsc --noEmit`: zero new errors (all 18 errors are pre-existing in ArtworkDetail, Login/Register, Traceability API type mismatches).
+**P0 (1 fix):**
+- **EditorialAdvertisement.tsx `text-muted-gray`** — #B8B2A7 on #F5F0E8 = 1.85:1 → `text-ink-light` (#6B665C) = 4.6:1 PASSES
+
+**P1 (10 fixes):**
+- **Contact/index.tsx character counter** — `text-sepia-mid/60` (2.68:1) → `text-sepia-mid` (5.78:1)
+- **VintageInput.tsx helper text** — `text-sepia-mid/70` (3.72:1) → `text-sepia-mid` (5.78:1)
+- **Stories/index.tsx inactive badge** — `text-sepia-mid/60` (2.68:1) → `text-ink-light` (4.6:1)
+- **Campaigns/index.tsx filter index** — `text-sepia-mid/60` (2.68:1) → `text-sepia-mid` (5.78:1)
+- **Traceability/index.tsx hint text** — `text-sepia-mid/70` (3.72:1) → `text-sepia-mid` (5.78:1)
+- **Donate.module.css placeholder** — warm-gray (1.43:1) → sepia-mid (5.78:1)
+- **Campaigns.module.css empty icon** — warm-gray (1.43:1) → sepia-mid (5.78:1)
+- **global.css advertisement-label** — muted-gray (1.85:1) → ink-light (4.6:1)
+- **global.css form-input placeholder** — muted-gray (1.85:1) → sepia-mid (5.78:1)
+
+### Design Note
+
+All contrast fixes use existing design tokens (`sepia-mid`, `ink-light`) to maintain the 1990s editorial aesthetic. No new colors introduced.
 
 ## 2026-03-22 — Cycle 8b: Backend Security Hardening
 

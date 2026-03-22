@@ -113,8 +113,8 @@ export interface Donation {
   donor_user_id?: number;
   amount: number;
   currency: string;
-  tierId?: string;
-  campaignId?: string;
+  tierId?: number;
+  campaignId?: number;
   message?: string;
   is_anonymous: boolean;
   status: 'pending' | 'completed' | 'failed' | 'refunded';
@@ -167,9 +167,9 @@ export interface PaginatedResponse<T> {
 }
 
 export interface Payment {
-  id: number;
-  orderId?: number;
-  donationId?: number;
+  id: string;
+  orderId?: string;
+  donationId?: string;
   amount: number;
   method: 'wechat' | 'alipay' | 'stripe' | 'paypal';
   providerTransactionId?: string;

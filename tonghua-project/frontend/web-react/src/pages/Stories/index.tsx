@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import type { TFunction } from 'i18next';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { artworksApi } from '@/services/artworks';
@@ -29,38 +28,76 @@ interface StoryItem {
   category: 'impact' | 'fashion' | 'community' | 'education';
 }
 
-// Marquee quotes with attribution — factory function for i18n
-function createStoryQuotes(t: TFunction) {
-  return t('stories.quotes', { returnObjects: true }) as Array<{ text: string; attribution: string }>;
+// Marquee quotes with attribution (requires i18n t function)
+function getStoryQuotes(t: (key: string) => string) {
+  return [
+    { text: t('stories.marquee.quote1'), attribution: t('stories.marquee.attr1') },
+    { text: t('stories.marquee.quote2'), attribution: t('stories.marquee.attr2') },
+    { text: t('stories.marquee.quote3'), attribution: t('stories.marquee.attr3') },
+    { text: t('stories.marquee.quote4'), attribution: t('stories.marquee.attr4') },
+    { text: t('stories.marquee.quote5'), attribution: t('stories.marquee.attr5') },
+  ];
 }
 
-// Mock stories — factory function for i18n
-function createMockStories(t: TFunction): StoryItem[] {
-  const raw = t('stories.mock', { returnObjects: true }) as Array<{
-    title: string; excerpt: string; pullQuote: string; author: string;
-  }>;
-  const covers = [
-    'https://picsum.photos/seed/ocean-girl/800/600',
-    'https://picsum.photos/seed/waste-wearable/800/600',
-    'https://picsum.photos/seed/classroom-gallery/800/600',
-    'https://picsum.photos/seed/sustainability-art/800/600',
-    'https://picsum.photos/seed/numbers-mission/800/600',
+// Mock stories data (requires i18n t function)
+function getMockStories(t: (key: string) => string): StoryItem[] {
+  return [
+    {
+      id: '1',
+      title: t('stories.mock.title1'),
+      excerpt: t('stories.mock.excerpt1'),
+      pullQuote: t('stories.mock.pull1'),
+      coverImage: 'https://picsum.photos/seed/ocean-girl/800/600',
+      author: t('stories.mock.author1'),
+      publishedAt: '2026-02-15',
+      readTimeMinutes: 8,
+      category: 'impact',
+    },
+    {
+      id: '2',
+      title: t('stories.mock.title2'),
+      excerpt: t('stories.mock.excerpt2'),
+      pullQuote: t('stories.mock.pull2'),
+      coverImage: 'https://picsum.photos/seed/waste-wearable/800/600',
+      author: t('stories.mock.author2'),
+      publishedAt: '2026-02-01',
+      readTimeMinutes: 12,
+      category: 'fashion',
+    },
+    {
+      id: '3',
+      title: t('stories.mock.title3'),
+      excerpt: t('stories.mock.excerpt3'),
+      pullQuote: t('stories.mock.pull3'),
+      coverImage: 'https://picsum.photos/seed/classroom-gallery/800/600',
+      author: t('stories.mock.author3'),
+      publishedAt: '2026-01-20',
+      readTimeMinutes: 6,
+      category: 'community',
+    },
+    {
+      id: '4',
+      title: t('stories.mock.title4'),
+      excerpt: t('stories.mock.excerpt4'),
+      pullQuote: t('stories.mock.pull4'),
+      coverImage: 'https://picsum.photos/seed/sustainability-art/800/600',
+      author: t('stories.mock.author4'),
+      publishedAt: '2026-01-10',
+      readTimeMinutes: 10,
+      category: 'education',
+    },
+    {
+      id: '5',
+      title: t('stories.mock.title5'),
+      excerpt: t('stories.mock.excerpt5'),
+      pullQuote: t('stories.mock.pull5'),
+      coverImage: 'https://picsum.photos/seed/numbers-mission/800/600',
+      author: t('stories.mock.author5'),
+      publishedAt: '2025-12-28',
+      readTimeMinutes: 15,
+      category: 'impact',
+    },
   ];
-  const dates = ['2026-02-15', '2026-02-01', '2026-01-20', '2026-01-10', '2025-12-28'];
-  const readTimes = [8, 12, 6, 10, 15];
-  const cats: StoryItem['category'][] = ['impact', 'fashion', 'community', 'education', 'impact'];
-
-  return raw.map((item, i) => ({
-    id: String(i + 1),
-    title: item.title,
-    excerpt: item.excerpt,
-    pullQuote: item.pullQuote,
-    coverImage: covers[i],
-    author: item.author,
-    publishedAt: dates[i],
-    readTimeMinutes: readTimes[i],
-    category: cats[i],
-  }));
 }
 
 // Decorative SVG ornament for the newsletter section
@@ -132,13 +169,12 @@ function EditorialOrnament({ className = '', prefersReducedMotion = false }: { c
 }
 
 // Reading progress bar at the bottom of story cards
-function ReadingProgressBar({ readTimeMinutes, prefersReducedMotion = false }: { readTimeMinutes: number; prefersReducedMotion?: boolean }) {
-  const { t } = useTranslation();
+function ReadingProgressBar({ readTimeMinutes, prefersReducedMotion = false, ariaLabel }: { readTimeMinutes: number; prefersReducedMotion?: boolean; ariaLabel: string }) {
   const maxReadTime = 20;
   const widthPercent = Math.min((readTimeMinutes / maxReadTime) * 100, 100);
 
   return (
-    <div className="mt-4 h-[2px] w-full bg-warm-gray/20 rounded-sm overflow-hidden" role="progressbar" aria-valuenow={readTimeMinutes} aria-valuemin={0} aria-valuemax={maxReadTime} aria-label={t('stories.readTimeAria', { minutes: readTimeMinutes })}>
+    <div className="mt-4 h-[2px] w-full bg-warm-gray/20 rounded-sm overflow-hidden" role="progressbar" aria-valuenow={readTimeMinutes} aria-valuemin={0} aria-valuemax={maxReadTime} aria-label={ariaLabel}>
       <motion.div
         className="h-full bg-rust/60 rounded-sm origin-left"
         style={prefersReducedMotion ? { transform: `scaleX(${widthPercent / 100})` } : undefined}
@@ -267,17 +303,17 @@ export default function Stories() {
       return artworksData.items.map((artwork, i) => ({
         id: String(artwork.id),
         title: artwork.title,
-        excerpt: artwork.description || t('stories.fallback.excerpt'),
-        pullQuote: artwork.voteCount > 0 ? t('stories.fallback.supporters', { count: artwork.voteCount }) : t('stories.fallback.defaultPullQuote'),
+        excerpt: artwork.description || t('stories.artworkFallback'),
+        pullQuote: artwork.voteCount > 0 ? t('stories.supporters', { count: artwork.voteCount }) : t('stories.mock.pull3'),
         coverImage: artwork.imageUrl || `https://picsum.photos/seed/artwork-${artwork.id}/800/600`,
-        author: artwork.childParticipant?.firstName || t('stories.fallback.author'),
+        author: artwork.childParticipant?.firstName || t('stories.anonymousArtist'),
         publishedAt: artwork.createdAt ? artwork.createdAt.split('T')[0] : '2026-01-01',
         readTimeMinutes: 5 + (i % 4) * 3,
         category: ['impact', 'community', 'education', 'fashion'][i % 4] as StoryItem['category'],
       }));
     }
-    return createMockStories(t);
-  }, [artworksData]);
+    return getMockStories(t);
+  }, [artworksData, t]);
 
   // Compute category counts
   const categoryCounts = useMemo(() => {
@@ -314,7 +350,7 @@ export default function Stories() {
 
       {/* Kinetic marquee with attributed quotes */}
       <KineticTextMarquee
-        items={createStoryQuotes(t).map((q) => `${q.text}${t('stories.marquee.separator')}${q.attribution}`)}
+        items={getStoryQuotes(t).map((q) => `${q.text} — ${q.attribution}`)}
         direction="left"
         speed={0.8}
         pauseOnHover={true}
@@ -323,12 +359,26 @@ export default function Stories() {
       <SectionContainer noTopSpacing>
         {/* Category filter with count badges */}
         <div className="flex items-center gap-1 mb-12 border-b border-warm-gray/30 overflow-x-auto" role="tablist">
-          {categories.map((cat) => (
+          {categories.map((cat, catIndex) => (
             <motion.button
               key={cat}
               role="tab"
+              id={`tab-story-${cat}`}
               aria-selected={activeCategory === cat}
+              aria-controls="panel-stories"
+              tabIndex={activeCategory === cat ? 0 : -1}
               onClick={() => setActiveCategory(cat)}
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowRight') {
+                  const next = categories[(catIndex + 1) % categories.length];
+                  setActiveCategory(next);
+                  document.getElementById(`tab-story-${next}`)?.focus();
+                } else if (e.key === 'ArrowLeft') {
+                  const prev = categories[(catIndex - 1 + categories.length) % categories.length];
+                  setActiveCategory(prev);
+                  document.getElementById(`tab-story-${prev}`)?.focus();
+                }
+              }}
               initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
               animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
@@ -348,7 +398,7 @@ export default function Stories() {
                     inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-sm text-overline font-medium leading-none
                     ${activeCategory === cat
                       ? 'bg-rust/10 text-rust'
-                      : 'bg-warm-gray/20 text-sepia-mid/60'
+                      : 'bg-warm-gray/20 text-ink-light'
                     }
                   `}
                 >
@@ -367,17 +417,18 @@ export default function Stories() {
         </div>
 
         {/* Magazine spread stories */}
-        <AnimatePresence mode="wait">
-          {filtered.length > 0 ? (
-            <motion.div
-              key={activeCategory}
-              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="space-y-0"
-            >
-              {filtered.map((story, index) => {
+        <div id="panel-stories" role="tabpanel" aria-labelledby={`tab-story-${activeCategory}`}>
+          <AnimatePresence mode="wait">
+            {filtered.length > 0 ? (
+              <motion.div
+                key={activeCategory}
+                initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-0"
+              >
+                {filtered.map((story, index) => {
                 // Alternate peel corners for visual interest
                 const peelCorner = index % 2 === 0 ? 'bottom-right' : 'bottom-left';
                 return (
@@ -435,7 +486,7 @@ export default function Stories() {
                             </div>
 
                             {/* Reading progress indicator */}
-                            <ReadingProgressBar readTimeMinutes={story.readTimeMinutes} prefersReducedMotion={prefersReducedMotion ?? false} />
+                            <ReadingProgressBar readTimeMinutes={story.readTimeMinutes} prefersReducedMotion={prefersReducedMotion ?? false} ariaLabel={`${story.readTimeMinutes} ${t('stories.minuteRead')}`} />
 
                             {/* Read more link */}
                             <div className="mt-4">
@@ -452,9 +503,9 @@ export default function Stories() {
                         <div className="mt-16 md:mt-24">
                           <PagePeel corner="top-right" maxRotation={8} shadowIntensity={0.2}>
                             <StoryQuoteBlock
-                              quote={t('stories.quoteBlock.quote')}
-                              author={t('stories.quoteBlock.author')}
-                              role={t('stories.quoteBlock.role')}
+                              quote={t('stories.featuredQuote.text')}
+                              author={t('stories.featuredQuote.author')}
+                              role={t('stories.featuredQuote.role')}
                             />
                           </PagePeel>
                         </div>
@@ -466,12 +517,13 @@ export default function Stories() {
                     </motion.article>
                   </PagePeel>
                 );
-              })}
-            </motion.div>
-          ) : (
-            <EmptyState onBrowseAll={() => setActiveCategory('all')} />
-          )}
-        </AnimatePresence>
+                })}
+              </motion.div>
+            ) : (
+              <EmptyState onBrowseAll={() => setActiveCategory('all')} />
+            )}
+          </AnimatePresence>
+        </div>
       </SectionContainer>
 
       {/* Newsletter CTA */}
