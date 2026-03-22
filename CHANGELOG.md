@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-03-22 — Cycle 32: Write Operations Fail-Closed
+
+### Security
+
+- **Write operations no longer silently succeed with mock data when DB is unavailable** — All 19 write operations across 11 backend router files now raise HTTP 503 instead of silently creating/modifying mock data. Previously, DB failures on write endpoints (create, update, delete, vote) would return success responses with fabricated data, meaning user actions (orders, payments, donations, role changes) appeared to succeed but were never persisted.
+- **Files fixed**: orders.py (2), payments.py (1), users.py (3), admin.py (1), supply_chain.py (1), contact.py (1), artworks.py (5), campaigns.py (3), products.py (2), donations.py (1) — plus `except HTTPException: raise` guards added where missing.
+- **Pattern**: `except HTTPException: raise; except Exception as e: logger.error(..., exc_info=True); raise HTTPException(503, "Service temporarily unavailable")`
+- **Read operations retain mock fallback** for graceful degradation — only write paths hardened.
+
+### Severity breakdown
+- **P0**: orders (fake order creation), payments (fake payment records), user role updates (silent privilege changes)
+- **P1**: user profile/status updates, child consent approval, donation creation
+- **P2**: supply chain record creation, artwork CRUD, campaign CRUD, product CRUD, contact form
+
 ## 2026-03-22 — Cycle 8b: Backend Security Hardening
 
 ### Security

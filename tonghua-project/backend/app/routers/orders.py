@@ -3,6 +3,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from decimal import Decimal
 from typing import Union
+import logging
 
 from app.database import get_db
 from app.models.order import Order, OrderItem
@@ -13,6 +14,8 @@ from app.security import generate_order_no
 from app.services.payment_service import payment_service
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
+
+logger = logging.getLogger(__name__)
 
 _mock_orders = [
     {
@@ -266,69 +269,11 @@ async def create_order(
             response_data.update(payment_params)
 
         return ApiResponse(data=response_data)
+    except HTTPException:
+        raise
     except Exception as e:
-        # If HTTPException (e.g., product not found), re-raise it
-        if isinstance(e, HTTPException):
-            raise
-        import random
-        new_id = max(o["id"] for o in _mock_orders) + 1 if _mock_orders else 1
-        order_no = generate_order_no()
-        # Still need to validate products in mock mode
-        # Security fix: Use fixed prices from mock product list instead of client-provided prices
-        # to prevent price tampering
-        mock_products = {
-            1: Decimal("128.00"),  # Product ID 1
-            2: Decimal("89.00"),   # Product ID 2
-            3: Decimal("258.00"),  # Product ID 3
-            4: Decimal("68.00"),   # Product ID 4
-            5: Decimal("168.00"),  # Product ID 5
-            6: Decimal("99.00"),   # Product ID 6
-            7: Decimal("188.00"),  # Product ID 7
-            8: Decimal("368.00"),  # Product ID 8
-        }
-        total = Decimal(0)
-        validated_mock_items = []
-        for item in body.items:
-            # Validate product exists and get server-side price
-            if item.product_id not in mock_products:
-                raise HTTPException(status_code=404, detail=f"Product {item.product_id} not found")
-
-            item_price = mock_products[item.product_id]
-            validated_mock_items.append({
-                "product_id": item.product_id,
-                "quantity": item.quantity,
-                "price": item_price,
-            })
-            total += item_price * item.quantity
-        new_order = {
-            "id": new_id,
-            "user_id": current_user["id"],
-            "order_no": order_no,
-            "total_amount": str(total),
-            "status": "pending",
-            "shipping_address": body.shipping_address,
-            "payment_method": body.payment_method,
-            "payment_id": None,
-            "items": [
-                {"id": random.randint(100, 999), "product_id": i["product_id"], "quantity": i["quantity"], "price": str(i["price"])}
-                for i in validated_mock_items
-            ],
-            "created_at": "2025-06-01T00:00:00",
-            "updated_at": "2025-06-01T00:00:00",
-        }
-
-        # Add WeChat payment parameters if payment method is WeChat Pay
-        if body.payment_method == "wechat":
-            payment_params = payment_service.create_unified_order(
-                order_no=order_no,
-                amount=Decimal(str(total)),
-                description=f"商品订单 {order_no}",
-                trade_type="JSAPI"
-            )
-            new_order.update(payment_params)
-
-        _mock_orders.append(new_order)
-        return ApiResponse(data=new_order)
+        logger.error(f"DB write failed during create_order: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.put("/{order_id}/status", response_model=ApiResponse)
@@ -355,14 +300,8 @@ async def update_order_status(
         return ApiResponse(data=OrderOut.model_validate(order).model_dump())
     except HTTPException:
         raise
-    except Exception:
-        for o in _mock_orders:
-            if o["id"] == order_id:
-                if current_user.get("role") != "admin" and o.get("user_id") != current_user["id"]:
-                    raise HTTPException(status_code=403, detail="Forbidden")
-                # Non-admin users can only cancel their own orders
-                if current_user.get("role") != "admin" and body.status != "cancelled":
-                    raise HTTPException(status_code=403, detail="Only admins can change order status to non-cancelled states")
-                o["status"] = body.status
-                return ApiResponse(data=o)
-        raise HTTPException(status_code=404, detail="Order not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"DB write failed during update_order_status: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")

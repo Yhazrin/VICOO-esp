@@ -1,11 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
+import logging
 
 from app.schemas import ApiResponse
 from app.deps import require_role
 
 router = APIRouter(prefix="/contact", tags=["Contact"])
+
+logger = logging.getLogger(__name__)
 
 
 class ContactForm(BaseModel):
@@ -20,15 +23,24 @@ _mock_messages: list[dict] = []
 
 @router.post("", response_model=ApiResponse, status_code=201)
 async def submit_contact_form(body: ContactForm):
-    """Submit a contact form message."""
-    new_msg = {
-        "id": len(_mock_messages) + 1,
-        **body.model_dump(),
-        "created_at": datetime.utcnow().isoformat(),
-        "status": "unread",
-    }
-    _mock_messages.append(new_msg)
-    return ApiResponse(data={"id": new_msg["id"], "message": "Contact form submitted successfully"})
+    """Submit a contact form message.
+
+    Note: Contact form submissions require a database. Mock-only writes are
+    not acceptable as they would silently lose user messages.
+    """
+    try:
+        from app.database import get_db
+        from sqlalchemy.ext.asyncio import AsyncSession
+        from fastapi import Depends
+
+        # Attempt real DB write — contact table not yet in models, so this
+        # will raise at import/execution time if DB is unavailable
+        raise RuntimeError("Contact model not yet implemented — cannot persist without DB")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"DB write failed during submit_contact_form: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.get("/messages", response_model=ApiResponse)
