@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-03-22 — Cycle 25: P0 Security — Timing Attack + Payment Ownership Bypass
+
+### Backend
+
+- **auth.py timing attack fix** — Replaced `mock_password != body.password` (line 188) with `hmac.compare_digest(mock_password, body.password)`. Python's `!=` operator short-circuits on first mismatch, enabling character-by-character brute-force via timing side-channel. Added `import hmac`.
+- **payments.py ownership check bypass** — `create_payment` now raises HTTP 404 when `order_id` or `donation_id` references a non-existent record. Previously, if the order didn't exist in DB and wasn't found in mock fallback, the ownership check passed silently, allowing any authenticated user to create payment records against arbitrary non-existent orders. Added `order_found`/`donation_found` flags that must be `True` before proceeding.
+
+### Verification
+
+- Python `py_compile`: auth.py, payments.py pass
+- TypeScript `tsc --noEmit`: 0 errors
+
+---
+
 ## 2026-03-22 — Cycle 24: Readability Fix, Home i18n, Import Cleanup
 
 ### Frontend

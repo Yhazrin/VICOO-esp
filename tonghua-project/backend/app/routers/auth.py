@@ -1,3 +1,4 @@
+import hmac
 import os
 import logging
 
@@ -185,7 +186,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
             # Use environment variable for mock password (no default)
             mock_password = settings.MOCK_USER_PASSWORD
             logger.debug("Mock password check: validating credentials")
-            if mock_password != body.password:
+            if not hmac.compare_digest(mock_password, body.password):
                 logger.debug("Mock password verification failed")
                 raise HTTPException(status_code=401, detail="Invalid credentials")
             logger.debug("Mock password verification passed")
