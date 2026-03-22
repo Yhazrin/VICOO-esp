@@ -29,7 +29,7 @@ function FloatingCard({
   const rotateY = useTransform(mouseX, [-0.5, 0.5], [-8, 8]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
+    if (!cardRef.current || prefersReducedMotion) return;
     const rect = cardRef.current.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
@@ -40,6 +40,7 @@ function FloatingCard({
   };
 
   const handleMouseLeave = () => {
+    if (prefersReducedMotion) return;
     mouseX.set(0);
     mouseY.set(0);
   };
@@ -52,7 +53,7 @@ function FloatingCard({
       transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.8, delay }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      style={{
+      style={prefersReducedMotion ? undefined : {
         rotateX,
         rotateY,
         transformStyle: 'preserve-3d',
@@ -61,7 +62,7 @@ function FloatingCard({
     >
       <motion.div
         className="relative"
-        style={{ transform: 'translateZ(20px)' }}
+        style={prefersReducedMotion ? undefined : { transform: 'translateZ(20px)' }}
         whileHover={prefersReducedMotion ? undefined : { scale: 1.05, y: -8 }}
         transition={{ type: 'spring', stiffness: 300, damping: 20 }}
       >
@@ -195,6 +196,10 @@ export default function HeroFloatingCards({ className = '' }: HeroFloatingCardsP
         transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6, delay: 0.7 }}
         className="absolute bottom-[80px] right-[60px] w-20 h-20 rounded-full border border-black/10 bg-paper/90 flex flex-col items-center justify-center gap-1 cursor-pointer shadow-lg shadow-black/5"
         whileHover={prefersReducedMotion ? undefined : { scale: 1.1, rotate: 0 }}
+        role="button"
+        tabIndex={0}
+        aria-label="100% Organic certified"
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') e.preventDefault(); }}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
           <path d="M12 3L14 9H20L15.5 12.5L17.5 18.5L12 15L6.5 18.5L8.5 12.5L4 9H10L12 3Z" fill="#B84B2A" opacity="0.55"/>

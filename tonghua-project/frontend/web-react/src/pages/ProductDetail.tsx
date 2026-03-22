@@ -221,7 +221,7 @@ export default function ProductDetail() {
                 {product.name}
               </h1>
               <p className="font-display text-2xl text-ink mb-6">
-                {product.currency} {product.price.toFixed(2)}
+                {product.currency} {(product.price ?? 0).toFixed(2)}
               </p>
               <p className="font-body text-body-sm text-ink-faded leading-[1.8] mb-8">
                 {product.description}

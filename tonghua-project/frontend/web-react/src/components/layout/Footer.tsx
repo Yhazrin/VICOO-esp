@@ -92,10 +92,15 @@ export default function Footer() {
               onSubmit={(e) => e.preventDefault()}
               className="flex flex-col gap-2"
             >
+              <label htmlFor="footer-newsletter-email" className="sr-only">
+                {t('footer.newsletter.title')}
+              </label>
               <input
+                id="footer-newsletter-email"
                 type="email"
+                aria-label={t('common.emailPlaceholder')}
                 placeholder={t('common.emailPlaceholder')}
-                className="bg-transparent border-b border-sepia-mid/50 text-paper font-body text-caption py-2 focus:outline-none focus:border-pale-gold transition-colors placeholder:text-sepia-mid/50"
+                className="bg-transparent border-b border-sepia-mid/50 text-paper font-body text-caption py-2 focus:outline-none focus:border-pale-gold transition-colors placeholder:text-warm-gray/60"
               />
               <button
                 type="submit"

@@ -33,8 +33,9 @@ async def lifespan(app: FastAPI):
     try:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
-    except Exception:
-        pass  # DB may not be available; mock data will be used
+    except Exception as exc:
+        import logging
+        logging.getLogger(__name__).warning("DB init failed: %s", exc)  # DB may not be available; mock data will be used
     yield
     # Shutdown
     await engine.dispose()
@@ -86,6 +87,7 @@ app.add_middleware(
         "X-Requested-With",
         "X-Signature",
         "X-Timestamp",
+        "X-Nonce",
     ],
 )
 
