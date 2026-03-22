@@ -26,8 +26,7 @@ async function generateSignature(method: string, path: string, timestamp: string
   // Use the same secret key as the backend
   const secretKey = import.meta.env.VITE_API_SECRET_KEY;
   if (!secretKey) {
-    console.warn('VITE_API_SECRET_KEY not set — request signing disabled');
-    return '';
+    throw new Error('VITE_API_SECRET_KEY is required. Set it in .env file.');
   }
 
   // Build the string to sign: method + "\n" + path + "\n" + timestamp + "\n" + nonce + "\n" + body

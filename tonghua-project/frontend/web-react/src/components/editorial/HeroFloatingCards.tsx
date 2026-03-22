@@ -29,7 +29,7 @@ function FloatingCard({
   const rotateY = useTransform(mouseX, [-0.5, 0.5], [-8, 8]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
+    if (!cardRef.current || prefersReducedMotion) return;
     const rect = cardRef.current.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
@@ -40,6 +40,7 @@ function FloatingCard({
   };
 
   const handleMouseLeave = () => {
+    if (prefersReducedMotion) return;
     mouseX.set(0);
     mouseY.set(0);
   };
@@ -52,9 +53,10 @@ function FloatingCard({
       transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.8, delay }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      style={{
-        ...(prefersReducedMotion ? {} : { rotateX, rotateY }),
-        transformStyle: prefersReducedMotion ? undefined : 'preserve-3d',
+      style={prefersReducedMotion ? undefined : {
+        rotateX,
+        rotateY,
+        transformStyle: 'preserve-3d',
       }}
       className={`absolute cursor-pointer ${className}`}
     >

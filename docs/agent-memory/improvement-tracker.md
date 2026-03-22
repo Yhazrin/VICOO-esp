@@ -1,6 +1,6 @@
 # Improvement Tracker
 
-> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 15)
+> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 7)
 > Scope broadened: now covers frontend UI/UX + backend architecture + software architecture + sustainability + code quality
 
 ## Completed
@@ -166,34 +166,28 @@
 | 127 | Backend — deps.py missing optional auth dependency | Medium | ✅ done — get_optional_current_user() returns user dict or None, no exception on auth failure |
 | 128 | Backend — donations.py missing name redaction helper | Medium | ✅ done — _redact_name() masks names to first char + asterisks, handles anonymous flag |
 
-## Completed — Cycle 15 (2026-03-22)
+## Completed — Cycle 12 (2026-03-22)
 
 | # | Issue | Priority | Notes |
 |---|-------|----------|-------|
-| 129 | ArtworkDetail.tsx — runtime bugs (null reference, missing guards) | P0 | ✅ done |
-| 130 | Traceability/index.tsx — API misalignment (service method calls, response mapping) | P0 | ✅ done |
-| 131 | Layout.tsx — missing skip-to-content link (WCAG 2.4.1) | P0 | ✅ done |
-| 132 | Backend — auth.py PII logging: email addresses in debug logs | P1 | ✅ done — replaced f-string email with generic message |
-| 133 | Backend — auth.py raw exception leaking in debug logs | P1 | ✅ done — removed raw exception from log message |
-| 134 | Backend — auth.py mock user object logged with email | P1 | ✅ done — removed mock object from log |
-| 135 | Backend — auth.py WeChat API error details forwarded to client | P1 | ✅ done — replaced with generic auth failed message |
-| 136 | Shop/index.tsx — missing WAI-ARIA Tabs keyboard navigation | P1 | ✅ done — id/aria-controls/tabIndex/Arrow keys + tabpanel role + aria-hidden decorative |
-| 137 | Profile/index.tsx — tab switcher missing keyboard navigation | P1 | ✅ done — ArrowLeft/ArrowRight handler + tabIndex roving focus |
-| 138 | HeroFloatingCards.tsx — unguarded 3D transforms in reduced-motion | P1 | ✅ done — rotateX/rotateY/preserve-3d + translateZ guarded |
-| 139 | Login/index.tsx — unused MagazineDivider import (TS error) | Low | ✅ done |
-| 140 | Register/index.tsx — unused MagazineDivider import (TS error) | Low | ✅ done |
-
-## Completed — Cycle 15 i18n (2026-03-22)
-
-| # | Issue | Priority | Notes |
-|---|-------|----------|-------|
-| 17 | Traceability — hardcoded English strings i18n extraction | Low | ✅ done — mock data stories, stage names, search placeholders extracted to t() |
-| 18 | Shop — hardcoded English strings i18n extraction | Low | ✅ done — mock product names/descriptions, ProductCard labels (Notify Me, sustainability tiers, artwork attribution) extracted to t() |
-| 19 | Donate — hardcoded English strings i18n extraction | Low | ✅ done — Anonymous/Guest donor name labels extracted to t() |
-| 20 | Stories — hardcoded English strings i18n extraction | Low | ✅ done — marquee quotes, mock story titles/excerpts/pull quotes, featured quote extracted to t() |
-| 21 | Contact — hardcoded English strings i18n extraction | Low | ✅ done — pull quote defaults removed, character count label extracted to t() |
+| 129 | Backend — deps.py rate_limit_check silent bypass via `except Exception: return True` | P1 | ✅ done — fail-closed in production (HTTP 503), fail-open only in development |
+| 130 | Accessibility — EditorialAdvertisement `text-muted-gray` on paper = 1.85:1 | P0 | ✅ done — changed to `text-ink-light` (#6B665C = 4.6:1) |
+| 131 | Accessibility — Contact character counter `text-sepia-mid/60` = 2.68:1 | P1 | ✅ done — changed to `text-sepia-mid` (5.78:1) |
+| 132 | Accessibility — VintageInput helper text `text-sepia-mid/70` = 3.72:1 | P1 | ✅ done — changed to `text-sepia-mid` (5.78:1) |
+| 133 | Accessibility — Stories inactive badge `text-sepia-mid/60` = 2.68:1 | P1 | ✅ done — changed to `text-ink-light` (4.6:1) |
+| 134 | Accessibility — Campaigns filter index `text-sepia-mid/60` = 2.68:1 | P1 | ✅ done — changed to `text-sepia-mid` (5.78:1) |
+| 135 | Accessibility — Traceability hint text `text-sepia-mid/70` = 3.72:1 | P1 | ✅ done — changed to `text-sepia-mid` (5.78:1) |
+| 136 | Accessibility — Donate.module.css placeholder warm-gray = 1.43:1 | P1 | ✅ done — changed to sepia-mid (5.78:1) |
+| 137 | Accessibility — Campaigns.module.css empty icon warm-gray = 1.43:1 | P1 | ✅ done — changed to sepia-mid (5.78:1) |
+| 138 | Accessibility — global.css advertisement-label muted-gray = 1.85:1 | P1 | ✅ done — changed to ink-light (4.6:1) |
+| 139 | Accessibility — global.css form-input placeholder muted-gray = 1.85:1 | P1 | ✅ done — changed to sepia-mid (5.78:1) |
 
 ## Pending
 
 | # | Issue | Priority | Notes |
 |---|-------|----------|-------|
+| 17 | Traceability — hardcoded English strings need i18n extraction | Low | |
+| 18 | Shop — hardcoded English strings need i18n extraction | Low | |
+| 19 | Donate — hardcoded English strings need i18n extraction | Low | |
+| 20 | Stories — hardcoded English strings need i18n extraction | Low | |
+| 21 | Contact — hardcoded English strings need i18n extraction | Low | |

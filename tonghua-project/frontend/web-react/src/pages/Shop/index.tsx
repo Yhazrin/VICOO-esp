@@ -237,29 +237,32 @@ export default function Shop() {
         </p>
 
         {/* Product grid */}
-        {filtered.length === 0 ? (
-          <p className="font-body text-body-sm text-sepia-mid py-20 text-center">
-            {t('shop.empty')}
-          </p>
-        ) : (
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`${activeCategory}-${sortBy}`}
-              role="tabpanel"
-              id={`shop-panel-${activeCategory}`}
-              aria-labelledby={`shop-tab-${activeCategory}`}
-              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-10 md:gap-x-8 md:gap-y-14"
-            >
-              {filtered.map((product, index) => (
-                <ProductCard key={product.id} product={product} index={index} />
-              ))}
-            </motion.div>
-          </AnimatePresence>
-        )}
+        <div
+          role="tabpanel"
+          id={`shop-panel-${activeCategory}`}
+          aria-labelledby={`shop-tab-${activeCategory}`}
+        >
+          {filtered.length === 0 ? (
+            <p className="font-body text-body-sm text-sepia-mid py-20 text-center">
+              {t('shop.empty')}
+            </p>
+          ) : (
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`${activeCategory}-${sortBy}`}
+                initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-10 md:gap-x-8 md:gap-y-14"
+              >
+                {filtered.map((product, index) => (
+                  <ProductCard key={product.id} product={product} index={index} />
+                ))}
+              </motion.div>
+            </AnimatePresence>
+          )}
+        </div>
       </SectionContainer>
 
       {/* Sustainability note */}

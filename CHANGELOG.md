@@ -1,41 +1,30 @@
 # Changelog
 
-## 2026-03-22 — Cycle 15: TypeScript Bugs, Security Logging & Accessibility
+## 2026-03-22 — Cycle 12: WCAG AA Contrast & Security Hardening
 
-### P0 Fixes
+### Security (P1)
 
-- **ArtworkDetail.tsx runtime bugs** — Fixed null reference errors and missing guards in artwork detail rendering.
-- **Traceability/index.tsx API misalignment** — Fixed service method calls and response mapping to match backend API contract.
-- **Layout.tsx skip-to-content link** — Added skip-to-content link for WCAG 2.4.1 (keyboard bypass).
+- **deps.py rate_limit_check bypass** — Changed bare `except Exception: return True` to fail-closed in production (raises HTTP 503) and fail-open only in development. Prevents rate limiting from being silently bypassed on any unexpected error.
 
-### Security
+### Accessibility — WCAG AA Contrast Fixes (11 instances)
 
-- **auth.py PII logging sanitization** — Removed 4 PII-leaking logger calls: email addresses, raw exception messages, mock user objects, and WeChat external API error details now stripped from logs. WeChat error responses no longer forward `errmsg` to clients.
+**P0 (1 fix):**
+- **EditorialAdvertisement.tsx `text-muted-gray`** — #B8B2A7 on #F5F0E8 = 1.85:1 → `text-ink-light` (#6B665C) = 4.6:1 PASSES
 
-### Accessibility
+**P1 (10 fixes):**
+- **Contact/index.tsx character counter** — `text-sepia-mid/60` (2.68:1) → `text-sepia-mid` (5.78:1)
+- **VintageInput.tsx helper text** — `text-sepia-mid/70` (3.72:1) → `text-sepia-mid` (5.78:1)
+- **Stories/index.tsx inactive badge** — `text-sepia-mid/60` (2.68:1) → `text-ink-light` (4.6:1)
+- **Campaigns/index.tsx filter index** — `text-sepia-mid/60` (2.68:1) → `text-sepia-mid` (5.78:1)
+- **Traceability/index.tsx hint text** — `text-sepia-mid/70` (3.72:1) → `text-sepia-mid` (5.78:1)
+- **Donate.module.css placeholder** — warm-gray (1.43:1) → sepia-mid (5.78:1)
+- **Campaigns.module.css empty icon** — warm-gray (1.43:1) → sepia-mid (5.78:1)
+- **global.css advertisement-label** — muted-gray (1.85:1) → ink-light (4.6:1)
+- **global.css form-input placeholder** — muted-gray (1.85:1) → sepia-mid (5.78:1)
 
-- **Shop/index.tsx WAI-ARIA Tabs pattern** — Added `id`, `aria-controls`, `tabIndex`, `onKeyDown` to tab buttons; added `role="tabpanel"` with `aria-labelledby` to product grid; keyboard navigation (ArrowLeft/ArrowRight) between category tabs; decorative corner accents marked `aria-hidden`.
-- **Profile/index.tsx keyboard navigation** — Added ArrowLeft/ArrowRight keyboard handler and `tabIndex` roving focus for orders/donations tab switcher.
-- **HeroFloatingCards.tsx reduced-motion guards** — Guarded 3D tilt transforms (`rotateX`/`rotateY`/`preserve-3d`) and `translateZ` depth effect behind `prefersReducedMotion` checks.
+### Design Note
 
-### TypeScript
-
-- **Login/index.tsx** — Removed unused `MagazineDivider` import.
-- **Register/index.tsx** — Removed unused `MagazineDivider` import.
-
-### i18n
-
-- **Traceability — hardcoded strings extracted** — Mock data stories, stage names, and search placeholders extracted to `t()` calls.
-- **Shop — hardcoded strings extracted** — Mock product names/descriptions, ProductCard labels (Notify Me, sustainability tiers, artwork attribution) extracted to `t()`.
-- **Donate — hardcoded strings extracted** — Anonymous/Guest donor name labels extracted to `t()`.
-- **Stories — hardcoded strings extracted** — Marquee quotes, mock story titles/excerpts/pull quotes, featured quote extracted to `t()`.
-- **Contact — hardcoded strings extracted** — Pull quote defaults removed, character count label extracted to `t()`.
-- **en.json/zh.json** — ~120 new translation keys added across both locale files.
-
-### Verification
-
-- TypeScript `tsc --noEmit`: zero errors
-- Vite build: success (2.68s)
+All contrast fixes use existing design tokens (`sepia-mid`, `ink-light`) to maintain the 1990s editorial aesthetic. No new colors introduced.
 
 ## 2026-03-22 — Cycle 8b: Backend Security Hardening
 

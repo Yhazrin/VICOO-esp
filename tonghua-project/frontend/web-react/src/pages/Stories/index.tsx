@@ -359,12 +359,26 @@ export default function Stories() {
       <SectionContainer noTopSpacing>
         {/* Category filter with count badges */}
         <div className="flex items-center gap-1 mb-12 border-b border-warm-gray/30 overflow-x-auto" role="tablist">
-          {categories.map((cat) => (
+          {categories.map((cat, catIndex) => (
             <motion.button
               key={cat}
               role="tab"
+              id={`tab-story-${cat}`}
               aria-selected={activeCategory === cat}
+              aria-controls="panel-stories"
+              tabIndex={activeCategory === cat ? 0 : -1}
               onClick={() => setActiveCategory(cat)}
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowRight') {
+                  const next = categories[(catIndex + 1) % categories.length];
+                  setActiveCategory(next);
+                  document.getElementById(`tab-story-${next}`)?.focus();
+                } else if (e.key === 'ArrowLeft') {
+                  const prev = categories[(catIndex - 1 + categories.length) % categories.length];
+                  setActiveCategory(prev);
+                  document.getElementById(`tab-story-${prev}`)?.focus();
+                }
+              }}
               initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
               animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
@@ -384,7 +398,7 @@ export default function Stories() {
                     inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-sm text-overline font-medium leading-none
                     ${activeCategory === cat
                       ? 'bg-rust/10 text-rust'
-                      : 'bg-warm-gray/20 text-sepia-mid/60'
+                      : 'bg-warm-gray/20 text-ink-light'
                     }
                   `}
                 >
@@ -403,17 +417,18 @@ export default function Stories() {
         </div>
 
         {/* Magazine spread stories */}
-        <AnimatePresence mode="wait">
-          {filtered.length > 0 ? (
-            <motion.div
-              key={activeCategory}
-              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="space-y-0"
-            >
-              {filtered.map((story, index) => {
+        <div id="panel-stories" role="tabpanel" aria-labelledby={`tab-story-${activeCategory}`}>
+          <AnimatePresence mode="wait">
+            {filtered.length > 0 ? (
+              <motion.div
+                key={activeCategory}
+                initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-0"
+              >
+                {filtered.map((story, index) => {
                 // Alternate peel corners for visual interest
                 const peelCorner = index % 2 === 0 ? 'bottom-right' : 'bottom-left';
                 return (
@@ -502,12 +517,13 @@ export default function Stories() {
                     </motion.article>
                   </PagePeel>
                 );
-              })}
-            </motion.div>
-          ) : (
-            <EmptyState onBrowseAll={() => setActiveCategory('all')} />
-          )}
-        </AnimatePresence>
+                })}
+              </motion.div>
+            ) : (
+              <EmptyState onBrowseAll={() => setActiveCategory('all')} />
+            )}
+          </AnimatePresence>
+        </div>
       </SectionContainer>
 
       {/* Newsletter CTA */}

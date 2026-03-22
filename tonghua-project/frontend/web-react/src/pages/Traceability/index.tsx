@@ -385,19 +385,27 @@ export default function Traceability() {
       .getRecords()
       .then((res) => {
         if (cancelled || !res.length) return;
-        const mapped: EnhancedSupplyChainRecord[] = res.map((r, i) => ({
-          id: i + 1,
-          stage: STAGE_MAP[r.stage] || r.stage,
-          description: r.description,
-          location: r.location,
-          date: r.timestamp ? r.timestamp.split('T')[0] : '',
-          verified: true,
-          partnerName: r.productName,
-          carbonFootprint: undefined,
-          story: getMockRecords(t)[i]?.story ?? r.description,
-          imageUrl: MOCK_RECORDS_STATIC[i]?.imageUrl ?? `https://picsum.photos/seed/stage-${r.stage}/200/200`,
-          status: 'verified' as const,
-        }));
+        const localizedMockRecords = getMockRecords(t);
+        const mapped: EnhancedSupplyChainRecord[] = res.map((r, i) => {
+          const stage = STAGE_MAP[r.stage] || r.stage;
+          const staticRecord = MOCK_RECORDS_STATIC.find((m) => m.stage === stage) ?? MOCK_RECORDS_STATIC[i];
+          const localizedRecord = localizedMockRecords.find((m) => m.stage === stage) ?? localizedMockRecords[i];
+          const verified = (r.certifications?.length ?? 0) > 0;
+
+          return {
+            id: Number(r.id) || staticRecord?.id || i + 1,
+            stage,
+            description: r.description,
+            location: r.location,
+            date: r.timestamp || staticRecord?.date || '',
+            verified,
+            partnerName: r.artisan?.name ?? r.productName ?? staticRecord?.partnerName ?? '',
+            carbonFootprint: staticRecord?.carbonFootprint,
+            story: localizedRecord?.story ?? r.description,
+            imageUrl: staticRecord?.imageUrl ?? r.artisan?.imageUrl ?? `https://picsum.photos/seed/stage-${stage}/200/200`,
+            status: (verified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
+          };
+        });
         setRecords(mapped);
       })
       .catch(() => {
@@ -422,18 +430,21 @@ export default function Traceability() {
         if (journey.length > 0) {
           const first = journey[0];
           const stage = STAGE_MAP[first.stage] || first.stage;
+          const staticRecord = MOCK_RECORDS_STATIC.find((m) => m.stage === stage);
+          const localizedRecord = getMockRecords(t).find((m) => m.stage === stage);
+          const verified = (first.certifications?.length ?? 0) > 0;
           const enhanced: EnhancedSupplyChainRecord = {
-            id: 1,
+            id: Number(first.id) || staticRecord?.id || 1,
             stage,
             description: first.description,
             location: first.location,
-            date: first.timestamp ? first.timestamp.split('T')[0] : '',
-            verified: true,
-            partnerName: first.productName,
-            carbonFootprint: undefined,
-            story: getMockRecords(t).find((m) => m.stage === stage)?.story ?? first.description,
-            imageUrl: MOCK_RECORDS_STATIC.find((m) => m.stage === stage)?.imageUrl ?? `https://picsum.photos/seed/${stage}/200/200`,
-            status: 'verified' as const,
+            date: first.timestamp || staticRecord?.date || '',
+            verified,
+            partnerName: first.artisan?.name ?? first.productName ?? staticRecord?.partnerName ?? '',
+            carbonFootprint: staticRecord?.carbonFootprint,
+            story: localizedRecord?.story ?? first.description,
+            imageUrl: staticRecord?.imageUrl ?? first.artisan?.imageUrl ?? `https://picsum.photos/seed/${stage}/200/200`,
+            status: (verified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
           };
           setHighlightedId(enhanced.id);
           setSearchResult(enhanced);

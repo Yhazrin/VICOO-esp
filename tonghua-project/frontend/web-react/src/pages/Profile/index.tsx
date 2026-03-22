@@ -53,13 +53,13 @@ export default function Profile() {
     [],
   );
 
-  const { data: orders = [], isLoading: loadingOrders } = useQuery({
+  const { data: orders = [], isLoading: loadingOrders, isError: errorOrders } = useQuery({
     queryKey: ['my-orders'],
     queryFn: () => ordersApi.getMyOrders(),
     enabled: isAuthenticated,
   });
 
-  const { data: donations = [], isLoading: loadingDonations } = useQuery({
+  const { data: donations = [], isLoading: loadingDonations, isError: errorDonations } = useQuery({
     queryKey: ['my-donations'],
     queryFn: () => donationsApi.getMyDonations(),
     enabled: isAuthenticated,
@@ -120,6 +120,7 @@ export default function Profile() {
       <PaperTextureBackground variant="paper" className="py-16 md:py-24 relative">
         <GrainOverlay />
         <SectionContainer>
+          <h1 className="sr-only">{t('profile.title')}</h1>
           <NumberedSectionHeading number="10" title={t('profile.title')} />
 
           <motion.div
@@ -237,6 +238,10 @@ export default function Profile() {
               <NumberedSectionHeading number="01" title={t('profile.orderHistory', 'Order History')} />
               {loadingOrders ? (
                 <p className="font-body text-body-sm text-ink-faded">{t('common.loading', 'Loading...')}</p>
+              ) : errorOrders ? (
+                <p className="font-body text-body-sm text-rust">
+                  {t('profile.ordersError', 'We could not load your orders right now.')}
+                </p>
               ) : orders.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="font-body text-body-sm text-ink-faded mb-4">
@@ -299,6 +304,10 @@ export default function Profile() {
               <NumberedSectionHeading number="02" title={t('profile.donationHistory', 'Donation History')} />
               {loadingDonations ? (
                 <p className="font-body text-body-sm text-ink-faded">{t('common.loading', 'Loading...')}</p>
+              ) : errorDonations ? (
+                <p className="font-body text-body-sm text-rust">
+                  {t('profile.donationsError', 'We could not load your donations right now.')}
+                </p>
               ) : donations.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="font-body text-body-sm text-ink-faded mb-4">

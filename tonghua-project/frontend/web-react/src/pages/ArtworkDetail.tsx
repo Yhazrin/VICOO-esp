@@ -14,7 +14,7 @@ export default function ArtworkDetail() {
   const prefersReducedMotion = useReducedMotion();
   const queryClient = useQueryClient();
 
-  const { data: artwork, isLoading: loading, error: queryError } = useQuery({
+  const { data: artwork, isLoading: loading, error } = useQuery({
     queryKey: ['artwork', id],
     queryFn: () => artworksApi.getById(id!),
     enabled: !!id,
@@ -22,9 +22,7 @@ export default function ArtworkDetail() {
 
   const voteMutation = useMutation({
     mutationFn: () => artworksApi.vote(id!),
-    onSuccess: (updated) => {
-      queryClient.setQueryData(['artwork', id], updated);
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['artwork', id] }),
   });
 
   if (loading) {
@@ -39,7 +37,7 @@ export default function ArtworkDetail() {
     );
   }
 
-  if (queryError || !artwork) {
+  if (error || !artwork) {
     return (
       <PageWrapper>
         <PaperTextureBackground variant="paper" className="py-16 md:py-24">

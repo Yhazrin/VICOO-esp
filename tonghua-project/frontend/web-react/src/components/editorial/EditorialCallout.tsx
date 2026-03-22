@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { type ReactNode, type CSSProperties } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 
 interface EditorialCalloutProps {
@@ -31,6 +31,13 @@ export default function EditorialCallout({
     editorial: 'text-archive-brown',
   };
 
+  const accentLineStyles: Record<string, CSSProperties> = {
+    default: { background: 'linear-gradient(to bottom, var(--color-rust, #B84B2A), transparent)' },
+    info: { background: 'linear-gradient(to bottom, var(--color-info, #4A90D9), transparent)' },
+    warning: { background: 'linear-gradient(to bottom, var(--color-warning, #D4A87C), transparent)' },
+    success: { background: 'linear-gradient(to bottom, var(--color-success, #7BAE7F), transparent)' },
+  };
+
   return (
     <motion.div
       {...(prefersReducedMotion ? {} : { initial: { opacity: 0, y: 10 }, whileInView: { opacity: 1, y: 0 } })}
@@ -51,7 +58,8 @@ export default function EditorialCallout({
       {/* Top accent line for non-editorial variants */}
       {variant !== 'editorial' && (
         <div
-          className={`absolute top-0 left-0 w-px h-full bg-gradient-to-b from-${variant === 'default' ? 'rust' : variant}-transparent`}
+          className="absolute top-0 left-0 w-px h-full"
+          style={accentLineStyles[variant]}
         />
       )}
 

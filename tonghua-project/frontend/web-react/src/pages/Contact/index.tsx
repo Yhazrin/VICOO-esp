@@ -154,8 +154,8 @@ function ContactInfoCard({
 
         {/* Image */}
         <div className="relative aspect-[16/9] overflow-hidden">
-          <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/10 via-transparent to-archive-brown/10" />
-          <div className="absolute inset-0 z-10 pointer-events-none" style={{ boxShadow: 'inset 0 0 40px color-mix(in srgb, var(--color-ink) 15%, transparent)' }} />
+          <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/10 via-transparent to-archive-brown/10" aria-hidden="true" />
+          <div className="absolute inset-0 z-10 pointer-events-none" style={{ boxShadow: 'inset 0 0 40px color-mix(in srgb, var(--color-ink) 15%, transparent)' }} aria-hidden="true" />
           <img
             src={`https://picsum.photos/seed/${card.imageSeed}/600/338`}
             alt={t(card.titleKey)}
@@ -447,8 +447,8 @@ export default function Contact() {
                       {t('contact.form.message')}
                     </label>
                     <div className="relative">
-                      <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-rust/30 pointer-events-none z-10" />
-                      <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-rust/30 pointer-events-none z-10" />
+                      <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-rust/30 pointer-events-none z-10" aria-hidden="true" />
+                      <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-rust/30 pointer-events-none z-10" aria-hidden="true" />
                       <motion.textarea
                         id="contact-message"
                         value={formData.message}
@@ -485,7 +485,7 @@ export default function Contact() {
                         className={`font-body text-overline tracking-wide transition-colors duration-200 ${
                           formData.message.length > MAX_MESSAGE_LENGTH * 0.9
                             ? 'text-archive-brown'
-                            : 'text-sepia-mid/60'
+                            : 'text-sepia-mid'
                         }`}
                       >
                         {t('contact.form.characterCount', { count: formData.message.length, max: MAX_MESSAGE_LENGTH })}
