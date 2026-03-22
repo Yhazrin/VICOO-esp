@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { type ReactNode, type CSSProperties } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 
 interface EditorialCalloutProps {
@@ -31,6 +31,13 @@ export default function EditorialCallout({
     editorial: 'text-archive-brown',
   };
 
+  const accentLineStyles: Record<string, CSSProperties> = {
+    default: { background: 'linear-gradient(to bottom, var(--color-rust, #B84B2A), transparent)' },
+    info: { background: 'linear-gradient(to bottom, var(--color-info, #4A90D9), transparent)' },
+    warning: { background: 'linear-gradient(to bottom, var(--color-warning, #D4A87C), transparent)' },
+    success: { background: 'linear-gradient(to bottom, var(--color-success, #7BAE7F), transparent)' },
+  };
+
   return (
     <motion.div
       {...(prefersReducedMotion ? {} : { initial: { opacity: 0, y: 10 }, whileInView: { opacity: 1, y: 0 } })}
@@ -46,12 +53,14 @@ export default function EditorialCallout({
       `}
     >
       {/* Decorative corner */}
-      <div className="absolute top-0 right-0 w-8 h-8 border-t border-r border-warm-gray/30 opacity-50" />
+      <div className="absolute top-0 right-0 w-8 h-8 border-t border-r border-warm-gray/30 opacity-50" aria-hidden="true" />
 
       {/* Top accent line for non-editorial variants */}
       {variant !== 'editorial' && (
         <div
-          className={`absolute top-0 left-0 w-px h-full bg-gradient-to-b from-${variant === 'default' ? 'rust' : variant}-transparent`}
+          className="absolute top-0 left-0 w-px h-full"
+          style={accentLineStyles[variant]}
+          aria-hidden="true"
         />
       )}
 
@@ -68,6 +77,7 @@ export default function EditorialCallout({
       {/* Grain overlay */}
       <div
         className="absolute inset-0 z-0 pointer-events-none opacity-[0.03]"
+        aria-hidden="true"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
         }}

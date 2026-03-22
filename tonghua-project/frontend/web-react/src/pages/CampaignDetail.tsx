@@ -37,44 +37,44 @@ const MOCK_ARTWORKS: Artwork[] = [
     id: 1,
     title: 'The Garden That Grows Clothes',
     description: '',
-    imageUrl: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=600&h=800&fit=crop',
+    image_url: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=600&h=800&fit=crop',
     childParticipant: { id: 1, firstName: 'Mei', age: 8, guardianId: 1, consentGiven: true },
     status: 'featured',
-    voteCount: 234,
-    createdAt: '2026-01-20',
+    vote_count: 234,
+    created_at: '2026-01-20',
     tags: ['nature'],
   },
   {
     id: 2,
     title: 'Butterfly Factory',
     description: '',
-    imageUrl: 'https://images.unsplash.com/photo-1560807707-8cc77767d783?w=600&h=800&fit=crop',
+    image_url: 'https://images.unsplash.com/photo-1560807707-8cc77767d783?w=600&h=800&fit=crop',
     childParticipant: { id: 2, firstName: 'Jun', age: 7, guardianId: 2, consentGiven: true },
     status: 'approved',
-    voteCount: 189,
-    createdAt: '2026-01-22',
+    vote_count: 189,
+    created_at: '2026-01-22',
     tags: ['animals'],
   },
   {
     id: 3,
     title: 'Rain on My Umbrella Hat',
     description: '',
-    imageUrl: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&h=800&fit=crop',
+    image_url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&h=800&fit=crop',
     childParticipant: { id: 3, firstName: 'Lan', age: 9, guardianId: 3, consentGiven: true },
     status: 'approved',
-    voteCount: 167,
-    createdAt: '2026-01-25',
+    vote_count: 167,
+    created_at: '2026-01-25',
     tags: ['weather'],
   },
   {
     id: 4,
     title: 'Stars in My Pockets',
     description: '',
-    imageUrl: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=600&h=800&fit=crop',
+    image_url: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=600&h=800&fit=crop',
     childParticipant: { id: 4, firstName: 'Hao', age: 6, guardianId: 4, consentGiven: true },
     status: 'approved',
-    voteCount: 145,
-    createdAt: '2026-01-28',
+    vote_count: 145,
+    created_at: '2026-01-28',
     tags: ['space'],
   },
 ];
@@ -137,6 +137,7 @@ export default function CampaignDetail() {
 
   return (
     <PageWrapper>
+      <h1 className="sr-only">{campaign.title}</h1>
       {/* Hero Image */}
       <section className="relative h-[50dvh] md:h-[60dvh]">
         <ImageSkeleton className="absolute inset-0" aspectRatio="aspect-video" />
@@ -194,7 +195,14 @@ export default function CampaignDetail() {
                       {t('campaigns.detail.progress')}
                     </span>
                   </div>
-                  <div className="w-full h-1.5 bg-warm-gray/30 rounded-sm overflow-hidden mb-4">
+                  <div
+                    role="progressbar"
+                    aria-valuenow={progress}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-label={t('campaigns.detail.progress')}
+                    className="w-full h-1.5 bg-warm-gray/30 rounded-sm overflow-hidden mb-4"
+                  >
                     <motion.div
                       {...(prefersReducedMotion ? { style: { transform: `scaleX(${progress / 100})` } } : {
                         initial: { scaleX: 0 },

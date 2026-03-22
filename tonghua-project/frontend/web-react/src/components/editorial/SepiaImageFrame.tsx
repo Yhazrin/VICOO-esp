@@ -61,8 +61,8 @@ export default function SepiaImageFrame({
   return (
     <motion.figure
       ref={ref}
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 30 }}
-      animate={isVisible ? (prefersReducedMotion ? {} : { opacity: 1, y: 0 }) : {}}
+      initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 30 }}
+      animate={isVisible ? { opacity: 1, y: 0 } : {}}
       transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.7, ease: [0, 0, 0.2, 1] }}
       className={`${sizeClasses[size]} ${className}`}
     >
@@ -84,11 +84,12 @@ export default function SepiaImageFrame({
           />
         ))}
         {/* Aged overlay */}
-        <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/5 via-transparent to-archive-brown/5" />
+        <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/5 via-transparent to-archive-brown/5" aria-hidden="true" />
 
         {/* Vignette */}
         <div
           className="absolute inset-0 z-10 pointer-events-none"
+          aria-hidden="true"
           style={{
             boxShadow: 'inset 0 0 60px color-mix(in srgb, var(--color-ink) 12%, transparent)',
           }}
