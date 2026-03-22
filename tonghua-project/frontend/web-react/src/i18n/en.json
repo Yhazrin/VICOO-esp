@@ -186,6 +186,49 @@
       "title": "No stories here yet",
       "body": "Every great publication has blank pages waiting to be filled. Try another category — there are stories waiting to be discovered.",
       "browseAll": "Browse All Stories"
+    },
+    "minuteRead": "minute read",
+    "artworkFallback": "A child's artwork, created with imagination and heart.",
+    "supporters": "{{count}} supporters",
+    "anonymousArtist": "Anonymous Artist",
+    "marquee": {
+      "quote1": "Every brushstroke a child makes is a window into a world they imagine",
+      "attr1": "Chen Wei, Founder",
+      "quote2": "We don't just sell clothes, we sell the right to know where it came from",
+      "attr2": "Zhang Hua, Production Lead",
+      "quote3": "Sustainability begins with seeing, not just buying",
+      "attr3": "Li Mei, Community Director",
+      "quote4": "A classroom becomes a gallery when we open the doors",
+      "attr4": "Wang Jun, Education Lead",
+      "quote5": "The ocean she painted was the bluest thing she had ever seen",
+      "attr5": "Chen Wei, Founder"
+    },
+    "mock": {
+      "title1": "The Girl Who Drew the Ocean",
+      "excerpt1": "Xiao Lin had never seen the sea. But her painting of it became the most popular design in our Spring collection.",
+      "pull1": "47 children participated in this workshop",
+      "author1": "Chen Wei",
+      "title2": "From Waste to Wearable",
+      "excerpt2": "How our production team turns deadstock fabric into limited-edition pieces that fund art workshops.",
+      "pull2": "3.2 tonnes of fabric diverted from landfill",
+      "author2": "Zhang Hua",
+      "title3": "A Classroom Becomes a Gallery",
+      "excerpt3": "When Dongfeng Elementary opened its doors for our workshop, nobody expected the walls to become canvases.",
+      "pull3": "120 artworks created in a single afternoon",
+      "author3": "Li Mei",
+      "title4": "Teaching Sustainability Through Art",
+      "excerpt4": "Our new curriculum helps children understand environmental impact through creative expression.",
+      "pull4": "14 schools adopted the curriculum this semester",
+      "author4": "Wang Jun",
+      "title5": "The Numbers Behind the Mission",
+      "excerpt5": "A transparent look at how every yuan of donation translates into real-world impact for children and communities.",
+      "pull5": "92% of funds go directly to programs",
+      "author5": "Chen Wei"
+    },
+    "featuredQuote": {
+      "text": "Every brushstroke a child makes is a window into a world they imagine. Our job is to make that world visible.",
+      "author": "Chen Wei",
+      "role": "Founder, VICOO"
     }
   },
   "donate": {
@@ -300,6 +343,8 @@
       "donate": "Donate Now",
       "learnMore": "Learn More"
     },
+    "anonymousName": "Anonymous",
+    "guestName": "Guest",
     "faq": {
       "title": "Frequently Asked Questions",
       "q1": "How is my donation used?",
@@ -327,7 +372,16 @@
     "card": {
       "viewDetails": "View Details",
       "soldOut": "Sold Out",
-      "lowStock": "Only {{count}} left"
+      "lowStock": "Only {{count}} left",
+      "exceptional": "Exceptional",
+      "excellent": "Excellent",
+      "good": "Good",
+      "notifyMe": "Notify Me",
+      "notifySuccess": "We will let you know when this is back.",
+      "notifyEmailLabel": "Email",
+      "send": "Send",
+      "artworkBy": "Artwork by {{name}}, age {{age}}",
+      "campaign": "campaign"
     },
     "detail": {
       "addToCart": "Add to Cart",
@@ -369,6 +423,44 @@
       "text": "I drew the ocean because I want it to stay blue forever.",
       "author": "Xiao Lin",
       "role": "Age 8, Ocean Dreams campaign"
+    },
+    "mock": {
+      "product1": {
+        "name": "Dreamscape Tee",
+        "description": "A children's ocean painting transformed into a wearable story.",
+        "childName": "Xiao Lin",
+        "campaign": "Ocean Dreams"
+      },
+      "product2": {
+        "name": "Bloom Tote Bag",
+        "description": "Hand-printed organic cotton tote featuring spring campaign artwork.",
+        "childName": "Mei Hua",
+        "campaign": "Spring Garden"
+      },
+      "product3": {
+        "name": "Little Artists Sketchbook",
+        "description": "Recycled paper sketchbook with cover art from our winter campaign.",
+        "childName": "Tong Tong",
+        "campaign": "Winter Wonders"
+      },
+      "product4": {
+        "name": "Ocean Dreams Art Print",
+        "description": "Museum-quality giclee print on archival paper.",
+        "childName": "Xiao Yu",
+        "campaign": "Ocean Dreams"
+      },
+      "product5": {
+        "name": "Cityscape Hoodie",
+        "description": "Organic cotton hoodie with embroidered children's city drawings.",
+        "childName": "Jia Wei",
+        "campaign": "My City"
+      },
+      "product6": {
+        "name": "Rainbow Pin Set",
+        "description": "Enamel pin set featuring five winning artworks from 2025.",
+        "childName": "An Qi",
+        "campaign": "Colors of Hope"
+      }
     }
   },
   "traceability": {
@@ -385,7 +477,37 @@
       "shipping": "Shipping"
     },
     "verified": "Verified",
-    "carbon": "Carbon Footprint",
+    "carbonLabel": "Carbon Footprint",
+    "imageAlt": "Dreamscape Tee",
+    "kgCO2": "kg CO2",
+    "mock": {
+      "records": {
+        "1": {
+          "description": "Xiao Lin, age 8, created her ocean painting during a Saturday workshop at Dongfeng Elementary School. The artwork was selected by peer vote.",
+          "story": "On a rainy Saturday morning, eight-year-old Xiao Lin picked up her brush and painted a whale leaping through ocean waves. Her classmates voted it best in show."
+        },
+        "2": {
+          "description": "Our design team adapted the artwork for textile printing, maintaining the child's original brushstrokes and color palette. Xiao Lin approved the final design.",
+          "story": "Lead designer Mei transformed the painting into a repeat pattern while preserving every brushstroke. Xiao Lin visited the studio and gave her final approval with a thumbs-up."
+        },
+        "3": {
+          "description": "GOTS-certified organic cotton sourced from Xinjiang cooperative. Fair trade pricing verified by third-party auditor.",
+          "story": "Harvested by hand from fields irrigated with rainwater collection systems. Each batch is tested for pesticide residue and certified organic before shipping."
+        },
+        "4": {
+          "description": "Screen-printed and sewn at SA8000-certified factory. Living wages paid. Working conditions audited quarterly.",
+          "story": "Artisan Zhang has sewn garments for 15 years. He earns above living wage with full benefits. His team printed and assembled 200 units of this design."
+        },
+        "5": {
+          "description": "Quality inspection passed. Color fastness, seam strength, and sizing verified against specifications.",
+          "story": "Inspector Li tests every garment for color fastness after 20 washes, seam strength at stress points, and dimensional accuracy within 2mm tolerance."
+        },
+        "6": {
+          "description": "Shipped via consolidated freight to reduce emissions. Carbon offset purchased through certified program.",
+          "story": "Consolidated with three other orders to fill one container. Remaining emissions offset through a verified reforestation project in Yunnan Province."
+        }
+      }
+    },
     "lookup": {
       "title": "Trace Your Product",
       "subtitle": "Enter an order number or product ID to follow its complete journey from creation to delivery.",
@@ -407,7 +529,8 @@
       "vicoo": "VICOO Garment",
       "reduction": "Carbon Reduction",
       "reductionDesc": "Lower emissions through organic materials, consolidated shipping, and verified carbon offsets.",
-      "explanation": "Based on lifecycle analysis comparing conventional fast-fashion production with our certified supply chain. Includes raw material sourcing, manufacturing, quality control, and last-mile delivery."
+      "explanation": "Based on lifecycle analysis comparing conventional fast-fashion production with our certified supply chain. Includes raw material sourcing, manufacturing, quality control, and last-mile delivery.",
+      "sectionLabel": "Carbon Footprint"
     },
     "certifications": {
       "title": "Certifications and Standards",
@@ -523,11 +646,22 @@
       "success": "Thank you for reaching out. We'll get back to you within 24 hours.",
       "error": "Something went wrong. Please try again."
     },
+    "contactTitle": "Get in Touch",
+    "formTitle": "Send Us a Message",
     "info": {
       "title": "Other Ways to Reach Us",
       "email": "hello@tonghua.org",
+      "emailLabel": "Email",
       "wechat": "TonghuaOfficial",
-      "address": "Shanghai, China"
+      "wechatLabel": "WeChat",
+      "address": "Shanghai, China",
+      "locationLabel": "Location",
+      "officeCaption": "VICOO Shanghai Office"
+    },
+    "pullQuote": {
+      "quote": "Every question is an invitation to understand our mission more deeply — and every answer is a chance to weave another thread of trust.",
+      "author": "VICOO Editorial",
+      "role": "Community Engagement"
     },
     "cards": {
       "email": {

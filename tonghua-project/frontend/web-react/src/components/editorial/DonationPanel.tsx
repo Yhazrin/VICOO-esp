@@ -109,6 +109,7 @@ export default function DonationPanel({
                 setSelectedAmount(amount);
                 setCustomAmount('');
               }}
+              aria-pressed={selectedAmount === amount && !customAmount}
               className={`
                 relative p-4 text-center transition-all duration-300 cursor-pointer overflow-hidden
                 ${selectedAmount === amount && !customAmount
