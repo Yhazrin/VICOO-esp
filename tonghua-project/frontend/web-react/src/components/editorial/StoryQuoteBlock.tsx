@@ -33,8 +33,8 @@ export default function StoryQuoteBlock({
   return (
     <motion.blockquote
       ref={ref}
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 30 }}
-      animate={isVisible ? (prefersReducedMotion ? {} : { opacity: 1, y: 0 }) : {}}
+      initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 30 }}
+      animate={isVisible ? { opacity: 1, y: 0 } : {}}
       transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.8, ease: [0, 0, 0.2, 1] }}
       className={`relative py-12 md:py-16 ${className}`}
     >

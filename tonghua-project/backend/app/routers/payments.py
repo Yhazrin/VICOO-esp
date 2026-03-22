@@ -15,7 +15,7 @@ from app.database import get_db
 from app.models.payment import PaymentTransaction
 from app.models.order import Order
 from app.models.donation import Donation
-from app.schemas import ApiResponse, PaymentCreate, PaymentOut
+from app.schemas import ApiResponse, PaymentCreate, PaymentOut, PaginatedResponse, WeChatPaymentParams
 from app.deps import get_current_user
 from app.services.payment_service import payment_service
 from app.routers.orders import _mock_orders
@@ -243,7 +243,7 @@ async def wechat_notify(request: Request, db: AsyncSession = Depends(get_db)):
     except Exception as e:
         logger.error(f"WeChat callback processing error: {str(e)}")
         return Response(
-            content=f"<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[{str(e)}]]></return_msg></xml>",
+            content="<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[Internal processing error]]></return_msg></xml>",
             media_type="application/xml"
         )
 
@@ -304,8 +304,8 @@ async def alipay_notify(request: Request, db: AsyncSession = Depends(get_db)):
                 logger.error(f"Alipay signature verification failed: {verify_error}")
                 return PlainTextResponse("failure")
         else:
-            logger.error("ALIPAY_PUBLIC_KEY not configured, rejecting callback")
-            return PlainTextResponse("failure")
+            logger.error("ALIPAY_PUBLIC_KEY not configured, rejecting Alipay callback")
+            return PlainTextResponse("failure", status_code=500)
 
         # --- Check trade status ---
         trade_status = params.get("trade_status", "")

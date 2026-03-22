@@ -135,7 +135,7 @@ export default function Login() {
             <div className="grid grid-cols-3 gap-3">
               <motion.button
                 type="button"
-                aria-label="Sign in with GitHub"
+                aria-label={t('login.socialGithub', 'Sign in with GitHub')}
                 whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
                 whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
                 className="flex items-center justify-center gap-2 font-body text-caption tracking-wide border border-warm-gray/40 text-ink px-3 py-3 hover:border-ink transition-colors duration-300 cursor-pointer"
@@ -148,7 +148,7 @@ export default function Login() {
 
               <motion.button
                 type="button"
-                aria-label="Sign in with Google"
+                aria-label={t('login.socialGoogle', 'Sign in with Google')}
                 whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
                 whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
                 className="flex items-center justify-center gap-2 font-body text-caption tracking-wide border border-warm-gray/40 text-ink px-3 py-3 hover:border-ink transition-colors duration-300 cursor-pointer"
@@ -164,7 +164,7 @@ export default function Login() {
 
               <motion.button
                 type="button"
-                aria-label={t('login.wechat')}
+                aria-label={t('login.socialWechat', 'Sign in with WeChat')}
                 whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
                 whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
                 className="flex items-center justify-center gap-2 font-body text-caption tracking-wide border border-warm-gray/40 text-ink px-3 py-3 hover:border-ink transition-colors duration-300 cursor-pointer"

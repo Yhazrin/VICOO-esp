@@ -171,7 +171,6 @@
     },
     "readMore": "Read Full Story",
     "readTime": "min read",
-    "readTimeAria": "{{minutes}} minute read",
     "categories": {
       "all": "All",
       "impact": "Impact",
@@ -192,33 +191,48 @@
       "body": "Every great publication has blank pages waiting to be filled. Try another category — there are stories waiting to be discovered.",
       "browseAll": "Browse All Stories"
     },
-    "quotes": [
-      { "text": "Every brushstroke a child makes is a window into a world they imagine", "attribution": "Chen Wei, Founder" },
-      { "text": "We don't just sell clothes, we sell the right to know where it came from", "attribution": "Zhang Hua, Production Lead" },
-      { "text": "Sustainability begins with seeing, not just buying", "attribution": "Li Mei, Community Director" },
-      { "text": "A classroom becomes a gallery when we open the doors", "attribution": "Wang Jun, Education Lead" },
-      { "text": "The ocean she painted was the bluest thing she had ever seen", "attribution": "Chen Wei, Founder" }
-    ],
-    "mock": [
-      { "title": "The Girl Who Drew the Ocean", "excerpt": "Xiao Lin had never seen the sea. But her painting of it became the most popular design in our Spring collection.", "pullQuote": "47 children participated in this workshop", "author": "Chen Wei" },
-      { "title": "From Waste to Wearable", "excerpt": "How our production team turns deadstock fabric into limited-edition pieces that fund art workshops.", "pullQuote": "3.2 tonnes of fabric diverted from landfill", "author": "Zhang Hua" },
-      { "title": "A Classroom Becomes a Gallery", "excerpt": "When Dongfeng Elementary opened its doors for our workshop, nobody expected the walls to become canvases.", "pullQuote": "120 artworks created in a single afternoon", "author": "Li Mei" },
-      { "title": "Teaching Sustainability Through Art", "excerpt": "Our new curriculum helps children understand environmental impact through creative expression.", "pullQuote": "14 schools adopted the curriculum this semester", "author": "Wang Jun" },
-      { "title": "The Numbers Behind the Mission", "excerpt": "A transparent look at how every yuan of donation translates into real-world impact for children and communities.", "pullQuote": "92% of funds go directly to programs", "author": "Chen Wei" }
-    ],
-    "quoteBlock": {
-      "quote": "Every brushstroke a child makes is a window into a world they imagine. Our job is to make that world visible.",
+    "minuteRead": "minute read",
+    "artworkFallback": "A child's artwork, created with imagination and heart.",
+    "supporters": "{{count}} supporters",
+    "anonymousArtist": "Anonymous Artist",
+    "marquee": {
+      "quote1": "Every brushstroke a child makes is a window into a world they imagine",
+      "attr1": "Chen Wei, Founder",
+      "quote2": "We don't just sell clothes, we sell the right to know where it came from",
+      "attr2": "Zhang Hua, Production Lead",
+      "quote3": "Sustainability begins with seeing, not just buying",
+      "attr3": "Li Mei, Community Director",
+      "quote4": "A classroom becomes a gallery when we open the doors",
+      "attr4": "Wang Jun, Education Lead",
+      "quote5": "The ocean she painted was the bluest thing she had ever seen",
+      "attr5": "Chen Wei, Founder"
+    },
+    "mock": {
+      "title1": "The Girl Who Drew the Ocean",
+      "excerpt1": "Xiao Lin had never seen the sea. But her painting of it became the most popular design in our Spring collection.",
+      "pull1": "47 children participated in this workshop",
+      "author1": "Chen Wei",
+      "title2": "From Waste to Wearable",
+      "excerpt2": "How our production team turns deadstock fabric into limited-edition pieces that fund art workshops.",
+      "pull2": "3.2 tonnes of fabric diverted from landfill",
+      "author2": "Zhang Hua",
+      "title3": "A Classroom Becomes a Gallery",
+      "excerpt3": "When Dongfeng Elementary opened its doors for our workshop, nobody expected the walls to become canvases.",
+      "pull3": "120 artworks created in a single afternoon",
+      "author3": "Li Mei",
+      "title4": "Teaching Sustainability Through Art",
+      "excerpt4": "Our new curriculum helps children understand environmental impact through creative expression.",
+      "pull4": "14 schools adopted the curriculum this semester",
+      "author4": "Wang Jun",
+      "title5": "The Numbers Behind the Mission",
+      "excerpt5": "A transparent look at how every yuan of donation translates into real-world impact for children and communities.",
+      "pull5": "92% of funds go directly to programs",
+      "author5": "Chen Wei"
+    },
+    "featuredQuote": {
+      "text": "Every brushstroke a child makes is a window into a world they imagine. Our job is to make that world visible.",
       "author": "Chen Wei",
       "role": "Founder, VICOO"
-    },
-    "fallback": {
-      "excerpt": "A child's artwork, created with imagination and heart.",
-      "supporters": "{{count}} supporters",
-      "defaultPullQuote": "120 artworks created in a single afternoon",
-      "author": "Anonymous Artist"
-    },
-    "marquee": {
-      "separator": " — "
     }
   },
   "donate": {
@@ -306,13 +320,7 @@
       "financialReport": "FINANCIAL REPORT",
       "pdfSize": "PDF · 2.4 MB",
       "transparencyQuote": "Transparency is not a feature. It is a responsibility.",
-      "transparencyQuoteAuthor": "Annual Report 2025",
-      "quarters": {
-        "q1": "Q1 2026",
-        "q2": "Q4 2025",
-        "q3": "Q3 2025",
-        "q4": "Q2 2025"
-      }
+      "transparencyQuoteAuthor": "Annual Report 2025"
     },
     "stories": {
       "title": "Your Donations at Work",
@@ -339,10 +347,8 @@
       "donate": "Donate Now",
       "learnMore": "Learn More"
     },
-    "donor": {
-      "anonymous": "Anonymous",
-      "guest": "Guest"
-    },
+    "anonymousName": "Anonymous",
+    "guestName": "Guest",
     "faq": {
       "title": "Frequently Asked Questions",
       "q1": "How is my donation used?",
@@ -370,7 +376,16 @@
     "card": {
       "viewDetails": "View Details",
       "soldOut": "Sold Out",
-      "lowStock": "Only {{count}} left"
+      "lowStock": "Only {{count}} left",
+      "exceptional": "Exceptional",
+      "excellent": "Excellent",
+      "good": "Good",
+      "notifyMe": "Notify Me",
+      "notifySuccess": "We will let you know when this is back.",
+      "notifyEmailLabel": "Email",
+      "send": "Send",
+      "artworkBy": "Artwork by {{name}}, age {{age}}",
+      "campaign": "campaign"
     },
     "detail": {
       "addToCart": "Add to Cart",
@@ -408,36 +423,48 @@
       "paragraph1": "Every garment in this collection begins the same way — with a child, a blank page, and the freedom to imagine. We partner with schools and community centres across twelve cities, running workshops where children draw their hopes for the world.",
       "paragraph2": "Our designers then translate these raw, honest artworks into patterns, prints, and embroideries — never altering the child's original vision. The result is clothing that carries real stories, not manufactured ones."
     },
-    "mock": {
-      "0": {
-        "name": "Dreamscape Tee",
-        "description": "A child's ocean painting transformed into a wearable story."
-      },
-      "1": {
-        "name": "Forest Whisper Hoodie",
-        "description": "Inspired by a 7-year-old's painting of an enchanted forest."
-      },
-      "2": {
-        "name": "Starlight Tote",
-        "description": "A child's night sky painting becomes a daily companion."
-      },
-      "3": {
-        "name": "Rainbow Steps Sneakers",
-        "description": "Walking in the colors of a child's imagination."
-      },
-      "4": {
-        "name": "Ocean Breeze Scarf",
-        "description": "A gentle wave pattern from a young artist's seascapes."
-      },
-      "5": {
-        "name": "Garden Party Dress",
-        "description": "Floral motifs drawn by children in our Spring workshop."
-      }
-    },
     "quote": {
       "text": "I drew the ocean because I want it to stay blue forever.",
       "author": "Xiao Lin",
       "role": "Age 8, Ocean Dreams campaign"
+    },
+    "mock": {
+      "product1": {
+        "name": "Dreamscape Tee",
+        "description": "A children's ocean painting transformed into a wearable story.",
+        "childName": "Xiao Lin",
+        "campaign": "Ocean Dreams"
+      },
+      "product2": {
+        "name": "Bloom Tote Bag",
+        "description": "Hand-printed organic cotton tote featuring spring campaign artwork.",
+        "childName": "Mei Hua",
+        "campaign": "Spring Garden"
+      },
+      "product3": {
+        "name": "Little Artists Sketchbook",
+        "description": "Recycled paper sketchbook with cover art from our winter campaign.",
+        "childName": "Tong Tong",
+        "campaign": "Winter Wonders"
+      },
+      "product4": {
+        "name": "Ocean Dreams Art Print",
+        "description": "Museum-quality giclee print on archival paper.",
+        "childName": "Xiao Yu",
+        "campaign": "Ocean Dreams"
+      },
+      "product5": {
+        "name": "Cityscape Hoodie",
+        "description": "Organic cotton hoodie with embroidered children's city drawings.",
+        "childName": "Jia Wei",
+        "campaign": "My City"
+      },
+      "product6": {
+        "name": "Rainbow Pin Set",
+        "description": "Enamel pin set featuring five winning artworks from 2025.",
+        "childName": "An Qi",
+        "campaign": "Colors of Hope"
+      }
     }
   },
   "traceability": {
@@ -455,8 +482,36 @@
     },
     "verified": "Verified",
     "carbonLabel": "Carbon Footprint",
-    "carbonUnit": "kg CO2",
-    "dateLocale": "en-US",
+    "imageAlt": "Dreamscape Tee",
+    "kgCO2": "kg CO2",
+    "mock": {
+      "records": {
+        "1": {
+          "description": "Xiao Lin, age 8, created her ocean painting during a Saturday workshop at Dongfeng Elementary School. The artwork was selected by peer vote.",
+          "story": "On a rainy Saturday morning, eight-year-old Xiao Lin picked up her brush and painted a whale leaping through ocean waves. Her classmates voted it best in show."
+        },
+        "2": {
+          "description": "Our design team adapted the artwork for textile printing, maintaining the child's original brushstrokes and color palette. Xiao Lin approved the final design.",
+          "story": "Lead designer Mei transformed the painting into a repeat pattern while preserving every brushstroke. Xiao Lin visited the studio and gave her final approval with a thumbs-up."
+        },
+        "3": {
+          "description": "GOTS-certified organic cotton sourced from Xinjiang cooperative. Fair trade pricing verified by third-party auditor.",
+          "story": "Harvested by hand from fields irrigated with rainwater collection systems. Each batch is tested for pesticide residue and certified organic before shipping."
+        },
+        "4": {
+          "description": "Screen-printed and sewn at SA8000-certified factory. Living wages paid. Working conditions audited quarterly.",
+          "story": "Artisan Zhang has sewn garments for 15 years. He earns above living wage with full benefits. His team printed and assembled 200 units of this design."
+        },
+        "5": {
+          "description": "Quality inspection passed. Color fastness, seam strength, and sizing verified against specifications.",
+          "story": "Inspector Li tests every garment for color fastness after 20 washes, seam strength at stress points, and dimensional accuracy within 2mm tolerance."
+        },
+        "6": {
+          "description": "Shipped via consolidated freight to reduce emissions. Carbon offset purchased through certified program.",
+          "story": "Consolidated with three other orders to fill one container. Remaining emissions offset through a verified reforestation project in Yunnan Province."
+        }
+      }
+    },
     "lookup": {
       "title": "Trace Your Product",
       "subtitle": "Enter an order number or product ID to follow its complete journey from creation to delivery.",
@@ -478,7 +533,8 @@
       "vicoo": "VICOO Garment",
       "reduction": "Carbon Reduction",
       "reductionDesc": "Lower emissions through organic materials, consolidated shipping, and verified carbon offsets.",
-      "explanation": "Based on lifecycle analysis comparing conventional fast-fashion production with our certified supply chain. Includes raw material sourcing, manufacturing, quality control, and last-mile delivery."
+      "explanation": "Based on lifecycle analysis comparing conventional fast-fashion production with our certified supply chain. Includes raw material sourcing, manufacturing, quality control, and last-mile delivery.",
+      "sectionLabel": "Carbon Footprint"
     },
     "certifications": {
       "title": "Certifications and Standards",
@@ -491,6 +547,10 @@
       "button": "Browse the Collection"
     },
     "tracing": "Tracing supply chain...",
+    "example": {
+      "title": "Dreamscape Tee — Full Journey",
+      "subtitle": "Follow the complete lifecycle of one product, from a child's brushstroke to your wardrobe."
+    },
     "carbonTotal": {
       "value": "5.3 kg CO2",
       "offset": "Offset through verified reforestation project in Yunnan Province."
@@ -533,52 +593,6 @@
       "childSafe": {
         "title": "Child-Safe Production",
         "desc": "Full compliance with child protection regulations and consent protocols."
-      }
-    },
-    "fallback": {
-      "partnerName": "Verified Partner"
-    },
-    "example": {
-      "title": "Dreamscape Tee — Full Journey",
-      "subtitle": "Follow the complete lifecycle of one product, from a child's brushstroke to your wardrobe.",
-      "imageAlt": "Dreamscape Tee product image"
-    },
-    "mock": {
-      "0": {
-        "description": "Organic cotton sourced from certified farms in Xinjiang Province.",
-        "location": "Xinjiang, China",
-        "partnerName": "Green Fiber Co.",
-        "story": "Our cotton comes from farms that prioritize soil health and water conservation."
-      },
-      "1": {
-        "description": "Fabric weaving and quality testing at certified textile mill.",
-        "location": "Hangzhou, China",
-        "partnerName": "Silk Road Textiles",
-        "story": "Each bolt of fabric is tested for durability and colorfastness before production."
-      },
-      "2": {
-        "description": "Design digitized from a child's original painting of the ocean.",
-        "location": "Chengdu, China",
-        "partnerName": "Tonghua Creative Lab",
-        "story": "The original artwork was created by 8-year-old Xiao Lin during an Ocean Dreams workshop."
-      },
-      "3": {
-        "description": "Cut and sew by fairly compensated artisans using eco-friendly dyes.",
-        "location": "Guangzhou, China",
-        "partnerName": "Fair Stitch Ltd.",
-        "story": "Our artisans earn living wages with full benefits in a safe working environment."
-      },
-      "4": {
-        "description": "Final quality inspection and eco-packaging for shipment.",
-        "location": "Shenzhen, China",
-        "partnerName": "EcoPack Solutions",
-        "story": "Every garment is individually inspected and packed in biodegradable materials."
-      },
-      "5": {
-        "description": "Carbon-neutral delivery to customer door via green logistics partner.",
-        "location": "Nationwide, China",
-        "partnerName": "GreenWay Logistics",
-        "story": "All deliveries are carbon-offset through verified reforestation programs."
       }
     }
   },
@@ -636,11 +650,22 @@
       "success": "Thank you for reaching out. We'll get back to you within 24 hours.",
       "error": "Something went wrong. Please try again."
     },
+    "contactTitle": "Get in Touch",
+    "formTitle": "Send Us a Message",
     "info": {
       "title": "Other Ways to Reach Us",
       "email": "hello@tonghua.org",
+      "emailLabel": "Email",
       "wechat": "TonghuaOfficial",
-      "address": "Shanghai, China"
+      "wechatLabel": "WeChat",
+      "address": "Shanghai, China",
+      "locationLabel": "Location",
+      "officeCaption": "VICOO Shanghai Office"
+    },
+    "pullQuote": {
+      "quote": "Every question is an invitation to understand our mission more deeply — and every answer is a chance to weave another thread of trust.",
+      "author": "VICOO Editorial",
+      "role": "Community Engagement"
     },
     "cards": {
       "email": {
@@ -767,136 +792,5 @@
   "campaigns.detail.backToAll": "to all campaigns",
   "traceability.location": "Location",
   "traceability.partner": "Partner",
-  "traceability.date": "Date",
-  "traceability.dateLocale": "en-US",
-  "traceability.carbonUnit": "kg CO2",
-  "traceability.carbon": "Carbon",
-  "traceability.tracing": "Tracing...",
-  "traceability.fallback.partnerName": "Verified Partner",
-  "traceability.status.verified": "Verified",
-  "traceability.status.inProgress": "In Progress",
-  "traceability.status.pending": "Pending",
-  "traceability.stages.artwork": "Original Artwork",
-  "traceability.stages.design": "Design Adaptation",
-  "traceability.stages.material": "Material Sourcing",
-  "traceability.stages.production": "Ethical Production",
-  "traceability.stages.quality": "Quality Assurance",
-  "traceability.stages.shipping": "Conscious Shipping",
-  "traceability.mock.0.description": "The original artwork was created in a safe, nurturing studio environment by our young artist.",
-  "traceability.mock.0.location": "Tonghua Children's Art Studio",
-  "traceability.mock.0.partnerName": "Tonghua Art Program",
-  "traceability.mock.0.story": "Every piece begins with a child's imagination. This artwork was painted during a guided creative session, with art educators helping bring the child's vision to life while respecting their unique perspective.",
-  "traceability.mock.1.description": "Professional designers adapted the artwork for textile printing, preserving every brushstroke and color nuance.",
-  "traceability.mock.1.location": "Shanghai Design Lab",
-  "traceability.mock.1.partnerName": "Creative Threads Studio",
-  "traceability.mock.1.story": "Our designers work closely with the original artwork, ensuring that the transition from canvas to fabric retains the emotional essence. Every color is matched, every line honored.",
-  "traceability.mock.2.description": "Organic cotton sourced from certified sustainable farms, with full Fair Trade certification.",
-  "traceability.mock.2.location": "Xinjiang Organic Farm",
-  "traceability.mock.2.partnerName": "Green Fields Co-op",
-  "traceability.mock.2.story": "We partner with farming cooperatives that prioritize soil health, fair wages, and water conservation. Each batch of cotton is traceable to a specific farm and harvest season.",
-  "traceability.mock.3.description": "Garments produced in ethical factories with fair wages, safe conditions, and zero child labor.",
-  "traceability.mock.3.location": "Dongguan Ethical Factory",
-  "traceability.mock.3.partnerName": "FairWear Manufacturing",
-  "traceability.mock.3.story": "Our manufacturing partners undergo quarterly audits for working conditions, fair pay, and environmental compliance. Every worker is treated with dignity and paid a living wage.",
-  "traceability.mock.4.description": "Each garment undergoes rigorous quality checks for safety, durability, and print fidelity.",
-  "traceability.mock.4.location": "Guangzhou QA Center",
-  "traceability.mock.4.partnerName": "QualityFirst Labs",
-  "traceability.mock.4.story": "Quality assurance goes beyond aesthetics. We test for chemical safety, colorfastness, and structural integrity to ensure every product is safe for children and built to last.",
-  "traceability.mock.5.description": "Carbon-neutral shipping with recyclable packaging and consolidated delivery routes.",
-  "traceability.mock.5.location": "Regional Distribution Hub",
-  "traceability.mock.5.partnerName": "EcoShip Logistics",
-  "traceability.mock.5.story": "We minimize environmental impact through route optimization, recyclable packaging, and carbon offset programs. Your order arrives with the smallest possible footprint.",
-  "traceability.hero.title": "Traceability",
-  "traceability.hero.subtitle": "Follow every thread from canvas to closet. Our supply chain is an open book.",
-  "traceability.lookup.title": "Product Lookup",
-  "traceability.lookup.subtitle": "Enter a product ID or scan the QR code on your garment tag to trace its full journey.",
-  "traceability.lookup.placeholder": "Enter product ID (e.g. VICOO-2026-0042)",
-  "traceability.lookup.ariaLabel": "Search by product ID",
-  "traceability.lookup.hint": "Try: VICOO-2026-0042",
-  "traceability.lookup.found": "Product Journey",
-  "traceability.lookup.highlighted": "Current Stage",
-  "traceability.example.title": "Sample Journey",
-  "traceability.example.subtitle": "A look at how one garment travels from a child's imagination to your wardrobe.",
-  "traceability.example.alt": "Dreamscape Tee product photo",
-  "traceability.carbonTotal.value": "8.2 kg CO2 per garment",
-  "traceability.carbonTotal.offset": "Fully offset through verified carbon credits",
-  "traceability.quote.text": "Every stitch carries a story. When you know exactly where your clothes come from, you wear them differently — with intention, with pride, with gratitude.",
-  "traceability.quote.author": "Lin Wei",
-  "traceability.quote.role": "Supply Chain Director",
-  "traceability.carbon.title": "Carbon Footprint",
-  "traceability.carbon.subtitle": "Measuring our impact, one garment at a time.",
-  "traceability.carbon.conventional": "Conventional Fashion",
-  "traceability.carbon.vicoo": "VICOO",
-  "traceability.carbon.explanation": "Calculated using the GHG Protocol. Boundaries include raw material sourcing, production, packaging, and last-mile delivery.",
-  "traceability.carbon.reduction": "Reduction",
-  "traceability.carbon.reductionDesc": "Compared to conventional fashion industry averages, our supply chain reduces carbon emissions by 75% through local sourcing, renewable energy, and optimized logistics.",
-  "traceability.howItWorks.title": "How It Works",
-  "traceability.howItWorks.steps.record.title": "Record",
-  "traceability.howItWorks.steps.record.desc": "Every stage of production is documented with timestamps, locations, and certifications — creating an immutable record from farm to fabric.",
-  "traceability.howItWorks.steps.verify.title": "Verify",
-  "traceability.howItWorks.steps.verify.desc": "Third-party auditors validate each record. Certifications are cross-checked against international standards for organic, fair trade, and safety compliance.",
-  "traceability.howItWorks.steps.publish.title": "Publish",
-  "traceability.howItWorks.steps.publish.desc": "Verified records are published to the blockchain and made accessible via the QR code on your garment tag — full transparency, always.",
-  "traceability.certifications.title": "Certifications",
-  "traceability.certifications.subtitle": "Verified by the world's leading sustainability standards.",
-  "traceability.certs.gots.title": "GOTS Certified",
-  "traceability.certs.gots.desc": "Global Organic Textile Standard — ensuring organic status from harvesting to labeling.",
-  "traceability.certs.fairTrade.title": "Fair Trade",
-  "traceability.certs.fairTrade.desc": "Certified fair wages, safe working conditions, and community development at every production stage.",
-  "traceability.certs.carbonNeutral.title": "Carbon Neutral",
-  "traceability.certs.carbonNeutral.desc": "Full carbon offset through verified reforestation and renewable energy projects.",
-  "traceability.certs.childSafe.title": "Child Safe",
-  "traceability.certs.childSafe.desc": "Independent audit confirming zero child labor and full compliance with children's rights protocols.",
-  "traceability.cta.label": "Explore More",
-  "traceability.cta.headline": "Transparency is not a feature — it's a promise.",
-  "traceability.cta.body": "Every VICOO product comes with a complete supply chain story. Scan the QR code on your garment tag to begin.",
-  "traceability.cta.button": "Shop the Collection",
-  "donate.hero.title": "Donate",
-  "donate.hero.subtitle": "Every contribution powers a child's creative journey and builds a more sustainable future.",
-  "donate.emotional.quote": "When a child's artwork becomes something you can wear, it becomes something you can carry forward — a piece of their world, stitched into yours.",
-  "donate.emotional.author": "Chen Mei",
-  "donate.emotional.role": "Program Director",
-  "donate.impact.title": "Your Impact",
-  "donate.counters.fundsRaised": "Funds Raised",
-  "donate.counters.childrenHelped": "Children Helped",
-  "donate.stories.title": "Donation Stories",
-  "donate.stories.items.0.amount": "¥200",
-  "donate.stories.items.0.impact": "Funded one month of art supplies for a rural classroom",
-  "donate.stories.items.0.caption": "Art supplies for children in Yunnan province",
-  "donate.stories.items.1.amount": "¥500",
-  "donate.stories.items.1.impact": "Sponsored a child's participation in the Spring Garden campaign",
-  "donate.stories.items.1.caption": "Spring Garden campaign participation",
-  "donate.stories.items.2.amount": "¥1,000",
-  "donate.stories.items.2.impact": "Equipped an entire workshop with sustainable art materials",
-  "donate.stories.items.2.caption": "Workshop equipment for Tonghua Studio",
-  "donate.donor.anonymous": "Anonymous",
-  "donate.donor.guest": "Guest",
-  "donate.transparency.title": "Transparency",
-  "donate.transparency.subtitle": "Every yuan is tracked, every impact is measured.",
-  "donate.transparency.lastAudit": "Last Audit",
-  "donate.transparency.onChain": "On-Chain Records",
-  "donate.transparency.quarterly": "Quarterly Reports",
-  "donate.transparency.trustIndicators": "Trust Indicators",
-  "donate.transparency.trust.audited": "Independently Audited",
-  "donate.transparency.trust.verified": "On-Chain Verified",
-  "donate.transparency.trust.transparent": "100% Transparent",
-  "donate.transparency.trust.impactReported": "Impact Reported",
-  "donate.transparency.viewReport": "View Report",
-  "donate.transparency.financialReport": "Financial Report",
-  "donate.transparency.pdfSize": "PDF, 2.4 MB",
-  "donate.transparency.quarters": ["Q1 2026", "Q4 2025", "Q3 2025", "Q2 2025"],
-  "donate.transparency.transparencyQuote": "Transparency isn't just about showing where the money goes — it's about honoring the trust that every donor places in us.",
-  "donate.transparency.transparencyQuoteAuthor": "Annual Transparency Report, 2025",
-  "donate.faq.title": "Frequently Asked Questions",
-  "donate.faq.q1": "How is my donation used?",
-  "donate.faq.a1": "60% goes directly to art supplies and creative programs for children. 20% supports sustainable production, 15% covers operational costs, and 5% funds community outreach.",
-  "donate.faq.q2": "Is my donation tax-deductible?",
-  "donate.faq.a2": "Yes. VICOO is registered as a public charity. All donations are tax-deductible to the extent allowed by law. You'll receive a receipt via email within 48 hours.",
-  "donate.faq.q3": "Can I donate monthly?",
-  "donate.faq.a3": "Absolutely. Monthly donations help us plan long-term programs with confidence. You can set up recurring donations through our secure payment portal.",
-  "donate.faq.q4": "How do I track my donation's impact?",
-  "donate.faq.a4": "Every donor receives quarterly impact reports showing exactly how funds were used, which children were helped, and what campaigns were supported.",
-  "donate.cta.title": "Make a Difference Today",
-  "donate.cta.donate": "Donate Now",
-  "donate.cta.learnMore": "Learn More"
+  "traceability.date": "Date"
 }

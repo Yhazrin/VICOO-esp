@@ -61,8 +61,8 @@ export default function SepiaImageFrame({
   return (
     <motion.figure
       ref={ref}
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 30 }}
-      animate={isVisible ? (prefersReducedMotion ? {} : { opacity: 1, y: 0 }) : {}}
+      initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 30 }}
+      animate={isVisible ? { opacity: 1, y: 0 } : {}}
       transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.7, ease: [0, 0, 0.2, 1] }}
       className={`${sizeClasses[size]} ${className}`}
     >

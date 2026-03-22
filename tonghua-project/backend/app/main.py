@@ -86,6 +86,7 @@ app.add_middleware(
         "X-Requested-With",
         "X-Signature",
         "X-Timestamp",
+        "X-Nonce",
     ],
 )
 

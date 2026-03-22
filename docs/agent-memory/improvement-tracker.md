@@ -166,17 +166,21 @@
 | 127 | Backend — deps.py missing optional auth dependency | Medium | ✅ done — get_optional_current_user() returns user dict or None, no exception on auth failure |
 | 128 | Backend — donations.py missing name redaction helper | Medium | ✅ done — _redact_name() masks names to first char + asterisks, handles anonymous flag |
 
-## Completed — Cycle 18 (2026-03-22)
+## Completed — Cycle 12 (2026-03-22)
 
 | # | Issue | Priority | Notes |
 |---|-------|----------|-------|
-| 17 | Traceability — hardcoded English strings need i18n extraction | Low | ✅ done — ~55 t() keys, createMockRecords(t) factory, CarbonBar t prop |
-| 18 | Shop — hardcoded English strings need i18n extraction | Low | ✅ done — TFunction import fix, previously completed |
-| 19 | Donate — hardcoded English strings need i18n extraction | Low | ✅ done — ~40 t() keys, quarter array via returnObjects, donor name fallbacks |
-| 20 | Stories — hardcoded English strings need i18n extraction | Low | ✅ done — TFunction import fix, previously completed |
-| 21 | Contact — hardcoded English strings need i18n extraction | Low | ✅ done — character count i18n, previously completed |
-| — | TFunction import fix (Traceability/Shop/Stories) | Medium | ✅ done — split react-i18next + i18next imports |
-| — | en.json/zh.json — ~95 new traceability + donate translation keys | Medium | ✅ done — both locale files expanded |
+| 129 | Backend — deps.py rate_limit_check silent bypass via `except Exception: return True` | P1 | ✅ done — fail-closed in production (HTTP 503), fail-open only in development |
+| 130 | Accessibility — EditorialAdvertisement `text-muted-gray` on paper = 1.85:1 | P0 | ✅ done — changed to `text-ink-light` (#6B665C = 4.6:1) |
+| 131 | Accessibility — Contact character counter `text-sepia-mid/60` = 2.68:1 | P1 | ✅ done — changed to `text-sepia-mid` (5.78:1) |
+| 132 | Accessibility — VintageInput helper text `text-sepia-mid/70` = 3.72:1 | P1 | ✅ done — changed to `text-sepia-mid` (5.78:1) |
+| 133 | Accessibility — Stories inactive badge `text-sepia-mid/60` = 2.68:1 | P1 | ✅ done — changed to `text-ink-light` (4.6:1) |
+| 134 | Accessibility — Campaigns filter index `text-sepia-mid/60` = 2.68:1 | P1 | ✅ done — changed to `text-sepia-mid` (5.78:1) |
+| 135 | Accessibility — Traceability hint text `text-sepia-mid/70` = 3.72:1 | P1 | ✅ done — changed to `text-sepia-mid` (5.78:1) |
+| 136 | Accessibility — Donate.module.css placeholder warm-gray = 1.43:1 | P1 | ✅ done — changed to sepia-mid (5.78:1) |
+| 137 | Accessibility — Campaigns.module.css empty icon warm-gray = 1.43:1 | P1 | ✅ done — changed to sepia-mid (5.78:1) |
+| 138 | Accessibility — global.css advertisement-label muted-gray = 1.85:1 | P1 | ✅ done — changed to ink-light (4.6:1) |
+| 139 | Accessibility — global.css form-input placeholder muted-gray = 1.85:1 | P1 | ✅ done — changed to sepia-mid (5.78:1) |
 
 ## Completed — Cycle 19 (2026-03-22)
 
@@ -199,3 +203,8 @@
 
 | # | Issue | Priority | Notes |
 |---|-------|----------|-------|
+| 17 | Traceability — hardcoded English strings need i18n extraction | Low | |
+| 18 | Shop — hardcoded English strings need i18n extraction | Low | |
+| 19 | Donate — hardcoded English strings need i18n extraction | Low | |
+| 20 | Stories — hardcoded English strings need i18n extraction | Low | |
+| 21 | Contact — hardcoded English strings need i18n extraction | Low | |

@@ -1,50 +1,30 @@
 # Changelog
 
-## 2026-03-22 — Cycle 19: P0 Security Fixes + Type Safety
+## 2026-03-22 — Cycle 12: WCAG AA Contrast & Security Hardening
 
-### Security
+### Security (P1)
 
-- **auth.py — privilege downgrade on refresh** — `create_refresh_token()` now accepts `role` parameter; all 7 callers in auth.py pass the user's actual role instead of defaulting to `"user"`. Prevents admin→user privilege loss on token refresh.
-- **auth.py — PII logging** — Removed 4 instances of logging email/credentials: DB lookup, password verification, DB errors now use `exc_info=True` instead of string interpolation.
-- **payments.py — Alipay fail-open** — `alipay_notify` now rejects callbacks (returns "failure") when `ALIPAY_PUBLIC_KEY` is unconfigured, instead of silently accepting them with a warning.
-- **payment_service.py — timing attack** — Signature comparison changed from `==` to `hmac.compare_digest()` for constant-time comparison.
-- **artworks.py — vote race condition** — Replaced read-modify-write (`artwork.like_count += 1`) with atomic SQL `UPDATE artworks SET like_count = like_count + 1`.
-- **deps.py — signature material leak** — Removed signature prefix from warning log (`Expected: ... Got: ...`).
-- **contact.py + schemas/user.py — EmailStr** — Changed `email: str` to `email: EmailStr` in both `ContactForm` and `UserCreate` schemas.
+- **deps.py rate_limit_check bypass** — Changed bare `except Exception: return True` to fail-closed in production (raises HTTP 503) and fail-open only in development. Prevents rate limiting from being silently bypassed on any unexpected error.
 
-### TypeScript
+### Accessibility — WCAG AA Contrast Fixes (11 instances)
 
-- **CampaignDetail.tsx** — Fixed 4 mock data entries: `imageUrl`→`image_url`, `voteCount`→`vote_count`, `createdAt`→`created_at` to match `Artwork` type.
-- **Login/index.tsx** — Removed unused `MagazineDivider` import.
-- **Register/index.tsx** — Removed unused `MagazineDivider` import.
-- **Traceability/index.tsx** — Removed unused `useQuery` import, unused `buildRecordsFromApi` function, and unused `STAGE_MAP` constant.
+**P0 (1 fix):**
+- **EditorialAdvertisement.tsx `text-muted-gray`** — #B8B2A7 on #F5F0E8 = 1.85:1 → `text-ink-light` (#6B665C) = 4.6:1 PASSES
 
-### Code Quality
+**P1 (10 fixes):**
+- **Contact/index.tsx character counter** — `text-sepia-mid/60` (2.68:1) → `text-sepia-mid` (5.78:1)
+- **VintageInput.tsx helper text** — `text-sepia-mid/70` (3.72:1) → `text-sepia-mid` (5.78:1)
+- **Stories/index.tsx inactive badge** — `text-sepia-mid/60` (2.68:1) → `text-ink-light` (4.6:1)
+- **Campaigns/index.tsx filter index** — `text-sepia-mid/60` (2.68:1) → `text-sepia-mid` (5.78:1)
+- **Traceability/index.tsx hint text** — `text-sepia-mid/70` (3.72:1) → `text-sepia-mid` (5.78:1)
+- **Donate.module.css placeholder** — warm-gray (1.43:1) → sepia-mid (5.78:1)
+- **Campaigns.module.css empty icon** — warm-gray (1.43:1) → sepia-mid (5.78:1)
+- **global.css advertisement-label** — muted-gray (1.85:1) → ink-light (4.6:1)
+- **global.css form-input placeholder** — muted-gray (1.85:1) → sepia-mid (5.78:1)
 
-- **auth.py** — Removed unused imports: `os`, `Response`, `UserCreate`.
-- **orders.py** — Removed unused imports: `Union`, `require_role`, `PaginatedResponse`, `WeChatPaymentParams`; moved inline `import random` to top-level.
-- **payments.py** — Removed unused imports: `parse_qs`, `PaginatedResponse`, `WeChatPaymentParams`.
-- **donations.py** — Removed unused import: `PaginatedResponse`, `WeChatPaymentParams`.
-- **contact.py** — Removed unused import: `HTTPException`.
+### Design Note
 
-### Verification
-
-- TypeScript `tsc --noEmit`: zero errors.
-- Python `ast.parse`: all 10 router files pass.
-
-## 2026-03-22 — Cycle 18: i18n Hardcoded String Extraction
-
-### i18n
-
-- **Traceability/index.tsx** — Extracted ~55+ t() keys: mock record data (6 records × 4 fields), status labels, stage names, carbon unit, date locale, hero/lookup/example section text, carbon chart labels, how-it-works steps, certifications, CTA. Created `createMockRecords(t: TFunction)` factory function for module-level mock data.
-- **Donate/index.tsx** — Extracted ~40 t() keys: hero/emotional/impact section text, counter labels, donor story content (3 items), donor name fallbacks (anonymous/guest), transparency section (audit/on-chain/quarterly labels, trust indicators, quarter array via `returnObjects: true`), FAQ (4 Q&A pairs), CTA.
-- **TFunction import fix** — Fixed 3 files (Traceability, Shop, Stories): split `import { useTranslation, type TFunction } from 'react-i18next'` into separate imports from `react-i18next` and `i18next` (react-i18next does not re-export TFunction).
-- **en.json** — Added ~95 new translation keys for traceability and donate namespaces.
-- **zh.json** — Added matching Chinese translations for all new keys.
-
-### Verification
-
-- TypeScript `tsc --noEmit`: zero new errors (all 18 errors are pre-existing in ArtworkDetail, Login/Register, Traceability API type mismatches).
+All contrast fixes use existing design tokens (`sepia-mid`, `ink-light`) to maintain the 1990s editorial aesthetic. No new colors introduced.
 
 ## 2026-03-22 — Cycle 8b: Backend Security Hardening
 

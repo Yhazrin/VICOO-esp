@@ -171,7 +171,6 @@
     },
     "readMore": "阅读全文",
     "readTime": "分钟阅读",
-    "readTimeAria": "{{minutes}} 分钟阅读",
     "categories": {
       "all": "全部",
       "impact": "影响力",
@@ -192,33 +191,48 @@
       "body": "每本伟大的出版物都有等待被书写的空白页。试试其他分类——有故事等待被发现。",
       "browseAll": "浏览全部故事"
     },
-    "quotes": [
-      { "text": "孩子画的每一笔都是通向他们想象世界的窗口", "attribution": "陈伟，创始人" },
-      { "text": "我们不只是卖衣服，我们赋予人们了解来源的权利", "attribution": "张华，生产主管" },
-      { "text": "可持续发展始于看见，而非仅仅购买", "attribution": "李梅，社区总监" },
-      { "text": "当我们打开大门，教室就变成了画廊", "attribution": "王军，教育主管" },
-      { "text": "她画的海洋是她见过最蓝的东西", "attribution": "陈伟，创始人" }
-    ],
-    "mock": [
-      { "title": "画海洋的女孩", "excerpt": "小林从没见过大海。但她画的海洋成了我们春季系列最受欢迎的设计。", "pullQuote": "47名儿童参加了这次工作坊", "author": "陈伟" },
-      { "title": "从废弃到可穿戴", "excerpt": "我们的生产团队如何将库存面料变成限量版作品，为艺术工作坊筹集资金。", "pullQuote": "3.2吨面料从填埋场转移", "author": "张华" },
-      { "title": "教室变成画廊", "excerpt": "当东风小学为我们的工作坊打开大门时，没人想到墙壁会变成画布。", "pullQuote": "一个下午创作了120件艺术品", "author": "李梅" },
-      { "title": "通过艺术教授可持续发展", "excerpt": "我们的新课程帮助儿童通过创意表达理解环境影响。", "pullQuote": "本学期有14所学校采用该课程", "author": "王军" },
-      { "title": "使命背后的数据", "excerpt": "透明地展示每一元捐赠如何转化为对儿童和社区的真实影响。", "pullQuote": "92%的资金直接用于项目", "author": "陈伟" }
-    ],
-    "quoteBlock": {
-      "quote": "孩子画的每一笔都是通向他们想象世界的窗口。我们的工作是让那个世界被看见。",
+    "minuteRead": "分钟阅读",
+    "artworkFallback": "一幅儿童画作，用想象力和真心创作而成。",
+    "supporters": "{{count}} 位支持者",
+    "anonymousArtist": "匿名艺术家",
+    "marquee": {
+      "quote1": "孩子的每一笔都是通往他们想象世界的窗口",
+      "attr1": "陈伟，创始人",
+      "quote2": "我们不只是卖衣服，我们赋予你知道它从何而来的权利",
+      "attr2": "张华，生产负责人",
+      "quote3": "可持续始于看见，而非仅仅购买",
+      "attr3": "李梅，社区总监",
+      "quote4": "当我们打开大门，教室就变成了画廊",
+      "attr4": "王军，教育负责人",
+      "quote5": "她画的海洋是她见过最蓝的东西",
+      "attr5": "陈伟，创始人"
+    },
+    "mock": {
+      "title1": "画海的女孩",
+      "excerpt1": "小林从未见过大海，但她画的海洋成为了我们春季系列中最受欢迎的设计。",
+      "pull1": "47名儿童参与了这次工作坊",
+      "author1": "陈伟",
+      "title2": "从废弃到可穿戴",
+      "excerpt2": "我们的生产团队如何将滞销面料转化为限量版作品，为艺术工作坊提供资金。",
+      "pull2": "3.2吨面料被从垃圾填埋场中拯救",
+      "author2": "张华",
+      "title3": "教室变画廊",
+      "excerpt3": "当东风小学为我们的工作坊打开大门时，没有人预料到墙壁会变成画布。",
+      "pull3": "一个下午创作了120件作品",
+      "author3": "李梅",
+      "title4": "通过艺术教授可持续发展",
+      "excerpt4": "我们的新课程帮助儿童通过创意表达理解环境影响。",
+      "pull4": "本学期有14所学校采用了该课程",
+      "author4": "王军",
+      "title5": "使命背后的数字",
+      "excerpt5": "透明地展示每一元捐赠如何转化为对儿童和社区的真实影响。",
+      "pull5": "92%的资金直接用于项目",
+      "author5": "陈伟"
+    },
+    "featuredQuote": {
+      "text": "孩子的每一笔都是通往他们想象世界的窗口。我们的工作是让这个世界被看见。",
       "author": "陈伟",
       "role": "童画公益创始人"
-    },
-    "fallback": {
-      "excerpt": "一个孩子的艺术作品，用想象力和真心创作。",
-      "supporters": "{{count}} 名支持者",
-      "defaultPullQuote": "一个下午创作了120件艺术品",
-      "author": "匿名艺术家"
-    },
-    "marquee": {
-      "separator": " — "
     }
   },
   "donate": {
@@ -302,13 +316,7 @@
       "financialReport": "财务报告",
       "pdfSize": "PDF · 2.4 MB",
       "transparencyQuote": "透明不是一种功能，而是一种责任。",
-      "transparencyQuoteAuthor": "2025年度报告",
-      "quarters": {
-        "q1": "2026年第一季度",
-        "q2": "2025年第四季度",
-        "q3": "2025年第三季度",
-        "q4": "2025年第二季度"
-      }
+      "transparencyQuoteAuthor": "2025年度报告"
     },
     "counters": {
       "fundsRaised": "筹集善款",
@@ -339,10 +347,8 @@
       "donate": "立即捐赠",
       "learnMore": "了解更多"
     },
-    "donor": {
-      "anonymous": "匿名",
-      "guest": "访客"
-    },
+    "anonymousName": "匿名用户",
+    "guestName": "访客",
     "faq": {
       "title": "常见问题",
       "q1": "我的捐赠将如何使用？",
@@ -370,7 +376,16 @@
     "card": {
       "viewDetails": "查看详情",
       "soldOut": "已售罄",
-      "lowStock": "仅剩 {{count}} 件"
+      "lowStock": "仅剩 {{count}} 件",
+      "exceptional": "卓越",
+      "excellent": "优秀",
+      "good": "良好",
+      "notifyMe": "到货通知",
+      "notifySuccess": "到货后我们会通知您。",
+      "notifyEmailLabel": "邮箱",
+      "send": "发送",
+      "artworkBy": "{{name}} 的作品，{{age}} 岁",
+      "campaign": "活动"
     },
     "detail": {
       "addToCart": "加入购物车",
@@ -408,36 +423,48 @@
       "paragraph1": "这个系列中的每一件服装都始于同一种方式——一个孩子、一张白纸、以及想象的自由。我们与十二个城市的学校和社区中心合作，开展工作坊，让孩子们画出他们对世界的希望。",
       "paragraph2": "我们的设计师随后将这些原始、真挚的艺术品转化为图案、印花和刺绣——从不改变孩子最初的愿景。最终呈现的是承载真实故事的服装，而非人为制造的故事。"
     },
-    "mock": {
-      "0": {
-        "name": "梦境T恤",
-        "description": "孩子的海洋画作变身为可穿戴的故事。"
-      },
-      "1": {
-        "name": "森林低语卫衣",
-        "description": "灵感来自一位7岁孩子绘制的魔法森林画作。"
-      },
-      "2": {
-        "name": "星光手提袋",
-        "description": "孩子的夜空画作成为日常伴侣。"
-      },
-      "3": {
-        "name": "彩虹阶梯运动鞋",
-        "description": "走进孩子想象的色彩中。"
-      },
-      "4": {
-        "name": "海风围巾",
-        "description": "来自一位小画家海景画作的柔和波浪图案。"
-      },
-      "5": {
-        "name": "花园派对连衣裙",
-        "description": "孩子们在春季工作坊中绘制的花卉图案。"
-      }
-    },
     "quote": {
       "text": "我画了海洋，因为我希望它永远是蓝色的。",
       "author": "小林",
       "role": "8岁，海洋之梦活动"
+    },
+    "mock": {
+      "product1": {
+        "name": "梦境T恤",
+        "description": "一幅儿童海洋画作，变成了一件可穿戴的故事。",
+        "childName": "小林",
+        "campaign": "海洋之梦"
+      },
+      "product2": {
+        "name": "绽放手提袋",
+        "description": "手工印花有机棉手提袋，印有春季活动作品。",
+        "childName": "梅花",
+        "campaign": "春日花园"
+      },
+      "product3": {
+        "name": "小画家速写本",
+        "description": "再生纸速写本，封面采用冬季活动作品。",
+        "childName": "童童",
+        "campaign": "冬日奇境"
+      },
+      "product4": {
+        "name": "海洋之梦艺术版画",
+        "description": "博物馆级艺术微喷版画，采用档案级纸张。",
+        "childName": "小雨",
+        "campaign": "海洋之梦"
+      },
+      "product5": {
+        "name": "城市风景卫衣",
+        "description": "有机棉卫衣，绣有儿童城市绘画。",
+        "childName": "佳伟",
+        "campaign": "我的城市"
+      },
+      "product6": {
+        "name": "彩虹徽章套装",
+        "description": "珐琅徽章套装，收录五幅2025年获奖作品。",
+        "childName": "安琪",
+        "campaign": "希望的颜色"
+      }
     }
   },
   "traceability": {
@@ -455,8 +482,36 @@
     },
     "verified": "已验证",
     "carbonLabel": "碳足迹",
-    "carbonUnit": "千克 CO2",
-    "dateLocale": "zh-CN",
+    "imageAlt": "梦境T恤",
+    "kgCO2": "千克 CO2",
+    "mock": {
+      "records": {
+        "1": {
+          "description": "小林，8岁，在东风小学的周六工作坊中创作了她的海洋画作。该作品经同伴投票选出。",
+          "story": "在一个下雨的周六早晨，八岁的小林拿起画笔，画了一只鲸鱼跃出海浪的画面。她的同学们投票选出了这幅作品作为展览最佳。"
+        },
+        "2": {
+          "description": "我们的设计团队将画作改编为纺织印花，保留了孩子原始的笔触和色彩搭配。小林认可了最终设计。",
+          "story": "首席设计师梅将这幅画转化为重复图案，同时保留了每一笔。小林参观了工作室，竖起大拇指给了最终认可。"
+        },
+        "3": {
+          "description": "GOTS 认证有机棉，采购自新疆合作社。公平贸易价格经第三方审计师验证。",
+          "story": "手工采摘自雨水灌溉系统的田地。每批棉花都经过农药残留检测并获得有机认证后才发货。"
+        },
+        "4": {
+          "description": "在 SA8000 认证工厂进行丝网印刷和缝制。支付生活工资。工作条件每季度审核。",
+          "story": "缝纫工匠张师傅已从业15年。他获得高于最低生活保障的工资和完整福利。他的团队为这个设计印刷组装了200件。"
+        },
+        "5": {
+          "description": "质量检测通过。色牢度、缝合强度和尺寸均已按照规格验证。",
+          "story": "检验员李对每件衣服进行20次水洗后的色牢度测试、应力点缝合强度检测以及2毫米公差范围内的尺寸精度测试。"
+        },
+        "6": {
+          "description": "通过整合运输发货以减少排放。碳抵消通过认证项目购买。",
+          "story": "与其他三笔订单合并装满一个集装箱。剩余排放量通过云南省经认证的造林项目进行碳抵消。"
+        }
+      }
+    },
     "lookup": {
       "title": "追溯您的产品",
       "subtitle": "输入订单号或产品 ID，追踪从创作到交付的完整旅程。",
@@ -478,7 +533,8 @@
       "vicoo": "VICOO 服装",
       "reduction": "碳减排",
       "reductionDesc": "通过有机材料、整合运输和经认证的碳抵消实现更低排放。",
-      "explanation": "基于生命周期分析，将传统快时尚生产与我们的认证供应链进行比较。包括原材料采购、制造、质量控制和最后一公里配送。"
+      "explanation": "基于生命周期分析，将传统快时尚生产与我们的认证供应链进行比较。包括原材料采购、制造、质量控制和最后一公里配送。",
+      "sectionLabel": "碳足迹"
     },
     "certifications": {
       "title": "认证与标准",
@@ -491,6 +547,10 @@
       "button": "浏览系列"
     },
     "tracing": "正在追踪供应链...",
+    "example": {
+      "title": "梦境T恤 — 完整旅程",
+      "subtitle": "跟随一件产品的完整生命周期，从孩子的画笔到您的衣橱。"
+    },
     "carbonTotal": {
       "value": "5.3 千克 CO2",
       "offset": "通过云南省经认证的造林项目进行碳抵消。"
@@ -533,52 +593,6 @@
       "childSafe": {
         "title": "儿童安全生产",
         "desc": "完全符合儿童保护法规和知情同意协议。"
-      }
-    },
-    "fallback": {
-      "partnerName": "已验证合作方"
-    },
-    "example": {
-      "title": "梦境T恤 — 完整旅程",
-      "subtitle": "跟随一件产品的完整生命周期，从孩子的画笔到您的衣橱。",
-      "imageAlt": "梦境T恤产品图片"
-    },
-    "mock": {
-      "0": {
-        "description": "来自新疆认证农场的有机棉花。",
-        "location": "中国新疆",
-        "partnerName": "绿色纤维公司",
-        "story": "我们的棉花来自注重土壤健康和水资源保护的农场。"
-      },
-      "1": {
-        "description": "经认证纺织厂的织布与质量检测。",
-        "location": "中国杭州",
-        "partnerName": "丝路纺织",
-        "story": "每匹布料在生产前都经过耐久性和色牢度测试。"
-      },
-      "2": {
-        "description": "将儿童海洋绘画原作数字化为设计图案。",
-        "location": "中国成都",
-        "partnerName": "童画创意实验室",
-        "story": "这幅原作出自8岁小林在「海洋之梦」工作坊的创作。"
-      },
-      "3": {
-        "description": "由公平薪酬的工匠使用环保染料裁剪缝制。",
-        "location": "中国广州",
-        "partnerName": "公平缝制有限公司",
-        "story": "我们的工匠在安全的工作环境中获得生活工资和全面福利。"
-      },
-      "4": {
-        "description": "最终质量检验与环保包装发货。",
-        "location": "中国深圳",
-        "partnerName": "生态包装方案",
-        "story": "每件服装都经过单独检验，使用可降解材料包装。"
-      },
-      "5": {
-        "description": "通过绿色物流合作方实现碳中和配送到门。",
-        "location": "中国全国",
-        "partnerName": "绿色之路物流",
-        "story": "所有配送均通过经认证的造林项目实现碳抵消。"
       }
     }
   },
@@ -636,11 +650,22 @@
       "success": "感谢您的来信，我们将在24小时内回复您。",
       "error": "出了点问题，请重试。"
     },
+    "contactTitle": "联系方式",
+    "formTitle": "给我们留言",
     "info": {
       "title": "其他联系方式",
       "email": "hello@tonghua.org",
+      "emailLabel": "邮箱",
       "wechat": "TonghuaOfficial",
-      "address": "中国上海"
+      "wechatLabel": "微信",
+      "address": "中国上海",
+      "locationLabel": "地址",
+      "officeCaption": "VICOO 上海办公室"
+    },
+    "pullQuote": {
+      "quote": "每一个问题都是深入了解我们使命的邀请——每一个回答都是编织信任纽带的机会。",
+      "author": "VICOO 编辑部",
+      "role": "社区互动"
     },
     "cards": {
       "email": {
@@ -767,136 +792,5 @@
   "campaigns.detail.backToAll": "返回全部活动",
   "traceability.location": "地点",
   "traceability.partner": "合作方",
-  "traceability.date": "日期",
-  "traceability.dateLocale": "zh-CN",
-  "traceability.carbonUnit": "千克 CO2",
-  "traceability.carbon": "碳排放",
-  "traceability.tracing": "溯源中...",
-  "traceability.fallback.partnerName": "已验证合作方",
-  "traceability.status.verified": "已验证",
-  "traceability.status.inProgress": "进行中",
-  "traceability.status.pending": "待处理",
-  "traceability.stages.artwork": "原创画作",
-  "traceability.stages.design": "设计转化",
-  "traceability.stages.material": "原料采购",
-  "traceability.stages.production": "道德生产",
-  "traceability.stages.quality": "质量保证",
-  "traceability.stages.shipping": "绿色物流",
-  "traceability.mock.0.description": "原创画作在安全、温馨的工作室环境中由小画家创作完成。",
-  "traceability.mock.0.location": "童画儿童艺术工作室",
-  "traceability.mock.0.partnerName": "童画艺术项目",
-  "traceability.mock.0.story": "每件作品都始于孩子的想象力。这幅画作在艺术教育者的引导下完成，帮助孩子将想象力变为现实，同时尊重他们独特的视角。",
-  "traceability.mock.1.description": "专业设计师将画作适配为纺织品印花，保留每一笔笔触和色彩细节。",
-  "traceability.mock.1.location": "上海设计实验室",
-  "traceability.mock.1.partnerName": "创意织线工作室",
-  "traceability.mock.1.story": "我们的设计师与原始画作紧密协作，确保从画布到织物的转化保留情感精髓。每种颜色都经过精确匹配，每根线条都得到尊重。",
-  "traceability.mock.2.description": "有机棉花来自经过认证的可持续农场，持有完整的公平贸易认证。",
-  "traceability.mock.2.location": "新疆有机农场",
-  "traceability.mock.2.partnerName": "绿田合作社",
-  "traceability.mock.2.story": "我们与注重土壤健康、公平薪酬和水资源保护的农业合作社合作。每批棉花都可追溯到具体农场和收获季节。",
-  "traceability.mock.3.description": "成衣在道德工厂生产，确保公平薪酬、安全环境，零童工。",
-  "traceability.mock.3.location": "东莞道德工厂",
-  "traceability.mock.3.partnerName": "公平制衣制造",
-  "traceability.mock.3.story": "我们的制造合作伙伴每季度接受工作条件、公平薪酬和环境合规审计。每位工人都受到尊重并获得生活工资。",
-  "traceability.mock.4.description": "每件成衣都经过严格的质量检测，确保安全性、耐用性和印花保真度。",
-  "traceability.mock.4.location": "广州质量检测中心",
-  "traceability.mock.4.partnerName": "优检实验室",
-  "traceability.mock.4.story": "质量保证超越外观。我们检测化学安全性、色牢度和结构完整性，确保每件产品对儿童安全且经久耐用。",
-  "traceability.mock.5.description": "碳中和配送，使用可回收包装和优化配送路线。",
-  "traceability.mock.5.location": "区域分发中心",
-  "traceability.mock.5.partnerName": "绿运物流",
-  "traceability.mock.5.story": "我们通过路线优化、可回收包装和碳抵消计划来最大限度地减少环境影响。您的订单以最小碳足迹送达。",
-  "traceability.hero.title": "供应链溯源",
-  "traceability.hero.subtitle": "从画布到衣橱，追踪每一根线的故事。我们的供应链是一本打开的书。",
-  "traceability.lookup.title": "产品查询",
-  "traceability.lookup.subtitle": "输入产品编号或扫描衣物标签上的二维码，追踪其完整旅程。",
-  "traceability.lookup.placeholder": "输入产品编号（如 VICOO-2026-0042）",
-  "traceability.lookup.ariaLabel": "按产品编号搜索",
-  "traceability.lookup.hint": "试试：VICOO-2026-0042",
-  "traceability.lookup.found": "产品旅程",
-  "traceability.lookup.highlighted": "当前阶段",
-  "traceability.example.title": "样例旅程",
-  "traceability.example.subtitle": "看一件成衣如何从孩子的想象力到你的衣橱。",
-  "traceability.example.alt": "Dreamscape Tee 产品照片",
-  "traceability.carbonTotal.value": "每件 8.2 千克 CO2",
-  "traceability.carbonTotal.offset": "通过经认证的碳信用完全抵消",
-  "traceability.quote.text": "每一针都承载着一个故事。当你确切知道衣服的来历时，你会以不同的方式穿着它们——带着用心、自豪和感恩。",
-  "traceability.quote.author": "林薇",
-  "traceability.quote.role": "供应链总监",
-  "traceability.carbon.title": "碳足迹",
-  "traceability.carbon.subtitle": "一件一件地衡量我们的影响。",
-  "traceability.carbon.conventional": "传统时尚",
-  "traceability.carbon.vicoo": "VICOO",
-  "traceability.carbon.explanation": "使用温室气体核算体系计算。边界包括原材料采购、生产、包装和最后一公里配送。",
-  "traceability.carbon.reduction": "减排",
-  "traceability.carbon.reductionDesc": "与传统时尚行业平均水平相比，我们的供应链通过本地采购、可再生能源和优化物流减少了75%的碳排放。",
-  "traceability.howItWorks.title": "如何运作",
-  "traceability.howItWorks.steps.record.title": "记录",
-  "traceability.howItWorks.steps.record.desc": "生产的每个环节都有时间戳、地点和认证记录——创建从农场到织物的不可篡改记录。",
-  "traceability.howItWorks.steps.verify.title": "验证",
-  "traceability.howItWorks.steps.verify.desc": "第三方审计师验证每条记录。认证根据有机、公平贸易和安全合规的国际标准进行交叉检查。",
-  "traceability.howItWorks.steps.publish.title": "发布",
-  "traceability.howItWorks.steps.publish.desc": "经验证的记录发布到区块链，通过衣物标签上的二维码即可访问——完全透明，随时可查。",
-  "traceability.certifications.title": "认证资质",
-  "traceability.certifications.subtitle": "经全球领先的可持续发展标准验证。",
-  "traceability.certs.gots.title": "GOTS 认证",
-  "traceability.certs.gots.desc": "全球有机纺织品标准——确保从收获到标签的有机身份。",
-  "traceability.certs.fairTrade.title": "公平贸易",
-  "traceability.certs.fairTrade.desc": "认证公平工资、安全工作条件和每个生产阶段的社区发展。",
-  "traceability.certs.carbonNeutral.title": "碳中和",
-  "traceability.certs.carbonNeutral.desc": "通过经验证的再造林和可再生能源项目实现完全碳抵消。",
-  "traceability.certs.childSafe.title": "儿童安全",
-  "traceability.certs.childSafe.desc": "独立审计确认零童工并完全遵守儿童权利协议。",
-  "traceability.cta.label": "了解更多",
-  "traceability.cta.headline": "透明不是功能——而是承诺。",
-  "traceability.cta.body": "每件 VICOO 产品都附有完整的供应链故事。扫描衣物标签上的二维码即可开始。",
-  "traceability.cta.button": "前往选购",
-  "donate.hero.title": "捐赠",
-  "donate.hero.subtitle": "每一份贡献都为孩子的创意之旅赋能，共同建设更可持续的未来。",
-  "donate.emotional.quote": "当孩子的画作变成你可以穿在身上的东西，它就变成了你可以传承的东西——他们世界的一片，缝进了你的生活。",
-  "donate.emotional.author": "陈梅",
-  "donate.emotional.role": "项目总监",
-  "donate.impact.title": "你的影响力",
-  "donate.counters.fundsRaised": "已筹善款",
-  "donate.counters.childrenHelped": "受助儿童",
-  "donate.stories.title": "捐赠故事",
-  "donate.stories.items.0.amount": "¥200",
-  "donate.stories.items.0.impact": "为一个乡村课堂资助了一个月的美术用品",
-  "donate.stories.items.0.caption": "云南儿童美术用品",
-  "donate.stories.items.1.amount": "¥500",
-  "donate.stories.items.1.impact": "赞助了一名儿童参加「春日花园」活动",
-  "donate.stories.items.1.caption": "春日花园活动参与",
-  "donate.stories.items.2.amount": "¥1,000",
-  "donate.stories.items.2.impact": "为整个工作室配备了可持续美术材料",
-  "donate.stories.items.2.caption": "童画工作室设备",
-  "donate.donor.anonymous": "匿名",
-  "donate.donor.guest": "访客",
-  "donate.transparency.title": "透明公开",
-  "donate.transparency.subtitle": "每一分钱都可追踪，每一份影响都可衡量。",
-  "donate.transparency.lastAudit": "最近审计",
-  "donate.transparency.onChain": "链上记录",
-  "donate.transparency.quarterly": "季度报告",
-  "donate.transparency.trustIndicators": "信任指标",
-  "donate.transparency.trust.audited": "独立审计",
-  "donate.transparency.trust.verified": "链上验证",
-  "donate.transparency.trust.transparent": "100% 透明",
-  "donate.transparency.trust.impactReported": "影响力报告",
-  "donate.transparency.viewReport": "查看报告",
-  "donate.transparency.financialReport": "财务报告",
-  "donate.transparency.pdfSize": "PDF, 2.4 MB",
-  "donate.transparency.quarters": ["2026 Q1", "2025 Q4", "2025 Q3", "2025 Q2"],
-  "donate.transparency.transparencyQuote": "透明不仅仅是展示资金去向——更是尊重每一位捐赠者对我们的信任。",
-  "donate.transparency.transparencyQuoteAuthor": "2025年度透明报告",
-  "donate.faq.title": "常见问题",
-  "donate.faq.q1": "我的捐款如何使用？",
-  "donate.faq.a1": "60%直接用于儿童美术用品和创意项目。20%支持可持续生产，15%覆盖运营成本，5%用于社区推广。",
-  "donate.faq.q2": "我的捐款可以抵税吗？",
-  "donate.faq.a2": "是的。VICOO已注册为公益慈善机构。所有捐款均可在法律允许的范围内抵税。您将在48小时内收到电子邮件收据。",
-  "donate.faq.q3": "我可以按月捐款吗？",
-  "donate.faq.a3": "当然可以。按月捐款帮助我们更有信心地规划长期项目。您可以通过我们的安全支付门户设置定期捐款。",
-  "donate.faq.q4": "如何追踪我的捐款影响？",
-  "donate.faq.a4": "每位捐赠者都会收到季度影响力报告，详细展示资金使用情况、受助儿童和支持的活动。",
-  "donate.cta.title": "今天就有所作为",
-  "donate.cta.donate": "立即捐赠",
-  "donate.cta.learnMore": "了解更多"
+  "traceability.date": "日期"
 }

@@ -29,14 +29,14 @@ export default function EditorialAdvertisement({
       className={`
         relative
         bg-aged-stock/70
-        border: 1px dashed border-warm-gray
+        border border-dashed border-warm-gray
         text-center
         ${variantStyles[variant]}
         ${className}
       `}
     >
       {/* Advertisement label */}
-      <span className="absolute top-3 left-1/2 -translate-x-1/2 font-mono text-[10px] tracking-[0.2em] uppercase text-muted-gray">
+      <span className="absolute top-3 left-1/2 -translate-x-1/2 font-mono text-[10px] tracking-[0.2em] uppercase text-ink-light">
         {label}
       </span>
 

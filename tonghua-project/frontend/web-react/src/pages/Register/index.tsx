@@ -149,7 +149,7 @@ export default function Register() {
             <div className="grid grid-cols-3 gap-3">
               <motion.button
                 type="button"
-                aria-label="Sign up with GitHub"
+                aria-label={t('register.socialGithub', 'Sign up with GitHub')}
                 whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
                 whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
                 className="flex items-center justify-center gap-2 font-body text-caption tracking-wide border border-warm-gray/40 text-ink px-3 py-3 hover:border-ink transition-colors duration-300 cursor-pointer"
@@ -162,7 +162,7 @@ export default function Register() {
 
               <motion.button
                 type="button"
-                aria-label="Sign up with Google"
+                aria-label={t('register.socialGoogle', 'Sign up with Google')}
                 whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
                 whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
                 className="flex items-center justify-center gap-2 font-body text-caption tracking-wide border border-warm-gray/40 text-ink px-3 py-3 hover:border-ink transition-colors duration-300 cursor-pointer"
@@ -178,7 +178,7 @@ export default function Register() {
 
               <motion.button
                 type="button"
-                aria-label={t('register.wechat')}
+                aria-label={t('register.socialWechat', 'Sign up with WeChat')}
                 whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
                 whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
                 className="flex items-center justify-center gap-2 font-body text-caption tracking-wide border border-warm-gray/40 text-ink px-3 py-3 hover:border-ink transition-colors duration-300 cursor-pointer"
