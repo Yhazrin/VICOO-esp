@@ -279,9 +279,9 @@ export default function Home() {
       {/* Quote Interlude */}
       <SectionContainer narrow>
         <StoryQuoteBlock
-          quote="Every stitch carries a child's dream. Every garment is a chapter in a story that hasn't been written yet."
-          author="Chen Wei"
-          role="Founder, VICOO"
+          quote={t('home.quote.text')}
+          author={t('home.quote.author')}
+          role={t('home.quote.role')}
         />
       </SectionContainer>
 
@@ -392,7 +392,7 @@ export default function Home() {
             </span>
             <span className="flex-1 h-px bg-warm-gray/40" />
             <span className="font-body text-caption text-sepia-mid tracking-[0.2em]">
-              Est. 2026
+              {t('home.est')}
             </span>
           </div>
 

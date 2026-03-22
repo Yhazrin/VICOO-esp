@@ -1,6 +1,6 @@
 # Improvement Tracker
 
-> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 22)
+> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 24)
 > Scope broadened: now covers frontend UI/UX + backend architecture + software architecture + sustainability + code quality
 
 ## Completed
@@ -195,12 +195,31 @@
 | 151 | payments.py alipay_notify — fail-open when ALIPAY_PUBLIC_KEY unconfigured | P0 | ✅ done — returns "failure" |
 | 152 | models/payment.py — order_id/donation_id missing ForeignKey constraints | P1 | ✅ done — ForeignKey added |
 
-## Pending
+## Completed — Cycle 23 (2026-03-22)
 
 | # | Issue | Priority | Notes |
 |---|-------|----------|-------|
-| 17 | Traceability — hardcoded English strings need i18n extraction | Low | |
-| 18 | Shop — hardcoded English strings need i18n extraction | Low | |
-| 19 | Donate — hardcoded English strings need i18n extraction | Low | |
-| 20 | Stories — hardcoded English strings need i18n extraction | Low | |
-| 21 | Contact — hardcoded English strings need i18n extraction | Low | |
+| 153 | main.py rate limit middleware — verbose logger.info for routine skip/apply | P1 | ✅ done — logger.info → logger.debug (3 call sites) |
+| 154 | Stories — WAI-ARIA tabs pattern incomplete (missing id/aria-controls/tabIndex/keyboard nav/tabpanel) | P1 | ✅ done — full ARIA tabs + ArrowLeft/ArrowRight + tabpanel wrapper |
+| 155 | Shop — WAI-ARIA tabs pattern incomplete (missing id/aria-controls/tabIndex/keyboard nav/tabpanel) | P1 | ✅ done — full ARIA tabs + ArrowLeft/ArrowRight + tabpanel wrapper |
+| 156 | Login — hardcoded Chinese "或"/"微信" not using i18n keys | P1 | ✅ done — replaced with t('login.orContinueWith') / t('login.wechat') |
+| 157 | Register — hardcoded Chinese "或"/"微信" not using i18n keys | P1 | ✅ done — replaced with t('register.orContinueWith') / t('register.wechat') |
+| 158 | orders.py/donations.py duplicate POST routes — /create consolidation | P1 | ✅ no-op — WeChat mini program depends on /create endpoint |
+
+## Completed — Cycle 24 (2026-03-22)
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 159 | EditorialHeroV2 stat label text-[7px] below readability threshold | P2 | ✅ done — text-[7px] → text-[9px] |
+| 160 | Home/index.tsx hardcoded English strings in StoryQuoteBlock + "Est. 2026" | P2 | ✅ done — replaced with t('home.quote.*') + t('home.est'), added en.json/zh.json keys |
+| 161 | orders.py import random inside except block (code quality anti-pattern) | P2 | ✅ done — moved to top-level imports |
+
+## Pending (deferred)
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 17 | Traceability — hardcoded English strings need i18n extraction | Low | Done in Cycle 18 |
+| 18 | Shop — hardcoded English strings need i18n extraction | Low | Done in Cycle 18 |
+| 19 | Donate — hardcoded English strings need i18n extraction | Low | Done in Cycle 18 |
+| 20 | Stories — hardcoded English strings need i18n extraction | Low | Done in Cycle 18 |
+| 21 | Contact — hardcoded English strings need i18n extraction | Low | Done in Cycle 18 |

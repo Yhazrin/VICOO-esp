@@ -106,6 +106,7 @@ export default function HeroFloatingCards({ className = '' }: HeroFloatingCardsP
         transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6, delay: 0.6 }}
         className="absolute z-[6] w-12 h-8 top-[185px] right-[178px]"
         viewBox="0 0 48 32"
+        aria-hidden="true"
       >
         <path
           d="M4 16 Q16 6 36 14 L30 10 M36 14 L31 20"
@@ -201,7 +202,7 @@ export default function HeroFloatingCards({ className = '' }: HeroFloatingCardsP
         aria-label="100% Organic certified"
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') e.preventDefault(); }}
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M12 3L14 9H20L15.5 12.5L17.5 18.5L12 15L6.5 18.5L8.5 12.5L4 9H10L12 3Z" fill="#B84B2A" opacity="0.55"/>
         </svg>
         <span className="font-mono text-[7px] tracking-wider text-gray-500 text-center leading-[1.4]">

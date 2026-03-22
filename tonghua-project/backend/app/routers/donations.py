@@ -26,6 +26,11 @@ def _redact_name(name: str | None, is_anonymous: bool | None = None) -> str:
         return "*"
     return name[0] + "*" * (len(name) - 1)
 
+# ── MOCK DATA (served when database is unavailable) ──────────────
+# These records are illustrative examples for development/demo purposes.
+# Real donation data is loaded from the database when available.
+# Donor names, payment IDs, and messages below are fictional.
+# ────────────────────────────────────────────────────────────────
 _mock_donations = [
     {"id": 1, "donor_name": "张先生", "donor_user_id": 3, "amount": "500.00", "currency": "CNY", "payment_method": "wechat", "payment_id": "wx20250301123456", "campaign_id": 1, "status": "completed", "is_anonymous": False, "message": "支持孩子们的艺术梦想！", "created_at": "2025-03-01T10:30:00"},
     {"id": 2, "donor_name": "李女士", "donor_user_id": 4, "amount": "1000.00", "currency": "CNY", "payment_method": "alipay", "payment_id": "ali20250302654321", "campaign_id": 1, "status": "completed", "is_anonymous": False, "message": "为乡村美育尽一份力", "created_at": "2025-03-02T14:20:00"},

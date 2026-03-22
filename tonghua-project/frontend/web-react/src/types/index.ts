@@ -86,6 +86,7 @@ export interface Product {
   artworkSource?: Artwork;
   artworkBy?: ProductArtworkAttribution;
   supplyChain: SupplyChainRecord[];
+  /** Sustainability score (0-100) based on GOTS/SA8000/LCA audits. See /sustainability-methodology for scoring details. */
   sustainabilityScore: number;
 }
 

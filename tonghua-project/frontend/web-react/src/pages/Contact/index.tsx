@@ -482,6 +482,8 @@ export default function Contact() {
                         <span />
                       )}
                       <span
+                        aria-live="polite"
+                        aria-atomic="true"
                         className={`font-body text-overline tracking-wide transition-colors duration-200 ${
                           formData.message.length > MAX_MESSAGE_LENGTH * 0.9
                             ? 'text-archive-brown'

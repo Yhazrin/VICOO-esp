@@ -45,9 +45,11 @@ export const VintageInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, V
       ...restProps
     } = props;
 
+    const describedBy = error ? errorId : helperText ? helperId : undefined;
+
     const inputProps = {
       id: inputId,
-      'aria-describedby': error ? errorId : helperId,
+      ...(describedBy ? { 'aria-describedby': describedBy } : {}),
       'aria-invalid': !!error,
       className: baseClasses + ' ' + className,
       ...restProps,

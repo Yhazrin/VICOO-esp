@@ -1,4 +1,5 @@
 import { type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { TextScramble } from '@/components/animations/TextScramble';
@@ -27,6 +28,7 @@ export default function EditorialHero({
   scrambleTitle = false,
   scrambleDuration = 1200,
 }: EditorialHeroProps) {
+  const { t } = useTranslation();
   const [ref, isVisible] = useScrollReveal<HTMLDivElement>();
   const prefersReducedMotion = useReducedMotion();
 
@@ -228,7 +230,7 @@ export default function EditorialHero({
           className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
         >
           <span className="font-body text-overline tracking-[0.2em] uppercase text-sepia-mid">
-            Scroll
+            {t('common.scroll')}
           </span>
           {prefersReducedMotion ? (
             <div className="w-px h-8 bg-gradient-to-b from-sepia-mid/40 to-transparent" aria-hidden="true" />
