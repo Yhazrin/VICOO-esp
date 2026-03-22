@@ -10,7 +10,7 @@ from app.models.product import Product
 from app.schemas import ApiResponse, OrderCreate, OrderOut, OrderStatusUpdate, PaginatedResponse
 from app.deps import get_current_user
 from app.security import generate_order_no
-from app.services.payment_service import payment_service
+from app.services.payment_service import get_payment_service
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
 
@@ -259,7 +259,7 @@ async def create_order(
 
         # Add WeChat payment parameters if payment method is WeChat Pay
         if body.payment_method == "wechat":
-            payment_params = payment_service.create_unified_order(
+            payment_params = get_payment_service().create_unified_order(
                 order_no=order_no,
                 amount=total,
                 description=f"商品订单 {order_no}",
@@ -322,7 +322,7 @@ async def create_order(
 
         # Add WeChat payment parameters if payment method is WeChat Pay
         if body.payment_method == "wechat":
-            payment_params = payment_service.create_unified_order(
+            payment_params = get_payment_service().create_unified_order(
                 order_no=order_no,
                 amount=Decimal(str(total)),
                 description=f"商品订单 {order_no}",

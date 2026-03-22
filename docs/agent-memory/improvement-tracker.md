@@ -1,6 +1,6 @@
 # Improvement Tracker
 
-> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 19)
+> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 22)
 > Scope broadened: now covers frontend UI/UX + backend architecture + software architecture + sustainability + code quality
 
 ## Completed
@@ -166,38 +166,34 @@
 | 127 | Backend — deps.py missing optional auth dependency | Medium | ✅ done — get_optional_current_user() returns user dict or None, no exception on auth failure |
 | 128 | Backend — donations.py missing name redaction helper | Medium | ✅ done — _redact_name() masks names to first char + asterisks, handles anonymous flag |
 
-## Completed — Cycle 12 (2026-03-22)
+## Completed — Cycle 21 (2026-03-22)
 
 | # | Issue | Priority | Notes |
 |---|-------|----------|-------|
-| 129 | Backend — deps.py rate_limit_check silent bypass via `except Exception: return True` | P1 | ✅ done — fail-closed in production (HTTP 503), fail-open only in development |
-| 130 | Accessibility — EditorialAdvertisement `text-muted-gray` on paper = 1.85:1 | P0 | ✅ done — changed to `text-ink-light` (#6B665C = 4.6:1) |
-| 131 | Accessibility — Contact character counter `text-sepia-mid/60` = 2.68:1 | P1 | ✅ done — changed to `text-sepia-mid` (5.78:1) |
-| 132 | Accessibility — VintageInput helper text `text-sepia-mid/70` = 3.72:1 | P1 | ✅ done — changed to `text-sepia-mid` (5.78:1) |
-| 133 | Accessibility — Stories inactive badge `text-sepia-mid/60` = 2.68:1 | P1 | ✅ done — changed to `text-ink-light` (4.6:1) |
-| 134 | Accessibility — Campaigns filter index `text-sepia-mid/60` = 2.68:1 | P1 | ✅ done — changed to `text-sepia-mid` (5.78:1) |
-| 135 | Accessibility — Traceability hint text `text-sepia-mid/70` = 3.72:1 | P1 | ✅ done — changed to `text-sepia-mid` (5.78:1) |
-| 136 | Accessibility — Donate.module.css placeholder warm-gray = 1.43:1 | P1 | ✅ done — changed to sepia-mid (5.78:1) |
-| 137 | Accessibility — Campaigns.module.css empty icon warm-gray = 1.43:1 | P1 | ✅ done — changed to sepia-mid (5.78:1) |
-| 138 | Accessibility — global.css advertisement-label muted-gray = 1.85:1 | P1 | ✅ done — changed to ink-light (4.6:1) |
-| 139 | Accessibility — global.css form-input placeholder muted-gray = 1.85:1 | P1 | ✅ done — changed to sepia-mid (5.78:1) |
-
-## Completed — Cycle 19 (2026-03-22)
-
-| # | Issue | Priority | Notes |
-|---|-------|----------|-------|
-| 153 | Backend — security.py create_refresh_token missing role param → admin downgrade | P0 | ✅ done — added role param, all 7 callers pass user.role |
-| 154 | Backend — payments.py Alipay fail-open + payment_service.py timing attack | P0 | ✅ done — fail-closed on missing config, hmac.compare_digest() |
-| 155 | Frontend — supply-chain.ts service rewritten + Traceability API alignment | P0 | ✅ done — correct endpoints, response mapping, TraceResponse export |
-| 156 | TypeScript — tsc --noEmit zero errors verification | P0 | ✅ done — removed 4 unused imports/functions, fixed 4 mock field names |
-| 157 | Backend — auth.py PII logging (email/password in logs) | P0 | ✅ done — 4 log statements sanitized, exc_info=True for errors |
-| 158 | Backend — contact.py + schemas/user.py EmailStr + deps.py signature leak | P0 | ✅ done — EmailStr validation, removed signature prefix from warning log |
-| 159 | Backend — artworks.py vote race condition (read-modify-write) | P0 | ✅ done — atomic SQL UPDATE with like_count + 1 |
-| 160 | Backend — unused imports cleanup (auth/contact/donations/orders/payments) | Low | ✅ done — removed os/Response/UserCreate/parse_qs/Union/require_role/PaginatedResponse/WeChatPaymentParams |
-| 161 | Git — __pycache__/ tracked despite .gitignore rule | Low | ✅ done — git rm --cached on 38 .pyc files |
-| 162 | Frontend — Login/Register i18n + social button a11y | Medium | ✅ done — aria-label on 6+6 social buttons, SVG aria-hidden |
-| 163 | Frontend — Donate progressbar ARIA (aria-valuenow/min/max) | Low | ✅ done — add role=progressbar + ARIA value attributes |
-| 164 | Frontend — Campaigns pagination ARIA (nav + aria-label + aria-current) | Low | ✅ done — div→nav, aria-label, aria-current="page" |
+| 129 | payment_service.py module-level singleton crashes on import when WeChat env vars missing | P0 | ✅ done — lazy singleton via get_payment_service() factory; all callers updated |
+| 130 | api.ts response interceptor null reference on error.config | P0 | ✅ done — early return guard when error.config is undefined |
+| 131 | authStore initializeAuth sets accessToken but not isAuthenticated | P0 | ✅ done — set({ accessToken, isAuthenticated: true }) |
+| 132 | main.py rate limiting middleware — silent exception swallowing | P0 | ✅ done — logger.error with exc_info=True on unexpected errors |
+| 133 | deps.py rate_limit_check — silent exception swallowing | P0 | ✅ done — logger.error with exc_info=True on unexpected errors |
+| 134 | PagePeel — useTransform calls inside switch statement (Rules of Hooks) | P0 | ✅ done — 16 unconditional top-level useTransform calls + pure IIFE selector |
+| 135 | Layout — missing skip-to-content link (WCAG 2.4.1) | P0 | ✅ done — sr-only link + main#main-content id |
+| 136 | Header — desktop nav missing aria-label landmark | P1 | ✅ done — aria-label="Main navigation" |
+| 137 | global.css — no reduced-motion CSS-level fallback | P0 | ✅ done — @media (prefers-reduced-motion: reduce) block |
+| 138 | orders.py — 2 call sites use module-level payment_service (NameError after lazy singleton refactor) | P0 | ✅ done — `payment_service.` → `get_payment_service().` |
+| 139 | ArtworkDetail.tsx — broken handleVote calls non-existent setArtwork + error/queryError mismatch | P0 | ✅ done — useMutation + queryClient.invalidateQueries |
+| 140 | Traceability — EnhancedSupplyChainRecord extends SupplyChainRecord (missing fields: date, verified, partnerName) | P0 | ✅ done — standalone interface + explicit field mapping |
+| 141 | Traceability — handleSearch spreads SupplyChainRecord into EnhancedSupplyChainRecord | P0 | ✅ done — explicit field mapping with unknown cast |
+| 142 | Traceability — r.id === query.trim() number vs string comparison | P1 | ✅ done — String(r.id) === query.trim() |
+| 143 | Traceability — unused STAGE_MAP constant + useQuery/buildRecordsFromApi imports | Low | ✅ done — removed |
+| 144 | Traceability — r as Record<string, unknown> insufficient overlap cast | P1 | ✅ done — r as unknown as Record<string, unknown> |
+| 145 | Login — unused MagazineDivider import | Low | ✅ done — removed |
+| 146 | Register — unused MagazineDivider import | Low | ✅ done — removed |
+| 147 | Donate — back-to-top href="#top" wrong anchor target | P1 | ✅ done — href="#main-content" |
+| 148 | auth.py /refresh — trusts token payload role (privilege escalation) | P0 | ✅ done — queries DB for current role |
+| 149 | security.py create_refresh_token — no role in token (admin→user downgrade on refresh) | P0 | ✅ done — added role param |
+| 150 | artworks.py vote_artwork — non-atomic like_count += 1 (race condition) | P0 | ✅ done — atomic SQL UPDATE |
+| 151 | payments.py alipay_notify — fail-open when ALIPAY_PUBLIC_KEY unconfigured | P0 | ✅ done — returns "failure" |
+| 152 | models/payment.py — order_id/donation_id missing ForeignKey constraints | P1 | ✅ done — ForeignKey added |
 
 ## Pending
 

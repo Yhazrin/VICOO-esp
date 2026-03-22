@@ -529,7 +529,7 @@ export default function Donate() {
             >
               <MagneticButton strength={0.35}>
                 <a
-                  href="#top"
+                  href="#main-content"
                   className="inline-block font-body text-body-sm tracking-[0.15em] uppercase bg-rust text-paper px-10 py-4 hover:bg-pale-gold hover:text-ink transition-all duration-300 cursor-pointer"
                 >
                   {t('donate.cta.donate')}

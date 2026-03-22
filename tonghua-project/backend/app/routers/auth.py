@@ -370,19 +370,20 @@ async def refresh(request: Request, db: AsyncSession = Depends(get_db)):
         sub = payload["sub"]
         role = payload.get("role", "user")
 
-        # Verify user is not banned before issuing new tokens
+        # Verify current account state and derive the role from the DB when sub is a numeric user id.
         try:
             user_id = int(sub)
-            stmt = select(User).where(User.id == user_id)
-            result = await db.execute(stmt)
+            result = await db.execute(select(User).where(User.id == user_id))
             user = result.scalar_one_or_none()
-            if user and user.status == "banned":
+            if not user:
+                raise HTTPException(status_code=401, detail="User not found")
+            if user.status == "banned":
                 raise HTTPException(status_code=403, detail="Account is banned")
+            role = user.role.value if hasattr(user.role, "value") else str(user.role)
         except HTTPException:
             raise
         except (ValueError, Exception):
             pass  # sub is not an integer (e.g. WeChat openid) or DB unavailable
-
         new_access = create_access_token(subject=sub, role=role)
         new_refresh = create_refresh_token(subject=sub, role=role)
 

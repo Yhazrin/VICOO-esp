@@ -10,11 +10,18 @@ import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
 import { supplyChainApi } from '@/services/supply-chain';
-import type { SupplyChainRecord } from '@/types';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 
 // Extended record with story, image, and status for enhanced timeline
-interface EnhancedSupplyChainRecord extends SupplyChainRecord {
+interface EnhancedSupplyChainRecord {
+  id: number;
+  stage: string;
+  description: string;
+  location: string;
+  date: string;
+  verified: boolean;
+  partnerName: string;
+  carbonFootprint?: number;
   story: string;
   imageUrl: string;
   status: 'verified' | 'in-progress' | 'pending';

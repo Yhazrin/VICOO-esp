@@ -14,7 +14,7 @@ export default function ArtworkDetail() {
   const prefersReducedMotion = useReducedMotion();
   const queryClient = useQueryClient();
 
-  const { data: artwork, isLoading: loading, error } = useQuery({
+  const { data: artwork, isLoading: loading, error: queryError } = useQuery({
     queryKey: ['artwork', id],
     queryFn: () => artworksApi.getById(id!),
     enabled: !!id,

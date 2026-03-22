@@ -293,12 +293,18 @@ async def vote_artwork(artwork_id: int, db: AsyncSession = Depends(get_db), redi
         if not artwork:
             raise HTTPException(status_code=404, detail="Artwork not found")
 
-        # Update vote count atomically (using like_count in DB, which maps to vote_count in schema)
-        await db.execute(
-            update(Artwork).where(Artwork.id == artwork_id).values(like_count=Artwork.like_count + 1)
+        # Atomic update to prevent race condition on concurrent votes
+        vote_stmt = (
+            update(Artwork)
+            .where(Artwork.id == artwork_id)
+            .values(like_count=Artwork.like_count + 1)
         )
+        await db.execute(vote_stmt)
         await db.flush()
-        await db.refresh(artwork, ["child_participant"])
+        # Re-fetch with child_participant for response serialization
+        stmt2 = select(Artwork).options(selectinload(Artwork.child_participant)).where(Artwork.id == artwork_id)
+        result2 = await db.execute(stmt2)
+        artwork = result2.scalar_one()
 
         # Mark as voted in Redis
         await redis_client.setex(vote_key, 3600, "1")
