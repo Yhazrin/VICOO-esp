@@ -54,7 +54,7 @@ export default function ProductCard({
     >
       <motion.article
         ref={ref}
-        initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 40 }}
+        initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 40 }}
         animate={prefersReducedMotion ? (isVisible ? { opacity: 1 } : {}) : (isVisible ? { opacity: 1, y: 0 } : {})}
         transition={{
           duration: 0.7,
