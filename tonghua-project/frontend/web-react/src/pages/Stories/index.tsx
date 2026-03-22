@@ -304,10 +304,10 @@ export default function Stories() {
         id: String(artwork.id),
         title: artwork.title,
         excerpt: artwork.description || t('stories.artworkFallback'),
-        pullQuote: artwork.voteCount > 0 ? t('stories.supporters', { count: artwork.voteCount }) : t('stories.mock.pull3'),
-        coverImage: artwork.imageUrl || `https://picsum.photos/seed/artwork-${artwork.id}/800/600`,
+        pullQuote: artwork.vote_count > 0 ? t('stories.supporters', { count: artwork.vote_count }) : t('stories.mock.pull3'),
+        coverImage: artwork.image_url || `https://picsum.photos/seed/artwork-${artwork.id}/800/600`,
         author: artwork.childParticipant?.firstName || t('stories.anonymousArtist'),
-        publishedAt: artwork.createdAt ? artwork.createdAt.split('T')[0] : '2026-01-01',
+        publishedAt: artwork.created_at ? artwork.created_at.split('T')[0] : '2026-01-01',
         readTimeMinutes: 5 + (i % 4) * 3,
         category: ['impact', 'community', 'education', 'fashion'][i % 4] as StoryItem['category'],
       }));

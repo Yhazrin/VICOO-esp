@@ -37,7 +37,7 @@ export default function ArtworkDetail() {
     );
   }
 
-  if (error || !artwork) {
+  if (queryError || !artwork) {
     return (
       <PageWrapper>
         <PaperTextureBackground variant="paper" className="py-16 md:py-24">
@@ -73,7 +73,7 @@ export default function ArtworkDetail() {
                 transition={{ duration: 0.5 }}
               >
                 <SepiaImageFrame
-                  src={artwork.imageUrl}
+                  src={artwork.image_url}
                   alt={artwork.title}
                   aspectRatio="square"
                   size="full"
@@ -120,7 +120,7 @@ export default function ArtworkDetail() {
                     {t('artwork.detail.vote')}
                   </motion.button>
                   <div className="flex items-center gap-2 text-sepia-mid">
-                    <span className="font-body text-body-sm">{artwork.voteCount}</span>
+                    <span className="font-body text-body-sm">{artwork.vote_count}</span>
                     <span className="font-body text-caption tracking-wider uppercase">
                       {t('artwork.detail.votes')}
                     </span>

@@ -309,8 +309,10 @@ async def vote_artwork(artwork_id: int, db: AsyncSession = Depends(get_db), redi
         if not artwork:
             raise HTTPException(status_code=404, detail="Artwork not found")
 
-        # Update vote count (using like_count in DB, which maps to vote_count in schema)
-        artwork.like_count += 1
+        # Update vote count atomically (using like_count in DB, which maps to vote_count in schema)
+        await db.execute(
+            update(Artwork).where(Artwork.id == artwork_id).values(like_count=Artwork.like_count + 1)
+        )
         await db.flush()
         await db.refresh(artwork, ["child_participant"])
 
