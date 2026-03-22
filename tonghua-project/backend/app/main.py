@@ -17,7 +17,7 @@ from app.deps import rate_limit_check, get_current_user_from_request, verify_req
 MAX_REQUEST_BODY_SIZE = 10 * 1024 * 1024
 
 logger = logging.getLogger("tonghua")
-_log_level = logging.DEBUG if settings.APP_ENV == "development" else logging.WARNING
+_log_level = logging.DEBUG if settings.APP_ENV == "development" else logging.INFO
 logging.basicConfig(
     level=_log_level,
     format="%(asctime)s %(levelname)s %(name)s - %(message)s",

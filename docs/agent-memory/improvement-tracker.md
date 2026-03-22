@@ -1,6 +1,7 @@
 # Improvement Tracker
 
-> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 11)
+> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 7)
+> Scope broadened: now covers frontend UI/UX + backend architecture + software architecture + sustainability + code quality
 
 ## Completed
 
@@ -125,91 +126,61 @@
 | 97 | Frontend — products.ts missing getCategories method | Low | ✅ done — added `getCategories` mapping to GET /products/categories |
 | 98 | Frontend — payments.ts service file missing | Medium | ✅ done — created with create + getById methods, added Payment type to types/index.ts |
 
-## Completed — Cycle 10 (2026-03-22)
-
-### P0 Backend Security
+## Completed — Cycle 8 (2026-03-22)
 
 | # | Issue | Priority | Notes |
 |---|-------|----------|-------|
-| 100 | CORS — wildcard origins with credentials enabled | P0 | ✅ done — config.py model_validator rejects `*` when allow_credentials |
-| 101 | TrustedHostMiddleware disabled in all environments | P0 | ✅ done — enabled in non-development; dev skips |
-| 102 | WeChat API secret exposed in GET query string (access logs) | P0 | ✅ done — both login + wx_login switched to POST form data |
-| 103 | Mock password comparison using `==` (timing attack) | P0 | ✅ done — replaced with `hmac.compare_digest` |
-| 104 | WeChat error detail leaked in HTTP 401 response | P0 | ✅ done — generic "WeChat authentication failed" message |
-| 105 | Debug print statement in artworks.py create endpoint | P0 | ✅ done — removed |
-| 106 | PII in auth.py debug logs (email addresses) | P0 | ✅ done — removed email from log messages |
+| 99 | TypeScript — CampaignDetail mock data string→number IDs (15 errors) | High | ✅ done — `'1'`→`1`, `'a1'`→`1`, `'c1'`→`1`, `'g1'`→`1` |
+| 100 | TypeScript — Campaigns/index.tsx mock data string→number IDs (6 errors) | High | ✅ done — `'1'`-`'6'` → `1`-`6` |
+| 101 | TypeScript — Traceability mock data string→number IDs + state type (6 errors) | High | ✅ done — mock IDs + `highlightedId: number \| null` |
+| 102 | TypeScript — ProductDetail supply chain mock string→number IDs (7 errors) | High | ✅ done — `'sc1'`-`'sc6'` → `1`-`6` |
+| 103 | TypeScript — cartStore removeItem/updateQuantity param string→number (3 errors) | High | ✅ done — params now `number` matching `Product.id` |
+| 104 | TypeScript — ProductDetail imageUrls non-existent property (4 errors) | High | ✅ done — derived local `productImages` from `product.image_url` |
+| 105 | Backend — auth.py duplicated cookie-setting code (7 occurrences) | Medium | ✅ done — extracted `_set_auth_cookies()` helper, 528→406 lines |
+| 106 | Backend — auth.py info-leaking logger calls | High | ✅ done — removed 4 lines logging `is_secure`, `APP_ENV`, response headers |
+| 107 | Backend — products.py route ordering: `/{product_id}` shadows `/{product_id}/supply-chain` | High | ✅ done — moved supply-chain route before wildcard |
+| 108 | Backend — deps.py auth fallback returns user data from JWT when DB fails | High | ✅ done — raises HTTP 503 on DB error, HTTP 401 if user not found |
+| 109 | Backend — payments.py hardcoded HMAC signature check | High | ✅ done — replaced with proper HMAC-SHA256 verification using APP_SECRET_KEY |
+| 110 | Frontend — types/index.ts all entity IDs string→number | High | ✅ done — User, Artwork, Campaign, Story, Product, SupplyChainRecord, DonationTier, Donation, Order |
+| 111 | Frontend — types: imageUrls→image_url, anonymous→is_anonymous, shippingAddress→shipping_address | High | ✅ done — aligned with backend schema |
+| 112 | Frontend — all services response unwrapping `response.data`→`response.data.data` | High | ✅ done — 9 service files fixed |
+| 113 | Frontend — supply-chain.ts service file missing | Medium | ✅ done — created with trace/getRecords/getStages |
+| 114 | Accessibility — Header/MagazineNav missing keyboard nav + ARIA roles | Medium | ✅ done — role=menu/menuitem, Escape/Arrow keys, aria-haspopup |
+| 115 | Accessibility — VintageSelect missing error ARIA | Medium | ✅ done — added error prop with aria-describedby/aria-invalid |
+| 116 | Accessibility — EditorialHeroV2 text-gray-400 insufficient contrast | Medium | ✅ done — changed to text-ink-faded |
+| 117 | Accessibility — ProductCard <form> inside <a> invalid nesting | Medium | ✅ done — moved Notify Me section outside Link wrapper |
+| 118 | Sustainability — Traceability page not wired to API | Medium | ✅ done — useQuery + supplyChainApi.trace() with mock fallback |
+| 119 | Sustainability — Donate page impact stats not dynamic | Low | ✅ done — wired to donationsApi.getImpactStats() |
+| 120 | Sustainability — Stories page not wired to API | Medium | ✅ done — wired to artworksApi.getAll(), fixed artwork links |
+| 121 | Content — ChildrenSafety placeholder text | Medium | ✅ done — 8 real content sections |
+| 122 | Content — Privacy placeholder text | Medium | ✅ done — 9 real content sections |
+| 123 | i18n — missing translation keys for new features | Low | ✅ done — 88 lines added to en.json/zh.json |
 
-### P0/P1 Frontend Security
-
-| # | Issue | Priority | Notes |
-|---|-------|----------|-------|
-| 107 | VITE_API_SECRET_KEY fallback to hardcoded default | P0 | ✅ done — removed fallback, throws if unset |
-| 108 | ProductDetail — `product.price.toFixed()` crashes on null | P1 | ✅ done — `(product.price ?? 0).toFixed(2)` |
-| 109 | Profile — no error states for failed order/donation loads | P1 | ✅ done — added errorOrders/errorDonations states + UI |
-
-### P1 Backend Hardening
-
-| # | Issue | Priority | Notes |
-|---|-------|----------|-------|
-| 110 | Contact form — no per-IP rate limiting | P1 | ✅ done — 5 submissions per 60s window |
-| 111 | Contact form — email field missing EmailStr validation | P1 | ✅ done — changed to EmailStr |
-| 112 | Alipay notify — accepts unverified callbacks in production | P1 | ✅ done — 501 in production until RSA2 verification configured |
-| 113 | Payment webhook — mock HMAC verification | P1 | ✅ done — proper HMAC-SHA256 with APP_SECRET_KEY |
-| 114 | WeChatPayService — `==` for signature comparison | P1 | ✅ done — `hmac.compare_digest` |
-| 115 | Password min_length=6 (too weak) | P1 | ✅ done — changed to min_length=8 |
-| 116 | X-Nonce missing from CORS allowed headers | P1 | ✅ done — added to main.py CORS config |
-
-### Accessibility — Heading Hierarchy + ARIA
+## Completed — Cycle 8b (2026-03-22)
 
 | # | Issue | Priority | Notes |
 |---|-------|----------|-------|
-| 117 | 6 pages missing sr-only h1 when hideHero=true | P1 | ✅ done — Campaigns, Stories, Traceability, Shop, Profile, CampaignDetail |
-| 118 | 3 category filter tabs missing ARIA tab pattern | P1 | ✅ done — Campaigns statuses, Stories categories, Shop categories |
-| 119 | MagazineDivider — 3 variants missing aria-hidden on container | P1 | ✅ done — numbered, decorative, and default variants |
-| 120 | Footer email input missing aria-label | P1 | ✅ done |
-| 121 | 15+ decorative elements missing aria-hidden across 9 files | P1 | ✅ done — editorial-dividers, corner accents, gradient overlays |
+| 124 | Backend — alipay_notify stub handler missing RSA2 signature verification | High | ✅ done — full verification with `cryptography` lib, RSA/SHA-256 PKCS1v15, form param filtering + sorting |
+| 125 | Backend — alipay_notify missing payment processing logic | High | ✅ done — trade status check, idempotency via provider_transaction_id, order lookup, payment tx creation |
+| 126 | Backend — list_donations exposes PII to unauthenticated users | High | ✅ done — optional auth via get_optional_current_user, redact donor_name/message/donor_user_id |
+| 127 | Backend — deps.py missing optional auth dependency | Medium | ✅ done — get_optional_current_user() returns user dict or None, no exception on auth failure |
+| 128 | Backend — donations.py missing name redaction helper | Medium | ✅ done — _redact_name() masks names to first char + asterisks, handles anonymous flag |
 
-### UX Improvements
-
-| # | Issue | Priority | Notes |
-|---|-------|----------|-------|
-| 122 | Donate — console.log/console.error instead of user-facing feedback | Medium | ✅ done — success/error status banners |
-
-## Completed — Cycle 11 (2026-03-22)
-
-### P0 Backend
+## Completed — Cycle 12 (2026-03-22)
 
 | # | Issue | Priority | Notes |
 |---|-------|----------|-------|
-| 123 | donations.py bare `except:` catches SystemExit/KeyboardInterrupt | P0 | ✅ done — changed to `except Exception:` |
-| 124 | main.py lifespan silently swallows startup errors (`except Exception: pass`) | P0 | ✅ done — added `logging.warning()` |
-
-### P0 Accessibility
-
-| # | Issue | Priority | Notes |
-|---|-------|----------|-------|
-| 125 | Campaigns/Stories/Shop — tab buttons have `aria-controls` but no matching `role="tabpanel"` | P0 | ✅ done — added wrapper divs with role="tabpanel", id, aria-labelledby |
-| 126 | Header user dropdown — no ARIA menu semantics or keyboard navigation | P0 | ✅ done — role="menu"/"menuitem", aria-haspopup, Escape/Arrow key handlers |
-
-### P1 Accessibility
-
-| # | Issue | Priority | Notes |
-|---|-------|----------|-------|
-| 127 | CampaignDetail progress bar — missing ARIA attributes | P1 | ✅ done — role="progressbar", aria-valuenow/min/max, aria-label |
-
-### P1 Backend
-
-| # | Issue | Priority | Notes |
-|---|-------|----------|-------|
-| 128 | contact.py rate limiter dict grows unbounded (memory leak) | P1 | ✅ done — added _evict_expired_entries() on each request |
-| 129 | schemas/user.py UserCreate.email uses str instead of EmailStr | P1 | ✅ done — changed to EmailStr |
-
-### P1 Frontend
-
-| # | Issue | Priority | Notes |
-|---|-------|----------|-------|
-| 130 | supply-chain.ts — getProductJourney hits nonexistent endpoint | P1 | ✅ done — fixed to /supply-chain/trace/{id}; removed getRecordById + verifyCertificate (no backend endpoints) |
-| 131 | types/index.ts — Payment.id/orderId/donationId type number vs string | P1 | ✅ done — aligned all to string |
+| 129 | Backend — deps.py rate_limit_check silent bypass via `except Exception: return True` | P1 | ✅ done — fail-closed in production (HTTP 503), fail-open only in development |
+| 130 | Accessibility — EditorialAdvertisement `text-muted-gray` on paper = 1.85:1 | P0 | ✅ done — changed to `text-ink-light` (#6B665C = 4.6:1) |
+| 131 | Accessibility — Contact character counter `text-sepia-mid/60` = 2.68:1 | P1 | ✅ done — changed to `text-sepia-mid` (5.78:1) |
+| 132 | Accessibility — VintageInput helper text `text-sepia-mid/70` = 3.72:1 | P1 | ✅ done — changed to `text-sepia-mid` (5.78:1) |
+| 133 | Accessibility — Stories inactive badge `text-sepia-mid/60` = 2.68:1 | P1 | ✅ done — changed to `text-ink-light` (4.6:1) |
+| 134 | Accessibility — Campaigns filter index `text-sepia-mid/60` = 2.68:1 | P1 | ✅ done — changed to `text-sepia-mid` (5.78:1) |
+| 135 | Accessibility — Traceability hint text `text-sepia-mid/70` = 3.72:1 | P1 | ✅ done — changed to `text-sepia-mid` (5.78:1) |
+| 136 | Accessibility — Donate.module.css placeholder warm-gray = 1.43:1 | P1 | ✅ done — changed to sepia-mid (5.78:1) |
+| 137 | Accessibility — Campaigns.module.css empty icon warm-gray = 1.43:1 | P1 | ✅ done — changed to sepia-mid (5.78:1) |
+| 138 | Accessibility — global.css advertisement-label muted-gray = 1.85:1 | P1 | ✅ done — changed to ink-light (4.6:1) |
+| 139 | Accessibility — global.css form-input placeholder muted-gray = 1.85:1 | P1 | ✅ done — changed to sepia-mid (5.78:1) |
 
 ## Pending
 

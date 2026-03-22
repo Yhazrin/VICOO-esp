@@ -100,7 +100,7 @@ export default function EditorialHeroV2({
             {...(prefersReducedMotion ? {} : { initial: { opacity: 0, y: 20 } })}
             animate={isVisible ? (prefersReducedMotion ? {} : { opacity: 1, y: 0 }) : {}}
             transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.7, delay: 0.2 }}
-            className="font-mono text-[11px] leading-[2] text-gray-400 max-w-[380px] mb-10 tracking-[0.03em]"
+            className="font-mono text-[11px] leading-[2] text-ink-faded max-w-[380px] mb-10 tracking-[0.03em]"
           >
             {subtitle}
           </motion.p>
@@ -160,7 +160,7 @@ export default function EditorialHeroV2({
                 <span className="font-display text-[24px] font-semibold text-ink block mb-1">
                   {stat.value}
                 </span>
-                <span className="font-mono text-[7px] tracking-[0.2em] text-gray-400 uppercase">
+                <span className="font-mono text-[7px] tracking-[0.2em] text-ink-faded uppercase">
                   {stat.label}
                 </span>
               </div>

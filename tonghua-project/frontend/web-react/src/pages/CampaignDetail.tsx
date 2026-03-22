@@ -15,7 +15,7 @@ import { campaignsApi } from '@/services/campaigns';
 import type { Campaign, Artwork } from '@/types';
 
 const MOCK_CAMPAIGN: Campaign = {
-  id: '1',
+  id: 1,
   title: 'Threads of Tomorrow',
   subtitle: 'Children from rural Guizhou reimagine what sustainable fashion means through watercolors and dreams.',
   description:
@@ -34,44 +34,44 @@ const MOCK_CAMPAIGN: Campaign = {
 
 const MOCK_ARTWORKS: Artwork[] = [
   {
-    id: 'a1',
+    id: 1,
     title: 'The Garden That Grows Clothes',
     description: '',
     imageUrl: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=600&h=800&fit=crop',
-    childParticipant: { id: 'c1', firstName: 'Mei', age: 8, guardianId: 'g1', consentGiven: true },
+    childParticipant: { id: 1, firstName: 'Mei', age: 8, guardianId: 1, consentGiven: true },
     status: 'featured',
     voteCount: 234,
     createdAt: '2026-01-20',
     tags: ['nature'],
   },
   {
-    id: 'a2',
+    id: 2,
     title: 'Butterfly Factory',
     description: '',
     imageUrl: 'https://images.unsplash.com/photo-1560807707-8cc77767d783?w=600&h=800&fit=crop',
-    childParticipant: { id: 'c2', firstName: 'Jun', age: 7, guardianId: 'g2', consentGiven: true },
+    childParticipant: { id: 2, firstName: 'Jun', age: 7, guardianId: 2, consentGiven: true },
     status: 'approved',
     voteCount: 189,
     createdAt: '2026-01-22',
     tags: ['animals'],
   },
   {
-    id: 'a3',
+    id: 3,
     title: 'Rain on My Umbrella Hat',
     description: '',
     imageUrl: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&h=800&fit=crop',
-    childParticipant: { id: 'c3', firstName: 'Lan', age: 9, guardianId: 'g3', consentGiven: true },
+    childParticipant: { id: 3, firstName: 'Lan', age: 9, guardianId: 3, consentGiven: true },
     status: 'approved',
     voteCount: 167,
     createdAt: '2026-01-25',
     tags: ['weather'],
   },
   {
-    id: 'a4',
+    id: 4,
     title: 'Stars in My Pockets',
     description: '',
     imageUrl: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=600&h=800&fit=crop',
-    childParticipant: { id: 'c4', firstName: 'Hao', age: 6, guardianId: 'g4', consentGiven: true },
+    childParticipant: { id: 4, firstName: 'Hao', age: 6, guardianId: 4, consentGiven: true },
     status: 'approved',
     voteCount: 145,
     createdAt: '2026-01-28',
@@ -100,7 +100,7 @@ export default function CampaignDetail() {
           setCampaign({
             ...MOCK_CAMPAIGN,
             ...data,
-            id: String(data.id ?? id),
+            id: data.id ?? Number(id),
             coverImageUrl: data.coverImageUrl ?? MOCK_CAMPAIGN.coverImageUrl,
             startDate: data.startDate ?? MOCK_CAMPAIGN.startDate,
             endDate: data.endDate ?? MOCK_CAMPAIGN.endDate,

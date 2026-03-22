@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────
 
 export interface User {
-  id: string;
+  id: number;
   email: string;
   nickname: string;
   avatarUrl?: string;
@@ -12,22 +12,22 @@ export interface User {
 }
 
 export interface ChildParticipant {
-  id: string;
+  id: number;
   firstName: string;
   age: number;
-  guardianId: string;
+  guardianId: number;
   schoolName?: string;
   consentGiven: boolean;
   consentDate?: string;
 }
 
 export interface Artwork {
-  id: string;
+  id: number;
   title: string;
   description: string;
   imageUrl: string;
   childParticipant: ChildParticipant;
-  campaignId?: string;
+  campaignId?: number;
   status: 'pending' | 'approved' | 'featured' | 'rejected';
   voteCount: number;
   createdAt: string;
@@ -35,7 +35,7 @@ export interface Artwork {
 }
 
 export interface Campaign {
-  id: string;
+  id: number;
   title: string;
   subtitle: string;
   description: string;
@@ -56,7 +56,7 @@ export interface Campaign {
 }
 
 export interface Story {
-  id: string;
+  id: number;
   title: string;
   excerpt: string;
   content: string;
@@ -74,12 +74,12 @@ export interface ProductArtworkAttribution {
 }
 
 export interface Product {
-  id: string;
+  id: number;
   name: string;
   description: string;
   price: number;
   currency: string;
-  imageUrls: string[];
+  image_url: string | null;
   category: 'apparel' | 'accessories' | 'stationery' | 'prints';
   inStock: boolean;
   stockCount: number;
@@ -90,7 +90,7 @@ export interface Product {
 }
 
 export interface SupplyChainRecord {
-  id: string;
+  id: number;
   stage: string;
   description: string;
   location: string;
@@ -101,7 +101,7 @@ export interface SupplyChainRecord {
 }
 
 export interface DonationTier {
-  id: string;
+  id: number;
   amount: number;
   label: string;
   description: string;
@@ -109,14 +109,14 @@ export interface DonationTier {
 }
 
 export interface Donation {
-  id: string;
-  userId?: string;
+  id: number;
+  donor_user_id?: number;
   amount: number;
   currency: string;
   tierId?: string;
   campaignId?: string;
   message?: string;
-  anonymous: boolean;
+  is_anonymous: boolean;
   status: 'pending' | 'completed' | 'failed' | 'refunded';
   createdAt: string;
   transactionId?: string;
@@ -128,13 +128,13 @@ export interface CartItem {
 }
 
 export interface Order {
-  id: string;
-  userId: string;
+  id: number;
+  user_id: number;
   items: CartItem[];
   totalAmount: number;
   currency: string;
   status: 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled';
-  shippingAddress: Address;
+  shipping_address?: string;
   createdAt: string;
   paidAt?: string;
 }
@@ -178,3 +178,64 @@ export interface Payment {
 }
 
 export type Locale = 'en' | 'zh';
+
+// ─── Service Request / Response Types ───
+
+export interface SupplyChainTrace {
+  product_id: number;
+  product_name: string;
+  records: SupplyChainRecord[];
+}
+
+export interface SupplyChainStage {
+  key: string;
+  label: string;
+  order: number;
+}
+
+export interface ContactFormRequest {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}
+
+export interface CreateDonationRequest {
+  donor_name: string;
+  amount: number;
+  currency: string;
+  payment_method: 'wechat' | 'alipay' | 'stripe' | 'paypal';
+  campaign_id?: number;
+  message?: string;
+  is_anonymous: boolean;
+}
+
+export interface CreateOrderRequest {
+  items: { product_id: number; quantity: number }[];
+  shipping_address?: string;
+  payment_method?: 'wechat' | 'alipay' | 'stripe' | 'paypal';
+}
+
+export interface CreatePaymentRequest {
+  order_id?: number;
+  donation_id?: number;
+  amount: number;
+  method: 'wechat' | 'alipay' | 'stripe' | 'paypal';
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  nickname: string;
+}
+
+export interface AuthResponse {
+  user: User;
+  access_token: string;
+  refresh_token: string;
+}

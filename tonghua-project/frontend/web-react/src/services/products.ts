@@ -41,7 +41,7 @@ export const productsApi = {
   },
 
   getCategories: async (): Promise<string[]> => {
-    const response = await api.get<{ success: boolean; data: string[] }>('/products/categories');
+    const response = await api.get('/products/categories');
     return response.data.data;
   },
 };

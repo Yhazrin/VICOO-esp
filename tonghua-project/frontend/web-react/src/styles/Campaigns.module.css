@@ -206,7 +206,7 @@
 .empty__icon {
   font-family: var(--font-display);
   font-size: var(--text-h1);
-  color: var(--color-warm-gray);
+  color: var(--color-sepia-mid);
   margin-bottom: var(--space-lg);
 }
 

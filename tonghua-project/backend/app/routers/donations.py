@@ -8,10 +8,20 @@ from app.database import get_db
 from app.models.donation import Donation
 from app.models.campaign import Campaign
 from app.schemas import ApiResponse, DonationCreate, DonationOut, PaginatedResponse, WeChatPaymentParams
-from app.deps import get_current_user
+from app.deps import get_current_user, get_optional_current_user
 from app.services.payment_service import payment_service
 
 router = APIRouter(prefix="/donations", tags=["Donations"])
+
+
+def _redact_name(name: str | None, is_anonymous: bool | None = None) -> str:
+    """Redact donor name for unauthenticated viewers."""
+    if is_anonymous or not name:
+        return "匿名爱心人士"
+    # Show first character only, rest as asterisks
+    if len(name) <= 1:
+        return "*"
+    return name[0] + "*" * (len(name) - 1)
 
 _mock_donations = [
     {"id": 1, "donor_name": "张先生", "donor_user_id": 3, "amount": "500.00", "currency": "CNY", "payment_method": "wechat", "payment_id": "wx20250301123456", "campaign_id": 1, "status": "completed", "is_anonymous": False, "message": "支持孩子们的艺术梦想！", "created_at": "2025-03-01T10:30:00"},
@@ -34,8 +44,13 @@ async def list_donations(
     campaign_id: int | None = Query(None),
     status: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
+    current_user: dict | None = Depends(get_optional_current_user),
 ):
-    """List donations with optional filters."""
+    """List donations with optional filters.
+
+    PII redaction: Unauthenticated users see redacted donor names and messages.
+    Authenticated users see full details.
+    """
     try:
         stmt = select(Donation)
         if campaign_id is not None:
@@ -47,8 +62,16 @@ async def list_donations(
         stmt = stmt.order_by(Donation.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
         result = await db.execute(stmt)
         donations = result.scalars().all()
+        items = []
+        for d in donations:
+            item = DonationOut.model_validate(d).model_dump()
+            if not current_user:
+                item["donor_name"] = _redact_name(item.get("donor_name"), item.get("is_anonymous"))
+                item.pop("message", None)
+                item.pop("donor_user_id", None)
+            items.append(item)
         return PaginatedResponse(
-            data=[DonationOut.model_validate(d).model_dump() for d in donations],
+            data=items,
             total=total,
             page=page,
             page_size=page_size,
@@ -60,8 +83,14 @@ async def list_donations(
         if status:
             filtered = [d for d in filtered if d["status"] == status]
         start = (page - 1) * page_size
+        page_items = [dict(d) for d in filtered[start: start + page_size]]
+        if not current_user:
+            for item in page_items:
+                item["donor_name"] = _redact_name(item.get("donor_name"), item.get("is_anonymous"))
+                item.pop("message", None)
+                item.pop("donor_user_id", None)
         return PaginatedResponse(
-            data=filtered[start: start + page_size],
+            data=page_items,
             total=len(filtered),
             page=page,
             page_size=page_size,

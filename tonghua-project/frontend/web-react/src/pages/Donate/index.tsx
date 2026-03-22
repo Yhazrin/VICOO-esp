@@ -1,7 +1,7 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/authStore';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
@@ -208,21 +208,34 @@ function DonationStoryCard({
 export default function Donate() {
   const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
-  const handleDonate = async (data: {
-    amount: number;
-    frequency: 'once' | 'monthly';
-    anonymous: boolean;
-    message: string;
-    paymentMethod?: 'wechat' | 'alipay' | 'stripe' | 'paypal';
-  }) => {
-    setIsSubmitting(true);
-    setSubmitStatus('idle');
-    try {
+  const { data: impactStats } = useQuery({
+    queryKey: ['donation-stats'],
+    queryFn: async () => {
+      try {
+        return await donationsApi.getImpactStats();
+      } catch {
+        return null;
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const totalAmount = impactStats?.total_amount
+    ? parseFloat(impactStats.total_amount)
+    : 890000;
+  const totalDonors = impactStats?.total_donors ?? 2847;
+
+  const donateMutation = useMutation({
+    mutationFn: async (data: {
+      amount: number;
+      frequency: 'once' | 'monthly';
+      anonymous: boolean;
+      message: string;
+      paymentMethod?: 'wechat' | 'alipay' | 'stripe' | 'paypal';
+    }) => {
       const { user } = useAuthStore.getState();
-      await donationsApi.create({
+      return donationsApi.create({
         donor_name: data.anonymous ? 'Anonymous' : (user?.nickname || user?.email || 'Guest'),
         amount: data.amount,
         currency: 'CNY',
@@ -230,13 +243,8 @@ export default function Donate() {
         is_anonymous: data.anonymous,
         message: data.message || undefined,
       });
-      setSubmitStatus('success');
-    } catch {
-      setSubmitStatus('error');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    },
+  });
 
   const donationStories = [
     {
@@ -303,21 +311,21 @@ export default function Donate() {
 
             {/* Impact counters */}
             <div className="grid grid-cols-2 gap-6 mt-12">
-              <ImpactCounter value={890000} label="Funds Raised" prefix="¥" />
-              <ImpactCounter value={2847} label="Children Helped" />
+              <ImpactCounter value={totalAmount} label={t('donate.counters.fundsRaised')} prefix="¥" />
+              <ImpactCounter value={totalDonors} label={t('donate.counters.childrenHelped')} />
             </div>
           </div>
 
           {/* Right: Donation panel */}
           <div className="md:col-span-7">
-            {submitStatus === 'success' && (
+            {donateMutation.isSuccess && (
               <div className="mb-4 p-4 border border-sepia-light bg-paper-warm">
                 <p className="font-body text-body-sm text-ink">
                   {t('donate.success', 'Thank you for your donation! Your generosity helps children explore their creativity.')}
                 </p>
               </div>
             )}
-            {submitStatus === 'error' && (
+            {donateMutation.isError && (
               <div className="mb-4 p-4 border border-rust bg-red-50">
                 <p className="font-body text-body-sm text-rust">
                   {t('donate.error', 'Something went wrong. Please try again.')}
@@ -325,8 +333,8 @@ export default function Donate() {
               </div>
             )}
             <DonationPanel
-              onSubmit={handleDonate}
-              isSubmitting={isSubmitting}
+              onSubmit={donateMutation.mutate}
+              isSubmitting={donateMutation.isPending}
             />
           </div>
         </div>
@@ -395,7 +403,7 @@ export default function Donate() {
               {/* Trust Indicators */}
               <div className="mb-8">
                 <span className="font-body text-caption text-sepia-mid tracking-[0.15em] uppercase block mb-3">
-                  Trust Indicators
+                  {t('donate.transparency.trustIndicators')}
                 </span>
                 <div className="flex flex-wrap gap-2">
                   {[
@@ -429,17 +437,17 @@ export default function Donate() {
                     className="border border-warm-gray/30 p-6 bg-paper hover:border-sage/30 transition-colors cursor-pointer relative"
                   >
                     {/* Corner accents */}
-                    <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-sage/30 pointer-events-none" aria-hidden="true" />
-                    <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-sage/30 pointer-events-none" aria-hidden="true" />
+                    <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-sage/30 pointer-events-none" />
+                    <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-sage/30 pointer-events-none" />
 
                     <span className="font-body text-caption text-sepia-mid tracking-[0.15em]">
-                      FINANCIAL REPORT
+                      {t('donate.transparency.financialReport')}
                     </span>
                     <h4 className="font-display text-lg font-bold text-ink mt-2">
                       {quarter}
                     </h4>
                     <span className="font-body text-caption text-sepia-mid mt-2 block">
-                      PDF &middot; 2.4 MB
+                      {t('donate.transparency.pdfSize')}
                     </span>
                   </motion.div>
                 ))}
@@ -452,8 +460,8 @@ export default function Donate() {
       {/* Quote */}
       <SectionContainer narrow>
         <StoryQuoteBlock
-          quote="Transparency is not a feature. It is a responsibility."
-          author="Annual Report 2025"
+          quote={t('donate.transparency.transparencyQuote')}
+          author={t('donate.transparency.transparencyQuoteAuthor')}
         />
       </SectionContainer>
 
@@ -539,7 +547,7 @@ export default function Donate() {
         </SectionContainer>
       </section>
 
-      <div className="editorial-divider" aria-hidden="true" />
+      <div className="editorial-divider" />
     </PageWrapper>
   );
 }
