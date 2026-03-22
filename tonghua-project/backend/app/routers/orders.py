@@ -14,6 +14,8 @@ from app.services.payment_service import payment_service
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
 
+logger = logging.getLogger(__name__)
+
 _mock_orders = [
     {
         "id": 1,
@@ -266,6 +268,8 @@ async def create_order(
             response_data.update(payment_params)
 
         return ApiResponse(data=response_data)
+    except HTTPException:
+        raise
     except Exception as e:
         # If HTTPException (e.g., product not found), re-raise it
         if isinstance(e, HTTPException):
@@ -354,14 +358,8 @@ async def update_order_status(
         return ApiResponse(data=OrderOut.model_validate(order).model_dump())
     except HTTPException:
         raise
-    except Exception:
-        for o in _mock_orders:
-            if o["id"] == order_id:
-                if current_user.get("role") != "admin" and o.get("user_id") != current_user["id"]:
-                    raise HTTPException(status_code=403, detail="Forbidden")
-                # Non-admin users can only cancel their own orders
-                if current_user.get("role") != "admin" and body.status != "cancelled":
-                    raise HTTPException(status_code=403, detail="Only admins can change order status to non-cancelled states")
-                o["status"] = body.status
-                return ApiResponse(data=o)
-        raise HTTPException(status_code=404, detail="Order not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"DB write failed during update_order_status: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
