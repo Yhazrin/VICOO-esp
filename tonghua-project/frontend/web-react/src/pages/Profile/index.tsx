@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeading';
@@ -13,7 +14,6 @@ import { EditorialCard } from '@/components/editorial/EditorialCard';
 import { useAuthStore } from '@/stores/authStore';
 import { ordersApi } from '@/services/orders';
 import { donationsApi } from '@/services/donations';
-import type { Order, Donation } from '@/types';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'text-sepia-mid',
@@ -31,44 +31,19 @@ export default function Profile() {
   const navigate = useNavigate();
   const prefersReducedMotion = useReducedMotion();
   const { user, isAuthenticated, logout } = useAuthStore();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [donations, setDonations] = useState<Donation[]>([]);
-  const [loadingOrders, setLoadingOrders] = useState(true);
-  const [loadingDonations, setLoadingDonations] = useState(true);
   const [activeTab, setActiveTab] = useState<'orders' | 'donations'>('orders');
 
-  useEffect(() => {
-    if (!isAuthenticated) return;
-    let cancelled = false;
+  const { data: orders = [], isLoading: loadingOrders } = useQuery({
+    queryKey: ['my-orders'],
+    queryFn: () => ordersApi.getMyOrders(),
+    enabled: isAuthenticated,
+  });
 
-    ordersApi
-      .getMyOrders()
-      .then((data: Order[]) => {
-        if (!cancelled) {
-          const raw = data;
-          setOrders(Array.isArray(raw) ? raw : []);
-          setLoadingOrders(false);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setLoadingOrders(false);
-      });
-
-    donationsApi
-      .getMyDonations()
-      .then((data: Donation[]) => {
-        if (!cancelled) {
-          const raw = data;
-          setDonations(Array.isArray(raw) ? raw : []);
-          setLoadingDonations(false);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setLoadingDonations(false);
-      });
-
-    return () => { cancelled = true; };
-  }, [isAuthenticated]);
+  const { data: donations = [], isLoading: loadingDonations } = useQuery({
+    queryKey: ['my-donations'],
+    queryFn: () => donationsApi.getMyDonations(),
+    enabled: isAuthenticated,
+  });
 
   const handleLogout = () => {
     logout();
@@ -201,13 +176,12 @@ export default function Profile() {
         <GrainOverlay />
         <SectionContainer>
           {/* Tab switcher */}
-          <div role="tablist" className="flex gap-8 mb-12 border-b border-warm-gray/30">
+          <div className="flex gap-8 mb-12 border-b border-warm-gray/30" role="tablist">
             <button
               role="tab"
               id="tab-orders"
               aria-selected={activeTab === 'orders'}
               aria-controls="panel-orders"
-              tabIndex={activeTab === 'orders' ? 0 : -1}
               onClick={() => setActiveTab('orders')}
               onKeyDown={(e) => { if (e.key === 'ArrowRight') { setActiveTab('donations'); document.getElementById('tab-donations')?.focus(); } }}
               className={`cursor-pointer pb-4 font-body text-body-sm tracking-[0.15em] uppercase transition-colors ${
@@ -223,7 +197,6 @@ export default function Profile() {
               id="tab-donations"
               aria-selected={activeTab === 'donations'}
               aria-controls="panel-donations"
-              tabIndex={activeTab === 'donations' ? 0 : -1}
               onClick={() => setActiveTab('donations')}
               onKeyDown={(e) => { if (e.key === 'ArrowLeft') { setActiveTab('orders'); document.getElementById('tab-orders')?.focus(); } }}
               className={`cursor-pointer pb-4 font-body text-body-sm tracking-[0.15em] uppercase transition-colors ${
@@ -276,7 +249,7 @@ export default function Profile() {
                       {order.items?.map((item, i) => (
                         <div key={i} className="flex justify-between py-1.5 border-t border-warm-gray/10">
                           <span className="font-body text-caption text-ink-faded">
-                            {item.product?.name ?? 'Product'} × {item.quantity}
+                            {item.product?.name ?? t('profile.productFallback', 'Product')} × {item.quantity}
                           </span>
                           <span className="font-body text-caption text-ink">
                             {order.currency} {((item.product?.price ?? 0) * item.quantity).toFixed(2)}
@@ -340,7 +313,7 @@ export default function Profile() {
                           &ldquo;{donation.message}&rdquo;
                         </p>
                       )}
-                      {donation.anonymous && (
+                      {donation.is_anonymous && (
                         <p className="font-body text-overline text-sepia-mid mt-2">
                           {t('profile.anonymous', 'Anonymous donation')}
                         </p>

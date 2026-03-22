@@ -1,5 +1,64 @@
 # Changelog
 
+## 2026-03-22 — Cycle 8b: Backend Security Hardening
+
+### Security
+
+- **alipay_notify signature verification** — Replaced stub handler with full RSA2 signature verification using `ALIPAY_PUBLIC_KEY` from settings. Verifies Alipay callback form params against `sign` field using RSA/SHA-256 PKCS1v15. Returns plain text "success"/"failure" per Alipay spec.
+- **alipay_notify payment processing** — Added trade status check (`TRADE_SUCCESS`/`TRADE_FINISHED`), idempotency check via `provider_transaction_id`, order lookup by `out_trade_no`, and payment transaction record creation.
+- **list_donations PII redaction** — Added optional authentication via `get_optional_current_user`. Unauthenticated users see redacted donor names (first char + asterisks), no messages, no `donor_user_id`. Authenticated users see full donation details.
+
+### Backend
+
+- **deps.py** — Added `get_optional_current_user()` dependency that returns user dict or `None` (no exception on auth failure).
+- **donations.py** — Added `_redact_name()` helper for PII masking. Both DB and mock fallback paths include redaction logic.
+
+## 2026-03-22 — Cycle 8: TypeScript Safety & Backend Code Quality
+
+### TypeScript
+
+- **CampaignDetail mock data IDs** — Converted 15 string-typed mock IDs (`'1'`, `'a1'`, `'c1'`, `'g1'`) to numeric literals matching `Product.id: number` type.
+- **Campaigns/index.tsx mock data IDs** — Converted 6 string-typed mock IDs (`'1'`–`'6'`) to numbers.
+- **Traceability mock data** — Fixed string→number IDs + `highlightedId` state type to `number | null`.
+- **ProductDetail supply chain mock** — Converted 7 string-typed mock IDs (`'sc1'`–`'sc6'`) to numbers.
+- **cartStore parameter types** — Changed `removeItem(productId: string)` and `updateQuantity(productId: string, ...)` to `number` matching `Product.id`.
+- **ProductDetail imageUrls** — Removed references to non-existent `imageUrls` property; derived local `productImages` from `product.image_url`.
+
+### Backend
+
+- **auth.py code deduplication** — Extracted `_set_auth_cookies()` helper, replacing 7 identical cookie-setting blocks. File reduced from 528 to 406 lines (~23%).
+- **auth.py info leakage** — Removed 4 logger lines that logged `is_secure` values, `APP_ENV`, and response headers in production.
+- **products.py route ordering** — Moved `GET /{product_id}/supply-chain` before wildcard `GET /{product_id}` to prevent route shadowing.
+
+### Security
+
+- **deps.py auth fallback** — Removed fallback that returned user data from JWT payload when DB lookup fails; now raises HTTP 503 on DB errors and HTTP 401 if user not found.
+- **payments.py HMAC verification** — Replaced hardcoded `signature != "valid-hmac-signature"` with proper HMAC-SHA256 verification using `APP_SECRET_KEY` with `hmac.compare_digest()`.
+
+### Type Safety & API Alignment
+
+- **types/index.ts mass overhaul** — Changed all entity IDs from `string` to `number` (User, Artwork, Campaign, Story, Product, SupplyChainRecord, DonationTier, Donation, Order). Renamed `imageUrls`→`image_url`, `anonymous`→`is_anonymous`, `shippingAddress`→`shipping_address`.
+- **All services response unwrapping** — Fixed 9 service files from `response.data` to `response.data.data` to match backend envelope pattern.
+- **supply-chain.ts service** — New service file with `trace`, `getRecords`, `getStages` methods.
+
+### Accessibility
+
+- **Header/MagazineNav keyboard navigation** — Added `role="menu"/"menuitem"`, Escape/Arrow key handling, `aria-haspopup`, focus return on close.
+- **VintageSelect error ARIA** — Added `error` prop with `aria-describedby`, `aria-invalid`, and border color on error state.
+- **EditorialHeroV2 contrast** — Changed `text-gray-400` to `text-ink-faded` for WCAG AA compliance.
+- **ProductCard form nesting** — Moved Notify Me section outside `<Link>` wrapper to fix invalid `<form>` inside `<a>`.
+
+### Sustainability & Content
+
+- **Traceability API integration** — Wired to supply-chain API via `useQuery` with `supplyChainApi.trace()`, falls back to mock data.
+- **Donate impact stats** — Wired to `donationsApi.getImpactStats()` for dynamic counters.
+- **Stories API integration** — Wired to `artworksApi.getAll()`, fixed artwork link routes to `/artworks/${id}`.
+- **ChildrenSafety/Privacy** — Replaced placeholder text with real content (8–9 sections each).
+
+### Code Quality
+
+- **i18n keys** — Added 88 lines of translation keys across `en.json` and `zh.json`.
+
 ## 2026-03-22 — Cycle 7: Frontend Page Expansion & Service Completion
 
 ### Features

@@ -14,7 +14,7 @@ import type { Campaign } from '@/types';
 
 const MOCK_CAMPAIGNS: Campaign[] = [
   {
-    id: '1',
+    id: 1,
     title: 'Threads of Tomorrow',
     subtitle: 'Children from rural Guizhou reimagine what sustainable fashion means through watercolors and dreams.',
     description: 'A campaign exploring the intersection of childhood imagination and sustainable textile production.',
@@ -34,7 +34,7 @@ const MOCK_CAMPAIGNS: Campaign[] = [
     },
   },
   {
-    id: '2',
+    id: 2,
     title: 'Ocean Dreams',
     subtitle: 'Shanghai coastal communities paint their vision of a plastic-free ocean, transformed into beachwear.',
     description: 'Marine-themed artwork by children from fishing communities, turned into sustainable swimwear.',
@@ -54,7 +54,7 @@ const MOCK_CAMPAIGNS: Campaign[] = [
     },
   },
   {
-    id: '3',
+    id: 3,
     title: 'Mountain Stories',
     subtitle: 'Yunnan children share their relationship with the mountains through textile art.',
     description: 'A completed campaign that brought mountain-inspired textile art to international fashion shows.',
@@ -74,7 +74,7 @@ const MOCK_CAMPAIGNS: Campaign[] = [
     },
   },
   {
-    id: '4',
+    id: 4,
     title: 'City Rhythms',
     subtitle: 'Urban children interpret the pulse of their city through abstract prints and patterns.',
     description: 'Launching this summer — registration for schools opens May 2026.',
@@ -89,7 +89,7 @@ const MOCK_CAMPAIGNS: Campaign[] = [
     featured: false,
   },
   {
-    id: '5',
+    id: 5,
     title: 'Forest Whispers',
     subtitle: 'Children from Sichuan villages paint the stories their grandparents told about the ancient forests.',
     description: 'A campaign connecting oral tradition with sustainable forestry and textile sourcing.',
@@ -104,7 +104,7 @@ const MOCK_CAMPAIGNS: Campaign[] = [
     featured: false,
   },
   {
-    id: '6',
+    id: 6,
     title: 'Starlight Weavers',
     subtitle: 'Night sky patterns from Tibetan highland children woven into scarves and wraps.',
     description: 'High-altitude astronomy meets textile craftsmanship in this unique cross-cultural project.',
@@ -206,6 +206,7 @@ export default function Campaigns() {
             placeholder={t('campaigns.search.placeholder')}
             icon="search"
             className="py-2"
+            aria-label={t('campaigns.search.placeholder')}
           />
         </div>
 
@@ -214,6 +215,8 @@ export default function Campaigns() {
           {statuses.map((status, index) => (
             <motion.button
               key={status}
+              role="tab"
+              aria-selected={filter === status}
               onClick={() => handleFilterChange(status)}
               {...(prefersReducedMotion ? {} : {
                 initial: { opacity: 0, y: 10 },

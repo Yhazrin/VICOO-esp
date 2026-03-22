@@ -5,12 +5,14 @@ interface VintageSelectProps extends React.SelectHTMLAttributes<HTMLSelectElemen
   label?: string;
   options: { value: string; label: string }[];
   className?: string;
+  error?: string;
 }
 
 export const VintageSelect = forwardRef<HTMLSelectElement, VintageSelectProps>(
-  ({ label, options, className = '', id, ...props }, ref) => {
+  ({ label, options, className = '', id, error, ...props }, ref) => {
     const generatedId = useId();
     const selectId = id || generatedId;
+    const errorId = `${selectId}-error`;
     const prefersReducedMotion = useReducedMotion();
 
     return (
@@ -35,11 +37,14 @@ export const VintageSelect = forwardRef<HTMLSelectElement, VintageSelectProps>(
           <select
             ref={ref}
             id={selectId}
+            aria-describedby={error ? errorId : undefined}
+            aria-invalid={!!error}
             className={`
               w-full font-body text-body-sm bg-transparent border-b-2 border-warm-gray/40
               py-2.5 pr-8 appearance-none cursor-pointer transition-all duration-300
               focus:outline-none focus-visible:ring-2 focus-visible:ring-rust/50 focus:border-rust text-ink
               ${props.disabled ? 'opacity-50 cursor-not-allowed' : ''}
+              ${error ? 'border-archive-brown' : ''}
             `}
             {...props}
           >
@@ -61,6 +66,19 @@ export const VintageSelect = forwardRef<HTMLSelectElement, VintageSelectProps>(
             </svg>
           </div>
         </motion.div>
+
+        {error && (
+          <motion.p
+            role="alert"
+            id={errorId}
+            initial={prefersReducedMotion ? false : { opacity: 0, y: -5 }}
+            animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
+            transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3 }}
+            className="font-body text-overline text-archive-brown"
+          >
+            {error}
+          </motion.p>
+        )}
       </div>
     );
   }

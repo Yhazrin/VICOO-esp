@@ -120,6 +120,13 @@ export default function Header() {
                 className="hidden md:flex items-center gap-2 font-body text-label text-ink-faded hover:text-ink transition-colors px-3 py-1.5 border border-warm-gray/40 cursor-pointer"
                 aria-label="User menu"
                 aria-expanded={userMenuOpen}
+                aria-haspopup="menu"
+                onKeyDown={(e) => {
+                  if (e.key === 'ArrowDown' && !userMenuOpen) {
+                    e.preventDefault();
+                    setUserMenuOpen(true);
+                  }
+                }}
               >
                 <span className="text-overline tracking-[0.2em] text-sepia-mid font-body">USER</span>
                 <span className="max-w-[120px] truncate">{user.nickname || user.email}</span>
@@ -130,7 +137,34 @@ export default function Header() {
 
               {/* Dropdown menu */}
               {userMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-paper border border-warm-gray/40 shadow-lg z-50">
+                <div
+                  role="menu"
+                  aria-label="User menu"
+                  className="absolute right-0 top-full mt-2 w-48 bg-paper border border-warm-gray/40 shadow-lg z-50"
+                  onKeyDown={(e) => {
+                    const items = Array.from(
+                      (e.currentTarget as HTMLElement).querySelectorAll<HTMLElement>('[role="menuitem"]')
+                    );
+                    const current = document.activeElement as HTMLElement;
+                    const idx = items.indexOf(current);
+
+                    if (e.key === 'Escape') {
+                      e.preventDefault();
+                      setUserMenuOpen(false);
+                      menuTriggerRef.current?.focus();
+                    } else if (e.key === 'ArrowDown') {
+                      e.preventDefault();
+                      const next = idx < items.length - 1 ? idx + 1 : 0;
+                      items[next]?.focus();
+                    } else if (e.key === 'ArrowUp') {
+                      e.preventDefault();
+                      const prev = idx > 0 ? idx - 1 : items.length - 1;
+                      items[prev]?.focus();
+                    } else if (e.key === 'Tab') {
+                      setUserMenuOpen(false);
+                    }
+                  }}
+                >
                   <div className="py-2">
                     <div className="px-4 py-2 border-b border-warm-gray/20">
                       <p className="font-body text-caption text-ink-faded">{user.nickname || user.email}</p>
@@ -138,12 +172,16 @@ export default function Header() {
                     </div>
                     <Link
                       to="/profile"
+                      role="menuitem"
+                      tabIndex={-1}
                       className="block px-4 py-2 font-body text-body-sm text-ink hover:bg-warm-gray/10 transition-colors cursor-pointer"
                       onClick={() => setUserMenuOpen(false)}
                     >
                       {t('nav.profile')}
                     </Link>
                     <button
+                      role="menuitem"
+                      tabIndex={-1}
                       onClick={handleLogout}
                       className="w-full text-left px-4 py-2 font-body text-body-sm text-ink hover:bg-warm-gray/10 transition-colors cursor-pointer"
                     >

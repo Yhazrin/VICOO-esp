@@ -8,14 +8,46 @@ import GrainOverlay from '@/components/editorial/GrainOverlay';
 import { MagazineDivider } from '@/components/editorial/MagazineDivider';
 
 const SECTIONS = [
-  { key: 'commitment' },
-  { key: 'collection' },
-  { key: 'parentalConsent' },
-  { key: 'dataUse' },
-  { key: 'storage' },
-  { key: 'thirdParty' },
-  { key: 'rights' },
-  { key: 'contact' },
+  {
+    key: 'commitment',
+    title: 'Our Commitment',
+    body: 'VICOO (Tonghua Public Welfare) is dedicated to creating a safe, nurturing environment where children can express themselves through art. We recognize that children are uniquely vulnerable and require the highest standards of protection. Every program we operate, every workshop we run, and every piece of data we collect is governed by our unwavering commitment to child safety and privacy. We comply fully with China\'s Personal Information Protection Law (PIPL), the Children\'s Online Privacy Protection principles, and GDPR for international visitors.',
+  },
+  {
+    key: 'collection',
+    title: 'Information We Collect',
+    body: 'We collect only the minimum information necessary to operate our programs safely. This may include the child\'s first name (or a pseudonym), age, school name, and artwork submissions. We never collect government-issued identification numbers, precise location data, or biometric information from children. All collection is done with explicit parental or guardian consent obtained before the child participates in any program. Artwork images are only published with documented consent from both the child and their guardian.',
+  },
+  {
+    key: 'parentalConsent',
+    title: 'Parental Consent Process',
+    body: 'Before any child under 14 participates in our programs, we require verifiable parental consent. This process includes: (1) A written consent form signed by the parent or legal guardian, (2) Verification of the guardian\'s identity through our partner schools, (3) A clear explanation of what data will be collected and how it will be used, (4) The right to withdraw consent at any time, which will result in the immediate deletion of the child\'s data and removal of any published artwork. For children aged 14-18, we require both the child\'s and a guardian\'s consent.',
+  },
+  {
+    key: 'dataUse',
+    title: 'How We Use Children\'s Information',
+    body: 'Children\'s information is used exclusively for program purposes: displaying artwork in our gallery (with consent), organizing workshops, tracking program participation, and generating anonymized impact statistics. We never use children\'s information for marketing, advertising, or commercial purposes. Any public display of artwork uses only the child\'s first name or a chosen pseudonym — never full names or identifying details. Aggregate statistics (e.g., "2,847 children participated") contain no individual identifying information.',
+  },
+  {
+    key: 'storage',
+    title: 'Data Storage and Retention',
+    body: 'All children\'s data is encrypted at rest using AES-256-GCM and in transit using TLS 1.3. Data is stored on servers located in mainland China, with access restricted to authorized personnel who have undergone background checks and child protection training. We retain children\'s data only for as long as necessary to fulfill the purpose for which it was collected, or as required by law. Upon program completion or consent withdrawal, personal data is securely deleted within 30 days. Anonymized artwork images may be retained for archival purposes with separate consent.',
+  },
+  {
+    key: 'thirdParty',
+    title: 'Third-Party Sharing',
+    body: 'We do not sell, rent, or trade children\'s personal information to any third party. We share data only with: (1) Partner schools, strictly for program coordination and safety purposes, (2) Accredited auditors conducting program evaluation using anonymized data only, (3) Law enforcement when required by law, with appropriate legal process. All third-party partners are contractually bound by our child protection standards and undergo regular compliance audits.',
+  },
+  {
+    key: 'rights',
+    title: 'Rights of Children and Guardians',
+    body: 'Parents and guardians have the right to: (1) Access all data we hold about their child, (2) Correct any inaccurate information, (3) Request deletion of their child\'s data and removal of published artwork, (4) Withdraw consent at any time without penalty, (5) Receive a clear explanation of our data practices in plain language. Children themselves have the right to be heard and to participate in decisions about their data in an age-appropriate manner. All requests are handled within 5 business days.',
+  },
+  {
+    key: 'contact',
+    title: 'Contact Us',
+    body: 'If you have any questions or concerns about how we protect children\'s information, please contact our Child Protection Officer at children@vicoo.org, or write to us at: VICOO Child Protection Office, Tonghua Public Welfare Foundation, Shanghai, China. We aim to respond to all inquiries within 3 business days. If you believe a child\'s safety or privacy has been compromised, please contact us immediately — we treat such reports with the highest urgency.',
+  },
 ];
 
 export default function ChildrenSafety() {
@@ -64,10 +96,10 @@ export default function ChildrenSafety() {
                 >
                   <NumberedSectionHeading
                     number={String(i + 1).padStart(2, '0')}
-                    title={t(`legal.children.sections.${section.key}.title`, { defaultValue: section.key.charAt(0).toUpperCase() + section.key.slice(1).replace(/([A-Z])/g, ' $1') })}
+                    title={t(`legal.children.sections.${section.key}.title`, { defaultValue: section.title })}
                   />
                   <p className="font-body text-sm text-ink-faded leading-[1.8] max-w-[65ch]">
-                    {t(`legal.children.sections.${section.key}.body`, { defaultValue: 'This section is being prepared. Please check back later for the complete content.' })}
+                    {t(`legal.children.sections.${section.key}.body`, { defaultValue: section.body })}
                   </p>
                 </motion.section>
                 {i < SECTIONS.length - 1 && (
