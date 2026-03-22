@@ -113,8 +113,8 @@ export interface Donation {
   donor_user_id?: number;
   amount: number;
   currency: string;
-  tierId?: string;
-  campaignId?: string;
+  tierId?: number;
+  campaignId?: number;
   message?: string;
   is_anonymous: boolean;
   status: 'pending' | 'completed' | 'failed' | 'refunded';
