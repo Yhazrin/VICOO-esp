@@ -120,9 +120,9 @@ export default function EditorialHeroV2({
             <span className="relative z-10">{ctaText}</span>
             <motion.div
               className="absolute inset-0 bg-rust origin-left"
-              initial={{ scaleX: 0 }}
-              whileHover={{ scaleX: 1 }}
-              transition={{ duration: 0.3 }}
+              initial={prefersReducedMotion ? undefined : { scaleX: 0 }}
+              whileHover={prefersReducedMotion ? undefined : { scaleX: 1 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3 }}
             />
           </Link>
           {secondaryLink && (

@@ -174,9 +174,13 @@ async def rate_limit_check(request: Request, current_user: Optional[dict] = None
         return True
     except HTTPException:
         raise
-    except Exception:
-        # If rate limiting fails for any reason, allow the request
-        return True
+    except Exception as e:
+        # Fail closed in production — only allow request through in development
+        if is_development:
+            logger.warning(f"Rate limit check failed (development mode, allowing): {e}")
+            return True
+        logger.error(f"Rate limit check failed: {e}")
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 async def get_current_user_from_request(request: Request, db: AsyncSession) -> Optional[dict]:
@@ -332,8 +336,7 @@ async def verify_request_signature(request: Request) -> tuple[bool, Optional[str
     # 使用 constant-time comparison 防止时序攻击
     if not hmac.compare_digest(expected_signature, signature):
         logger.warning(
-            f"Invalid signature for {request.method} {request.url.path}. "
-            f"Expected: {expected_signature[:16]}..., Got: {signature[:16]}..."
+            f"Invalid signature for {request.method} {request.url.path}"
         )
         return False, "Invalid signature"
 

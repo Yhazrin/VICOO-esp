@@ -6,7 +6,6 @@ import PageWrapper from '@/components/layout/PageWrapper';
 import { VintageInput } from '@/components/editorial/VintageInput';
 import GrainOverlay from '@/components/editorial/GrainOverlay';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
-import { MagazineDivider } from '@/components/editorial/MagazineDivider';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function Login() {
@@ -188,7 +187,7 @@ export default function Login() {
         </div>
       </PaperTextureBackground>
 
-      <div className="editorial-divider" />
+      <div className="editorial-divider" aria-hidden="true" />
     </PageWrapper>
   );
 }

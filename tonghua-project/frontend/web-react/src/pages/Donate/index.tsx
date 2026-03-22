@@ -318,6 +318,20 @@ export default function Donate() {
 
           {/* Right: Donation panel */}
           <div className="md:col-span-7">
+            {donateMutation.isSuccess && (
+              <div className="mb-4 p-4 border border-sepia-light bg-paper-warm">
+                <p className="font-body text-body-sm text-ink">
+                  {t('donate.success', 'Thank you for your donation! Your generosity helps children explore their creativity.')}
+                </p>
+              </div>
+            )}
+            {donateMutation.isError && (
+              <div className="mb-4 p-4 border border-rust bg-red-50">
+                <p className="font-body text-body-sm text-rust">
+                  {t('donate.error', 'Something went wrong. Please try again.')}
+                </p>
+              </div>
+            )}
             <DonationPanel
               onSubmit={donateMutation.mutate}
               isSubmitting={donateMutation.isPending}

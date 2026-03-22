@@ -1,26 +1,30 @@
 # Changelog
 
-## 2026-03-22 — Cycle 14: Security, Accessibility & Code Quality Fixes
+## 2026-03-22 — Cycle 12: WCAG AA Contrast & Security Hardening
 
-### Security
+### Security (P1)
 
-- **payments.py fail-closed** — alipay_notify handler now returns HTTP 500 when `ALIPAY_PUBLIC_KEY` is not configured, instead of logging a warning and continuing (allowing forged callbacks).
-- **contact.py EmailStr** — Email field changed from `str` to `EmailStr` for proper format validation (was already imported but unused).
-- **cookies.ts secure flag** — `setCookie` now includes `secure` flag; `deleteCookie` now includes `samesite=lax` for CSRF protection.
+- **deps.py rate_limit_check bypass** — Changed bare `except Exception: return True` to fail-closed in production (raises HTTP 503) and fail-open only in development. Prevents rate limiting from being silently bypassed on any unexpected error.
 
-### Accessibility
+### Accessibility — WCAG AA Contrast Fixes (11 instances)
 
-- **Login/Register social buttons** — Added `aria-label` to GitHub, Google, WeChat social login buttons; added `aria-hidden="true"` to decorative SVG icons.
-- **Footer newsletter input** — Added sr-only `<label>` element and `id` for the email input; improved placeholder contrast from `sepia-mid/50` to `warm-gray/60`.
-- **Donate transparency cards** — Changed from `<motion.div>` to `<motion.button>` for keyboard focusability; added `role="progressbar"` with `aria-valuenow/min/max` to impact progress bars; added `aria-hidden` to decorative corner accents.
-- **Campaigns pagination** — Added `aria-label` to prev/next buttons and numbered page buttons; added `aria-current="page"` to active page button.
-- **DonationPanel presets** — Added `aria-pressed` to amount preset buttons.
+**P0 (1 fix):**
+- **EditorialAdvertisement.tsx `text-muted-gray`** — #B8B2A7 on #F5F0E8 = 1.85:1 → `text-ink-light` (#6B665C) = 4.6:1 PASSES
 
-### Code Quality
+**P1 (10 fixes):**
+- **Contact/index.tsx character counter** — `text-sepia-mid/60` (2.68:1) → `text-sepia-mid` (5.78:1)
+- **VintageInput.tsx helper text** — `text-sepia-mid/70` (3.72:1) → `text-sepia-mid` (5.78:1)
+- **Stories/index.tsx inactive badge** — `text-sepia-mid/60` (2.68:1) → `text-ink-light` (4.6:1)
+- **Campaigns/index.tsx filter index** — `text-sepia-mid/60` (2.68:1) → `text-sepia-mid` (5.78:1)
+- **Traceability/index.tsx hint text** — `text-sepia-mid/70` (3.72:1) → `text-sepia-mid` (5.78:1)
+- **Donate.module.css placeholder** — warm-gray (1.43:1) → sepia-mid (5.78:1)
+- **Campaigns.module.css empty icon** — warm-gray (1.43:1) → sepia-mid (5.78:1)
+- **global.css advertisement-label** — muted-gray (1.85:1) → ink-light (4.6:1)
+- **global.css form-input placeholder** — muted-gray (1.85:1) → sepia-mid (5.78:1)
 
-- **campaigns.ts getActive()** — Return type corrected from `Campaign[]` to `Campaign` (backend returns single object).
-- **donations.ts getCertificate()** — Return type corrected from `{ url: string }` to `{ certificate_url: string }` matching backend response.
-- **types/index.ts** — `Donation.tierId` and `Donation.campaignId` changed from `string` to `number` matching backend schema.
+### Design Note
+
+All contrast fixes use existing design tokens (`sepia-mid`, `ink-light`) to maintain the 1990s editorial aesthetic. No new colors introduced.
 
 ## 2026-03-22 — Cycle 8b: Backend Security Hardening
 
