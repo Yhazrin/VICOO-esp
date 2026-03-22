@@ -1,12 +1,5 @@
 import api from './api';
-import type { Payment } from '@/types';
-
-export interface CreatePaymentRequest {
-  order_id?: number;
-  donation_id?: number;
-  amount: number;
-  method: 'wechat' | 'alipay' | 'stripe' | 'paypal';
-}
+import type { Payment, CreatePaymentRequest } from '@/types';
 
 export const paymentsApi = {
   create: async (data: CreatePaymentRequest): Promise<Payment> => {

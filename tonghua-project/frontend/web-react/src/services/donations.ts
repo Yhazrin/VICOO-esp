@@ -1,15 +1,5 @@
 import api from './api';
-import type { Donation, DonationTier } from '@/types';
-
-export interface CreateDonationRequest {
-  donor_name: string;
-  amount: number;
-  currency: string;
-  payment_method: 'wechat' | 'alipay' | 'stripe' | 'paypal';
-  campaign_id?: number;
-  message?: string;
-  is_anonymous: boolean;
-}
+import type { Donation, DonationTier, CreateDonationRequest } from '@/types';
 
 export const donationsApi = {
   getTiers: async (): Promise<DonationTier[]> => {

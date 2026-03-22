@@ -1,22 +1,5 @@
 import api from './api';
-import type { User } from '@/types';
-
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface RegisterRequest {
-  email: string;
-  password: string;
-  nickname: string;
-}
-
-export interface AuthResponse {
-  user: User;
-  access_token: string;
-  refresh_token: string;
-}
+import type { User, LoginRequest, RegisterRequest, AuthResponse } from '@/types';
 
 // Backend response structure (nested - register endpoint)
 interface BackendRegisterResponse {

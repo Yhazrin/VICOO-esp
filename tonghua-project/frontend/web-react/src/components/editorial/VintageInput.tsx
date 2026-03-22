@@ -110,7 +110,7 @@ export const VintageInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, V
         </div>
 
         {helperText && (
-          <p id={helperId} className="font-body text-overline text-sepia-mid/70">
+          <p id={helperId} className="font-body text-overline text-sepia-mid">
             {helperText}
           </p>
         )}

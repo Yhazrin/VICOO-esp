@@ -1,13 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
+from fastapi.responses import PlainTextResponse
 from sqlalchemy import select, func, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from decimal import Decimal
 import xml.etree.ElementTree as ET
 import secrets
 import logging
-import hmac
+
+import hmac as hmac_mod
 import hashlib
 
+from app.config import settings
 from app.database import get_db
 from app.models.payment import PaymentTransaction
 from app.models.order import Order
@@ -15,7 +18,6 @@ from app.models.donation import Donation
 from app.schemas import ApiResponse, PaymentCreate, PaymentOut, PaginatedResponse, WeChatPaymentParams
 from app.deps import get_current_user
 from app.services.payment_service import payment_service
-from app.config import settings
 from app.routers.orders import _mock_orders
 from app.routers.donations import _mock_donations
 
@@ -246,27 +248,131 @@ async def wechat_notify(request: Request, db: AsyncSession = Depends(get_db)):
         )
 
 
-@router.post("/alipay-notify", response_model=ApiResponse)
-async def alipay_notify(request: Request):
+@router.post("/alipay-notify")
+async def alipay_notify(request: Request, db: AsyncSession = Depends(get_db)):
     """Handle Alipay payment notification callback.
 
-    Security: In production, must verify RSA2 signature against Alipay's public key
-    before processing. Reject unverified requests.
+    Security: Verifies RSA2 signature from Alipay callback.
+    Alipay expects plain text "success" or "failure" response.
     """
-    # TODO: Implement Alipay RSA2 signature verification with alipay_public_key
-    # For now, reject unverified notifications to prevent spoofing
-    if settings.APP_ENV == "production":
-        raise HTTPException(status_code=501, detail="Alipay verification not configured")
+    try:
+        # Parse form data from Alipay callback
+        form_data = await request.form()
+        params = {key: form_data[key] for key in form_data.keys()}
 
-    # Development-only passthrough
-    return ApiResponse(data={"message": "Alipay notification received"})
+        logger.info(f"Alipay callback received for trade_no: {params.get('out_trade_no')}")
+
+        # --- RSA2 Signature Verification ---
+        sign = params.get("sign", "")
+        if not sign:
+            logger.error("Missing sign in Alipay callback")
+            return PlainTextResponse("failure")
+
+        # Filter out sign and sign_type, sort remaining params
+        sign_type = params.get("sign_type", "RSA2")
+        filtered = {k: v for k, v in params.items() if k not in ("sign", "sign_type")}
+
+        # Filter out empty values (Alipay spec)
+        filtered = {k: v for k, v in filtered.items() if v is not None and v != ""}
+
+        # Sort and concatenate as key=value&key=value
+        sorted_params = sorted(filtered.items())
+        sign_string = "&".join(f"{k}={v}" for k, v in sorted_params)
+
+        # Verify RSA2 signature
+        if settings.ALIPAY_PUBLIC_KEY:
+            try:
+                from cryptography.hazmat.primitives import hashes, serialization
+                from cryptography.hazmat.primitives.asymmetric import padding
+                import base64
+
+                public_key_pem = settings.ALIPAY_PUBLIC_KEY
+                if not public_key_pem.startswith("-----"):
+                    public_key_pem = f"-----BEGIN PUBLIC KEY-----\n{public_key_pem}\n-----END PUBLIC KEY-----"
+
+                public_key = serialization.load_pem_public_key(public_key_pem.encode("utf-8"))
+                signature_bytes = base64.b64decode(sign)
+
+                public_key.verify(
+                    signature_bytes,
+                    sign_string.encode("utf-8"),
+                    padding.PKCS1v15(),
+                    hashes.SHA256(),
+                )
+                logger.info(f"Alipay signature verified for trade_no: {params.get('out_trade_no')}")
+            except Exception as verify_error:
+                logger.error(f"Alipay signature verification failed: {verify_error}")
+                return PlainTextResponse("failure")
+        else:
+            if settings.APP_ENV == "production":
+                logger.error("ALIPAY_PUBLIC_KEY not configured in production")
+                return PlainTextResponse("failure")
+            logger.warning("ALIPAY_PUBLIC_KEY not configured, skipping signature verification in non-production")
+
+        # --- Check trade status ---
+        trade_status = params.get("trade_status", "")
+        if trade_status not in ("TRADE_SUCCESS", "TRADE_FINISHED"):
+            logger.info(f"Alipay trade status is {trade_status}, ignoring")
+            return PlainTextResponse("success")
+
+        # --- Extract transaction details ---
+        trade_no = params.get("trade_no", "")
+        out_trade_no = params.get("out_trade_no", "")
+        total_amount = Decimal(params.get("total_amount", "0"))
+
+        if not trade_no:
+            logger.error("Missing trade_no in Alipay callback")
+            return PlainTextResponse("failure")
+
+        # --- Idempotency Check ---
+        existing_tx = await db.execute(
+            select(PaymentTransaction).where(PaymentTransaction.provider_transaction_id == trade_no)
+        )
+        if existing_tx.scalar_one_or_none():
+            logger.info(f"Alipay transaction {trade_no} already processed, skipping")
+            return PlainTextResponse("success")
+
+        # --- Find Order by out_trade_no ---
+        stmt = select(Order).where(Order.order_no == out_trade_no)
+        result = await db.execute(stmt)
+        order = result.scalar_one_or_none()
+
+        if order:
+            # Update order status
+            await db.execute(
+                update(Order)
+                .where(Order.id == order.id)
+                .values(status="paid", payment_id=trade_no, payment_method="alipay", updated_at=func.now())
+            )
+            logger.info(f"Updated order {order.id} status to 'paid' (Alipay)")
+
+        # --- Create payment transaction record ---
+        payment_tx = PaymentTransaction(
+            order_id=order.id if order else None,
+            donation_id=None,
+            amount=total_amount,
+            method="alipay",
+            provider_transaction_id=trade_no,
+            status="success",
+            raw_response=params,
+        )
+        db.add(payment_tx)
+        await db.commit()
+        logger.info(f"Alipay payment transaction created: TX={trade_no}")
+
+        return PlainTextResponse("success")
+
+    except Exception as e:
+        logger.error(f"Alipay callback processing error: {str(e)}")
+        await db.rollback()
+        return PlainTextResponse("failure")
 
 
 @router.post("/webhook", response_model=ApiResponse)
 async def payment_webhook(request: Request, body: dict):
     """Handle generic payment webhook from various providers.
 
-    Security: Verifies HMAC-SHA256 signature from the X-Webhook-Signature header.
+    Security: Verifies HMAC signature from the X-Webhook-Signature header.
     """
     signature = request.headers.get("X-Webhook-Signature")
 
@@ -274,15 +380,15 @@ async def payment_webhook(request: Request, body: dict):
         raise HTTPException(status_code=400, detail="Missing signature")
 
     # Verify HMAC-SHA256 signature using APP_SECRET_KEY
-    import json
-    payload_bytes = json.dumps(body, sort_keys=True, separators=(",", ":")).encode()
-    expected = hmac.new(
-        settings.APP_SECRET_KEY.encode(),
-        payload_bytes,
-        hashlib.sha256,
+    body_bytes = await request.body()
+    secret_key = settings.APP_SECRET_KEY
+    if isinstance(secret_key, str):
+        secret_key = secret_key.encode("utf-8")
+    expected_signature = hmac_mod.new(
+        secret_key, body_bytes, hashlib.sha256
     ).hexdigest()
 
-    if not hmac.compare_digest(signature, expected):
+    if not hmac_mod.compare_digest(expected_signature, signature):
         raise HTTPException(status_code=401, detail="Invalid signature")
 
     # Process webhook payload
@@ -305,8 +411,8 @@ async def test_wechat_params(current_user: dict = Depends(get_current_user)):
             donation_id=999
         )
         return ApiResponse(data=payment_params)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Payment parameter generation failed")
 
 
 @router.get("/{payment_id}", response_model=ApiResponse)

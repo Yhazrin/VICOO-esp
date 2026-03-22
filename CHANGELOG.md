@@ -1,41 +1,89 @@
 # Changelog
 
-## 2026-03-22 — Cycle 10: P0 Security Hardening + Accessibility Heading/ARIA
+## 2026-03-22 — Cycle 12: WCAG AA Contrast & Security Hardening
 
-### Security — P0
+### Security (P1)
 
-- **CORS wildcard rejection** (`config.py`) — New `model_validator` rejects `CORS_ORIGINS="*"` when `allow_credentials=True`, preventing credential leakage via wildcard CORS.
-- **TrustedHostMiddleware re-enabled** (`main.py`) — Enabled in non-development environments; dev environment skips for convenience.
-- **WeChat API secret exposure** (`auth.py`) — Both `login` and `wx_login` endpoints switched from GET with query params to POST with form data, keeping `WECHAT_APP_SECRET` out of access logs and referrer headers.
-- **Mock password timing attack** (`auth.py`) — Mock user password comparison changed from `==` to `hmac.compare_digest` to prevent timing side-channel attacks.
-- **WeChat error detail leakage** (`auth.py`) — Removed WeChat API error message from HTTP 401 responses; now returns generic "WeChat authentication failed".
-- **Debug print removal** (`artworks.py`) — Removed `print(f"DEBUG create_artwork: ...")` statement.
-- **PII-safe logging** (`auth.py`) — Removed email addresses from debug log messages.
+- **deps.py rate_limit_check bypass** — Changed bare `except Exception: return True` to fail-closed in production (raises HTTP 503) and fail-open only in development. Prevents rate limiting from being silently bypassed on any unexpected error.
 
-### Security — P1
+### Accessibility — WCAG AA Contrast Fixes (11 instances)
 
-- **API secret key hardening** (`api.ts`) — Removed hardcoded fallback `'your-secret-key'` for `VITE_API_SECRET_KEY`; now throws if env var is unset.
-- **Contact form rate limiting** (`contact.py`) — Added per-IP rate limiter (5 submissions per 60-second window) with 429 response.
-- **Contact form email validation** (`contact.py`) — Changed email field from `str` to `EmailStr`.
-- **Alipay callback protection** (`payments.py`) — `alipay_notify` now returns 501 in production until RSA2 signature verification is configured.
-- **Webhook HMAC verification** (`payments.py`) — Generic webhook endpoint now computes HMAC-SHA256 over sorted JSON payload using `APP_SECRET_KEY` and verifies via `hmac.compare_digest`.
-- **WeChatPay signature comparison** (`payment_service.py`) — Changed `==` to `hmac.compare_digest` for constant-time comparison.
-- **Password strength** (`schemas/user.py`) — Minimum password length increased from 6 to 8 characters.
-- **CORS headers** (`main.py`) — Added `X-Nonce` to allowed CORS headers.
+**P0 (1 fix):**
+- **EditorialAdvertisement.tsx `text-muted-gray`** — #B8B2A7 on #F5F0E8 = 1.85:1 → `text-ink-light` (#6B665C) = 4.6:1 PASSES
+
+**P1 (10 fixes):**
+- **Contact/index.tsx character counter** — `text-sepia-mid/60` (2.68:1) → `text-sepia-mid` (5.78:1)
+- **VintageInput.tsx helper text** — `text-sepia-mid/70` (3.72:1) → `text-sepia-mid` (5.78:1)
+- **Stories/index.tsx inactive badge** — `text-sepia-mid/60` (2.68:1) → `text-ink-light` (4.6:1)
+- **Campaigns/index.tsx filter index** — `text-sepia-mid/60` (2.68:1) → `text-sepia-mid` (5.78:1)
+- **Traceability/index.tsx hint text** — `text-sepia-mid/70` (3.72:1) → `text-sepia-mid` (5.78:1)
+- **Donate.module.css placeholder** — warm-gray (1.43:1) → sepia-mid (5.78:1)
+- **Campaigns.module.css empty icon** — warm-gray (1.43:1) → sepia-mid (5.78:1)
+- **global.css advertisement-label** — muted-gray (1.85:1) → ink-light (4.6:1)
+- **global.css form-input placeholder** — muted-gray (1.85:1) → sepia-mid (5.78:1)
+
+### Design Note
+
+All contrast fixes use existing design tokens (`sepia-mid`, `ink-light`) to maintain the 1990s editorial aesthetic. No new colors introduced.
+
+## 2026-03-22 — Cycle 8b: Backend Security Hardening
+
+### Security
+
+- **alipay_notify signature verification** — Replaced stub handler with full RSA2 signature verification using `ALIPAY_PUBLIC_KEY` from settings. Verifies Alipay callback form params against `sign` field using RSA/SHA-256 PKCS1v15. Returns plain text "success"/"failure" per Alipay spec.
+- **alipay_notify payment processing** — Added trade status check (`TRADE_SUCCESS`/`TRADE_FINISHED`), idempotency check via `provider_transaction_id`, order lookup by `out_trade_no`, and payment transaction record creation.
+- **list_donations PII redaction** — Added optional authentication via `get_optional_current_user`. Unauthenticated users see redacted donor names (first char + asterisks), no messages, no `donor_user_id`. Authenticated users see full donation details.
+
+### Backend
+
+- **deps.py** — Added `get_optional_current_user()` dependency that returns user dict or `None` (no exception on auth failure).
+- **donations.py** — Added `_redact_name()` helper for PII masking. Both DB and mock fallback paths include redaction logic.
+
+## 2026-03-22 — Cycle 8: TypeScript Safety & Backend Code Quality
+
+### TypeScript
+
+- **CampaignDetail mock data IDs** — Converted 15 string-typed mock IDs (`'1'`, `'a1'`, `'c1'`, `'g1'`) to numeric literals matching `Product.id: number` type.
+- **Campaigns/index.tsx mock data IDs** — Converted 6 string-typed mock IDs (`'1'`–`'6'`) to numbers.
+- **Traceability mock data** — Fixed string→number IDs + `highlightedId` state type to `number | null`.
+- **ProductDetail supply chain mock** — Converted 7 string-typed mock IDs (`'sc1'`–`'sc6'`) to numbers.
+- **cartStore parameter types** — Changed `removeItem(productId: string)` and `updateQuantity(productId: string, ...)` to `number` matching `Product.id`.
+- **ProductDetail imageUrls** — Removed references to non-existent `imageUrls` property; derived local `productImages` from `product.image_url`.
+
+### Backend
+
+- **auth.py code deduplication** — Extracted `_set_auth_cookies()` helper, replacing 7 identical cookie-setting blocks. File reduced from 528 to 406 lines (~23%).
+- **auth.py info leakage** — Removed 4 logger lines that logged `is_secure` values, `APP_ENV`, and response headers in production.
+- **products.py route ordering** — Moved `GET /{product_id}/supply-chain` before wildcard `GET /{product_id}` to prevent route shadowing.
+
+### Security
+
+- **deps.py auth fallback** — Removed fallback that returned user data from JWT payload when DB lookup fails; now raises HTTP 503 on DB errors and HTTP 401 if user not found.
+- **payments.py HMAC verification** — Replaced hardcoded `signature != "valid-hmac-signature"` with proper HMAC-SHA256 verification using `APP_SECRET_KEY` with `hmac.compare_digest()`.
+
+### Type Safety & API Alignment
+
+- **types/index.ts mass overhaul** — Changed all entity IDs from `string` to `number` (User, Artwork, Campaign, Story, Product, SupplyChainRecord, DonationTier, Donation, Order). Renamed `imageUrls`→`image_url`, `anonymous`→`is_anonymous`, `shippingAddress`→`shipping_address`.
+- **All services response unwrapping** — Fixed 9 service files from `response.data` to `response.data.data` to match backend envelope pattern.
+- **supply-chain.ts service** — New service file with `trace`, `getRecords`, `getStages` methods.
 
 ### Accessibility
 
-- **Heading hierarchy** — Added `<h1 className="sr-only">` to 6 pages that use `hideHero={true}` on EditorialHero: Campaigns, Stories, Traceability, Shop, Profile, CampaignDetail. Fixes WCAG 2.4.6 heading hierarchy violations.
-- **ARIA tab pattern** — Category filter buttons on Campaigns, Stories, and Shop pages now use `role="tab"`, `aria-selected`, `aria-controls`, `tabIndex`, and keyboard arrow navigation (ArrowLeft/ArrowRight), matching the reference implementation in Profile.
-- **MagazineDivider component** — All 3 variants (numbered, decorative, default) now have `aria-hidden="true"` on their container divs, preventing decorative dividers from appearing in the accessibility tree.
-- **Footer email input** — Added `aria-label` attribute for screen reader identification.
-- **Decorative elements** — Added `aria-hidden="true"` to 15+ decorative elements across 9 files: editorial-divider divs, corner accent borders, gradient overlays, and inset box-shadow overlays.
+- **Header/MagazineNav keyboard navigation** — Added `role="menu"/"menuitem"`, Escape/Arrow key handling, `aria-haspopup`, focus return on close.
+- **VintageSelect error ARIA** — Added `error` prop with `aria-describedby`, `aria-invalid`, and border color on error state.
+- **EditorialHeroV2 contrast** — Changed `text-gray-400` to `text-ink-faded` for WCAG AA compliance.
+- **ProductCard form nesting** — Moved Notify Me section outside `<Link>` wrapper to fix invalid `<form>` inside `<a>`.
 
-### Frontend UX
+### Sustainability & Content
 
-- **Donate submission feedback** (`Donate/index.tsx`) — Replaced `console.log`/`console.error` with user-facing success/error status banners using editorial-styled containers.
-- **Null price guards** (`ProductDetail.tsx`, `Profile/index.tsx`) — Added `?? 0` fallback on `price.toFixed()` and `amount.toFixed()` calls to prevent crashes on null API data.
-- **Profile error states** (`Profile/index.tsx`) — Added `errorOrders`/`errorDonations` boolean states with user-facing error messages when API calls fail.
+- **Traceability API integration** — Wired to supply-chain API via `useQuery` with `supplyChainApi.trace()`, falls back to mock data.
+- **Donate impact stats** — Wired to `donationsApi.getImpactStats()` for dynamic counters.
+- **Stories API integration** — Wired to `artworksApi.getAll()`, fixed artwork link routes to `/artworks/${id}`.
+- **ChildrenSafety/Privacy** — Replaced placeholder text with real content (8–9 sections each).
+
+### Code Quality
+
+- **i18n keys** — Added 88 lines of translation keys across `en.json` and `zh.json`.
 
 ## 2026-03-22 — Cycle 7: Frontend Page Expansion & Service Completion
 

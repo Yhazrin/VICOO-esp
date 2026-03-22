@@ -35,6 +35,13 @@ class Settings(BaseSettings):
     WECHAT_PAY_API_KEY: Optional[str] = None  # WeChat Pay API key
     WECHAT_NOTIFY_URL: Optional[str] = None  # WeChat Pay callback URL
 
+    # Alipay
+    ALIPAY_APP_ID: Optional[str] = None
+    ALIPAY_PRIVATE_KEY: Optional[str] = None  # RSA2 private key (PKCS#8 PEM)
+    ALIPAY_PUBLIC_KEY: Optional[str] = None   # Alipay RSA2 public key for callback verification
+    ALIPAY_NOTIFY_URL: Optional[str] = None
+    ALIPAY_GATEWAY: str = "https://openapi.alipay.com/gateway.do"
+
     # Rate Limiting
     GLOBAL_RATE_LIMIT: int = 1000  # per minute
     USER_RATE_LIMIT: int = 60  # per minute

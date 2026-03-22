@@ -1,7 +1,9 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { artworksApi } from '@/services/artworks';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import EditorialHero from '@/components/editorial/EditorialHero';
@@ -263,7 +265,7 @@ function EmptyState({ onBrowseAll }: { onBrowseAll: () => void }) {
         onClick={onBrowseAll}
         whileHover={prefersReducedMotion ? undefined : { y: -2 }}
         whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
-        className="font-body text-caption tracking-[0.15em] uppercase text-rust border-b border-rust/30 pb-1 hover:text-ink hover:border-ink/30 transition-colors cursor-pointer"
+        className="font-body text-caption tracking-[0.15em] uppercase text-rust border-b border-rust/30 pb-1 hover:text-ink hover:border-ink/30 transition-colors cursor-pointer min-h-[44px] px-4 py-3"
       >
         {t('stories.empty.browseAll')}
       </motion.button>
@@ -280,24 +282,52 @@ export default function Stories() {
 
   const categories: Category[] = ['all', 'impact', 'fashion', 'community', 'education'];
 
+  // Fetch artworks from API and convert to story format
+  const { data: artworksData } = useQuery({
+    queryKey: ['artworks-stories'],
+    queryFn: async () => {
+      try { return await artworksApi.getAll({ page_size: 10 }); }
+      catch { return null; }
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Convert API artworks to StoryItem format; fall back to MOCK_STORIES
+  const stories: StoryItem[] = useMemo(() => {
+    if (artworksData?.items?.length) {
+      return artworksData.items.map((artwork, i) => ({
+        id: String(artwork.id),
+        title: artwork.title,
+        excerpt: artwork.description || 'A child\'s artwork, created with imagination and heart.',
+        pullQuote: artwork.voteCount > 0 ? `${artwork.voteCount} supporters` : '120 artworks created in a single afternoon',
+        coverImage: artwork.imageUrl || `https://picsum.photos/seed/artwork-${artwork.id}/800/600`,
+        author: artwork.childParticipant?.firstName || 'Anonymous Artist',
+        publishedAt: artwork.createdAt ? artwork.createdAt.split('T')[0] : '2026-01-01',
+        readTimeMinutes: 5 + (i % 4) * 3,
+        category: ['impact', 'community', 'education', 'fashion'][i % 4] as StoryItem['category'],
+      }));
+    }
+    return MOCK_STORIES;
+  }, [artworksData]);
+
   // Compute category counts
   const categoryCounts = useMemo(() => {
     const counts: Record<Category, number> = {
-      all: MOCK_STORIES.length,
+      all: stories.length,
       impact: 0,
       fashion: 0,
       community: 0,
       education: 0,
     };
-    for (const story of MOCK_STORIES) {
+    for (const story of stories) {
       counts[story.category]++;
     }
     return counts;
-  }, []);
+  }, [stories]);
 
   const filtered = activeCategory === 'all'
-    ? MOCK_STORIES
-    : MOCK_STORIES.filter((s) => s.category === activeCategory);
+    ? stories
+    : stories.filter((s) => s.category === activeCategory);
 
   const handleSubscribe = () => {
     if (email.trim()) {
@@ -312,7 +342,6 @@ export default function Stories() {
         subtitle={t('stories.hero.subtitle')}
         hideHero={true}
       />
-      <h1 className="sr-only">{t('stories.hero.title')}</h1>
 
       {/* Kinetic marquee with attributed quotes */}
       <KineticTextMarquee
@@ -364,7 +393,7 @@ export default function Stories() {
                     inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-sm text-overline font-medium leading-none
                     ${activeCategory === cat
                       ? 'bg-rust/10 text-rust'
-                      : 'bg-warm-gray/20 text-sepia-mid/60'
+                      : 'bg-warm-gray/20 text-ink-light'
                     }
                   `}
                 >
@@ -383,17 +412,18 @@ export default function Stories() {
         </div>
 
         {/* Magazine spread stories */}
-        <AnimatePresence mode="wait">
-          {filtered.length > 0 ? (
-            <motion.div
-              key={activeCategory}
-              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="space-y-0"
-            >
-              {filtered.map((story, index) => {
+        <div id="panel-stories" role="tabpanel" aria-labelledby={`tab-story-${activeCategory}`}>
+          <AnimatePresence mode="wait">
+            {filtered.length > 0 ? (
+              <motion.div
+                key={activeCategory}
+                initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-0"
+              >
+                {filtered.map((story, index) => {
                 // Alternate peel corners for visual interest
                 const peelCorner = index % 2 === 0 ? 'bottom-right' : 'bottom-left';
                 return (
@@ -410,7 +440,7 @@ export default function Stories() {
                         : { initial: { opacity: 0, y: 50 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, margin: '-100px' }, transition: { duration: 0.8, ease: [0, 0, 0.2, 1] } }
                       )}
                     >
-                      <Link to={`/stories/${story.id}`} className="group block cursor-pointer">
+                      <Link to={`/artworks/${story.id}`} className="group block cursor-pointer">
                         <div className={`grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center ${index % 2 === 1 ? '' : ''}`}>
                           {/* Image */}
                           <div className={`md:col-span-7 ${index % 2 === 1 ? 'md:order-2' : ''}`}>
@@ -477,17 +507,18 @@ export default function Stories() {
                       )}
 
                       {index < filtered.length - 1 && index !== 0 && (
-                        <div className="editorial-divider mt-16 md:mt-24" aria-hidden="true" />
+                        <div className="editorial-divider mt-16 md:mt-24" />
                       )}
                     </motion.article>
                   </PagePeel>
                 );
-              })}
-            </motion.div>
-          ) : (
-            <EmptyState onBrowseAll={() => setActiveCategory('all')} />
-          )}
-        </AnimatePresence>
+                })}
+              </motion.div>
+            ) : (
+              <EmptyState onBrowseAll={() => setActiveCategory('all')} />
+            )}
+          </AnimatePresence>
+        </div>
       </SectionContainer>
 
       {/* Newsletter CTA */}
@@ -520,6 +551,7 @@ export default function Stories() {
                   <VintageInput
                     type="email"
                     placeholder={t('stories.newsletter.placeholder')}
+                    aria-label={t('stories.newsletter.placeholder')}
                     className="flex-1"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -531,7 +563,7 @@ export default function Stories() {
                     onClick={handleSubscribe}
                     whileHover={prefersReducedMotion ? undefined : { y: -1 }}
                     whileTap={prefersReducedMotion ? undefined : { scale: 0.97 }}
-                    className="font-body text-caption tracking-[0.15em] uppercase text-rust hover:text-ink transition-colors flex-shrink-0"
+                    className="font-body text-caption tracking-[0.15em] uppercase text-rust hover:text-ink transition-colors flex-shrink-0 min-h-[44px] px-4 py-3"
                   >
                     {t('stories.newsletter.subscribe')} &rarr;
                   </motion.button>
@@ -582,7 +614,7 @@ export default function Stories() {
         </SectionContainer>
       </section>
 
-      <div className="editorial-divider" aria-hidden="true" />
+      <div className="editorial-divider" />
     </PageWrapper>
   );
 }

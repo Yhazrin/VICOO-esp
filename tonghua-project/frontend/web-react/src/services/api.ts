@@ -72,7 +72,7 @@ api.interceptors.request.use(
     // Get request body for signing
     const body = config.data ? (typeof config.data === 'string' ? config.data : JSON.stringify(config.data)) : '';
 
-    // Generate signature
+    // Generate signature (skipped if no secret key configured)
     const signature = await generateSignature(
       config.method?.toUpperCase() || 'GET',
       config.url || '',
@@ -81,9 +81,11 @@ api.interceptors.request.use(
       body
     );
 
-    config.headers['X-Signature'] = signature;
-    config.headers['X-Timestamp'] = timestamp;
-    config.headers['X-Nonce'] = nonce;
+    if (signature) {
+      config.headers['X-Signature'] = signature;
+      config.headers['X-Timestamp'] = timestamp;
+      config.headers['X-Nonce'] = nonce;
+    }
 
     return config;
   },

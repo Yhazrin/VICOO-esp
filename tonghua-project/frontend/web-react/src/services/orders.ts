@@ -1,11 +1,5 @@
 import api from './api';
-import type { Order } from '@/types';
-
-export interface CreateOrderRequest {
-  items: { product_id: number; quantity: number }[];
-  shipping_address?: string;
-  payment_method?: 'wechat' | 'alipay' | 'stripe' | 'paypal';
-}
+import type { Order, CreateOrderRequest } from '@/types';
 
 export const ordersApi = {
   create: async (data: CreateOrderRequest): Promise<Order> => {

@@ -100,6 +100,19 @@ async def list_featured_products():
     return ApiResponse(data=featured)
 
 
+@router.get("/{product_id}/supply-chain", response_model=ApiResponse)
+async def get_product_supply_chain(product_id: int, db: AsyncSession = Depends(get_db)):
+    """Get supply chain records for a product."""
+    try:
+        stmt = select(SupplyChainRecord).where(SupplyChainRecord.product_id == product_id)
+        result = await db.execute(stmt)
+        records = result.scalars().all()
+        return ApiResponse(data=[SupplyChainRecordOut.model_validate(r).model_dump() for r in records])
+    except Exception:
+        records = [r for r in _mock_supply_chain if r["product_id"] == product_id]
+        return ApiResponse(data=records)
+
+
 @router.get("/{product_id}", response_model=ApiResponse)
 async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
     """Get a single product by ID."""
@@ -160,16 +173,3 @@ async def update_product(product_id: int, body: ProductUpdate, db: AsyncSession 
                 p.update({k: str(v) if isinstance(v, Decimal) else v for k, v in body.model_dump().items() if v is not None})
                 return ApiResponse(data=p)
         raise HTTPException(status_code=404, detail="Product not found")
-
-
-@router.get("/{product_id}/supply-chain", response_model=ApiResponse)
-async def get_product_supply_chain(product_id: int, db: AsyncSession = Depends(get_db)):
-    """Get supply chain records for a product."""
-    try:
-        stmt = select(SupplyChainRecord).where(SupplyChainRecord.product_id == product_id)
-        result = await db.execute(stmt)
-        records = result.scalars().all()
-        return ApiResponse(data=[SupplyChainRecordOut.model_validate(r).model_dump() for r in records])
-    except Exception:
-        records = [r for r in _mock_supply_chain if r["product_id"] == product_id]
-        return ApiResponse(data=records)
