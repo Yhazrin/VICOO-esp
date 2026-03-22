@@ -102,6 +102,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
 
             # 检查微信 API 返回的错误
             if "errcode" in session_data and session_data["errcode"] != 0:
+                logger.warning(f"WeChat code2session error: errcode={session_data.get('errcode')}")
                 raise HTTPException(status_code=401, detail="WeChat authentication failed")
 
             openid = session_data.get("openid")

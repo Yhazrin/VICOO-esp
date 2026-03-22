@@ -63,7 +63,7 @@ export default function EditorialHeroV2({
           transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6 }}
           className="flex items-center gap-4 mb-6"
         >
-          <div className="w-px h-12 bg-gradient-to-b from-transparent via-rust/60 to-transparent" />
+          <div className="w-px h-12 bg-gradient-to-b from-transparent via-rust/60 to-transparent" aria-hidden="true" />
           <span className="font-mono text-[9px] tracking-[0.25em] text-rust uppercase">
             {eyebrowText}
           </span>
@@ -155,7 +155,7 @@ export default function EditorialHeroV2({
             {stats.map((stat, i) => (
               <div key={i} className="relative">
                 {i > 0 && (
-                  <div className="absolute left-[-20px] top-1/2 -translate-y-1/2 w-px h-8 bg-gradient-to-b from-transparent via-black/10 to-transparent" />
+                  <div className="absolute left-[-20px] top-1/2 -translate-y-1/2 w-px h-8 bg-gradient-to-b from-transparent via-black/10 to-transparent" aria-hidden="true" />
                 )}
                 <span className="font-display text-[24px] font-semibold text-ink block mb-1">
                   {stat.value}

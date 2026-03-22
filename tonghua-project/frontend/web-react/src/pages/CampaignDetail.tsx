@@ -195,7 +195,14 @@ export default function CampaignDetail() {
                       {t('campaigns.detail.progress')}
                     </span>
                   </div>
-                  <div className="w-full h-1.5 bg-warm-gray/30 rounded-sm overflow-hidden mb-4" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label={t('campaigns.detail.progress')}>
+                  <div
+                    role="progressbar"
+                    aria-valuenow={progress}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-label={t('campaigns.detail.progress')}
+                    className="w-full h-1.5 bg-warm-gray/30 rounded-sm overflow-hidden mb-4"
+                  >
                     <motion.div
                       {...(prefersReducedMotion ? { style: { transform: `scaleX(${progress / 100})` } } : {
                         initial: { scaleX: 0 },

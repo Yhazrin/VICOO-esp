@@ -197,7 +197,27 @@ export default function Profile() {
         <GrainOverlay />
         <SectionContainer>
           {/* Tab switcher */}
-          <div className="flex gap-8 mb-12 border-b border-warm-gray/30" role="tablist">
+          {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
+          <div
+            className="flex gap-8 mb-12 border-b border-warm-gray/30"
+            role="tablist"
+            onKeyDown={(e) => {
+              const tabs = e.currentTarget.querySelectorAll('[role="tab"]');
+              const tabIds = ['orders', 'donations'] as const;
+              const currentIndex = tabIds.indexOf(activeTab);
+              if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                const next = tabIds[(currentIndex + 1) % tabIds.length];
+                setActiveTab(next);
+                (tabs[(currentIndex + 1) % tabs.length] as HTMLElement)?.focus();
+              } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                const prev = tabIds[(currentIndex - 1 + tabIds.length) % tabIds.length];
+                setActiveTab(prev);
+                (tabs[(currentIndex - 1 + tabs.length) % tabIds.length] as HTMLElement)?.focus();
+              }
+            }}
+          >
             <button
               role="tab"
               id="tab-orders"

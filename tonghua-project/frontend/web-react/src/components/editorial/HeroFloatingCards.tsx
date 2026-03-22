@@ -75,7 +75,7 @@ function FloatingCard({
 export default function HeroFloatingCards({ className = '' }: HeroFloatingCardsProps) {
   const prefersReducedMotion = useReducedMotion();
   return (
-    <div className={`absolute right-0 top-0 bottom-0 w-[44%] z-[4] ${className}`}>
+    <div className={`absolute right-0 top-0 bottom-0 w-[44%] z-[4] ${className}`} aria-hidden="true">
       {/* Card 1 - Child Drawing */}
       <FloatingCard
         className="w-[130px] h-[160px] top-[60px] right-[220px]"

@@ -41,7 +41,7 @@ export default function ArtworkCard({
         {/* Image */}
         <div className="relative aspect-square overflow-hidden border-2 border-rust/30 bg-aged-stock mb-4">
           <SectionGrainOverlay className="z-10" />
-          <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/5 via-transparent to-archive-brown/5" />
+          <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/5 via-transparent to-archive-brown/5" aria-hidden="true" />
 
           {/* Loading skeleton */}
           {!imageLoaded && <ImageSkeleton className="absolute inset-0" />}

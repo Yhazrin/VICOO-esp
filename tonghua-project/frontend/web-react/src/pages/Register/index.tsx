@@ -72,6 +72,7 @@ export default function Register() {
             <motion.div
               {...(prefersReducedMotion ? {} : { initial: { scaleX: 0 }, animate: { scaleX: 1 }, transition: { duration: 0.8, delay: 0.3 } })}
               className="h-px w-[60px] bg-rust/40 mx-auto mt-6 origin-center"
+              aria-hidden="true"
             />
           </div>
 

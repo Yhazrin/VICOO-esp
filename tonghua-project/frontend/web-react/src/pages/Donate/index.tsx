@@ -443,8 +443,8 @@ export default function Donate() {
                     className="border border-warm-gray/30 p-6 bg-paper hover:border-sage/30 transition-colors cursor-pointer relative text-left w-full"
                   >
                     {/* Corner accents */}
-                    <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-sage/30 pointer-events-none" />
-                    <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-sage/30 pointer-events-none" />
+                    <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-sage/30 pointer-events-none" aria-hidden="true" />
+                    <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-sage/30 pointer-events-none" aria-hidden="true" />
 
                     <span className="font-body text-caption text-sepia-mid tracking-[0.15em]">
                       {t('donate.transparency.financialReport')}
@@ -513,6 +513,7 @@ export default function Donate() {
             <motion.div
               {...(prefersReducedMotion ? {} : { initial: { scaleX: 0 }, whileInView: { scaleX: 1 }, viewport: { once: true }, transition: { duration: 0.8, ease: [0, 0, 0.2, 1] } })}
               className="h-px w-20 bg-sage/50 mx-auto mb-10 origin-center"
+              aria-hidden="true"
             />
 
             <motion.h2
@@ -548,12 +549,13 @@ export default function Donate() {
             <motion.div
               {...(prefersReducedMotion ? {} : { initial: { scaleX: 0 }, whileInView: { scaleX: 1 }, viewport: { once: true }, transition: { duration: 0.8, ease: [0, 0, 0.2, 1], delay: 0.3 } })}
               className="h-px w-20 bg-sage/50 mx-auto mt-10 origin-center"
+              aria-hidden="true"
             />
           </div>
         </SectionContainer>
       </section>
 
-      <div className="editorial-divider" />
+      <div className="editorial-divider" aria-hidden="true" />
     </PageWrapper>
   );
 }

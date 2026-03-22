@@ -79,12 +79,12 @@ class Settings(BaseSettings):
         return v
 
     @model_validator(mode="after")
-    def validate_cors_credentials(self):
-        """Reject wildcard CORS origins when credentials are enabled."""
+    def validate_cors_security(self):
+        """Prevent wildcard CORS origins with credentials (browser spec violation)."""
         if "*" in self.CORS_ORIGINS:
             raise ValueError(
-                "CORS_ORIGINS cannot be '*' when allow_credentials is enabled. "
-                "Specify explicit origins instead."
+                "CORS_ORIGINS cannot contain '*' — browsers reject wildcard with credentials. "
+                "List explicit origins (e.g., 'https://tonghua.org,https://www.tonghua.org')."
             )
         return self
 

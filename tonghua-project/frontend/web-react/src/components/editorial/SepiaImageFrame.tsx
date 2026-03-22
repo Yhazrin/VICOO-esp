@@ -84,11 +84,12 @@ export default function SepiaImageFrame({
           />
         ))}
         {/* Aged overlay */}
-        <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/5 via-transparent to-archive-brown/5" />
+        <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/5 via-transparent to-archive-brown/5" aria-hidden="true" />
 
         {/* Vignette */}
         <div
           className="absolute inset-0 z-10 pointer-events-none"
+          aria-hidden="true"
           style={{
             boxShadow: 'inset 0 0 60px color-mix(in srgb, var(--color-ink) 12%, transparent)',
           }}
