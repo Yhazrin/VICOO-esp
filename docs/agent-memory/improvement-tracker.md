@@ -166,6 +166,22 @@
 | 127 | Backend — deps.py missing optional auth dependency | Medium | ✅ done — get_optional_current_user() returns user dict or None, no exception on auth failure |
 | 128 | Backend — donations.py missing name redaction helper | Medium | ✅ done — _redact_name() masks names to first char + asterisks, handles anonymous flag |
 
+## Completed — Cycle 12 (2026-03-22)
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 129 | Backend — deps.py rate_limit_check silent bypass via `except Exception: return True` | P1 | ✅ done — fail-closed in production (HTTP 503), fail-open only in development |
+| 130 | Accessibility — EditorialAdvertisement `text-muted-gray` on paper = 1.85:1 | P0 | ✅ done — changed to `text-ink-light` (#6B665C = 4.6:1) |
+| 131 | Accessibility — Contact character counter `text-sepia-mid/60` = 2.68:1 | P1 | ✅ done — changed to `text-sepia-mid` (5.78:1) |
+| 132 | Accessibility — VintageInput helper text `text-sepia-mid/70` = 3.72:1 | P1 | ✅ done — changed to `text-sepia-mid` (5.78:1) |
+| 133 | Accessibility — Stories inactive badge `text-sepia-mid/60` = 2.68:1 | P1 | ✅ done — changed to `text-ink-light` (4.6:1) |
+| 134 | Accessibility — Campaigns filter index `text-sepia-mid/60` = 2.68:1 | P1 | ✅ done — changed to `text-sepia-mid` (5.78:1) |
+| 135 | Accessibility — Traceability hint text `text-sepia-mid/70` = 3.72:1 | P1 | ✅ done — changed to `text-sepia-mid` (5.78:1) |
+| 136 | Accessibility — Donate.module.css placeholder warm-gray = 1.43:1 | P1 | ✅ done — changed to sepia-mid (5.78:1) |
+| 137 | Accessibility — Campaigns.module.css empty icon warm-gray = 1.43:1 | P1 | ✅ done — changed to sepia-mid (5.78:1) |
+| 138 | Accessibility — global.css advertisement-label muted-gray = 1.85:1 | P1 | ✅ done — changed to ink-light (4.6:1) |
+| 139 | Accessibility — global.css form-input placeholder muted-gray = 1.85:1 | P1 | ✅ done — changed to sepia-mid (5.78:1) |
+
 ## Pending
 
 | # | Issue | Priority | Notes |

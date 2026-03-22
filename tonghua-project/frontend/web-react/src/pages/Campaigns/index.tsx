@@ -232,7 +232,7 @@ export default function Campaigns() {
                 }
               `}
             >
-              <span className="font-body text-overline text-sepia-mid/60 mr-1.5">
+              <span className="font-body text-overline text-sepia-mid mr-1.5">
                 {String(index + 1).padStart(2, '0')}
               </span>
               {status === 'all'
