@@ -6,7 +6,6 @@ from decimal import Decimal
 import xml.etree.ElementTree as ET
 import secrets
 import logging
-from urllib.parse import parse_qs
 
 import hmac as hmac_mod
 import hashlib
@@ -90,20 +89,9 @@ async def create_payment(body: PaymentCreate, db: AsyncSession = Depends(get_db)
         db.add(tx)
         await db.flush()
         return ApiResponse(data=PaymentOut.model_validate(tx).model_dump())
-    except Exception:
-        new_id = max(p["id"] for p in _mock_payments) + 1 if _mock_payments else 1
-        new_payment = {
-            "id": new_id,
-            "order_id": body.order_id,
-            "donation_id": body.donation_id,
-            "amount": str(body.amount),
-            "method": body.method,
-            "provider_transaction_id": f"{body.method}_pending_{secrets.randbelow(90000) + 10000}",
-            "status": "pending",
-            "created_at": "2025-06-01T00:00:00",
-        }
-        _mock_payments.append(new_payment)
-        return ApiResponse(data=new_payment)
+    except Exception as e:
+        logger.error(f"DB write failed during create_payment: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.post("/wechat-notify")
@@ -244,7 +232,7 @@ async def wechat_notify(request: Request, db: AsyncSession = Depends(get_db)):
     except Exception as e:
         logger.error(f"WeChat callback processing error: {str(e)}")
         return Response(
-            content=f"<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[{str(e)}]]></return_msg></xml>",
+            content="<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[Internal processing error]]></return_msg></xml>",
             media_type="application/xml"
         )
 
@@ -305,7 +293,8 @@ async def alipay_notify(request: Request, db: AsyncSession = Depends(get_db)):
                 logger.error(f"Alipay signature verification failed: {verify_error}")
                 return PlainTextResponse("failure")
         else:
-            logger.warning("ALIPAY_PUBLIC_KEY not configured, skipping signature verification")
+            logger.error("ALIPAY_PUBLIC_KEY not configured, rejecting Alipay callback")
+            return PlainTextResponse("failure", status_code=500)
 
         # --- Check trade status ---
         trade_status = params.get("trade_status", "")

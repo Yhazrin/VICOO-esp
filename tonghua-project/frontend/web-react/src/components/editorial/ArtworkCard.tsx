@@ -24,8 +24,8 @@ export default function ArtworkCard({
   return (
     <motion.article
       ref={ref}
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 40 }}
-      animate={isVisible ? (prefersReducedMotion ? {} : { opacity: 1, y: 0 }) : {}}
+      initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 40 }}
+      animate={isVisible ? { opacity: 1, y: 0 } : {}}
       transition={prefersReducedMotion ? { duration: 0 } : {
         duration: 0.7,
         ease: [0, 0, 0.2, 1],
@@ -41,13 +41,13 @@ export default function ArtworkCard({
         {/* Image */}
         <div className="relative aspect-square overflow-hidden border-2 border-rust/30 bg-aged-stock mb-4">
           <SectionGrainOverlay className="z-10" />
-          <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/5 via-transparent to-archive-brown/5" />
+          <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/5 via-transparent to-archive-brown/5" aria-hidden="true" />
 
           {/* Loading skeleton */}
           {!imageLoaded && <ImageSkeleton className="absolute inset-0" />}
 
           <img
-            src={artwork.imageUrl}
+            src={artwork.image_url}
             alt={artwork.title}
             className={`w-full h-full object-cover sepia-[0.08] transition-transform duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:scale-105 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
             loading="lazy"
@@ -63,12 +63,12 @@ export default function ArtworkCard({
             </h3>
             <p className="font-body text-caption text-sepia-mid mt-1">
               Age {artwork.childParticipant.age} &middot;{' '}
-              {new Date(artwork.createdAt).getFullYear()}
+              {new Date(artwork.created_at).getFullYear()}
             </p>
           </div>
 
           <span className="font-body text-caption text-sepia-mid whitespace-nowrap flex-shrink-0">
-            {artwork.voteCount} votes
+            {artwork.vote_count} votes
           </span>
         </div>
       </Link>

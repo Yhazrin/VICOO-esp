@@ -4,6 +4,7 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
 import secrets
+import logging
 
 from app.database import get_db
 from app.models.artwork import Artwork
@@ -13,6 +14,8 @@ from app.schemas.artwork import ChildParticipantForArtwork
 from app.deps import require_role, get_current_user, get_redis_client
 
 router = APIRouter(prefix="/artworks", tags=["Artworks"])
+
+logger = logging.getLogger(__name__)
 
 
 def _convert_child_participant(cp: ChildParticipant | None) -> ChildParticipantForArtwork | None:
@@ -208,24 +211,11 @@ async def create_artwork(
         await db.flush()
         await db.refresh(artwork, ["child_participant"])
         return ApiResponse(data=_serialize_artwork(artwork))
-    except Exception:
-        new_id = max(a["id"] for a in _mock_artworks) + 1 if _mock_artworks else 1
-        new_artwork = {
-            "id": new_id,
-            "title": title,
-            "description": description,
-            "image_url": "/static/artworks/mock.jpg",
-            "thumbnail_url": "/static/artworks/mock.jpg",
-            "artist_name": current_user.get("nickname", "Anonymous"),
-            "campaign_id": campaign_id,
-            "status": "draft",
-            "vote_count": 0,
-            "view_count": 0,
-            "created_at": "2025-06-01T00:00:00",
-            "updated_at": "2025-06-01T00:00:00",
-        }
-        _mock_artworks.append(new_artwork)
-        return ApiResponse(data=new_artwork)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"DB write failed during create_artwork: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.put("/{artwork_id}", response_model=ApiResponse)
@@ -244,12 +234,9 @@ async def update_artwork(artwork_id: int, body: ArtworkUpdate, db: AsyncSession 
         return ApiResponse(data=_serialize_artwork(artwork))
     except HTTPException:
         raise
-    except Exception:
-        for a in _mock_artworks:
-            if a["id"] == artwork_id:
-                a.update({k: v for k, v in body.model_dump().items() if v is not None})
-                return ApiResponse(data=a)
-        raise HTTPException(status_code=404, detail="Artwork not found")
+    except Exception as e:
+        logger.error(f"DB write failed during update_artwork: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.get("/{artwork_id}/status", response_model=ApiResponse)
@@ -286,12 +273,9 @@ async def update_artwork_status(artwork_id: int, body: ArtworkStatusUpdate, db: 
         return ApiResponse(data=_serialize_artwork(artwork))
     except HTTPException:
         raise
-    except Exception:
-        for a in _mock_artworks:
-            if a["id"] == artwork_id:
-                a["status"] = body.status
-                return ApiResponse(data=a)
-        raise HTTPException(status_code=404, detail="Artwork not found")
+    except Exception as e:
+        logger.error(f"DB write failed during update_artwork_status: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.post("/{artwork_id}/vote", response_model=ApiResponse)
@@ -309,8 +293,10 @@ async def vote_artwork(artwork_id: int, db: AsyncSession = Depends(get_db), redi
         if not artwork:
             raise HTTPException(status_code=404, detail="Artwork not found")
 
-        # Update vote count (using like_count in DB, which maps to vote_count in schema)
-        artwork.like_count += 1
+        # Update vote count atomically (using like_count in DB, which maps to vote_count in schema)
+        await db.execute(
+            update(Artwork).where(Artwork.id == artwork_id).values(like_count=Artwork.like_count + 1)
+        )
         await db.flush()
         await db.refresh(artwork, ["child_participant"])
 
@@ -322,24 +308,9 @@ async def vote_artwork(artwork_id: int, db: AsyncSession = Depends(get_db), redi
         return ApiResponse(data=response_data)
     except HTTPException:
         raise
-    except Exception:
-        # Fallback for mock data
-        for a in _mock_artworks:
-            if a["id"] == artwork_id:
-                # Check duplicate in mock
-                if a.get("voted_by_users") and current_user['id'] in a["voted_by_users"]:
-                     raise HTTPException(status_code=400, detail="Already voted")
-
-                # Update vote_count in mock data
-                a["vote_count"] = a.get("vote_count", 0) + 1
-                # Track voter
-                if "voted_by_users" not in a:
-                    a["voted_by_users"] = []
-                a["voted_by_users"].append(current_user['id'])
-
-                a["has_voted"] = True
-                return ApiResponse(data=a)
-        raise HTTPException(status_code=404, detail="Artwork not found")
+    except Exception as e:
+        logger.error(f"DB write failed during vote_artwork: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.delete("/{artwork_id}", response_model=ApiResponse)
@@ -356,7 +327,6 @@ async def delete_artwork(artwork_id: int, db: AsyncSession = Depends(get_db), cu
         return ApiResponse(data={"deleted": artwork_id})
     except HTTPException:
         raise
-    except Exception:
-        global _mock_artworks
-        _mock_artworks = [a for a in _mock_artworks if a["id"] != artwork_id]
-        return ApiResponse(data={"deleted": artwork_id})
+    except Exception as e:
+        logger.error(f"DB write failed during delete_artwork: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")

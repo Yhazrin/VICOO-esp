@@ -583,7 +583,7 @@ input, textarea, select {
   font-size: var(--text-overline);
   letter-spacing: var(--tracking-widest);
   text-transform: uppercase;
-  color: var(--color-muted-gray);
+  color: var(--color-ink-light);
   margin-bottom: var(--space-4);
 }
 
@@ -608,7 +608,7 @@ input, textarea, select {
 }
 
 .form-input::placeholder {
-  color: var(--color-muted-gray);
+  color: var(--color-sepia-mid);
 }
 
 /* ─────────────────────────────────────────────────────────────

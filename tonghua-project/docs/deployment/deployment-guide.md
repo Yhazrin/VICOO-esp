@@ -529,6 +529,190 @@ For production, consider adding:
 3. **Sentry** -- application error tracking
 4. **Uptime Kuma** or similar -- external uptime monitoring
 
+### Performance Alerts
+
+Configure alerts to detect degradation before users are impacted. Below are recommended thresholds and Prometheus alerting rules.
+
+#### Alert Thresholds
+
+| Metric | Warning | Critical | Check Interval |
+|--------|---------|----------|----------------|
+| API response time (p95) | > 500 ms | > 2000 ms | 1 min |
+| API response time (p99) | > 1500 ms | > 5000 ms | 1 min |
+| API error rate (5xx) | > 1% | > 5% | 1 min |
+| CPU utilization | > 70% | > 90% | 1 min |
+| Memory utilization | > 80% | > 95% | 1 min |
+| Disk usage | > 75% | > 90% | 5 min |
+| MySQL connection pool usage | > 70% | > 90% | 1 min |
+| Redis memory usage | > 80% of maxmemory | > 95% of maxmemory | 1 min |
+| RabbitMQ queue depth | > 1000 messages | > 5000 messages | 1 min |
+| Container restart count | > 2 in 10 min | > 5 in 10 min | 5 min |
+
+#### Prometheus Alert Rules
+
+Create `deploy/monitoring/alert-rules.yml`:
+
+```yaml
+groups:
+  - name: tonghua-api
+    rules:
+      - alert: HighApiLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 0.5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "API p95 latency above 500ms"
+          description: "p95 response time is {{ $value }}s"
+
+      - alert: CriticalApiLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "API p95 latency above 2s"
+
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.01
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "5xx error rate above 1%"
+
+  - name: tonghua-resources
+    rules:
+      - alert: HighCpuUsage
+        expr: 100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 70
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU usage above 70%"
+
+      - alert: HighMemoryUsage
+        expr: (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Memory usage above 80%"
+
+      - alert: DiskSpaceLow
+        expr: (1 - node_filesystem_avail_bytes / node_filesystem_size_bytes) * 100 > 75
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk usage above 75%"
+
+  - name: tonghua-database
+    rules:
+      - alert: MysqlConnectionsHigh
+        expr: mysql_global_status_threads_connected / mysql_global_variables_max_connections * 100 > 70
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MySQL connection pool usage above 70%"
+
+      - alert: RedisMemoryHigh
+        expr: redis_memory_used_bytes / redis_memory_max_bytes * 100 > 80
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis memory usage above 80%"
+```
+
+#### Grafana Dashboard Panels
+
+Recommended dashboard panels to create in Grafana:
+
+1. **Request Rate & Latency** -- `rate(http_requests_total[5m])` and p50/p95/p99 latency
+2. **Error Rate** -- 4xx and 5xx rates side by side
+3. **System Resources** -- CPU, memory, disk gauges
+4. **Database** -- MySQL connections, query time, slow queries
+5. **Cache** -- Redis hit rate, memory, evictions
+6. **Queues** -- RabbitMQ queue depth, publish/consume rates
+
+### Budget Alerts
+
+Set up cloud cost monitoring to avoid unexpected charges.
+
+#### Cloud Provider Budget Alerts
+
+**Alibaba Cloud (阿里云):**
+
+1. Go to **费用中心 → 预算管理 → 预算** (Cost Management → Budgets)
+2. Create a monthly budget with thresholds:
+   - **50%** -- Informational email
+   - **80%** -- Warning email + SMS
+   - **100%** -- Critical email + SMS to all admins
+3. Set per-service budgets:
+   - ECS (compute)
+   - RDS (MySQL)
+   - Redis
+   - OSS (storage)
+   - CDN (bandwidth)
+
+**AWS (if applicable):**
+
+1. Go to **AWS Budgets** → Create budget
+2. Set **Cost budget** with monthly amount
+3. Configure alerts at 50%, 80%, 100% thresholds
+4. Add **Actual + Forecasted** alert type to catch overspend early
+
+**GitHub Container Registry:**
+
+- GHCR storage is free for public repos; for private repos, monitor at **Settings → Billing → Packages**
+- Set a spending limit if available
+
+#### Resource Cost Monitoring Script
+
+Add a cron job to track daily resource usage:
+
+```bash
+#!/bin/bash
+# deploy/scripts/cost-check.sh
+# Run daily via cron: 0 9 * * * /path/to/cost-check.sh
+
+echo "=== Daily Resource Usage $(date) ==="
+
+# Docker disk usage
+echo "--- Docker ---"
+docker system df
+
+# Disk usage on key paths
+echo "--- Disk ---"
+df -h / /var/lib/docker
+
+# Container resource usage
+echo "--- Container Resources ---"
+docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}"
+
+# MySQL data size
+echo "--- MySQL Data ---"
+docker exec tonghua-mysql du -sh /var/lib/mysql 2>/dev/null || echo "N/A"
+
+# Redis memory
+echo "--- Redis Memory ---"
+docker exec tonghua-redis redis-cli -a "${REDIS_PASSWORD}" INFO memory 2>/dev/null | grep used_memory_human
+
+# OSS bucket size (requires ossutil configured)
+# ossutil du oss://tonghua-bucket/ 2>/dev/null || echo "OSS check skipped"
+```
+
+#### Cost Optimization Tips
+
+1. **Use Alpine/slim base images** -- smaller images = less registry storage
+2. **Enable Docker layer caching** in CI -- reduces build time and GHCR storage
+3. **Set Redis `maxmemory`** to prevent unbounded memory growth
+4. **Rotate MySQL binary logs** -- `expire_logs_days=7`
+5. **Compress old backups** and move to cold storage after 30 days
+6. **Use CDN for static assets** -- reduces origin bandwidth costs
+
 ---
 
 ## Backup and Recovery
@@ -675,6 +859,205 @@ The backend runs as non-root user `tonghua` (UID mapped inside the container). I
 # Fix ownership of mounted directories
 sudo chown -R 1000:1000 backend/
 ```
+
+### High Memory / OOM Kills
+
+Symptoms: containers restarting unexpectedly, `OOMKilled` in `docker inspect`.
+
+```
+# Check if a container was OOM-killed
+docker inspect --format='{{.State.OOMKilled}}' tonghua-backend
+# Check container restart count
+docker compose ps
+```
+
+**Solutions:**
+
+1. Check for memory leaks in application code (unclosed DB connections, growing caches)
+2. Increase container memory limits in `docker-compose.yml`:
+   ```yaml
+   services:
+     backend:
+       deploy:
+         resources:
+           limits:
+             memory: 1G
+   ```
+3. Tune MySQL InnoDB buffer pool: `innodb_buffer_pool_size` should be ~60-70% of available memory
+4. Set Redis `maxmemory` with appropriate eviction policy
+
+### Slow API Responses
+
+Symptoms: p95 latency > 1s, frontend timeouts.
+
+**Diagnosis:**
+
+```bash
+# Check if the backend is under heavy load
+docker stats tonghua-backend
+
+# Check MySQL slow query log
+docker exec tonghua-mysql mysql -u tonghua -p -e "SHOW VARIABLES LIKE 'slow_query%';"
+docker exec tonghua-mysql mysql -u tonghua -p -e "SHOW GLOBAL STATUS LIKE 'Slow_queries';"
+
+# Check Redis latency
+docker exec tonghua-redis redis-cli -a "${REDIS_PASSWORD}" --latency
+
+# Check if RabbitMQ queues are backing up
+docker exec tonghua-rabbitmq rabbitmqctl list_queues messages consumers
+```
+
+**Solutions:**
+
+1. Add MySQL indexes for frequently queried columns
+2. Enable Redis caching for hot data (campaigns, featured products)
+3. Check Nginx upstream keepalive settings
+4. Verify `uvicorn` worker count matches available CPU cores (`workers = 2 * CPU + 1`)
+
+### JWT Authentication Failures
+
+Symptoms: users getting logged out, 401 errors, token refresh loops.
+
+```
+# Backend log error:
+jwt.exceptions.InvalidSignatureError: Signature verification failed
+```
+
+**Solutions:**
+
+1. Verify `JWT_SECRET_KEY` is identical across all backend instances
+2. If using RS256, ensure `JWT_PUBLIC_KEY` matches the private key:
+   ```bash
+   openssl rsa -in private.pem -pubout -out public.pem
+   ```
+3. Check server clock sync -- JWT validation fails if clocks drift > 5 min:
+   ```bash
+   timedatectl status
+   # Install NTP if needed
+   apt install -y chrony && systemctl enable --now chronyd
+   ```
+4. Clear browser cookies/localStorage if token format changed between deployments
+
+### Payment Webhook Failures
+
+Symptoms: orders stuck in `pending`, payment callbacks not arriving.
+
+**WeChat Pay:**
+
+```bash
+# Check if callback URL is reachable from the internet
+curl -X POST https://your-domain.com/api/payments/wechat/notify
+
+# Check Nginx is forwarding the request
+docker exec tonghua-frontend cat /var/log/nginx/access.log | grep "wechat/notify"
+
+# Verify WeChat Pay certificate is loaded
+docker compose logs backend | grep -i "wechat"
+```
+
+**Alipay:**
+
+```bash
+# Verify Alipay public key is configured
+docker compose logs backend | grep -i "alipay"
+
+# Test callback endpoint
+curl -X POST https://your-domain.com/api/payments/alipay/notify \
+  -d "trade_no=TEST&out_trade_no=TEST&trade_status=TRADE_SUCCESS"
+```
+
+**Solutions:**
+
+1. Ensure callback URLs are publicly accessible (not behind VPN/firewall)
+2. Verify webhook URLs match exactly in the payment provider's dashboard
+3. Check Nginx request body size limit: `client_max_body_size 1m;`
+4. Confirm TLS certificate is valid (payment providers reject self-signed certs)
+
+### RabbitMQ Connection Refused
+
+```
+pika.exceptions.AMQPConnectionError: Connection refused
+```
+
+**Solutions:**
+
+1. Check RabbitMQ is running: `docker compose ps rabbitmq`
+2. Wait for RabbitMQ health check -- it takes 15-30s to fully start
+3. If RabbitMQ crashed, check logs for memory issues:
+   ```bash
+   docker compose logs rabbitmq | tail -50
+   ```
+4. Clear RabbitMQ data if corrupted (WARNING: loses all queued messages):
+   ```bash
+   docker compose down
+   docker volume rm tonghua-project_rabbitmq_data
+   docker compose up -d rabbitmq
+   ```
+
+### Docker Build Out of Disk Space
+
+```
+ERROR: failed to solve: no space left on device
+```
+
+**Diagnosis and cleanup:**
+
+```bash
+# Check disk usage
+df -h
+docker system df
+
+# Clean up unused resources
+docker system prune -f
+
+# Remove old images (keeps only latest)
+docker image prune -a --filter "until=720h" -f
+
+# Remove dangling volumes
+docker volume prune -f
+```
+
+### CI/CD Pipeline Failures
+
+**Common GitHub Actions failures:**
+
+| Failure | Cause | Fix |
+|---------|-------|-----|
+| `tsc --noEmit` errors | TypeScript type mismatch | Run `npx tsc --noEmit` locally first |
+| `ruff` lint errors | Python style violations | Run `ruff check backend/` and `ruff format backend/` |
+| Docker build timeout | Large image or slow network | Enable layer caching in workflow |
+| GHCR push denied | Token permissions | Verify `GITHUB_TOKEN` has `write:packages` scope |
+| Deploy step fails | SSH key missing | Check `STAGING_HOST` / `PROD_HOST` secrets |
+
+```bash
+# Debug CI locally with act (GitHub Actions local runner)
+act -j backend-lint
+act -j frontend-lint
+```
+
+### Intermittent 503 Errors
+
+Symptoms: occasional 503 Service Unavailable in the browser.
+
+**Diagnosis:**
+
+```bash
+# Check if backend is restarting
+docker compose ps backend
+
+# Check Nginx error log for upstream errors
+docker exec tonghua-frontend cat /var/log/nginx/error.log | grep "upstream"
+
+# Check if uvicorn workers are crashing
+docker compose logs backend | grep -i "worker\|killed\|restart"
+```
+
+**Solutions:**
+
+1. Increase `uvicorn --timeout-keep-alive` (default 5s may be too short)
+2. Check Nginx `proxy_read_timeout` and `proxy_connect_timeout`
+3. Verify container health check isn't too aggressive (killing healthy but slow containers)
+4. Look for unhandled exceptions in Sentry or backend logs
 
 ---
 
