@@ -201,7 +201,7 @@ export default function Register() {
         </div>
       </PaperTextureBackground>
 
-      <div className="editorial-divider" />
+      <div className="editorial-divider" aria-hidden="true" />
     </PageWrapper>
   );
 }

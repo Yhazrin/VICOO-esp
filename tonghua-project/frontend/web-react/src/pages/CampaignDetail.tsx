@@ -137,6 +137,7 @@ export default function CampaignDetail() {
 
   return (
     <PageWrapper>
+      <h1 className="sr-only">{campaign.title}</h1>
       {/* Hero Image */}
       <section className="relative h-[50dvh] md:h-[60dvh]">
         <ImageSkeleton className="absolute inset-0" aspectRatio="aspect-video" />

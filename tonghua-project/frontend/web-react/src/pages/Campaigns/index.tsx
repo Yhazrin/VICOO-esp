@@ -216,8 +216,22 @@ export default function Campaigns() {
             <motion.button
               key={status}
               role="tab"
+              id={`tab-campaign-${status}`}
               aria-selected={filter === status}
+              aria-controls="panel-campaigns"
+              tabIndex={filter === status ? 0 : -1}
               onClick={() => handleFilterChange(status)}
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowRight') {
+                  const next = statuses[(index + 1) % statuses.length];
+                  handleFilterChange(next);
+                  document.getElementById(`tab-campaign-${next}`)?.focus();
+                } else if (e.key === 'ArrowLeft') {
+                  const prev = statuses[(index - 1 + statuses.length) % statuses.length];
+                  handleFilterChange(prev);
+                  document.getElementById(`tab-campaign-${prev}`)?.focus();
+                }
+              }}
               {...(prefersReducedMotion ? {} : {
                 initial: { opacity: 0, y: 10 },
                 animate: { opacity: 1, y: 0 },
@@ -272,6 +286,9 @@ export default function Campaigns() {
         ) : paginated.length > 0 ? (
           <AnimatePresence mode="wait">
             <motion.div
+              id="panel-campaigns"
+              role="tabpanel"
+              aria-labelledby={`tab-campaign-${filter}`}
               key={`${filter}-${page}`}
               initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
               animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1 }}
