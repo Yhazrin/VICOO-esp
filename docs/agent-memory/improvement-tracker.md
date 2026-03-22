@@ -1,6 +1,6 @@
 # Improvement Tracker
 
-> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 24)
+> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 25)
 > Scope broadened: now covers frontend UI/UX + backend architecture + software architecture + sustainability + code quality
 
 ## Completed
@@ -213,6 +213,13 @@
 | 159 | EditorialHeroV2 stat label text-[7px] below readability threshold | P2 | ✅ done — text-[7px] → text-[9px] |
 | 160 | Home/index.tsx hardcoded English strings in StoryQuoteBlock + "Est. 2026" | P2 | ✅ done — replaced with t('home.quote.*') + t('home.est'), added en.json/zh.json keys |
 | 161 | orders.py import random inside except block (code quality anti-pattern) | P2 | ✅ done — moved to top-level imports |
+
+## Completed — Cycle 25 (2026-03-22)
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 162 | auth.py mock password comparison timing attack (`!=` → `hmac.compare_digest`) | P0 | ✅ done — replaced `if mock_password != body.password` with `if not hmac.compare_digest(mock_password, body.password)` |
+| 163 | payments.py ownership check bypass — non-existent order/donation passes silently | P0 | ✅ done — added `order_found`/`donation_found` boolean flags; raises HTTP 404 when record not found in DB or mock fallback |
 
 ## Pending (deferred)
 

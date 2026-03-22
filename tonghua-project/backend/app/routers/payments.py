@@ -45,38 +45,50 @@ async def create_payment(body: PaymentCreate, db: AsyncSession = Depends(get_db)
     """
     # Ownership check: verify current user owns the order or donation
     if body.order_id:
+        order_found = False
         try:
             stmt = select(Order).where(Order.id == body.order_id)
             result = await db.execute(stmt)
             order = result.scalar_one_or_none()
-            if order and order.user_id != current_user["id"] and current_user.get("role") != "admin":
-                raise HTTPException(status_code=403, detail="Forbidden: you can only pay for your own orders")
+            if order:
+                order_found = True
+                if order.user_id != current_user["id"] and current_user.get("role") != "admin":
+                    raise HTTPException(status_code=403, detail="Forbidden: you can only pay for your own orders")
         except HTTPException:
             raise
         except Exception:
             # Mock fallback: check mock orders
             for o in _mock_orders:
                 if o["id"] == body.order_id:
+                    order_found = True
                     if o["user_id"] != current_user["id"] and current_user.get("role") != "admin":
                         raise HTTPException(status_code=403, detail="Forbidden: you can only pay for your own orders")
                     break
+        if not order_found:
+            raise HTTPException(status_code=404, detail="Order not found")
 
     if body.donation_id:
+        donation_found = False
         try:
             stmt = select(Donation).where(Donation.id == body.donation_id)
             result = await db.execute(stmt)
             donation = result.scalar_one_or_none()
-            if donation and donation.donor_user_id and donation.donor_user_id != current_user["id"] and current_user.get("role") != "admin":
-                raise HTTPException(status_code=403, detail="Forbidden: you can only pay for your own donations")
+            if donation:
+                donation_found = True
+                if donation.donor_user_id and donation.donor_user_id != current_user["id"] and current_user.get("role") != "admin":
+                    raise HTTPException(status_code=403, detail="Forbidden: you can only pay for your own donations")
         except HTTPException:
             raise
         except Exception:
             # Mock fallback: check mock donations
             for d in _mock_donations:
                 if d["id"] == body.donation_id:
+                    donation_found = True
                     if d.get("donor_user_id") and d["donor_user_id"] != current_user["id"] and current_user.get("role") != "admin":
                         raise HTTPException(status_code=403, detail="Forbidden: you can only pay for your own donations")
                     break
+        if not donation_found:
+            raise HTTPException(status_code=404, detail="Donation not found")
 
     try:
         tx = PaymentTransaction(
