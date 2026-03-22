@@ -14,21 +14,16 @@ export default function ArtworkDetail() {
   const prefersReducedMotion = useReducedMotion();
   const queryClient = useQueryClient();
 
-  const { data: artwork, isLoading: loading, error: queryError } = useQuery({
+  const { data: artwork, isLoading: loading, error } = useQuery({
     queryKey: ['artwork', id],
     queryFn: () => artworksApi.getById(id!),
     enabled: !!id,
   });
 
-  const handleVote = async () => {
-    if (!id) return;
-    try {
-      const result = await artworksApi.vote(id);
-      setArtwork((prev) => prev ? { ...prev, voteCount: result.voteCount } : null);
-    } catch (err) {
-      console.error('Failed to vote', err);
-    }
-  };
+  const voteMutation = useMutation({
+    mutationFn: () => artworksApi.vote(id!),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['artwork', id] }),
+  });
 
   if (loading) {
     return (
