@@ -175,9 +175,12 @@ async def rate_limit_check(request: Request, current_user: Optional[dict] = None
     except HTTPException:
         raise
     except Exception as e:
-        # Log unexpected errors but still allow request (fail-open for availability)
-        logger.error(f"Rate limiting dependency error: {e}", exc_info=True)
-        return True
+        # Fail closed in production: deny request when rate limiting is broken
+        if is_development:
+            logger.warning(f"Rate limiting error (development mode, failing open): {e}", exc_info=True)
+            return True
+        logger.error(f"Rate limiting error (failing closed): {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 async def get_current_user_from_request(request: Request, db: AsyncSession) -> Optional[dict]:

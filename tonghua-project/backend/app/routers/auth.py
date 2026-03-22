@@ -1,9 +1,8 @@
-import hmac
-import os
 import logging
+import hmac
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.database import get_db
 from app.models.user import User
-from app.schemas import ApiResponse, LoginRequest, RegisterRequest, RefreshRequest, TokenResponse, UserCreate
+from app.schemas import ApiResponse, LoginRequest, RegisterRequest, RefreshRequest, TokenResponse
 from app.security import (
     create_access_token,
     create_refresh_token,
@@ -59,8 +58,7 @@ def _set_auth_cookies(response: JSONResponse, access_token: str, refresh_token: 
         value=refresh_token,
         httponly=True,
         secure=is_secure,
-        samesite="strict",
-        path="/",
+        samesite="lax",
         max_age=7 * 24 * 60 * 60,  # 7 days
     )
     response.set_cookie(
@@ -68,8 +66,7 @@ def _set_auth_cookies(response: JSONResponse, access_token: str, refresh_token: 
         value=access_token,
         httponly=True,
         secure=is_secure,
-        samesite="strict",
-        path="/",
+        samesite="lax",
         max_age=15 * 60,  # 15 minutes
     )
     return response
@@ -105,8 +102,8 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
 
             # 检查微信 API 返回的错误
             if "errcode" in session_data and session_data["errcode"] != 0:
-                error_msg = session_data.get("errmsg", "WeChat authentication failed")
-                raise HTTPException(status_code=401, detail=f"WeChat authentication failed: {error_msg}")
+                logger.warning(f"WeChat code2session error: errcode={session_data.get('errcode')}")
+                raise HTTPException(status_code=401, detail="WeChat authentication failed")
 
             openid = session_data.get("openid")
             if not openid:
@@ -114,7 +111,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
 
             # 使用 openid 创建 JWT token
             token = create_access_token(subject=openid, role="user", extra={"openid": openid})
-            refresh = create_refresh_token(subject=openid)
+            refresh = create_refresh_token(subject=openid, role="user")
 
             response_data = ApiResponse(
                 success=True,
@@ -136,7 +133,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Email and password are required")
 
     # ── DB lookup ──
-    logger.debug("DB lookup for user by email")
+    logger.debug("DB lookup for user")
     try:
         stmt = select(User).where(User.email == body.email)
         result = await db.execute(stmt)
@@ -144,8 +141,10 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
         logger.debug(f"DB user found: {user is not None}")
         if user:
             if verify_password(body.password, user.password_hash):
+                if user.status == "banned":
+                    raise HTTPException(status_code=403, detail="Account is banned")
                 token = create_access_token(subject=str(user.id), role=user.role)
-                refresh = create_refresh_token(subject=str(user.id))
+                refresh = create_refresh_token(subject=str(user.id), role=user.role)
                 response_data = ApiResponse(
                     success=True,
                     data={
@@ -162,15 +161,15 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
                 return json_response
             else:
                 # User exists but password is wrong
-                logger.debug(f"Password verification failed for user: {user.id}")
+                logger.debug("Password verification failed")
                 raise HTTPException(status_code=401, detail="Invalid credentials")
         # User not found in DB - continue to mock fallback in development mode
         logger.debug("User not found in DB, checking mock fallback")
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         # DB error - continue to mock fallback in development mode
-        logger.debug(f"DB error during user lookup: {e}")
+        logger.debug("DB error during user lookup", exc_info=True)
         pass
 
     # ── Mock fallback (development only) ──
@@ -179,19 +178,19 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
     if settings.APP_ENV == "development":
         logger.debug("Development mode, checking mock users")
         mock = _get_mock_user(body.email)
-        logger.debug(f"Mock lookup: found={mock is not None}")
+        logger.debug("Mock lookup initiated")
         if mock:
             logger.debug(f"Mock user found: id={mock['id']}, role={mock['role']}")
             # Security: Validate password even for mock users
             # Use environment variable for mock password (no default)
             mock_password = settings.MOCK_USER_PASSWORD
-            logger.debug("Mock password check: validating credentials")
+            logger.debug("Verifying mock password")
             if not hmac.compare_digest(mock_password, body.password):
                 logger.debug("Mock password verification failed")
                 raise HTTPException(status_code=401, detail="Invalid credentials")
             logger.debug("Mock password verification passed")
             token = create_access_token(subject=str(mock["id"]), role=mock["role"])
-            refresh = create_refresh_token(subject=str(mock["id"]))
+            refresh = create_refresh_token(subject=str(mock["id"]), role=mock["role"])
             response_data = ApiResponse(
                 success=True,
                 data={
@@ -234,7 +233,7 @@ async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
         db.add(user)
         await db.flush()
         token = create_access_token(subject=str(user.id), role=user.role)
-        refresh = create_refresh_token(subject=str(user.id))
+        refresh = create_refresh_token(subject=str(user.id), role=user.role)
 
         response_data = ApiResponse(
             success=True,
@@ -270,7 +269,7 @@ async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
         new_user = {"id": new_id, "email": body.email, "nickname": body.nickname, "role": "user"}
         _mock_users.append(new_user)
         token = create_access_token(subject=str(new_id), role="user")
-        refresh = create_refresh_token(subject=str(new_id))
+        refresh = create_refresh_token(subject=str(new_id), role="user")
 
         response_data = ApiResponse(
             success=True,
@@ -325,8 +324,7 @@ async def wx_login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
 
         # 检查微信 API 返回的错误
         if "errcode" in session_data and session_data["errcode"] != 0:
-            error_msg = session_data.get("errmsg", "WeChat authentication failed")
-            raise HTTPException(status_code=401, detail=f"WeChat authentication failed: {error_msg}")
+            raise HTTPException(status_code=401, detail="WeChat authentication failed")
 
         openid = session_data.get("openid")
         if not openid:
@@ -338,7 +336,7 @@ async def wx_login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
 
         # 使用 openid 创建 JWT token
         token = create_access_token(subject=openid, role="user", extra={"openid": openid})
-        refresh = create_refresh_token(subject=openid)
+        refresh = create_refresh_token(subject=openid, role="user")
 
         response_data = ApiResponse(
             success=True,
@@ -370,12 +368,22 @@ async def refresh(request: Request, db: AsyncSession = Depends(get_db)):
         if payload.get("type") != "refresh":
             raise HTTPException(status_code=400, detail="Invalid refresh token")
         sub = payload["sub"]
-        # Look up current role from DB — don't trust the token payload
-        result = await db.execute(select(User).where(User.id == int(sub)))
-        user = result.scalar_one_or_none()
-        if not user:
-            raise HTTPException(status_code=401, detail="User not found")
-        role = user.role.value if hasattr(user.role, "value") else str(user.role)
+        role = payload.get("role", "user")
+
+        # Verify current account state and derive the role from the DB when sub is a numeric user id.
+        try:
+            user_id = int(sub)
+            result = await db.execute(select(User).where(User.id == user_id))
+            user = result.scalar_one_or_none()
+            if not user:
+                raise HTTPException(status_code=401, detail="User not found")
+            if user.status == "banned":
+                raise HTTPException(status_code=403, detail="Account is banned")
+            role = user.role.value if hasattr(user.role, "value") else str(user.role)
+        except HTTPException:
+            raise
+        except (ValueError, Exception):
+            pass  # sub is not an integer (e.g. WeChat openid) or DB unavailable
         new_access = create_access_token(subject=sub, role=role)
         new_refresh = create_refresh_token(subject=sub, role=role)
 
@@ -408,7 +416,6 @@ async def logout():
         status_code=200,
         content=response_data.model_dump(),
     )
-    is_secure = settings.APP_ENV != "development"
-    json_response.delete_cookie(key="refresh_token", path="/", samesite="strict", secure=is_secure)
-    json_response.delete_cookie(key="access_token", path="/", samesite="strict", secure=is_secure)
+    json_response.delete_cookie(key="refresh_token")
+    json_response.delete_cookie(key="access_token")
     return json_response

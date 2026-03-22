@@ -79,6 +79,16 @@ class Settings(BaseSettings):
         return v
 
     @model_validator(mode="after")
+    def validate_cors_security(self):
+        """Prevent wildcard CORS origins with credentials (browser spec violation)."""
+        if "*" in self.CORS_ORIGINS:
+            raise ValueError(
+                "CORS_ORIGINS cannot contain '*' — browsers reject wildcard with credentials. "
+                "List explicit origins (e.g., 'https://tonghua.org,https://www.tonghua.org')."
+            )
+        return self
+
+    @model_validator(mode="after")
     def validate_jwt_keys(self):
         """Ensure correct keys are provided based on the algorithm."""
         if self.JWT_ALGORITHM in ["RS256", "ES256", "PS256"]:

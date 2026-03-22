@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
@@ -33,13 +33,33 @@ export default function Profile() {
   const { user, isAuthenticated, logout } = useAuthStore();
   const [activeTab, setActiveTab] = useState<'orders' | 'donations'>('orders');
 
-  const { data: orders = [], isLoading: loadingOrders } = useQuery({
+  const tabs: Array<'orders' | 'donations'> = ['orders', 'donations'];
+
+  const handleTabKeyDown = useCallback(
+    (e: React.KeyboardEvent, tab: 'orders' | 'donations') => {
+      const idx = tabs.indexOf(tab);
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        const next = tabs[(idx + 1) % tabs.length];
+        setActiveTab(next);
+        document.getElementById(`tab-${next}`)?.focus();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        const prev = tabs[(idx - 1 + tabs.length) % tabs.length];
+        setActiveTab(prev);
+        document.getElementById(`tab-${prev}`)?.focus();
+      }
+    },
+    [],
+  );
+
+  const { data: orders = [], isLoading: loadingOrders, isError: errorOrders } = useQuery({
     queryKey: ['my-orders'],
     queryFn: () => ordersApi.getMyOrders(),
     enabled: isAuthenticated,
   });
 
-  const { data: donations = [], isLoading: loadingDonations } = useQuery({
+  const { data: donations = [], isLoading: loadingDonations, isError: errorDonations } = useQuery({
     queryKey: ['my-donations'],
     queryFn: () => donationsApi.getMyDonations(),
     enabled: isAuthenticated,
@@ -100,6 +120,7 @@ export default function Profile() {
       <PaperTextureBackground variant="paper" className="py-16 md:py-24 relative">
         <GrainOverlay />
         <SectionContainer>
+          <h1 className="sr-only">{t('profile.title')}</h1>
           <NumberedSectionHeading number="10" title={t('profile.title')} />
 
           <motion.div
@@ -176,34 +197,59 @@ export default function Profile() {
         <GrainOverlay />
         <SectionContainer>
           {/* Tab switcher */}
-          <div className="flex gap-8 mb-12 border-b border-warm-gray/30" role="tablist" aria-label={t('profile.title')}>
-            {(['orders', 'donations'] as const).map((tab, index, arr) => (
-              <button
-                key={tab}
-                role="tab"
-                id={`tab-${tab}`}
-                aria-selected={activeTab === tab}
-                aria-controls={`panel-${tab}`}
-                tabIndex={activeTab === tab ? 0 : -1}
-                onClick={() => setActiveTab(tab)}
-                onKeyDown={(e) => {
-                  if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-                    e.preventDefault();
-                    const dir = e.key === 'ArrowRight' ? 1 : -1;
-                    const next = (index + dir + arr.length) % arr.length;
-                    setActiveTab(arr[next]);
-                    document.getElementById(`tab-${arr[next]}`)?.focus();
-                  }
-                }}
-                className={`cursor-pointer pb-4 font-body text-body-sm tracking-[0.15em] uppercase transition-colors ${
-                  activeTab === tab
-                    ? 'text-ink border-b-2 border-ink'
-                    : 'text-sepia-mid hover:text-ink'
-                }`}
-              >
-                {tab === 'orders' ? `${t('profile.orders', 'Orders')} (${orders.length})` : `${t('profile.donations', 'Donations')} (${donations.length})`}
-              </button>
-            ))}
+          {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
+          <div
+            className="flex gap-8 mb-12 border-b border-warm-gray/30"
+            role="tablist"
+            onKeyDown={(e) => {
+              const tabs = e.currentTarget.querySelectorAll('[role="tab"]');
+              const tabIds = ['orders', 'donations'] as const;
+              const currentIndex = tabIds.indexOf(activeTab);
+              if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                const next = tabIds[(currentIndex + 1) % tabIds.length];
+                setActiveTab(next);
+                (tabs[(currentIndex + 1) % tabs.length] as HTMLElement)?.focus();
+              } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                const prev = tabIds[(currentIndex - 1 + tabIds.length) % tabIds.length];
+                setActiveTab(prev);
+                (tabs[(currentIndex - 1 + tabs.length) % tabIds.length] as HTMLElement)?.focus();
+              }
+            }}
+          >
+            <button
+              role="tab"
+              id="tab-orders"
+              aria-selected={activeTab === 'orders'}
+              aria-controls="panel-orders"
+              tabIndex={activeTab === 'orders' ? 0 : -1}
+              onClick={() => setActiveTab('orders')}
+              onKeyDown={(e) => handleTabKeyDown(e, 'orders')}
+              className={`cursor-pointer pb-4 font-body text-body-sm tracking-[0.15em] uppercase transition-colors ${
+                activeTab === 'orders'
+                  ? 'text-ink border-b-2 border-ink'
+                  : 'text-sepia-mid hover:text-ink'
+              }`}
+            >
+              {t('profile.orders', 'Orders')} ({orders.length})
+            </button>
+            <button
+              role="tab"
+              id="tab-donations"
+              aria-selected={activeTab === 'donations'}
+              aria-controls="panel-donations"
+              tabIndex={activeTab === 'donations' ? 0 : -1}
+              onClick={() => setActiveTab('donations')}
+              onKeyDown={(e) => handleTabKeyDown(e, 'donations')}
+              className={`cursor-pointer pb-4 font-body text-body-sm tracking-[0.15em] uppercase transition-colors ${
+                activeTab === 'donations'
+                  ? 'text-ink border-b-2 border-ink'
+                  : 'text-sepia-mid hover:text-ink'
+              }`}
+            >
+              {t('profile.donations', 'Donations')} ({donations.length})
+            </button>
           </div>
 
           {/* Orders tab */}
@@ -212,6 +258,10 @@ export default function Profile() {
               <NumberedSectionHeading number="01" title={t('profile.orderHistory', 'Order History')} />
               {loadingOrders ? (
                 <p className="font-body text-body-sm text-ink-faded">{t('common.loading', 'Loading...')}</p>
+              ) : errorOrders ? (
+                <p className="font-body text-body-sm text-rust">
+                  {t('profile.ordersError', 'We could not load your orders right now.')}
+                </p>
               ) : orders.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="font-body text-body-sm text-ink-faded mb-4">
@@ -274,6 +324,10 @@ export default function Profile() {
               <NumberedSectionHeading number="02" title={t('profile.donationHistory', 'Donation History')} />
               {loadingDonations ? (
                 <p className="font-body text-body-sm text-ink-faded">{t('common.loading', 'Loading...')}</p>
+              ) : errorDonations ? (
+                <p className="font-body text-body-sm text-rust">
+                  {t('profile.donationsError', 'We could not load your donations right now.')}
+                </p>
               ) : donations.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="font-body text-body-sm text-ink-faded mb-4">

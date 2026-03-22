@@ -82,7 +82,7 @@ export default function EditorialHero({
       `}
     >
       {/* Top gradient fade for smooth transition from header */}
-      <div className="absolute inset-0 bg-gradient-to-b from-paper/80 to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-paper/80 to-transparent pointer-events-none" aria-hidden="true" />
 
       {/* Parallax decorative layers - only when visible and motion allowed */}
       {isVisible && !prefersReducedMotion && (
@@ -233,19 +233,20 @@ export default function EditorialHero({
             {t('common.scroll')}
           </span>
           {prefersReducedMotion ? (
-            <div className="w-px h-8 bg-gradient-to-b from-sepia-mid/40 to-transparent" />
+            <div className="w-px h-8 bg-gradient-to-b from-sepia-mid/40 to-transparent" aria-hidden="true" />
           ) : (
             <motion.div
               animate={{ y: [0, 6, 0] }}
               transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
               className="w-px h-8 bg-gradient-to-b from-sepia-mid/40 to-transparent"
+              aria-hidden="true"
             />
           )}
         </motion.div>
       )}
 
       {/* Decorative bottom line */}
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-warm-gray/40 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-warm-gray/40 to-transparent" aria-hidden="true" />
 
       {/* Origami folded paper effect at bottom */}
       <motion.div

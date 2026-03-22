@@ -15,12 +15,10 @@ interface ProductCardProps {
   className?: string;
 }
 
-// Sustainability tier mapping — illustrative thresholds for demo purposes.
-// Real scores are based on GOTS/SA8000/LCA audits; methodology details at /sustainability-methodology.
-function getSustainabilityTier(score: number, t: (key: string) => string): { label: string; colorClass: string; barColor: string } {
-  if (score >= 90) return { label: t('shop.card.sustainability.exceptional'), colorClass: 'text-rust', barColor: 'bg-rust' };
-  if (score >= 80) return { label: t('shop.card.sustainability.excellent'), colorClass: 'text-sage', barColor: 'bg-sage' };
-  return { label: t('shop.card.sustainability.good'), colorClass: 'text-sepia-mid', barColor: 'bg-sepia-mid' };
+function getSustainabilityTier(score: number): { labelKey: string; colorClass: string; barColor: string } {
+  if (score >= 90) return { labelKey: 'shop.card.exceptional', colorClass: 'text-rust', barColor: 'bg-rust' };
+  if (score >= 80) return { labelKey: 'shop.card.excellent', colorClass: 'text-sage', barColor: 'bg-sage' };
+  return { labelKey: 'shop.card.good', colorClass: 'text-sepia-mid', barColor: 'bg-sepia-mid' };
 }
 
 export default function ProductCard({
@@ -36,7 +34,7 @@ export default function ProductCard({
   const [notifyEmail, setNotifyEmail] = useState('');
   const [notifySubmitted, setNotifySubmitted] = useState(false);
 
-  const sustainability = getSustainabilityTier(product.sustainabilityScore, t);
+  const sustainability = getSustainabilityTier(product.sustainabilityScore);
 
   const handleNotifySubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,7 +54,7 @@ export default function ProductCard({
     >
       <motion.article
         ref={ref}
-        initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 40 }}
+        initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 40 }}
         animate={prefersReducedMotion ? (isVisible ? { opacity: 1 } : {}) : (isVisible ? { opacity: 1, y: 0 } : {})}
         transition={{
           duration: 0.7,
@@ -112,11 +110,11 @@ export default function ProductCard({
             </span>
           </div>
 
-          {/* Artwork attribution — child name/age shown only with guardian consent */}
+          {/* Artwork attribution */}
           {product.artworkBy && (
             <p className="font-body text-overline text-sepia-mid tracking-wide mb-2">
-              {t('shop.card.artworkBy', { childName: product.artworkBy.childName, age: product.artworkBy.age, campaign: product.artworkBy.campaign })}
-              <span className="sr-only">{t('shop.card.artworkConsent')}</span>
+              {t('shop.card.artworkBy', { name: product.artworkBy.childName, age: product.artworkBy.age })}
+              {' '}&mdash; {product.artworkBy.campaign} {t('shop.card.campaign')}
             </p>
           )}
 
@@ -133,7 +131,7 @@ export default function ProductCard({
                   {product.sustainabilityScore}
                 </span>
                 <span className={`font-body text-overline tracking-wide ${sustainability.colorClass}`}>
-                  {sustainability.label}
+                  {t(sustainability.labelKey)}
                 </span>
               </div>
               <div className="w-12 h-px bg-warm-gray/30 mt-0.5 overflow-hidden">
@@ -185,7 +183,7 @@ export default function ProductCard({
                   <div className="flex-1">
                     <VintageInput
                       type="email"
-                      label={t('shop.card.email')}
+                      label={t('shop.card.notifyEmailLabel')}
                       placeholder="your@email.com"
                       value={notifyEmail}
                       onChange={(e) => setNotifyEmail(e.target.value)}

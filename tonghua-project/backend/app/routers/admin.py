@@ -3,6 +3,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
 from typing import Optional
+import logging
 
 from app.database import get_db
 from app.models.user import User, ChildParticipant
@@ -16,6 +17,8 @@ from app.schemas import ApiResponse, AuditLogOut, DashboardMetrics, PaginatedRes
 from app.deps import require_role
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
+
+logger = logging.getLogger(__name__)
 
 _mock_audit_logs = [
     {"id": 1, "user_id": 1, "user_name": "管理员", "action": "login", "resource": "auth", "resource_id": None, "details": "管理员登录成功", "ip_address": "192.168.1.100", "timestamp": "2025-03-01T08:00:00"},
@@ -235,13 +238,9 @@ async def approve_child_consent(
         return ApiResponse(data={"id": child.id, "consent_given": True, "status": "active"})
     except HTTPException:
         raise
-    except Exception:
-        for c in _mock_child_participants:
-            if c["id"] == child_id:
-                c["consent_given"] = True
-                c["status"] = "active"
-                return ApiResponse(data=c)
-        raise HTTPException(status_code=404, detail="Child participant not found")
+    except Exception as e:
+        logger.error(f"DB write failed during approve_child_consent: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.get("/analytics/donations", response_model=ApiResponse)

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
+import logging
 
 from app.database import get_db
 from app.models.user import User
@@ -9,6 +10,8 @@ from app.deps import get_current_user, require_role
 from app.security import aes_encrypt, hash_password
 
 router = APIRouter(prefix="/users", tags=["Users"])
+
+logger = logging.getLogger(__name__)
 
 _mock_users = [
     {"id": 1, "email": "admin@tonghua.org", "nickname": "管理员", "avatar": None, "role": "admin", "status": "active", "created_at": "2025-01-01T00:00:00", "updated_at": "2025-01-01T00:00:00"},
@@ -90,16 +93,9 @@ async def update_me(
         return ApiResponse(data=UserOut.model_validate(user).model_dump())
     except HTTPException:
         raise
-    except Exception:
-        # Explicitly whitelist allowed fields to prevent mass-assignment
-        update_data = {}
-        if body.nickname is not None:
-            update_data["nickname"] = body.nickname
-        if body.avatar is not None:
-            update_data["avatar"] = body.avatar
-        if body.phone is not None:
-            update_data["phone"] = body.phone
-        return ApiResponse(data={**current_user, **update_data})
+    except Exception as e:
+        logger.error(f"DB write failed during update_me: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.get("/{user_id}", response_model=ApiResponse)
@@ -154,8 +150,9 @@ async def update_user_role(
         return ApiResponse(data=UserOut.model_validate(user).model_dump())
     except HTTPException:
         raise
-    except Exception:
-        return ApiResponse(data={"id": user_id, "role": body.role, "message": "Role updated (mock)"})
+    except Exception as e:
+        logger.error(f"DB write failed during update_user_role: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.put("/{user_id}/status", response_model=ApiResponse)
@@ -180,5 +177,6 @@ async def update_user_status(
         return ApiResponse(data=UserOut.model_validate(user).model_dump())
     except HTTPException:
         raise
-    except Exception:
-        return ApiResponse(data={"id": user_id, "status": body.status, "message": "Status updated (mock)"})
+    except Exception as e:
+        logger.error(f"DB write failed during update_user_status: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")

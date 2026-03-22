@@ -105,10 +105,12 @@ export default function DonationPanel({
               transition={{ duration: 0.3, delay: index * 0.05 }}
               whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
               whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
+              aria-pressed={selectedAmount === amount && !customAmount}
               onClick={() => {
                 setSelectedAmount(amount);
                 setCustomAmount('');
               }}
+              aria-pressed={selectedAmount === amount && !customAmount}
               className={`
                 relative p-4 text-center transition-all duration-300 cursor-pointer overflow-hidden
                 ${selectedAmount === amount && !customAmount

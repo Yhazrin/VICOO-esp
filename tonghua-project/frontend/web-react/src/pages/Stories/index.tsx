@@ -28,72 +28,77 @@ interface StoryItem {
   category: 'impact' | 'fashion' | 'community' | 'education';
 }
 
-// Marquee quotes with attribution
-const STORY_QUOTES = [
-  { text: 'Every brushstroke a child makes is a window into a world they imagine', attribution: 'Chen Wei, Founder' },
-  { text: 'We don\'t just sell clothes, we sell the right to know where it came from', attribution: 'Zhang Hua, Production Lead' },
-  { text: 'Sustainability begins with seeing, not just buying', attribution: 'Li Mei, Community Director' },
-  { text: 'A classroom becomes a gallery when we open the doors', attribution: 'Wang Jun, Education Lead' },
-  { text: 'The ocean she painted was the bluest thing she had ever seen', attribution: 'Chen Wei, Founder' },
-];
+// Marquee quotes with attribution (requires i18n t function)
+function getStoryQuotes(t: (key: string) => string) {
+  return [
+    { text: t('stories.marquee.quote1'), attribution: t('stories.marquee.attr1') },
+    { text: t('stories.marquee.quote2'), attribution: t('stories.marquee.attr2') },
+    { text: t('stories.marquee.quote3'), attribution: t('stories.marquee.attr3') },
+    { text: t('stories.marquee.quote4'), attribution: t('stories.marquee.attr4') },
+    { text: t('stories.marquee.quote5'), attribution: t('stories.marquee.attr5') },
+  ];
+}
 
-const MOCK_STORIES: StoryItem[] = [
-  {
-    id: '1',
-    title: 'The Girl Who Drew the Ocean',
-    excerpt: 'A young girl had never seen the sea. But her painting of it became the most popular design in our Spring collection.',
-    pullQuote: '47 children participated in this workshop',
-    coverImage: 'https://picsum.photos/seed/ocean-girl/800/600',
-    author: 'Chen Wei',
-    publishedAt: '2026-02-15',
-    readTimeMinutes: 8,
-    category: 'impact',
-  },
-  {
-    id: '2',
-    title: 'From Waste to Wearable',
-    excerpt: 'How our production team turns deadstock fabric into limited-edition pieces that fund art workshops.',
-    pullQuote: '3.2 tonnes of fabric diverted from landfill',
-    coverImage: 'https://picsum.photos/seed/waste-wearable/800/600',
-    author: 'Zhang Hua',
-    publishedAt: '2026-02-01',
-    readTimeMinutes: 12,
-    category: 'fashion',
-  },
-  {
-    id: '3',
-    title: 'A Classroom Becomes a Gallery',
-    excerpt: 'When Dongfeng Elementary opened its doors for our workshop, nobody expected the walls to become canvases.',
-    pullQuote: '120 artworks created in a single afternoon',
-    coverImage: 'https://picsum.photos/seed/classroom-gallery/800/600',
-    author: 'Li Mei',
-    publishedAt: '2026-01-20',
-    readTimeMinutes: 6,
-    category: 'community',
-  },
-  {
-    id: '4',
-    title: 'Teaching Sustainability Through Art',
-    excerpt: 'Our new curriculum helps children understand environmental impact through creative expression.',
-    pullQuote: '14 schools adopted the curriculum this semester',
-    coverImage: 'https://picsum.photos/seed/sustainability-art/800/600',
-    author: 'Wang Jun',
-    publishedAt: '2026-01-10',
-    readTimeMinutes: 10,
-    category: 'education',
-  },
-  {
-    id: '5',
-    title: 'The Numbers Behind the Mission',
-    excerpt: 'A transparent look at how every yuan of donation translates into real-world impact for children and communities.',
-    pullQuote: '92% of funds go directly to programs',
-    coverImage: 'https://picsum.photos/seed/numbers-mission/800/600',
-    author: 'Chen Wei',
-    publishedAt: '2025-12-28',
-    readTimeMinutes: 15,
-    category: 'impact',
-  },
-];
+// Mock stories data (requires i18n t function)
+function getMockStories(t: (key: string) => string): StoryItem[] {
+  return [
+    {
+      id: '1',
+      title: t('stories.mock.title1'),
+      excerpt: t('stories.mock.excerpt1'),
+      pullQuote: t('stories.mock.pull1'),
+      coverImage: 'https://picsum.photos/seed/ocean-girl/800/600',
+      author: t('stories.mock.author1'),
+      publishedAt: '2026-02-15',
+      readTimeMinutes: 8,
+      category: 'impact',
+    },
+    {
+      id: '2',
+      title: t('stories.mock.title2'),
+      excerpt: t('stories.mock.excerpt2'),
+      pullQuote: t('stories.mock.pull2'),
+      coverImage: 'https://picsum.photos/seed/waste-wearable/800/600',
+      author: t('stories.mock.author2'),
+      publishedAt: '2026-02-01',
+      readTimeMinutes: 12,
+      category: 'fashion',
+    },
+    {
+      id: '3',
+      title: t('stories.mock.title3'),
+      excerpt: t('stories.mock.excerpt3'),
+      pullQuote: t('stories.mock.pull3'),
+      coverImage: 'https://picsum.photos/seed/classroom-gallery/800/600',
+      author: t('stories.mock.author3'),
+      publishedAt: '2026-01-20',
+      readTimeMinutes: 6,
+      category: 'community',
+    },
+    {
+      id: '4',
+      title: t('stories.mock.title4'),
+      excerpt: t('stories.mock.excerpt4'),
+      pullQuote: t('stories.mock.pull4'),
+      coverImage: 'https://picsum.photos/seed/sustainability-art/800/600',
+      author: t('stories.mock.author4'),
+      publishedAt: '2026-01-10',
+      readTimeMinutes: 10,
+      category: 'education',
+    },
+    {
+      id: '5',
+      title: t('stories.mock.title5'),
+      excerpt: t('stories.mock.excerpt5'),
+      pullQuote: t('stories.mock.pull5'),
+      coverImage: 'https://picsum.photos/seed/numbers-mission/800/600',
+      author: t('stories.mock.author5'),
+      publishedAt: '2025-12-28',
+      readTimeMinutes: 15,
+      category: 'impact',
+    },
+  ];
+}
 
 // Decorative SVG ornament for the newsletter section
 function EditorialOrnament({ className = '', prefersReducedMotion = false }: { className?: string; prefersReducedMotion?: boolean }) {
@@ -164,12 +169,12 @@ function EditorialOrnament({ className = '', prefersReducedMotion = false }: { c
 }
 
 // Reading progress bar at the bottom of story cards
-function ReadingProgressBar({ readTimeMinutes, prefersReducedMotion = false }: { readTimeMinutes: number; prefersReducedMotion?: boolean }) {
+function ReadingProgressBar({ readTimeMinutes, prefersReducedMotion = false, ariaLabel }: { readTimeMinutes: number; prefersReducedMotion?: boolean; ariaLabel: string }) {
   const maxReadTime = 20;
   const widthPercent = Math.min((readTimeMinutes / maxReadTime) * 100, 100);
 
   return (
-    <div className="mt-4 h-[2px] w-full bg-warm-gray/20 rounded-sm overflow-hidden" role="progressbar" aria-valuenow={readTimeMinutes} aria-valuemin={0} aria-valuemax={maxReadTime} aria-label={`${readTimeMinutes} minute read`}>
+    <div className="mt-4 h-[2px] w-full bg-warm-gray/20 rounded-sm overflow-hidden" role="progressbar" aria-valuenow={readTimeMinutes} aria-valuemin={0} aria-valuemax={maxReadTime} aria-label={ariaLabel}>
       <motion.div
         className="h-full bg-rust/60 rounded-sm origin-left"
         style={prefersReducedMotion ? { transform: `scaleX(${widthPercent / 100})` } : undefined}
@@ -298,17 +303,17 @@ export default function Stories() {
       return artworksData.items.map((artwork, i) => ({
         id: String(artwork.id),
         title: artwork.title,
-        excerpt: artwork.description || 'A child\'s artwork, created with imagination and heart.',
-        pullQuote: artwork.voteCount > 0 ? `${artwork.voteCount} supporters` : '120 artworks created in a single afternoon',
-        coverImage: artwork.imageUrl || `https://picsum.photos/seed/artwork-${artwork.id}/800/600`,
-        author: artwork.childParticipant?.firstName || 'Anonymous Artist',
-        publishedAt: artwork.createdAt ? artwork.createdAt.split('T')[0] : '2026-01-01',
+        excerpt: artwork.description || t('stories.artworkFallback'),
+        pullQuote: artwork.vote_count > 0 ? t('stories.supporters', { count: artwork.vote_count }) : t('stories.mock.pull3'),
+        coverImage: artwork.image_url || `https://picsum.photos/seed/artwork-${artwork.id}/800/600`,
+        author: artwork.childParticipant?.firstName || t('stories.anonymousArtist'),
+        publishedAt: artwork.created_at ? artwork.created_at.split('T')[0] : '2026-01-01',
         readTimeMinutes: 5 + (i % 4) * 3,
         category: ['impact', 'community', 'education', 'fashion'][i % 4] as StoryItem['category'],
       }));
     }
-    return MOCK_STORIES;
-  }, [artworksData]);
+    return getMockStories(t);
+  }, [artworksData, t]);
 
   // Compute category counts
   const categoryCounts = useMemo(() => {
@@ -345,7 +350,7 @@ export default function Stories() {
 
       {/* Kinetic marquee with attributed quotes */}
       <KineticTextMarquee
-        items={STORY_QUOTES.map((q) => `${q.text} — ${q.attribution}`)}
+        items={getStoryQuotes(t).map((q) => `${q.text} — ${q.attribution}`)}
         direction="left"
         speed={0.8}
         pauseOnHover={true}
@@ -353,23 +358,25 @@ export default function Stories() {
 
       <SectionContainer noTopSpacing>
         {/* Category filter with count badges */}
-        <div className="flex items-center gap-1 mb-12 border-b border-warm-gray/30 overflow-x-auto" role="tablist" aria-label={t('stories.categories.all')}>
-          {categories.map((cat, index) => (
+        <div className="flex items-center gap-1 mb-12 border-b border-warm-gray/30 overflow-x-auto" role="tablist">
+          {categories.map((cat, catIndex) => (
             <motion.button
               key={cat}
-              id={`story-tab-${cat}`}
               role="tab"
+              id={`tab-story-${cat}`}
               aria-selected={activeCategory === cat}
-              aria-controls={`story-tabpanel-${cat}`}
+              aria-controls="panel-stories"
               tabIndex={activeCategory === cat ? 0 : -1}
               onClick={() => setActiveCategory(cat)}
               onKeyDown={(e) => {
-                if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-                  e.preventDefault();
-                  const dir = e.key === 'ArrowRight' ? 1 : -1;
-                  const next = (index + dir + categories.length) % categories.length;
-                  setActiveCategory(categories[next]);
-                  document.getElementById(`story-tab-${categories[next]}`)?.focus();
+                if (e.key === 'ArrowRight') {
+                  const next = categories[(catIndex + 1) % categories.length];
+                  setActiveCategory(next);
+                  document.getElementById(`tab-story-${next}`)?.focus();
+                } else if (e.key === 'ArrowLeft') {
+                  const prev = categories[(catIndex - 1 + categories.length) % categories.length];
+                  setActiveCategory(prev);
+                  document.getElementById(`tab-story-${prev}`)?.focus();
                 }
               }}
               initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
@@ -391,7 +398,7 @@ export default function Stories() {
                     inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-sm text-overline font-medium leading-none
                     ${activeCategory === cat
                       ? 'bg-rust/10 text-rust'
-                      : 'bg-warm-gray/20 text-sepia-mid/60'
+                      : 'bg-warm-gray/20 text-ink-light'
                     }
                   `}
                 >
@@ -410,22 +417,18 @@ export default function Stories() {
         </div>
 
         {/* Magazine spread stories */}
-        <div
-          role="tabpanel"
-          id={`story-tabpanel-${activeCategory}`}
-          aria-labelledby={`story-tab-${activeCategory}`}
-        >
-        <AnimatePresence mode="wait">
-          {filtered.length > 0 ? (
-            <motion.div
-              key={activeCategory}
-              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="space-y-0"
-            >
-              {filtered.map((story, index) => {
+        <div id="panel-stories" role="tabpanel" aria-labelledby={`tab-story-${activeCategory}`}>
+          <AnimatePresence mode="wait">
+            {filtered.length > 0 ? (
+              <motion.div
+                key={activeCategory}
+                initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-0"
+              >
+                {filtered.map((story, index) => {
                 // Alternate peel corners for visual interest
                 const peelCorner = index % 2 === 0 ? 'bottom-right' : 'bottom-left';
                 return (
@@ -483,7 +486,7 @@ export default function Stories() {
                             </div>
 
                             {/* Reading progress indicator */}
-                            <ReadingProgressBar readTimeMinutes={story.readTimeMinutes} prefersReducedMotion={prefersReducedMotion ?? false} />
+                            <ReadingProgressBar readTimeMinutes={story.readTimeMinutes} prefersReducedMotion={prefersReducedMotion ?? false} ariaLabel={`${story.readTimeMinutes} ${t('stories.minuteRead')}`} />
 
                             {/* Read more link */}
                             <div className="mt-4">
@@ -500,9 +503,9 @@ export default function Stories() {
                         <div className="mt-16 md:mt-24">
                           <PagePeel corner="top-right" maxRotation={8} shadowIntensity={0.2}>
                             <StoryQuoteBlock
-                              quote="Every brushstroke a child makes is a window into a world they imagine. Our job is to make that world visible."
-                              author="Chen Wei"
-                              role="Founder, VICOO"
+                              quote={t('stories.featuredQuote.text')}
+                              author={t('stories.featuredQuote.author')}
+                              role={t('stories.featuredQuote.role')}
                             />
                           </PagePeel>
                         </div>
@@ -514,13 +517,13 @@ export default function Stories() {
                     </motion.article>
                   </PagePeel>
                 );
-              })}
-            </motion.div>
-          ) : (
-            <EmptyState onBrowseAll={() => setActiveCategory('all')} />
-          )}
-        </AnimatePresence>
-        </div>{/* end tabpanel */}
+                })}
+              </motion.div>
+            ) : (
+              <EmptyState onBrowseAll={() => setActiveCategory('all')} />
+            )}
+          </AnimatePresence>
+        </div>
       </SectionContainer>
 
       {/* Newsletter CTA */}
@@ -573,8 +576,6 @@ export default function Stories() {
               ) : (
                 <motion.div
                   key="success"
-                  role="status"
-                  aria-live="polite"
                   {...(prefersReducedMotion ? {} : { initial: { opacity: 0, scale: 0.9 }, animate: { opacity: 1, scale: 1 }, transition: { type: 'spring', stiffness: 300, damping: 20 } })}
                   className="flex flex-col items-center gap-3 py-4"
                 >
@@ -618,7 +619,7 @@ export default function Stories() {
         </SectionContainer>
       </section>
 
-      <div className="editorial-divider" aria-hidden="true" />
+      <div className="editorial-divider" />
     </PageWrapper>
   );
 }

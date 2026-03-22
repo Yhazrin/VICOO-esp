@@ -34,7 +34,7 @@ async def lifespan(app: FastAPI):
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
     except Exception:
-        logger.warning("Database not available at startup; mock data will be used")
+        logger.warning("Database initialization failed — mock data fallback will be used", exc_info=True)
     yield
     # Shutdown
     await engine.dispose()
@@ -86,6 +86,7 @@ app.add_middleware(
         "X-Requested-With",
         "X-Signature",
         "X-Timestamp",
+        "X-Nonce",
     ],
 )
 
@@ -167,12 +168,10 @@ async def signature_verification_middleware(request: Request, call_next):
 async def rate_limit_middleware(request: Request, call_next):
     # Apply rate limiting (skip for health check endpoint and testing)
     testing = settings.TESTING
-    logger.debug(f"Rate limit middleware: path={request.url.path}, TESTING={testing}, type={type(testing)}")
     # Skip rate limiting for health check and when TESTING=1
     if request.url.path == "/health" or testing == "1":
-        logger.debug(f"Rate limit middleware: Skipping rate limiting (path={request.url.path}, testing={testing})")
+        pass
     else:
-        logger.debug(f"Rate limit middleware: Applying rate limiting")
         try:
             # Create DB session for user extraction
             async with AsyncSessionLocal() as db:
@@ -182,8 +181,14 @@ async def rate_limit_middleware(request: Request, call_next):
             # Re-raise rate limit errors (429) or auth errors (401)
             raise
         except Exception as e:
-            # Log unexpected errors but still allow request (fail-open for availability)
-            logger.error(f"Rate limiting middleware error: {e}", exc_info=True)
+            # Fail closed in production, fail open in development
+            if settings.APP_ENV != "development":
+                logger.error(f"Rate limiting error (failing closed): {e}", exc_info=True)
+                return JSONResponse(
+                    status_code=503,
+                    content={"success": False, "data": None, "message": "Service temporarily unavailable"},
+                )
+            logger.warning(f"Rate limiting error (development mode, failing open): {e}", exc_info=True)
     response = await call_next(request)
     return response
 
