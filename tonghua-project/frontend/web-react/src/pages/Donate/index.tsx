@@ -236,7 +236,7 @@ export default function Donate() {
     }) => {
       const { user } = useAuthStore.getState();
       return donationsApi.create({
-        donor_name: data.anonymous ? 'Anonymous' : (user?.nickname || user?.email || 'Guest'),
+        donor_name: data.anonymous ? t('donate.anonymousName') : (user?.nickname || user?.email || t('donate.guestName')),
         amount: data.amount,
         currency: 'CNY',
         payment_method: data.paymentMethod || 'wechat',
