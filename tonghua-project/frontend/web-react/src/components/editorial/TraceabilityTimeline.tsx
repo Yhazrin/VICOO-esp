@@ -1,11 +1,11 @@
 import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
 import { useRef } from 'react';
-import type { SupplyChainRecord } from '@/types';
+import type { SupplyChainTimelineRecord } from '@/types';
 import { useTranslation } from 'react-i18next';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 
 interface TraceabilityTimelineProps {
-  records: SupplyChainRecord[];
+  records: SupplyChainTimelineRecord[];
   className?: string;
 }
 

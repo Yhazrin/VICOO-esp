@@ -167,10 +167,10 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
         logger.debug("User not found in DB, checking mock fallback")
     except HTTPException:
         raise
-    except Exception:
-        # DB error - continue to mock fallback in development mode
-        logger.debug("DB error during user lookup", exc_info=True)
-        pass
+    except Exception as e:
+        # DB error - fail closed, do not fall through to mock auth
+        logger.error(f"DB error during login: {type(e).__name__}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Authentication service unavailable")
 
     # ── Mock fallback (development only) ──
     # Only use mock users in explicit development mode
@@ -382,8 +382,10 @@ async def refresh(request: Request, db: AsyncSession = Depends(get_db)):
             role = user.role.value if hasattr(user.role, "value") else str(user.role)
         except HTTPException:
             raise
-        except (ValueError, Exception):
-            pass  # sub is not an integer (e.g. WeChat openid) or DB unavailable
+        except (ValueError, TypeError):
+            pass
+        except Exception:
+            raise HTTPException(status_code=503, detail="Authentication service unavailable")
         new_access = create_access_token(subject=sub, role=role)
         new_refresh = create_refresh_token(subject=sub, role=role)
 

@@ -85,12 +85,13 @@ export interface Product {
   stockCount: number;
   artworkSource?: Artwork;
   artworkBy?: ProductArtworkAttribution;
-  supplyChain: SupplyChainRecord[];
+  supplyChain: SupplyChainTimelineRecord[];
   /** Sustainability score (0-100) based on GOTS/SA8000/LCA audits. See /sustainability-methodology for scoring details. */
   sustainabilityScore: number;
 }
 
-export interface SupplyChainRecord {
+/** Frontend display type for TraceabilityTimeline — not a direct API response type */
+export interface SupplyChainTimelineRecord {
   id: number;
   stage: string;
   description: string;
@@ -100,6 +101,8 @@ export interface SupplyChainRecord {
   partnerName: string;
   carbonFootprint?: number;
 }
+
+export interface SupplyChainRecord extends SupplyChainTimelineRecord {}
 
 export interface DonationTier {
   id: number;
@@ -185,7 +188,7 @@ export type Locale = 'en' | 'zh';
 export interface SupplyChainTrace {
   product_id: number;
   product_name: string;
-  records: SupplyChainRecord[];
+  records: SupplyChainTimelineRecord[];
 }
 
 export interface SupplyChainStage {

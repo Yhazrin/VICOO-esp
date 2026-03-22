@@ -18,7 +18,8 @@ export interface SupplyChainRecord {
   description: string;
   certified?: boolean;
   certifications?: string[];
-  cert_image_url?: string;
+  cert_image_url?: string | null;
+  created_at?: string;
   artisan?: {
     name: string;
     location: string;
@@ -37,19 +38,37 @@ export interface TraceResponse {
   records: SupplyChainRecord[];
 }
 
+function normalizeRecordList(data: unknown): SupplyChainRecord[] {
+  if (Array.isArray(data)) {
+    return data as SupplyChainRecord[];
+  }
+
+  if (data && typeof data === 'object') {
+    const maybeData = data as { items?: unknown; records?: unknown };
+    if (Array.isArray(maybeData.items)) {
+      return maybeData.items as SupplyChainRecord[];
+    }
+    if (Array.isArray(maybeData.records)) {
+      return maybeData.records as SupplyChainRecord[];
+    }
+  }
+
+  return [];
+}
+
 export const supplyChainApi = {
   getRecords: async (params?: GetRecordsParams | string): Promise<SupplyChainRecord[]> => {
     const requestParams = typeof params === 'string' ? { product_id: params } : params;
     const response = await api.get('/supply-chain/records', { params: requestParams });
-    return response.data.data ?? [];
+    return normalizeRecordList(response.data.data);
   },
 
-  getProductJourney: async (productId: string): Promise<SupplyChainRecord[]> => {
+  getProductJourney: async (productId: string | number): Promise<SupplyChainRecord[]> => {
     const response = await api.get(`/supply-chain/trace/${productId}`);
-    return response.data.data?.records ?? response.data.data ?? [];
+    return normalizeRecordList(response.data.data?.records ?? response.data.data);
   },
 
-  trace: async (productId: string): Promise<TraceResponse> => {
+  trace: async (productId: string | number): Promise<TraceResponse> => {
     const response = await api.get(`/supply-chain/trace/${productId}`);
     return response.data.data;
   },

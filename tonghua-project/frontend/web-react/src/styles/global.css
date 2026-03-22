@@ -605,6 +605,7 @@ input, textarea, select {
 .form-input:focus {
   outline: none;
   border-color: var(--color-rust);
+  box-shadow: 0 0 0 2px rgba(178, 85, 61, 0.25);
 }
 
 .form-input::placeholder {
@@ -660,6 +661,25 @@ input, textarea, select {
 .stagger-3 { animation-delay: 300ms; }
 .stagger-4 { animation-delay: 400ms; }
 .stagger-5 { animation-delay: 500ms; }
+
+/* ── Reduced motion overrides (WCAG 2.3.3) ── */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-fade-up,
+  .animate-fade-down {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .stagger-1,
+  .stagger-2,
+  .stagger-3,
+  .stagger-4,
+  .stagger-5 {
+    animation-delay: 0ms;
+  }
+}
 
 /* ─────────────────────────────────────────────────────────────
    Print-specific styles

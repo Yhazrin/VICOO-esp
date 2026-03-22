@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 
 from app.config import settings
 from app.database import engine, Base, AsyncSessionLocal
-from app.deps import rate_limit_check, get_current_user_from_request, verify_request_signature
+from app.deps import rate_limit_check, get_current_user_from_request
 
 # Maximum allowed request body size (10 MB)
 MAX_REQUEST_BODY_SIZE = 10 * 1024 * 1024
@@ -115,80 +115,32 @@ async def request_size_limit_middleware(request: Request, call_next):
 
 
 # ── Signature verification middleware ─────────────────────────────────
-@app.middleware("http")
-async def signature_verification_middleware(request: Request, call_next):
-    """Verify request signature using HMAC-SHA256.
-
-    This middleware validates:
-    1. X-Signature header (HMAC-SHA256 signature)
-    2. X-Timestamp header (prevents request replay)
-    3. X-Nonce header (prevents replay attacks)
-
-    Only applies to API endpoints (/api/*) except public auth endpoints.
-    """
-    # Skip signature verification for non-API endpoints
-    if not request.url.path.startswith("/api/"):
-        return await call_next(request)
-
-    # Skip signature verification for public auth endpoints
-    public_endpoints = [
-        "/api/v1/auth/login",
-        "/api/v1/auth/register",
-        "/api/v1/auth/refresh",
-        "/api/v1/auth/wx-login",
-        "/api/v1/auth/logout",
-    ]
-    if request.url.path in public_endpoints:
-        return await call_next(request)
-
-    # Skip signature verification in testing environment
-    if settings.TESTING == "1":
-        return await call_next(request)
-
-    # Verify signature
-    is_valid, error_message = await verify_request_signature(request)
-
-    if not is_valid:
-        return JSONResponse(
-            status_code=401,
-            content={
-                "success": False,
-                "data": None,
-                "message": error_message,
-            },
-        )
-
-    # Signature verified, continue processing
-    response = await call_next(request)
-    return response
+# DISABLED: HMAC signing secret was exposed in the frontend bundle.
+# Auth is handled by JWT Bearer tokens + httpOnly refresh cookies instead.
+# The verification helper remains available in deps.py for future server-to-server use.
 
 
 # ── Rate Limiting middleware (applied before logging) ────────────
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
-    # Apply rate limiting (skip for health check endpoint and testing)
-    testing = settings.TESTING
-    # Skip rate limiting for health check and when TESTING=1
-    if request.url.path == "/health" or testing == "1":
-        pass
-    else:
-        try:
-            # Create DB session for user extraction
-            async with AsyncSessionLocal() as db:
-                current_user = await get_current_user_from_request(request, db)
-                await rate_limit_check(request, current_user)
-        except HTTPException:
-            # Re-raise rate limit errors (429) or auth errors (401)
-            raise
-        except Exception as e:
-            # Fail closed in production, fail open in development
-            if settings.APP_ENV != "development":
-                logger.error(f"Rate limiting error (failing closed): {e}", exc_info=True)
-                return JSONResponse(
-                    status_code=503,
-                    content={"success": False, "data": None, "message": "Service temporarily unavailable"},
-                )
-            logger.warning(f"Rate limiting error (development mode, failing open): {e}", exc_info=True)
+    # Apply rate limiting (skip for health check endpoint)
+    if request.url.path == "/health":
+        return await call_next(request)
+
+    try:
+        async with AsyncSessionLocal() as db:
+            current_user = await get_current_user_from_request(request, db)
+            await rate_limit_check(request, current_user)
+    except HTTPException:
+        raise
+    except Exception as e:
+        if settings.APP_ENV != "development":
+            logger.error(f"Rate limiting error (failing closed): {e}", exc_info=True)
+            return JSONResponse(
+                status_code=503,
+                content={"success": False, "data": None, "message": "Service temporarily unavailable"},
+            )
+        logger.warning(f"Rate limiting error (development mode, failing open): {e}", exc_info=True)
     response = await call_next(request)
     return response
 

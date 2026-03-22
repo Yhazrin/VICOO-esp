@@ -19,34 +19,6 @@ function addRefreshSubscriber(cb: (token: string) => void) {
   refreshSubscribers.push(cb);
 }
 
-/**
- * Generate HMAC-SHA256 signature for request authentication
- */
-async function generateSignature(method: string, path: string, timestamp: string, nonce: string, body: string): Promise<string> {
-  // Use the same secret key as the backend
-  const secretKey = import.meta.env.VITE_API_SECRET_KEY;
-  if (!secretKey) {
-    throw new Error('VITE_API_SECRET_KEY is required. Set it in .env file.');
-  }
-
-  // Build the string to sign: method + "\n" + path + "\n" + timestamp + "\n" + nonce + "\n" + body
-  const stringToSign = `${method}\n${path}\n${timestamp}\n${nonce}\n${body}`;
-
-  // Generate HMAC-SHA256 signature
-  const encoder = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(secretKey),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
-
-  const signatureBuffer = await crypto.subtle.sign('HMAC', key, encoder.encode(stringToSign));
-  const signatureArray = Array.from(new Uint8Array(signatureBuffer));
-  return signatureArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
 export const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 15000,
@@ -63,28 +35,6 @@ api.interceptors.request.use(
     const { accessToken } = useAuthStore.getState();
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
-    }
-
-    // Add security headers for request signing
-    const timestamp = Math.floor(Date.now() / 1000).toString();
-    const nonce = crypto.randomUUID();
-
-    // Get request body for signing
-    const body = config.data ? (typeof config.data === 'string' ? config.data : JSON.stringify(config.data)) : '';
-
-    // Generate signature (skipped if no secret key configured)
-    const signature = await generateSignature(
-      config.method?.toUpperCase() || 'GET',
-      config.url || '',
-      timestamp,
-      nonce,
-      body
-    );
-
-    if (signature) {
-      config.headers['X-Signature'] = signature;
-      config.headers['X-Timestamp'] = timestamp;
-      config.headers['X-Nonce'] = nonce;
     }
 
     return config;

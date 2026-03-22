@@ -133,10 +133,15 @@ async def list_audit_logs(
             stmt = stmt.where(AuditLog.action == action)
         if resource:
             stmt = stmt.where(AuditLog.resource == resource)
+        count_stmt = select(func.count(AuditLog.id))
+        if action:
+            count_stmt = count_stmt.where(AuditLog.action == action)
+        if resource:
+            count_stmt = count_stmt.where(AuditLog.resource == resource)
+        total = (await db.execute(count_stmt)).scalar() or 0
         stmt = stmt.order_by(AuditLog.timestamp.desc()).offset((page - 1) * page_size).limit(page_size)
         result = await db.execute(stmt)
         logs = result.scalars().all()
-        total = (await db.execute(select(func.count(AuditLog.id)))).scalar() or 0
         return PaginatedResponse(
             data=[AuditLogOut.model_validate(l).model_dump() for l in logs],
             total=total,
@@ -171,7 +176,10 @@ async def list_child_participants(
         stmt = select(ChildParticipant)
         if status:
             stmt = stmt.where(ChildParticipant.status == status)
-        count = (await db.execute(select(func.count(ChildParticipant.id)))).scalar() or 0
+        count_stmt = select(func.count(ChildParticipant.id))
+        if status:
+            count_stmt = count_stmt.where(ChildParticipant.status == status)
+        count = (await db.execute(count_stmt)).scalar() or 0
         stmt = stmt.offset((page - 1) * page_size).limit(page_size)
         result = await db.execute(stmt)
         participants = result.scalars().all()

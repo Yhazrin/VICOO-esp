@@ -172,6 +172,7 @@ export default function Shop() {
 
   return (
     <PageWrapper>
+      <h1 className="sr-only">{t('shop.hero.title')}</h1>
       <EditorialHero
         title={t('shop.hero.title')}
         subtitle={t('shop.hero.subtitle')}

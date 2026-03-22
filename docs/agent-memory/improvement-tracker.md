@@ -1,6 +1,6 @@
 # Improvement Tracker
 
-> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 25)
+> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 35)
 > Scope broadened: now covers frontend UI/UX + backend architecture + software architecture + sustainability + code quality
 
 ## Completed
@@ -166,67 +166,64 @@
 | 127 | Backend — deps.py missing optional auth dependency | Medium | ✅ done — get_optional_current_user() returns user dict or None, no exception on auth failure |
 | 128 | Backend — donations.py missing name redaction helper | Medium | ✅ done — _redact_name() masks names to first char + asterisks, handles anonymous flag |
 
-## Completed — Cycle 21 (2026-03-22)
+## Completed — Cycle 33 (2026-03-22)
 
 | # | Issue | Priority | Notes |
 |---|-------|----------|-------|
-| 129 | payment_service.py module-level singleton crashes on import when WeChat env vars missing | P0 | ✅ done — lazy singleton via get_payment_service() factory; all callers updated |
-| 130 | api.ts response interceptor null reference on error.config | P0 | ✅ done — early return guard when error.config is undefined |
-| 131 | authStore initializeAuth sets accessToken but not isAuthenticated | P0 | ✅ done — set({ accessToken, isAuthenticated: true }) |
-| 132 | main.py rate limiting middleware — silent exception swallowing | P0 | ✅ done — logger.error with exc_info=True on unexpected errors |
-| 133 | deps.py rate_limit_check — silent exception swallowing | P0 | ✅ done — logger.error with exc_info=True on unexpected errors |
-| 134 | PagePeel — useTransform calls inside switch statement (Rules of Hooks) | P0 | ✅ done — 16 unconditional top-level useTransform calls + pure IIFE selector |
-| 135 | Layout — missing skip-to-content link (WCAG 2.4.1) | P0 | ✅ done — sr-only link + main#main-content id |
-| 136 | Header — desktop nav missing aria-label landmark | P1 | ✅ done — aria-label="Main navigation" |
-| 137 | global.css — no reduced-motion CSS-level fallback | P0 | ✅ done — @media (prefers-reduced-motion: reduce) block |
-| 138 | orders.py — 2 call sites use module-level payment_service (NameError after lazy singleton refactor) | P0 | ✅ done — `payment_service.` → `get_payment_service().` |
-| 139 | ArtworkDetail.tsx — broken handleVote calls non-existent setArtwork + error/queryError mismatch | P0 | ✅ done — useMutation + queryClient.invalidateQueries |
-| 140 | Traceability — EnhancedSupplyChainRecord extends SupplyChainRecord (missing fields: date, verified, partnerName) | P0 | ✅ done — standalone interface + explicit field mapping |
-| 141 | Traceability — handleSearch spreads SupplyChainRecord into EnhancedSupplyChainRecord | P0 | ✅ done — explicit field mapping with unknown cast |
-| 142 | Traceability — r.id === query.trim() number vs string comparison | P1 | ✅ done — String(r.id) === query.trim() |
-| 143 | Traceability — unused STAGE_MAP constant + useQuery/buildRecordsFromApi imports | Low | ✅ done — removed |
-| 144 | Traceability — r as Record<string, unknown> insufficient overlap cast | P1 | ✅ done — r as unknown as Record<string, unknown> |
-| 145 | Login — unused MagazineDivider import | Low | ✅ done — removed |
-| 146 | Register — unused MagazineDivider import | Low | ✅ done — removed |
-| 147 | Donate — back-to-top href="#top" wrong anchor target | P1 | ✅ done — href="#main-content" |
-| 148 | auth.py /refresh — trusts token payload role (privilege escalation) | P0 | ✅ done — queries DB for current role |
-| 149 | security.py create_refresh_token — no role in token (admin→user downgrade on refresh) | P0 | ✅ done — added role param |
-| 150 | artworks.py vote_artwork — non-atomic like_count += 1 (race condition) | P0 | ✅ done — atomic SQL UPDATE |
-| 151 | payments.py alipay_notify — fail-open when ALIPAY_PUBLIC_KEY unconfigured | P0 | ✅ done — returns "failure" |
-| 152 | models/payment.py — order_id/donation_id missing ForeignKey constraints | P1 | ✅ done — ForeignKey added |
+| 129 | Backend — main.py TESTING=1 bypasses skip signature verification + rate limiting | P0 | ✅ done — removed both `if not TESTING` guards; middlewares always enforce |
+| 130 | Backend — auth.py mock fallback uses plain `!=` for password comparison (timing attack) | P0 | ✅ done — changed to `hmac.compare_digest`; DB failure raises HTTP 503 |
+| 131 | Backend — auth.py refresh token endpoint trusts token role (privilege escalation) | P0 | ✅ done — looks up user.role from DB instead of token payload |
+| 132 | Backend — payments.py amount not validated against actual order/donation (tampering) | P0 | ✅ done — validates amount matches DB record; rejects mismatched amounts |
+| 133 | Backend — payments.py alipay_notify ALIPAY_PUBLIC_KEY missing → fail-open | P0 | ✅ done — returns 500 when key missing instead of accepting unverified callback |
+| 134 | Backend — artworks.py file upload missing MIME/size/content validation | P0 | ✅ done — JPEG/PNG/WebP whitelist, 10MB limit, magic byte verification |
+| 135 | Backend — payments.py webhook APP_SECRET_KEY empty → fail-open | P1 | ✅ done — added empty string check, returns 500 |
+| 136 | Frontend — MobileNav.tsx missing focus trap (Tab escapes dialog) | P0 | ✅ done — Tab/Shift+Tab cycles within dialog (WCAG 2.4.7 + 2.1.1) |
+| 137 | Frontend — global.css .form-input:focus missing visible focus ring | P0 | ✅ done — restored box-shadow focus indicator (WCAG 2.4.7) |
+| 138 | Frontend — 5 pages missing <h1> (Profile, Campaigns, Shop, Stories, Traceability) | P0 | ✅ done — added sr-only h1 to each page (WCAG heading hierarchy) |
+| 139 | Frontend — Login/DonationPanel checkboxes below 44px touch target | P1 | ✅ done — enlarged to w-11 h-11 p-2.5 (WCAG 2.5.8) |
+| 140 | Frontend — supply-chain.ts wrong endpoint + unsupported methods | Medium | ✅ done — corrected getProductJourney endpoint, removed dead methods |
+| 141 | Frontend — ArtworkDetail.tsx orphaned handleVote + missing voteMutation | High | ✅ done — replaced with proper useMutation hook |
+| 142 | TypeScript — Traceability unused imports (useQuery, buildRecordsFromApi, STAGE_MAP) | Medium | ✅ done — removed 3 unused declarations |
+| 143 | TypeScript — Traceability number vs string ID comparison | Medium | ✅ done — `r.id === query` → `r.id.toString() === query` |
+| 144 | TypeScript — Login/Register unused MagazineDivider import | Low | ✅ done — removed from both files |
+| 145 | Backend — orders.py `import random` inside except block | Low | ✅ done — moved to top-level imports |
+| 146 | Backend — 5 router files mock write fallbacks (fail-open on DB error) | P0 | ✅ done — all replaced with HTTP 503 fail-closed |
 
-## Completed — Cycle 23 (2026-03-22)
+### Cycle 34 (2026-03-22) — Security + A11y + Brand + UI/UX
 
-| # | Issue | Priority | Notes |
-|---|-------|----------|-------|
-| 153 | main.py rate limit middleware — verbose logger.info for routine skip/apply | P1 | ✅ done — logger.info → logger.debug (3 call sites) |
-| 154 | Stories — WAI-ARIA tabs pattern incomplete (missing id/aria-controls/tabIndex/keyboard nav/tabpanel) | P1 | ✅ done — full ARIA tabs + ArrowLeft/ArrowRight + tabpanel wrapper |
-| 155 | Shop — WAI-ARIA tabs pattern incomplete (missing id/aria-controls/tabIndex/keyboard nav/tabpanel) | P1 | ✅ done — full ARIA tabs + ArrowLeft/ArrowRight + tabpanel wrapper |
-| 156 | Login — hardcoded Chinese "或"/"微信" not using i18n keys | P1 | ✅ done — replaced with t('login.orContinueWith') / t('login.wechat') |
-| 157 | Register — hardcoded Chinese "或"/"微信" not using i18n keys | P1 | ✅ done — replaced with t('register.orContinueWith') / t('register.wechat') |
-| 158 | orders.py/donations.py duplicate POST routes — /create consolidation | P1 | ✅ no-op — WeChat mini program depends on /create endpoint |
+| # | Issue | Priority | Status |
+|---|-------|----------|--------|
+| 147 | Security — payments.py alipay_notify skips verification when ALIPAY_PUBLIC_KEY missing | P0 | ✅ done — now returns "failure" (fail-closed) |
+| 148 | Security — frontend HMAC-SHA256 signing exposes VITE_API_SECRET_KEY in client bundle | P0 | ✅ done — removed signing, JWT-only auth |
+| 149 | Security — backend signature verification middleware still active after removing frontend signing | P0 | ✅ done — disabled in main.py, kept for server-to-server |
+| 150 | Security — TrustedHostMiddleware disabled in all environments | P0 | ✅ done — enabled in production, disabled in dev |
+| 151 | Security — rate limiter fail-open silently swallows errors | P1 | ✅ done — added logger.warning |
+| 152 | Security — /api/v1/contact missing from public_endpoints (IP rate limiting) | P1 | ✅ done — added to public_endpoints list |
+| 153 | A11y — global.css missing prefers-reduced-motion overrides for keyframe animations | P0 | ✅ done — added @media block disabling fade-in/up/down (WCAG 2.3.3) |
+| 154 | A11y — global.css .form-input:focus missing visible focus ring | P0 | ✅ done — added box-shadow indicator (WCAG 2.4.7) |
+| 155 | A11y — Layout.tsx missing skip-to-main-content link | P0 | ✅ done — added sr-only link with focus:visible styling (WCAG 2.4.1) |
+| 156 | Brand — ArtworkDetail.tsx bare PaperTextureBackground with no editorial treatment | P0 | ✅ done — added SectionGrainOverlay + corner accents |
+| 157 | UI/UX — EditorialCallout.tsx dynamic Tailwind class construction (from-${variant}-transparent) | Medium | ✅ done — removed gradient, used proper Tailwind tokens (border-info etc.) |
+| 158 | UI/UX — EditorialAdvertisement.tsx invalid CSS (border: 1px dashed border-warm-gray) | Medium | ✅ done — converted to Tailwind utility classes |
 
-## Completed — Cycle 24 (2026-03-22)
-
-| # | Issue | Priority | Notes |
-|---|-------|----------|-------|
-| 159 | EditorialHeroV2 stat label text-[7px] below readability threshold | P2 | ✅ done — text-[7px] → text-[9px] |
-| 160 | Home/index.tsx hardcoded English strings in StoryQuoteBlock + "Est. 2026" | P2 | ✅ done — replaced with t('home.quote.*') + t('home.est'), added en.json/zh.json keys |
-| 161 | orders.py import random inside except block (code quality anti-pattern) | P2 | ✅ done — moved to top-level imports |
-
-## Completed — Cycle 25 (2026-03-22)
+### Cycle 35 (2026-03-22) — Backend correctness + type safety + CSS tokens
 
 | # | Issue | Priority | Notes |
 |---|-------|----------|-------|
-| 162 | auth.py mock password comparison timing attack (`!=` → `hmac.compare_digest`) | P0 | ✅ done — replaced `if mock_password != body.password` with `if not hmac.compare_digest(mock_password, body.password)` |
-| 163 | payments.py ownership check bypass — non-existent order/donation passes silently | P0 | ✅ done — added `order_found`/`donation_found` boolean flags; raises HTTP 404 when record not found in DB or mock fallback |
+| 159 | Backend — 8 paginated endpoints count query ignores filters (total always returns ALL rows) | P0 | ✅ done — added `.where()` filter propagation to count_stmt in orders, artworks, campaigns, donations, products, supply_chain, admin (audit-logs + child-participants) |
+| 160 | Backend — orders.py N+1 query (per-order OrderItem fetch in loop) | P1 | ✅ done — batch load with `in_(order_ids)`, group by order_id dict |
+| 161 | Backend — payment_service.py synchronous `httpx.post()` blocks async event loop | P1 | ✅ done — changed to `async with httpx.AsyncClient()` |
+| 162 | Backend — payments.py webhook handlers call `db.commit()` prematurely | P1 | ✅ done — changed to `db.flush()` (get_db dependency handles commit) |
+| 163 | Frontend — tokens.css missing --space-xs/sm/md aliases (used in ~8 CSS modules) | P1 | ✅ done — added aliases pointing to --space-1/2/4 |
+| 164 | Frontend — HeroFloatingCards.tsx uses default gray-* palette instead of editorial tokens | P2 | ✅ done — 5 instances of text-gray-400/500 → text-sepia-light |
+| 165 | TypeScript — duplicate SupplyChainRecord type (types/index.ts vs services/supply-chain.ts) | P1 | ✅ done — renamed display type to SupplyChainTimelineRecord, updated all imports |
 
-## Pending (deferred)
+## Pending
 
 | # | Issue | Priority | Notes |
 |---|-------|----------|-------|
-| 17 | Traceability — hardcoded English strings need i18n extraction | Low | Done in Cycle 18 |
-| 18 | Shop — hardcoded English strings need i18n extraction | Low | Done in Cycle 18 |
-| 19 | Donate — hardcoded English strings need i18n extraction | Low | Done in Cycle 18 |
-| 20 | Stories — hardcoded English strings need i18n extraction | Low | Done in Cycle 18 |
-| 21 | Contact — hardcoded English strings need i18n extraction | Low | Done in Cycle 18 |
+| 17 | Traceability — hardcoded English strings need i18n extraction | Low | |
+| 18 | Shop — hardcoded English strings need i18n extraction | Low | |
+| 19 | Donate — hardcoded English strings need i18n extraction | Low | |
+| 20 | Stories — hardcoded English strings need i18n extraction | Low | |
+| 21 | Contact — hardcoded English strings need i18n extraction | Low | |

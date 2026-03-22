@@ -116,6 +116,7 @@ export default function Profile() {
 
   return (
     <PageWrapper>
+      <h1 className="sr-only">{t('profile.title')}</h1>
       {/* Profile Header */}
       <PaperTextureBackground variant="paper" className="py-16 md:py-24 relative">
         <GrainOverlay />

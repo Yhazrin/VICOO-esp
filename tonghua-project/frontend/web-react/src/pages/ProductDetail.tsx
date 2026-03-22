@@ -12,7 +12,7 @@ import TraceabilityTimeline from '@/components/editorial/TraceabilityTimeline';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import { useCartStore } from '@/stores/cartStore';
 import { productsApi } from '@/services/products';
-import type { Product, SupplyChainRecord } from '@/types';
+import type { Product, SupplyChainTimelineRecord } from '@/types';
 
 function ThumbnailButton({
   url,
@@ -47,7 +47,7 @@ function ThumbnailButton({
   );
 }
 
-const MOCK_SUPPLY_CHAIN: SupplyChainRecord[] = [
+const MOCK_SUPPLY_CHAIN: SupplyChainTimelineRecord[] = [
   {
     id: 1,
     stage: 'artwork',

@@ -342,6 +342,7 @@ export default function Stories() {
 
   return (
     <PageWrapper>
+      <h1 className="sr-only">{t('stories.hero.title')}</h1>
       <EditorialHero
         title={t('stories.hero.title')}
         subtitle={t('stories.hero.subtitle')}

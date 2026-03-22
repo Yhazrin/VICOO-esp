@@ -20,11 +20,15 @@ interface EnhancedSupplyChainRecord {
   location: string;
   date: string;
   verified: boolean;
+  certified?: boolean;
   partnerName: string;
   carbonFootprint?: number;
   story: string;
   imageUrl: string;
   status: 'verified' | 'in-progress' | 'pending';
+  cert_image_url?: string | null;
+  timestamp?: string;
+  created_at?: string;
 }
 
 // Map backend stage keys to frontend stage keys
@@ -397,20 +401,24 @@ export default function Traceability() {
           const stage = STAGE_MAP[r.stage] || r.stage;
           const staticRecord = MOCK_RECORDS_STATIC.find((m) => m.stage === stage) ?? MOCK_RECORDS_STATIC[i];
           const localizedRecord = localizedMockRecords.find((m) => m.stage === stage) ?? localizedMockRecords[i];
-          const verified = (r.certifications?.length ?? 0) > 0;
+          const verified = r.certified ?? (r.certifications?.length ?? 0) > 0;
 
           return {
             id: Number(r.id) || staticRecord?.id || i + 1,
             stage,
             description: r.description,
             location: r.location,
-            date: r.timestamp || staticRecord?.date || '',
+            date: r.timestamp ? r.timestamp.split('T')[0] : staticRecord?.date || '',
             verified,
+            certified: r.certified,
             partnerName: r.artisan?.name ?? r.productName ?? staticRecord?.partnerName ?? '',
             carbonFootprint: staticRecord?.carbonFootprint,
             story: localizedRecord?.story ?? r.description,
             imageUrl: staticRecord?.imageUrl ?? r.artisan?.imageUrl ?? `https://picsum.photos/seed/stage-${stage}/200/200`,
             status: (verified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
+            cert_image_url: r.cert_image_url ?? null,
+            timestamp: r.timestamp,
+            created_at: r.created_at,
           };
         });
         setRecords(mapped);
@@ -439,19 +447,23 @@ export default function Traceability() {
           const stage = STAGE_MAP[first.stage] || first.stage;
           const staticRecord = MOCK_RECORDS_STATIC.find((m) => m.stage === stage);
           const localizedRecord = getMockRecords(t).find((m) => m.stage === stage);
-          const verified = (first.certifications?.length ?? 0) > 0;
+          const verified = first.certified ?? (first.certifications?.length ?? 0) > 0;
           const enhanced: EnhancedSupplyChainRecord = {
             id: Number(first.id) || staticRecord?.id || 1,
             stage,
             description: first.description,
             location: first.location,
-            date: first.timestamp || staticRecord?.date || '',
+            date: first.timestamp ? first.timestamp.split('T')[0] : staticRecord?.date || '',
             verified,
+            certified: first.certified,
             partnerName: first.artisan?.name ?? first.productName ?? staticRecord?.partnerName ?? '',
             carbonFootprint: staticRecord?.carbonFootprint,
             story: localizedRecord?.story ?? first.description,
             imageUrl: staticRecord?.imageUrl ?? first.artisan?.imageUrl ?? `https://picsum.photos/seed/${stage}/200/200`,
             status: (verified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
+            cert_image_url: first.cert_image_url ?? null,
+            timestamp: first.timestamp,
+            created_at: first.created_at,
           };
           setHighlightedId(enhanced.id);
           setSearchResult(enhanced);
@@ -487,6 +499,7 @@ export default function Traceability() {
 
   return (
     <PageWrapper>
+      <h1 className="sr-only">{t('traceability.hero.title')}</h1>
       <EditorialHero
         title={t('traceability.hero.title')}
         subtitle={t('traceability.hero.subtitle')}

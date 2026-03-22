@@ -4,9 +4,64 @@ All notable changes to the Tonghua Public Welfare x Sustainable Fashion project 
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [Unreleased] — Cycle 35
 
 ### Fixed
+
+- **Backend (P0)**: 8 paginated endpoints — `count_stmt` now propagates all `.where()` filters. Previously `select(func.count(Model.id))` ignored filters applied to the main query, returning total count of ALL rows regardless of filter parameters. Fixed in: `orders.py`, `artworks.py`, `campaigns.py`, `donations.py`, `products.py`, `supply_chain.py`, `admin.py` (audit-logs + child-participants).
+- **Backend (P1)**: `orders.py` — eliminated N+1 query pattern. Order items now batch-loaded with single `in_(order_ids)` query instead of per-order fetch loop.
+- **Backend (P1)**: `payment_service.py` — changed synchronous `httpx.post()` to `async with httpx.AsyncClient().post()`. Blocking call was stalling the FastAPI async event loop.
+- **Backend (P1)**: `payments.py` — WeChat and Alipay webhook handlers now use `db.flush()` instead of `db.commit()`. The `get_db` dependency already commits on session exit; manual commit was premature and could cause transaction conflicts.
+- **Frontend (P1)**: `tokens.css` — added missing `--space-xs`, `--space-sm`, `--space-md` CSS custom property aliases. These were referenced across ~8 CSS module files but never defined.
+- **Frontend (P2)**: `HeroFloatingCards.tsx` — replaced 5 instances of default Tailwind `text-gray-400`/`text-gray-500` with editorial token `text-sepia-light`.
+- **TypeScript (P1)**: Renamed duplicate `SupplyChainRecord` display type to `SupplyChainTimelineRecord` in `types/index.ts` to disambiguate from API response type in `services/supply-chain.ts`. Updated imports in `TraceabilityTimeline.tsx`, `ProductDetail.tsx`, and `types/index.ts`.
+
+### Verified
+
+- TypeScript compilation: `npx tsc --noEmit` — zero errors.
+
+## [Released] — Cycle 34
+
+### Fixed
+
+- **Security (P0)**: `payments.py` — Alipay callback `alipay_notify` now fails closed when `ALIPAY_PUBLIC_KEY` is not configured (returns "failure" instead of skipping signature verification).
+- **Security (P0)**: Removed frontend HMAC-SHA256 request signing from `api.ts` — `VITE_API_SECRET_KEY` was exposed in client bundle. Auth is now JWT-only (Bearer token + httpOnly refresh cookie).
+- **Security (P0)**: Disabled backend signature verification middleware in `main.py` — cascading fix after removing frontend signing. `verify_request_signature()` kept in `deps.py` for future server-to-server use.
+- **Security (P0)**: Enabled `TrustedHostMiddleware` in production mode (disabled in development). Extracts allowed hosts from `CORS_ORIGINS` config.
+- **Security (P1)**: Rate limiter fail-open path now logs warning for monitoring (`logger.warning` in catch-all `except Exception`).
+- **Security (P1)**: Added `/api/v1/contact` to `public_endpoints` list in `deps.py` for IP-based rate limiting.
+- **Accessibility (P0)**: `global.css` — Added `@media (prefers-reduced-motion: reduce)` overrides for `fade-in`, `fade-up`, `fade-down` keyframes and `.animate-*` classes (WCAG 2.3.3).
+- **Accessibility (P0)**: `global.css` — `.form-input:focus` now includes `box-shadow` visible focus ring alongside `outline: none` (WCAG 2.4.7).
+- **Accessibility (P0)**: `Layout.tsx` — Added skip-to-main-content link (`<a href="#main-content">`) with `sr-only` / `focus:not-sr-only` pattern (WCAG 2.4.1).
+- **Brand (P0)**: `ArtworkDetail.tsx` — Added `SectionGrainOverlay`, corner accents to main content area (was bare PaperTextureBackground with no editorial treatment).
+- **UI/UX**: `EditorialCallout.tsx` — Removed dynamic Tailwind class construction (`from-${variant}-transparent` gradient). Replaced `border-[var(--color-info)]` etc. with proper Tailwind tokens (`border-info`).
+- **UI/UX**: `EditorialAdvertisement.tsx` — Fixed invalid CSS `border: 1px dashed border-warm-gray` → `border border-dashed border-warm-gray` (Tailwind classes, not CSS property).
+
+### Verified
+
+- TypeScript compilation: `npx tsc --noEmit` — zero errors.
+
+## [Released] — Cycle 33
+
+### Fixed
+
+- **Security (P0)**: Removed `TESTING=1` bypasses from `main.py` — signature verification and rate limiting middlewares no longer skip checks in test mode.
+- **Security (P0)**: `auth.py` — mock fallback login now uses `hmac.compare_digest` for password comparison (timing attack prevention). DB failure raises HTTP 503 (fail-closed). Refresh token endpoint looks up user role from DB instead of relying on token.
+- **Security (P0)**: `payments.py` — payment amount validated against actual order/donation amounts (prevents amount tampering). Alipay notify fail-closed when key missing. Webhook `APP_SECRET_KEY` null check added.
+- **Security (P0)**: Artwork file upload validation — MIME type whitelist (JPEG/PNG/WebP), 10MB size limit, magic byte content verification.
+- **Security (P1)**: `payments.py` webhook endpoint — `APP_SECRET_KEY` empty check (fail-closed, returns 500).
+- **Accessibility (P0)**: `MobileNav.tsx` — focus trap added (Tab/Shift+Tab cycles within dialog, WCAG 2.4.7 + 2.1.1).
+- **Accessibility (P0)**: `global.css` — `.form-input:focus` visible focus ring via `box-shadow` restored (WCAG 2.4.7).
+- **Accessibility (P0)**: 5 pages missing `<h1>` — added `sr-only` h1 to Profile, Campaigns, Shop, Stories, Traceability (WCAG heading hierarchy).
+- **Accessibility (P1)**: Checkbox touch targets — Login and DonationPanel checkboxes enlarged from 16px to 44px (`w-11 h-11 p-2.5`, WCAG 2.5.8).
+- **Frontend**: `supply-chain.ts` — corrected `getProductJourney` endpoint + removed methods without backend support.
+- **Frontend**: `ArtworkDetail.tsx` — `useMutation` for vote (replaced orphaned `handleVote` with proper mutation), `queryError` reference fix.
+- **TypeScript**: `Traceability/index.tsx` — removed unused `useQuery`, `buildRecordsFromApi`, `STAGE_MAP`. Fixed `number` vs `string` type comparison. `EnhancedSupplyChainRecord` as standalone interface (not extending backend type).
+- **TypeScript**: `Login/index.tsx`, `Register/index.tsx` — removed unused `MagazineDivider` import.
+- **Backend**: `orders.py` — `import random` moved to top-level (was inside except block).
+- **Backend**: Write operations fail-closed — mock write fallbacks replaced with HTTP 503 in 5 router files.
+
+### Fixed (continued from earlier cycles)
 
 - **NotFound page**: Upgraded from bare 404 to full editorial treatment — PaperTextureBackground, GrainOverlay, entrance animation with reduced-motion guard, corner accents, decorative divider.
 - **Donate page**: Fixed `DonationStoryCard` reduced-motion bug — `initial` prop was unconditional, now guarded with `prefersReducedMotion ? false : { opacity: 0, y: 30 }`.

@@ -6,6 +6,7 @@ import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
+import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 import { artworksApi } from '@/services/artworks';
 
 export default function ArtworkDetail() {
@@ -62,7 +63,13 @@ export default function ArtworkDetail() {
   return (
     <PageWrapper>
       {/* Artwork section */}
-      <PaperTextureBackground variant="paper" className="py-16 md:py-24">
+      <PaperTextureBackground variant="paper" className="relative py-16 md:py-24">
+        <SectionGrainOverlay opacity={0.03} />
+        {/* Corner accents */}
+        <div className="absolute top-6 left-6 w-12 h-12 border-t border-l border-warm-gray/20" />
+        <div className="absolute top-6 right-6 w-12 h-12 border-t border-r border-warm-gray/20" />
+        <div className="absolute bottom-6 left-6 w-12 h-12 border-b border-l border-warm-gray/20" />
+        <div className="absolute bottom-6 right-6 w-12 h-12 border-b border-r border-warm-gray/20" />
         <SectionContainer>
           <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-16">
             {/* Image */}

@@ -220,7 +220,7 @@ export default function DonationPanel({
               type="checkbox"
               checked={anonymous}
               onChange={(e) => setAnonymous(e.target.checked)}
-              className="w-4 h-4 accent-[var(--color-rust)] cursor-pointer"
+              className="w-11 h-11 p-2.5 accent-[var(--color-rust)] cursor-pointer"
             />
             <span className="font-body text-caption text-sepia-mid">
               {t('donate.form.anonymous')}
