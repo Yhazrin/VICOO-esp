@@ -1,6 +1,6 @@
 # 优化追踪 — Agent 持久化记忆
 
-> 最后更新: 2026-03-21 (Profile 升级)
+> 最后更新: 2026-03-22 (Cycle 9 — 安全/无障碍/TS 修复)
 > 状态: pending | in_progress | done | skip
 
 ## 高优先级
@@ -62,3 +62,13 @@
 | 22-23 | Login/Register editorial 升级 (⭐⭐ → ⭐⭐⭐⭐) | pages/Login, Register | 2026-03-21 |
 | 15 | EditorialCard 集成到 Profile 页面 | pages/Profile/index.tsx | 2026-03-21 |
 | 24 | Profile 页面 editorial 升级 (⭐⭐⭐ → ⭐⭐⭐⭐) | pages/Profile/index.tsx | 2026-03-21 |
+| 25 | 后端 P0 — auth 泄露修复 (email/password 日志) | backend/app/routers/auth.py | 2026-03-22 |
+| 26 | 后端 P1 — banned user 登录/刷新拦截 | backend/app/routers/auth.py | 2026-03-22 |
+| 27 | 前端 P0 — skip-to-content 链接 (WCAG 2.4.1) | components/layout/Layout.tsx | 2026-03-22 |
+| 28 | 前端 P0 — Profile ARIA tab pattern + 键盘导航 | pages/Profile/index.tsx | 2026-03-22 |
+| 29 | 前端 P0 — EditorialAdvertisement CSS 语法修复 | components/editorial/EditorialAdvertisement.tsx | 2026-03-22 |
+| 30 | 前端 P0 — EditorialCallout 动态 Tailwind 类修复 | components/editorial/EditorialCallout.tsx | 2026-03-22 |
+| 31 | 前端 P0 — EditorialHeroV2 reduced-motion guard | components/editorial/EditorialHeroV2.tsx | 2026-03-22 |
+| 32 | 前端 P0 — HeroFloatingCards 3D tilt reduced-motion | components/editorial/HeroFloatingCards.tsx | 2026-03-22 |
+| 33 | TypeScript — Login/Register 未使用 MagazineDivider 导入移除 | pages/Login, Register | 2026-03-22 |
+| 34 | TypeScript — Traceability API 调用修复 (getRecords/.trace) | pages/Traceability/index.tsx | 2026-03-22 |

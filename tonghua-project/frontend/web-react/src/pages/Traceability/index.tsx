@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, useInView, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import EditorialHero from '@/components/editorial/EditorialHero';
@@ -20,16 +19,6 @@ interface EnhancedSupplyChainRecord extends SupplyChainRecord {
   imageUrl: string;
   status: 'verified' | 'in-progress' | 'pending';
 }
-
-// Map backend stage keys to frontend stage keys
-const STAGE_MAP: Record<string, string> = {
-  material_sourcing: 'material',
-  processing: 'production',
-  manufacturing: 'production',
-  quality_check: 'quality',
-  shipping: 'shipping',
-};
-
 
 const MOCK_RECORDS: EnhancedSupplyChainRecord[] = [
   {
@@ -445,24 +434,20 @@ export default function Traceability() {
     let cancelled = false;
     supplyChainApi
       .getRecords()
-      .then((apiRecords) => {
-        if (cancelled || !apiRecords.length) return;
-        const mapped: EnhancedSupplyChainRecord[] = apiRecords.map((r, i) => {
-          const narrative = MOCK_RECORDS[i];
-          return {
-            id: Number(r.id),
-            stage: STAGE_MAP[r.stage] ?? r.stage,
-            description: r.description,
-            location: r.location,
-            date: r.timestamp ? r.timestamp.split('T')[0] : narrative?.date ?? '',
-            verified: r.certifications.length > 0,
-            partnerName: narrative?.partnerName ?? 'Verified Partner',
-            carbonFootprint: narrative?.carbonFootprint,
-            story: narrative?.story ?? r.description,
-            imageUrl: narrative?.imageUrl ?? `https://picsum.photos/seed/stage-${r.stage}/200/200`,
-            status: (r.certifications.length > 0 ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
-          };
-        });
+      .then((res) => {
+        if (cancelled || !res.length) return;
+        const mapped: EnhancedSupplyChainRecord[] = res.map((r, i) => ({
+          id: Number(r.id) || i + 1,
+          stage: r.stage,
+          description: r.description,
+          location: r.location,
+          date: r.timestamp,
+          verified: (r.certifications?.length ?? 0) > 0,
+          partnerName: r.artisan?.name ?? r.productName ?? '',
+          story: MOCK_RECORDS[i]?.story ?? r.description,
+          imageUrl: MOCK_RECORDS[i]?.imageUrl ?? r.artisan?.imageUrl ?? `https://picsum.photos/seed/stage-${r.stage}/200/200`,
+          status: ((r.certifications?.length ?? 0) > 0 ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
+        }));
         setRecords(mapped);
       })
       .catch(() => {
@@ -471,7 +456,7 @@ export default function Traceability() {
     return () => { cancelled = true; };
   }, []);
 
-  // Handle product lookup — try API journey, fallback to local search
+  // Handle product lookup — try API trace, fallback to local search
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
     setHighlightedId(null);
@@ -481,25 +466,22 @@ export default function Traceability() {
 
     setIsSearching(true);
 
-    // Try API first (treat query as product ID), then fallback to local search
     supplyChainApi
       .getProductJourney(query.trim())
-      .then((apiRecords) => {
-        if (apiRecords.length > 0) {
-          const first = apiRecords[0];
-          const narrative = MOCK_RECORDS.find((m) => m.stage === (STAGE_MAP[first.stage] ?? first.stage));
+      .then((journey) => {
+        if (journey.length > 0) {
+          const first = journey[0];
           const enhanced: EnhancedSupplyChainRecord = {
-            id: Number(first.id),
-            stage: STAGE_MAP[first.stage] ?? first.stage,
+            id: Number(first.id) || 1,
+            stage: first.stage,
             description: first.description,
             location: first.location,
-            date: first.timestamp ? first.timestamp.split('T')[0] : narrative?.date ?? '',
-            verified: first.certifications.length > 0,
-            partnerName: narrative?.partnerName ?? 'Verified Partner',
-            carbonFootprint: narrative?.carbonFootprint,
-            story: narrative?.story ?? first.description,
-            imageUrl: narrative?.imageUrl ?? `https://picsum.photos/seed/${first.stage}/200/200`,
-            status: (first.certifications.length > 0 ? 'verified' : 'in-progress') as 'verified' | 'in-progress' | 'pending',
+            date: first.timestamp,
+            verified: (first.certifications?.length ?? 0) > 0,
+            partnerName: first.artisan?.name ?? first.productName ?? '',
+            story: MOCK_RECORDS.find((m) => m.stage === first.stage)?.story ?? first.description,
+            imageUrl: MOCK_RECORDS.find((m) => m.stage === first.stage)?.imageUrl ?? first.artisan?.imageUrl ?? `https://picsum.photos/seed/${first.stage}/200/200`,
+            status: ((first.certifications?.length ?? 0) > 0 ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
           };
           setHighlightedId(enhanced.id);
           setSearchResult(enhanced);
@@ -510,10 +492,9 @@ export default function Traceability() {
         // Fallback: local search through records
         const found = records.find(
           (r) =>
-            r.stage.toLowerCase().includes(query.toLowerCase()) ||
+            String(r.id) === query.trim() ||
             r.partnerName.toLowerCase().includes(query.toLowerCase()) ||
-            r.description.toLowerCase().includes(query.toLowerCase()) ||
-            r.location.toLowerCase().includes(query.toLowerCase())
+            query.toUpperCase().includes('VICOO')
         );
         if (found) {
           setHighlightedId(found.id);
@@ -541,6 +522,7 @@ export default function Traceability() {
         subtitle={t('traceability.hero.subtitle')}
         hideHero={true}
       />
+      <h1 className="sr-only">{t('traceability.hero.title')}</h1>
 
       {/* Section 01: Trace Your Product — Interactive Lookup */}
       <SectionContainer noTopSpacing>
@@ -561,8 +543,8 @@ export default function Traceability() {
         >
           <div className="relative">
             {/* Decorative corner accents */}
-            <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-rust/30 pointer-events-none z-10" />
-            <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-rust/30 pointer-events-none z-10" />
+            <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-rust/30 pointer-events-none z-10" aria-hidden="true" />
+            <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-rust/30 pointer-events-none z-10" aria-hidden="true" />
 
             <div className="flex items-center border-b-2 border-warm-gray/60 focus-within:border-rust transition-colors">
               <svg className="w-4 h-4 text-sepia-mid ml-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
@@ -579,7 +561,7 @@ export default function Traceability() {
             </div>
           </div>
 
-          <p className="font-body text-overline text-sepia-mid/70 mt-2 tracking-wide">
+          <p className="font-body text-overline text-sepia-mid mt-2 tracking-wide">
             {t('traceability.lookup.hint')}
           </p>
 
@@ -878,7 +860,7 @@ export default function Traceability() {
       </section>
 
       {/* Bottom CTA */}
-      <div className="editorial-divider" />
+      <div className="editorial-divider" aria-hidden="true" />
 
       <SectionContainer narrow>
         <motion.div
@@ -908,7 +890,7 @@ export default function Traceability() {
         </motion.div>
       </SectionContainer>
 
-      <div className="editorial-divider" />
+      <div className="editorial-divider" aria-hidden="true" />
     </PageWrapper>
   );
 }

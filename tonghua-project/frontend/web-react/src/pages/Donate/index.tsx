@@ -98,7 +98,7 @@ function ImpactProgressBar({
           </span>
         </div>
       </div>
-      <div className="h-2 bg-warm-gray/15 rounded-sm overflow-hidden">
+      <div className="h-2 bg-warm-gray/15 rounded-sm overflow-hidden" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={`${label}: ${pct}%`}>
         <motion.div
           {...(prefersReducedMotion ? {} : {
             initial: { scaleX: 0 },
@@ -318,6 +318,20 @@ export default function Donate() {
 
           {/* Right: Donation panel */}
           <div className="md:col-span-7">
+            {donateMutation.isSuccess && (
+              <div className="mb-4 p-4 border border-sepia-light bg-paper-warm">
+                <p className="font-body text-body-sm text-ink">
+                  {t('donate.success', 'Thank you for your donation! Your generosity helps children explore their creativity.')}
+                </p>
+              </div>
+            )}
+            {donateMutation.isError && (
+              <div className="mb-4 p-4 border border-rust bg-red-50">
+                <p className="font-body text-body-sm text-rust">
+                  {t('donate.error', 'Something went wrong. Please try again.')}
+                </p>
+              </div>
+            )}
             <DonationPanel
               onSubmit={donateMutation.mutate}
               isSubmitting={donateMutation.isPending}
@@ -354,8 +368,8 @@ export default function Donate() {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start relative z-10">
             <div className="md:col-span-5 relative">
               {/* Decorative corner accents */}
-              <div className="absolute -top-2 -left-2 w-4 h-4 border-t-2 border-l-2 border-sage/30 pointer-events-none" />
-              <div className="absolute -bottom-2 -right-2 w-4 h-4 border-b-2 border-r-2 border-sage/30 pointer-events-none" />
+              <div className="absolute -top-2 -left-2 w-4 h-4 border-t-2 border-l-2 border-sage/30 pointer-events-none" aria-hidden="true" />
+              <div className="absolute -bottom-2 -right-2 w-4 h-4 border-b-2 border-r-2 border-sage/30 pointer-events-none" aria-hidden="true" />
 
               <h3 className="font-display text-h3 font-bold text-ink mb-4">
                 {t('donate.transparency.title')}
@@ -413,18 +427,15 @@ export default function Donate() {
             <div className="md:col-span-7">
               <div className="grid grid-cols-2 gap-4">
                 {['Q1 2026', 'Q4 2025', 'Q3 2025', 'Q2 2025'].map((quarter, index) => (
-                  <motion.div
+                  <motion.button
                     key={quarter}
+                    type="button"
                     initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
                     whileInView={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                     whileHover={prefersReducedMotion ? undefined : { y: -4 }}
-                    className="border border-warm-gray/30 p-6 bg-paper hover:border-sage/30 transition-colors cursor-pointer relative"
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`${quarter} financial report`}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') e.preventDefault(); }}
+                    className="border border-warm-gray/30 p-6 bg-paper hover:border-sage/30 transition-colors cursor-pointer relative text-left w-full"
                   >
                     {/* Corner accents */}
                     <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-sage/30 pointer-events-none" />
@@ -439,7 +450,7 @@ export default function Donate() {
                     <span className="font-body text-caption text-sepia-mid mt-2 block">
                       {t('donate.transparency.pdfSize')}
                     </span>
-                  </motion.div>
+                  </motion.button>
                 ))}
               </div>
             </div>

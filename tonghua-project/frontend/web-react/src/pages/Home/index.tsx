@@ -376,7 +376,7 @@ export default function Home() {
       </section>
 
       {/* Editorial divider before footer */}
-      <div className="editorial-divider" />
+      <div className="editorial-divider" aria-hidden="true" />
 
       {/* Bottom feature strip — 3 brand pillars */}
       <SectionContainer>

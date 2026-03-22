@@ -6,7 +6,6 @@ from decimal import Decimal
 import xml.etree.ElementTree as ET
 import secrets
 import logging
-from urllib.parse import parse_qs
 
 import hmac as hmac_mod
 import hashlib
@@ -305,8 +304,8 @@ async def alipay_notify(request: Request, db: AsyncSession = Depends(get_db)):
                 logger.error(f"Alipay signature verification failed: {verify_error}")
                 return PlainTextResponse("failure")
         else:
-            logger.error("ALIPAY_PUBLIC_KEY not configured, rejecting callback")
-            return PlainTextResponse("failure")
+            logger.error("ALIPAY_PUBLIC_KEY not configured, rejecting Alipay callback")
+            return PlainTextResponse("failure", status_code=500)
 
         # --- Check trade status ---
         trade_status = params.get("trade_status", "")

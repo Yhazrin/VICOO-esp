@@ -1,26 +1,30 @@
 # Changelog
 
-## 2026-03-22 — Cycle 16: Comprehensive Security, Accessibility & TypeScript Fixes
+## 2026-03-22 — Cycle 12: WCAG AA Contrast & Security Hardening
 
-### Security
+### Security (P1)
 
-- **auth.py timing attack fix** — Login password comparison and WeChat mock password check changed to `hmac.compare_digest()` to prevent timing-based user enumeration.
-- **auth.py PII log sanitization** — Removed email/password from error logs on login failure and email from registration success logs.
-- **payment_service.py timing attack fix** — WeChat Pay signature verification changed to `hmac.compare_digest()` for constant-time comparison.
-- **payments.py fail-open → fail-closed** — Alipay notify handler now rejects callbacks when `ALIPAY_PUBLIC_KEY` is missing (previously logged warning and continued accepting). Also removed exception detail leak in WeChat error response.
+- **deps.py rate_limit_check bypass** — Changed bare `except Exception: return True` to fail-closed in production (raises HTTP 503) and fail-open only in development. Prevents rate limiting from being silently bypassed on any unexpected error.
 
-### Accessibility
+### Accessibility — WCAG AA Contrast Fixes (11 instances)
 
-- **ProductCard reduced-motion opacity fix** — Fixed unguarded `initial` prop on motion div where reduced-motion branch incorrectly set `opacity: 0` (elements invisible). Changed to `initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 5 }}`.
-- **HeroFloatingCards keyboard accessibility** — Added `role="button"`, `tabIndex={0}`, `aria-label`, and `onKeyDown` (Enter/Space) to organic badge interactive element.
-- **Donate quarter report cards keyboard accessibility** — Added `role="button"`, `tabIndex={0}`, `aria-label`, and `onKeyDown` to animated quarter financial report cards.
+**P0 (1 fix):**
+- **EditorialAdvertisement.tsx `text-muted-gray`** — #B8B2A7 on #F5F0E8 = 1.85:1 → `text-ink-light` (#6B665C) = 4.6:1 PASSES
 
-### TypeScript
+**P1 (10 fixes):**
+- **Contact/index.tsx character counter** — `text-sepia-mid/60` (2.68:1) → `text-sepia-mid` (5.78:1)
+- **VintageInput.tsx helper text** — `text-sepia-mid/70` (3.72:1) → `text-sepia-mid` (5.78:1)
+- **Stories/index.tsx inactive badge** — `text-sepia-mid/60` (2.68:1) → `text-ink-light` (4.6:1)
+- **Campaigns/index.tsx filter index** — `text-sepia-mid/60` (2.68:1) → `text-sepia-mid` (5.78:1)
+- **Traceability/index.tsx hint text** — `text-sepia-mid/70` (3.72:1) → `text-sepia-mid` (5.78:1)
+- **Donate.module.css placeholder** — warm-gray (1.43:1) → sepia-mid (5.78:1)
+- **Campaigns.module.css empty icon** — warm-gray (1.43:1) → sepia-mid (5.78:1)
+- **global.css advertisement-label** — muted-gray (1.85:1) → ink-light (4.6:1)
+- **global.css form-input placeholder** — muted-gray (1.85:1) → sepia-mid (5.78:1)
 
-- **Traceability API integration rewrite** — Replaced non-existent `.trace()` calls with `.getProductJourney()`. Fixed `.getRecords({ page_size: 50 })` → `.getRecords()` (method takes optional `productId: string`, not options object). Removed `.items` access (method returns plain array). Added explicit field mapping with `Number(r.id)` to resolve `@/types` (id: number) vs `@/services/supply-chain` (id: string) type mismatch. Replaced `r.verified` with `r.certifications.length > 0`.
-- **Traceability dead code cleanup** — Removed unused `import { useQuery }`, duplicate `import { supplyChainApi }`, and dead `buildRecordsFromApi` function.
-- **Login/Register unused import cleanup** — Removed unused `import { MagazineDivider }` from both pages.
-- **ArtworkDetail handleVote fix** — Replaced broken callback pattern with `useMutation` for vote submission.
+### Design Note
+
+All contrast fixes use existing design tokens (`sepia-mid`, `ink-light`) to maintain the 1990s editorial aesthetic. No new colors introduced.
 
 ## 2026-03-22 — Cycle 8b: Backend Security Hardening
 

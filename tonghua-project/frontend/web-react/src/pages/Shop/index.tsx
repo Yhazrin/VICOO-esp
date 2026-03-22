@@ -170,8 +170,22 @@ export default function Shop() {
               <motion.button
                 key={cat}
                 role="tab"
+                id={`tab-shop-${cat}`}
                 aria-selected={activeCategory === cat}
+                aria-controls="panel-shop"
+                tabIndex={activeCategory === cat ? 0 : -1}
                 onClick={() => setActiveCategory(cat)}
+                onKeyDown={(e) => {
+                  if (e.key === 'ArrowRight') {
+                    const next = categories[(index + 1) % categories.length];
+                    setActiveCategory(next);
+                    document.getElementById(`tab-shop-${next}`)?.focus();
+                  } else if (e.key === 'ArrowLeft') {
+                    const prev = categories[(index - 1 + categories.length) % categories.length];
+                    setActiveCategory(prev);
+                    document.getElementById(`tab-shop-${prev}`)?.focus();
+                  }
+                }}
                 initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
                 animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
@@ -214,26 +228,28 @@ export default function Shop() {
         </p>
 
         {/* Product grid */}
-        {filtered.length === 0 ? (
-          <p className="font-body text-body-sm text-sepia-mid py-20 text-center">
-            {t('shop.empty')}
-          </p>
-        ) : (
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`${activeCategory}-${sortBy}`}
-              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-10 md:gap-x-8 md:gap-y-14"
-            >
-              {filtered.map((product, index) => (
-                <ProductCard key={product.id} product={product} index={index} />
-              ))}
-            </motion.div>
-          </AnimatePresence>
-        )}
+        <div id="panel-shop" role="tabpanel" aria-labelledby={`tab-shop-${activeCategory}`}>
+          {filtered.length === 0 ? (
+            <p className="font-body text-body-sm text-sepia-mid py-20 text-center">
+              {t('shop.empty')}
+            </p>
+          ) : (
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`${activeCategory}-${sortBy}`}
+                initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-10 md:gap-x-8 md:gap-y-14"
+              >
+                {filtered.map((product, index) => (
+                  <ProductCard key={product.id} product={product} index={index} />
+                ))}
+              </motion.div>
+            </AnimatePresence>
+          )}
+        </div>
       </SectionContainer>
 
       {/* Sustainability note */}
