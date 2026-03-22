@@ -92,12 +92,13 @@ class WeChatPayService:
 
         try:
             # Make async HTTP request to WeChat API
-            response = httpx.post(
-                "https://api.mch.weixin.qq.com/pay/unifiedorder",
-                content=xml_body,
-                headers={"Content-Type": "application/xml"},
-                timeout=30.0
-            )
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    "https://api.mch.weixin.qq.com/pay/unifiedorder",
+                    content=xml_body,
+                    headers={"Content-Type": "application/xml"},
+                    timeout=30.0
+                )
             response.raise_for_status()
 
             # Parse XML response

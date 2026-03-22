@@ -88,6 +88,10 @@ async def list_records(
         if stage:
             stmt = stmt.where(SupplyChainRecord.stage == stage)
         count_stmt = select(func.count(SupplyChainRecord.id))
+        if product_id is not None:
+            count_stmt = count_stmt.where(SupplyChainRecord.product_id == product_id)
+        if stage:
+            count_stmt = count_stmt.where(SupplyChainRecord.stage == stage)
         total = (await db.execute(count_stmt)).scalar() or 0
         stmt = stmt.order_by(SupplyChainRecord.timestamp).offset((page - 1) * page_size).limit(page_size)
         result = await db.execute(stmt)

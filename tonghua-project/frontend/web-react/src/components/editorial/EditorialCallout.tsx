@@ -15,19 +15,19 @@ export default function EditorialCallout({
   className = '',
 }: EditorialCalloutProps) {
   const prefersReducedMotion = useReducedMotion();
-  const variantStyles = {
+  const variantBorderColors = {
     default: 'border-rust',
-    info: 'border-[var(--color-info)]',
-    warning: 'border-[var(--color-warning)]',
-    success: 'border-[var(--color-success)]',
-    editorial: 'border-archive-brown bg-aged-stock/50',
+    info: 'border-info',
+    warning: 'border-warning',
+    success: 'border-success',
+    editorial: 'border-archive-brown',
   };
 
-  const titleStyles = {
+  const variantTitleColors = {
     default: 'text-rust',
-    info: 'text-[var(--color-info)]',
-    warning: 'text-[var(--color-warning)]',
-    success: 'text-[var(--color-success)]',
+    info: 'text-info',
+    warning: 'text-warning',
+    success: 'text-success',
     editorial: 'text-archive-brown',
   };
 
@@ -41,22 +41,16 @@ export default function EditorialCallout({
         p-6 md:p-8
         bg-paper
         border-l-4
-        ${variantStyles[variant]}
+        ${variantBorderColors[variant]}
+        ${variant === 'editorial' ? 'bg-aged-stock/50' : ''}
         ${className}
       `}
     >
       {/* Decorative corner */}
       <div className="absolute top-0 right-0 w-8 h-8 border-t border-r border-warm-gray/30 opacity-50" />
 
-      {/* Top accent line for non-editorial variants */}
-      {variant !== 'editorial' && (
-        <div
-          className={`absolute top-0 left-0 w-px h-full bg-gradient-to-b from-${variant === 'default' ? 'rust' : variant}-transparent`}
-        />
-      )}
-
       {title && (
-        <h4 className={`font-display text-h4 font-bold mb-3 ${titleStyles[variant]}`}>
+        <h4 className={`font-display text-h4 font-bold mb-3 ${variantTitleColors[variant]}`}>
           {title}
         </h4>
       )}

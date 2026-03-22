@@ -71,6 +71,8 @@ async def list_campaigns(
         if status:
             stmt = stmt.where(Campaign.status == status)
         count_stmt = select(func.count(Campaign.id))
+        if status:
+            count_stmt = count_stmt.where(Campaign.status == status)
         total = (await db.execute(count_stmt)).scalar() or 0
         stmt = stmt.offset((page - 1) * page_size).limit(page_size)
         result = await db.execute(stmt)

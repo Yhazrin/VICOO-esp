@@ -92,7 +92,7 @@ export default function HeroFloatingCards({ className = '' }: HeroFloatingCardsP
             <rect x="15" y="105" width="40" height="8" rx="2" fill="#E8C5A0" opacity="0.5"/>
             <rect x="60" y="108" width="55" height="5" rx="2" fill="#B0C9A8" opacity="0.4"/>
           </svg>
-          <div className="font-mono text-[8px] tracking-widest text-gray-400 text-center py-2 border-t border-black/[0.06] bg-paper/70 w-full">
+          <div className="font-mono text-[8px] tracking-widest text-sepia-light text-center py-2 border-t border-black/[0.06] bg-paper/70 w-full">
             CHILD DRAWING · AGE 8
           </div>
         </div>
@@ -136,7 +136,7 @@ export default function HeroFloatingCards({ className = '' }: HeroFloatingCardsP
             <rect x="47" y="82" width="15" height="12" rx="2" fill="#B0C9A8" opacity="0.5"/>
             <rect x="66" y="80" width="18" height="15" rx="2" fill="#D4A87C" opacity="0.5"/>
           </svg>
-          <div className="font-mono text-[8px] tracking-widest text-gray-400 text-center py-2 border-t border-black/[0.06] bg-paper/70 w-full">
+          <div className="font-mono text-[8px] tracking-widest text-sepia-light text-center py-2 border-t border-black/[0.06] bg-paper/70 w-full">
             TSHIRT · ¥188
           </div>
         </div>
@@ -160,7 +160,7 @@ export default function HeroFloatingCards({ className = '' }: HeroFloatingCardsP
             <circle cx="110" cy="52" r="5" fill="#7BAE7F" opacity="0.4"/>
             <path d="M55 110 L60 120 M72 112 L72 122 M88 110 L83 120" stroke="#999" strokeWidth="1" opacity="0.3"/>
           </svg>
-          <div className="font-mono text-[8px] tracking-widest text-gray-400 text-center py-2 border-t border-black/[0.06] bg-paper/70 w-full">
+          <div className="font-mono text-[8px] tracking-widest text-sepia-light text-center py-2 border-t border-black/[0.06] bg-paper/70 w-full">
             HOODIE · ¥298
           </div>
         </div>
@@ -182,7 +182,7 @@ export default function HeroFloatingCards({ className = '' }: HeroFloatingCardsP
             <path d="M25 72 Q52 62 80 72" stroke="#7BAE7F" strokeWidth="1.8" fill="none" strokeLinecap="round"/>
             <rect x="18" y="80" width="70" height="6" rx="2" fill="#E8C5A0" opacity="0.4"/>
           </svg>
-          <div className="font-mono text-[8px] tracking-widest text-gray-400 text-center py-2 border-t border-black/[0.06] bg-paper/70 w-full">
+          <div className="font-mono text-[8px] tracking-widest text-sepia-light text-center py-2 border-t border-black/[0.06] bg-paper/70 w-full">
             BAG · ¥228
           </div>
         </div>
@@ -199,7 +199,7 @@ export default function HeroFloatingCards({ className = '' }: HeroFloatingCardsP
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
           <path d="M12 3L14 9H20L15.5 12.5L17.5 18.5L12 15L6.5 18.5L8.5 12.5L4 9H10L12 3Z" fill="#B84B2A" opacity="0.55"/>
         </svg>
-        <span className="font-mono text-[7px] tracking-wider text-gray-500 text-center leading-[1.4]">
+        <span className="font-mono text-[7px] tracking-wider text-sepia-light text-center leading-[1.4]">
           100%<br/>ORGANIC
         </span>
       </motion.div>

@@ -1,6 +1,6 @@
 # Improvement Tracker
 
-> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 33)
+> Auto-maintained by agent loop. Last updated: 2026-03-22 (cycle 35)
 > Scope broadened: now covers frontend UI/UX + backend architecture + software architecture + sustainability + code quality
 
 ## Completed
@@ -188,6 +188,35 @@
 | 144 | TypeScript — Login/Register unused MagazineDivider import | Low | ✅ done — removed from both files |
 | 145 | Backend — orders.py `import random` inside except block | Low | ✅ done — moved to top-level imports |
 | 146 | Backend — 5 router files mock write fallbacks (fail-open on DB error) | P0 | ✅ done — all replaced with HTTP 503 fail-closed |
+
+### Cycle 34 (2026-03-22) — Security + A11y + Brand + UI/UX
+
+| # | Issue | Priority | Status |
+|---|-------|----------|--------|
+| 147 | Security — payments.py alipay_notify skips verification when ALIPAY_PUBLIC_KEY missing | P0 | ✅ done — now returns "failure" (fail-closed) |
+| 148 | Security — frontend HMAC-SHA256 signing exposes VITE_API_SECRET_KEY in client bundle | P0 | ✅ done — removed signing, JWT-only auth |
+| 149 | Security — backend signature verification middleware still active after removing frontend signing | P0 | ✅ done — disabled in main.py, kept for server-to-server |
+| 150 | Security — TrustedHostMiddleware disabled in all environments | P0 | ✅ done — enabled in production, disabled in dev |
+| 151 | Security — rate limiter fail-open silently swallows errors | P1 | ✅ done — added logger.warning |
+| 152 | Security — /api/v1/contact missing from public_endpoints (IP rate limiting) | P1 | ✅ done — added to public_endpoints list |
+| 153 | A11y — global.css missing prefers-reduced-motion overrides for keyframe animations | P0 | ✅ done — added @media block disabling fade-in/up/down (WCAG 2.3.3) |
+| 154 | A11y — global.css .form-input:focus missing visible focus ring | P0 | ✅ done — added box-shadow indicator (WCAG 2.4.7) |
+| 155 | A11y — Layout.tsx missing skip-to-main-content link | P0 | ✅ done — added sr-only link with focus:visible styling (WCAG 2.4.1) |
+| 156 | Brand — ArtworkDetail.tsx bare PaperTextureBackground with no editorial treatment | P0 | ✅ done — added SectionGrainOverlay + corner accents |
+| 157 | UI/UX — EditorialCallout.tsx dynamic Tailwind class construction (from-${variant}-transparent) | Medium | ✅ done — removed gradient, used proper Tailwind tokens (border-info etc.) |
+| 158 | UI/UX — EditorialAdvertisement.tsx invalid CSS (border: 1px dashed border-warm-gray) | Medium | ✅ done — converted to Tailwind utility classes |
+
+### Cycle 35 (2026-03-22) — Backend correctness + type safety + CSS tokens
+
+| # | Issue | Priority | Notes |
+|---|-------|----------|-------|
+| 159 | Backend — 8 paginated endpoints count query ignores filters (total always returns ALL rows) | P0 | ✅ done — added `.where()` filter propagation to count_stmt in orders, artworks, campaigns, donations, products, supply_chain, admin (audit-logs + child-participants) |
+| 160 | Backend — orders.py N+1 query (per-order OrderItem fetch in loop) | P1 | ✅ done — batch load with `in_(order_ids)`, group by order_id dict |
+| 161 | Backend — payment_service.py synchronous `httpx.post()` blocks async event loop | P1 | ✅ done — changed to `async with httpx.AsyncClient()` |
+| 162 | Backend — payments.py webhook handlers call `db.commit()` prematurely | P1 | ✅ done — changed to `db.flush()` (get_db dependency handles commit) |
+| 163 | Frontend — tokens.css missing --space-xs/sm/md aliases (used in ~8 CSS modules) | P1 | ✅ done — added aliases pointing to --space-1/2/4 |
+| 164 | Frontend — HeroFloatingCards.tsx uses default gray-* palette instead of editorial tokens | P2 | ✅ done — 5 instances of text-gray-400/500 → text-sepia-light |
+| 165 | TypeScript — duplicate SupplyChainRecord type (types/index.ts vs services/supply-chain.ts) | P1 | ✅ done — renamed display type to SupplyChainTimelineRecord, updated all imports |
 
 ## Pending
 

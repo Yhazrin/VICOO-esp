@@ -97,6 +97,10 @@ async def list_artworks(
         if campaign_id is not None:
             stmt = stmt.where(Artwork.campaign_id == campaign_id)
         count_stmt = select(func.count(Artwork.id))
+        if status:
+            count_stmt = count_stmt.where(Artwork.status == status)
+        if campaign_id is not None:
+            count_stmt = count_stmt.where(Artwork.campaign_id == campaign_id)
         total = (await db.execute(count_stmt)).scalar() or 0
         stmt = stmt.offset((page - 1) * page_size).limit(page_size)
         result = await db.execute(stmt)

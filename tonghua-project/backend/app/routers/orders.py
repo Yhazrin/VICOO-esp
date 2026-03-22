@@ -112,18 +112,28 @@ async def list_orders(
         if status:
             stmt = stmt.where(Order.status == status)
         count_stmt = select(func.count(Order.id))
+        if current_user.get("role") != "admin":
+            count_stmt = count_stmt.where(Order.user_id == current_user["id"])
+        if status:
+            count_stmt = count_stmt.where(Order.status == status)
         total = (await db.execute(count_stmt)).scalar() or 0
         stmt = stmt.offset((page - 1) * page_size).limit(page_size)
         result = await db.execute(stmt)
         orders = result.scalars().all()
+        # Batch-load OrderItems to avoid N+1 queries
+        order_ids = [o.id for o in orders]
+        items_stmt = select(OrderItem).where(OrderItem.order_id.in_(order_ids))
+        all_items = (await db.execute(items_stmt)).scalars().all()
+        items_by_order: dict[int, list] = {}
+        for item in all_items:
+            items_by_order.setdefault(item.order_id, []).append(item)
+
         data = []
         for order in orders:
-            item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
-            items = (await db.execute(item_stmt)).scalars().all()
             order_dict = OrderOut.model_validate(order).model_dump()
             order_dict["items"] = [
                 {"id": i.id, "product_id": i.product_id, "quantity": i.quantity, "price": str(i.price)}
-                for i in items
+                for i in items_by_order.get(order.id, [])
             ]
             data.append(order_dict)
         return PaginatedResponse(data=data, total=total, page=page, page_size=page_size)

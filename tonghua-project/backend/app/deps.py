@@ -130,7 +130,7 @@ async def rate_limit_check(request: Request, current_user: Optional[dict] = None
                 raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
         # Public endpoint rate limit: 20 requests per minute per IP for auth endpoints
-        public_endpoints = ["/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/refresh", "/api/v1/auth/wx-login"]
+        public_endpoints = ["/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/refresh", "/api/v1/auth/wx-login", "/api/v1/contact"]
         if request.url.path in public_endpoints:
             public_key = f"rate_limit:public:{client_ip}:{int(current_time // 60)}"
             try:
@@ -174,8 +174,9 @@ async def rate_limit_check(request: Request, current_user: Optional[dict] = None
         return True
     except HTTPException:
         raise
-    except Exception:
-        # If rate limiting fails for any reason, allow the request
+    except Exception as e:
+        # Fail open but log warning for monitoring
+        logger.warning(f"Rate limiting failed unexpectedly (fail-open): {e}")
         return True
 
 

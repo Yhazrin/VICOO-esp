@@ -207,7 +207,7 @@ async def wechat_notify(request: Request, db: AsyncSession = Depends(get_db)):
                 raw_response=params
             )
             db.add(payment_tx)
-            await db.commit()
+            await db.flush()
             logger.info(f"Payment transaction created: ID={payment_tx.id}, TX={transaction_id}")
 
         except Exception as db_error:
@@ -292,7 +292,8 @@ async def alipay_notify(request: Request, db: AsyncSession = Depends(get_db)):
                 logger.error(f"Alipay signature verification failed: {verify_error}")
                 return PlainTextResponse("failure")
         else:
-            logger.warning("ALIPAY_PUBLIC_KEY not configured, skipping signature verification")
+            logger.error("ALIPAY_PUBLIC_KEY not configured — rejecting callback (fail-closed)")
+            return PlainTextResponse("failure")
 
         # --- Check trade status ---
         trade_status = params.get("trade_status", "")
@@ -342,7 +343,7 @@ async def alipay_notify(request: Request, db: AsyncSession = Depends(get_db)):
             raw_response=params,
         )
         db.add(payment_tx)
-        await db.commit()
+        await db.flush()
         logger.info(f"Alipay payment transaction created: TX={trade_no}")
 
         return PlainTextResponse("success")

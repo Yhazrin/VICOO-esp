@@ -85,11 +85,12 @@ export interface Product {
   stockCount: number;
   artworkSource?: Artwork;
   artworkBy?: ProductArtworkAttribution;
-  supplyChain: SupplyChainRecord[];
+  supplyChain: SupplyChainTimelineRecord[];
   sustainabilityScore: number;
 }
 
-export interface SupplyChainRecord {
+/** Frontend display type for TraceabilityTimeline — not a direct API response type */
+export interface SupplyChainTimelineRecord {
   id: number;
   stage: string;
   description: string;
@@ -184,7 +185,7 @@ export type Locale = 'en' | 'zh';
 export interface SupplyChainTrace {
   product_id: number;
   product_name: string;
-  records: SupplyChainRecord[];
+  records: SupplyChainTimelineRecord[];
 }
 
 export interface SupplyChainStage {

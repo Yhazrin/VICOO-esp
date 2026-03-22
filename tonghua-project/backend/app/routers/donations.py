@@ -58,6 +58,10 @@ async def list_donations(
         if status:
             stmt = stmt.where(Donation.status == status)
         count_stmt = select(func.count(Donation.id))
+        if campaign_id is not None:
+            count_stmt = count_stmt.where(Donation.campaign_id == campaign_id)
+        if status:
+            count_stmt = count_stmt.where(Donation.status == status)
         total = (await db.execute(count_stmt)).scalar() or 0
         stmt = stmt.order_by(Donation.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
         result = await db.execute(stmt)

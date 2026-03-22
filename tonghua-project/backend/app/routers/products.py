@@ -47,6 +47,10 @@ async def list_products(
         if status:
             stmt = stmt.where(Product.status == status)
         count_stmt = select(func.count(Product.id))
+        if category:
+            count_stmt = count_stmt.where(Product.category == category)
+        if status:
+            count_stmt = count_stmt.where(Product.status == status)
         total = (await db.execute(count_stmt)).scalar() or 0
         stmt = stmt.offset((page - 1) * page_size).limit(page_size)
         result = await db.execute(stmt)

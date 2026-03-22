@@ -69,8 +69,9 @@ allowed_hosts = list(set(allowed_hosts))
 if not allowed_hosts:
     allowed_hosts = ["localhost"]
 logger.info(f"Allowed hosts: {allowed_hosts}")
-# Temporarily disable TrustedHostMiddleware for development
-# app.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)
+# Enable TrustedHostMiddleware in production, disable in development
+if settings.APP_ENV != "development":
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)
 
 # CORS - Restrict to specific origins (no wildcard)
 logger.info(f"CORS Origins: {settings.CORS_ORIGINS}")
@@ -113,48 +114,11 @@ async def request_size_limit_middleware(request: Request, call_next):
 
 
 # ── Signature verification middleware ─────────────────────────────────
-@app.middleware("http")
-async def signature_verification_middleware(request: Request, call_next):
-    """Verify request signature using HMAC-SHA256.
-
-    This middleware validates:
-    1. X-Signature header (HMAC-SHA256 signature)
-    2. X-Timestamp header (prevents request replay)
-    3. X-Nonce header (prevents replay attacks)
-
-    Only applies to API endpoints (/api/*) except public auth endpoints.
-    """
-    # Skip signature verification for non-API endpoints
-    if not request.url.path.startswith("/api/"):
-        return await call_next(request)
-
-    # Skip signature verification for public auth endpoints
-    public_endpoints = [
-        "/api/v1/auth/login",
-        "/api/v1/auth/register",
-        "/api/v1/auth/refresh",
-        "/api/v1/auth/wx-login",
-        "/api/v1/auth/logout",
-    ]
-    if request.url.path in public_endpoints:
-        return await call_next(request)
-
-    # Verify signature
-    is_valid, error_message = await verify_request_signature(request)
-
-    if not is_valid:
-        return JSONResponse(
-            status_code=401,
-            content={
-                "success": False,
-                "data": None,
-                "message": error_message,
-            },
-        )
-
-    # Signature verified, continue processing
-    response = await call_next(request)
-    return response
+# DISABLED: HMAC signing secret was exposed in frontend bundle (P0 security).
+# Auth is handled by JWT Bearer tokens + httpOnly refresh cookie instead.
+# Kept verify_request_signature() in deps.py for future server-to-server use.
+# @app.middleware("http")
+# async def signature_verification_middleware(request: Request, call_next):
 
 
 # ── Rate Limiting middleware (applied before logging) ────────────
