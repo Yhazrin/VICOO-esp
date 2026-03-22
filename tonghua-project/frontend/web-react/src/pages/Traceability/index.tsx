@@ -472,14 +472,17 @@ export default function Traceability() {
   useEffect(() => {
     let cancelled = false;
     supplyChainApi
-      .getRecords({ page_size: 50 })
+      .getRecords()
       .then((res) => {
-        if (cancelled || !res.items.length) return;
-        const mapped: EnhancedSupplyChainRecord[] = res.items.map((r, i) => ({
+        if (cancelled || !res.length) return;
+        const mapped: EnhancedSupplyChainRecord[] = res.map((r, i) => ({
           ...r,
+          date: r.timestamp,
+          verified: true,
+          partnerName: r.artisan?.name ?? r.productName,
           story: MOCK_RECORDS[i]?.story ?? r.description,
-          imageUrl: MOCK_RECORDS[i]?.imageUrl ?? `https://picsum.photos/seed/stage-${r.stage}/200/200`,
-          status: (r.verified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
+          imageUrl: MOCK_RECORDS[i]?.imageUrl ?? r.artisan?.imageUrl ?? `https://picsum.photos/seed/stage-${r.stage}/200/200`,
+          status: 'verified' as const,
         }));
         setRecords(mapped);
       })
@@ -500,15 +503,18 @@ export default function Traceability() {
     setIsSearching(true);
 
     supplyChainApi
-      .trace(query.trim())
-      .then((trace) => {
-        if (trace.records.length > 0) {
-          const first = trace.records[0];
+      .getProductJourney(query.trim())
+      .then((journey) => {
+        if (journey.length > 0) {
+          const first = journey[0];
           const enhanced: EnhancedSupplyChainRecord = {
             ...first,
+            date: first.timestamp,
+            verified: true,
+            partnerName: first.artisan?.name ?? first.productName,
             story: MOCK_RECORDS.find((m) => m.stage === first.stage)?.story ?? first.description,
-            imageUrl: MOCK_RECORDS.find((m) => m.stage === first.stage)?.imageUrl ?? `https://picsum.photos/seed/${first.stage}/200/200`,
-            status: (first.verified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
+            imageUrl: MOCK_RECORDS.find((m) => m.stage === first.stage)?.imageUrl ?? first.artisan?.imageUrl ?? `https://picsum.photos/seed/${first.stage}/200/200`,
+            status: 'verified' as const,
           };
           setHighlightedId(enhanced.id);
           setSearchResult(enhanced);

@@ -166,12 +166,10 @@ async def signature_verification_middleware(request: Request, call_next):
 async def rate_limit_middleware(request: Request, call_next):
     # Apply rate limiting (skip for health check endpoint and testing)
     testing = settings.TESTING
-    logger.info(f"Rate limit middleware: path={request.url.path}, TESTING={testing}, type={type(testing)}")
     # Skip rate limiting for health check and when TESTING=1
     if request.url.path == "/health" or testing == "1":
-        logger.info(f"Rate limit middleware: Skipping rate limiting (path={request.url.path}, testing={testing})")
+        pass
     else:
-        logger.info(f"Rate limit middleware: Applying rate limiting")
         try:
             # Create DB session for user extraction
             async with AsyncSessionLocal() as db:

@@ -183,6 +183,7 @@ export default function Profile() {
               aria-selected={activeTab === 'orders'}
               aria-controls="panel-orders"
               onClick={() => setActiveTab('orders')}
+              onKeyDown={(e) => { if (e.key === 'ArrowRight') { setActiveTab('donations'); document.getElementById('tab-donations')?.focus(); } }}
               className={`cursor-pointer pb-4 font-body text-body-sm tracking-[0.15em] uppercase transition-colors ${
                 activeTab === 'orders'
                   ? 'text-ink border-b-2 border-ink'
@@ -197,6 +198,7 @@ export default function Profile() {
               aria-selected={activeTab === 'donations'}
               aria-controls="panel-donations"
               onClick={() => setActiveTab('donations')}
+              onKeyDown={(e) => { if (e.key === 'ArrowLeft') { setActiveTab('orders'); document.getElementById('tab-orders')?.focus(); } }}
               className={`cursor-pointer pb-4 font-body text-body-sm tracking-[0.15em] uppercase transition-colors ${
                 activeTab === 'donations'
                   ? 'text-ink border-b-2 border-ink'

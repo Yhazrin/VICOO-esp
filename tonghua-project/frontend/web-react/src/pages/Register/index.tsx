@@ -6,7 +6,6 @@ import PageWrapper from '@/components/layout/PageWrapper';
 import { VintageInput } from '@/components/editorial/VintageInput';
 import GrainOverlay from '@/components/editorial/GrainOverlay';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
-import { MagazineDivider } from '@/components/editorial/MagazineDivider';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function Register() {

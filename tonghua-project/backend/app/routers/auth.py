@@ -141,6 +141,8 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
         logger.debug(f"DB user found: {user is not None}")
         if user:
             if verify_password(body.password, user.password_hash):
+                if user.status == "banned":
+                    raise HTTPException(status_code=403, detail="Account is banned")
                 token = create_access_token(subject=str(user.id), role=user.role)
                 refresh = create_refresh_token(subject=str(user.id))
                 response_data = ApiResponse(
@@ -354,7 +356,7 @@ async def wx_login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/refresh")
-async def refresh(request: Request):
+async def refresh(request: Request, db: AsyncSession = Depends(get_db)):
     """Refresh access token using a valid refresh token from httpOnly cookie."""
     # Read refresh token from httpOnly cookie
     refresh_token = request.cookies.get("refresh_token")
@@ -368,6 +370,20 @@ async def refresh(request: Request):
             raise HTTPException(status_code=400, detail="Invalid refresh token")
         sub = payload["sub"]
         role = payload.get("role", "user")
+
+        # Verify user is not banned before issuing new tokens
+        try:
+            user_id = int(sub)
+            stmt = select(User).where(User.id == user_id)
+            result = await db.execute(stmt)
+            user = result.scalar_one_or_none()
+            if user and user.status == "banned":
+                raise HTTPException(status_code=403, detail="Account is banned")
+        except HTTPException:
+            raise
+        except (ValueError, Exception):
+            pass  # sub is not an integer (e.g. WeChat openid) or DB unavailable
+
         new_access = create_access_token(subject=sub, role=role)
         new_refresh = create_refresh_token(subject=sub)
 
