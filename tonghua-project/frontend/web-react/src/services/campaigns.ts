@@ -23,7 +23,7 @@ export const campaignsApi = {
     return response.data.data;
   },
 
-  getActive: async (): Promise<Campaign[]> => {
+  getActive: async (): Promise<Campaign> => {
     const response = await api.get('/campaigns/active');
     return response.data.data;
   },

@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
+import logging
 
 from app.database import get_db
 from app.models.supply_chain import SupplyChainRecord
@@ -10,6 +11,8 @@ from app.schemas import ApiResponse, SupplyChainRecordCreate, SupplyChainRecordO
 from app.deps import get_current_user, require_role
 
 router = APIRouter(prefix="/supply-chain", tags=["Supply Chain"])
+
+logger = logging.getLogger(__name__)
 
 STAGES_ORDER = ["material_sourcing", "processing", "manufacturing", "quality_check", "shipping"]
 
@@ -173,12 +176,6 @@ async def create_record(
         db.add(record)
         await db.flush()
         return ApiResponse(data=SupplyChainRecordOut.model_validate(record).model_dump())
-    except Exception:
-        new_id = max(r["id"] for r in _mock_records) + 1 if _mock_records else 1
-        new_record = {
-            "id": new_id,
-            **body.model_dump(mode="json"),
-            "created_at": datetime.now().isoformat(),
-        }
-        _mock_records.append(new_record)
-        return ApiResponse(data=new_record, message="Record created (mock)")
+    except Exception as e:
+        logger.error(f"DB write failed during create_record: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
