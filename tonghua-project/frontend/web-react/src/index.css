@@ -1,2 +1,4 @@
 /* Entry stylesheet — delegates to the full design system */
+@import './styles/tokens.css';
+@import './styles/themes.css';
 @import './styles/global.css';

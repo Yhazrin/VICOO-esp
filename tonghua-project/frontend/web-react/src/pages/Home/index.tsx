@@ -225,14 +225,49 @@ export default function Home() {
         scrambleTitle={true}
         scrambleDuration={1400}
       >
-        <MagneticButton strength={0.4}>
-          <Link
-            to="/campaigns"
-            className="inline-block font-body text-body-sm tracking-[0.15em] uppercase bg-ink text-paper px-8 py-4 cursor-pointer hover:bg-rust transition-colors duration-300"
-          >
-            {t('home.hero.cta')}
-          </Link>
-        </MagneticButton>
+        {/* CTA Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+          <MagneticButton strength={0.4}>
+            <Link
+              to="/campaigns"
+              className="inline-block font-body text-body-sm tracking-[0.15em] uppercase bg-ink text-paper px-8 py-4 cursor-pointer hover:bg-rust transition-colors duration-300"
+            >
+              {t('home.hero.cta')}
+            </Link>
+          </MagneticButton>
+          <MagneticButton strength={0.3}>
+            <Link
+              to="/donate"
+              className="inline-block font-body text-body-sm tracking-[0.15em] uppercase border border-ink/40 text-ink px-8 py-4 cursor-pointer hover:border-ink hover:bg-ink/5 transition-colors duration-300"
+            >
+              {t('home.cta.donate')}
+            </Link>
+          </MagneticButton>
+        </div>
+
+        {/* Hero Stats Strip */}
+        <div className="mt-10 pt-8 border-t border-warm-gray/30">
+          <div className="grid grid-cols-3 gap-6 sm:gap-12 max-w-lg">
+            <div>
+              <p className="font-display text-h3 sm:text-h2 font-bold text-ink">2,847</p>
+              <p className="font-body text-caption text-sepia-mid tracking-wide mt-1">
+                {t('home.impact.children', 'Children')}
+              </p>
+            </div>
+            <div>
+              <p className="font-display text-h3 sm:text-h2 font-bold text-ink">¥890K</p>
+              <p className="font-body text-caption text-sepia-mid tracking-wide mt-1">
+                {t('home.impact.donated', 'Donated')}
+              </p>
+            </div>
+            <div>
+              <p className="font-display text-h3 sm:text-h2 font-bold text-ink">12</p>
+              <p className="font-body text-caption text-sepia-mid tracking-wide mt-1">
+                {t('home.pillars.traceable', 'Campaigns')}
+              </p>
+            </div>
+          </div>
+        </div>
       </EditorialHero>
 
       {/* Featured Campaigns Section */}

@@ -500,3 +500,23 @@ tonghua-project/
 5. **供应链展示必须真实可核验**，禁止空泛 ESG 文案
 6. **所有代码必须 TypeScript 严格模式**
 7. **所有前端代码必须考虑可访问性（a11y）**
+
+---
+
+## 环境与工作流指南
+
+### 目录上下文
+
+**全局 vs 项目**：当被要求安装 agents、写入 skills 或修改应在全局范围持久化的配置时，必须指向 `~/.claude/` 目录，而非当前项目目录。写入前确认路径。
+
+### 后端开发
+
+**环境变量**：确保在实例化任何 clients/services 之前加载环境变量。检查 dotenv 加载顺序问题 —— 在 `load_dotenv()` 调用之前创建的 clients 会使用错误/缺失的配置。
+
+**依赖检查清单**：运行后端前，验证：Python 版本 (`python --version`)、已安装所需模块、YAML/JSON 中存在配置字段。
+
+**Docker/容器配置**：启动服务前验证 Docker 已安装 (`docker --version`)、运行中 (`docker ps`)、网络可访问。检查 Dockerfile 路径是否从项目根目录正确引用。
+
+### 前端开发
+
+**UI 状态发现**：实现任何 UI panels、components 或 toggles 时，必须说明默认状态（可见/隐藏）以及如何访问。如果一个 VoicePanel 存在但默认隐藏，必须立即说明切换方式。

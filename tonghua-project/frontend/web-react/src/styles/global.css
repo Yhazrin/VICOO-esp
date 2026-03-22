@@ -44,10 +44,10 @@ body::before {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse at 15% 30%, rgba(196, 164, 90, 0.05) 0%, transparent 45%),
-    radial-gradient(ellipse at 85% 15%, rgba(139, 58, 42, 0.04) 0%, transparent 40%),
-    radial-gradient(ellipse at 50% 85%, rgba(92, 64, 51, 0.03) 0%, transparent 55%),
-    radial-gradient(ellipse at 70% 60%, rgba(212, 207, 196, 0.08) 0%, transparent 50%);
+    radial-gradient(ellipse at 15% 30%, var(--paper-texture-1, rgba(196, 164, 90, 0.05)) 0%, transparent 45%),
+    radial-gradient(ellipse at 85% 15%, var(--paper-texture-2, rgba(139, 58, 42, 0.04)) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 85%, var(--paper-texture-3, rgba(92, 64, 51, 0.03)) 0%, transparent 55%),
+    radial-gradient(ellipse at 70% 60%, var(--paper-texture-4, rgba(212, 207, 196, 0.08)) 0%, transparent 50%);
 }
 
 /* ── Scrollbar — Editorial Style ── */
@@ -96,12 +96,12 @@ img {
   max-width: 100%;
   height: auto;
   display: block;
-  filter: sepia(0.15) contrast(1.05) brightness(0.97);
+  filter: var(--img-filter, none);
   transition: filter var(--duration-normal) var(--ease-editorial);
 }
 
 img:hover {
-  filter: sepia(0.05) contrast(1.08) brightness(1.0);
+  filter: var(--img-filter-hover, var(--img-filter, none));
 }
 
 /* ── Button Reset ── */
@@ -312,8 +312,8 @@ input, textarea, select {
 .aged-border {
   border: 1px solid var(--color-warm-gray);
   box-shadow:
-    inset 0 0 30px rgba(237, 230, 214, 0.5),
-    0 2px 8px rgba(26, 26, 22, 0.05);
+    inset 0 0 30px var(--aged-border-shadow, rgba(237, 230, 214, 0.5)),
+    0 2px 8px var(--aged-border-shadow-outer, rgba(26, 26, 22, 0.05));
   position: relative;
 }
 
@@ -324,10 +324,10 @@ input, textarea, select {
   pointer-events: none;
   background: linear-gradient(
     135deg,
-    rgba(196, 164, 90, 0.06) 0%,
+    var(--aged-border-gradient-1, rgba(196, 164, 90, 0.06)) 0%,
     transparent 40%,
     transparent 60%,
-    rgba(92, 64, 51, 0.04) 100%
+    var(--aged-border-gradient-2, rgba(92, 64, 51, 0.04)) 100%
   );
 }
 
@@ -344,9 +344,9 @@ input, textarea, select {
   inset: 0;
   background: linear-gradient(
     135deg,
-    rgba(196, 164, 90, 0.08) 0%,
+    var(--sepia-frame-gradient-1, rgba(196, 164, 90, 0.08)) 0%,
     transparent 50%,
-    rgba(92, 64, 51, 0.05) 100%
+    var(--sepia-frame-gradient-2, rgba(92, 64, 51, 0.05)) 100%
   );
   pointer-events: none;
 }
@@ -696,6 +696,13 @@ input, textarea, select {
     scroll-behavior: auto !important;
   }
 }
+
+/* ── Theme System ── */
+/*
+  Theme variables are defined in themes.css (excluded from Tailwind scanning)
+  to prevent Tailwind JIT from inlining CSS variable values.
+  See themes.css for [data-theme="xxx"] selectors and --color-* variable definitions.
+*/
 
 @media print {
   body::before,

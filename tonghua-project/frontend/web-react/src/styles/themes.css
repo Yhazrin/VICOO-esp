@@ -1,0 +1,399 @@
+/* ═══════════════════════════════════════════════════════════════════════════════
+   Theme Variables — VICOO × Sustainable Fashion
+   主题切换系统 CSS 变量定义
+
+   ⚠️ 此文件不在 Tailwind 扫描范围内 (src/styles/*.css)
+   确保 Tailwind JIT 不会"吃掉"这些动态 CSS 变量
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Editorial Theme (Default) ── */
+[data-theme="editorial"],
+:root,
+.theme-editorial {
+  --theme-bg: #F7F5F2;
+  --theme-bg-elevated: #EFECEA;
+  --theme-bg-subtle: #FAF8F5;
+  --theme-panel: #F0ECE8;
+  --theme-text: #2D2A26;
+  --theme-text-muted: #6B6560;
+  --theme-border: #D4CFC8;
+  --theme-accent: #8B7355;
+  --theme-rust: #A65D4E;
+  /* Tailwind color fallbacks */
+  --color-paper: #F7F5F2;
+  --color-aged-stock: #EFECEA;
+  --color-warm-gray: #D4CFC8;
+  --color-muted-gray: #C4BDB4;
+  --color-ink: #2D2A26;
+  --color-ink-faded: #6B6560;
+  --color-ink-light: #8A857C;
+  --color-sepia-mid: #8B7355;
+  --color-sepia-light: #A89880;
+  --color-sepia-dark: #5C4838;
+  --color-rust: #A65D4E;
+  --color-rust-light: #C07A68;
+  --color-rust-dark: #8B4030;
+  /* Image & texture filters */
+  --img-filter: sepia(0.15) contrast(1.05) brightness(0.97);
+  --img-filter-hover: sepia(0.08) contrast(1.05);
+  --paper-texture-1: rgba(196, 164, 90, 0.05);
+  --paper-texture-2: rgba(139, 58, 42, 0.04);
+  --paper-texture-3: rgba(92, 64, 51, 0.03);
+  --paper-texture-4: rgba(212, 207, 196, 0.08);
+  /* Aged border gradients */
+  --aged-border-shadow: rgba(237, 230, 214, 0.5);
+  --aged-border-shadow-outer: rgba(26, 26, 22, 0.05);
+  --aged-border-gradient-1: rgba(196, 164, 90, 0.06);
+  --aged-border-gradient-2: rgba(92, 64, 51, 0.04);
+  --sepia-frame-gradient-1: rgba(196, 164, 90, 0.08);
+  --sepia-frame-gradient-2: rgba(92, 64, 51, 0.05);
+}
+
+/* ── Morandi Theme ── */
+[data-theme="morandi"],
+.theme-morandi {
+  --theme-bg: #F2F0ED;
+  --theme-bg-elevated: #E8E4DE;
+  --theme-bg-subtle: #FAF8F5;
+  --theme-panel: #E6E2DE;
+  --theme-text: #3D3A36;
+  --theme-text-muted: #6B6560;
+  --theme-border: #C4BDB4;
+  --theme-accent: #8B8178;
+  --theme-rust: #9A9080;
+  /* Tailwind color fallbacks */
+  --color-paper: #F2F0ED;
+  --color-aged-stock: #E8E4DE;
+  --color-warm-gray: #C4BDB4;
+  --color-muted-gray: #B0A89E;
+  --color-ink: #3D3A36;
+  --color-ink-faded: #6B6560;
+  --color-ink-light: #8A857C;
+  --color-sepia-mid: #8B8178;
+  --color-sepia-light: #A8A090;
+  --color-sepia-dark: #5C5850;
+  --color-rust: #9A9080;
+  --color-rust-light: #B0A898;
+  --color-rust-dark: #7A7068;
+  /* Image & texture filters */
+  --img-filter: sepia(0.08) contrast(1.02) brightness(1.0);
+  --img-filter-hover: sepia(0.04) contrast(1.05);
+  --paper-texture-1: rgba(180, 170, 160, 0.05);
+  --paper-texture-2: rgba(140, 130, 120, 0.04);
+  --paper-texture-3: rgba(120, 110, 100, 0.03);
+  --paper-texture-4: rgba(200, 190, 180, 0.08);
+  /* Aged border gradients */
+  --aged-border-shadow: rgba(220, 215, 208, 0.5);
+  --aged-border-shadow-outer: rgba(60, 58, 54, 0.05);
+  --aged-border-gradient-1: rgba(180, 170, 160, 0.06);
+  --aged-border-gradient-2: rgba(120, 110, 100, 0.04);
+  --sepia-frame-gradient-1: rgba(180, 170, 160, 0.08);
+  --sepia-frame-gradient-2: rgba(120, 110, 100, 0.05);
+}
+
+/* ── Sepia Theme ── */
+[data-theme="sepia"],
+.theme-sepia {
+  --theme-bg: #F5F0E8;
+  --theme-bg-elevated: #EDE6D8;
+  --theme-bg-subtle: #FDFBF7;
+  --theme-panel: #E8DFD0;
+  --theme-text: #3D3428;
+  --theme-text-muted: #6B5D4A;
+  --theme-border: #C4B8A0;
+  --theme-accent: #8B7355;
+  --theme-rust: #A65D4E;
+  /* Tailwind color fallbacks */
+  --color-paper: #F5F0E8;
+  --color-aged-stock: #EDE6D8;
+  --color-warm-gray: #C4B8A0;
+  --color-muted-gray: #B0A48C;
+  --color-ink: #3D3428;
+  --color-ink-faded: #6B5D4A;
+  --color-ink-light: #8B7B66;
+  --color-sepia-mid: #8B7355;
+  --color-sepia-light: #A89070;
+  --color-sepia-dark: #5C4838;
+  --color-rust: #A65D4E;
+  --color-rust-light: #C07860;
+  --color-rust-dark: #8B4030;
+  /* Image & texture filters */
+  --img-filter: sepia(0.2) contrast(1.08) brightness(0.95);
+  --img-filter-hover: sepia(0.12) contrast(1.06);
+  --paper-texture-1: rgba(196, 164, 90, 0.08);
+  --paper-texture-2: rgba(139, 90, 60, 0.06);
+  --paper-texture-3: rgba(92, 64, 40, 0.05);
+  --paper-texture-4: rgba(212, 200, 180, 0.1);
+  /* Aged border gradients */
+  --aged-border-shadow: rgba(235, 225, 205, 0.6);
+  --aged-border-shadow-outer: rgba(61, 52, 40, 0.06);
+  --aged-border-gradient-1: rgba(196, 164, 90, 0.08);
+  --aged-border-gradient-2: rgba(92, 64, 40, 0.06);
+  --sepia-frame-gradient-1: rgba(196, 164, 90, 0.1);
+  --sepia-frame-gradient-2: rgba(92, 64, 40, 0.07);
+}
+
+/* ── Monochrome Theme ── */
+[data-theme="monochrome"],
+.theme-monochrome {
+  --theme-bg: #FAFAFA;
+  --theme-bg-elevated: #F0F0F0;
+  --theme-bg-subtle: #FFFFFF;
+  --theme-panel: #E8E8E8;
+  --theme-text: #1A1A1A;
+  --theme-text-muted: #4A4A4A;
+  --theme-border: #CCCCCC;
+  --theme-accent: #666666;
+  --theme-rust: #333333;
+  /* Tailwind color fallbacks */
+  --color-paper: #FAFAFA;
+  --color-aged-stock: #F0F0F0;
+  --color-warm-gray: #CCCCCC;
+  --color-muted-gray: #B0B0B0;
+  --color-ink: #1A1A1A;
+  --color-ink-faded: #4A4A4A;
+  --color-ink-light: #6A6A6A;
+  --color-sepia-mid: #666666;
+  --color-sepia-light: #888888;
+  --color-sepia-dark: #333333;
+  --color-rust: #333333;
+  --color-rust-light: #555555;
+  --color-rust-dark: #1A1A1A;
+  /* Image & texture filters */
+  --img-filter: contrast(1.02) brightness(1.0);
+  --img-filter-hover: contrast(1.05);
+  --paper-texture-1: rgba(0, 0, 0, 0.02);
+  --paper-texture-2: rgba(0, 0, 0, 0.02);
+  --paper-texture-3: rgba(0, 0, 0, 0.015);
+  --paper-texture-4: rgba(0, 0, 0, 0.03);
+  /* Aged border gradients */
+  --aged-border-shadow: rgba(240, 240, 240, 0.5);
+  --aged-border-shadow-outer: rgba(0, 0, 0, 0.05);
+  --aged-border-gradient-1: rgba(200, 200, 200, 0.05);
+  --aged-border-gradient-2: rgba(150, 150, 150, 0.03);
+  --sepia-frame-gradient-1: rgba(200, 200, 200, 0.06);
+  --sepia-frame-gradient-2: rgba(150, 150, 150, 0.04);
+}
+
+/* ── Ink Wash Theme ── */
+[data-theme="ink"],
+.theme-ink {
+  --theme-bg: #F0EDE8;
+  --theme-bg-elevated: #E5E0D8;
+  --theme-bg-subtle: #F8F5F0;
+  --theme-panel: #E0DBD3;
+  --theme-text: #2D2A26;
+  --theme-text-muted: #5C5850;
+  --theme-border: #C4BFB4;
+  --theme-accent: #6B6560;
+  --theme-rust: #8B7355;
+  /* Tailwind color fallbacks */
+  --color-paper: #F0EDE8;
+  --color-aged-stock: #E5E0D8;
+  --color-warm-gray: #C4BFB4;
+  --color-muted-gray: #B4ADA4;
+  --color-ink: #2D2A26;
+  --color-ink-faded: #5C5850;
+  --color-ink-light: #7A756C;
+  --color-sepia-mid: #6B6560;
+  --color-sepia-light: #8B857C;
+  --color-sepia-dark: #4A4540;
+  --color-rust: #8B7355;
+  --color-rust-light: #A89070;
+  --color-rust-dark: #6B5540;
+  /* Image & texture filters */
+  --img-filter: sepia(0.12) contrast(1.04) brightness(0.98);
+  --img-filter-hover: sepia(0.06) contrast(1.06);
+  --paper-texture-1: rgba(196, 180, 160, 0.05);
+  --paper-texture-2: rgba(140, 130, 115, 0.04);
+  --paper-texture-3: rgba(100, 92, 80, 0.03);
+  --paper-texture-4: rgba(200, 190, 175, 0.08);
+  /* Aged border gradients */
+  --aged-border-shadow: rgba(229, 224, 216, 0.5);
+  --aged-border-shadow-outer: rgba(45, 42, 38, 0.05);
+  --aged-border-gradient-1: rgba(196, 180, 160, 0.06);
+  --aged-border-gradient-2: rgba(100, 92, 80, 0.04);
+  --sepia-frame-gradient-1: rgba(196, 180, 160, 0.08);
+  --sepia-frame-gradient-2: rgba(100, 92, 80, 0.05);
+}
+
+/* ── Forest Theme ── */
+[data-theme="forest"],
+.theme-forest {
+  --theme-bg: #F0F3EE;
+  --theme-bg-elevated: #E2E8E0;
+  --theme-bg-subtle: #F6F9F4;
+  --theme-panel: #DDE5DA;
+  --theme-text: #2D3630;
+  --theme-text-muted: #5A6B58;
+  --theme-border: #B8C4B0;
+  --theme-accent: #5A6A56;
+  --theme-rust: #8B7355;
+  /* Tailwind color fallbacks */
+  --color-paper: #F0F3EE;
+  --color-aged-stock: #E2E8E0;
+  --color-warm-gray: #B8C4B0;
+  --color-muted-gray: #A8B4A0;
+  --color-ink: #2D3630;
+  --color-ink-faded: #5A6B58;
+  --color-ink-light: #7A8B7A;
+  --color-sepia-mid: #5A6A56;
+  --color-sepia-light: #7A8B78;
+  --color-sepia-dark: #3A4A38;
+  --color-rust: #8B7355;
+  --color-rust-light: #A89070;
+  --color-rust-dark: #6B5540;
+  /* Forest green accents */
+  --color-eco-green: #5A6A56;
+  --color-sage: #5A6A56;
+  --color-sage-light: #7A8B7A;
+  --color-sage-dark: #3A4A38;
+  /* Image & texture filters */
+  --img-filter: none;
+  --img-filter-hover: none;
+  --paper-texture-1: rgba(74, 107, 74, 0.04);
+  --paper-texture-2: rgba(107, 139, 107, 0.03);
+  --paper-texture-3: rgba(58, 82, 56, 0.025);
+  --paper-texture-4: rgba(190, 205, 185, 0.06);
+  /* Aged border gradients */
+  --aged-border-shadow: rgba(232, 237, 230, 0.5);
+  --aged-border-shadow-outer: rgba(45, 54, 48, 0.05);
+  --aged-border-gradient-1: rgba(100, 130, 100, 0.05);
+  --aged-border-gradient-2: rgba(60, 90, 60, 0.03);
+  --sepia-frame-gradient-1: rgba(100, 130, 100, 0.06);
+  --sepia-frame-gradient-2: rgba(60, 90, 60, 0.04);
+}
+
+/* ── Autumn Theme ── */
+[data-theme="autumn"],
+.theme-autumn {
+  --theme-bg: #F8F4F0;
+  --theme-bg-elevated: #EDE6DC;
+  --theme-bg-subtle: #FCF8F4;
+  --theme-panel: #E5DCD0;
+  --theme-text: #3D2D22;
+  --theme-text-muted: #6B5548;
+  --theme-border: #C8B8A8;
+  --theme-accent: #A65D4E;
+  --theme-rust: #C49070;
+  /* Tailwind color fallbacks */
+  --color-paper: #F8F4F0;
+  --color-aged-stock: #EDE6DC;
+  --color-warm-gray: #C8B8A8;
+  --color-muted-gray: #B8A898;
+  --color-ink: #3D2D22;
+  --color-ink-faded: #6B5548;
+  --color-ink-light: #8B7568;
+  --color-sepia-mid: #8B6B58;
+  --color-sepia-light: #A88878;
+  --color-sepia-dark: #5C4038;
+  --color-rust: #A65D4E;
+  --color-rust-light: #C07868;
+  --color-rust-dark: #8B4030;
+  --color-pale-gold: #C49070;
+  --color-pale-gold-light: #D4A888;
+  /* Image & texture filters */
+  --img-filter: sepia(0.18) contrast(1.06) brightness(0.97) saturate(1.1);
+  --img-filter-hover: sepia(0.1) contrast(1.08) saturate(1.05);
+  --paper-texture-1: rgba(196, 140, 100, 0.06);
+  --paper-texture-2: rgba(166, 93, 78, 0.05);
+  --paper-texture-3: rgba(120, 80, 60, 0.04);
+  --paper-texture-4: rgba(212, 180, 150, 0.09);
+  /* Aged border gradients */
+  --aged-border-shadow: rgba(237, 230, 220, 0.55);
+  --aged-border-shadow-outer: rgba(61, 45, 34, 0.06);
+  --aged-border-gradient-1: rgba(196, 140, 100, 0.07);
+  --aged-border-gradient-2: rgba(120, 80, 60, 0.05);
+  --sepia-frame-gradient-1: rgba(196, 140, 100, 0.09);
+  --sepia-frame-gradient-2: rgba(120, 80, 60, 0.06);
+}
+
+/* ── Mist Blue Theme ── */
+[data-theme="mist-blue"],
+.theme-mist-blue {
+  --theme-bg: #EDF2F4;
+  --theme-bg-elevated: #E2E8EC;
+  --theme-bg-subtle: #F4F7F9;
+  --theme-panel: #E5EBEF;
+  --theme-text: #2D3A42;
+  --theme-text-muted: #5A6B75;
+  --theme-border: #C4CED6;
+  --theme-accent: #8FB4B5;
+  --theme-rust: #9DB8BA;
+  /* Tailwind color fallbacks */
+  --color-paper: #EDF2F4;
+  --color-aged-stock: #E2E8EC;
+  --color-warm-gray: #C4CED6;
+  --color-muted-gray: #B4C0CA;
+  --color-ink: #2D3A42;
+  --color-ink-faded: #5A6B75;
+  --color-ink-light: #8494A0;
+  --color-sepia-mid: #8FB4B5;
+  --color-sepia-light: #A8C8CA;
+  --color-sepia-dark: #5A7B7C;
+  --color-rust: #9DB8BA;
+  --color-rust-light: #B4D0D2;
+  --color-rust-dark: #7A9A9C;
+  /* Image & texture filters */
+  --img-filter: none;
+  --img-filter-hover: none;
+  --paper-texture-1: rgba(143, 180, 181, 0.05);
+  --paper-texture-2: rgba(100, 118, 132, 0.04);
+  --paper-texture-3: rgba(90, 107, 117, 0.03);
+  --paper-texture-4: rgba(180, 192, 202, 0.08);
+  /* Aged border gradients */
+  --aged-border-shadow: rgba(226, 232, 236, 0.5);
+  --aged-border-shadow-outer: rgba(45, 58, 66, 0.05);
+  --aged-border-gradient-1: rgba(143, 180, 181, 0.06);
+  --aged-border-gradient-2: rgba(90, 107, 117, 0.04);
+  --sepia-frame-gradient-1: rgba(143, 180, 181, 0.08);
+  --sepia-frame-gradient-2: rgba(90, 107, 117, 0.05);
+}
+
+/* ── Deep Sea Theme ── */
+[data-theme="deep-sea"],
+.theme-deep-sea {
+  --theme-bg: #E4E9ED;
+  --theme-bg-elevated: #D9E1E7;
+  --theme-bg-subtle: #EEF2F5;
+  --theme-panel: #D9E2EA;
+  --theme-text: #2A3440;
+  --theme-text-muted: #4A5866;
+  --theme-border: #B4C0CA;
+  --theme-accent: #647684;
+  --theme-rust: #748A96;
+  /* Tailwind color fallbacks */
+  --color-paper: #E4E9ED;
+  --color-aged-stock: #D9E1E7;
+  --color-warm-gray: #B4C0CA;
+  --color-muted-gray: #A4B4C0;
+  --color-ink: #2A3440;
+  --color-ink-faded: #4A5866;
+  --color-ink-light: #6A7A88;
+  --color-sepia-mid: #647684;
+  --color-sepia-light: #8898A8;
+  --color-sepia-dark: #405464;
+  --color-rust: #748A96;
+  --color-rust-light: #98AAC2;
+  --color-rust-dark: #526474;
+  /* Image & texture filters */
+  --img-filter: saturate(0.85) brightness(0.98);
+  --img-filter-hover: saturate(0.9) brightness(1.02);
+  --paper-texture-1: rgba(100, 118, 132, 0.04);
+  --paper-texture-2: rgba(80, 100, 116, 0.03);
+  --paper-texture-3: rgba(64, 84, 100, 0.025);
+  --paper-texture-4: rgba(180, 195, 210, 0.07);
+  /* Aged border gradients */
+  --aged-border-shadow: rgba(217, 225, 231, 0.5);
+  --aged-border-shadow-outer: rgba(42, 52, 64, 0.05);
+  --aged-border-gradient-1: rgba(100, 118, 132, 0.05);
+  --aged-border-gradient-2: rgba(64, 84, 100, 0.03);
+  --sepia-frame-gradient-1: rgba(100, 118, 132, 0.06);
+  --sepia-frame-gradient-2: rgba(64, 84, 100, 0.04);
+}
+
+/* ── Body fallback — applies theme vars ── */
+body {
+  background-color: var(--theme-bg, var(--color-paper));
+  color: var(--theme-text, var(--color-ink));
+}

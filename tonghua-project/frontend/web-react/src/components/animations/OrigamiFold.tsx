@@ -38,17 +38,17 @@ const cornerColorClasses = {
   paper: {
     front: 'bg-paper',
     back: 'bg-aged-stock',
-    shadow: 'rgba(26, 26, 22, 0.08)',
+    shadow: 'color-mix(in srgb, var(--color-ink) 8%, transparent)',
   },
   aged: {
     front: 'bg-aged-stock',
     back: 'bg-warm-gray',
-    shadow: 'rgba(26, 26, 22, 0.12)',
+    shadow: 'color-mix(in srgb, var(--color-ink) 12%, transparent)',
   },
   sepia: {
     front: 'bg-sepia-mid',
     back: 'bg-archive-brown',
-    shadow: 'rgba(26, 26, 22, 0.15)',
+    shadow: 'color-mix(in srgb, var(--color-ink) 15%, transparent)',
   },
 };
 
@@ -431,21 +431,21 @@ export function OrigamiFoldAccent({
         {/* Shadow */}
         <path
           d="M0 0 L40 0 L40 40 Z"
-          fill={`rgba(26, 26, 22, ${opacityValue * 0.15})`}
+          fill={`color-mix(in srgb, var(--color-ink) ${opacityValue * 15}%, transparent)`}
           filter="blur(2px)"
         />
 
         {/* Front face */}
         <path
           d="M0 0 L40 0 L40 40 Z"
-          fill="#EDE6D6"
+          fill="var(--color-aged-stock)"
           style={{ stroke: 'color-mix(in srgb, var(--color-ink) 8%, transparent)', strokeWidth: 0.5 }}
         />
 
         {/* Back face (showing through) */}
         <path
           d="M0 0 L40 40 L0 40 Z"
-          fill="#D4CFC4"
+          fill="var(--color-warm-gray)"
           opacity="0.6"
         />
 
@@ -493,9 +493,9 @@ export function OrigamiPaperStrip({
   className = '',
 }: OrigamiPaperStripProps) {
   const colors = {
-    paper: { front: '#F5F0E8', back: '#EDE6D6', shadow: 'color-mix(in srgb, var(--color-ink) 6%, transparent)' },
-    aged: { front: '#EDE6D6', back: '#D4CFC4', shadow: 'color-mix(in srgb, var(--color-ink) 10%, transparent)' },
-    sepia: { front: '#5C4D3D', back: '#5C4033', shadow: 'color-mix(in srgb, var(--color-ink) 15%, transparent)' },
+    paper: { front: 'var(--color-paper)', back: 'var(--color-aged-stock)', shadow: 'color-mix(in srgb, var(--color-ink) 6%, transparent)' },
+    aged: { front: 'var(--color-aged-stock)', back: 'var(--color-muted-gray)', shadow: 'color-mix(in srgb, var(--color-ink) 10%, transparent)' },
+    sepia: { front: 'var(--color-sepia-dark)', back: 'var(--color-sepia-dark)', shadow: 'color-mix(in srgb, var(--color-ink) 15%, transparent)' },
   }[color];
 
   const prefersReducedMotion = useReducedMotion();

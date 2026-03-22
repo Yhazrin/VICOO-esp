@@ -1,0 +1,1205 @@
+/* ═══════════════════════════════════════════════════════════════════════════════
+   Morandi Color System — 多主题莫兰迪配色方案
+   Morandi Style: Low Saturation / Grayish / Soft Contrast / Eye-Friendly
+   Inspired by: Claude / Notion / Linear Aesthetic
+   
+   使用方式:
+   1. 在 HTML 中通过 data-theme="xxx" 切换主题
+   2. 或者在根元素应用 .theme-xxx 类
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   主题 1: 雾蓝主题 (Mist Blue)
+   风格: 冷静、通用、适合作为默认主题
+   主色: #8FB4B5
+   参考色: #E8EDF0, #DDE5EA, #A0B0BD
+   ═══════════════════════════════════════════════════════════════════════════════ */
+[data-theme="mist-blue"],
+.theme-mist-blue {
+  /* ── 背景色 (Background) ── */
+  --mor-bg: #EDF2F4;           /* 主背景 - 雾白蓝 */
+  --mor-bg-elevated: #E2E8EC;  /* 提升容器背景 */
+  --mor-bg-subtle: #F4F7F9;    /* 次级背景 - 更浅 */
+  --mor-bg-muted: #D8E0E6;     /* 静音背景 */
+
+  /* ── 面板色 (Panel) ── */
+  --mor-panel: #E5EBEF;        /* 主容器 */
+  --mor-panel-2: #DCE4EA;      /* 次级容器 */
+  --mor-panel-3: #D0DBE3;     /* 三级容器 */
+  --mor-panel-inset: #D4DDE4;  /* 内嵌面板 */
+
+  /* ── 文字色 (Text) ── */
+  --mor-text: #2D3A42;         /* 主文字 - 深雾蓝灰 */
+  --mor-text-muted: #5A6B75;   /* 次文字 */
+  --mor-text-subtle: #8494A0;  /* 淡文字 */
+  --mor-text-disabled: #A0ADB8;/* 禁用文字 */
+  --mor-text-inverse: #EDF2F4; /* 反色文字 */
+
+  /* ── 边框色 (Border) ── */
+  --mor-border: #C4CED6;       /* 主边框 */
+  --mor-border-strong: #A8B8C4;/* 强边框 */
+  --mor-border-subtle: #D8E2EA;/* 淡边框 */
+  --mor-border-muted: #E8F0F4; /* 静音边框 */
+
+  /* ── 主色 (Primary) ── */
+  --mor-primary: #8FB4B5;      /* 主色 - 雾蓝 */
+  --mor-primary-hover: #7A9FA1;/* 主色悬停 */
+  --mor-primary-active: #658B8C;/* 主色激活 */
+  --mor-primary-muted: #B8CDCE;/* 主色静音 */
+  --mor-primary-subtle: #D8E4E5;/* 主色淡 */
+
+  /* ── 点缀色 (Accent) ── */
+  --mor-accent: #9DB8BA;       /* 点缀色 */
+  --mor-accent-hover: #8AA9AB; /* 点缀悬停 */
+  --mor-accent-muted: #C4D5D6; /* 点缀淡 */
+
+  /* ── 功能色 (Functional) ── */
+  --mor-success: #5A7A6B;      /* 成功 - 青绿 */
+  --mor-success-bg: #E8F0EC;   /* 成功背景 */
+  --mor-success-muted: #8AA99C;/* 成功静音 */
+
+  --mor-warning: #A69278;       /* 警告 - 琥珀灰 */
+  --mor-warning-bg: #F2EDE6;   /* 警告背景 */
+  --mor-warning-muted: #C4B49E;/* 警告静音 */
+
+  --mor-danger: #9B6B6B;       /* 危险 - 灰玫瑰 */
+  --mor-danger-bg: #F5EAEA;    /* 危险背景 */
+  --mor-danger-muted: #C49696; /* 危险静音 */
+
+  --mor-info: #6B7B8A;         /* 信息 - 蓝灰 */
+  --mor-info-bg: #EAEEF2;      /* 信息背景 */
+  --mor-info-muted: #96A3B0;   /* 信息静音 */
+
+  /* ── 图表颜色 (Chart) ── */
+  --mor-chart-1: #8FB4B5;      /* 雾蓝 */
+  --mor-chart-2: #A8B8B0;      /* 青灰 */
+  --mor-chart-3: #B0A8A8;      /* 玫瑰灰 */
+  --mor-chart-4: #8A9BA0;      /* 石板蓝 */
+  --mor-chart-5: #9EAAB0;      /* 钢蓝 */
+
+  /* ── 交互状态 (Interactive) ── */
+  --mor-hover: rgba(143, 180, 181, 0.08);
+  --mor-active: rgba(143, 180, 181, 0.12);
+  --mor-focus: rgba(143, 180, 181, 0.24);
+  --mor-select: rgba(143, 180, 181, 0.16);
+
+  /* ── 阴影 (Shadow) ── */
+  --mor-shadow-sm: 0 1px 2px rgba(45, 58, 66, 0.04);
+  --mor-shadow-md: 0 4px 12px rgba(45, 58, 66, 0.06);
+  --mor-shadow-lg: 0 8px 24px rgba(45, 58, 66, 0.08);
+  --mor-shadow-xl: 0 16px 48px rgba(45, 58, 66, 0.1);
+
+  /* ── 蒙版/叠加 (Overlay) ── */
+  --mor-overlay: rgba(45, 58, 66, 0.5);
+  --mor-overlay-light: rgba(45, 58, 66, 0.3);
+  --mor-overlay-heavy: rgba(45, 58, 66, 0.7);
+
+  /* ── 滚动条 (Scrollbar) ── */
+  --mor-scrollbar: #C4CED6;
+  --mor-scrollbar-hover: #A8B8C4;
+  --mor-scrollbar-track: #E8EEF2;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   主题 2: 深海静蓝主题 (Deep Sea)
+   风格: 更专业、偏工程感、适合后台系统
+   主色: #647684
+   参考色: #DCE5EA, #C8D4DD, #6D8494
+   ═══════════════════════════════════════════════════════════════════════════════ */
+[data-theme="deep-sea"],
+.theme-deep-sea {
+  /* ── 背景色 (Background) ── */
+  --mor-bg: #E4E9ED;           /* 主背景 - 深海雾 */
+  --mor-bg-elevated: #D9E1E7;  /* 提升容器背景 */
+  --mor-bg-subtle: #EEF2F5;    /* 次级背景 */
+  --mor-bg-muted: #CED8DE;     /* 静音背景 */
+
+  /* ── 面板色 (Panel) ── */
+  --mor-panel: #D9E2EA;        /* 主容器 */
+  --mor-panel-2: #CDD8E0;      /* 次级容器 */
+  --mor-panel-3: #BFCCD6;     /* 三级容器 */
+  --mor-panel-inset: #C8D3DD;  /* 内嵌面板 */
+
+  /* ── 文字色 (Text) ── */
+  --mor-text: #2A3440;         /* 主文字 - 深海灰 */
+  --mor-text-muted: #4A5866;   /* 次文字 */
+  --mor-text-subtle: #6A7A88;  /* 淡文字 */
+  --mor-text-disabled: #8A9AAC;/* 禁用文字 */
+  --mor-text-inverse: #E4E9ED; /* 反色文字 */
+
+  /* ── 边框色 (Border) ── */
+  --mor-border: #B4C0CA;       /* 主边框 */
+  --mor-border-strong: #98A8B8;/* 强边框 */
+  --mor-border-subtle: #C8D2DC;/* 淡边框 */
+  --mor-border-muted: #DCE4EC; /* 静音边框 */
+
+  /* ── 主色 (Primary) ── */
+  --mor-primary: #647684;      /* 主色 - 深海蓝 */
+  --mor-primary-hover: #526474;/* 主色悬停 */
+  --mor-primary-active: #405464;/* 主色激活 */
+  --mor-primary-muted: #98AAC2;/* 主色静音 */
+  --mor-primary-subtle: #D2DCEA;/* 主色淡 */
+
+  /* ── 点缀色 (Accent) ── */
+  --mor-accent: #748A96;       /* 点缀色 */
+  --mor-accent-hover: #627A86; /* 点缀悬停 */
+  --mor-accent-muted: #B4C4CC; /* 点缀淡 */
+
+  /* ── 功能色 (Functional) ── */
+  --mor-success: #526272;      /* 成功 - 深海绿 */
+  --mor-success-bg: #E6EBEE;   /* 成功背景 */
+  --mor-success-muted: #8298A2;/* 成功静音 */
+
+  --mor-warning: #967858;       /* 警告 - 琥珀灰 */
+  --mor-warning-bg: #F0EBE4;   /* 警告背景 */
+  --mor-warning-muted: #B8A28A;/* 警告静音 */
+
+  --mor-danger: #8A6060;       /* 危险 - 深海玫瑰 */
+  --mor-danger-bg: #F2E8E8;    /* 危险背景 */
+  --mor-danger-muted: #B29090; /* 危险静音 */
+
+  --mor-info: #5A6872;         /* 信息 - 蓝灰 */
+  --mor-info-bg: #E8ECF0;      /* 信息背景 */
+  --mor-info-muted: #8A9AAC;   /* 信息静音 */
+
+  /* ── 图表颜色 (Chart) ── */
+  --mor-chart-1: #647684;      /* 深海蓝 */
+  --mor-chart-2: #7A8A96;      /* 灰蓝 */
+  --mor-chart-3: #96A0AA;      /* 钢灰 */
+  --mor-chart-4: #586A78;      /* 暗蓝 */
+  --mor-chart-5: #788898;      /* 青灰 */
+
+  /* ── 交互状态 (Interactive) ── */
+  --mor-hover: rgba(100, 118, 132, 0.08);
+  --mor-active: rgba(100, 118, 132, 0.12);
+  --mor-focus: rgba(100, 118, 132, 0.24);
+  --mor-select: rgba(100, 118, 132, 0.16);
+
+  /* ── 阴影 (Shadow) ── */
+  --mor-shadow-sm: 0 1px 2px rgba(42, 52, 64, 0.04);
+  --mor-shadow-md: 0 4px 12px rgba(42, 52, 64, 0.06);
+  --mor-shadow-lg: 0 8px 24px rgba(42, 52, 64, 0.08);
+  --mor-shadow-xl: 0 16px 48px rgba(42, 52, 64, 0.1);
+
+  /* ── 蒙版/叠加 (Overlay) ── */
+  --mor-overlay: rgba(42, 52, 64, 0.5);
+  --mor-overlay-light: rgba(42, 52, 64, 0.3);
+  --mor-overlay-heavy: rgba(42, 52, 64, 0.7);
+
+  /* ── 滚动条 (Scrollbar) ── */
+  --mor-scrollbar: #B4C0CA;
+  --mor-scrollbar-hover: #98A8B8;
+  --mor-scrollbar-track: #E0E6EC;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   主题 3: 青瓷灰绿主题 (Celadon Green)
+   风格: 温和、舒适、适合内容与创作
+   主色: #9FAEA9
+   参考色: #E3EAE5, #D3DDD6, #9AB5A4
+   ═══════════════════════════════════════════════════════════════════════════════ */
+[data-theme="celadon-green"],
+.theme-celadon-green {
+  /* ── 背景色 (Background) ── */
+  --mor-bg: #EAEFEC;           /* 主背景 - 青瓷白 */
+  --mor-bg-elevated: #E0E8E4;  /* 提升容器背景 */
+  --mor-bg-subtle: #F2F6F3;   /* 次级背景 */
+  --mor-bg-muted: #D4DCD8;    /* 静音背景 */
+
+  /* ── 面板色 (Panel) ── */
+  --mor-panel: #E2E8E4;        /* 主容器 */
+  --mor-panel-2: #D6DED9;     /* 次级容器 */
+  --mor-panel-3: #C8D2CE;     /* 三级容器 */
+  --mor-panel-inset: #DCE4DF; /* 内嵌面板 */
+
+  /* ── 文字色 (Text) ── */
+  --mor-text: #2E3834;         /* 主文字 - 青瓷灰 */
+  --mor-text-muted: #5A6862;   /* 次文字 */
+  --mor-text-subtle: #7A8882;  /* 淡文字 */
+  --mor-text-disabled: #A0AAA4;/* 禁用文字 */
+  --mor-text-inverse: #EAEFEC; /* 反色文字 */
+
+  /* ── 边框色 (Border) ── */
+  --mor-border: #BCC8C2;       /* 主边框 */
+  --mor-border-strong: #A0B0A8; /* 强边框 */
+  --mor-border-subtle: #D0DAD5;/* 淡边框 */
+  --mor-border-muted: #E2E8E4; /* 静音边框 */
+
+  /* ── 主色 (Primary) ── */
+  --mor-primary: #9FAEA9;      /* 主色 - 青瓷绿 */
+  --mor-primary-hover: #8A9D95;/* 主色悬停 */
+  --mor-primary-active: #758C82;/* 主色激活 */
+  --mor-primary-muted: #C4CDC7;/* 主色静音 */
+  --mor-primary-subtle: #DDE2DE;/* 主色淡 */
+
+  /* ── 点缀色 (Accent) ── */
+  --mor-accent: #A8B8AE;       /* 点缀色 */
+  --mor-accent-hover: #95A79D; /* 点缀悬停 */
+  --mor-accent-muted: #C8D4CD; /* 点缀淡 */
+
+  /* ── 功能色 (Functional) ── */
+  --mor-success: #5A7A62;      /* 成功 - 青绿 */
+  --mor-success-bg: #E6EEE8;   /* 成功背景 */
+  --mor-success-muted: #96B09E;/* 成功静音 */
+
+  --mor-warning: #A69578;       /* 警告 - 琥珀灰 */
+  --mor-warning-bg: #F2EDE6;   /* 警告背景 */
+  --mor-warning-muted: #C4B49A;/* 警告静音 */
+
+  --mor-danger: #9A7070;       /* 危险 - 灰玫瑰 */
+  --mor-danger-bg: #F5ECEC;    /* 危险背景 */
+  --mor-danger-muted: #C49898; /* 危险静音 */
+
+  --mor-info: #6A7A72;         /* 信息 - 灰绿 */
+  --mor-info-bg: #EAEFEC;      /* 信息背景 */
+  --mor-info-muted: #96A49C;   /* 信息静音 */
+
+  /* ── 图表颜色 (Chart) ── */
+  --mor-chart-1: #9FAEA9;      /* 青瓷绿 */
+  --mor-chart-2: #A8B4A4;      /* 苔藓灰 */
+  --mor-chart-3: #B0ACA8;      /* 灰岩 */
+  --mor-chart-4: #8A9E8A;      /* 青苔绿 */
+  --mor-chart-5: #96A49C;      /* 灰绿 */
+
+  /* ── 交互状态 (Interactive) ── */
+  --mor-hover: rgba(159, 174, 169, 0.08);
+  --mor-active: rgba(159, 174, 169, 0.12);
+  --mor-focus: rgba(159, 174, 169, 0.24);
+  --mor-select: rgba(159, 174, 169, 0.16);
+
+  /* ── 阴影 (Shadow) ── */
+  --mor-shadow-sm: 0 1px 2px rgba(46, 56, 52, 0.04);
+  --mor-shadow-md: 0 4px 12px rgba(46, 56, 52, 0.06);
+  --mor-shadow-lg: 0 8px 24px rgba(46, 56, 52, 0.08);
+  --mor-shadow-xl: 0 16px 48px rgba(46, 56, 52, 0.1);
+
+  /* ── 蒙版/叠加 (Overlay) ── */
+  --mor-overlay: rgba(46, 56, 52, 0.5);
+  --mor-overlay-light: rgba(46, 56, 52, 0.3);
+  --mor-overlay-heavy: rgba(46, 56, 52, 0.7);
+
+  /* ── 滚动条 (Scrollbar) ── */
+  --mor-scrollbar: #BCC8C2;
+  --mor-scrollbar-hover: #A0B0A8;
+  --mor-scrollbar-track: #E6ECEA;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   主题 4: 墨绿主题 (Ink Green)
+   风格: 低饱和牛皮纸感、品牌感强、偏高级
+   主色: #647467
+   参考色: #E2E8E2, #D2DBD3, #7A847B
+   ═══════════════════════════════════════════════════════════════════════════════ */
+[data-theme="ink-green"],
+.theme-ink-green {
+  /* ── 背景色 (Background) ── */
+  --mor-bg: #E6EBE6;           /* 主背景 - 墨绿白 */
+  --mor-bg-elevated: #DBE2DB;  /* 提升容器背景 */
+  --mor-bg-subtle: #EEF2EE;   /* 次级背景 */
+  --mor-bg-muted: #CED8CE;     /* 静音背景 */
+
+  /* ── 面板色 (Panel) ── */
+  --mor-panel: #DEE5DE;        /* 主容器 */
+  --mor-panel-2: #D1D9D1;      /* 次级容器 */
+  --mor-panel-3: #C2CCC2;     /* 三级容器 */
+  --mor-panel-inset: #D8DFD8; /* 内嵌面板 */
+
+  /* ── 文字色 (Text) ── */
+  --mor-text: #2A322A;         /* 主文字 - 墨绿深灰 */
+  --mor-text-muted: #4A584A;   /* 次文字 */
+  --mor-text-subtle: #6A766A;  /* 淡文字 */
+  --mor-text-disabled: #9AAA9A;/* 禁用文字 */
+  --mor-text-inverse: #E6EBE6; /* 反色文字 */
+
+  /* ── 边框色 (Border) ── */
+  --mor-border: #BAC8BA;       /* 主边框 */
+  --mor-border-strong: #9EAC9E; /* 强边框 */
+  --mor-border-subtle: #D0D8D0;/* 淡边框 */
+  --mor-border-muted: #E2E8E2; /* 静音边框 */
+
+  /* ── 主色 (Primary) ── */
+  --mor-primary: #647467;      /* 主色 - 墨绿 */
+  --mor-primary-hover: #546457;/* 主色悬停 */
+  --mor-primary-active: #445447;/* 主色激活 */
+  --mor-primary-muted: #9CA69C;/* 主色静音 */
+  --mor-primary-subtle: #D8E2D8;/* 主色淡 */
+
+  /* ── 点缀色 (Accent) ── */
+  --mor-accent: #748475;       /* 点缀色 */
+  --mor-accent-hover: #637465; /* 点缀悬停 */
+  --mor-accent-muted: #B0BEB0; /* 点缀淡 */
+
+  /* ── 功能色 (Functional) ── */
+  --mor-success: #4A6A4A;      /* 成功 - 深绿 */
+  --mor-success-bg: #E4EDE4;   /* 成功背景 */
+  --mor-success-muted: #8AAA8A;/* 成功静音 */
+
+  --mor-warning: #968668;       /* 警告 - 琥珀灰 */
+  --mor-warning-bg: #F2EEE6;   /* 警告背景 */
+  --mor-warning-muted: #B8A888;/* 警告静音 */
+
+  --mor-danger: #986868;       /* 危险 - 暗玫瑰 */
+  --mor-danger-bg: #F2E8E8;    /* 危险背景 */
+  --mor-danger-muted: #B89898; /* 危险静音 */
+
+  --mor-info: #5A6A5A;         /* 信息 - 灰绿 */
+  --mor-info-bg: #E8EDE8;      /* 信息背景 */
+  --mor-info-muted: #96A696;   /* 信息静音 */
+
+  /* ── 图表颜色 (Chart) ── */
+  --mor-chart-1: #647467;      /* 墨绿 */
+  --mor-chart-2: #788878;      /* 青灰 */
+  --mor-chart-3: #96A896;      /* 灰绿 */
+  --mor-chart-4: #586858;      /* 暗苔 */
+  --mor-chart-5: #6A7A6A;      /* 绿灰 */
+
+  /* ── 交互状态 (Interactive) ── */
+  --mor-hover: rgba(100, 116, 103, 0.08);
+  --mor-active: rgba(100, 116, 103, 0.12);
+  --mor-focus: rgba(100, 116, 103, 0.24);
+  --mor-select: rgba(100, 116, 103, 0.16);
+
+  /* ── 阴影 (Shadow) ── */
+  --mor-shadow-sm: 0 1px 2px rgba(42, 50, 42, 0.04);
+  --mor-shadow-md: 0 4px 12px rgba(42, 50, 42, 0.06);
+  --mor-shadow-lg: 0 8px 24px rgba(42, 50, 42, 0.08);
+  --mor-shadow-xl: 0 16px 48px rgba(42, 50, 42, 0.1);
+
+  /* ── 蒙版/叠加 (Overlay) ── */
+  --mor-overlay: rgba(42, 50, 42, 0.5);
+  --mor-overlay-light: rgba(42, 50, 42, 0.3);
+  --mor-overlay-heavy: rgba(42, 50, 42, 0.7);
+
+  /* ── 滚动条 (Scrollbar) ── */
+  --mor-scrollbar: #BAC8BA;
+  --mor-scrollbar-hover: #9EAC9E;
+  --mor-scrollbar-track: #E4ECE4;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   主题 5: 远山烟紫主题 (Mountain Purple)
+   风格: 创意、设计感、略带艺术气质
+   主色: #9E95A6
+   参考色: #E7E0EA, #D7CDD9, #BFB0C7
+   ═══════════════════════════════════════════════════════════════════════════════ */
+[data-theme="mountain-purple"],
+.theme-mountain-purple {
+  /* ── 背景色 (Background) ── */
+  --mor-bg: #EDE8EF;           /* 主背景 - 烟紫白 */
+  --mor-bg-elevated: #E2DCE8; /* 提升容器背景 */
+  --mor-bg-subtle: #F4F0F6;   /* 次级背景 */
+  --mor-bg-muted: #D8D0DE;    /* 静音背景 */
+
+  /* ── 面板色 (Panel) ── */
+  --mor-panel: #E4DCE8;        /* 主容器 */
+  --mor-panel-2: #D8CEDD;      /* 次级容器 */
+  --mor-panel-3: #CAC0D0;      /* 三级容器 */
+  --mor-panel-inset: #DED6E4; /* 内嵌面板 */
+
+  /* ── 文字色 (Text) ── */
+  --mor-text: #322A38;         /* 主文字 - 烟紫深灰 */
+  --mor-text-muted: #5A4E62;   /* 次文字 */
+  --mor-text-subtle: #7A6E82;  /* 淡文字 */
+  --mor-text-disabled: #A49AAC;/* 禁用文字 */
+  --mor-text-inverse: #EDE8EF; /* 反色文字 */
+
+  /* ── 边框色 (Border) ── */
+  --mor-border: #C0B4C6;       /* 主边框 */
+  --mor-border-strong: #A89AB8;/* 强边框 */
+  --mor-border-subtle: #D4C8DA;/* 淡边框 */
+  --mor-border-muted: #E4DCE8;/* 静音边框 */
+
+  /* ── 主色 (Primary) ── */
+  --mor-primary: #9E95A6;      /* 主色 - 远山紫 */
+  --mor-primary-hover: #8A8096;/* 主色悬停 */
+  --mor-primary-active: #766B86;/* 主色激活 */
+  --mor-primary-muted: #C4B8C8;/* 主色静音 */
+  --mor-primary-subtle: #DED6E4;/* 主色淡 */
+
+  /* ── 点缀色 (Accent) ── */
+  --mor-accent: #A89FB0;       /* 点缀色 */
+  --mor-accent-hover: #968AA0; /* 点缀悬停 */
+  --mor-accent-muted: #CCC4D4;/* 点缀淡 */
+
+  /* ── 功能色 (Functional) ── */
+  --mor-success: #627268;      /* 成功 - 青灰 */
+  --mor-success-bg: #E8EDE8;   /* 成功背景 */
+  --mor-success-muted: #96A69C;/* 成功静音 */
+
+  --mor-warning: #A69070;       /* 警告 - 琥珀灰 */
+  --mor-warning-bg: #F2EDE6;   /* 警告背景 */
+  --mor-warning-muted: #C4B092;/* 警告静音 */
+
+  --mor-danger: #9A7078;       /* 危险 - 灰玫瑰 */
+  --mor-danger-bg: #F5ECEE;    /* 危险背景 */
+  --mor-danger-muted: #C4989E; /* 危险静音 */
+
+  --mor-info: #6A7082;         /* 信息 - 蓝紫灰 */
+  --mor-info-bg: #EAECF0;      /* 信息背景 */
+  --mor-info-muted: #9AA3AC;   /* 信息静音 */
+
+  /* ── 图表颜色 (Chart) ── */
+  --mor-chart-1: #9E95A6;      /* 远山紫 */
+  --mor-chart-2: #A8A0B8;      /* 薰衣灰 */
+  --mor-chart-3: #B8A8B8;      /* 玫瑰灰 */
+  --mor-chart-4: #8A80A0;      /* 暗紫 */
+  --mor-chart-5: #988E9E;      /* 灰紫 */
+
+  /* ── 交互状态 (Interactive) ── */
+  --mor-hover: rgba(158, 149, 166, 0.08);
+  --mor-active: rgba(158, 149, 166, 0.12);
+  --mor-focus: rgba(158, 149, 166, 0.24);
+  --mor-select: rgba(158, 149, 166, 0.16);
+
+  /* ── 阴影 (Shadow) ── */
+  --mor-shadow-sm: 0 1px 2px rgba(50, 42, 56, 0.04);
+  --mor-shadow-md: 0 4px 12px rgba(50, 42, 56, 0.06);
+  --mor-shadow-lg: 0 8px 24px rgba(50, 42, 56, 0.08);
+  --mor-shadow-xl: 0 16px 48px rgba(50, 42, 56, 0.1);
+
+  /* ── 蒙版/叠加 (Overlay) ── */
+  --mor-overlay: rgba(50, 42, 56, 0.5);
+  --mor-overlay-light: rgba(50, 42, 56, 0.3);
+  --mor-overlay-heavy: rgba(50, 42, 56, 0.7);
+
+  /* ── 滚动条 (Scrollbar) ── */
+  --mor-scrollbar: #C0B4C6;
+  --mor-scrollbar-hover: #A89AB8;
+  --mor-scrollbar-track: #E8E2EC;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   主题 6: 冷灰主题 (Cool Gray)
+   风格: 极简、中性、适合企业与表格系统
+   主色: #9DA7B1
+   参考色: #E8EBEB, #D9DEDE, #A9A9A9
+   ═══════════════════════════════════════════════════════════════════════════════ */
+[data-theme="cool-gray"],
+.theme-cool-gray {
+  /* ── 背景色 (Background) ── */
+  --mor-bg: #ECEEEF;           /* 主背景 - 冷灰白 */
+  --mor-bg-elevated: #E2E4E6; /* 提升容器背景 */
+  --mor-bg-subtle: #F2F4F5;   /* 次级背景 */
+  --mor-bg-muted: #D8DADC;    /* 静音背景 */
+
+  /* ── 面板色 (Panel) ── */
+  --mor-panel: #E4E6E8;        /* 主容器 */
+  --mor-panel-2: #D8DADC;      /* 次级容器 */
+  --mor-panel-3: #CACCCE;     /* 三级容器 */
+  --mor-panel-inset: #DEE0E2; /* 内嵌面板 */
+
+  /* ── 文字色 (Text) ── */
+  --mor-text: #2C2E30;        /* 主文字 - 冷灰深 */
+  --mor-text-muted: #5A5C5E;  /* 次文字 */
+  --mor-text-subtle: #7A7C7E; /* 淡文字 */
+  --mor-text-disabled: #A0A2A4;/* 禁用文字 */
+  --mor-text-inverse: #ECEEEF;/* 反色文字 */
+
+  /* ── 边框色 (Border) ── */
+  --mor-border: #C4C6C8;      /* 主边框 */
+  --mor-border-strong: #A8AAAC;/* 强边框 */
+  --mor-border-subtle: #D4D6D8;/* 淡边框 */
+  --mor-border-muted: #E4E6E8;/* 静音边框 */
+
+  /* ── 主色 (Primary) ── */
+  --mor-primary: #9DA7B1;     /* 主色 - 冷灰 */
+  --mor-primary-hover: #8999A5;/* 主色悬停 */
+  --mor-primary-active: #758B95;/* 主色激活 */
+  --mor-primary-muted: #C4C8CE;/* 主色静音 */
+  --mor-primary-subtle: #DDE0E4;/* 主色淡 */
+
+  /* ── 点缀色 (Accent) ── */
+  --mor-accent: #A8B0B8;      /* 点缀色 */
+  --mor-accent-hover: #94A0AA;/* 点缀悬停 */
+  --mor-accent-muted: #C8CED4;/* 点缀淡 */
+
+  /* ── 功能色 (Functional) ── */
+  --mor-success: #5A6A62;     /* 成功 - 绿灰 */
+  --mor-success-bg: #E8EEEC;   /* 成功背景 */
+  --mor-success-muted: #96A69C;/* 成功静音 */
+
+  --mor-warning: #9A906A;       /* 警告 - 琥珀灰 */
+  --mor-warning-bg: #F2F0E8;   /* 警告背景 */
+  --mor-warning-muted: #B8AE8A;/* 警告静音 */
+
+  --mor-danger: #9A6A6A;       /* 危险 - 灰玫瑰 */
+  --mor-danger-bg: #F5ECEC;   /* 危险背景 */
+  --mor-danger-muted: #C49696;/* 危险静音 */
+
+  --mor-info: #687282;         /* 信息 - 蓝灰 */
+  --mor-info-bg: #EAECF0;      /* 信息背景 */
+  --mor-info-muted: #98A0AA;  /* 信息静音 */
+
+  /* ── 图表颜色 (Chart) ── */
+  --mor-chart-1: #9DA7B1;      /* 冷灰 */
+  --mor-chart-2: #A8AEB8;     /* 灰蓝 */
+  --mor-chart-3: #B0B4B8;     /* 银灰 */
+  --mor-chart-4: #8A9098;     /* 暗灰 */
+  --mor-chart-5: #96A0A8;     /* 钢灰 */
+
+  /* ── 交互状态 (Interactive) ── */
+  --mor-hover: rgba(157, 167, 177, 0.08);
+  --mor-active: rgba(157, 167, 177, 0.12);
+  --mor-focus: rgba(157, 167, 177, 0.24);
+  --mor-select: rgba(157, 167, 177, 0.16);
+
+  /* ── 阴影 (Shadow) ── */
+  --mor-shadow-sm: 0 1px 2px rgba(44, 46, 48, 0.04);
+  --mor-shadow-md: 0 4px 12px rgba(44, 46, 48, 0.06);
+  --mor-shadow-lg: 0 8px 24px rgba(44, 46, 48, 0.08);
+  --mor-shadow-xl: 0 16px 48px rgba(44, 46, 48, 0.1);
+
+  /* ── 蒙版/叠加 (Overlay) ── */
+  --mor-overlay: rgba(44, 46, 48, 0.5);
+  --mor-overlay-light: rgba(44, 46, 48, 0.3);
+  --mor-overlay-heavy: rgba(44, 46, 48, 0.7);
+
+  /* ── 滚动条 (Scrollbar) ── */
+  --mor-scrollbar: #C4C6C8;
+  --mor-scrollbar-hover: #A8AAAC;
+  --mor-scrollbar-track: #E6E8EA;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   主题 7: Claude Original (复刻类 Claude 设计)
+   风格: 温暖米色基调、低饱和、高级灰
+   保持当前童画项目的温暖杂志感
+   ═══════════════════════════════════════════════════════════════════════════════ */
+[data-theme="claude-original"],
+.theme-claude-original {
+  /* ── 背景色 (Background) ── */
+  --mor-bg: #F7F5F2;           /* 主背景 - 温暖米白 */
+  --mor-bg-elevated: #EFECEA; /* 提升容器背景 */
+  --mor-bg-subtle: #FAF8F5;   /* 次级背景 */
+  --mor-bg-muted: #E8E4E0;    /* 静音背景 */
+
+  /* ── 面板色 (Panel) ── */
+  --mor-panel: #F0ECE8;        /* 主容器 - 暖灰 */
+  --mor-panel-2: #E6E2DE;     /* 次级容器 */
+  --mor-panel-3: #DCD8D4;     /* 三级容器 */
+  --mor-panel-inset: #EAE6E2; /* 内嵌面板 */
+
+  /* ── 文字色 (Text) ── */
+  --mor-text: #2D2A26;         /* 主文字 - 暖黑 */
+  --mor-text-muted: #5C5850;   /* 次文字 - 暖灰 */
+  --mor-text-subtle: #7A756C;  /* 淡文字 */
+  --mor-text-disabled: #A8A096;/* 禁用文字 */
+  --mor-text-inverse: #F7F5F2;/* 反色文字 */
+
+  /* ── 边框色 (Border) ── */
+  --mor-border: #D4CFC8;       /* 主边框 - 暖灰 */
+  --mor-border-strong: #B8B0A4;/* 强边框 */
+  --mor-border-subtle: #E2DED8;/* 淡边框 */
+  --mor-border-muted: #EEEAE6; /* 静音边框 */
+
+  /* ── 主色 (Primary) ── */
+  --mor-primary: #8B8178;     /* 主色 - 暖灰棕 */
+  --mor-primary-hover: #7A7066;/* 主色悬停 */
+  --mor-primary-active: #696054;/* 主色激活 */
+  --mor-primary-muted: #C4BDB4;/* 主色静音 */
+  --mor-primary-subtle: #E8E4DE;/* 主色淡 */
+
+  /* ── 点缀色 (Accent) ── */
+  --mor-accent: #9A9080;       /* 点缀色 - 灰棕 */
+  --mor-accent-hover: #887E6E;/* 点缀悬停 */
+  --mor-accent-muted: #CCC5B8;/* 点缀淡 */
+
+  /* ── 功能色 (Functional) ── */
+  --mor-success: #5A6A56;     /* 成功 - 苔绿 */
+  --mor-success-bg: #E8EEE6;   /* 成功背景 */
+  --mor-success-muted: #96A692;/* 成功静音 */
+
+  --mor-warning: #A69262;       /* 警告 - 琥珀灰 */
+  --mor-warning-bg: #F2EDE4;   /* 警告背景 */
+  --mor-warning-muted: #C4B488;/* 警告静音 */
+
+  --mor-danger: #9A605A;       /* 危险 - 赭红 */
+  --mor-danger-bg: #F5EBEA;   /* 危险背景 */
+  --mor-danger-muted: #C4948E;/* 危险静音 */
+
+  --mor-info: #6A7268;         /* 信息 - 绿灰 */
+  --mor-info-bg: #EAEEEC;      /* 信息背景 */
+  --mor-info-muted: #96A296;   /* 信息静音 */
+
+  /* ── 图表颜色 (Chart) ── */
+  --mor-chart-1: #8B8178;      /* 暖灰棕 */
+  --mor-chart-2: #9A9080;      /* 灰棕 */
+  --mor-chart-3: #A8A090;      /* 暖灰 */
+  --mor-chart-4: #7A7268;      /* 深棕灰 */
+  --mor-chart-5: #887E70;      /* 褐灰 */
+
+  /* ── 交互状态 (Interactive) ── */
+  --mor-hover: rgba(139, 129, 120, 0.08);
+  --mor-active: rgba(139, 129, 120, 0.12);
+  --mor-focus: rgba(139, 129, 120, 0.24);
+  --mor-select: rgba(139, 129, 120, 0.16);
+
+  /* ── 阴影 (Shadow) ── */
+  --mor-shadow-sm: 0 1px 2px rgba(45, 42, 38, 0.04);
+  --mor-shadow-md: 0 4px 12px rgba(45, 42, 38, 0.06);
+  --mor-shadow-lg: 0 8px 24px rgba(45, 42, 38, 0.08);
+  --mor-shadow-xl: 0 16px 48px rgba(45, 42, 38, 0.1);
+
+  /* ── 蒙版/叠加 (Overlay) ── */
+  --mor-overlay: rgba(45, 42, 38, 0.5);
+  --mor-overlay-light: rgba(45, 42, 38, 0.3);
+  --mor-overlay-heavy: rgba(45, 42, 38, 0.7);
+
+  /* ── 滚动条 (Scrollbar) ── */
+  --mor-scrollbar: #D4CFC8;
+  --mor-scrollbar-hover: #B8B0A4;
+  --mor-scrollbar-track: #EFECE8;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   默认主题设置 (无特定主题时的默认)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+:root,
+[data-theme="default"],
+.theme-default {
+  /* 继承 Claude Original 作为默认 */
+  --mor-bg: #F7F5F2;
+  --mor-bg-elevated: #EFECEA;
+  --mor-bg-subtle: #FAF8F5;
+  --mor-bg-muted: #E8E4E0;
+  --mor-panel: #F0ECE8;
+  --mor-panel-2: #E6E2DE;
+  --mor-panel-3: #DCD8D4;
+  --mor-panel-inset: #EAE6E2;
+  --mor-text: #2D2A26;
+  --mor-text-muted: #5C5850;
+  --mor-text-subtle: #7A756C;
+  --mor-text-disabled: #A8A096;
+  --mor-text-inverse: #F7F5F2;
+  --mor-border: #D4CFC8;
+  --mor-border-strong: #B8B0A4;
+  --mor-border-subtle: #E2DED8;
+  --mor-border-muted: #EEEAE6;
+  --mor-primary: #8B8178;
+  --mor-primary-hover: #7A7066;
+  --mor-primary-active: #696054;
+  --mor-primary-muted: #C4BDB4;
+  --mor-primary-subtle: #E8E4DE;
+  --mor-accent: #9A9080;
+  --mor-accent-hover: #887E6E;
+  --mor-accent-muted: #CCC5B8;
+  --mor-success: #5A6A56;
+  --mor-success-bg: #E8EEE6;
+  --mor-success-muted: #96A692;
+  --mor-warning: #A69262;
+  --mor-warning-bg: #F2EDE4;
+  --mor-warning-muted: #C4B488;
+  --mor-danger: #9A605A;
+  --mor-danger-bg: #F5EBEA;
+  --mor-danger-muted: #C4948E;
+  --mor-info: #6A7268;
+  --mor-info-bg: #EAEEEC;
+  --mor-info-muted: #96A296;
+  --mor-chart-1: #8B8178;
+  --mor-chart-2: #9A9080;
+  --mor-chart-3: #A8A090;
+  --mor-chart-4: #7A7268;
+  --mor-chart-5: #887E70;
+  --mor-hover: rgba(139, 129, 120, 0.08);
+  --mor-active: rgba(139, 129, 120, 0.12);
+  --mor-focus: rgba(139, 129, 120, 0.24);
+  --mor-select: rgba(139, 129, 120, 0.16);
+  --mor-shadow-sm: 0 1px 2px rgba(45, 42, 38, 0.04);
+  --mor-shadow-md: 0 4px 12px rgba(45, 42, 38, 0.06);
+  --mor-shadow-lg: 0 8px 24px rgba(45, 42, 38, 0.08);
+  --mor-shadow-xl: 0 16px 48px rgba(45, 42, 38, 0.1);
+  --mor-overlay: rgba(45, 42, 38, 0.5);
+  --mor-overlay-light: rgba(45, 42, 38, 0.3);
+  --mor-overlay-heavy: rgba(45, 42, 38, 0.7);
+  --mor-scrollbar: #D4CFC8;
+  --mor-scrollbar-hover: #B8B0A4;
+  --mor-scrollbar-track: #EFECE8;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   预设暗色主题 (Dark Mode Variants)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* 雾蓝暗色 */
+[data-theme="mist-blue-dark"],
+.theme-mist-blue-dark {
+  --mor-bg: #1E2528;
+  --mor-bg-elevated: #252D30;
+  --mor-bg-subtle: #1A2124;
+  --mor-bg-muted: #2A3438;
+  --mor-panel: #222A2D;
+  --mor-panel-2: #2A3336;
+  --mor-panel-3: #323C3F;
+  --mor-panel-inset: #262F32;
+  --mor-text: #E0E8EA;
+  --mor-text-muted: #96A4AA;
+  --mor-text-subtle: #708090;
+  --mor-text-disabled: #506068;
+  --mor-text-inverse: #1E2528;
+  --mor-border: #3A4448;
+  --mor-border-strong: #4A5458;
+  --mor-border-subtle: #2E3638;
+  --mor-border-muted: #242C2E;
+  --mor-primary: #8FB4B5;
+  --mor-primary-hover: #A0C4C6;
+  --mor-primary-active: #708B8C;
+  --mor-primary-muted: #4A686A;
+  --mor-primary-subtle: #2A383A;
+  --mor-accent: #9DB8BA;
+  --mor-accent-hover: #B0C8CA;
+  --mor-accent-muted: #5A7880;
+  --mor-success: #6A8A7A;
+  --mor-success-bg: #1E2A24;
+  --mor-success-muted: #4A6A5A;
+  --mor-warning: #B8A278;
+  --mor-warning-bg: #2A2418;
+  --mor-warning-muted: #8A7850;
+  --mor-danger: #B87878;
+  --mor-danger-bg: #2A1E1E;
+  --mor-danger-muted: #8A5858;
+  --mor-info: #7888A0;
+  --mor-info-bg: #1E242C;
+  --mor-info-muted: #586878;
+  --mor-chart-1: #8FB4B5;
+  --mor-chart-2: #A8B8B0;
+  --mor-chart-3: #B0A8A8;
+  --mor-chart-4: #8A9BA0;
+  --mor-chart-5: #9EAAB0;
+  --mor-hover: rgba(143, 180, 181, 0.12);
+  --mor-active: rgba(143, 180, 181, 0.18);
+  --mor-focus: rgba(143, 180, 181, 0.28);
+  --mor-select: rgba(143, 180, 181, 0.2);
+  --mor-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --mor-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --mor-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --mor-shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.5);
+  --mor-overlay: rgba(0, 0, 0, 0.6);
+  --mor-overlay-light: rgba(0, 0, 0, 0.4);
+  --mor-overlay-heavy: rgba(0, 0, 0, 0.8);
+  --mor-scrollbar: #3A4448;
+  --mor-scrollbar-hover: #4A5458;
+  --mor-scrollbar-track: #252D30;
+}
+
+/* 青瓷绿暗色 */
+[data-theme="celadon-green-dark"],
+.theme-celadon-green-dark {
+  --mor-bg: #1E2422;
+  --mor-bg-elevated: #252C28;
+  --mor-bg-subtle: #1A201E;
+  --mor-bg-muted: #283230;
+  --mor-panel: #222A26;
+  --mor-panel-2: #2A3230;
+  --mor-panel-3: #323C38;
+  --mor-panel-inset: #262E2A;
+  --mor-text: #E0E8E4;
+  --mor-text-muted: #94A49C;
+  --mor-text-subtle: #6A8078;
+  --mor-text-disabled: #4A6058;
+  --mor-text-inverse: #1E2422;
+  --mor-border: #384440;
+  --mor-border-strong: #485850;
+  --mor-border-subtle: #2C3632;
+  --mor-border-muted: #242E2A;
+  --mor-primary: #9FAEA9;
+  --mor-primary-hover: #B0C0B8;
+  --mor-primary-active: #889A8A;
+  --mor-primary-muted: #6A7A6A;
+  --mor-primary-subtle: #384038;
+  --mor-accent: #A8B8AE;
+  --mor-accent-hover: #BAC8BC;
+  --mor-accent-muted: #788878;
+  --mor-success: #6A8A72;
+  --mor-success-bg: #1E2A22;
+  --mor-success-muted: #4A6A52;
+  --mor-warning: #B8A278;
+  --mor-warning-bg: #2A2418;
+  --mor-warning-muted: #8A7850;
+  --mor-danger: #B88080;
+  --mor-danger-bg: #2A2020;
+  --mor-danger-muted: #8A6060;
+  --mor-info: #788880;
+  --mor-info-bg: #222A26;
+  --mor-info-muted: #586858;
+  --mor-chart-1: #9FAEA9;
+  --mor-chart-2: #A8B4A4;
+  --mor-chart-3: #B0ACA8;
+  --mor-chart-4: #8A9E8A;
+  --mor-chart-5: #96A49C;
+  --mor-hover: rgba(159, 174, 169, 0.12);
+  --mor-active: rgba(159, 174, 169, 0.18);
+  --mor-focus: rgba(159, 174, 169, 0.28);
+  --mor-select: rgba(159, 174, 169, 0.2);
+  --mor-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --mor-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --mor-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --mor-shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.5);
+  --mor-overlay: rgba(0, 0, 0, 0.6);
+  --mor-overlay-light: rgba(0, 0, 0, 0.4);
+  --mor-overlay-heavy: rgba(0, 0, 0, 0.8);
+  --mor-scrollbar: #384440;
+  --mor-scrollbar-hover: #485850;
+  --mor-scrollbar-track: #252C28;
+}
+
+/* Claude Original 暗色 */
+[data-theme="claude-original-dark"],
+.theme-claude-original-dark {
+  --mor-bg: #1E1C1A;
+  --mor-bg-elevated: #252220;
+  --mor-bg-subtle: #1A1816;
+  --mor-bg-muted: #282422;
+  --mor-panel: #221E1A;
+  --mor-panel-2: #2A2620;
+  --mor-panel-3: #322E28;
+  --mor-panel-inset: #262220;
+  --mor-text: #E8E4E0;
+  --mor-text-muted: #A09890;
+  --mor-text-subtle: #787068;
+  --mor-text-disabled: #504C48;
+  --mor-text-inverse: #1E1C1A;
+  --mor-border: #3A352E;
+  --mor-border-strong: #4A443C;
+  --mor-border-subtle: #2E2A26;
+  --mor-border-muted: #24201C;
+  --mor-primary: #9A9080;
+  --mor-primary-hover: #ACA098;
+  --mor-primary-active: #887E6E;
+  --mor-primary-muted: #706858;
+  --mor-primary-subtle: #3A342C;
+  --mor-accent: #A89E8E;
+  --mor-accent-hover: #B8AE9E;
+  --mor-accent-muted: #887E6E;
+  --mor-success: #6A7A62;
+  --mor-success-bg: #1E2420;
+  --mor-success-muted: #5A6A52;
+  --mor-warning: #B8A278;
+  --mor-warning-bg: #282418;
+  --mor-warning-muted: #8A7850;
+  --mor-danger: #B88880;
+  --mor-danger-bg: #2A201E;
+  --mor-danger-muted: #8A6860;
+  --mor-info: #788278;
+  --mor-info-bg: #222824;
+  --mor-info-muted: #586858;
+  --mor-chart-1: #9A9080;
+  --mor-chart-2: #A8A090;
+  --mor-chart-3: #B8B0A0;
+  --mor-chart-4: #8A8070;
+  --mor-chart-5: #9A9088;
+  --mor-hover: rgba(154, 144, 128, 0.12);
+  --mor-active: rgba(154, 144, 128, 0.18);
+  --mor-focus: rgba(154, 144, 128, 0.28);
+  --mor-select: rgba(154, 144, 128, 0.2);
+  --mor-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --mor-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --mor-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --mor-shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.6);
+  --mor-overlay: rgba(0, 0, 0, 0.7);
+  --mor-overlay-light: rgba(0, 0, 0, 0.5);
+  --mor-overlay-heavy: rgba(0, 0, 0, 0.85);
+  --mor-scrollbar: #3A352E;
+  --mor-scrollbar-hover: #4A443C;
+  --mor-scrollbar-track: #252220;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   工具类 (Utility Classes)
+   使用这些类可以快速应用莫兰迪色系
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* 背景色 */
+.mor-bg { background-color: var(--mor-bg); }
+.mor-bg-elevated { background-color: var(--mor-bg-elevated); }
+.mor-bg-subtle { background-color: var(--mor-bg-subtle); }
+.mor-bg-muted { background-color: var(--mor-bg-muted); }
+.mor-panel { background-color: var(--mor-panel); }
+.mor-panel-2 { background-color: var(--mor-panel-2); }
+.mor-panel-3 { background-color: var(--mor-panel-3); }
+.mor-panel-inset { background-color: var(--mor-panel-inset); }
+
+/* 文字色 */
+.mor-text { color: var(--mor-text); }
+.mor-text-muted { color: var(--mor-text-muted); }
+.mor-text-subtle { color: var(--mor-text-subtle); }
+.mor-text-disabled { color: var(--mor-text-disabled); }
+.mor-text-inverse { color: var(--mor-text-inverse); }
+
+/* 边框色 */
+.mor-border { border-color: var(--mor-border); }
+.mor-border-strong { border-color: var(--mor-border-strong); }
+.mor-border-subtle { border-color: var(--mor-border-subtle); }
+.mor-border-muted { border-color: var(--mor-border-muted); }
+
+/* 功能色 */
+.mor-success { color: var(--mor-success); }
+.mor-success-bg { background-color: var(--mor-success-bg); }
+.mor-warning { color: var(--mor-warning); }
+.mor-warning-bg { background-color: var(--mor-warning-bg); }
+.mor-danger { color: var(--mor-danger); }
+.mor-danger-bg { background-color: var(--mor-danger-bg); }
+.mor-info { color: var(--mor-info); }
+.mor-info-bg { background-color: var(--mor-info-bg); }
+
+/* 图表颜色 */
+.mor-chart-1 { color: var(--mor-chart-1); }
+.mor-chart-2 { color: var(--mor-chart-2); }
+.mor-chart-3 { color: var(--mor-chart-3); }
+.mor-chart-4 { color: var(--mor-chart-4); }
+.mor-chart-5 { color: var(--mor-chart-5); }
+
+/* 主色 */
+.mor-primary { color: var(--mor-primary); }
+.mor-primary-bg { background-color: var(--mor-primary); }
+.mor-primary-hover:hover { color: var(--mor-primary-hover); }
+.mor-accent { color: var(--mor-accent); }
+.mor-accent-bg { background-color: var(--mor-accent); }
+
+/* 交互状态 */
+.mor-hover:hover { background-color: var(--mor-hover); }
+.mor-active:active { background-color: var(--mor-active); }
+.mor-focus:focus { background-color: var(--mor-focus); }
+.mor-select::selection { background-color: var(--mor-select); }
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   组件示例 (Component Recipes)
+   这些是使用莫兰迪色系的组件样式示例
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* 按钮 */
+.mor-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  border: 1px solid var(--mor-border);
+  background-color: var(--mor-panel);
+  color: var(--mor-text);
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.mor-button:hover {
+  background-color: var(--mor-bg-elevated);
+  border-color: var(--mor-border-strong);
+}
+
+.mor-button:active {
+  background-color: var(--mor-panel-2);
+}
+
+.mor-button:focus {
+  outline: 2px solid var(--mor-focus);
+  outline-offset: 2px;
+}
+
+.mor-button-primary {
+  background-color: var(--mor-primary);
+  border-color: var(--mor-primary);
+  color: var(--mor-text-inverse);
+}
+
+.mor-button-primary:hover {
+  background-color: var(--mor-primary-hover);
+  border-color: var(--mor-primary-hover);
+}
+
+.mor-button-primary:active {
+  background-color: var(--mor-primary-active);
+}
+
+/* 输入框 */
+.mor-input {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 14px;
+  border: 1px solid var(--mor-border);
+  border-radius: 6px;
+  background-color: var(--mor-bg);
+  color: var(--mor-text);
+  transition: all 0.15s ease;
+}
+
+.mor-input:hover {
+  border-color: var(--mor-border-strong);
+}
+
+.mor-input:focus {
+  outline: none;
+  border-color: var(--mor-primary);
+  box-shadow: 0 0 0 3px var(--mor-focus);
+}
+
+.mor-input::placeholder {
+  color: var(--mor-text-disabled);
+}
+
+/* 卡片 */
+.mor-card {
+  background-color: var(--mor-panel);
+  border: 1px solid var(--mor-border-subtle);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: var(--mor-shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.mor-card:hover {
+  border-color: var(--mor-border);
+  box-shadow: var(--mor-shadow-md);
+}
+
+.mor-card-elevated {
+  background-color: var(--mor-panel-2);
+  box-shadow: var(--mor-shadow-md);
+}
+
+.mor-card-elevated:hover {
+  box-shadow: var(--mor-shadow-lg);
+}
+
+/* 标签 */
+.mor-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 4px;
+  background-color: var(--mor-bg-muted);
+  color: var(--mor-text-muted);
+}
+
+.mor-tag-success {
+  background-color: var(--mor-success-bg);
+  color: var(--mor-success);
+}
+
+.mor-tag-warning {
+  background-color: var(--mor-warning-bg);
+  color: var(--mor-warning);
+}
+
+.mor-tag-danger {
+  background-color: var(--mor-danger-bg);
+  color: var(--mor-danger);
+}
+
+.mor-tag-info {
+  background-color: var(--mor-info-bg);
+  color: var(--mor-info);
+}
+
+/* 滚动条 */
+.mor-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.mor-scrollbar::-webkit-scrollbar-track {
+  background: var(--mor-scrollbar-track);
+  border-radius: 4px;
+}
+
+.mor-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--mor-scrollbar);
+  border-radius: 4px;
+}
+
+.mor-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--mor-scrollbar-hover);
+}
+
+/* 分割线 */
+.mor-divider {
+  height: 1px;
+  background-color: var(--mor-border-muted);
+  margin: 16px 0;
+}
+
+.mor-divider-subtle {
+  background-color: var(--mor-border-subtle);
+}
+
+/* 蒙版/弹窗 */
+.mor-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: var(--mor-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.mor-modal {
+  background-color: var(--mor-panel);
+  border: 1px solid var(--mor-border);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: var(--mor-shadow-xl);
+  max-width: 480px;
+  width: 90%;
+}
+
+/* 下拉菜单 */
+.mor-dropdown {
+  position: absolute;
+  background-color: var(--mor-panel);
+  border: 1px solid var(--mor-border);
+  border-radius: 8px;
+  padding: 6px;
+  box-shadow: var(--mor-shadow-lg);
+  min-width: 180px;
+  z-index: 100;
+}
+
+.mor-dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: var(--mor-text);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+}
+
+.mor-dropdown-item:hover {
+  background-color: var(--mor-hover);
+}
+
+.mor-dropdown-item:active {
+  background-color: var(--mor-active);
+}
+
+/* 提示框 */
+.mor-tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.mor-tooltip-content {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 10px;
+  font-size: 12px;
+  background-color: var(--mor-text);
+  color: var(--mor-text-inverse);
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.15s ease;
+  margin-bottom: 6px;
+}
+
+.mor-tooltip:hover .mor-tooltip-content {
+  opacity: 1;
+  visibility: visible;
+}

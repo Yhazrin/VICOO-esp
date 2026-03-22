@@ -92,7 +92,7 @@ export default function CurtainTransition({ children }: CurtainTransitionProps) 
               className="absolute inset-0 z-50 pointer-events-none"
               style={{
                 background:
-                  'linear-gradient(90deg, #8B7355 0%, #A69076 50%, #C4A882 100%)',
+                  'linear-gradient(90deg, var(--color-sepia-dark, #8B7355) 0%, var(--color-sepia-mid, #A69076) 50%, var(--color-sepia-light, #C4A882) 100%)',
               }}
               aria-hidden="true"
             />
@@ -106,7 +106,7 @@ export default function CurtainTransition({ children }: CurtainTransitionProps) 
               className="absolute inset-0 z-50 pointer-events-none"
               style={{
                 background:
-                  'linear-gradient(90deg, #C4A882 50%, #A69076 100%, #8B7355 100%)',
+                  'linear-gradient(90deg, var(--color-sepia-light, #C4A882) 50%, var(--color-sepia-mid, #A69076) 100%, var(--color-sepia-dark, #8B7355) 100%)',
               }}
               aria-hidden="true"
             />
