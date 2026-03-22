@@ -2,7 +2,7 @@ import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import EditorialFooter from './EditorialFooter';
 import MobileNav from './MobileNav';
-import CurtainTransition from '../animations/CurtainTransition';
+import HorizontalSlideTransition from '../transitions/HorizontalSlideTransition';
 import GrainOverlay from '../animations/GrainOverlay';
 
 export default function Layout() {
@@ -17,9 +17,9 @@ export default function Layout() {
       <Header />
       <MobileNav />
       <main id="main-content" className="flex-1 pt-16 md:pt-20">
-        <CurtainTransition>
+        <HorizontalSlideTransition>
           <Outlet />
-        </CurtainTransition>
+        </HorizontalSlideTransition>
       </main>
       <EditorialFooter />
       <GrainOverlay />
