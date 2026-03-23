@@ -1,18 +1,15 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
-import EditorialHero from '@/components/editorial/EditorialHero';
-import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeading';
-import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
-import ImpactCounter from '@/components/editorial/ImpactCounter';
-import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
+import ScrollNarrative from '@/components/scroll/ScrollNarrative';
+import Planar3DScene from '@/components/scroll/Planar3DScene';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import MagneticButton from '@/components/animations/MagneticButton';
-import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
+import { KineticTextMarquee } from '@/components/animations/KineticMarquee';
 
 /* ─── Gallery Item (extracted to fix useState-in-map bug) ─── */
 
@@ -147,21 +144,23 @@ interface BrandPillarProps {
   label: string;
   value: string;
   index: number;
+  delay?: number;
 }
 
-function BrandPillar({ label, value, index }: BrandPillarProps) {
+function BrandPillar({ label, value, index, delay = 0 }: BrandPillarProps) {
   const prefersReducedMotion = useReducedMotion();
+
   return (
     <motion.div
       {...(prefersReducedMotion ? {} : {
-        initial: { opacity: 0, y: 20 },
+        initial: { opacity: 0, y: 30 },
         whileInView: { opacity: 1, y: 0 },
         viewport: { once: true },
         transition: {
           type: 'spring',
           stiffness: 380,
           damping: 30,
-          delay: index * 0.1,
+          delay: index * 0.1 + delay,
         },
       })}
       className="border-l border-sage/40 pl-6"
@@ -181,6 +180,55 @@ function BrandPillar({ label, value, index }: BrandPillarProps) {
 export default function Home() {
   const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll();
+
+  // CTA section scroll-driven animations — headline fades up first
+  const headlineOpacity = useTransform(
+    scrollYProgress,
+    [0.38, 0.48],
+    prefersReducedMotion ? [1, 1] : [0, 1]
+  );
+  const headlineY = useTransform(
+    scrollYProgress,
+    [0.38, 0.48],
+    prefersReducedMotion ? [0, 0] : [30, 0]
+  );
+
+  // Description fades up second
+  const descOpacity = useTransform(
+    scrollYProgress,
+    [0.42, 0.52],
+    prefersReducedMotion ? [1, 1] : [0, 1]
+  );
+  const descY = useTransform(
+    scrollYProgress,
+    [0.42, 0.52],
+    prefersReducedMotion ? [0, 0] : [25, 0]
+  );
+
+  // Donate button scales in with spring
+  const donateOpacity = useTransform(
+    scrollYProgress,
+    [0.46, 0.56],
+    prefersReducedMotion ? [1, 1] : [0, 1]
+  );
+  const donateScale = useTransform(
+    scrollYProgress,
+    [0.46, 0.56],
+    prefersReducedMotion ? [1, 1] : [0.8, 1]
+  );
+
+  // Shop button scales in slightly later
+  const shopOpacity = useTransform(
+    scrollYProgress,
+    [0.50, 0.60],
+    prefersReducedMotion ? [1, 1] : [0, 1]
+  );
+  const shopScale = useTransform(
+    scrollYProgress,
+    [0.50, 0.60],
+    prefersReducedMotion ? [1, 1] : [0.8, 1]
+  );
 
   const galleryImages = [
     { src: 'https://picsum.photos/seed/children-art-1/400/400', alt: t('home.gallery.alt.watercolor') },
@@ -218,209 +266,78 @@ export default function Home() {
 
   return (
     <PageWrapper>
-      {/* Hero */}
-      <EditorialHero
-        title={t('home.hero.title')}
-        subtitle={t('home.hero.subtitle')}
-        scrambleTitle={true}
-        scrambleDuration={1400}
-      >
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-          <MagneticButton strength={0.4}>
-            <Link
-              to="/campaigns"
-              className="inline-block font-body text-body-sm tracking-[0.15em] uppercase bg-ink text-paper px-8 py-4 cursor-pointer hover:bg-rust transition-colors duration-300"
-            >
-              {t('home.hero.cta')}
-            </Link>
-          </MagneticButton>
-          <MagneticButton strength={0.3}>
-            <Link
-              to="/donate"
-              className="inline-block font-body text-body-sm tracking-[0.15em] uppercase border border-ink/40 text-ink px-8 py-4 cursor-pointer hover:border-ink hover:bg-ink/5 transition-colors duration-300"
-            >
-              {t('home.cta.donate')}
-            </Link>
-          </MagneticButton>
-        </div>
+      {/* 3D Planar Scene - ambient background layer */}
+      <Planar3DScene />
 
-        {/* Hero Stats Strip */}
-        <div className="mt-10 pt-8 border-t border-warm-gray/30">
-          <div className="grid grid-cols-3 gap-6 sm:gap-12 max-w-lg">
-            <div>
-              <p className="font-display text-h3 sm:text-h2 font-bold text-ink">2,847</p>
-              <p className="font-body text-caption text-sepia-mid tracking-wide mt-1">
-                {t('home.impact.children', 'Children')}
-              </p>
-            </div>
-            <div>
-              <p className="font-display text-h3 sm:text-h2 font-bold text-ink">¥890K</p>
-              <p className="font-body text-caption text-sepia-mid tracking-wide mt-1">
-                {t('home.impact.donated', 'Donated')}
-              </p>
-            </div>
-            <div>
-              <p className="font-display text-h3 sm:text-h2 font-bold text-ink">12</p>
-              <p className="font-body text-caption text-sepia-mid tracking-wide mt-1">
-                {t('home.pillars.traceable', 'Campaigns')}
-              </p>
-            </div>
-          </div>
-        </div>
-      </EditorialHero>
+      {/* NEW: Scroll-driven narrative replacing static hero */}
+      <ScrollNarrative />
 
-      {/* Featured Campaigns Section */}
-      <SectionContainer>
-        <NumberedSectionHeading number="01" title={t('home.featured.sectionTitle')} />
-
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
-          <div className="md:col-span-7">
-            <SepiaImageFrame
-              src="https://picsum.photos/seed/spring-campaign/800/600"
-              alt={t('home.featured.imageAlt')}
-              caption={t('home.featured.caption')}
-              aspectRatio="landscape"
-              size="full"
-            />
-          </div>
-          <div className="md:col-span-5 flex flex-col justify-center">
-            <h3 className="font-display text-h3 md:text-h2 font-bold text-ink leading-tight mb-4">
-              {t('home.featured.heading')}
-            </h3>
-            <p className="font-body text-body-sm text-ink-faded leading-relaxed mb-6">
-              {t('home.featured.body')}
-            </p>
-            <Link
-              to="/campaigns"
-              className="font-body text-caption text-sage tracking-[0.15em] uppercase cursor-pointer hover:text-ink transition-colors"
-            >
-              {t('home.featured.viewAll')} &rarr;
-            </Link>
-          </div>
-        </div>
-      </SectionContainer>
-
-      {/* Scroll-drawn page turn connector */}
-      <div className="flex justify-center py-2" aria-hidden="true">
-        <ScrollPathDrawInline
-          path="M0,10 L60,10 M80,10 L140,10 M160,10 L220,10"
-          strokeColor="var(--color-warm-gray, #D4CFC4)"
-          strokeWidth={1}
-          className="w-56 h-5"
-        />
-      </div>
-
-      {/* Quote Interlude */}
-      <SectionContainer narrow>
-        <StoryQuoteBlock
-          quote={t('home.quote.text')}
-          author={t('home.quote.author')}
-          role={t('home.quote.role')}
-        />
-      </SectionContainer>
-
-      {/* Impact Numbers */}
-      <SectionContainer>
-        <NumberedSectionHeading number="02" title={t('home.impact.title')} />
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
-          <ImpactCounter value={2847} label={t('home.impact.children')} />
-          <ImpactCounter value={12563} label={t('home.impact.artworks')} />
-          <ImpactCounter value={890000} label={t('home.impact.donated')} prefix="¥" />
-          <ImpactCounter value={5420} label={t('home.impact.products')} />
-        </div>
-      </SectionContainer>
-
-      {/* Latest Artworks */}
-      <SectionContainer>
-        <NumberedSectionHeading number="03" title={t('home.latestArtworks.sectionTitle')} />
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-          {latestArtworks.map((artwork, i) => (
-            <LatestArtworkCard
-              key={artwork.campaignName}
-              src={artwork.src}
-              childName={artwork.childName}
-              campaignName={artwork.campaignName}
-              date={artwork.date}
-              index={i}
-              wide={i === 0}
-            />
-          ))}
-        </div>
-      </SectionContainer>
-
-      {/* Children's Gallery */}
-      <SectionContainer>
-        <NumberedSectionHeading number="04" title={t('home.artworks.sectionTitle')} />
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-          {galleryImages.map((img, i) => (
-            <GalleryItem
-              key={img.src}
-              src={img.src}
-              alt={img.alt}
-              index={i}
-            />
-          ))}
-        </div>
-
-        <div className="mt-8 text-center">
-          <Link
-            to="/campaigns"
-            className="font-body text-caption text-sage tracking-[0.15em] uppercase cursor-pointer hover:text-ink transition-colors"
-          >
-            {t('home.artworks.viewAll')} &rarr;
-          </Link>
-        </div>
-      </SectionContainer>
-
-      {/* Call to Action */}
+      {/* Call to Action — scroll-driven fade in */}
       <section className="bg-ink text-paper section-spacing">
         <SectionContainer>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            <div>
+            {/* Left column — text */}
+            <motion.div style={{ opacity: headlineOpacity, y: headlineY }}>
               <h2 className="font-display text-h2 md:text-h1 font-bold leading-[0.95] mb-6">
                 {t('home.cta.title')}
               </h2>
+            </motion.div>
+
+            <motion.div
+              style={{ opacity: descOpacity, y: descY }}
+              className="md:col-start-2 md:row-start-1"
+            >
               <p className="font-body text-body-sm text-warm-gray leading-relaxed max-w-md">
                 {t('home.cta.description')}
               </p>
-            </div>
-            <div className="flex flex-col gap-4 md:items-end">
-              <MagneticButton strength={0.35}>
-                <Link
-                  to="/donate"
-                  className="inline-block font-body text-body-sm tracking-[0.15em] uppercase bg-rust text-paper px-8 py-4 cursor-pointer hover:bg-pale-gold hover:text-ink transition-all duration-300"
-                >
-                  {t('home.cta.donate')}
-                </Link>
-              </MagneticButton>
-              <MagneticButton strength={0.35}>
-                <Link
-                  to="/shop"
-                  className="inline-block font-body text-body-sm tracking-[0.15em] uppercase border border-sage/40 text-paper px-8 py-4 cursor-pointer hover:border-sage hover:text-sage-pale transition-all duration-300"
-                >
-                  {t('home.cta.shop')}
-                </Link>
-              </MagneticButton>
+            </motion.div>
+
+            {/* Right column — buttons with spring scale animation */}
+            <div className="flex flex-col gap-4 md:items-end md:col-start-2">
+              <motion.div style={{ opacity: donateOpacity, scale: donateScale }}>
+                <MagneticButton strength={0.35}>
+                  <Link
+                    to="/donate"
+                    className="inline-block font-body text-body-sm tracking-[0.15em] uppercase bg-rust text-paper px-8 py-4 cursor-pointer hover:bg-pale-gold hover:text-ink transition-all duration-300"
+                  >
+                    {t('home.cta.donate')}
+                  </Link>
+                </MagneticButton>
+              </motion.div>
+
+              <motion.div style={{ opacity: shopOpacity, scale: shopScale }}>
+                <MagneticButton strength={0.35}>
+                  <Link
+                    to="/shop"
+                    className="inline-block font-body text-body-sm tracking-[0.15em] uppercase border border-sage/40 text-paper px-8 py-4 cursor-pointer hover:border-sage hover:text-sage-pale transition-all duration-300"
+                  >
+                    {t('home.cta.shop')}
+                  </Link>
+                </MagneticButton>
+              </motion.div>
             </div>
           </div>
         </SectionContainer>
       </section>
 
-      {/* Editorial divider before footer */}
+      {/* Editorial Marquee — continuous motion strip */}
+      <KineticTextMarquee
+        items={[
+          'Sustainable Fashion',
+          "Children's Art",
+          'Traceable Impact',
+          'Community',
+        ]}
+        speed={0.6}
+        className="border-y border-warm-gray/30"
+      />
+
+      {/* Editorial divider */}
       <div className="editorial-divider" aria-hidden="true" />
 
-      {/* Bottom feature strip — 3 brand pillars */}
+      {/* Bottom feature strip — 3 brand pillars with whileInView stagger */}
       <SectionContainer>
-        <motion.div
-          {...(prefersReducedMotion ? {} : { initial: { opacity: 0 }, whileInView: { opacity: 1 } })}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="py-12 md:py-16"
-        >
+        <div className="py-12 md:py-16">
           <div className="flex items-baseline gap-3 mb-10">
             <span className="font-body text-caption text-sepia-mid tracking-[0.2em]">
               {t('common.location.shanghai')}
@@ -441,7 +358,7 @@ export default function Home() {
               />
             ))}
           </div>
-        </motion.div>
+        </div>
       </SectionContainer>
     </PageWrapper>
   );
