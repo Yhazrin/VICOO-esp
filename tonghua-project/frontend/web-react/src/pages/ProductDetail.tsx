@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
@@ -12,6 +12,8 @@ import TraceabilityTimeline from '@/components/editorial/TraceabilityTimeline';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import { useCartStore } from '@/stores/cartStore';
 import { productsApi } from '@/services/products';
+import { reviewsApi } from '@/services/reviewsApi';
+import { useAuthStore } from '@/stores/authStore';
 import type { Product, SupplyChainTimelineRecord } from '@/types';
 
 function ThumbnailButton({
@@ -131,12 +133,39 @@ const MOCK_PRODUCT: Product = {
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
+  const qc = useQueryClient();
+  const { isAuthenticated } = useAuthStore();
   const prefersReducedMotion = useReducedMotion();
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewTitle, setReviewTitle] = useState('');
+  const [reviewBody, setReviewBody] = useState('');
+
   const { data: product, isLoading: loading } = useQuery({
     queryKey: ['product', id],
     queryFn: () => productsApi.getById(id!),
     enabled: !!id,
     placeholderData: MOCK_PRODUCT,
+  });
+
+  const { data: reviewsResult } = useQuery({
+    queryKey: ['reviews', id],
+    queryFn: () => reviewsApi.listByProduct(Number(id)),
+    enabled: !!id,
+  });
+
+  const reviewMutation = useMutation({
+    mutationFn: () =>
+      reviewsApi.create({
+        product_id: Number(id),
+        rating: reviewRating,
+        title: reviewTitle || undefined,
+        body: reviewBody || undefined,
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['reviews', id] });
+      setReviewTitle('');
+      setReviewBody('');
+    },
   });
 
   const [selectedImage, setSelectedImage] = useState(0);
@@ -318,6 +347,73 @@ export default function ProductDetail() {
             subtitle={`Total carbon footprint: ${totalCarbon.toFixed(1)} kg CO\u2082e \u00b7 Offset via verified programs`}
           />
           <TraceabilityTimeline records={product.supplyChain} />
+        </SectionContainer>
+      </PaperTextureBackground>
+
+      {/* Reviews */}
+      <PaperTextureBackground variant="paper" className="py-16 md:py-24">
+        <SectionContainer>
+          <NumberedSectionHeading number="02" title={t('shop.detail.reviews', '评价')} />
+          <ul className="space-y-4 mb-10">
+            {(reviewsResult?.data ?? []).length === 0 && (
+              <li className="font-body text-caption text-ink-faded">{t('shop.detail.noReviews', '暂无评价')}</li>
+            )}
+            {(reviewsResult?.data ?? []).map((r) => (
+              <li key={r.id} className="border border-warm-gray/25 p-4 bg-paper/60">
+                <p className="font-body text-overline text-sepia-mid">
+                  {t('shop.detail.rating', '评分')} {r.rating}/5 · {r.created_at?.slice(0, 10)}
+                </p>
+                {r.title && <p className="font-display text-lg text-ink mt-1">{r.title}</p>}
+                {r.body && <p className="font-body text-body-sm text-ink-faded mt-2">{r.body}</p>}
+              </li>
+            ))}
+          </ul>
+          {isAuthenticated && (
+            <form
+              className="max-w-lg border border-warm-gray/30 p-6 space-y-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                reviewMutation.mutate();
+              }}
+            >
+              <p className="font-body text-overline text-sepia-mid">{t('shop.detail.writeReview', '撰写评价')}</p>
+              <label className="font-body text-caption text-ink-faded block">
+                {t('shop.detail.rating', '评分')}
+                <input
+                  type="range"
+                  min={1}
+                  max={5}
+                  value={reviewRating}
+                  onChange={(e) => setReviewRating(Number(e.target.value))}
+                  className="w-full mt-2"
+                />
+              </label>
+              <input
+                className="w-full border-b border-warm-gray/50 bg-transparent py-2 font-body text-body-sm text-ink"
+                placeholder={t('shop.detail.reviewTitle', '标题（可选）')}
+                value={reviewTitle}
+                onChange={(e) => setReviewTitle(e.target.value)}
+              />
+              <textarea
+                className="w-full border border-warm-gray/40 bg-transparent p-3 font-body text-body-sm text-ink min-h-[100px]"
+                placeholder={t('shop.detail.reviewBody', '分享穿着或包装体验')}
+                value={reviewBody}
+                onChange={(e) => setReviewBody(e.target.value)}
+              />
+              {reviewMutation.isError && (
+                <p className="text-rust font-body text-caption" role="alert">
+                  {t('shop.detail.reviewError', '您可能已评价过该商品')}
+                </p>
+              )}
+              <button
+                type="submit"
+                disabled={reviewMutation.isPending}
+                className="font-body text-overline tracking-[0.2em] uppercase bg-ink text-paper px-6 py-3 hover:bg-rust cursor-pointer disabled:opacity-50"
+              >
+                {reviewMutation.isPending ? t('common.loading', '…') : t('shop.detail.submitReview', '提交')}
+              </button>
+            </form>
+          )}
         </SectionContainer>
       </PaperTextureBackground>
 

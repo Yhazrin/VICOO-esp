@@ -341,6 +341,17 @@ export default function Donate() {
               onSubmit={donateMutation.mutate}
               isSubmitting={donateMutation.isPending}
             />
+            <div className="mt-8 p-4 border border-warm-gray/30 bg-paper/50">
+              <p className="font-body text-body-sm text-ink-faded mb-2">
+                闲置衣物也可捐献，经处理后转为可持续时尚商品，收益支持乡村美育。
+              </p>
+              <Link
+                to="/donate-clothing"
+                className="font-body text-overline tracking-[0.1em] uppercase text-rust hover:text-ink transition-colors"
+              >
+                捐献衣物 →
+              </Link>
+            </div>
           </div>
         </div>
       </SectionContainer>

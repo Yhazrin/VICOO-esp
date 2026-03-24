@@ -51,6 +51,10 @@ class ProductOut(BaseModel):
     stock: int
     status: str
     supply_chain_id: Optional[int] = None
+    # Circular commerce: sustainability fields
+    source_clothing_intake_id: Optional[int] = None
+    sustainability_score: Optional[float] = None
+    sustainability_details: Optional[dict] = None
     created_at: datetime
 
     model_config = {"from_attributes": True}

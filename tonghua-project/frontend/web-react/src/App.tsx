@@ -1,5 +1,5 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
-import Layout from '@/components/layout/Layout';
+import Layout, { FullHeightLayout } from '@/components/layout/Layout';
 import SmoothTransition from '@/components/transitions/SmoothTransition';
 import ErrorBoundary from '@/components/editorial/ErrorBoundary';
 import Home from '@/pages/Home';
@@ -20,6 +20,10 @@ import Privacy from '@/pages/Privacy';
 import Terms from '@/pages/Terms';
 import ChildrenSafety from '@/pages/ChildrenSafety';
 import NotFound from '@/pages/NotFound';
+import OrderDetail from '@/pages/OrderDetail';
+import DonateClothing from '@/pages/DonateClothing';
+import Support from '@/pages/Support';
+import AiAssistant from '@/pages/AiAssistant';
 import { useSessionRestore } from '@/hooks/useSessionRestore';
 
 function AnimatedRoutes() {
@@ -30,14 +34,20 @@ function AnimatedRoutes() {
     <ErrorBoundary>
       <SmoothTransition>
         <Routes location={location} key={location.pathname}>
-          <Route element={<Layout />}>
+          {/* Home uses FullHeightLayout for scroll narrative - no overflow:hidden */}
+          <Route element={<FullHeightLayout />}>
             <Route index element={<ErrorBoundary><Home /></ErrorBoundary>} />
+          </Route>
+
+          {/* Other pages use standard Layout with HorizontalSlideTransition */}
+          <Route element={<Layout />}>
             <Route path="about" element={<ErrorBoundary><About /></ErrorBoundary>} />
             <Route path="campaigns" element={<ErrorBoundary><Campaigns /></ErrorBoundary>} />
             <Route path="campaigns/:id" element={<ErrorBoundary><CampaignDetail /></ErrorBoundary>} />
             <Route path="stories" element={<ErrorBoundary><Stories /></ErrorBoundary>} />
             <Route path="artworks/:id" element={<ErrorBoundary><ArtworkDetail /></ErrorBoundary>} />
             <Route path="donate" element={<ErrorBoundary><Donate /></ErrorBoundary>} />
+            <Route path="donate-clothing" element={<ErrorBoundary><DonateClothing /></ErrorBoundary>} />
             <Route path="shop" element={<ErrorBoundary><Shop /></ErrorBoundary>} />
             <Route path="shop/:id" element={<ErrorBoundary><ProductDetail /></ErrorBoundary>} />
             <Route path="traceability" element={<ErrorBoundary><Traceability /></ErrorBoundary>} />
@@ -45,6 +55,9 @@ function AnimatedRoutes() {
             <Route path="login" element={<ErrorBoundary><Login /></ErrorBoundary>} />
             <Route path="register" element={<ErrorBoundary><Register /></ErrorBoundary>} />
             <Route path="profile" element={<ErrorBoundary><Profile /></ErrorBoundary>} />
+            <Route path="orders/:id" element={<ErrorBoundary><OrderDetail /></ErrorBoundary>} />
+            <Route path="support" element={<ErrorBoundary><Support /></ErrorBoundary>} />
+            <Route path="assistant" element={<ErrorBoundary><AiAssistant /></ErrorBoundary>} />
             <Route path="privacy" element={<ErrorBoundary><Privacy /></ErrorBoundary>} />
             <Route path="terms" element={<ErrorBoundary><Terms /></ErrorBoundary>} />
             <Route path="children-safety" element={<ErrorBoundary><ChildrenSafety /></ErrorBoundary>} />

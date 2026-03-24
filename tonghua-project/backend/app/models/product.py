@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text, DECIMAL, Enum, ForeignKey, func
+from sqlalchemy import Column, Integer, String, DateTime, Text, DECIMAL, Enum, ForeignKey, JSON, func
 from app.database import Base
 
 
@@ -18,5 +18,8 @@ class Product(Base):
         default="active",
         nullable=False,
     )
-    supply_chain_id = Column(Integer, ForeignKey("supply_chain_records.id"), nullable=True)
+    # Circular commerce: sustainability fields
+    source_clothing_intake_id = Column(Integer, ForeignKey("clothing_intakes.id"), nullable=True, index=True)
+    sustainability_score = Column(DECIMAL(3, 2), nullable=True)
+    sustainability_details = Column(JSON, nullable=True)
     created_at = Column(DateTime, server_default=func.now(), nullable=False)

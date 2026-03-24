@@ -131,6 +131,7 @@ export interface CartItem {
   quantity: number;
 }
 
+/** @deprecated 请使用 services/orders 的 OrderDetail（与 API 字段一致） */
 export interface Order {
   id: number;
   user_id: number;

@@ -74,6 +74,8 @@ class DashboardMetrics(BaseModel):
     total_products: int
     total_orders: int
     active_campaigns: int
+    total_clothing_donations: int = 0
+    pending_after_sales: int = 0
 
 
 class SettingsUpdate(BaseModel):

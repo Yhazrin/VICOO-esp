@@ -12,8 +12,10 @@ import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 import { MagazineDivider } from '@/components/editorial/MagazineDivider';
 import { EditorialCard } from '@/components/editorial/EditorialCard';
 import { useAuthStore } from '@/stores/authStore';
-import { ordersApi } from '@/services/orders';
+import { ordersApi, type OrderDetail } from '@/services/orders';
 import { donationsApi } from '@/services/donations';
+import { clothingIntakesApi, type ClothingIntake } from '@/services/clothingIntakes';
+import { afterSalesApi, type AfterSaleTicket } from '@/services/afterSales';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'text-sepia-mid',
@@ -31,12 +33,12 @@ export default function Profile() {
   const navigate = useNavigate();
   const prefersReducedMotion = useReducedMotion();
   const { user, isAuthenticated, logout } = useAuthStore();
-  const [activeTab, setActiveTab] = useState<'orders' | 'donations'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'donations' | 'clothing' | 'support'>('orders');
 
-  const tabs: Array<'orders' | 'donations'> = ['orders', 'donations'];
+  const tabs: Array<'orders' | 'donations' | 'clothing' | 'support'> = ['orders', 'donations', 'clothing', 'support'];
 
   const handleTabKeyDown = useCallback(
-    (e: React.KeyboardEvent, tab: 'orders' | 'donations') => {
+    (e: React.KeyboardEvent, tab: 'orders' | 'donations' | 'clothing' | 'support') => {
       const idx = tabs.indexOf(tab);
       if (e.key === 'ArrowRight') {
         e.preventDefault();
@@ -62,6 +64,18 @@ export default function Profile() {
   const { data: donations = [], isLoading: loadingDonations, isError: errorDonations } = useQuery({
     queryKey: ['my-donations'],
     queryFn: () => donationsApi.getMyDonations(),
+    enabled: isAuthenticated,
+  });
+
+  const { data: intakes = [], isLoading: loadingIntakes, isError: errorIntakes } = useQuery({
+    queryKey: ['my-clothing-intakes'],
+    queryFn: () => clothingIntakesApi.mine(),
+    enabled: isAuthenticated,
+  });
+
+  const { data: tickets = [], isLoading: loadingTickets, isError: errorTickets } = useQuery({
+    queryKey: ['my-after-sales'],
+    queryFn: () => afterSalesApi.mine(),
     enabled: isAuthenticated,
   });
 
@@ -204,7 +218,7 @@ export default function Profile() {
             role="tablist"
             onKeyDown={(e) => {
               const tabs = e.currentTarget.querySelectorAll('[role="tab"]');
-              const tabIds = ['orders', 'donations'] as const;
+              const tabIds = ['orders', 'donations', 'clothing', 'support'] as const;
               const currentIndex = tabIds.indexOf(activeTab);
               if (e.key === 'ArrowRight') {
                 e.preventDefault();
@@ -251,6 +265,38 @@ export default function Profile() {
             >
               {t('profile.donations', 'Donations')} ({donations.length})
             </button>
+            <button
+              role="tab"
+              id="tab-clothing"
+              aria-selected={activeTab === 'clothing'}
+              aria-controls="panel-clothing"
+              tabIndex={activeTab === 'clothing' ? 0 : -1}
+              onClick={() => setActiveTab('clothing')}
+              onKeyDown={(e) => handleTabKeyDown(e, 'clothing')}
+              className={`cursor-pointer pb-4 font-body text-body-sm tracking-[0.15em] uppercase transition-colors ${
+                activeTab === 'clothing'
+                  ? 'text-ink border-b-2 border-ink'
+                  : 'text-sepia-mid hover:text-ink'
+              }`}
+            >
+              {t('profile.clothingIntakes', '衣物捐献')} ({intakes.length})
+            </button>
+            <button
+              role="tab"
+              id="tab-support"
+              aria-selected={activeTab === 'support'}
+              aria-controls="panel-support"
+              tabIndex={activeTab === 'support' ? 0 : -1}
+              onClick={() => setActiveTab('support')}
+              onKeyDown={(e) => handleTabKeyDown(e, 'support')}
+              className={`cursor-pointer pb-4 font-body text-body-sm tracking-[0.15em] uppercase transition-colors ${
+                activeTab === 'support'
+                  ? 'text-ink border-b-2 border-ink'
+                  : 'text-sepia-mid hover:text-ink'
+              }`}
+            >
+              {t('profile.afterSales', '售后')} ({tickets.length})
+            </button>
           </div>
 
           {/* Orders tab */}
@@ -277,42 +323,51 @@ export default function Profile() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {orders.map((order, index) => (
-                    <EditorialCard
-                      key={order.id}
-                      title={`${t('profile.orderId', 'Order')} #${order.id}`}
-                      subtitle={new Date(order.createdAt).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                      index={index}
-                      hoverEffect="border"
-                    >
-                      <div className="flex justify-between items-center mb-3">
-                        <span className={`font-body text-overline tracking-[0.1em] uppercase ${STATUS_COLORS[order.status] ?? 'text-sepia-mid'}`}>
-                          {order.status}
-                        </span>
-                      </div>
-                      {order.items?.map((item, i) => (
-                        <div key={i} className="flex justify-between py-1.5 border-t border-warm-gray/10">
-                          <span className="font-body text-caption text-ink-faded">
-                            {item.product?.name ?? t('profile.productFallback', 'Product')} × {item.quantity}
+                  {orders.map((order: OrderDetail, index: number) => (
+                    <Link key={order.id} to={`/orders/${order.id}`} className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-rust/40">
+                      <EditorialCard
+                        title={`${t('profile.orderNo', '单号')} ${order.order_no}`}
+                        subtitle={new Date(order.created_at).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                        index={index}
+                        hoverEffect="border"
+                      >
+                        <div className="flex justify-between items-center mb-3">
+                          <span className={`font-body text-overline tracking-[0.1em] uppercase ${STATUS_COLORS[order.status] ?? 'text-sepia-mid'}`}>
+                            {order.status}
                           </span>
-                          <span className="font-body text-caption text-ink">
-                            {order.currency} {((item.product?.price ?? 0) * item.quantity).toFixed(2)}
+                          {order.tracking_number && (
+                            <span className="font-body text-caption text-ink-faded truncate max-w-[50%]" title={order.tracking_number}>
+                              {order.carrier ?? '物流'} · {order.tracking_number}
+                            </span>
+                          )}
+                        </div>
+                        {order.items?.map((item, i) => (
+                          <div key={i} className="flex justify-between py-1.5 border-t border-warm-gray/10">
+                            <span className="font-body text-caption text-ink-faded">
+                              {t('profile.productFallback', '商品')} #{item.product_id} × {item.quantity}
+                            </span>
+                            <span className="font-body text-caption text-ink">
+                              CNY {(Number(item.price) * item.quantity).toFixed(2)}
+                            </span>
+                          </div>
+                        ))}
+                        <div className="flex justify-between pt-2 border-t border-warm-gray/20 mt-1">
+                          <span className="font-body text-caption tracking-wider uppercase text-sepia-mid">
+                            {t('profile.total', 'Total')}
+                          </span>
+                          <span className="font-display text-base text-ink">
+                            CNY {Number(order.total_amount).toFixed(2)}
                           </span>
                         </div>
-                      ))}
-                      <div className="flex justify-between pt-2 border-t border-warm-gray/20 mt-1">
-                        <span className="font-body text-caption tracking-wider uppercase text-sepia-mid">
-                          {t('profile.total', 'Total')}
-                        </span>
-                        <span className="font-display text-base text-ink">
-                          {order.currency} {order.totalAmount.toFixed(2)}
-                        </span>
-                      </div>
-                    </EditorialCard>
+                        <p className="font-body text-overline text-rust/80 mt-3 tracking-[0.12em]">
+                          {t('profile.viewLogistics', '查看物流与详情')} →
+                        </p>
+                      </EditorialCard>
+                    </Link>
                   ))}
                 </div>
               )}
@@ -369,6 +424,79 @@ export default function Profile() {
                         <p className="font-body text-overline text-sepia-mid mt-2">
                           {t('profile.anonymous', 'Anonymous donation')}
                         </p>
+                      )}
+                    </EditorialCard>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'clothing' && (
+            <div role="tabpanel" id="panel-clothing" aria-labelledby="tab-clothing">
+              <NumberedSectionHeading number="03" title={t('profile.clothingIntakes', '衣物捐献进度')} />
+              <p className="font-body text-body-sm text-ink-faded mb-6">
+                <Link to="/donate-clothing" className="text-rust hover:text-ink underline-offset-4">
+                  {t('profile.newClothingIntake', '登记新的衣物捐献')}
+                </Link>
+              </p>
+              {loadingIntakes ? (
+                <p className="font-body text-body-sm text-ink-faded">{t('common.loading', 'Loading...')}</p>
+              ) : errorIntakes ? (
+                <p className="font-body text-body-sm text-rust">{t('profile.intakesError', '暂时无法加载衣物登记。')}</p>
+              ) : intakes.length === 0 ? (
+                <p className="font-body text-body-sm text-ink-faded">{t('profile.noIntakes', '暂无登记')}</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {intakes.map((row: ClothingIntake, index: number) => (
+                    <EditorialCard
+                      key={row.id}
+                      title={row.summary.slice(0, 48) + (row.summary.length > 48 ? '…' : '')}
+                      subtitle={row.created_at}
+                      index={index}
+                      hoverEffect="border"
+                    >
+                      <p className={`font-body text-overline uppercase ${STATUS_COLORS[row.status] ?? 'text-sepia-mid'}`}>{row.status}</p>
+                      {row.product_id && (
+                        <Link to={`/shop/${row.product_id}`} className="font-body text-caption text-rust mt-2 inline-block">
+                          {t('profile.viewLinkedProduct', '查看关联商品')} →
+                        </Link>
+                      )}
+                    </EditorialCard>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'support' && (
+            <div role="tabpanel" id="panel-support" aria-labelledby="tab-support">
+              <NumberedSectionHeading number="04" title={t('profile.afterSales', '售后服务')} />
+              <p className="font-body text-body-sm text-ink-faded mb-6">
+                <Link to="/support" className="text-rust hover:text-ink underline-offset-4">
+                  {t('profile.newTicket', '提交售后工单')}
+                </Link>
+              </p>
+              {loadingTickets ? (
+                <p className="font-body text-body-sm text-ink-faded">{t('common.loading', 'Loading...')}</p>
+              ) : errorTickets ? (
+                <p className="font-body text-body-sm text-rust">{t('profile.ticketsError', '暂时无法加载售后单。')}</p>
+              ) : tickets.length === 0 ? (
+                <p className="font-body text-body-sm text-ink-faded">{t('profile.noTickets', '暂无工单')}</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {tickets.map((tk: AfterSaleTicket, index: number) => (
+                    <EditorialCard
+                      key={tk.id}
+                      title={tk.subject}
+                      subtitle={`${t('profile.orderId', '订单')} #${tk.order_id}`}
+                      index={index}
+                      hoverEffect="border"
+                    >
+                      <p className="font-body text-overline uppercase text-sepia-mid">{tk.category}</p>
+                      <p className={`font-body text-caption mt-2 ${STATUS_COLORS[tk.status] ?? 'text-ink'}`}>{tk.status}</p>
+                      {tk.description && (
+                        <p className="font-body text-caption text-ink-faded mt-2 border-l-2 border-warm-gray/30 pl-3">{tk.description}</p>
                       )}
                     </EditorialCard>
                   ))}

@@ -7,6 +7,8 @@ const menuItems = [
   { path: '/campaigns', label: '活动管理', icon: '03', iconSvg: 'campaigns' },
   { path: '/donations', label: '捐赠管理', icon: '04', iconSvg: 'donations' },
   { path: '/orders', label: '订单管理', icon: '05', iconSvg: 'orders' },
+  { path: '/clothing-donations', label: '衣物捐献', icon: '05b', iconSvg: 'donations' },
+  { path: '/after-sales', label: '售后管理', icon: '05c', iconSvg: 'orders' },
   { path: '/users', label: '用户管理', icon: '06', iconSvg: 'users' },
   { path: '/child-audit', label: '儿童审计', icon: '07', iconSvg: 'child' },
   { divider: true },

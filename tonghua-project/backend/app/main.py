@@ -221,6 +221,11 @@ from app.routers.payments import router as payments_router
 from app.routers.admin import router as admin_router
 from app.routers.supply_chain import router as supply_chain_router
 from app.routers.contact import router as contact_router
+from app.routers.clothing_intakes import router as clothing_intakes_router
+from app.routers.reviews import router as reviews_router
+from app.routers.after_sales import router as after_sales_router
+from app.routers.sustainability import router as sustainability_router
+from app.routers.ai_assistant import router as ai_router
 
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(users_router, prefix="/api/v1")
@@ -233,6 +238,11 @@ app.include_router(payments_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")
 app.include_router(supply_chain_router, prefix="/api/v1")
 app.include_router(contact_router, prefix="/api/v1")
+app.include_router(clothing_intakes_router, prefix="/api/v1")
+app.include_router(reviews_router, prefix="/api/v1")
+app.include_router(after_sales_router, prefix="/api/v1")
+app.include_router(sustainability_router, prefix="/api/v1")
+app.include_router(ai_router, prefix="/api/v1")
 
 
 if __name__ == "__main__":

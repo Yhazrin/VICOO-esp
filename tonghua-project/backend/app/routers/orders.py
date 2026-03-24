@@ -2,19 +2,62 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from decimal import Decimal
+import json
 import random
+import logging
 
 from app.database import get_db
 from app.models.order import Order, OrderItem
 from app.models.product import Product
-from app.schemas import ApiResponse, OrderCreate, OrderOut, OrderStatusUpdate, PaginatedResponse
-from app.deps import get_current_user
+from app.schemas import (
+    ApiResponse,
+    OrderCreate,
+    OrderLogisticsUpdate,
+    OrderOut,
+    OrderStatusUpdate,
+    PaginatedResponse,
+)
+from app.deps import get_current_user, require_role
 from app.security import generate_order_no
 from app.services.payment_service import get_payment_service
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
 
 logger = logging.getLogger(__name__)
+
+
+def _parse_logistics_events(raw: str | None) -> list:
+    if not raw:
+        return []
+    try:
+        data = json.loads(raw)
+        return data if isinstance(data, list) else []
+    except json.JSONDecodeError:
+        return []
+
+
+def order_to_out_dict(order: Order, items: list) -> dict:
+    """Build OrderOut-compatible dict (logistics_events 为列表)."""
+    base = {
+        "id": order.id,
+        "user_id": order.user_id,
+        "order_no": order.order_no,
+        "total_amount": order.total_amount,
+        "status": order.status,
+        "shipping_address": order.shipping_address,
+        "payment_method": order.payment_method,
+        "payment_id": order.payment_id,
+        "carrier": getattr(order, "carrier", None),
+        "tracking_number": getattr(order, "tracking_number", None),
+        "logistics_events": _parse_logistics_events(getattr(order, "logistics_events", None)),
+        "items": [
+            {"id": i.id, "product_id": i.product_id, "quantity": i.quantity, "price": str(i.price)}
+            for i in items
+        ],
+        "created_at": order.created_at,
+        "updated_at": order.updated_at,
+    }
+    return OrderOut.model_validate(base).model_dump()
 
 _mock_orders = [
     {
@@ -97,6 +140,20 @@ _mock_orders = [
     },
 ]
 
+# 为 mock 订单补齐物流字段（兼容旧数据）
+for _mo in _mock_orders:
+    _mo.setdefault("carrier", "SF" if _mo.get("status") in ("shipped", "completed") else None)
+    _mo.setdefault("tracking_number", "SF1234567890CN" if _mo.get("status") in ("shipped", "completed") else None)
+    _mo.setdefault(
+        "logistics_events",
+        [
+            {"at": _mo["created_at"], "status": "created", "description": "订单已创建", "location": None},
+            {"at": _mo["updated_at"], "status": _mo["status"], "description": "状态更新", "location": None},
+        ]
+        if _mo.get("status") in ("shipped", "completed", "paid")
+        else [{"at": _mo["created_at"], "status": "created", "description": "订单已创建", "location": None}],
+    )
+
 
 @router.get("", response_model=PaginatedResponse)
 async def list_orders(
@@ -132,12 +189,7 @@ async def list_orders(
 
         data = []
         for order in orders:
-            order_dict = OrderOut.model_validate(order).model_dump()
-            order_dict["items"] = [
-                {"id": i.id, "product_id": i.product_id, "quantity": i.quantity, "price": str(i.price)}
-                for i in items_by_order.get(order.id, [])
-            ]
-            data.append(order_dict)
+            data.append(order_to_out_dict(order, items_by_order.get(order.id, [])))
         return PaginatedResponse(data=data, total=total, page=page, page_size=page_size)
     except Exception:
         filtered = _mock_orders
@@ -155,11 +207,34 @@ async def list_orders(
 
 
 @router.get("/mine", response_model=ApiResponse)
-async def list_my_orders(current_user: dict = Depends(get_current_user)):
-    """List orders for the current user."""
-    user_id = current_user["id"]
-    my_orders = [o for o in _mock_orders if o["user_id"] == user_id]
-    return ApiResponse(data=my_orders)
+async def list_my_orders(
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """List orders for the current user (与分页列表一致的结构)."""
+    try:
+        stmt = (
+            select(Order)
+            .where(Order.user_id == current_user["id"])
+            .order_by(Order.created_at.desc())
+            .limit(100)
+        )
+        result = await db.execute(stmt)
+        orders = result.scalars().all()
+        order_ids = [o.id for o in orders]
+        if not order_ids:
+            return ApiResponse(data=[])
+        items_stmt = select(OrderItem).where(OrderItem.order_id.in_(order_ids))
+        all_items = (await db.execute(items_stmt)).scalars().all()
+        items_by_order: dict[int, list] = {}
+        for item in all_items:
+            items_by_order.setdefault(item.order_id, []).append(item)
+        data = [order_to_out_dict(o, items_by_order.get(o.id, [])) for o in orders]
+        return ApiResponse(data=data)
+    except Exception:
+        user_id = current_user["id"]
+        my_orders = [dict(o) for o in _mock_orders if o["user_id"] == user_id]
+        return ApiResponse(data=my_orders)
 
 
 @router.post("/{order_id}/cancel", response_model=ApiResponse)
@@ -196,12 +271,7 @@ async def get_order(
             raise HTTPException(status_code=403, detail="Forbidden")
         item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
         items = (await db.execute(item_stmt)).scalars().all()
-        order_dict = OrderOut.model_validate(order).model_dump()
-        order_dict["items"] = [
-            {"id": i.id, "product_id": i.product_id, "quantity": i.quantity, "price": str(i.price)}
-            for i in items
-        ]
-        return ApiResponse(data=order_dict)
+        return ApiResponse(data=order_to_out_dict(order, list(items)))
     except HTTPException:
         raise
     except Exception:
@@ -264,8 +334,9 @@ async def create_order(
             db.add(oi)
         await db.flush()
 
-        # Prepare response data
-        response_data = OrderOut.model_validate(order).model_dump()
+        item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
+        created_items = (await db.execute(item_stmt)).scalars().all()
+        response_data = order_to_out_dict(order, list(created_items))
 
         # Add WeChat payment parameters if payment method is WeChat Pay
         if body.payment_method == "wechat":
@@ -328,6 +399,9 @@ async def create_order(
             ],
             "created_at": "2025-06-01T00:00:00",
             "updated_at": "2025-06-01T00:00:00",
+            "carrier": None,
+            "tracking_number": None,
+            "logistics_events": [{"at": "2025-06-01T00:00:00", "status": "created", "description": "订单已创建", "location": None}],
         }
 
         # Add WeChat payment parameters if payment method is WeChat Pay
@@ -365,11 +439,41 @@ async def update_order_status(
             raise HTTPException(status_code=403, detail="Only admins can change order status to non-cancelled states")
         order.status = body.status
         await db.flush()
-        return ApiResponse(data=OrderOut.model_validate(order).model_dump())
-    except HTTPException:
-        raise
+        item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
+        items = (await db.execute(item_stmt)).scalars().all()
+        return ApiResponse(data=order_to_out_dict(order, list(items)))
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"DB write failed during update_order_status: {e}", exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+
+
+@router.put("/{order_id}/logistics", response_model=ApiResponse)
+async def update_order_logistics(
+    order_id: int,
+    body: OrderLogisticsUpdate,
+    _admin: dict = Depends(require_role("admin")),
+    db: AsyncSession = Depends(get_db),
+):
+    """后台更新承运商、运单号并追加物流节点（仅管理员）。"""
+    stmt = select(Order).where(Order.id == order_id)
+    result = await db.execute(stmt)
+    order = result.scalar_one_or_none()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if body.carrier is not None:
+        order.carrier = body.carrier
+    if body.tracking_number is not None:
+        order.tracking_number = body.tracking_number
+    events = _parse_logistics_events(getattr(order, "logistics_events", None))
+    if body.new_event is not None:
+        ev = body.new_event.model_dump()
+        events.append(ev)
+        order.logistics_events = json.dumps(events, ensure_ascii=False)
+    elif body.carrier is not None or body.tracking_number is not None:
+        order.logistics_events = json.dumps(events, ensure_ascii=False)
+    await db.flush()
+    item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
+    items = (await db.execute(item_stmt)).scalars().all()
+    return ApiResponse(data=order_to_out_dict(order, list(items)))

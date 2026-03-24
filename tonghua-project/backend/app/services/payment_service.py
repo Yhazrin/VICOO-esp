@@ -92,9 +92,9 @@ class WeChatPayService:
         logger.info(f"Calling WeChat Unified Order API for order: {params['out_trade_no']}")
 
         try:
-            # Make async HTTP request to WeChat API
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
+            # Make synchronous HTTP request to WeChat API
+            with httpx.SyncClient() as client:
+                response = client.post(
                     "https://api.mch.weixin.qq.com/pay/unifiedorder",
                     content=xml_body,
                     headers={"Content-Type": "application/xml"},

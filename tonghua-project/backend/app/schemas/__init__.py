@@ -60,10 +60,12 @@ from app.schemas.product import (
 
 # Order
 from app.schemas.order import (
+    LogisticsEvent,
     OrderCreate,
     OrderItemCreate,
     OrderItemOut,
     OrderListItem,
+    OrderLogisticsUpdate,
     OrderOut,
     OrderStatusUpdate,
 )
@@ -87,6 +89,21 @@ from app.schemas.supply_chain import (
     SupplyChainRecordOut,
     SupplyChainRecordUpdate,
     SupplyChainTrace,
+)
+
+from app.schemas.circular_commerce import (
+    AIChatMessage,
+    AIChatRequest,
+    AIChatResponse,
+    AfterSaleCreate,
+    AfterSaleOut,
+    AfterSaleStatusUpdate,
+    ClothingIntakeCreate,
+    ClothingIntakeOut,
+    ClothingIntakeStatusUpdate,
+    ProductReviewCreate,
+    ProductReviewOut,
+    PublishFromIntakeBody,
 )
 
 __all__ = [
@@ -137,6 +154,8 @@ __all__ = [
     "OrderStatusUpdate",
     "OrderListItem",
     "OrderOut",
+    "LogisticsEvent",
+    "OrderLogisticsUpdate",
     "WeChatPaymentParams",
     # Payment
     "PaymentCreate",
@@ -148,4 +167,16 @@ __all__ = [
     "SupplyChainRecordUpdate",
     "SupplyChainRecordOut",
     "SupplyChainTrace",
+    "ClothingIntakeCreate",
+    "ClothingIntakeOut",
+    "ClothingIntakeStatusUpdate",
+    "PublishFromIntakeBody",
+    "ProductReviewCreate",
+    "ProductReviewOut",
+    "AfterSaleCreate",
+    "AfterSaleOut",
+    "AfterSaleStatusUpdate",
+    "AIChatMessage",
+    "AIChatRequest",
+    "AIChatResponse",
 ]

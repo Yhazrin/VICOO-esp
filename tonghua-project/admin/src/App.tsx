@@ -11,6 +11,8 @@ import UserPage from './pages/UserPage';
 import ChildAuditPage from './pages/ChildAuditPage';
 import SettingsPage from './pages/SettingsPage';
 import AuditLogPage from './pages/AuditLogPage';
+import ClothingDonationPage from './pages/ClothingDonationPage';
+import AfterSalesPage from './pages/AfterSalesPage';
 
 export default function App() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -27,6 +29,8 @@ export default function App() {
         <Route path="/campaigns" element={<CampaignPage />} />
         <Route path="/donations" element={<DonationPage />} />
         <Route path="/orders" element={<OrderPage />} />
+        <Route path="/clothing-donations" element={<ClothingDonationPage />} />
+        <Route path="/after-sales" element={<AfterSalesPage />} />
         <Route path="/users" element={<UserPage />} />
         <Route path="/child-audit" element={<ChildAuditPage />} />
         <Route path="/settings" element={<SettingsPage />} />

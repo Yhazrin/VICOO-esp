@@ -35,6 +35,11 @@ class Settings(BaseSettings):
     WECHAT_PAY_API_KEY: Optional[str] = None  # WeChat Pay API key
     WECHAT_NOTIFY_URL: Optional[str] = None  # WeChat Pay callback URL
 
+    # OpenAI / 兼容接口（AI 助手，未配置密钥时返回占位回复）
+    OPENAI_API_KEY: Optional[str] = None
+    OPENAI_API_BASE: str = "https://api.openai.com/v1"
+    OPENAI_MODEL: str = "gpt-4o-mini"
+
     # Alipay
     ALIPAY_APP_ID: Optional[str] = None
     ALIPAY_PRIVATE_KEY: Optional[str] = None  # RSA2 private key (PKCS#8 PEM)

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -44,6 +44,19 @@ class OrderListItem(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class LogisticsEvent(BaseModel):
+    at: str
+    status: str
+    description: Optional[str] = None
+    location: Optional[str] = None
+
+
+class OrderLogisticsUpdate(BaseModel):
+    carrier: Optional[str] = Field(None, max_length=100)
+    tracking_number: Optional[str] = Field(None, max_length=120)
+    new_event: Optional[LogisticsEvent] = None
+
+
 class OrderOut(BaseModel):
     id: int
     user_id: int
@@ -54,6 +67,9 @@ class OrderOut(BaseModel):
     payment_method: Optional[str] = None
     payment_id: Optional[str] = None
     items: List[OrderItemOut] = []
+    carrier: Optional[str] = None
+    tracking_number: Optional[str] = None
+    logistics_events: List[Any] = []
     created_at: datetime
     updated_at: datetime
 
