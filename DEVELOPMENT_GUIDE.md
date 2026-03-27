@@ -15,30 +15,41 @@
 
 ```
 tonghua-project/
-├── tonghua-project/
-│   ├── backend/                 # FastAPI 后端
-│   │   ├── app/                # 应用代码
-│   │   ├── .venv/              # Python 虚拟环境
-│   │   ├── .env                # 后端环境变量
-│   │   └── requirements.txt
-│   ├── frontend/
-│   │   └── web-react/          # React 前端 (Vite)
-│   └── deploy/
-│       └── docker/             # Docker 配置
-│           ├── docker-compose.yml
-│           ├── .env            # Docker 环境变量
-│           ├── secrets/        # 密钥文件
-│           └── init-db/        # 数据库初始化脚本
+├── admin/                     # 管理后台 (React)
+├── backend/                  # FastAPI 后端
+│   ├── app/                  # 应用代码
+│   │   ├── routers/          # 路由（auth/artworks/campaigns/...）
+│   │   ├── models/           # SQLAlchemy 模型
+│   │   └── schemas/          # Pydantic schemas
+│   ├── .venv/               # Python 虚拟环境
+│   ├── .env                 # 环境变量
+│   └── requirements.txt
+├── frontend/
+│   ├── web-react/           # React 前端 (Vite)
+│   ├── weapp/               # 微信小程序
+│   └── android/             # Android 应用 (Kotlin)
+├── deploy/
+│   └── docker/              # Docker 配置
+│       ├── docker-compose.yml
+│       ├── .env             # Docker 环境变量
+│       ├── secrets/         # 密钥文件
+│       └── init-db/         # 数据库初始化脚本
+├── docs/                    # 完整文档
+│   ├── api/                 # API 参考
+│   ├── architecture/         # 系统架构
+│   ├── deployment/          # 部署指南
+│   └── design-system/       # 设计系统
+└── tests/                   # 测试套件
 ```
 
 ---
 
 ## 准备工作：启动 Docker 数据库
 
-### 1. 打开终端，进入 Docker 配置目录
+### 1. 进入 Docker 配置目录
 
 ```bash
-cd /Users/yanghaoze/Desktop/PROJECT/tonghua-project/tonghua-project/deploy/docker
+cd /Users/yanghaoze/Desktop/PROJECT/tonghua-project/deploy/docker
 ```
 
 ### 2. 启动所有 Docker 服务（MySQL + Redis）
@@ -80,7 +91,7 @@ nc -z localhost 6379 && echo "Redis OK" || echo "Redis FAIL"
 ### 1. 进入后端目录
 
 ```bash
-cd /Users/yanghaoze/Desktop/PROJECT/tonghua-project/tonghua-project/backend
+cd /Users/yanghaoze/Desktop/PROJECT/tonghua-project/backend
 ```
 
 ### 2. 激活虚拟环境
@@ -124,35 +135,33 @@ curl -s http://localhost:8000/api/v1/products | python3 -m json.tool | head -5
 
 ## 启动前端
 
-### 1. 进入前端目录
+### React 网页端
 
 ```bash
-cd /Users/yanghaoze/Desktop/PROJECT/tonghua-project/tonghua-project/frontend/web-react
+cd /Users/yanghaoze/Desktop/PROJECT/tonghua-project/frontend/web-react
+npm install       # 首次运行或依赖变更后
+npm run dev       # 启动开发服务器
 ```
-
-### 2. 安装依赖（首次运行或依赖变更后）
-
-```bash
-npm install
-```
-
-### 3. 启动开发服务器
-
-```bash
-npm run dev
-```
-
-**后台运行版本：**
-
-```bash
-nohup npm run dev > /tmp/frontend.log 2>&1 &
-```
-
-### 4. 验证前端是否启动
 
 浏览器访问：http://localhost:9111
 
-预期：看到童花公益网站首页
+### 微信小程序
+
+```bash
+cd /Users/yanghaoze/Desktop/PROJECT/tonghua-project/frontend/weapp
+npm install       # 首次运行
+```
+
+使用微信开发者工具导入 `frontend/weapp` 目录。
+
+### Android 应用
+
+```bash
+cd /Users/yanghaoze/Desktop/PROJECT/tonghua-project/frontend/android
+./gradlew assembleDebug
+```
+
+APK 输出在 `app/build/outputs/apk/debug/`。
 
 ---
 
@@ -219,7 +228,7 @@ kill -9 <PID>
 
 ```bash
 docker compose down -v   # 删除数据卷（会清空数据！）
-docker compose up -d    # 重新创建并启动
+docker compose up -d     # 重新创建并启动
 ```
 
 ---
@@ -228,16 +237,16 @@ docker compose up -d    # 重新创建并启动
 
 ```bash
 # 1. 启动 Docker 数据库
-cd /Users/yanghaoze/Desktop/PROJECT/tonghua-project/tonghua-project/deploy/docker
+cd /Users/yanghaoze/Desktop/PROJECT/tonghua-project/deploy/docker
 docker compose up -d
 
 # 2. 启动后端
-cd /Users/yanghaoze/Desktop/PROJECT/tonghua-project/tonghua-project/backend
+cd /Users/yanghaoze/Desktop/PROJECT/tonghua-project/backend
 source .venv/bin/activate
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 
 # 3. 启动前端（新终端）
-cd /Users/yanghaoze/Desktop/PROJECT/tonghua-project/tonghua-project/frontend/web-react
+cd /Users/yanghaoze/Desktop/PROJECT/tonghua-project/frontend/web-react
 npm run dev
 ```
 
