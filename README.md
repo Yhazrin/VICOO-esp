@@ -102,21 +102,28 @@ For full deployment instructions, see the **[Deployment Guide](docs/deployment/d
 
 ```
 tonghua-project/
-├── CLAUDE.md                        # Agent team orchestration rules
 ├── README.md                        # This file
-│
-├── backend/                         # FastAPI backend (8 microservice modules)
-│   ├── main.py                      # Application entry point
-│   ├── requirements.txt             # Python dependencies
-│   └── app/
-│       ├── config.py                # Configuration & env vars
-│       ├── database.py              # SQLAlchemy async setup
-│       ├── models/                  # Database models
-│       ├── schemas/                 # Pydantic schemas
-│       ├── routers/                 # API route handlers
-│       ├── services/                # Business logic
-│       ├── security/                # Auth, encryption, rate limiting
-│       └── middleware/              # Request processing middleware
+├── backend/                         # FastAPI backend (18 API routers)
+│   ├── app/
+│   │   ├── main.py                  # Application entry point
+│   │   ├── config.py                # Configuration & env vars
+│   │   ├── database.py              # SQLAlchemy async setup
+│   │   ├── models/                  # Database models
+│   │   ├── schemas/                 # Pydantic schemas
+│   │   ├── routers/                 # API route handlers
+│   │   ├── services/                # Business logic
+│   │   └── security.py             # Auth, encryption, rate limiting
+│   ├── alembic/                    # Database migrations
+│   ├── requirements.txt
+│   └── .venv/                      # Python virtual environment
+├── docs/
+│   ├── CLAUDE.md                    # Agent team orchestration rules
+│   ├── DEVELOPMENT_GUIDE.md         # Developer quick-start guide
+│   ├── architecture/                # System architecture documents
+│   ├── api/                         # API reference documentation
+│   ├── deployment/                  # Deployment guides
+│   ├── design-system/               # UI design system specs
+│   └── security/                    # Security & compliance docs
 │
 ├── frontend/
 │   ├── web-react/                   # React editorial web platform
@@ -155,13 +162,6 @@ tonghua-project/
 │   └── ci/
 │       └── github-actions.yml       # CI/CD pipeline definition
 │
-├── docs/
-│   ├── architecture/                # System architecture documents
-│   ├── api/                         # API reference documentation
-│   ├── deployment/                  # Deployment guides
-│   ├── design-system/               # UI design system specs
-│   └── security/                    # Security & compliance docs
-│
 └── tests/
     ├── api-tests/                   # Backend API tests (pytest)
     ├── security-tests/              # Security penetration tests
@@ -172,7 +172,7 @@ tonghua-project/
 
 ## Development Workflow
 
-This project follows a **three-phase workflow**, orchestrated by a team of 15 specialized agents. See [CLAUDE.md](CLAUDE.md) for the full agent definitions and dispatch rules.
+This project follows a **three-phase workflow**, orchestrated by a team of 15 specialized agents. See [docs/CLAUDE.md](docs/CLAUDE.md) for the full agent definitions and dispatch rules.
 
 ### Phase 1: Architecture Design
 
