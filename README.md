@@ -1,8 +1,17 @@
 # VICOO
 
-**Sustainable Fashion · Circular Commerce · Transparent Impact**
+**Visual · Circle**
 
-> A cross-platform ecosystem that transforms children's creative expression into wearable art -- with full supply chain transparency and traceable social impact.
+> *A cross-platform ecosystem that transforms children's creative expression into wearable art -- with full supply chain transparency and traceable social impact.*
+
+**VICOO** — 每个孩子的画作，都是一次视觉表达；每个圆形的O，都象征着循环与永续。
+
+| 字母 | 含义 |
+|------|------|
+| **VI** | **Visual** — 每一个孩子的画作，都是一次视觉表达 |
+| **COO** | **Circle** — 圆形的 O，象征循环、永续、回归 |
+
+从画笔到衣橱，从创意到循环 — VICOO 让孩子的视觉想象延续成可触摸的真实。
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-Strict%20Mode-blue)](#)
 [![FastAPI](https://img.shields.io/badge/FastAPI-Python%203.11-green)](#)
@@ -15,7 +24,9 @@
 
 ## What VICOO Does
 
-VICOO is a multi-platform application connecting three worlds: **children's artistic expression**, **sustainable fashion**, and **transparent public welfare**.
+VICOO is a cross-platform ecosystem connecting three worlds: **children's artistic expression**, **sustainable fashion**, and **transparent public welfare**.
+
+**Visual · Circle** — 每个孩子的画作都是一次视觉表达，每个 O 都象征着循环与永续。
 
 - **Creative Platform** -- Children submit artwork through themed campaigns, receive community votes and editorial features
 - **Fashion Collection** -- Curated apparel and accessories where proceeds directly fund children's art programs
