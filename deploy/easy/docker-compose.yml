@@ -63,7 +63,7 @@ services:
       APP_SECRET_KEY: ${APP_SECRET_KEY}
       JWT_ALGORITHM: HS256
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost,http://localhost:80}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost,http://localhost:80,http://localhost:8080}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
       SEED_EDITOR_PASSWORD: ${SEED_EDITOR_PASSWORD}
       SEED_USER_PASSWORD: ${SEED_USER_PASSWORD}
@@ -106,6 +106,26 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget --spider -q http://localhost:80 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - vicoo-net
+
+  # ---- Admin Dashboard (React + Nginx) ----
+  admin:
+    build:
+      context: ../../
+      dockerfile: deploy/easy/admin.dockerfile
+    container_name: vicoo-admin
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O- http://127.0.0.1/ | head -1 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
