@@ -1,0 +1,799 @@
+{
+  "nav": {
+    "home": "首页",
+    "about": "关于我们",
+    "campaigns": "公益活动",
+    "stories": "故事",
+    "donate": "捐赠",
+    "donateClothing": "捐衣",
+    "shop": "商城",
+    "traceability": "溯源",
+    "assistant": "助手",
+    "support": "售后",
+    "contact": "联系我们",
+    "login": "登录",
+    "register": "注册",
+    "profile": "个人中心",
+    "logout": "退出"
+  },
+  "profile": {
+    "title": "个人中心",
+    "notLoggedIn": "请登录以查看您的个人资料。",
+    "accountDetails": "账户详情",
+    "userId": "用户ID",
+    "role": "角色",
+    "productFallback": "商品"
+  },
+  "home": {
+    "hero": {
+      "title": "小手编织时尚的未来",
+      "subtitle": "每一个孩子的想象力，都编织成可持续的丝线。每一份购买，都是迈向更公平世界的一步。",
+      "cta": "探索我们的工作"
+    },
+    "featured": {
+      "sectionTitle": "精选活动",
+      "viewAll": "查看全部活动",
+      "heading": "小手创造大梦想",
+      "body": "每一次活动都始于一间教室、一个社区中心、一处庇护所。我们收集孩子们的画作——原始、真挚、不加修饰——并将其转化为可持续时尚，为他们的未来提供资金。",
+      "imageAlt": "孩子们在社区工作坊中创作",
+      "caption": "2026春季活动 — 作品征集阶段"
+    },
+    "artworks": {
+      "sectionTitle": "儿童画廊",
+      "viewAll": "查看完整画廊"
+    },
+    "gallery": {
+      "alt": {
+        "watercolor": "儿童水彩风景画",
+        "crayon": "儿童抽象蜡笔画",
+        "pastel": "儿童粉彩肖像画",
+        "ink": "儿童墨水插画"
+      }
+    },
+    "pillars": {
+      "traceable": "可追溯供应链",
+      "children": "赋能儿童",
+      "reinvested": "再投资善款"
+    },
+    "latestArtworks": {
+      "sectionTitle": "最新作品"
+    },
+    "impact": {
+      "title": "我们的影响力",
+      "children": "参与儿童",
+      "artworks": "创作作品",
+      "donated": "筹集善款",
+      "products": "售出商品"
+    },
+    "cta": {
+      "title": "加入这场运动",
+      "description": "无论是捐赠、购物还是分享我们的故事——每一个行动都很重要。",
+      "donate": "立即捐赠",
+      "shop": "可持续购物"
+    }
+  },
+  "about": {
+    "hero": {
+      "title": "我们的故事",
+      "subtitle": "一本诞生于信念的出版物：每个孩子都值得看到自己的创造力改变世界。"
+    },
+    "mission": {
+      "title": "我们的使命",
+      "body": "童画公益将孩子们原始、未经修饰的想象力与可持续时尚世界相连接。我们相信最真实的艺术来自最年轻的双手——而时尚可以成为向善的力量，当它承载着这些故事前行时。"
+    },
+    "values": {
+      "title": "我们坚守的价值",
+      "transparency": {
+        "title": "彻底透明",
+        "body": "每根线都可追溯。每笔捐赠都有记录。我们公开供应链，因为您有权知道。"
+      },
+      "childFirst": {
+        "title": "儿童优先",
+        "body": "儿童是合作者，不是素材。他们的知情同意、隐私和创作所有权不可妥协。"
+      },
+      "sustainability": {
+        "title": "真正的可持续",
+        "body": "不做表面功夫。我们测量碳足迹，使用认证材料，每季度发布环境影响报告。"
+      },
+      "community": {
+        "title": "扎根社区",
+        "body": "我们与当地学校、社区中心合作。时尚是媒介；社区是信息。"
+      }
+    },
+    "team": {
+      "title": "幕后的人们",
+      "subtitle": "一个小团队，怀抱一个宏大的愿景。",
+      "roles": {
+        "founder": "创始人兼主编",
+        "operations": "运营总监",
+        "design": "首席设计师",
+        "supplyChain": "供应链经理"
+      }
+    },
+    "images": {
+      "workshop": {
+        "alt": "孩子们在童画社区工作坊中绘画",
+        "caption": "成都的一个周六上午工作坊，孩子们在这里绘制将成为我们下一个系列的梦想。"
+      },
+      "supplies": {
+        "alt": "童画生产中使用的有机棉和天然染料材料"
+      }
+    },
+    "quote": {
+      "body": "我们不只是做衣服。我们将孩子们未经修饰的想象力转化为你可以穿戴的东西——而在这个过程中，我们资助了让这种想象力成为可能的教育。",
+      "author": "陈伟",
+      "role": "童画公益创始人"
+    }
+  },
+  "campaigns": {
+    "hero": {
+      "title": "公益活动",
+      "subtitle": "每一次活动都是一个篇章——将儿童艺术与可持续时尚连接，为真正的改变提供资金。"
+    },
+    "status": {
+      "active": "进行中",
+      "upcoming": "即将开始",
+      "completed": "已结束"
+    },
+    "detail": {
+      "artworks": "活动作品",
+      "donate": "支持此活动",
+      "progress": "目标已完成",
+      "participants": "参与者",
+      "daysLeft": "天剩余"
+    },
+    "listing": {
+      "sectionTitle": "全部活动",
+      "sectionSubtitle": "浏览我们进行中、即将开始和已完成的项目。"
+    },
+    "filter": {
+      "all": "全部"
+    },
+    "results": "找到 {{count}} 个活动",
+    "search": {
+      "placeholder": "搜索活动..."
+    },
+    "pagination": {
+      "prev": "上一页",
+      "next": "下一页",
+      "ariaLabel": "活动分页导航",
+      "prevAria": "上一页",
+      "nextAria": "下一页",
+      "pageAria": "第"
+    },
+    "empty": "没有找到符合条件的活动。",
+    "empty.title": "该类别下暂无活动",
+    "empty.subtitle": "请稍后再来",
+    "goalReached": "目标达成",
+    "funded": "已筹{{percent}}%"
+  },
+  "stories": {
+    "hero": {
+      "title": "故事",
+      "subtitle": "来自童年、创造力与有意识的时尚交汇处的报道。"
+    },
+    "readMore": "阅读全文",
+    "readTime": "分钟阅读",
+    "categories": {
+      "all": "全部",
+      "impact": "影响力",
+      "fashion": "时尚",
+      "community": "社区",
+      "education": "教育"
+    },
+    "newsletter": {
+      "title": "保持联系",
+      "subtitle": "每月接收关于活动、故事以及您的支持所创造的影响的通讯。",
+      "hook": "让希望的故事送到您的邮箱",
+      "placeholder": "您的邮箱地址",
+      "subscribe": "订阅",
+      "success": "订阅成功，欢迎加入我们的故事。"
+    },
+    "empty": {
+      "title": "这里还没有故事",
+      "body": "每本伟大的出版物都有等待被书写的空白页。试试其他分类——有故事等待被发现。",
+      "browseAll": "浏览全部故事"
+    },
+    "minuteRead": "分钟阅读",
+    "artworkFallback": "一幅儿童画作，用想象力和真心创作而成。",
+    "supporters": "{{count}} 位支持者",
+    "anonymousArtist": "匿名艺术家",
+    "marquee": {
+      "quote1": "孩子的每一笔都是通往他们想象世界的窗口",
+      "attr1": "陈伟，创始人",
+      "quote2": "我们不只是卖衣服，我们赋予你知道它从何而来的权利",
+      "attr2": "张华，生产负责人",
+      "quote3": "可持续始于看见，而非仅仅购买",
+      "attr3": "李梅，社区总监",
+      "quote4": "当我们打开大门，教室就变成了画廊",
+      "attr4": "王军，教育负责人",
+      "quote5": "她画的海洋是她见过最蓝的东西",
+      "attr5": "陈伟，创始人"
+    },
+    "mock": {
+      "title1": "画海的女孩",
+      "excerpt1": "小林从未见过大海，但她画的海洋成为了我们春季系列中最受欢迎的设计。",
+      "pull1": "47名儿童参与了这次工作坊",
+      "author1": "陈伟",
+      "title2": "从废弃到可穿戴",
+      "excerpt2": "我们的生产团队如何将滞销面料转化为限量版作品，为艺术工作坊提供资金。",
+      "pull2": "3.2吨面料被从垃圾填埋场中拯救",
+      "author2": "张华",
+      "title3": "教室变画廊",
+      "excerpt3": "当东风小学为我们的工作坊打开大门时，没有人预料到墙壁会变成画布。",
+      "pull3": "一个下午创作了120件作品",
+      "author3": "李梅",
+      "title4": "通过艺术教授可持续发展",
+      "excerpt4": "我们的新课程帮助儿童通过创意表达理解环境影响。",
+      "pull4": "本学期有14所学校采用了该课程",
+      "author4": "王军",
+      "title5": "使命背后的数字",
+      "excerpt5": "透明地展示每一元捐赠如何转化为对儿童和社区的真实影响。",
+      "pull5": "92%的资金直接用于项目",
+      "author5": "陈伟"
+    },
+    "featuredQuote": {
+      "text": "孩子的每一笔都是通往他们想象世界的窗口。我们的工作是让这个世界被看见。",
+      "author": "陈伟",
+      "role": "童画公益创始人"
+    }
+  },
+  "donate": {
+    "hero": {
+      "title": "捐赠",
+      "subtitle": "您的慷慨为美术用品、工作坊、可持续材料以及将孩子们的梦想变成可穿戴故事的基础设施提供资金。"
+    },
+    "form": {
+      "title": "选择您的影响力",
+      "customAmount": "或输入自定义金额",
+      "placeholder": "输入金额",
+      "currency": "元",
+      "frequency": {
+        "title": "捐赠频率",
+        "once": "一次性",
+        "monthly": "每月"
+      },
+      "anonymous": "匿名捐赠",
+      "message": "留言（可选）",
+      "submit": "完成捐赠",
+      "processing": "处理中...",
+      "errors": {
+        "invalidAmount": "请输入有效金额",
+        "minAmount": "最低捐赠金额为 ¥{{min}}",
+        "maxAmount": "最高捐赠金额为 ¥{{max}}"
+      },
+      "amountRange": "范围：¥{{min}} – ¥{{max}}"
+    },
+    "tiers": {
+      "seedling": {
+        "label": "幼苗",
+        "description": "为一个孩子提供一个月的基础美术用品。",
+        "impact": "1个孩子 × 1个月的创意表达"
+      },
+      "bloom": {
+        "label": "绽放",
+        "description": "为一个班级的孩子资助一次工作坊。",
+        "impact": "1个班级 × 1次创意工作坊"
+      },
+      "canopy": {
+        "label": "树冠",
+        "description": "支持将儿童艺术品制作成可持续服装。",
+        "impact": "1件服装 × 全供应链支持"
+      },
+      "forest": {
+        "label": "森林",
+        "description": "赞助一次完整的活动，从艺术创作到产品发布。",
+        "impact": "1次活动 × 端到端赞助"
+      }
+    },
+    "emotional": {
+      "quote": "在参加这个项目之前，我不知道我的画作有意义。现在我知道它们可以改变世界。",
+      "author": "林梅",
+      "role": "9岁，东风小学"
+    },
+    "impact": {
+      "title": "您的资金去向",
+      "artSupplies": "美术用品与工作坊",
+      "artSuppliesDesc": "颜料、画笔、画布和专业的工作坊导师。",
+      "production": "可持续生产",
+      "productionDesc": "有机认证面料、公平工资的裁缝、环保染料。",
+      "operations": "平台运营",
+      "operationsDesc": "网站、支付处理、儿童安全系统。",
+      "community": "社区项目",
+      "communityDesc": "学校合作、课后项目、展览活动。"
+    },
+    "transparency": {
+      "title": "财务透明",
+      "subtitle": "我们每季度发布财务报告。每一元钱都有记录。",
+      "viewReport": "查看最新报告",
+      "lastAudit": "最近审计：2025年12月",
+      "onChain": "100%捐赠通过链上追踪",
+      "quarterly": "季度报告于每年1月、4月、7月、10月发布",
+      "trust": {
+        "audited": "已审计",
+        "verified": "已验证",
+        "transparent": "透明公开",
+        "impactReported": "影响报告"
+      },
+      "trustIndicators": "信任指标",
+      "financialReport": "财务报告",
+      "pdfSize": "PDF · 2.4 MB",
+      "transparencyQuote": "透明不是一种功能，而是一种责任。",
+      "transparencyQuoteAuthor": "2025年度报告"
+    },
+    "counters": {
+      "fundsRaised": "筹集善款",
+      "childrenHelped": "受助儿童"
+    },
+    "stories": {
+      "title": "您的捐赠在行动",
+      "items": {
+        "0": {
+          "amount": "¥500",
+          "impact": "为东风小学资助了一个月的美术用品",
+          "caption": "东风小学，贵州"
+        },
+        "1": {
+          "amount": "¥2,000",
+          "impact": "支持印刷了200个由儿童设计的可持续手提袋",
+          "caption": "2025年春季活动"
+        },
+        "2": {
+          "amount": "¥5,000",
+          "impact": "为一个农村社区中心赞助了整套艺术工作坊系列",
+          "caption": "阳光社区中心，云南"
+        }
+      }
+    },
+    "cta": {
+      "title": "每一元钱都在讲述一个故事。你的故事将说什么？",
+      "donate": "立即捐赠",
+      "learnMore": "了解更多"
+    },
+    "anonymousName": "匿名用户",
+    "guestName": "访客",
+    "faq": {
+      "title": "常见问题",
+      "q1": "我的捐赠将如何使用？",
+      "a1": "您的捐赠直接用于为儿童提供美术用品、工作坊和可持续材料。我们每季度发布报告，详细说明每一元钱的使用情况。",
+      "q2": "我可以匿名捐赠吗？",
+      "a2": "是的，您可以选择匿名捐赠。您的隐私对我们很重要，我们尊重您的选择。",
+      "q3": "我的捐赠可以抵税吗？",
+      "a3": "是的，所有捐赠给童画公益的款项都可以抵税。您将收到官方收据作为记录。",
+      "q4": "如何追踪我的捐赠影响？",
+      "a4": "您将收到关于您的捐赠如何产生影响的更新。我们还发布季度财务报告，展示所有捐赠的影响。"
+    }
+  },
+  "shop": {
+    "hero": {
+      "title": "商城",
+      "subtitle": "每一件服装都承载着一个孩子的故事。每一次购买都在资助下一个篇章。"
+    },
+    "filters": {
+      "all": "全部",
+      "apparel": "服装",
+      "accessories": "配饰",
+      "stationery": "文具",
+      "prints": "艺术印刷品"
+    },
+    "card": {
+      "viewDetails": "查看详情",
+      "soldOut": "已售罄",
+      "lowStock": "仅剩 {{count}} 件",
+      "exceptional": "卓越",
+      "excellent": "优秀",
+      "good": "良好",
+      "notifyMe": "到货通知",
+      "notifySuccess": "到货后我们会通知您。",
+      "notifyEmailLabel": "邮箱",
+      "send": "发送",
+      "artworkBy": "{{name}} 的作品，{{age}} 岁",
+      "campaign": "活动"
+    },
+    "detail": {
+      "addToCart": "加入购物车",
+      "added": "已加入购物车",
+      "supplyChain": "供应链旅程",
+      "sustainability": "可持续评分",
+      "artwork": "基于作品",
+      "size": "尺码",
+      "quantity": "数量"
+    },
+    "sort": {
+      "label": "排序",
+      "default": "默认",
+      "priceAsc": "价格：低到高",
+      "priceDesc": "价格：高到低",
+      "sustainability": "可持续评分"
+    },
+    "results": "{{count}} 件商品",
+    "empty": "此分类下没有商品。",
+    "collection": "全部商品",
+    "sustainability": {
+      "certifiedMaterials": "认证材料",
+      "certifiedMaterialsDesc": "所有面料均为 GOTS 认证有机棉或再生聚酯纤维。每种材料均可追溯至源头，证书经独立审计师验证后方可进入我们的供应链。",
+      "ethicalProduction": "道德生产",
+      "ethicalProductionDesc": "公平薪酬、安全条件、全程供应链透明。",
+      "carbonMeasured": "碳排放测算",
+      "carbonMeasuredDesc": "每件产品的碳足迹均已计算并抵消。"
+    },
+    "behindCollection": "系列背后",
+    "workshop": {
+      "imageAlt": "孩子们在 VICOO 工作坊中创作",
+      "imageCaption": "成都的一个周六上午工作坊，孩子们在这里绘制将成为我们下一个系列的梦想。"
+    },
+    "editorial": {
+      "paragraph1": "这个系列中的每一件服装都始于同一种方式——一个孩子、一张白纸、以及想象的自由。我们与十二个城市的学校和社区中心合作，开展工作坊，让孩子们画出他们对世界的希望。",
+      "paragraph2": "我们的设计师随后将这些原始、真挚的艺术品转化为图案、印花和刺绣——从不改变孩子最初的愿景。最终呈现的是承载真实故事的服装，而非人为制造的故事。"
+    },
+    "quote": {
+      "text": "我画了海洋，因为我希望它永远是蓝色的。",
+      "author": "小林",
+      "role": "8岁，海洋之梦活动"
+    },
+    "mock": {
+      "product1": {
+        "name": "梦境T恤",
+        "description": "一幅儿童海洋画作，变成了一件可穿戴的故事。",
+        "childName": "小林",
+        "campaign": "海洋之梦"
+      },
+      "product2": {
+        "name": "绽放手提袋",
+        "description": "手工印花有机棉手提袋，印有春季活动作品。",
+        "childName": "梅花",
+        "campaign": "春日花园"
+      },
+      "product3": {
+        "name": "小画家速写本",
+        "description": "再生纸速写本，封面采用冬季活动作品。",
+        "childName": "童童",
+        "campaign": "冬日奇境"
+      },
+      "product4": {
+        "name": "海洋之梦艺术版画",
+        "description": "博物馆级艺术微喷版画，采用档案级纸张。",
+        "childName": "小雨",
+        "campaign": "海洋之梦"
+      },
+      "product5": {
+        "name": "城市风景卫衣",
+        "description": "有机棉卫衣，绣有儿童城市绘画。",
+        "childName": "佳伟",
+        "campaign": "我的城市"
+      },
+      "product6": {
+        "name": "彩虹徽章套装",
+        "description": "珐琅徽章套装，收录五幅2025年获奖作品。",
+        "childName": "安琪",
+        "campaign": "希望的颜色"
+      }
+    }
+  },
+  "traceability": {
+    "hero": {
+      "title": "溯源",
+      "subtitle": "从孩子绘制设计的双手，到缝制它的工匠——跟随每一步旅程。"
+    },
+    "stages": {
+      "artwork": "艺术创作",
+      "design": "设计转化",
+      "material": "材料采购",
+      "production": "生产制作",
+      "quality": "质量检测",
+      "shipping": "物流配送"
+    },
+    "verified": "已验证",
+    "carbonLabel": "碳足迹",
+    "imageAlt": "梦境T恤",
+    "kgCO2": "千克 CO2",
+    "mock": {
+      "records": {
+        "1": {
+          "description": "小林，8岁，在东风小学的周六工作坊中创作了她的海洋画作。该作品经同伴投票选出。",
+          "story": "在一个下雨的周六早晨，八岁的小林拿起画笔，画了一只鲸鱼跃出海浪的画面。她的同学们投票选出了这幅作品作为展览最佳。"
+        },
+        "2": {
+          "description": "我们的设计团队将画作改编为纺织印花，保留了孩子原始的笔触和色彩搭配。小林认可了最终设计。",
+          "story": "首席设计师梅将这幅画转化为重复图案，同时保留了每一笔。小林参观了工作室，竖起大拇指给了最终认可。"
+        },
+        "3": {
+          "description": "GOTS 认证有机棉，采购自新疆合作社。公平贸易价格经第三方审计师验证。",
+          "story": "手工采摘自雨水灌溉系统的田地。每批棉花都经过农药残留检测并获得有机认证后才发货。"
+        },
+        "4": {
+          "description": "在 SA8000 认证工厂进行丝网印刷和缝制。支付生活工资。工作条件每季度审核。",
+          "story": "缝纫工匠张师傅已从业15年。他获得高于最低生活保障的工资和完整福利。他的团队为这个设计印刷组装了200件。"
+        },
+        "5": {
+          "description": "质量检测通过。色牢度、缝合强度和尺寸均已按照规格验证。",
+          "story": "检验员李对每件衣服进行20次水洗后的色牢度测试、应力点缝合强度检测以及2毫米公差范围内的尺寸精度测试。"
+        },
+        "6": {
+          "description": "通过整合运输发货以减少排放。碳抵消通过认证项目购买。",
+          "story": "与其他三笔订单合并装满一个集装箱。剩余排放量通过云南省经认证的造林项目进行碳抵消。"
+        }
+      }
+    },
+    "lookup": {
+      "title": "追溯您的产品",
+      "subtitle": "输入订单号或产品 ID，追踪从创作到交付的完整旅程。",
+      "placeholder": "输入订单号或产品 ID...",
+      "ariaLabel": "产品溯源查询",
+      "hint": "试试：VICOO-2026-SP-001",
+      "found": "找到供应链记录",
+      "highlighted": "高亮记录"
+    },
+    "status": {
+      "verified": "已验证",
+      "inProgress": "进行中",
+      "pending": "待处理"
+    },
+    "carbon": {
+      "title": "碳足迹对比",
+      "subtitle": "我们对可持续发展的承诺意味着测量、减少并抵消每一克排放。",
+      "conventional": "传统时尚",
+      "vicoo": "VICOO 服装",
+      "reduction": "碳减排",
+      "reductionDesc": "通过有机材料、整合运输和经认证的碳抵消实现更低排放。",
+      "explanation": "基于生命周期分析，将传统快时尚生产与我们的认证供应链进行比较。包括原材料采购、制造、质量控制和最后一公里配送。",
+      "sectionLabel": "碳足迹"
+    },
+    "certifications": {
+      "title": "认证与标准",
+      "subtitle": "我们做出的每一项声明都有独立第三方验证的支持。"
+    },
+    "cta": {
+      "label": "放心购物",
+      "headline": "知你所穿，信你所购。",
+      "body": "我们系列中的每一件服装都附带完整、可验证的供应链记录。没有隐藏环节，没有未经验证的声明。",
+      "button": "浏览系列"
+    },
+    "tracing": "正在追踪供应链...",
+    "example": {
+      "title": "梦境T恤 — 完整旅程",
+      "subtitle": "跟随一件产品的完整生命周期，从孩子的画笔到您的衣橱。"
+    },
+    "carbonTotal": {
+      "value": "5.3 千克 CO2",
+      "offset": "通过云南省经认证的造林项目进行碳抵消。"
+    },
+    "quote": {
+      "text": "如果你能追溯它，你就能信任它。每一针都讲述着一个值得了解的故事。",
+      "author": "供应链宣言",
+      "role": "童画公益，2025"
+    },
+    "howItWorks": {
+      "title": "溯源如何运作",
+      "steps": {
+        "record": {
+          "title": "记录",
+          "desc": "供应链中的每一步都以照片、日期、地点和合作方验证进行记录。"
+        },
+        "verify": {
+          "title": "验证",
+          "desc": "第三方审计师验证每条记录。未验证的步骤将被透明标记。"
+        },
+        "publish": {
+          "title": "公开",
+          "desc": "完整旅程在我们的平台上公开发布，供每位客户查验。"
+        }
+      }
+    },
+    "certs": {
+      "gots": {
+        "title": "GOTS 认证",
+        "desc": "全球有机纺织品标准验证的有机纤维和负责任加工。"
+      },
+      "fairTrade": {
+        "title": "公平贸易认证",
+        "desc": "为每位工人提供生活工资、安全条件和道德待遇。"
+      },
+      "carbonNeutral": {
+        "title": "碳中和",
+        "desc": "通过经认证的造林和可再生能源抵消运营碳排放。"
+      },
+      "childSafe": {
+        "title": "儿童安全生产",
+        "desc": "完全符合儿童保护法规和知情同意协议。"
+      }
+    }
+  },
+  "contact": {
+    "hero": {
+      "title": "联系我们",
+      "subtitle": "我们阅读每一条消息。无论您有问题、合作想法或故事分享——我们都在倾听。",
+      "welcome": "无论您想捐赠、合作，还是只想打个招呼——我们都期待听到您的声音。"
+    },
+    "faq": {
+      "title": "常见问题",
+      "items": [
+        {
+          "question": "如何进行捐赠？",
+          "answer": "您可以通过我们的在线平台、微信支付或银行转账进行捐赠。每一笔善款都直接用于支持儿童艺术项目和可持续时尚事业。"
+        },
+        {
+          "question": "如何提交孩子的作品？",
+          "answer": "访问我们的活动页面，找到正在进行的艺术活动。您可以通过平台直接上传作品，或通过邮件发送给我们。所有提交将在3个工作日内审核。"
+        },
+        {
+          "question": "如何追踪我的订单？",
+          "answer": "订单确认后，您将通过邮件收到物流单号。您也可以随时在账户面板的「我的订单」中查看订单状态。"
+        },
+        {
+          "question": "有志愿者机会吗？",
+          "answer": "是的。我们欢迎志愿者参与工作坊、活动协调、翻译和数字推广等工作。请告诉我们您的兴趣和可用时间，我们会为您匹配合适的机会。"
+        },
+        {
+          "question": "我的机构如何与您合作？",
+          "answer": "我们与学校、非政府组织和志同道合的企业合作。请在下方选择「合作」主题并介绍您的机构，我们将在48小时内回复。"
+        }
+      ]
+    },
+    "form": {
+      "name": "您的姓名",
+      "email": "电子邮箱",
+      "subject": "主题",
+      "subjectPlaceholder": "请选择主题",
+      "subjectOptions": {
+        "general": "一般咨询",
+        "donation": "捐赠事宜",
+        "order": "订单支持",
+        "partnership": "合作洽谈",
+        "artwork": "作品提交",
+        "other": "其他"
+      },
+      "message": "您的留言",
+      "characterCount": "{count} / {max} 字符",
+      "requiredField": "此字段为必填项",
+      "invalidEmail": "请输入有效的电子邮箱",
+      "submit": "发送消息",
+      "sending": "发送中",
+      "successTitle": "消息已发送",
+      "success": "感谢您的来信，我们将在24小时内回复您。",
+      "error": "出了点问题，请重试。"
+    },
+    "contactTitle": "联系方式",
+    "formTitle": "给我们留言",
+    "info": {
+      "title": "其他联系方式",
+      "email": "hello@tonghua.org",
+      "emailLabel": "邮箱",
+      "wechat": "TonghuaOfficial",
+      "wechatLabel": "微信",
+      "address": "中国上海",
+      "locationLabel": "地址",
+      "officeCaption": "VICOO 上海办公室"
+    },
+    "pullQuote": {
+      "quote": "每一个问题都是深入了解我们使命的邀请——每一个回答都是编织信任纽带的机会。",
+      "author": "VICOO 编辑部",
+      "role": "社区互动"
+    },
+    "cards": {
+      "email": {
+        "title": "邮件联系",
+        "description": "我们会在工作日24小时内回复每一条消息。"
+      },
+      "location": {
+        "title": "到访我们",
+        "description": "我们的办公室位于上海市中心，工作日早9点至晚6点开放。"
+      },
+      "responseTime": {
+        "title": "回复时间",
+        "description": "平均回复时间在12小时以内，紧急事项会优先处理。"
+      }
+    }
+  },
+  "login": {
+    "title": "欢迎回来",
+    "subtitle": "登录以继续您的旅程。",
+    "email": "邮箱",
+    "password": "密码",
+    "submit": "登录",
+    "register": "创建账户",
+    "forgotPassword": "忘记密码？",
+    "orContinueWith": "或使用以下方式继续",
+    "wechat": "微信",
+    "rememberMe": "记住我",
+    "submitting": "登录中..."
+  },
+  "register": {
+    "title": "加入我们的社区",
+    "subtitle": "创建账户，开始您的旅程。",
+    "nickname": "昵称",
+    "email": "邮箱",
+    "password": "密码",
+    "confirmPassword": "确认密码",
+    "submit": "创建账户",
+    "submitting": "创建中...",
+    "login": "登录",
+    "orContinueWith": "或使用以下方式继续",
+    "wechat": "微信",
+    "alreadyHaveAccount": "已有账户？",
+    "errors": {
+      "passwordMismatch": "密码不匹配",
+      "passwordTooShort": "密码至少需要8个字符"
+    }
+  },
+  "notFound": {
+    "title": "页面未找到",
+    "subtitle": "这个章节似乎从我们的出版物中遗失了。",
+    "cta": "返回目录"
+  },
+  "footer": {
+    "tagline": "童年想象力遇见有意识的时装。",
+    "sections": {
+      "publication": "出版物",
+      "connect": "联系我们",
+      "legal": "法律信息"
+    },
+    "links": {
+      "about": "关于我们",
+      "campaigns": "公益活动",
+      "stories": "故事",
+      "shop": "商城",
+      "donate": "捐赠",
+      "contact": "联系方式",
+      "privacy": "隐私政策",
+      "terms": "使用条款",
+      "children": "儿童保护"
+    },
+    "copyright": "© 2026 童画公益。保留所有权利。",
+    "issueNo": "第01期 — 创刊号",
+    "newsletter": {
+      "title": "通讯订阅",
+      "description": "来自编辑部的季度通讯。不发垃圾邮件，只发故事。",
+      "subscribe": "订阅"
+    },
+    "brand": {
+      "description": "创意机遇中的愿景"
+    },
+    "builtWith": "用心打造"
+  },
+  "artwork": {
+    "detail": {
+      "heading": "作品详情",
+      "artist": "创作者",
+      "vote": "为作品投票",
+      "votes": "票",
+      "tags": "标签"
+    },
+    "loading": "加载中...",
+    "notFound": "未找到作品",
+    "backToStories": "返回故事"
+  },
+  "common": {
+    "loading": "加载中...",
+    "error": "发生错误",
+    "retry": "重试",
+    "back": "返回",
+    "next": "下一页",
+    "previous": "上一页",
+    "close": "关闭",
+    "search": "搜索",
+    "filter": "筛选",
+    "sort": "排序",
+    "viewAll": "查看全部",
+    "learnMore": "了解更多",
+    "getStarted": "开始使用",
+    "location": {
+      "shanghai": "中国上海"
+    },
+    "emailAriaLabel": "电子邮箱",
+    "emailPlaceholder": "your@email.com",
+    "allRightsReserved": "保留所有权利。"
+  },
+  "error": {
+    "somethingWentWrong": "出了点问题",
+    "weHitASnag": "遇到了问题",
+    "unexpectedError": "页面遇到了意外错误，请尝试刷新页面。",
+    "tryAgain": "重试",
+    "goHome": "首页"
+  },
+  "campaigns.detail.about": "关于此活动",
+  "campaigns.detail.backToAll": "返回全部活动",
+  "traceability.location": "地点",
+  "traceability.partner": "合作方",
+  "traceability.date": "日期"
+}

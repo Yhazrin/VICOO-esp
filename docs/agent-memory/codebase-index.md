@@ -1,83 +1,105 @@
-# Codebase Index
+# 代码库索引 — Agent 持久化记忆
 
-> Auto-maintained by agent loop. Last updated: 2026-03-21
+> 最后更新: 2026-03-21 (Profile 升级)
+> 每次循环只需读本文件 + git diff，无需全量扫描。
 
-## Frontend Pages (18 total)
+## 前端页面清单
 
-| Page | Path | File | Editorial Rating | Key Components |
-|------|------|------|-----------------|----------------|
-| Home | `/` | `pages/Home/index.tsx` | ⭐⭐⭐⭐⭐ | EditorialHero, MagazineNav, StoryQuoteBlock, SepiaImageFrame, ScrollPathDraw |
-| About | `/about` | `pages/About/index.tsx` | ⭐⭐⭐⭐⭐ | EditorialHero, NumberedSectionHeading, StoryQuoteBlock, SepiaImageFrame, ScrollPathDrawInline, TeamMemberCard |
-| Campaigns | `/campaigns` | `pages/Campaigns/index.tsx` | ⭐⭐⭐⭐ | EditorialHero, SepiaImageFrame |
-| CampaignDetail | `/campaigns/:id` | `pages/CampaignDetail/index.tsx` | ⭐⭐⭐ | SepiaImageFrame, useParams + useEffect fetch |
-| Stories | `/stories` | `pages/Stories/index.tsx` | ⭐⭐⭐⭐ | EditorialHero, SepiaImageFrame |
-| ArtworkDetail | `/artworks/:id` | `pages/ArtworkDetail/index.tsx` | ⭐⭐⭐ | SepiaImageFrame, useParams + useEffect fetch |
-| Donate | `/donate` | `pages/Donate/index.tsx` | ⭐⭐⭐⭐ | EditorialHero, DonationStoryCard, DonationPanel |
-| Shop | `/shop` | `pages/Shop/index.tsx` | ⭐⭐⭐⭐ | EditorialHero, SepiaImageFrame |
-| ProductDetail | `/shop/:id` | `pages/ProductDetail/index.tsx` | ⭐⭐⭐⭐ | SepiaImageFrame, ThumbnailButton (extracted) |
-| Traceability | `/traceability` | `pages/Traceability/index.tsx` | ⭐⭐⭐⭐⭐ | EditorialHero, TraceabilityTimeline, AnimatedCounter (reduced-motion guard) |
-| Contact | `/contact` | `pages/Contact/index.tsx` | ⭐⭐⭐⭐⭐ | EditorialHero, FAQAccordion, StoryQuoteBlock, ScrollPathDrawInline, VintageInput, ContactInfoCard |
-| Login | `/login` | `pages/Login/index.tsx` | ⭐⭐⭐⭐ | PaperTextureBackground, MagazineDivider, VintageInput, GrainOverlay |
-| Register | `/register` | `pages/Register/index.tsx` | ⭐⭐⭐⭐ | PaperTextureBackground, MagazineDivider, VintageInput, GrainOverlay |
-| Profile | `/profile` | `pages/Profile/index.tsx` | ⭐⭐⭐⭐ | GrainOverlay, MagazineDivider, EditorialCard, PaperTextureBackground |
-| Privacy | `/privacy` | `pages/Privacy.tsx` | ⭐⭐⭐⭐ | PaperTextureBackground, GrainOverlay, NumberedSectionHeading, MagazineDivider, corner accents |
-| Terms | `/terms` | `pages/Terms.tsx` | ⭐⭐⭐⭐ | PaperTextureBackground, GrainOverlay, NumberedSectionHeading, MagazineDivider, corner accents |
-| Children Safety | `/children-safety` | `pages/ChildrenSafety.tsx` | ⭐⭐⭐⭐ | PaperTextureBackground, GrainOverlay, NumberedSectionHeading, MagazineDivider, corner accents |
-| NotFound | `*` | `pages/NotFound/index.tsx` | ⭐⭐⭐⭐ | PaperTextureBackground, GrainOverlay, entrance animation, corner accents |
+| 页面 | 文件路径 | 编辑风格级别 | Editorial 组件使用 |
+|------|----------|-------------|-------------------|
+| Home | `pages/Home/index.tsx` | ⭐⭐⭐⭐⭐ Gold Standard | 全部核心组件 |
+| About | `pages/About/index.tsx` | ⭐⭐⭐⭐ | EditorialHero, NumberedSectionHeading, SepiaImageFrame, StoryQuoteBlock |
+| Campaigns | `pages/Campaigns/index.tsx` | ⭐⭐⭐⭐ | EditorialHero, NumberedSectionHeading, SepiaImageFrame |
+| CampaignDetail | `pages/CampaignDetail.tsx` | ⭐⭐⭐⭐ | BleedTitleBlock, NumberedSectionHeading, StoryQuoteBlock, PaperTextureBackground, DonationPanel, ArtworkCard |
+| Stories | `pages/Stories/index.tsx` | ⭐⭐⭐⭐⭐ | EditorialHero, NumberedSectionHeading, SepiaImageFrame, StoryQuoteBlock, PagePeel, KineticTextMarquee, VintageInput |
+| Shop | `pages/Shop/index.tsx` | ⭐⭐⭐⭐ | EditorialHero, NumberedSectionHeading, ProductCard, SepiaImageFrame, StoryQuoteBlock, VintageSelect |
+| ProductDetail | `pages/ProductDetail.tsx` | ⭐⭐⭐⭐ | NumberedSectionHeading, SepiaImageFrame, PaperTextureBackground, TraceabilityTimeline, ImageSkeleton |
+| Donate | `pages/Donate/index.tsx` | ⭐⭐⭐⭐⭐ | EditorialHero, NumberedSectionHeading, StoryQuoteBlock, SepiaImageFrame, DonationPanel, ImpactCounter, FAQAccordion, MagneticButton |
+| Traceability | `pages/Traceability/index.tsx` | ⭐⭐⭐⭐⭐ | EditorialHero, NumberedSectionHeading, SepiaImageFrame, StoryQuoteBlock, ScrollPathDrawInline |
+| Contact | `pages/Contact/index.tsx` | ⭐⭐⭐⭐⭐ | EditorialHero, NumberedSectionHeading, SepiaImageFrame, VintageInput, FAQAccordion |
+| Profile | `pages/Profile/index.tsx` | ⭐⭐⭐⭐ | NumberedSectionHeading, PaperTextureBackground, GrainOverlay, MagazineDivider, EditorialCard |
+| Login | `pages/Login/index.tsx` | ⭐⭐⭐⭐ | PaperTextureBackground, GrainOverlay, VintageInput, MagazineDivider, motion animations with reduced-motion guard, decorative vertical accent |
+| Register | `pages/Register/index.tsx` | ⭐⭐⭐⭐ | PaperTextureBackground, GrainOverlay, VintageInput, MagazineDivider, motion animations with reduced-motion guard, decorative vertical accent |
+| NotFound | `pages/NotFound/index.tsx` | ⭐⭐⭐⭐ | PaperTextureBackground, GrainOverlay, motion animations with reduced-motion guard, corner accents |
+| ArtworkDetail | `pages/ArtworkDetail.tsx` | ⭐⭐⭐⭐ | BleedTitleBlock, NumberedSectionHeading, SepiaImageFrame, StoryQuoteBlock |
 
-## Editorial Components (19 total)
+## 前端组件清单
 
-| Component | File | Used In |
-|-----------|------|---------|
-| EditorialHero | `components/editorial/EditorialHero.tsx` | Home, About, Campaigns, Stories, Donate, Shop, Traceability, Contact |
-| MagazineNav | `components/editorial/MagazineNav.tsx` | Home |
-| NumberedSectionHeading | `components/editorial/NumberedSectionHeading.tsx` | About, Privacy, Terms, ChildrenSafety, Contact |
-| BleedTitleBlock | `components/editorial/BleedTitleBlock.tsx` | — |
-| SepiaImageFrame | `components/editorial/SepiaImageFrame.tsx` | About, Campaigns, Stories, Shop, Contact, ProductDetail |
-| PaperTextureBackground | `components/editorial/PaperTextureBackground.tsx` | Login, Register, Profile, Privacy, Terms, ChildrenSafety, NotFound |
-| GrainOverlay | `components/editorial/GrainOverlay.tsx` | Login, Register, Profile, Privacy, Terms, ChildrenSafety, NotFound, Contact |
-| StoryQuoteBlock | `components/editorial/StoryQuoteBlock.tsx` | About, Contact |
-| DonationPanel | `components/editorial/DonationPanel.tsx` | Donate |
-| DonationStoryCard | `components/editorial/DonationStoryCard.tsx` | Donate |
-| TraceabilityTimeline | `components/editorial/TraceabilityTimeline.tsx` | Traceability |
-| EditorialFooter | `components/layout/EditorialFooter.tsx` | Layout (global) |
-| EditorialCard | `components/editorial/EditorialCard.tsx` | Profile |
-| MagazineDivider | `components/editorial/MagazineDivider.tsx` | Login, Register, Profile, Privacy, Terms, ChildrenSafety |
-| FAQAccordion | `components/editorial/FAQAccordion.tsx` | Contact |
-| VintageInput | `components/editorial/VintageInput.tsx` | Login, Register, Contact |
-| ImageSkeleton | `components/editorial/ImageSkeleton.tsx` | About |
-| ErrorBoundary | `components/editorial/ErrorBoundary.tsx` | App (global) |
-| ScrollPathDraw / ScrollPathDrawInline | `components/animations/ScrollPathDraw.tsx` | About, Contact |
+### Editorial 组件 (19个)
+路径: `src/components/editorial/`
 
-## Animation Components (9 total)
+| 组件 | 文件 | 用途 | 被哪些页面使用 |
+|------|------|------|---------------|
+| EditorialHero | EditorialHero.tsx | 刊首式标题区 | Home, Campaigns, Stories, Shop, Donate, Traceability, Contact |
+| NumberedSectionHeading | NumberedSectionHeading.tsx | 带序号的章节标题 | 几乎所有页面 |
+| BleedTitleBlock | BleedTitleBlock.tsx | 溢出视口标题 | Home, CampaignDetail, ArtworkDetail |
+| SepiaImageFrame | SepiaImageFrame.tsx | 棕褐色图片框 | 多个页面 |
+| PaperTextureBackground | PaperTextureBackground.tsx | 纸张纹理背景 | ProductDetail, Profile, CampaignDetail, NotFound, Login, Register |
+| GrainOverlay | GrainOverlay.tsx | 颗粒噪点叠加 | Login, Register, Home, NotFound, Profile |
+| StoryQuoteBlock | StoryQuoteBlock.tsx | 故事引用块 | 多个页面 |
+| DonationPanel | DonationPanel.tsx | 捐赠面板 | CampaignDetail, Donate |
+| TraceabilityTimeline | TraceabilityTimeline.tsx | 溯源时间线 | ProductDetail |
+| ArtworkCard | ArtworkCard.tsx | 作品卡片 | CampaignDetail, Campaigns |
+| ProductCard | ProductCard.tsx | 商品卡片 | Shop |
+| EditorialFooter | EditorialFooter.tsx | 编辑式页脚 | App.tsx (全局) |
+| ImageSkeleton | ImageSkeleton.tsx | 图片加载骨架 | ProductDetail, CampaignDetail |
+| FAQAccordion | FAQAccordion.tsx | FAQ 手风琴 | Donate, Contact |
+| ImpactCounter | ImpactCounter.tsx | 影响力计数器 | Donate |
+| MagneticButton | MagneticButton.tsx | 磁性按钮 | Donate |
+| ScrollPathDrawInline | ScrollPathDrawInline.tsx | SVG 路径绘制 | Traceability |
+| VintageInput | VintageInput.tsx | 复古输入框 | Login, Register, Contact, Stories |
+| VintageSelect | VintageSelect.tsx | 复古下拉框 | Shop |
 
-| Component | File | Status |
-|-----------|------|--------|
-| ScrollPathDraw | `components/animations/ScrollPathDraw.tsx` | Used |
-| OrigamiFold | `components/animations/OrigamiFold.tsx` | Used (footer) |
-| FlipPageTransition | `components/transitions/FlipPageTransition.tsx` | Used (App) |
-| AnimatedCounter | inline in Traceability | Used |
-| ParallaxScroll | `components/animations/ParallaxScroll.tsx` | Unknown |
-| MagneticButton | `components/animations/MagneticButton.tsx` | Unknown |
-| PageLoadSequence | `components/animations/PageLoadSequence.tsx` | Unknown |
-| ScrollReveal | `components/animations/ScrollReveal.tsx` | Unknown |
-| TextScramble | `components/animations/TextScramble.tsx` | Unknown |
+| MagazineDivider | MagazineDivider.tsx | 装饰性分隔线 | Login, Register, Profile |
+| EditorialCard | EditorialCard.tsx | 编辑式卡片 | Profile (订单/捐赠历史) |
 
-## Tailwind Config
+### 未被使用的 Editorial 组件
+| 组件 | 文件 | 状态 |
+|------|------|------|
+| (无) | — | ✅ 全部 Editorial 组件已被使用 |
 
-- Color tokens: 36 total (19 base + 17 added from tokens.css)
-- Font families: `display` (Playfair Display), `body` (IBM Plex Mono), `mono`
-- Key design tokens: `ink`, `paper`, `aged-stock`, `sepia-*`, `rust`, `pale-gold`, `warm-gray`
+### Animation 组件 (9个)
+路径: `src/components/animation/`
 
-## Backend API Endpoints
+| 组件 | 状态 |
+|------|------|
+| KineticMarquee | ❌ 未被使用 |
+| TiltCard | ❌ 未被使用 |
+| PagePeel | ✅ Stories 页面使用 |
+| KineticTextMarquee | ✅ Stories 页面使用 |
+| 其他 5 个 | 需检查 |
 
-| Router | Endpoints | Auth |
-|--------|-----------|------|
-| auth | POST /auth/login, POST /auth/register, GET /auth/me | JWT |
-| users | GET /users/me, PUT /users/me | JWT |
-| artworks | CRUD + GET /artworks/featured, PUT /artworks/{id}/status (admin) | Mixed |
-| campaigns | CRUD + GET /campaigns/featured | Public |
-| donations | POST /donations, GET /donations/tiers, GET /donations/mine | Mixed |
-| products | CRUD + GET /products/featured | Mixed |
-| orders | POST /orders, GET /orders/mine, POST /orders/{id}/cancel | JWT |
-| contact | POST /contact, GET /contact/messages (admin) | Mixed |
+## Tailwind 配置
+
+**文件**: `tailwind.config.js`
+**已有颜色 (28个)**: paper, aged-stock, warm-gray, ink, ink-faded, ink-light, sepia-mid, sepia-dark, sepia-light, rust, rust-light, rust-dark, archive-brown, pale-gold, pale-gold-light, sepia-on-dark, muted-gray, cream, eco-green, editorial-red, editorial-navy, editorial-olive, editorial-burgundy, success, error, warning, info
+
+**状态**: ✅ 已与 tokens.css 完全同步
+
+## 后端 API 清单
+
+**文件**: `backend/app/main.py` — 11 个路由注册在 `/api/v1`
+
+| 路由文件 | 前缀 | 端点 |
+|----------|------|------|
+| routers/auth.py | /auth | login, register, refresh, wx-login, logout, me |
+| routers/users.py | /users | CRUD |
+| routers/artworks.py | /artworks | CRUD + vote + **featured** + status (admin) |
+| routers/campaigns.py | /campaigns | CRUD + **featured** |
+| routers/donations.py | /donations | create, list, stats, **tiers**, **mine** |
+| routers/products.py | /products | CRUD + **featured** |
+| routers/orders.py | /orders | create, list, **mine**, **cancel** |
+| routers/payments.py | /payments | wechat, alipay, stripe |
+| routers/admin.py | /admin | dashboard, users |
+| routers/supply_chain.py | /supply-chain | CRUD |
+| routers/contact.py | /contact | submit, messages (admin) |
+
+**API 缺口**: ✅ 全部已补齐
+
+## 已知问题清单
+
+见 `improvement-tracker.md`
+
+## API 缺口追踪
+
+见 `api-gap-tracker.md`

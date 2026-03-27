@@ -1,150 +1,215 @@
-# 童画公益 x 可持续时尚
+# VICOO
 
-## Tonghua Public Welfare x Sustainable Fashion
+**Sustainable Fashion · Circular Commerce · Transparent Impact**
 
-> 跨平台公益生态系统 -- 将儿童的创意表达转化为可持续时尚，连接善意与透明
+> A cross-platform ecosystem that transforms children's creative expression into wearable art -- with full supply chain transparency and traceable social impact.
 
-[![React](https://img.shields.io/badge/React-18-blue)](https://reactjs.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-Python%203.11-green)](https://fastapi.tiangolo.com/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-Strict%20Mode-blue)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Strict%20Mode-blue)](#)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Python%203.11-green)](#)
+[![React](https://img.shields.io/badge/React-18-blue)](#)
+[![WeChat](https://img.shields.io/badge/WeChat%20Mini%20Program-Grey?style=flat&logo=weixin)](#)
+[![Android](https://img.shields.io/badge/Android-Kotlin-blue?style=flat&logo=android)](#)
 [![License](https://img.shields.io/badge/License-Educational-purple)](#)
 
 ---
 
-## 项目概览
+## What VICOO Does
 
-**童画公益** 是一个跨平台公益应用平台，融合儿童创意表达、可持续时尚与透明公益运营。
+VICOO is a multi-platform application connecting three worlds: **children's artistic expression**, **sustainable fashion**, and **transparent public welfare**.
 
-**核心功能：**
+- **Creative Platform** -- Children submit artwork through themed campaigns, receive community votes and editorial features
+- **Fashion Collection** -- Curated apparel and accessories where proceeds directly fund children's art programs
+- **Circular Commerce** -- Clothing intake, resale, and recycling with verified supply chain records
+- **Donation System** -- Multi-channel giving (WeChat Pay, Alipay, Stripe, PayPal) with real-time fund tracking
+- **Full Traceability** -- Every material, artisan, and environmental claim is independently verifiable
+- **Editorial Storytelling** -- Long-form narratives about the children, makers, and communities behind each piece
 
-- **儿童艺术平台** -- 主题活动征集作品，社区投票支持
-- **可持续时尚商店** -- 销售收入用于儿童艺术项目
-- **捐赠系统** -- 多渠道捐赠（微信支付、支付宝、Stripe、PayPal），资金追踪透明
-- **供应链溯源** -- 原材料、制造、环境影响全链路可见，每项声明均可核验
-- **故事平台** -- 产品背后的儿童、工匠、社区长文讲述
-- **三端覆盖** -- React 网页端（杂志美学风格）、微信小程序、Android 应用
-- **国际化** -- 中英双语，支持国内外用户
+**Three platforms, one visual language.** React Web (editorial magazine aesthetic), WeChat Mini Program, and Android App -- all sharing the same design DNA.
 
 ---
 
-## 技术栈
+## Tech Stack
 
-| 层级 | 技术 |
-|------|------|
-| **网页前端** | React 18, TypeScript, Vite, Zustand, Framer Motion, Tailwind CSS |
-| **小程序** | 微信小程序 (WXML/WXSS/JS) |
+| Layer | Technology |
+|-------|-----------|
+| **Web Frontend** | React 18, TypeScript, Vite, Zustand, Framer Motion, Tailwind CSS |
+| **Mini Program** | WeChat Mini Program (WXML/WXSS/JS) |
 | **Android** | Kotlin, Jetpack Compose, Material Design 3 |
-| **后端** | Python 3.11, FastAPI, SQLAlchemy (async), Uvicorn |
-| **数据库** | MySQL 8.0 |
-| **缓存** | Redis 7 |
-| **消息队列** | RabbitMQ 3.12 |
-| **对象存储** | 阿里云 OSS + CDN |
-| **支付** | 微信支付、支付宝、Stripe、PayPal |
-| **设计风格** | 1990 年代印刷杂志美学 (Editorial / Print Magazine) |
+| **Backend** | Python 3.11, FastAPI, SQLAlchemy (async), Uvicorn |
+| **Database** | MySQL 8.0 |
+| **Cache** | Redis 7 |
+| **Message Queue** | RabbitMQ 3.12 |
+| **Payments** | WeChat Pay, Alipay, Stripe, PayPal |
+| **Containerization** | Docker, Docker Compose |
+| **CI/CD** | GitHub Actions |
+| **Design Language** | 1990s Editorial / Print Magazine Aesthetic |
 
 ---
 
-## 项目结构
+## Quick Start
 
-```
-tonghua-project/
-├── tonghua-project/          # 实际项目代码
-│   ├── backend/              # FastAPI 后端 (8 个微服务)
-│   ├── frontend/
-│   │   ├── web-react/        # React 网页端
-│   │   ├── weapp/            # 微信小程序
-│   │   └── android/           # Android 应用
-│   ├── admin/                # 管理后台
-│   ├── deploy/               # Docker 部署配置
-│   ├── docs/                 # 架构文档
-│   └── tests/                # 测试用例
-├── CLAUDE.md                 # Agent 团队编排规则
-├── CHANGELOG.md              # 变更日志
-└── AGENTS.md                 # Agent 定义文档
-```
+### One-Command Docker Deploy (Recommended)
 
----
-
-## 设计系统
-
-网页端采用 **1990 年代印刷杂志美学**，全站统一风格：
-
-- **字体** -- Playfair Display (标题) + IBM Plex Mono (正文)
-- **色彩** -- 低饱和度纸张色调 + 棕褐色点缀
-- **布局** -- 杂志式多栏 Grid
-- **图片** -- Sepia 滤镜 + 颗粒噪点叠加
-- **导航** -- 序号目录式导航 (01, 02, 03...)
-- **过渡** -- 翻书式页面切换动画
-- **主题** -- 9 套主题色系 (Editorial, Morandi, Sepia, Monochrome, Ink, Forest, Autumn, Mist Blue, Deep Sea)
-
----
-
-## 快速开始
-
-### 环境要求
-
-- Docker and Docker Compose (v2.20+)
-- Node.js 18 LTS
-- Python 3.11+
-
-### Docker 部署
+Zero configuration -- all secrets and demo data are pre-set.
 
 ```bash
-# 进入部署目录
-cd tonghua-project/deploy/docker
-
-# 配置环境变量
+git clone https://github.com/Yhazrin/VICOO-esp.git
+cd VICOO-esp/deploy/easy
 cp .env.example .env
-# 编辑 .env，修改密钥相关配置
-
-# 启动所有服务
 docker compose up -d
-
-# 验证服务状态
-docker compose ps
-curl http://localhost:8000/health
 ```
 
-### 本地开发
+| Service | Address |
+|---------|---------|
+| Web App | **http://localhost** |
+| API | http://localhost:8000 |
+| API Docs | http://localhost:8000/docs |
 
-```bash
-# 后端
-cd tonghua-project/backend
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-uvicorn main:app --reload
+Demo accounts: `admin@vicoo.test` / `vicoo-admin` (see [deploy/easy/README.md](deploy/easy/README.md) for all accounts).
 
-# 前端 (新终端)
-cd tonghua-project/frontend/web-react
-npm install
-npm run dev
+For full deployment instructions, see the **[Deployment Guide](docs/deployment/deployment-guide.md)**.
+
+---
+
+## Project Structure
+
+```
+VICOO-esp/
+├── README.md                        # This file
+│
+├── backend/                         # FastAPI backend
+│   ├── app/
+│   │   ├── main.py                  # Entry point
+│   │   ├── config.py               # Configuration & env vars
+│   │   ├── database.py             # SQLAlchemy async setup
+│   │   ├── models/                  # Database models
+│   │   ├── schemas/                 # Pydantic schemas
+│   │   ├── routers/                 # API route handlers (18 modules)
+│   │   ├── services/               # Business logic
+│   │   └── security.py            # Auth, encryption, rate limiting
+│   ├── alembic/                    # Database migrations
+│   ├── scripts/                    # Utility scripts
+│   ├── requirements.txt
+│   └── .venv/                      # Python virtual environment
+│
+├── frontend/
+│   ├── web-react/                  # React 18 editorial web platform
+│   │   └── src/
+│   │       ├── pages/              # 8 editorial pages
+│   │       ├── components/         # Design system components
+│   │       ├── styles/             # Design tokens & global styles
+│   │       ├── store/              # Zustand state management
+│   │       ├── services/           # API service layer
+│   │       └── i18n/               # Internationalization
+│   ├── weapp/                      # WeChat Mini Program
+│   │   ├── pages/                  # Mini program pages
+│   │   ├── components/             # Reusable components
+│   │   ├── utils/                  # Auth, request, encryption
+│   │   └── app.json               # App configuration
+│   └── android/                    # Kotlin + Jetpack Compose
+│       └── app/src/main/java/org/tonghua/app/
+│           ├── ui/                 # Compose screens & theme
+│           ├── data/               # API, models, repositories
+│           ├── di/                 # Hilt dependency injection
+│           └── viewmodel/          # ViewModels
+│
+├── admin/                           # Admin dashboard (React)
+│
+├── deploy/
+│   ├── docker/
+│   │   ├── docker-compose.yml      # Service orchestration
+│   │   ├── .env.example            # Environment variable template
+│   │   ├── Dockerfiles/
+│   │   │   ├── backend.Dockerfile  # Multi-stage Python build
+│   │   │   └── frontend.Dockerfile # Multi-stage Node + Nginx build
+│   │   ├── nginx/
+│   │   │   └── nginx.conf          # Nginx reverse proxy config
+│   │   └── init-db/               # MySQL init scripts
+│   └── ci/
+│       └── github-actions.yml      # CI/CD pipeline
+│
+├── docs/
+│   ├── CLAUDE.md                   # Agent team orchestration rules
+│   ├── DEVELOPMENT_GUIDE.md        # Developer quick-start guide
+│   ├── architecture/               # System architecture & database design
+│   ├── api/                        # API reference documentation
+│   ├── deployment/                 # Deployment guides
+│   ├── design-system/             # Editorial style guide & Morandi themes
+│   └── security/                   # Privacy policy, compliance, child protection
+│
+└── tests/
+    ├── api-tests/                  # Backend API tests (pytest)
+    └── security-tests/             # Security penetration tests
 ```
 
 ---
 
-## 安全特性
+## Design System
 
-| 领域 | 实现 |
-|------|------|
-| **认证** | JWT (RS256) 15分钟访问 + 7天刷新令牌 |
-| **授权** | RBAC + ABAC 组合模型 |
-| **加密** | AES-256-GCM 敏感数据加密 |
-| **限流** | Redis 滑动窗口 (1000/秒全局，60/分钟每用户) |
-| **请求签名** | 认证端点 HMAC-SHA256 |
-| **儿童保护** | 隔离加密存储，二级审批，前台脱敏展示 |
+The web platform uses a **1990s printed magazine aesthetic** -- applied consistently on every page, not just the homepage:
+
+- **Typography** -- Playfair Display (headlines) + IBM Plex Mono (body)
+- **Colors** -- Low-saturation paper tones with rust and warm brown accents
+- **Layout** -- Magazine-style CSS Grid with deliberate asymmetry
+- **Images** -- Sepia filter + grain overlay
+- **Navigation** -- Numbered table-of-contents style (01 / 02 / 03...)
+- **Transitions** -- Page-flip animation between routes
+- **Textures** -- Paper grain, noise overlay, editorial pull-quotes
+
+See the full **[Editorial Style Guide](docs/design-system/editorial-style-guide.md)** and **[Morandi Theme Guide](docs/design-system/morandi-theme-guide.md)** for specifications.
 
 ---
 
-## 合规
+## Backend API (18 Routers)
 
-- **《个人信息保护法》(PIPL)** -- 中国用户完全合规
-- **GDPR** -- 国际访客合规
-- **儿童保护** -- 14 岁以下需监护人同意
-- **支付合规** -- 所有支付通道持牌商户
+```
+auth · users · artworks · campaigns · donations
+products · orders · payments · supply_chain · reviews
+after_sales · clothing_intakes · sustainability
+ai_assistant · contact · admin
+```
+
+Full API reference at **[docs/api/api-reference.md](docs/api/api-reference.md)**.
+
+---
+
+## Security
+
+| Area | Implementation |
+|------|---------------|
+| **Authentication** | JWT (RS256) -- 15-min access + 7-day refresh tokens |
+| **Authorization** | RBAC + ABAC combined model |
+| **Encryption** | AES-256-GCM for sensitive data; children's PII uses a separate key |
+| **Rate Limiting** | Redis sliding window (1000/s global, 60/min per user) |
+| **Request Signing** | HMAC-SHA256 on authenticated endpoints |
+| **Child Protection** | Isolated encrypted schema, secondary approval, display-name only |
+
+Full security documentation at **[docs/security/](docs/security/)**.
+
+---
+
+## Compliance
+
+- **PIPL** (个人信息保护法) -- Full compliance for Chinese users
+- **GDPR** -- Compliance for international visitors
+- **Child Protection** -- Guardian consent required for users under 14
+- **Payment** -- Licensed merchant accounts for all payment gateways
+
+---
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Deployment Guide](docs/deployment/deployment-guide.md) | Full deployment -- Docker, CI/CD, production checklist |
+| [System Architecture](docs/architecture/system-architecture.md) | Architecture overview and design decisions |
+| [Database Design](docs/architecture/database-design.md) | Schema design and data model |
+| [API Reference](docs/api/api-reference.md) | All endpoint specifications |
+| [Editorial Style Guide](docs/design-system/editorial-style-guide.md) | Design language and component specs |
+| [Morandi Theme Guide](docs/design-system/morandi-theme-guide.md) | Color system and theme documentation |
 
 ---
 
 ## License
 
-本项目仅供课程设计使用。保留所有权利。
+This project is for educational purposes (课程设计). All rights reserved.

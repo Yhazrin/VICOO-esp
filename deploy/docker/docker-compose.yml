@@ -1,0 +1,258 @@
+version: "3.9"
+
+# ============================================
+# Tonghua Public Welfare — Docker Compose
+# Development & Staging Environment
+# ============================================
+#
+# IMPORTANT:
+# 1. Create a `secrets` directory next to this file.
+# 2. Create the secret files (e.g., `secrets/mysql_password.txt`) with the actual secret values.
+# 3. Ensure the files are NOT committed to version control.
+#
+# Example:
+#   mkdir -p secrets
+#   echo "my-secret-password" > secrets/mysql_password.txt
+
+services:
+  # ---- MySQL 8.0 ----
+  mysql:
+    image: mysql:8.0
+    container_name: tonghua-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD_FILE: /run/secrets/mysql_password
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --default-authentication-plugin=mysql_native_password
+      --max-connections=200
+      --innodb-buffer-pool-size=256M
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init-db:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$(cat /run/secrets/mysql_root_password)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    secrets:
+      - mysql_root_password
+      - mysql_password
+    networks:
+      - tonghua-net
+
+  # ---- Redis 7 ----
+  redis:
+    image: redis:7-alpine
+    container_name: tonghua-redis
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD_FILE: /run/secrets/redis_password
+    command: >
+      sh -c "redis-server
+      --appendonly yes
+      --maxmemory 128mb
+      --maxmemory-policy allkeys-lru
+      --requirepass $(cat /run/secrets/redis_password)"
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a $(cat /run/secrets/redis_password) ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    secrets:
+      - redis_password
+    networks:
+      - tonghua-net
+
+  # ---- RabbitMQ 3 ----
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: tonghua-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-tonghua}
+      RABBITMQ_DEFAULT_PASS_FILE: /run/secrets/rabbitmq_password
+      RABBITMQ_DEFAULT_VHOST: /
+    # Ports removed to prevent external access (internal network only)
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    secrets:
+      - rabbitmq_password
+    networks:
+      - tonghua-net
+
+  # ---- Backend (FastAPI) ----
+  backend:
+    build:
+      context: ../../
+      dockerfile: deploy/docker/Dockerfiles/backend.Dockerfile
+    container_name: tonghua-backend
+    restart: unless-stopped
+    environment:
+      APP_ENV: ${APP_ENV}
+      APP_DEBUG: ${APP_DEBUG}
+      # APP_SECRET_KEY might be a secret, but usually stored in env for dev.
+      # For production, use secrets.
+      APP_SECRET_KEY_FILE: /run/secrets/app_secret_key
+      APP_PORT: "8080"
+      # Database
+      MYSQL_HOST: mysql
+      MYSQL_PORT: "3306"
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD_FILE: /run/secrets/mysql_password
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      # Note: DATABASE_URL might need to be constructed by the app or use separate vars.
+      # If the app strictly requires DATABASE_URL env var with password, this is tricky with secrets.
+      # We assume the app can read MYSQL_PASSWORD from file or handle separation.
+      # DATABASE_URL is omitted to avoid embedding secrets.
+      # The application should construct the URL using MYSQL_USER and reading MYSQL_PASSWORD_FILE.
+      # Or use a separate configuration mechanism.
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD_FILE: /run/secrets/redis_password
+      # RabbitMQ
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD_FILE: /run/secrets/rabbitmq_password
+      # JWT
+      JWT_SECRET_KEY_FILE: /run/secrets/jwt_secret_key
+      JWT_ALGORITHM: ${JWT_ALGORITHM}
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES}
+      JWT_REFRESH_TOKEN_EXPIRE_DAYS: ${JWT_REFRESH_TOKEN_EXPIRE_DAYS}
+      # Encryption
+      ENCRYPTION_KEY_FILE: /run/secrets/encryption_key
+      # CORS
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      # OSS
+      OSS_ACCESS_KEY_ID: ${OSS_ACCESS_KEY_ID}
+      OSS_ACCESS_KEY_SECRET_FILE: /run/secrets/oss_secret
+      # WeChat Pay
+      WECHAT_PAY_MCH_ID: ${WECHAT_PAY_MCH_ID}
+      WECHAT_PAY_API_KEY_FILE: /run/secrets/wechat_key
+      # Alipay
+      ALIPAY_APP_ID: ${ALIPAY_APP_ID}
+      ALIPAY_PRIVATE_KEY_FILE: /run/secrets/alipay_key
+      ALIPAY_PUBLIC_KEY_FILE: /run/secrets/alipay_key
+      # Stripe
+      STRIPE_SECRET_KEY_FILE: /run/secrets/stripe_key
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
+      STRIPE_WEBHOOK_SECRET_FILE: /run/secrets/stripe_key
+      # PayPal
+      PAYPAL_CLIENT_ID: ${PAYPAL_CLIENT_ID}
+      PAYPAL_CLIENT_SECRET_FILE: /run/secrets/paypal_secret
+      # SMTP
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD_FILE: /run/secrets/smtp_password
+    # Port removed to prevent direct host access (use frontend proxy)
+    secrets:
+      - mysql_password
+      - redis_password
+      - rabbitmq_password
+      - jwt_secret_key
+      - encryption_key
+      - oss_secret
+      - wechat_key
+      - alipay_key
+      - stripe_key
+      - paypal_secret
+      - smtp_password
+      - app_secret_key
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - tonghua-net
+
+  # ---- Frontend (React + Nginx) ----
+  frontend:
+    build:
+      context: ../../frontend/web-react
+      dockerfile: ../../deploy/docker/Dockerfiles/frontend.Dockerfile
+    container_name: tonghua-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:80"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    networks:
+      - tonghua-net
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+
+secrets:
+  mysql_root_password:
+    file: ./secrets/mysql_root_password.txt
+  mysql_password:
+    file: ./secrets/mysql_password.txt
+  redis_password:
+    file: ./secrets/redis_password.txt
+  rabbitmq_password:
+    file: ./secrets/rabbitmq_password.txt
+  jwt_secret_key:
+    file: ./secrets/jwt_secret_key.txt
+  encryption_key:
+    file: ./secrets/encryption_key.txt
+  oss_secret:
+    file: ./secrets/oss_secret.txt
+  wechat_key:
+    file: ./secrets/wechat_key.txt
+  alipay_key:
+    file: ./secrets/alipay_key.txt
+  stripe_key:
+    file: ./secrets/stripe_key.txt
+  paypal_secret:
+    file: ./secrets/paypal_secret.txt
+  smtp_password:
+    file: ./secrets/smtp_password.txt
+  app_secret_key:
+    file: ./secrets/app_secret_key.txt
+
+networks:
+  tonghua-net:
+    driver: bridge
+    name: tonghua-network
