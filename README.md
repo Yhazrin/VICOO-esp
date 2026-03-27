@@ -48,48 +48,24 @@ VICOO is a multi-platform application connecting three worlds: **children's arti
 
 ## Quick Start
 
-### Prerequisites
+### One-Command Docker Deploy (Recommended)
 
-- Docker and Docker Compose (v2.20+)
-- Node.js 18 LTS (for local frontend development)
-- Python 3.11+ (for local backend development)
-
-### Option A: Docker Compose (Recommended)
+Zero configuration -- all secrets and demo data are pre-set.
 
 ```bash
-# Clone
 git clone https://github.com/Yhazrin/VICOO-esp.git
-cd VICOO-esp
-
-# Configure environment
-cp deploy/docker/.env.example deploy/docker/.env
-# Edit .env -- at minimum, set APP_SECRET_KEY, JWT_SECRET_KEY, ENCRYPTION_KEY
-
-# Start all services
-cd deploy/docker
+cd VICOO-esp/deploy/easy
+cp .env.example .env
 docker compose up -d
-
-# Verify
-docker compose ps
-curl http://localhost:8000/health
 ```
 
-The web app is at **http://localhost**, API docs at **http://localhost:8000/docs**.
+| Service | Address |
+|---------|---------|
+| Web App | **http://localhost** |
+| API | http://localhost:8000 |
+| API Docs | http://localhost:8000/docs |
 
-### Option B: Local Development
-
-```bash
-# Backend
-cd backend
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload
-
-# Frontend (separate terminal)
-cd frontend/web-react
-npm install
-npm run dev
-```
+Demo accounts: `admin@vicoo.test` / `vicoo-admin` (see [deploy/easy/README.md](deploy/easy/README.md) for all accounts).
 
 For full deployment instructions, see the **[Deployment Guide](docs/deployment/deployment-guide.md)**.
 
