@@ -4,147 +4,340 @@
 
 > 跨平台公益生态系统 -- 将儿童的创意表达转化为可持续时尚，连接善意与透明
 
-[![React](https://img.shields.io/badge/React-18-blue)](https://reactjs.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-Python%203.11-green)](https://fastapi.tiangolo.com/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-Strict%20Mode-blue)](https://www.typescriptlang.org/)
+[![Backend](https://img.shields.io/badge/Backend-FastAPI%20(Python%203.11)-green)](#)
+[![Frontend](https://img.shields.io/badge/Frontend-React%2018%20%7C%20WeChat%20Mini%20Program%20%7C%20Android-blue)](#)
+[![Database](https://img.shields.io/badge/Database-MySQL%208.0%20%7C%20Redis%207-orange)](#)
 [![License](https://img.shields.io/badge/License-Educational-purple)](#)
 
 ---
 
-## 项目概览
+## What This Project Does
 
-**童画公益** 是一个跨平台公益应用平台，融合儿童创意表达、可持续时尚与透明公益运营。
+Tonghua Public Welfare (童画公益) is a multi-platform application that brings together children's creative expression, sustainable fashion, and transparent public welfare operations.
 
-**核心功能：**
+**Core capabilities:**
 
-- **儿童艺术平台** -- 主题活动征集作品，社区投票支持
-- **可持续时尚商店** -- 销售收入用于儿童艺术项目
-- **捐赠系统** -- 多渠道捐赠（微信支付、支付宝、Stripe、PayPal），资金追踪透明
-- **供应链溯源** -- 原材料、制造、环境影响全链路可见，每项声明均可核验
-- **故事平台** -- 产品背后的儿童、工匠、社区长文讲述
-- **三端覆盖** -- React 网页端（杂志美学风格）、微信小程序、Android 应用
-- **国际化** -- 中英双语，支持国内外用户
+- **Children's Artwork Platform** -- Themed campaigns where children submit artwork, receive community voting and support
+- **Sustainable Fashion Shop** -- Curated fashion products where proceeds fund children's art programs
+- **Donation System** -- Multi-channel donations (WeChat Pay, Alipay, Stripe, PayPal) with transparent fund tracking
+- **Supply Chain Traceability** -- Full chain visibility: raw materials, manufacturing, environmental impact. Every claim is verifiable
+- **Campaign Management** -- Time-limited public welfare campaigns with real-time progress tracking
+- **Storytelling** -- Long-form stories about children, artisans, and communities behind the products
+- **Cross-Platform** -- React Web (editorial magazine style), WeChat Mini Program, Android App
+- **Internationalization** -- Chinese and English support for domestic and international audiences
 
 ---
 
-## 技术栈
+## Tech Stack
 
-| 层级 | 技术 |
-|------|------|
-| **网页前端** | React 18, TypeScript, Vite, Zustand, Framer Motion, Tailwind CSS |
-| **小程序** | 微信小程序 (WXML/WXSS/JS) |
+| Layer | Technology |
+|-------|-----------|
+| **Web Frontend** | React 18, TypeScript, Vite, Zustand, Framer Motion, Tailwind CSS |
+| **Mini Program** | WeChat Mini Program (WXML/WXSS/JS) |
 | **Android** | Kotlin, Jetpack Compose, Material Design 3 |
-| **后端** | Python 3.11, FastAPI, SQLAlchemy (async), Uvicorn |
-| **数据库** | MySQL 8.0 |
-| **缓存** | Redis 7 |
-| **消息队列** | RabbitMQ 3.12 |
-| **对象存储** | 阿里云 OSS + CDN |
-| **支付** | 微信支付、支付宝、Stripe、PayPal |
-| **设计风格** | 1990 年代印刷杂志美学 (Editorial / Print Magazine) |
+| **Backend** | Python 3.11, FastAPI, SQLAlchemy (async), Uvicorn |
+| **Database** | MySQL 8.0 |
+| **Cache** | Redis 7 |
+| **Message Queue** | RabbitMQ 3.12 |
+| **Object Storage** | Alibaba Cloud OSS + CDN |
+| **Payments** | WeChat Pay, Alipay, Stripe, PayPal |
+| **Containerization** | Docker, Docker Compose |
+| **CI/CD** | GitHub Actions |
+| **Reverse Proxy** | Nginx |
+| **Design Style** | 1990s Editorial / Print Magazine Aesthetic |
 
 ---
 
-## 项目结构
+## Quick Start
 
-```
-tonghua-project/
-├── tonghua-project/          # 实际项目代码
-│   ├── backend/              # FastAPI 后端 (8 个微服务)
-│   ├── frontend/
-│   │   ├── web-react/        # React 网页端
-│   │   ├── weapp/            # 微信小程序
-│   │   └── android/           # Android 应用
-│   ├── admin/                # 管理后台
-│   ├── deploy/               # Docker 部署配置
-│   ├── docs/                 # 架构文档
-│   └── tests/                # 测试用例
-├── CLAUDE.md                 # Agent 团队编排规则
-├── CHANGELOG.md              # 变更日志
-└── AGENTS.md                 # Agent 定义文档
-```
-
----
-
-## 设计系统
-
-网页端采用 **1990 年代印刷杂志美学**，全站统一风格：
-
-- **字体** -- Playfair Display (标题) + IBM Plex Mono (正文)
-- **色彩** -- 低饱和度纸张色调 + 棕褐色点缀
-- **布局** -- 杂志式多栏 Grid
-- **图片** -- Sepia 滤镜 + 颗粒噪点叠加
-- **导航** -- 序号目录式导航 (01, 02, 03...)
-- **过渡** -- 翻书式页面切换动画
-- **主题** -- 9 套主题色系 (Editorial, Morandi, Sepia, Monochrome, Ink, Forest, Autumn, Mist Blue, Deep Sea)
-
----
-
-## 快速开始
-
-### 环境要求
+### Prerequisites
 
 - Docker and Docker Compose (v2.20+)
-- Node.js 18 LTS
-- Python 3.11+
+- Node.js 18 LTS (for local frontend development)
+- Python 3.11+ (for local backend development)
 
-### Docker 部署
+### Option A: Docker Compose (Recommended)
 
 ```bash
-# 进入部署目录
-cd tonghua-project/deploy/docker
+# Clone
+git clone https://github.com/<your-org>/tonghua-project.git
+cd tonghua-project
 
-# 配置环境变量
-cp .env.example .env
-# 编辑 .env，修改密钥相关配置
+# Configure environment
+cp deploy/docker/.env.example deploy/docker/.env
+# Edit .env -- at minimum, change APP_SECRET_KEY, JWT_SECRET_KEY, ENCRYPTION_KEY
 
-# 启动所有服务
+# Start all services
+cd deploy/docker
 docker compose up -d
 
-# 验证服务状态
-docker compose ps
+# Verify
+docker compose ps          # All should show "healthy"
 curl http://localhost:8000/health
 ```
 
-### 本地开发
+Then open http://localhost for the web app, or http://localhost:8000/docs for the API docs.
+
+### Option B: Local Development
 
 ```bash
-# 后端
-cd tonghua-project/backend
+# Backend
+cd backend
 python -m venv venv
-source venv/bin/activate
+source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 uvicorn main:app --reload
 
-# 前端 (新终端)
-cd tonghua-project/frontend/web-react
+# Frontend (separate terminal)
+cd frontend/web-react
 npm install
-npm run dev
+npm run dev                # Dev server at http://localhost:5173
+```
+
+For full deployment instructions, see the **[Deployment Guide](docs/deployment/deployment-guide.md)**.
+
+---
+
+## Project Structure
+
+```
+tonghua-project/
+├── CLAUDE.md                        # Agent team orchestration rules
+├── README.md                        # This file
+│
+├── backend/                         # FastAPI backend (8 microservice modules)
+│   ├── main.py                      # Application entry point
+│   ├── requirements.txt             # Python dependencies
+│   └── app/
+│       ├── config.py                # Configuration & env vars
+│       ├── database.py              # SQLAlchemy async setup
+│       ├── models/                  # Database models
+│       ├── schemas/                 # Pydantic schemas
+│       ├── routers/                 # API route handlers
+│       ├── services/                # Business logic
+│       ├── security/                # Auth, encryption, rate limiting
+│       └── middleware/              # Request processing middleware
+│
+├── frontend/
+│   ├── web-react/                   # React editorial web platform
+│   │   ├── src/
+│   │   │   ├── pages/               # 8 editorial pages
+│   │   │   ├── components/          # Design system components
+│   │   │   ├── styles/              # Design tokens & global styles
+│   │   │   ├── store/               # Zustand state management
+│   │   │   ├── services/            # API service layer
+│   │   │   └── i18n/                # Internationalization
+│   │   └── package.json
+│   ├── weapp/                       # WeChat Mini Program
+│   │   ├── pages/                   # Mini program pages
+│   │   ├── components/              # Reusable components
+│   │   ├── utils/                   # Utilities (auth, request, encryption)
+│   │   └── app.json                 # App configuration
+│   └── android/                     # Kotlin + Jetpack Compose
+│       └── app/src/main/java/
+│           ├── ui/                  # Compose screens & theme
+│           ├── data/                # API, models, repositories
+│           ├── di/                  # Hilt dependency injection
+│           └── viewmodel/           # ViewModels
+│
+├── admin/                           # Admin dashboard (React)
+│
+├── deploy/
+│   ├── docker/
+│   │   ├── docker-compose.yml       # Service orchestration
+│   │   ├── .env.example             # Environment variable template
+│   │   ├── Dockerfiles/
+│   │   │   ├── backend.Dockerfile   # Multi-stage Python build
+│   │   │   └── frontend.Dockerfile  # Multi-stage Node + Nginx build
+│   │   ├── nginx/
+│   │   │   └── nginx.conf           # Nginx reverse proxy config
+│   │   └── init-db/                 # MySQL init scripts
+│   └── ci/
+│       └── github-actions.yml       # CI/CD pipeline definition
+│
+├── docs/
+│   ├── architecture/                # System architecture documents
+│   ├── api/                         # API reference documentation
+│   ├── deployment/                  # Deployment guides
+│   ├── design-system/               # UI design system specs
+│   └── security/                    # Security & compliance docs
+│
+└── tests/
+    ├── api-tests/                   # Backend API tests (pytest)
+    ├── security-tests/              # Security penetration tests
+    └── frontend-tests/              # Frontend component tests
 ```
 
 ---
 
-## 安全特性
+## Development Workflow
 
-| 领域 | 实现 |
-|------|------|
-| **认证** | JWT (RS256) 15分钟访问 + 7天刷新令牌 |
-| **授权** | RBAC + ABAC 组合模型 |
-| **加密** | AES-256-GCM 敏感数据加密 |
-| **限流** | Redis 滑动窗口 (1000/秒全局，60/分钟每用户) |
-| **请求签名** | 认证端点 HMAC-SHA256 |
-| **儿童保护** | 隔离加密存储，二级审批，前台脱敏展示 |
+This project follows a **three-phase workflow**, orchestrated by a team of 15 specialized agents. See [CLAUDE.md](CLAUDE.md) for the full agent definitions and dispatch rules.
+
+### Phase 1: Architecture Design
+
+Four parallel workstreams start simultaneously:
+
+1. **Backend Architecture** -- Microservice boundaries, API contracts, database schema design
+2. **Frontend Architecture** -- React component hierarchy, routing, state management strategy
+3. **Security Architecture** -- JWT auth flow, AES-256-GCM encryption plan, RBAC model
+4. **Design System** -- 1990s editorial magazine aesthetic, Design Tokens, component specifications
+
+Downstream: UX Architect, Brand Guardian, Legal Compliance Writer review and refine.
+
+**Outputs:** Architecture documents, API specifications, database schema, design system documentation, security and compliance plans.
+
+### Phase 2: Core Development
+
+After security infrastructure is established, four parallel tracks:
+
+1. **React Web (8 pages)** -- Home, About, Campaigns, Stories, Donate, Shop, Traceability, Contact
+2. **WeChat Mini Program** -- Campaign participation, artwork upload, voting, donations, shopping, WeChat Login & Pay
+3. **Android App** -- User center, content browsing, product management, order tracking
+4. **Backend APIs** -- 8 microservices: gateway, user, artwork, donation, product, supply-chain, payment, admin
+
+Code reviewer performs ongoing PR reviews throughout.
+
+**Outputs:** Functional applications across all three platforms, 8 backend services, code review reports.
+
+### Phase 3: Testing and Deployment
+
+Three parallel workstreams:
+
+1. **API Testing** -- Endpoint coverage, security testing (SQL injection, XSS, authorization bypass), load testing, payment sandbox testing
+2. **Accessibility Auditing** -- WCAG 2.1 AA compliance, responsive verification, cross-platform interaction consistency
+3. **DevOps** -- CI/CD pipeline, Docker configuration, deployment automation
+
+Final: Technical documentation, full code review, security compliance verification.
 
 ---
 
-## 合规
+## Agent Team (15 Roles)
 
-- **《个人信息保护法》(PIPL)** -- 中国用户完全合规
-- **GDPR** -- 国际访客合规
-- **儿童保护** -- 14 岁以下需监护人同意
-- **支付合规** -- 所有支付通道持牌商户
+| # | Agent | Role | Phase |
+|---|-------|------|-------|
+| 01 | Orchestrator | Task decomposition, team coordination | All |
+| 02 | Backend Architect | API design, database schema, microservices | 1-2 |
+| 03 | React Frontend Developer | React pages, components, state management | 1-2 |
+| 04 | WeChat Mini Program Developer | WeChat full-stack, WeChat Pay integration | 2 |
+| 05 | Android Engineer | Kotlin + Jetpack Compose mobile app | 2 |
+| 06 | Security Engineer | JWT, AES encryption, API security, RBAC | 1-2 |
+| 07 | UI Designer | Magazine aesthetic design system, Design Tokens | 1 |
+| 08 | UX Architect | CSS architecture, responsive layout, animations | 1-2 |
+| 09 | Brand Guardian | Visual consistency across all platforms | All |
+| 10 | Legal Compliance Writer | Privacy policy, children's protection, GDPR | 1, 3 |
+| 11 | DevOps Engineer | CI/CD, Docker, deployment automation | 3 |
+| 12 | API Tester | API testing, security testing, load testing | 3 |
+| 13 | Accessibility Auditor | WCAG compliance, responsive verification | 3 |
+| 14 | Code Reviewer | Code quality, architecture consistency, security | All |
+| 15 | Technical Writer | API docs, architecture docs, deployment guides | 3 |
+
+---
+
+## Backend Microservices
+
+| Service | Description |
+|---------|------------|
+| `gateway-service` | API security, rate limiting, HMAC verification, routing |
+| `user-service` | Authentication (JWT), authorization (RBAC+ABAC), profiles |
+| `artwork-service` | Upload, campaigns, voting, content moderation |
+| `donation-service` | Donation processing, certificates, fund tracking |
+| `product-service` | Products, cart, orders, inventory management |
+| `supply-chain-service` | Materials, production, logistics, traceability |
+| `payment-service` | WeChat Pay, Alipay, Stripe, PayPal -- webhooks, reconciliation |
+| `admin-service` | Audit logs, analytics, campaign management |
+
+---
+
+## Design System
+
+The React web platform uses a **1990s printed magazine aesthetic**, applied consistently across all pages:
+
+- **Typography:** Playfair Display (headlines) + IBM Plex Mono (body text)
+- **Colors:** Low-saturation paper tones with rust/brown accents
+- **Layout:** Magazine-style CSS Grid with asymmetric columns
+- **Images:** Sepia filter + grain overlay
+- **Navigation:** Numbered table-of-contents style (01, 02, 03...)
+- **Transitions:** Page-flip animation between routes
+- **Textures:** Paper grain, noise overlay, editorial pull-quotes
+
+This style is enforced on every page, not just the homepage.
+
+---
+
+## Security
+
+| Area | Implementation |
+|------|---------------|
+| **Authentication** | JWT (RS256) with 15-min access + 7-day refresh tokens |
+| **Authorization** | RBAC + ABAC combined model |
+| **Encryption** | AES-256-GCM for sensitive data (children's PII uses a separate key) |
+| **Rate Limiting** | Redis-based sliding window (1000/s global, 60/min per user, 20/s per IP) |
+| **Request Signing** | HMAC-SHA256 on authenticated endpoints |
+| **Transport** | TLS 1.3 mandatory in production |
+| **Child Protection** | Isolated encrypted schema, secondary approval, display-name only |
+
+---
+
+## Deployment
+
+### Docker Compose (Development & Staging)
+
+```bash
+cd deploy/docker
+docker compose up -d
+```
+
+| Service | Container | Port |
+|---------|-----------|------|
+| Web App (Nginx) | tonghua-frontend | 80 |
+| FastAPI Backend | tonghua-backend | 8000 |
+| MySQL 8.0 | tonghua-mysql | 3306 |
+| Redis 7 | tonghua-redis | 6379 |
+| RabbitMQ | tonghua-rabbitmq | 5672 / 15672 (UI) |
+
+### CI/CD Pipeline
+
+GitHub Actions runs on every push/PR:
+
+- `develop` branch: Lint + type check + tests
+- `main` branch: Full pipeline -- lint, test, Docker build, deploy to staging, then production (manual approval)
+
+Docker images are published to GitHub Container Registry:
+```
+ghcr.io/<org>/tonghua-project/backend:latest
+ghcr.io/<org>/tonghua-project/frontend:latest
+```
+
+### Full Documentation
+
+- **[Deployment Guide](docs/deployment/deployment-guide.md)** -- Comprehensive guide covering local setup, Docker, environment variables, CI/CD, production checklist, monitoring, backup/recovery, and security hardening
+- **[Architecture Docs](docs/architecture/)** -- System architecture and database design
+- **[API Reference](docs/api/)** -- API endpoint documentation
+- **[Security Docs](docs/security/)** -- Privacy policy, compliance, child protection
+
+---
+
+## Compliance
+
+- **PIPL** (个人信息保护法) -- Full compliance for Chinese users
+- **GDPR** -- Compliance for international visitors
+- **Child Protection** -- 《未成年人保护法》 strict adherence; children under 14 require guardian consent
+- **Payment** -- Licensed merchant accounts for all payment gateways
+
+---
+
+## Key Constraints
+
+1. The web frontend must maintain the editorial magazine style on every page -- no default UI library styles
+2. Payment processing requires sandbox testing and legal compliance review before going live
+3. Children's personal information is handled under strict PIPL compliance
+4. Supply chain data must be real and verifiable -- no generic ESG copy
+5. All TypeScript code uses strict mode
+6. All frontend code considers accessibility (a11y)
 
 ---
 
 ## License
 
-本项目仅供课程设计使用。保留所有权利。
+This project is for educational purposes (课程设计). All rights reserved.

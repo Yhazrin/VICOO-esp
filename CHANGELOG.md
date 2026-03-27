@@ -1,332 +1,145 @@
 # Changelog
 
-## 2026-03-22 — Cycle 25: P0 Security — Timing Attack + Payment Ownership Bypass
-
-### Backend
-
-- **auth.py timing attack fix** — Replaced `mock_password != body.password` (line 188) with `hmac.compare_digest(mock_password, body.password)`. Python's `!=` operator short-circuits on first mismatch, enabling character-by-character brute-force via timing side-channel. Added `import hmac`.
-- **payments.py ownership check bypass** — `create_payment` now raises HTTP 404 when `order_id` or `donation_id` references a non-existent record. Previously, if the order didn't exist in DB and wasn't found in mock fallback, the ownership check passed silently, allowing any authenticated user to create payment records against arbitrary non-existent orders. Added `order_found`/`donation_found` flags that must be `True` before proceeding.
-
-### Verification
-
-- Python `py_compile`: auth.py, payments.py pass
-- TypeScript `tsc --noEmit`: 0 errors
-
----
-
-## 2026-03-22 — Cycle 24: Readability Fix, Home i18n, Import Cleanup
-
-### Frontend
-
-- **EditorialHeroV2 stat label readability** — Changed stat label font size from `text-[7px]` to `text-[9px]` (line 163). 7px is below readability threshold on most screens; 9px matches the eyebrow text size used elsewhere in the component.
-- **Home i18n — StoryQuoteBlock** — Replaced hardcoded `quote`, `author`, `role` props with `t('home.quote.text')`, `t('home.quote.author')`, `t('home.quote.role')`.
-- **Home i18n — Est. 2026** — Replaced hardcoded `"Est. 2026"` with `t('home.est')`. Added corresponding keys to en.json and zh.json.
-
-### Backend
-
-- **orders.py import cleanup** — Moved `import random` from inside `create_order` except block to top-level imports. Prevents potential `NameError` if the except path changes and eliminates a code quality anti-pattern.
-
-### Verification
-
-- TypeScript `tsc --noEmit`: 0 errors
-- Python `ast.parse`: all 10 router files pass
-
-## 2026-03-22 — Cycle 23: WAI-ARIA Tabs, Logging Cleanup, i18n Hardcoded Strings
-
-### Accessibility
-
-- **Stories WAI-ARIA tabs** — Added `id`, `aria-controls`, `tabIndex` (roving), `onKeyDown` (ArrowLeft/ArrowRight) to tab buttons. Wrapped content in `role="tabpanel"` with `id`/`aria-labelledby`. Added `aria-label` on tablist.
-- **Shop WAI-ARIA tabs** — Same treatment: full ARIA tab pattern with keyboard navigation and tabpanel wrapper.
-
-### Backend
-
-- **main.py rate limiting logging** — Changed 3 verbose `logger.info` calls in rate limit middleware to `logger.debug` to reduce production log noise.
-
-### Frontend
-
-- **Login i18n** — Replaced hardcoded Chinese "或" → `t('login.orContinueWith')`, "微信" → `t('login.wechat')`.
-- **Register i18n** — Replaced hardcoded Chinese "或" → `t('register.orContinueWith')`, "微信" → `t('register.wechat')`.
-
-### Verification
-
-- TypeScript `tsc --noEmit`: 0 errors
-- Python `ast.parse`: orders.py, donations.py, main.py all pass
-
-## 2026-03-22 — Cycle 22: TS Type Safety, Backend NameError Fix, Traceability Rewrite
-
-### Backend
-
-- **orders.py lazy singleton callers** — Fixed 2 call sites (WeChat + Alipay order creation) that referenced module-level `payment_service.create_unified_order(...)`. After Cycle 21's refactor to `get_payment_service()` lazy factory, these caused `NameError` at runtime. Changed to `get_payment_service().create_unified_order(...)`.
-- **auth.py /refresh privilege escalation** — `/refresh` endpoint now queries DB for the user's current role instead of trusting the JWT token payload. Prevents an attacker from crafting a refresh token with elevated `role: "admin"`. Added `db: AsyncSession` dependency.
-- **security.py refresh token role** — `create_refresh_token()` now accepts `role` parameter and includes it in the token payload. All 7 callers updated to pass `user.role`. Prevents admin→user downgrade if refresh token lacks role metadata.
-- **artworks.py vote race condition** — Replaced non-atomic `artwork.like_count += 1` (read-modify-write) with atomic `update(Artwork).where(...).values(like_count=Artwork.like_count + 1)` SQL statement. Prevents lost votes under concurrent requests.
-- **payments.py alipay fail-closed** — When `ALIPAY_PUBLIC_KEY` is not configured, the `alipay_notify` handler now returns `"failure"` instead of logging a warning and continuing to accept unverified callbacks.
-- **models/payment.py FK constraints** — Added `ForeignKey("orders.id")` and `ForeignKey("donations.id")` to `order_id` and `donation_id` columns. Ensures referential integrity at the database level.
-
-### Frontend
-
-- **ArtworkDetail.tsx voting fix** — Removed broken `handleVote` function that called non-existent `setArtwork()`. Replaced with proper `useMutation` + `queryClient.invalidateQueries({ queryKey: ['artwork', id] })` for cache invalidation. Fixed `error` → `queryError` variable reference mismatch.
-- **Traceability/index.tsx major rewrite** — Changed `EnhancedSupplyChainRecord` from extending `SupplyChainRecord` (which has different field names: `timestamp` not `date`, `id: string` not `number`, no `verified`/`partnerName`/`carbonFootprint`) to a standalone interface. Both `useEffect` initial load and `handleSearch` now use explicit field mapping via `r as unknown as Record<string, unknown>` with `Number()`, `String()`, `Boolean()` coercion and fallback values. Removed unused `STAGE_MAP`, `useQuery`, `buildRecordsFromApi`. Fixed `r.id === query.trim()` number-vs-string comparison → `String(r.id) === query.trim()`.
-- **Login/Register — dead import cleanup** — Removed unused `MagazineDivider` import from both Login and Register pages.
-- **Donate — anchor target fix** — Changed `href="#top"` to `href="#main-content"` to match the `id="main-content"` on `<main>` element.
-
-### Verification
-
-- TypeScript `tsc --noEmit`: 0 errors
-- Vite production build: 2.66s, success
-
-## 2026-03-22 — Cycle 21: P0 Security, A11y & Stability Fixes
-
-### Security
-
-- **payment_service.py lazy singleton** — Replaced module-level `payment_service = WeChatPayService()` instantiation with lazy `get_payment_service()` factory. Prevents startup crash (import-time `ValueError`) when WeChat env vars are unconfigured. All callers (`payments.py`, `donations.py`) updated.
-- **api.ts null guard on error.config** — Added early return in Axios response interceptor when `error.config` is undefined, preventing TypeError on network-level failures (DNS, CORS, timeout).
-- **authStore init sets isAuthenticated** — `initializeAuth()` now calls `set({ accessToken, isAuthenticated: true })` instead of only setting the token. Fixes a race condition where the app renders the login page briefly before rehydrating auth state from localStorage.
-- **main.py rate limiting — fail-closed logging** — Rate limiting middleware now logs unexpected errors (`logger.error` with `exc_info=True`) instead of silently passing. HTTPException re-raised; only truly unexpected errors fail-open.
-- **deps.py rate limiting — fail-closed logging** — Added `logger.error` to catch-all except block in `rate_limit_check()`, matching the fail-open-for-availability pattern with observability.
-
-### Accessibility
-
-- **Layout.tsx skip-to-content link** — Added WCAG 2.4.1 bypass block: sr-only `<a href="#main-content">Skip to content</a>` that becomes visible on focus. Added `id="main-content"` to `<main>` element.
-- **Header.tsx nav aria-label** — Added `aria-label="Main navigation"` to desktop `<nav>` element for screen reader landmark identification.
-- **global.css reduced-motion guard** — Added `@media (prefers-reduced-motion: reduce)` block disabling all animations, transitions, and smooth scroll globally. Complements per-component reduced-motion guards with a CSS-level safety net.
-
-### Frontend
-
-- **PagePeel.tsx Rules of Hooks fix** — Replaced `useTransform()` calls inside a `switch` statement (inside `getTransforms()` function) with 16 unconditional top-level `useTransform()` calls + a pure selector IIFE. Fixes React "Rules of Hooks" violation that could cause crashes with strict mode.
-
-## 2026-03-22 — Cycle 12: WCAG AA Contrast & Security Hardening
-
-### Security (P1)
-
-- **deps.py rate_limit_check bypass** — Changed bare `except Exception: return True` to fail-closed in production (raises HTTP 503) and fail-open only in development. Prevents rate limiting from being silently bypassed on any unexpected error.
-
-### Accessibility — WCAG AA Contrast Fixes (11 instances)
-
-**P0 (1 fix):**
-- **EditorialAdvertisement.tsx `text-muted-gray`** — #B8B2A7 on #F5F0E8 = 1.85:1 → `text-ink-light` (#6B665C) = 4.6:1 PASSES
-
-**P1 (10 fixes):**
-- **Contact/index.tsx character counter** — `text-sepia-mid/60` (2.68:1) → `text-sepia-mid` (5.78:1)
-- **VintageInput.tsx helper text** — `text-sepia-mid/70` (3.72:1) → `text-sepia-mid` (5.78:1)
-- **Stories/index.tsx inactive badge** — `text-sepia-mid/60` (2.68:1) → `text-ink-light` (4.6:1)
-- **Campaigns/index.tsx filter index** — `text-sepia-mid/60` (2.68:1) → `text-sepia-mid` (5.78:1)
-- **Traceability/index.tsx hint text** — `text-sepia-mid/70` (3.72:1) → `text-sepia-mid` (5.78:1)
-- **Donate.module.css placeholder** — warm-gray (1.43:1) → sepia-mid (5.78:1)
-- **Campaigns.module.css empty icon** — warm-gray (1.43:1) → sepia-mid (5.78:1)
-- **global.css advertisement-label** — muted-gray (1.85:1) → ink-light (4.6:1)
-- **global.css form-input placeholder** — muted-gray (1.85:1) → sepia-mid (5.78:1)
-
-### Design Note
-
-All contrast fixes use existing design tokens (`sepia-mid`, `ink-light`) to maintain the 1990s editorial aesthetic. No new colors introduced.
-
-## 2026-03-22 — Cycle 8b: Backend Security Hardening
-
-### Security
-
-- **alipay_notify signature verification** — Replaced stub handler with full RSA2 signature verification using `ALIPAY_PUBLIC_KEY` from settings. Verifies Alipay callback form params against `sign` field using RSA/SHA-256 PKCS1v15. Returns plain text "success"/"failure" per Alipay spec.
-- **alipay_notify payment processing** — Added trade status check (`TRADE_SUCCESS`/`TRADE_FINISHED`), idempotency check via `provider_transaction_id`, order lookup by `out_trade_no`, and payment transaction record creation.
-- **list_donations PII redaction** — Added optional authentication via `get_optional_current_user`. Unauthenticated users see redacted donor names (first char + asterisks), no messages, no `donor_user_id`. Authenticated users see full donation details.
-
-### Backend
-
-- **deps.py** — Added `get_optional_current_user()` dependency that returns user dict or `None` (no exception on auth failure).
-- **donations.py** — Added `_redact_name()` helper for PII masking. Both DB and mock fallback paths include redaction logic.
-
-## 2026-03-22 — Cycle 8: TypeScript Safety & Backend Code Quality
-
-### TypeScript
-
-- **CampaignDetail mock data IDs** — Converted 15 string-typed mock IDs (`'1'`, `'a1'`, `'c1'`, `'g1'`) to numeric literals matching `Product.id: number` type.
-- **Campaigns/index.tsx mock data IDs** — Converted 6 string-typed mock IDs (`'1'`–`'6'`) to numbers.
-- **Traceability mock data** — Fixed string→number IDs + `highlightedId` state type to `number | null`.
-- **ProductDetail supply chain mock** — Converted 7 string-typed mock IDs (`'sc1'`–`'sc6'`) to numbers.
-- **cartStore parameter types** — Changed `removeItem(productId: string)` and `updateQuantity(productId: string, ...)` to `number` matching `Product.id`.
-- **ProductDetail imageUrls** — Removed references to non-existent `imageUrls` property; derived local `productImages` from `product.image_url`.
-
-### Backend
-
-- **auth.py code deduplication** — Extracted `_set_auth_cookies()` helper, replacing 7 identical cookie-setting blocks. File reduced from 528 to 406 lines (~23%).
-- **auth.py info leakage** — Removed 4 logger lines that logged `is_secure` values, `APP_ENV`, and response headers in production.
-- **products.py route ordering** — Moved `GET /{product_id}/supply-chain` before wildcard `GET /{product_id}` to prevent route shadowing.
-
-### Security
-
-- **deps.py auth fallback** — Removed fallback that returned user data from JWT payload when DB lookup fails; now raises HTTP 503 on DB errors and HTTP 401 if user not found.
-- **payments.py HMAC verification** — Replaced hardcoded `signature != "valid-hmac-signature"` with proper HMAC-SHA256 verification using `APP_SECRET_KEY` with `hmac.compare_digest()`.
-
-### Type Safety & API Alignment
-
-- **types/index.ts mass overhaul** — Changed all entity IDs from `string` to `number` (User, Artwork, Campaign, Story, Product, SupplyChainRecord, DonationTier, Donation, Order). Renamed `imageUrls`→`image_url`, `anonymous`→`is_anonymous`, `shippingAddress`→`shipping_address`.
-- **All services response unwrapping** — Fixed 9 service files from `response.data` to `response.data.data` to match backend envelope pattern.
-- **supply-chain.ts service** — New service file with `trace`, `getRecords`, `getStages` methods.
-
-### Accessibility
-
-- **Header/MagazineNav keyboard navigation** — Added `role="menu"/"menuitem"`, Escape/Arrow key handling, `aria-haspopup`, focus return on close.
-- **VintageSelect error ARIA** — Added `error` prop with `aria-describedby`, `aria-invalid`, and border color on error state.
-- **EditorialHeroV2 contrast** — Changed `text-gray-400` to `text-ink-faded` for WCAG AA compliance.
-- **ProductCard form nesting** — Moved Notify Me section outside `<Link>` wrapper to fix invalid `<form>` inside `<a>`.
-
-### Sustainability & Content
-
-- **Traceability API integration** — Wired to supply-chain API via `useQuery` with `supplyChainApi.trace()`, falls back to mock data.
-- **Donate impact stats** — Wired to `donationsApi.getImpactStats()` for dynamic counters.
-- **Stories API integration** — Wired to `artworksApi.getAll()`, fixed artwork link routes to `/artworks/${id}`.
-- **ChildrenSafety/Privacy** — Replaced placeholder text with real content (8–9 sections each).
-
-### Code Quality
-
-- **i18n keys** — Added 88 lines of translation keys across `en.json` and `zh.json`.
-
-## 2026-03-22 — Cycle 7: Frontend Page Expansion & Service Completion
-
-### Features
-
-- **About page CTA** — Added "Get Involved" section (#04) with Donate and Explore Campaigns editorial links, matching existing magazine aesthetic with reduced-motion guards.
-- **Campaigns page CTA** — Added "Start a Campaign" bordered callout box with eyebrow, title, body copy, and "Get in Touch" link to contact page.
-- **Profile page avatar upgrade** — Enlarged avatar container (w-16→w-20), added decorative corner accents, SectionGrainOverlay, and hover micro-interaction (scale 1.03) consistent with TeamMemberCard style.
-
-### API Alignment
-
-- **Frontend: auth.ts updateProfile** — Added `updateProfile` method mapping to backend `PUT /users/me` with nickname/avatar/phone fields.
-- **Frontend: products.ts getCategories** — Added `getCategories` method mapping to backend `GET /products/categories`.
-- **Frontend: payments.ts service created** — New service file with `create` and `getById` methods matching backend `POST /payments/create` and `GET /payments/{id}`.
-- **Frontend: Payment type added** — New `Payment` interface in types/index.ts (id, orderId, donationId, amount, method, status, createdAt).
-
-## 2026-03-21 — P0 Backend Security Fixes
-
-### Security
-
-- **Backend: orders.py status update authorization bypass** (`orders.py`) — The real DB path for `PUT /orders/{id}/status` previously allowed non-admin order owners to set arbitrary statuses (completed, paid, shipped). Added `body.status != "cancelled"` restriction matching the mock fallback.
-- **Backend: RegisterRequest missing email validation** (`common.py`) — Changed `email: str` to `email: EmailStr` to reject malformed email addresses at the schema level.
-- **Backend: RegisterRequest missing password constraints** (`common.py`) — Added `min_length=8, max_length=128` to enforce password policy at the API boundary.
-- **Backend: update_me mass-assignment** (`users.py`) — The mock fallback used `body.model_dump()` which could inject arbitrary fields. Replaced with explicit whitelisting of `nickname`, `avatar`, `phone` only.
-- **Backend: admin self-modification guards** (`users.py`) — `PUT /users/{id}/role` and `PUT /users/{id}/status` now reject requests when the target user is the current admin, preventing privilege escalation or self-lockout.
-- **Backend: phone field length validation** (`schemas/user.py`) — Added `max_length=20` to `UserUpdate.phone` to prevent DoS via oversized encryption input.
-
-## 2026-03-21 — Cycle 6+
-
-### Accessibility
-
-- **prefers-reduced-motion: P0 invisible elements fix** — Fixed 11 remaining unguarded Framer Motion `initial` props across 6 files where elements were permanently invisible (opacity: 0) when users prefer reduced motion. Pattern: `initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: N }}`.
-  - ProductCard: "Notify Me" submitted text + email form (height animation)
-  - ArtworkDetail: image fade-in
-  - Campaigns: paginated list transition + empty state false-guard (was `opacity: 0` in reduced-motion branch)
-  - Traceability: search spinner + result card + highlighted record detail (height animations)
-  - Contact: validation error message + submit error state
-  - ProductDetail: image fade-in
-
-## 2026-03-21 — Cycle 6
-
-### Security
-
-- **Backend: campaigns.py role check fix** (`campaigns.py`) — Replaced 3 references to non-existent roles (`super_admin`, `content_admin`) with `require_role("admin")`. The UserRole enum only defines `admin`/`editor`/`user`, so previous checks silently bypassed authorization.
-- **Backend: orders.py status update privilege escalation fix** (`orders.py`) — Non-admin users can now only cancel their own orders (`status=cancelled`). Previously any authenticated order owner could set arbitrary status values (completed, paid, shipped).
-- **Backend: payments.py ownership verification** (`payments.py`) — `POST /payments/create` now verifies the requesting user owns the referenced order or donation. Also gated the `test-wechat-params` debug endpoint behind admin auth.
-- **Backend: DonationCreate IDOR fix** (`schemas/donation.py`) — Removed `donor_user_id` field from DonationCreate schema. The server already sets this from `current_user`, but the schema accepting it from the client was an IDOR vector.
-
-### API Alignment
-
-- **Frontend: artworks.ts vote response type** — Fixed `voteCount` → `like_count` to match backend response shape.
-- **Frontend: products.ts getByCategory** — Fixed from non-existent route `/products/category/${category}` to query param `/products?category=X`. Return type corrected to `PaginatedResponse<Product>`.
-- **Frontend: campaigns.ts query params** — Fixed `pageSize` → `page_size`.
-- **Frontend: donations.ts impact stats** — Fixed `getImpactStats` return type to `{ total_amount: string, total_donors: number, currency: string }` matching backend.
-- **Frontend: ArtworkDetail.tsx + Campaigns/index.tsx** — Updated consumers to use corrected API property names.
-
-### Performance
-
-- **Donate page progress bar** — Converted `width` animation to `scaleX` transform with `origin-left` for GPU compositing instead of layout reflow.
-
-## 2026-03-21 — Cycle 5
-
-### Security
-
-- **Backend: artworks PUT/DELETE now require admin role** (`artworks.py`) — Endpoints previously only checked authentication; now enforce `require_role("admin")` to prevent non-admin users from modifying or deleting artworks.
-- **Backend: donation certificate endpoint auth + ownership** (`donations.py`) — `GET /donations/{id}/certificate` now requires authentication and verifies the requesting user is either the donor or an admin. Previously accessible without auth (IDOR vulnerability).
-- **Backend: order status update ownership check in mock fallback** (`orders.py`) — `PUT /orders/{id}/status` mock fallback now verifies ownership before allowing status changes.
-
-### API Alignment
-
-- **Frontend: donations.ts request schema fixed** — Aligned `CreateDonationRequest` with backend `DonationCreate` schema. Fixed field names: `tierId`→`amount`, `campaignId`→`campaign_id`, `anonymous`→`is_anonymous`, added `donor_name`, `payment_method`.
-- **Frontend: orders.ts request schema fixed** — Aligned `CreateOrderRequest` with backend `OrderCreate` schema. Fixed field names: `productId`→`product_id`, `shippingAddress`→`shipping_address`+`payment_method`.
-- **Frontend: contact.ts API service created** — New `/services/contact.ts` with `ContactFormRequest` interface wiring the Contact page form to `POST /contact`.
-
-### Code Quality
-
-- **SectionGrainOverlay consolidation** — Replaced 18 inline grain SVG data URL instances across 15 files with the reusable `SectionGrainOverlay` editorial component. Reduced code duplication while maintaining correct z-index layering (z-0, z-10, z-20) per context.
-  - Layouts: Header, MagazineNav, EditorialFooter
-  - Editorial components: EditorialCard (x2), ImageSkeleton, TraceabilityTimeline, ProductCard, ArtworkCard, DonationPanel
-  - Pages: About, Home (x2), Contact (x2), Traceability (x3), Profile
-
-## 2026-03-21 — Cycle 4
-
-### Performance
-
-- **GPU compositing: width→scaleX animations** — Converted 9 `width` CSS animations to `scaleX` transforms across Stories (ReadingProgressBar), Campaigns (progress bars), Donate (decorative lines), Traceability (CarbonBar), CampaignDetail (funding progress), ProductCard (sustainability score), Register/Login/Profile/NotFound (decorative dividers). Enables GPU-accelerated compositing instead of layout recalculation.
-
-### Accessibility
-
-- **Campaigns progress bars** — Added `role="progressbar"` with `aria-valuenow`/`aria-valuemin`/`aria-valuemax` to funding progress indicators.
-- **Campaigns/Stories category filters** — Added `role="tablist"` to filter containers.
-- **Stories ReadingProgressBar** — Added `role="progressbar"` with proper ARIA attributes.
-- **Login "Remember me"** — Fixed missing checkbox input and `htmlFor` attribute on label.
-- **Cursor-pointer** — Added to ProductCard "Notify Me" button and Stories empty-state "Browse All" button.
-
-### Code Quality
-
-- **SepiaImageFrame** — Replaced `as any` type assertion with `Exclude<typeof accentPosition, 'diagonal'>` for proper type narrowing.
-
-## 2026-03-20 — Cycle 3
-
-### Code Quality
-
-- **TypeScript type safety** — Removed `any` types from API callbacks in Profile, CampaignDetail, ProductDetail.
-- **Snake_case cleanup** — Removed camelCase↔snake_case property fallbacks (CampaignDetail 7 props, ProductDetail 4 props).
-- **React key fix** — Replaced `key={index}` with semantic keys in KineticMarquee, FAQAccordion, ArtworkDetail.
-- **Reduced-motion guards** — Fixed EditorialHero TextScramble `boolean|null` coercion, Stories article `initial` prop guard.
-- **OrigamiFold** — Added `useReducedMotion()` to OrigamiCorner component.
-- **Dead code cleanup** — Removed unused FAQItem, ChevronIcon, GRAIN_STYLE, openFaqIndex from Contact page.
-
-## 2026-03-19 — Cycle 2
-
-### Features
-
-- **Sage green accent system** — Integrated `#3F4F45` accent color across Home, Donate, About, Traceability, ProductCard.
-- **Profile page** — Editorial upgrade to quality level 4.
-- **Legal pages** — Created Privacy, Terms, ChildrenSafety pages with editorial treatment.
-- **Footer** — Added legal page links to correct routes.
-- **App.tsx** — Registered 3 legal page routes.
-
-### Backend
-
-- **Featured/my endpoints** — Added `GET /campaigns/featured`, `GET /products/featured`, `GET /donations/tiers`, `GET /donations/mine`, `GET /orders/mine`, `POST /orders/{id}/cancel`.
-
-### Security
-
-- **Artworks PUT/DELETE** — Added authentication requirement.
-- **Products POST/PUT** — Added authentication + role check.
-- **Contact messages GET** — Added admin-only check.
-
-## 2026-03-18 — Cycle 1
-
-### Design System
-
-- **Tailwind config** — Added 17 missing color tokens from tokens.css.
-- **NotFound page** — Editorial style upgrade with PaperTextureBackground, GrainOverlay, animations, corner accents.
-- **Login/Register pages** — Editorial upgrade.
-
-### Bug Fixes
-
-- **Donate** — Fixed DonationStoryCard reduced-motion bug.
-- **Traceability** — Fixed AnimatedCounter missing reduced-motion guard.
-- **Contact** — Replaced inline FAQItem with FAQAccordion editorial component.
-- **NotFound** — Fixed GrainOverlay invalid opacity prop.
-- **ArtworkDetail** — Fixed infinite re-render loop.
-- **ProductDetail** — Fixed useState inside .map() hooks violation.
-- **CampaignDetail** — Fixed ignoring route params.
-
-### API
-
-- **Contact API** — Wired frontend to backend POST /contact.
+All notable changes to the Tonghua Public Welfare x Sustainable Fashion project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+## [Unreleased] — Cycle 35
+
+### Fixed
+
+- **Backend (P0)**: 8 paginated endpoints — `count_stmt` now propagates all `.where()` filters. Previously `select(func.count(Model.id))` ignored filters applied to the main query, returning total count of ALL rows regardless of filter parameters. Fixed in: `orders.py`, `artworks.py`, `campaigns.py`, `donations.py`, `products.py`, `supply_chain.py`, `admin.py` (audit-logs + child-participants).
+- **Backend (P1)**: `orders.py` — eliminated N+1 query pattern. Order items now batch-loaded with single `in_(order_ids)` query instead of per-order fetch loop.
+- **Backend (P1)**: `payment_service.py` — changed synchronous `httpx.post()` to `async with httpx.AsyncClient().post()`. Blocking call was stalling the FastAPI async event loop.
+- **Backend (P1)**: `payments.py` — WeChat and Alipay webhook handlers now use `db.flush()` instead of `db.commit()`. The `get_db` dependency already commits on session exit; manual commit was premature and could cause transaction conflicts.
+- **Frontend (P1)**: `tokens.css` — added missing `--space-xs`, `--space-sm`, `--space-md` CSS custom property aliases. These were referenced across ~8 CSS module files but never defined.
+- **Frontend (P2)**: `HeroFloatingCards.tsx` — replaced 5 instances of default Tailwind `text-gray-400`/`text-gray-500` with editorial token `text-sepia-light`.
+- **TypeScript (P1)**: Renamed duplicate `SupplyChainRecord` display type to `SupplyChainTimelineRecord` in `types/index.ts` to disambiguate from API response type in `services/supply-chain.ts`. Updated imports in `TraceabilityTimeline.tsx`, `ProductDetail.tsx`, and `types/index.ts`.
+
+### Verified
+
+- TypeScript compilation: `npx tsc --noEmit` — zero errors.
+
+## [Released] — Cycle 34
+
+### Fixed
+
+- **Security (P0)**: `payments.py` — Alipay callback `alipay_notify` now fails closed when `ALIPAY_PUBLIC_KEY` is not configured (returns "failure" instead of skipping signature verification).
+- **Security (P0)**: Removed frontend HMAC-SHA256 request signing from `api.ts` — `VITE_API_SECRET_KEY` was exposed in client bundle. Auth is now JWT-only (Bearer token + httpOnly refresh cookie).
+- **Security (P0)**: Disabled backend signature verification middleware in `main.py` — cascading fix after removing frontend signing. `verify_request_signature()` kept in `deps.py` for future server-to-server use.
+- **Security (P0)**: Enabled `TrustedHostMiddleware` in production mode (disabled in development). Extracts allowed hosts from `CORS_ORIGINS` config.
+- **Security (P1)**: Rate limiter fail-open path now logs warning for monitoring (`logger.warning` in catch-all `except Exception`).
+- **Security (P1)**: Added `/api/v1/contact` to `public_endpoints` list in `deps.py` for IP-based rate limiting.
+- **Accessibility (P0)**: `global.css` — Added `@media (prefers-reduced-motion: reduce)` overrides for `fade-in`, `fade-up`, `fade-down` keyframes and `.animate-*` classes (WCAG 2.3.3).
+- **Accessibility (P0)**: `global.css` — `.form-input:focus` now includes `box-shadow` visible focus ring alongside `outline: none` (WCAG 2.4.7).
+- **Accessibility (P0)**: `Layout.tsx` — Added skip-to-main-content link (`<a href="#main-content">`) with `sr-only` / `focus:not-sr-only` pattern (WCAG 2.4.1).
+- **Brand (P0)**: `ArtworkDetail.tsx` — Added `SectionGrainOverlay`, corner accents to main content area (was bare PaperTextureBackground with no editorial treatment).
+- **UI/UX**: `EditorialCallout.tsx` — Removed dynamic Tailwind class construction (`from-${variant}-transparent` gradient). Replaced `border-[var(--color-info)]` etc. with proper Tailwind tokens (`border-info`).
+- **UI/UX**: `EditorialAdvertisement.tsx` — Fixed invalid CSS `border: 1px dashed border-warm-gray` → `border border-dashed border-warm-gray` (Tailwind classes, not CSS property).
+
+### Verified
+
+- TypeScript compilation: `npx tsc --noEmit` — zero errors.
+
+## [Released] — Cycle 33
+
+### Fixed
+
+- **Security (P0)**: Removed `TESTING=1` bypasses from `main.py` — signature verification and rate limiting middlewares no longer skip checks in test mode.
+- **Security (P0)**: `auth.py` — mock fallback login now uses `hmac.compare_digest` for password comparison (timing attack prevention). DB failure raises HTTP 503 (fail-closed). Refresh token endpoint looks up user role from DB instead of relying on token.
+- **Security (P0)**: `payments.py` — payment amount validated against actual order/donation amounts (prevents amount tampering). Alipay notify fail-closed when key missing. Webhook `APP_SECRET_KEY` null check added.
+- **Security (P0)**: Artwork file upload validation — MIME type whitelist (JPEG/PNG/WebP), 10MB size limit, magic byte content verification.
+- **Security (P1)**: `payments.py` webhook endpoint — `APP_SECRET_KEY` empty check (fail-closed, returns 500).
+- **Accessibility (P0)**: `MobileNav.tsx` — focus trap added (Tab/Shift+Tab cycles within dialog, WCAG 2.4.7 + 2.1.1).
+- **Accessibility (P0)**: `global.css` — `.form-input:focus` visible focus ring via `box-shadow` restored (WCAG 2.4.7).
+- **Accessibility (P0)**: 5 pages missing `<h1>` — added `sr-only` h1 to Profile, Campaigns, Shop, Stories, Traceability (WCAG heading hierarchy).
+- **Accessibility (P1)**: Checkbox touch targets — Login and DonationPanel checkboxes enlarged from 16px to 44px (`w-11 h-11 p-2.5`, WCAG 2.5.8).
+- **Frontend**: `supply-chain.ts` — corrected `getProductJourney` endpoint + removed methods without backend support.
+- **Frontend**: `ArtworkDetail.tsx` — `useMutation` for vote (replaced orphaned `handleVote` with proper mutation), `queryError` reference fix.
+- **TypeScript**: `Traceability/index.tsx` — removed unused `useQuery`, `buildRecordsFromApi`, `STAGE_MAP`. Fixed `number` vs `string` type comparison. `EnhancedSupplyChainRecord` as standalone interface (not extending backend type).
+- **TypeScript**: `Login/index.tsx`, `Register/index.tsx` — removed unused `MagazineDivider` import.
+- **Backend**: `orders.py` — `import random` moved to top-level (was inside except block).
+- **Backend**: Write operations fail-closed — mock write fallbacks replaced with HTTP 503 in 5 router files.
+
+### Fixed (continued from earlier cycles)
+
+- **NotFound page**: Upgraded from bare 404 to full editorial treatment — PaperTextureBackground, GrainOverlay, entrance animation with reduced-motion guard, corner accents, decorative divider.
+- **Donate page**: Fixed `DonationStoryCard` reduced-motion bug — `initial` prop was unconditional, now guarded with `prefersReducedMotion ? false : { opacity: 0, y: 30 }`.
+- **Traceability page**: Fixed `AnimatedCounter` — added `useReducedMotion()` guard to skip `requestAnimationFrame` animation when user prefers reduced motion.
+- **Contact page**: Replaced inline `FAQItem`/`ChevronIcon` components with reusable `FAQAccordion` editorial component.
+- **NotFound page**: Removed invalid `opacity` prop from `GrainOverlay` (component accepts no props).
+- **ArtworkDetail.tsx**: Fixed infinite re-render loop caused by data fetching in render body. Moved to proper `useEffect` pattern with cleanup.
+- **ProductDetail.tsx**: Fixed React Rules of Hooks violation (`useState` inside `.map()`). Extracted `ThumbnailButton` as a separate component. Added `useParams` + API data fetching with mock fallback (was hardcoded `MOCK_PRODUCT`).
+- **CampaignDetail.tsx**: Added `useParams` + `useEffect` API data fetching with `snake_case` to `camelCase` field mapping. Previously ignored route params entirely.
+- **Backend - artworks.py**: Added authentication (`Depends(get_current_user)`) to `PUT /artworks/{artwork_id}` and `DELETE /artworks/{artwork_id}` endpoints. Previously these mutation endpoints had no auth guard.
+- **Backend - artworks.py**: Added admin role check to `PUT /artworks/{artwork_id}/status`.
+- **Backend - contact.py**: Added admin role check to `GET /contact/messages`.
+- **Backend - products.py**: Added authentication with role check (`Depends(require_role("admin","editor"))`) to `POST /products` and `PUT /products/{product_id}` endpoints.
+
+### Added
+
+- **Sage green accent system**: Introduced low-saturation sage green (#3F4F45) as a complementary cool-tone accent across the site. Semantic color language: rust = urgency/action, sage = trust/transparency/sustainability. Applied to:
+  - **Traceability page**: Migrated all 17 `eco-green` references to `sage` tokens (CarbonBar, status indicators, search results, highlighted records, carbon reduction counter).
+  - **ProductCard**: Sustainability score tier (≥80) now uses `text-sage`/`bg-sage` instead of `eco-green`.
+  - **Home page**: Brand pillar borders (`border-sage/40`), featured/artworks "View All" links (`text-sage`), shop CTA secondary button (`border-sage/40 hover:border-sage`).
+  - **Donate page**: Transparency section corner accents, bullet dots, trust badge dots all use sage. Financial report card hover/corner accents use sage. Final CTA decorative lines use `bg-sage/50`. "Learn More" button uses `border-sage/40`.
+  - **About page**: Value card top borders use `border-sage/20`. Mission section vertical accent line uses sage gradient.
+- **Legal pages editorial upgrade**: Privacy, Terms, and ChildrenSafety pages upgraded from ⭐⭐ to ⭐⭐⭐⭐ — added `GrainOverlay`, `MagazineDivider` between sections, decorative corner accents, vertical accent line, `whileInView` scroll-reveal animations. Fixed `useMediaQuery` → `useReducedMotion` inconsistency.
+- **Routes**: Registered `/privacy`, `/terms`, `/children-safety` routes in App.tsx.
+- **Footer**: Updated legal links to match registered route paths (`/children-safety` instead of `/children`).
+- **Agent docs**: Created `docs/agent-memory/codebase-index.md` and `improvement-tracker.md` for persistent codebase tracking.
+- **Login page**: Upgraded from ⭐⭐ to ⭐⭐⭐⭐ — added `PaperTextureBackground` wrapping, `MagazineDivider` decorative separator, decorative vertical accent line, animated "Vol. IX" header with decorative divider. Removed redundant GrainOverlay opacity wrapper.
+- **Register page**: Same editorial upgrade as Login — `PaperTextureBackground`, `MagazineDivider`, decorative accents, animated header with divider. Consistent editorial treatment across auth pages.
+- **Tailwind config**: Added 17 missing color tokens from `tokens.css` — ink-light, sepia-dark, sepia-light, rust-light, rust-dark, pale-gold-light, muted-gray, cream, editorial-red, editorial-navy, editorial-olive, editorial-burgundy, success, error, warning, info.
+- **Backend - artworks.py**: `GET /artworks/featured` — returns featured artworks (limit 8).
+- **Backend - campaigns.py**: `GET /campaigns/featured` — returns active campaigns.
+- **Backend - donations.py**: `GET /donations/tiers` — returns 4 static donation tiers.
+- **Backend - donations.py**: `GET /donations/mine` — returns current user's donation records (auth required).
+- **Backend - products.py**: `GET /products/featured` — returns active products with stock (limit 8).
+- **Backend - orders.py**: `GET /orders/mine` — returns current user's orders (auth required).
+- **Backend - orders.py**: `POST /orders/{id}/cancel` — cancels pending orders (auth required, ownership validated).
+- **Profile page**: Enhanced with order history and donation history tabs. Fetches from `ordersApi.getMyOrders()` and `donationsApi.getMyDonations()`. Tab switcher with editorial styling.
+- **Profile page**: Upgraded from ⭐⭐⭐ to ⭐⭐⭐⭐ — integrated `EditorialCard` for order/donation items (2-column grid), added `GrainOverlay` to both sections, added `MagazineDivider` between sections, upgraded not-logged-in state with `PaperTextureBackground` + animated header, enhanced avatar with grain texture. All 19 editorial components now in use.
+- **Backend - contact.py**: New contact form submission endpoint (`POST /contact`, `GET /contact/messages`). Registered in `main.py`.
+
+### Removed
+
+- **Contact page**: Removed unused `FAQItem`, `ChevronIcon` inline components, `GRAIN_STYLE` constant, and `openFaqIndex` state (dead code from merge).
+- **Dead code cleanup**: Removed 8 dead barrel files (`HomePage.tsx`, `AboutPage.tsx`, etc.) that only re-exported from subdirectories.
+
+### Fixed (2026-03-21)
+
+- **TypeScript type safety**: Removed `any` type annotations from `.then()` callbacks in Profile (`Order[]`, `Donation[]`), CampaignDetail (`Campaign`), and ProductDetail (`Product`). Eliminated unnecessary `const raw = data?.data ?? data` pattern — service layer already returns properly typed `response.data`.
+- **Snake_case fallback removal**: CampaignDetail — removed 7 `raw.snake_case ??` fallbacks (`cover_image`, `start_date`, `end_date`, `artwork_count`, `participant_count`, `goal_amount`, `current_amount`). ProductDetail — removed 4 snake_case fallbacks (`image_urls`, `stock`, `sustainability_score`, `supply_chain`). Service layer returns camelCase typed data.
+- **React list keys**: Replaced `key={index}` with semantic unique keys in KineticMarquee (`marquee-${item}`, `stat-${stat.value}`), FAQAccordion (`item.question`), and ArtworkDetail (`tag`).
+- **EditorialHero**: Fixed `boolean | null` → `boolean | undefined` type mismatch on `TextScramble.reducedMotion` prop (`prefersReducedMotion ?? undefined`).
+- **Contact page**: Replaced raw `<select>` element with `VintageSelect` editorial component for consistent form styling.
+- **OrigamiFold**: Added `useReducedMotion()` hook to `OrigamiCorner` component — was running unconditional rotation animation, violating accessibility.
+- **EditorialHero**: Fixed `TextScramble.reducedMotion` prop coercion — `prefersReducedMotion ?? undefined` passes `undefined` when `useReducedMotion()` returns `null`, which defaults to `false` (animations run). Changed to `prefersReducedMotion ? true : undefined`.
+- **Stories**: Fixed article `initial` prop — was always `{{ opacity: 0, y: 50 }}` regardless of reduced-motion, causing elements to start invisible with no reveal animation. Now fully guarded.
+- **Stories/Campaigns/Donate**: Converted `width`-based animations to `scaleX` transforms across 4 locations (Stories ReadingProgressBar, Campaigns funding progress bar, Donate 2 decorative lines) for GPU compositing and hardware acceleration compliance.
+- **Traceability/CampaignDetail/ProductCard**: Extended `width`→`scaleX` conversions to 3 more locations — Traceability CarbonBar progress, CampaignDetail funding progress bar, ProductCard sustainability score bar. Added `overflow-hidden` to ProductCard parent container.
+- **Register/Login/Profile/NotFound**: Converted decorative divider line animations from `width` to `scaleX` with `origin-center` across 4 page components for consistent GPU compositing.
+- **ProductCard**: Added missing `cursor-pointer` to "Notify Me" button.
+- **Stories**: Added missing `cursor-pointer` to empty-state "Browse All" button.
+- **SepiaImageFrame**: Replaced `as any` type assertion with `Exclude<typeof accentPosition, 'diagonal'>` for proper TypeScript type narrowing.
+- **Login**: Fixed "Remember me" label — was missing `<input type="checkbox">` element and `htmlFor` attribute. Added proper checkbox with `accent-rust` styling.
+- **Stories**: Added `cursor-pointer` to category filter buttons.
+
+### Added (2026-03-21)
+
+- **SectionGrainOverlay component**: Reusable section-scoped grain overlay component extracted from Donate page inline SVG data URLs. Supports configurable `frequency`, `octaves`, and `opacity` props. Replaces 2 inline grain SVG instances in Donate page.
+- **Aria attributes**: Added `role="progressbar"` with `aria-valuenow`/`aria-valuemin`/`aria-valuemax` to Campaigns funding progress bars and Stories ReadingProgressBar. Added `role="tablist"` to Campaigns and Stories category filter containers.
+
+### Fixed (2026-03-22 — Cycle 9)
+
+- **Backend P0 — auth security**: Login endpoint no longer logs user email/password on failed auth (was `logger.error(f"Login failed: {e}, user: {user.email}, password: {form_data.password}")`). Registration no longer logs new user email. Removed duplicate email existence check in register endpoint.
+- **Backend P1 — banned user flow**: Both `/auth/login` and `/auth/refresh` now check `user.status == "banned"` and return 403 before issuing tokens. Previously banned users could still authenticate.
+- **Frontend P0 — skip-to-content**: Added skip-to-content link in `Layout.tsx` — `sr-only` by default, visible on focus, links to `#main-content` anchor. Meets WCAG 2.4.1 Bypass Blocks.
+- **Frontend P0 — ARIA tab pattern**: Profile page Orders/Donations tab switcher upgraded to proper ARIA tab pattern: `role="tablist"`, `role="tab"` with `aria-selected`, `aria-controls`, `tabIndex` management, and keyboard arrow navigation (ArrowRight/ArrowLeft with focus transfer).
+- **Frontend P0 — EditorialAdvertisement CSS**: Fixed invalid `border: 1px dashed border-warm-gray` → `border border-dashed border-warm-gray` (was producing invalid CSS).
+- **Frontend P0 — EditorialCallout dynamic Tailwind**: Replaced dynamic gradient class `bg-gradient-to-b from-${variant}-transparent` (purged at build time) with static inline `style` lookup object using CSS custom properties.
+- **Frontend P0 — EditorialHeroV2 reduced-motion**: Guarded CTA overlay `initial={{ scaleX: 0 }}` and `whileHover={{ scaleX: 1 }}` with `prefersReducedMotion` — was animating unconditionally.
+- **Frontend P0 — HeroFloatingCards 3D tilt**: Guarded `rotateX`/`rotateY` transforms, `preserve-3d`, and `translateZ(20px)` with `prefersReducedMotion`. Mouse move/leave handlers now early-return when reduced motion is preferred.
+- **TypeScript — unused imports**: Removed unused `MagazineDivider` import from Login and Register pages (TS6133).
+- **TypeScript — Traceability API calls**: Fixed `getRecords({ page_size: 50 })` → `getRecords()` (takes optional string, not object). Fixed `.items` access on array response. Replaced nonexistent `.trace()` method with `.getProductJourney()` and mapped service type fields (`timestamp`→`date`, `artisan.name`→`partnerName`).

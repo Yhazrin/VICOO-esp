@@ -1,6 +1,11 @@
-# OS files
-.DS_Store
-Thumbs.db
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
 
 # IDE
 .idea/
@@ -9,49 +14,37 @@ Thumbs.db
 *.swo
 *~
 
-# Agent/Cursor files
-.agents/
-.claude/
-AGENTS.md
-
-# Vite build cache
-.vite/
+# Build outputs
+dist/
+build/
+*.apk
+*.aab
+.gradle/
+*.iml
 
 # Environment variables
 .env
 .env.local
 .env.*.local
 
+# OS files
+.DS_Store
+Thumbs.db
+
 # Logs
 *.log
 npm-debug.log*
-
-# Python
-__pycache__/
-*.pyc
-*.pyo
-.venv/
-venv/
-env/
-.pytest_cache/
-
-# Node
-node_modules/
-
-# Build outputs
-dist/
-build/
 
 # Database
 *.db
 *.sqlite3
 
-# Reports (auto-generated)
-*.md
-!README.md
-!CLAUDE.md
-!CHANGELOG.md
+# Python
+*.egg-info/
+.pytest_cache/
 
-# Test files
-tests/test_ci_config.py
-tests/test_settings_config.py
+# Android
+local.properties
+
+# WeChat
+miniprogram_npm/
