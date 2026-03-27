@@ -13,9 +13,9 @@ RUN npm ci --legacy-peer-deps
 COPY . .
 
 # Build without API URL restriction (nginx proxies locally)
-# Set VITE_API_URL to empty so app uses relative /api/ paths
-ARG VITE_API_URL=
-ENV VITE_API_URL=$VITE_API_URL
+# Set VITE_API_BASE_URL to /api so app uses relative paths
+ARG VITE_API_BASE_URL=/api
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
 # Skip tsc type-checking to avoid TS errors in dev code
 RUN npx vite build

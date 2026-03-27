@@ -40,7 +40,7 @@ mysql -h"${MYSQL_HOST:-mysql}" -u"${MYSQL_ROOT_USER:-root}" -p"${MYSQL_ROOT_PASS
 echo "Database ready. Starting VICOO API..."
 
 # Run uvicorn
-exec python -m uvicorn backend.app.main:app \
+exec python -m uvicorn app.main:app \
     --host 0.0.0.0 \
     --port 8000 \
     --workers 2 \

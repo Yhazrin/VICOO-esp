@@ -33,7 +33,7 @@ RUN chmod +x /entrypoint.sh && mkdir -p /data
 
 EXPOSE 8000
 
-ENV PYTHONPATH=/app/backend:$PYTHONPATH
+ENV PYTHONPATH=/app:/app/backend:$PYTHONPATH
 
 # Health check
 HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=5 \
