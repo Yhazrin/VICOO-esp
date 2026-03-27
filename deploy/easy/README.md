@@ -43,9 +43,9 @@ docker compose ps
 
 | 角色 | 邮箱 | 密码 |
 |------|------|------|
-| 管理员 | admin@vicoo.test | vicoo-admin |
-| 编辑 | editor@vicoo.test | vicoo-editor |
-| 用户 | user@vicoo.test | vicoo-user |
+| 管理员 | admin@tonghua.org | vicoo-admin |
+| 编辑 | editor@tonghua.org | vicoo-editor |
+| 用户 | lihua@example.com | vicoo-user |
 
 ## 停止
 

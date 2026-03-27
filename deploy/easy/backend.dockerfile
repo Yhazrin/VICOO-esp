@@ -21,7 +21,7 @@ RUN apt-get update && \
 COPY backend/requirements.txt ./requirements.txt
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt email-validator
 
 # Copy backend application code
 COPY backend/ ./backend/
@@ -32,6 +32,8 @@ COPY deploy/easy/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh && mkdir -p /data
 
 EXPOSE 8000
+
+ENV PYTHONPATH=/app/backend:$PYTHONPATH
 
 # Health check
 HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=5 \

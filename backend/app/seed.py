@@ -36,10 +36,9 @@ from app.config import settings
 
 
 async def seed():
-    """Create all tables and insert sample data."""
+    """Insert sample data (tables must already exist — created by lifespan)."""
     print("Creating tables...")
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
     async with AsyncSessionLocal() as session:

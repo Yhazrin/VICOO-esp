@@ -35,6 +35,21 @@ async def lifespan(app: FastAPI):
             await conn.run_sync(Base.metadata.create_all)
     except Exception:
         logger.warning("Database initialization failed — mock data fallback will be used", exc_info=True)
+    # Auto-seed demo data on first run (only when users table is empty)
+    if settings.APP_ENV == "development":
+        try:
+            from app.security import hash_password
+            from app.models.user import User
+            async with AsyncSessionLocal() as session:
+                from sqlalchemy import select
+                result = await session.execute(select(User))
+                if result.scalars().first() is None:
+                    logger.info("Seeding demo data...")
+                    from app.seed import seed
+                    await seed()
+                    logger.info("Demo data seeded successfully.")
+        except Exception:
+            logger.warning("Demo data seeding failed (non-critical)", exc_info=True)
     yield
     # Shutdown
     await engine.dispose()

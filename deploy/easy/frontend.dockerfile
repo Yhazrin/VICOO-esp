@@ -25,8 +25,8 @@ FROM nginx:alpine AS production
 # Remove default nginx config
 RUN rm /etc/nginx/conf.d/default.conf
 
-# Copy nginx configuration
-COPY ../nginx.conf /etc/nginx/conf.d/vicoo.conf
+# Copy nginx configuration (same dir as dockerfile build context)
+COPY nginx.conf /etc/nginx/conf.d/vicoo.conf
 
 # Copy built React app
 COPY --from=builder /build/dist /usr/share/nginx/html
