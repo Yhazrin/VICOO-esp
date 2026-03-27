@@ -7,13 +7,18 @@ __pycache__/
 venv/
 env/
 
-# IDE
+# IDE / AI Agent
 .idea/
 .vscode/
 .cursor/
-*.swp
-*.swo
-*~
+.agents/
+.claude/
+
+# Auto-generated
+CHANGELOG.md
+
+# Agent/Skill artifacts
+*.skill-lock
 
 # Build outputs
 dist/
