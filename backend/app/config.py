@@ -1,7 +1,8 @@
 from pydantic_settings import BaseSettings
 from typing import Optional, List
-from pydantic import field_validator, model_validator
+from pydantic import model_validator
 import secrets
+import json
 
 
 def _gen_secret(length: int = 32) -> str:
@@ -59,8 +60,8 @@ class Settings(BaseSettings):
     # Encryption
     ENCRYPTION_KEY: str = _gen_secret(32)
 
-    # CORS
-    CORS_ORIGINS: List[str] = ["*"]
+    # CORS - receives raw string from env, parsed to list in model_validator
+    CORS_ORIGINS: str = "http://localhost"
 
     # Seed passwords
     SEED_ADMIN_PASSWORD: str = "vicoo-admin"
@@ -68,32 +69,39 @@ class Settings(BaseSettings):
     SEED_USER_PASSWORD: str = "vicoo-user"
     MOCK_USER_PASSWORD: str = "vicoo-mock"
 
-    @field_validator("CORS_ORIGINS", mode="before")
+    @model_validator(mode="before")
     @classmethod
-    def parse_cors_origins(cls, v):
-        """Parse CORS origins from string (comma-separated, JSON array, or list)."""
-        if isinstance(v, str):
-            if v == "*":
-                return ["*"]
-            if v.startswith("[") and v.endswith("]"):
-                try:
-                    import json
-                    parsed = json.loads(v)
-                    if isinstance(parsed, list):
-                        return parsed
-                except json.JSONDecodeError:
-                    pass
-            return [origin.strip() for origin in v.split(",") if origin.strip()]
-        return v
+    def parse_cors_before(cls, values):
+        """Store raw CORS value before pydantic_settings processes it."""
+        raw = values.get("CORS_ORIGINS")
+        if raw is not None and isinstance(raw, str):
+            # We'll parse this in the after validator
+            pass
+        return values
+
+    @model_validator(mode="after")
+    def parse_cors_origins(self):
+        """Parse CORS_ORIGINS from string to list."""
+        raw = self.CORS_ORIGINS
+        if isinstance(raw, list):
+            return self  # Already parsed (e.g. from .env file)
+
+        if raw == "*":
+            self.CORS_ORIGINS = ["*"]
+        elif raw.startswith("[") and raw.endswith("]"):
+            try:
+                self.CORS_ORIGINS = json.loads(raw)
+            except json.JSONDecodeError:
+                self.CORS_ORIGINS = [o.strip() for o in raw.split(",") if o.strip()]
+        else:
+            self.CORS_ORIGINS = [o.strip() for o in raw.split(",") if o.strip()]
+        return self
 
     @model_validator(mode="after")
     def validate_cors_security(self):
         if "*" in self.CORS_ORIGINS:
-            # Allow wildcard only in development -- override to list for safety
             if self.APP_ENV == "production":
-                raise ValueError(
-                    "CORS_ORIGINS cannot contain '*' in production."
-                )
+                raise ValueError("CORS_ORIGINS cannot contain '*' in production.")
         return self
 
     @model_validator(mode="after")
@@ -111,7 +119,6 @@ class Settings(BaseSettings):
     # Backwards compatibility aliases
     @property
     def SECRET_KEY(self):
-        # Prefer private key for signing if available, otherwise fallback to APP_SECRET_KEY
         return self.JWT_PRIVATE_KEY or self.APP_SECRET_KEY
 
     @property
