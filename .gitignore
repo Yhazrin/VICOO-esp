@@ -32,6 +32,7 @@ build/
 .env
 .env.local
 .env.*.local
+deploy/easy/.env
 
 # OS files
 .DS_Store

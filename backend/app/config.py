@@ -1,67 +1,72 @@
 from pydantic_settings import BaseSettings
 from typing import Optional, List
 from pydantic import field_validator, model_validator
+import secrets
+
+
+def _gen_secret(length: int = 32) -> str:
+    """Generate a random hex secret."""
+    return secrets.token_hex(length)
 
 
 class Settings(BaseSettings):
-    APP_NAME: str = "Tonghua API"
+    APP_NAME: str = "VICOO API"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
     APP_ENV: str = "development"  # development, staging, production
     TESTING: str = "0"  # "1" for testing mode
 
-    # Database - Read from env, no default for security
-    DATABASE_URL: str
+    # Database
+    DATABASE_URL: str = "sqlite+aiosqlite:////data/vicoo.db"
     DB_ECHO: bool = False
 
-    # Redis - Read from env, no default for security
-    REDIS_URL: str
+    # Redis (optional -- app gracefully handles unavailability)
+    REDIS_URL: str = "redis://localhost:6379/0"
 
-    # App Secret - Read from env, no default for security
-    APP_SECRET_KEY: str  # HMAC secret for HS256 or general usage
+    # App Secret
+    APP_SECRET_KEY: str = _gen_secret()
 
     # JWT Configuration
-    # Default algorithm aligns with .env.example (RS256)
-    JWT_ALGORITHM: str = "RS256"
-    JWT_PRIVATE_KEY: Optional[str] = None  # Required for RS256, PEM format
-    JWT_PUBLIC_KEY: Optional[str] = None   # Required for RS256, PEM format
+    JWT_ALGORITHM: str = "HS256"
+    JWT_PRIVATE_KEY: Optional[str] = None
+    JWT_PUBLIC_KEY: Optional[str] = None
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
     # WeChat
     WECHAT_APP_ID: Optional[str] = None
     WECHAT_APP_SECRET: Optional[str] = None
-    WECHAT_MCH_ID: Optional[str] = None  # WeChat Pay Merchant ID
-    WECHAT_PAY_API_KEY: Optional[str] = None  # WeChat Pay API key
-    WECHAT_NOTIFY_URL: Optional[str] = None  # WeChat Pay callback URL
+    WECHAT_MCH_ID: Optional[str] = None
+    WECHAT_PAY_API_KEY: Optional[str] = None
+    WECHAT_NOTIFY_URL: Optional[str] = None
 
-    # OpenAI / 兼容接口（AI 助手，未配置密钥时返回占位回复）
+    # OpenAI
     OPENAI_API_KEY: Optional[str] = None
     OPENAI_API_BASE: str = "https://api.openai.com/v1"
     OPENAI_MODEL: str = "gpt-4o-mini"
 
     # Alipay
     ALIPAY_APP_ID: Optional[str] = None
-    ALIPAY_PRIVATE_KEY: Optional[str] = None  # RSA2 private key (PKCS#8 PEM)
-    ALIPAY_PUBLIC_KEY: Optional[str] = None   # Alipay RSA2 public key for callback verification
+    ALIPAY_PRIVATE_KEY: Optional[str] = None
+    ALIPAY_PUBLIC_KEY: Optional[str] = None
     ALIPAY_NOTIFY_URL: Optional[str] = None
     ALIPAY_GATEWAY: str = "https://openapi.alipay.com/gateway.do"
 
     # Rate Limiting
-    GLOBAL_RATE_LIMIT: int = 1000  # per minute
-    USER_RATE_LIMIT: int = 60  # per minute
+    GLOBAL_RATE_LIMIT: int = 1000
+    USER_RATE_LIMIT: int = 60
 
-    # Encryption - Read from env, no default for security
-    ENCRYPTION_KEY: str  # Must be 32 bytes for AES-256
+    # Encryption
+    ENCRYPTION_KEY: str = _gen_secret(32)
 
-    # CORS - Default to empty list, must be configured via env
-    CORS_ORIGINS: List[str] = []
+    # CORS
+    CORS_ORIGINS: List[str] = ["*"]
 
-    # Seed data passwords (for development/testing only) - Required environment variables
-    SEED_ADMIN_PASSWORD: str
-    SEED_EDITOR_PASSWORD: str
-    SEED_USER_PASSWORD: str
-    MOCK_USER_PASSWORD: str  # Password for mock users in development
+    # Seed passwords
+    SEED_ADMIN_PASSWORD: str = "vicoo-admin"
+    SEED_EDITOR_PASSWORD: str = "vicoo-editor"
+    SEED_USER_PASSWORD: str = "vicoo-user"
+    MOCK_USER_PASSWORD: str = "vicoo-mock"
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
@@ -70,7 +75,6 @@ class Settings(BaseSettings):
         if isinstance(v, str):
             if v == "*":
                 return ["*"]
-            # Try to parse as JSON array first
             if v.startswith("[") and v.endswith("]"):
                 try:
                     import json
@@ -79,23 +83,21 @@ class Settings(BaseSettings):
                         return parsed
                 except json.JSONDecodeError:
                     pass
-            # Fall back to comma-separated parsing
             return [origin.strip() for origin in v.split(",") if origin.strip()]
         return v
 
     @model_validator(mode="after")
     def validate_cors_security(self):
-        """Prevent wildcard CORS origins with credentials (browser spec violation)."""
         if "*" in self.CORS_ORIGINS:
-            raise ValueError(
-                "CORS_ORIGINS cannot contain '*' — browsers reject wildcard with credentials. "
-                "List explicit origins (e.g., 'https://tonghua.org,https://www.tonghua.org')."
-            )
+            # Allow wildcard only in development -- override to list for safety
+            if self.APP_ENV == "production":
+                raise ValueError(
+                    "CORS_ORIGINS cannot contain '*' in production."
+                )
         return self
 
     @model_validator(mode="after")
     def validate_jwt_keys(self):
-        """Ensure correct keys are provided based on the algorithm."""
         if self.JWT_ALGORITHM in ["RS256", "ES256", "PS256"]:
             if not self.JWT_PRIVATE_KEY:
                 raise ValueError(f"JWT_PRIVATE_KEY is required for algorithm {self.JWT_ALGORITHM}")
