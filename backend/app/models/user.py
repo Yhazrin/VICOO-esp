@@ -8,13 +8,19 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    email = Column(String(255), unique=True, nullable=False, index=True)
-    password_hash = Column(String(255), nullable=False)
-    nickname = Column(String(100), nullable=False)
+    email = Column(String(255), unique=True, nullable=True, index=True)
+    password_hash = Column(String(255), nullable=True)  # Nullable for OAuth users
+    nickname = Column(String(100), nullable=False, default="用户")
     avatar = Column(String(500), nullable=True)
     role = Column(Enum("admin", "editor", "user", name="user_role"), default="user", nullable=False)
     phone_encrypted = Column(Text, nullable=True)  # AES-256-GCM encrypted
     status = Column(Enum("active", "banned", name="user_status"), default="active", nullable=False)
+
+    # OAuth — GitHub
+    github_id = Column(String(128), unique=True, nullable=True, index=True)
+    # OAuth — Google
+    google_id = Column(String(128), unique=True, nullable=True, index=True)
+
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
 

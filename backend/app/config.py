@@ -53,6 +53,17 @@ class Settings(BaseSettings):
     ALIPAY_NOTIFY_URL: Optional[str] = None
     ALIPAY_GATEWAY: str = "https://openapi.alipay.com/gateway.do"
 
+    # OAuth — GitHub
+    GITHUB_CLIENT_ID: Optional[str] = None
+    GITHUB_CLIENT_SECRET: Optional[str] = None
+
+    # OAuth — Google
+    GOOGLE_CLIENT_ID: Optional[str] = None
+    GOOGLE_CLIENT_SECRET: Optional[str] = None
+
+    # Frontend URL (for OAuth callback redirect)
+    FRONTEND_URL: str = "http://localhost:5173"
+
     # Rate Limiting
     GLOBAL_RATE_LIMIT: int = 1000
     USER_RATE_LIMIT: int = 60
