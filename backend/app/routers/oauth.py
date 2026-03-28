@@ -47,14 +47,12 @@ async def _find_or_create_oauth_user(
     """Find existing user by OAuth provider ID or email, or create a new one."""
     id_column = User.github_id if provider == "github" else User.google_id
 
-    # First try to find by OAuth provider ID
+    # 1. Try to find by OAuth provider ID
     result = await db.execute(select(User).where(id_column == provider_id))
     user = result.scalar_one_or_none()
-    if user:
-        return user
-
-    # Then try by email (link accounts)
-    if email:
+    
+    if not user and email:
+        # 2. Try by email (link accounts)
         result = await db.execute(select(User).where(User.email == email))
         user = result.scalar_one_or_none()
         if user:
@@ -63,21 +61,33 @@ async def _find_or_create_oauth_user(
             if avatar and not user.avatar:
                 user.avatar = avatar
             await db.flush()
-            return user
 
-    # Create new user
-    user = User(
-        email=email or f"{provider}_{provider_id}@oauth.vicoo.org",
-        password_hash="",  # OAuth users have no password
-        nickname=nickname,
-        avatar=avatar,
-        role="user",
-        status="active",
-    )
-    setattr(user, f"{provider}_id", provider_id)
-    db.add(user)
-    await db.flush()
+    if not user:
+        # 3. Create new user
+        user = User(
+            email=email or f"{provider}_{provider_id}@oauth.vicoo.org",
+            password_hash="",  # OAuth users have no password
+            nickname=nickname,
+            avatar=avatar,
+            role="user",
+            status="active",
+        )
+        setattr(user, f"{provider}_id", provider_id)
+        db.add(user)
+        await db.flush()
+        logger.info(f"New OAuth user created: {user.email}")
+    else:
+        logger.info(f"Existing OAuth user logged in: {user.email}")
+
+    # 4. Trigger welcome email (EVERY LOGIN for development testing)
+    if user.email and not user.email.endswith("@oauth.vicoo.org"):
+        import asyncio
+        from app.services.mailer import send_welcome_email
+        logger.info(f"Triggering welcome email for {user.email} (Dev Mode: Every Login)")
+        asyncio.create_task(send_welcome_email(user.email, user.nickname))
+
     return user
+
 
 
 def _build_auth_redirect(user: User) -> RedirectResponse:

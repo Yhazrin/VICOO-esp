@@ -245,6 +245,7 @@ from app.routers.ai_assistant import router as ai_router
 
 routers = (
     auth_router,
+    oauth_router,
     users_router,
     artworks_router,
     campaigns_router,

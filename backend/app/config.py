@@ -61,6 +61,10 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_ID: Optional[str] = None
     GOOGLE_CLIENT_SECRET: Optional[str] = None
 
+    # Resend (Mailer)
+    RESEND_API_KEY: Optional[str] = None
+    MAIL_FROM: str = "VICOO <onboarding@resend.dev>"
+
     # Frontend URL (for OAuth callback redirect)
     FRONTEND_URL: str = "http://localhost:5173"
 
