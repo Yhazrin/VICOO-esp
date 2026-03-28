@@ -1,8 +1,9 @@
 import logging
 import hmac
+import time
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Cookie
 from fastapi.responses import JSONResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -367,6 +368,12 @@ async def refresh(request: Request, db: AsyncSession = Depends(get_db)):
         payload = decode_token(refresh_token)
         if payload.get("type") != "refresh":
             raise HTTPException(status_code=400, detail="Invalid refresh token")
+        
+        # Check blacklist
+        from app.deps import is_token_blacklisted
+        if await is_token_blacklisted(payload.get("jti")):
+            raise HTTPException(status_code=401, detail="Token has been invalidated (logged out)")
+            
         sub = payload["sub"]
         role = payload.get("role", "user")
 
@@ -386,8 +393,19 @@ async def refresh(request: Request, db: AsyncSession = Depends(get_db)):
             pass
         except Exception:
             raise HTTPException(status_code=503, detail="Authentication service unavailable")
+        
         new_access = create_access_token(subject=sub, role=role)
         new_refresh = create_refresh_token(subject=sub, role=role)
+
+        # Blacklist the old refresh token so it can't be reused (token rotation)
+        from app.deps import get_redis_client
+        redis = await get_redis_client()
+        old_jti = payload.get("jti")
+        if old_jti:
+            exp = payload.get("exp")
+            if exp:
+                ttl = max(int(exp - time.time()), 60)
+                await redis.setex(f"blacklist:{old_jti}", ttl, "1")
 
         response_data = ApiResponse(
             success=True,
@@ -409,9 +427,38 @@ async def refresh(request: Request, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/logout")
-async def logout():
-    """Invalidate the current session (client-side token discard)."""
-    # Clear the refresh token and access token cookies
+async def logout(request: Request):
+    """Invalidate the current session and blacklist tokens."""
+    from app.deps import get_redis_client
+    redis = await get_redis_client()
+    
+    # 1. Blacklist the refresh token from cookie
+    refresh_token = request.cookies.get("refresh_token")
+    if refresh_token:
+        try:
+            payload = decode_token(refresh_token)
+            jti = payload.get("jti")
+            exp = payload.get("exp")
+            if jti and exp:
+                ttl = max(int(exp - time.time()), 60)
+                await redis.setex(f"blacklist:{jti}", ttl, "1")
+        except Exception:
+            pass
+
+    # 2. Blacklist the access token from Authorization header
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header.split(" ", 1)[1]
+        try:
+            payload = decode_token(token)
+            jti = payload.get("jti")
+            exp = payload.get("exp")
+            if jti and exp:
+                ttl = max(int(exp - time.time()), 60)
+                await redis.setex(f"blacklist:{jti}", ttl, "1")
+        except Exception:
+            pass
+
     response_data = ApiResponse(success=True, data={"message": "Logged out successfully"})
 
     json_response = JSONResponse(

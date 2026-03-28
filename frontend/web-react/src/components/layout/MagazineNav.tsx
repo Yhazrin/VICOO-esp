@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useUIStore } from '@/stores/uiStore';
 import { useAuthStore } from '@/stores/authStore';
+import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { useRef, useEffect, useState } from 'react';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
@@ -29,7 +30,8 @@ export default function MagazineNav() {
   const isMobile = useIsMobile();
   const { mobileNavOpen, toggleMobileNav, setMobileNavOpen, currentLocale, setLocale } =
     useUIStore();
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
+  const { logout } = useAuth();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const userMenuRef = useRef<HTMLDivElement>(null);

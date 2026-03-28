@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useUIStore } from '@/stores/uiStore';
 import { useAuthStore } from '@/stores/authStore';
+import { useAuth } from '@/hooks/useAuth';
 import { useRef, useEffect, useState } from 'react';
 
 const NAV_ITEMS = [
@@ -24,7 +25,8 @@ export default function MobileNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const { mobileNavOpen, setMobileNavOpen, menuTriggerRef } = useUIStore();
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
+  const { logout } = useAuth();
   const [_userMenuOpen, setUserMenuOpen] = useState(false);
   const prefersReducedMotion = useReducedMotion();
 

@@ -272,7 +272,7 @@ async def get_donation_certificate(donation_id: int, db: AsyncSession = Depends(
             "date": donation.created_at.isoformat() if donation.created_at else None,
             "campaign_id": donation.campaign_id,
             "certificate_no": f"TH-DON-{donation.id:06d}",
-            "certificate_url": f"/api/v1/donations/{donation.id}/certificate",
+            "certificate_url": f"/api/donations/{donation.id}/certificate",
         })
     except HTTPException:
         raise
@@ -291,6 +291,6 @@ async def get_donation_certificate(donation_id: int, db: AsyncSession = Depends(
                     "date": d["created_at"],
                     "campaign_id": d.get("campaign_id"),
                     "certificate_no": f"TH-DON-{d['id']:06d}",
-                    "certificate_url": f"/api/v1/donations/{d['id']}/certificate",
+                    "certificate_url": f"/api/donations/{d['id']}/certificate",
                 })
         raise HTTPException(status_code=404, detail="Donation not found")
