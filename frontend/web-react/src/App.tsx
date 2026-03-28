@@ -15,6 +15,8 @@ import Traceability from '@/pages/Traceability';
 import Contact from '@/pages/Contact';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
+import AuthCallback from '@/pages/AuthCallback';
+import ForgotPassword from '@/pages/ForgotPassword';
 import Profile from '@/pages/Profile';
 import Privacy from '@/pages/Privacy';
 import Terms from '@/pages/Terms';
@@ -53,6 +55,8 @@ function AnimatedRoutes() {
             <Route path="traceability" element={<ErrorBoundary><Traceability /></ErrorBoundary>} />
             <Route path="contact" element={<ErrorBoundary><Contact /></ErrorBoundary>} />
             <Route path="login" element={<ErrorBoundary><Login /></ErrorBoundary>} />
+            <Route path="auth/callback" element={<ErrorBoundary><AuthCallback /></ErrorBoundary>} />
+            <Route path="forgot-password" element={<ErrorBoundary><ForgotPassword /></ErrorBoundary>} />
             <Route path="register" element={<ErrorBoundary><Register /></ErrorBoundary>} />
             <Route path="profile" element={<ErrorBoundary><Profile /></ErrorBoundary>} />
             <Route path="orders/:id" element={<ErrorBoundary><OrderDetail /></ErrorBoundary>} />

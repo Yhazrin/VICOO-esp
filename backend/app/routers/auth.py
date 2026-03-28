@@ -426,6 +426,24 @@ async def refresh(request: Request, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
 
 
+@router.post("/forgot-password")
+async def forgot_password(request: Request):
+    """Request a password reset email.
+
+    Security: Always returns success to prevent email enumeration.
+    In production, this would send an actual reset email.
+    """
+    # Note: In production, validate email and send reset link via email service
+    # For now, always return success for security (prevent email enumeration)
+    return JSONResponse(
+        status_code=200,
+        content=ApiResponse(
+            success=True,
+            data={"message": "If an account exists with that email, a reset link has been sent."},
+        ).model_dump(),
+    )
+
+
 @router.post("/logout")
 async def logout(request: Request):
     """Invalidate the current session and blacklist tokens."""

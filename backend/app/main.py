@@ -226,6 +226,7 @@ async def health():
 
 # ── Register routers ─────────────────────────────────────────────
 from app.routers.auth import router as auth_router
+from app.routers.oauth import router as oauth_router
 from app.routers.users import router as users_router
 from app.routers.artworks import router as artworks_router
 from app.routers.campaigns import router as campaigns_router
