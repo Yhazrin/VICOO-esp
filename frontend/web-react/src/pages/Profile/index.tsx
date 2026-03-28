@@ -12,6 +12,7 @@ import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 import { MagazineDivider } from '@/components/editorial/MagazineDivider';
 import { EditorialCard } from '@/components/editorial/EditorialCard';
 import { useAuthStore } from '@/stores/authStore';
+import { useAuth } from '@/hooks/useAuth';
 import { ordersApi, type OrderDetail } from '@/services/orders';
 import { donationsApi } from '@/services/donations';
 import { clothingIntakesApi, type ClothingIntake } from '@/services/clothingIntakes';
@@ -32,7 +33,8 @@ export default function Profile() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const prefersReducedMotion = useReducedMotion();
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
+  const { logout } = useAuth();
   const [activeTab, setActiveTab] = useState<'orders' | 'donations' | 'clothing' | 'support'>('orders');
 
   const tabs: Array<'orders' | 'donations' | 'clothing' | 'support'> = ['orders', 'donations', 'clothing', 'support'];

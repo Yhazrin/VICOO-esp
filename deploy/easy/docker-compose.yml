@@ -63,7 +63,7 @@ services:
       APP_SECRET_KEY: ${APP_SECRET_KEY}
       JWT_ALGORITHM: HS256
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost,http://localhost:80,http://localhost:8080}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost,http://localhost:80,http://localhost:8080,http://127.0.0.1:5173}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
       SEED_EDITOR_PASSWORD: ${SEED_EDITOR_PASSWORD}
       SEED_USER_PASSWORD: ${SEED_USER_PASSWORD}
@@ -91,6 +91,8 @@ services:
       - vicoo-net
     volumes:
       - ./data:/data
+      # Mount source code for hot reload (development only)
+      - ../../backend:/app/backend
 
   # ---- Frontend (React + Nginx) ----
   frontend:
@@ -99,8 +101,12 @@ services:
       dockerfile: ../../deploy/easy/frontend.dockerfile
     container_name: vicoo-frontend
     restart: unless-stopped
+    # environment:
+    #   VITE_API_BASE_URL: /api/v1
+    #   CHOKIDAR_USEPOLLING: "true"  # Enable file watching in container
     ports:
       - "80:80"
+      # - "5173:5173"  # Vite dev server port
     depends_on:
       backend:
         condition: service_healthy
@@ -111,6 +117,10 @@ services:
       retries: 3
     networks:
       - vicoo-net
+    # volumes:
+    #   # Mount source code for hot reload
+    #   - ../../frontend/web-react:/app
+    #   - /app/node_modules  # Preserve node_modules
 
   # ---- Admin Dashboard (React + Nginx) ----
   admin:

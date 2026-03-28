@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useUIStore, THEMES, type ThemeId } from '@/stores/uiStore';
 import { useAuthStore } from '@/stores/authStore';
+import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { useRef, useEffect, useState } from 'react';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
@@ -38,7 +39,8 @@ export default function Header() {
     setSettingsMenuOpen,
   } = useUIStore();
 
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
+  const { logout } = useAuth();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [activeSubmenu, setActiveSubmenu] = useState<'main' | 'theme' | null>(null);
 
@@ -132,7 +134,7 @@ export default function Header() {
             className="font-body text-caption text-ink-faded hover:text-ink transition-colors px-2 py-1 border border-warm-gray/40 cursor-pointer"
             aria-label="Toggle language"
           >
-            {currentLocale === 'en' ? '中文' : 'EN'}
+            {currentLocale === 'zh' ? '英文' : 'CN'}
           </button>
 
           {/* User menu - shows username/avatar when logged in, login button when not */}
@@ -151,10 +153,10 @@ export default function Header() {
                 <>
                   <div className="w-5 h-5 rounded-full bg-sepia-mid flex items-center justify-center">
                     <span className="text-caption text-paper font-medium">
-                      {user.name?.charAt(0).toUpperCase() || 'U'}
+                      {user.nickname?.charAt(0).toUpperCase() || 'U'}
                     </span>
                   </div>
-                  <span className="max-w-20 truncate">{user.name}</span>
+                  <span className="max-w-20 truncate">{user.nickname}</span>
                 </>
               ) : (
                 <span>{t('nav.login')}</span>
@@ -229,7 +231,7 @@ export default function Header() {
                       {isAuthenticated && user ? (
                         <>
                           <div className="px-4 py-2 border-b border-warm-gray/20">
-                            <p className="font-body text-body-sm text-ink font-medium">{user.name}</p>
+                            <p className="font-body text-body-sm text-ink font-medium">{user.nickname}</p>
                             <p className="font-body text-caption text-sepia-mid truncate">{user.email}</p>
                           </div>
 

@@ -29,6 +29,18 @@ async def get_redis_client():
     return redis_client
 
 
+async def is_token_blacklisted(jti: str) -> bool:
+    """Check if a token's JTI is in the Redis blacklist."""
+    if not jti:
+        return False
+    try:
+        client = await get_redis_client()
+        return await client.exists(f"blacklist:{jti}")
+    except Exception as e:
+        logger.error(f"Redis error during blacklist check: {e}")
+        return False
+
+
 async def get_current_user(
     request: Request,
     authorization: Optional[str] = Header(None),
@@ -43,6 +55,11 @@ async def get_current_user(
         payload = decode_token(token)
         if payload.get("type") != "access":
             raise HTTPException(status_code=401, detail="Invalid token type")
+        
+        # Check blacklist
+        if await is_token_blacklisted(payload.get("jti")):
+            raise HTTPException(status_code=401, detail="Token has been invalidated (logged out)")
+            
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
@@ -130,7 +147,16 @@ async def rate_limit_check(request: Request, current_user: Optional[dict] = None
                 raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
         # Public endpoint rate limit: 20 requests per minute per IP for auth endpoints
-        public_endpoints = ["/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/refresh", "/api/v1/auth/wx-login"]
+        public_endpoints = [
+            "/api/auth/login",
+            "/api/auth/register",
+            "/api/auth/refresh",
+            "/api/auth/wx-login",
+            "/api/v1/auth/login",
+            "/api/v1/auth/register",
+            "/api/v1/auth/refresh",
+            "/api/v1/auth/wx-login",
+        ]
         if request.url.path in public_endpoints:
             public_key = f"rate_limit:public:{client_ip}:{int(current_time // 60)}"
             try:
@@ -197,6 +223,10 @@ async def get_current_user_from_request(request: Request, db: AsyncSession) -> O
         payload = decode_token(token)
         if payload.get("type") != "access":
             return None
+            
+        # Check blacklist
+        if await is_token_blacklisted(payload.get("jti")):
+            return None
 
         # Try DB lookup
         sub = payload["sub"]
@@ -238,6 +268,11 @@ async def get_optional_current_user(
         payload = decode_token(token)
         if payload.get("type") != "access":
             return None
+            
+        # Check blacklist
+        if await is_token_blacklisted(payload.get("jti")):
+            return None
+            
         sub = payload["sub"]
         try:
             user_id = int(sub)

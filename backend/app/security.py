@@ -1,6 +1,7 @@
 import os
 import base64
 import json
+import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 
@@ -32,6 +33,7 @@ def create_access_token(subject: str, role: str = "user", extra: dict | None = N
         "sub": subject,
         "role": role,
         "type": "access",
+        "jti": str(uuid.uuid4()),
         "iat": _now_utc(),
         "exp": _now_utc() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
     }
@@ -53,6 +55,7 @@ def create_refresh_token(subject: str, role: str = "user") -> str:
         "sub": subject,
         "role": role,
         "type": "refresh",
+        "jti": str(uuid.uuid4()),
         "iat": _now_utc(),
         "exp": _now_utc() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
     }

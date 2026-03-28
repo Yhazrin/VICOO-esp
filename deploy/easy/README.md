@@ -32,6 +32,29 @@ docker compose up -d
 | API | http://localhost:8000 |
 | API 文档 | http://localhost:8000/docs |
 
+## 本地开发
+
+后端代码修改后会自动重载，无需重启容器。
+
+前端开发推荐使用宿主机开发服务器（热更新更快）：
+
+```bash
+# 1. 重新构建后端（首次配置或修改 CORS 后需要）
+docker compose build backend
+docker compose up -d backend
+
+# 2. 停止 Docker 前端容器（避免端口冲突）
+docker compose stop frontend
+
+# 3. 启动前端开发服务器
+cd frontend/web-react
+npm run dev
+```
+
+访问前端开发服务器显示的端口（通常是 9111）即可。
+
+> 注意：后端已配置 CORS 允许 http://localhost:9111 请求 API。
+
 ## 测试账号
 
 | 服务 | 角色 | 邮箱 | 密码 |
@@ -121,11 +144,27 @@ docker compose logs backend | grep -i mysql
 
 ```bash
 # 查找占用端口的进程
-lothan -i :80        # 前端
+lsof -i :80          # 前端
 lsof -i :8080        # 管理后台
 lsof -i :8000        # API
 
 # 或修改 docker-compose.yml 中服务的端口映射
+```
+
+### 修改后端代码但接口仍旧报错
+
+后端已配置源代码挂载，修改 Python 代码后会自动重载。
+
+如果遇到问题，可尝试：
+
+```bash
+docker compose restart backend
+```
+
+如果前端构建产物改了，需要重新构建：
+
+```bash
+docker compose up -d --build frontend
 ```
 
 ### 管理后台无法登录

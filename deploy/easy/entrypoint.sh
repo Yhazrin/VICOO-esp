@@ -40,9 +40,19 @@ mysql -h"${MYSQL_HOST:-mysql}" -u"${MYSQL_ROOT_USER:-root}" -p"${MYSQL_ROOT_PASS
 echo "Database ready. Starting VICOO API..."
 
 # Run uvicorn
-exec python -m uvicorn app.main:app \
-    --host 0.0.0.0 \
-    --port 8000 \
-    --workers 2 \
-    --log-level info \
-    --proxy-headers
+# Use --reload in development mode for hot reload
+if [ "${APP_ENV}" = "development" ]; then
+    exec python -m uvicorn app.main:app \
+        --host 0.0.0.0 \
+        --port 8000 \
+        --reload \
+        --log-level debug \
+        --proxy-headers
+else
+    exec python -m uvicorn app.main:app \
+        --host 0.0.0.0 \
+        --port 8000 \
+        --workers 2 \
+        --log-level info \
+        --proxy-headers
+fi

@@ -243,23 +243,31 @@ from app.routers.after_sales import router as after_sales_router
 from app.routers.sustainability import router as sustainability_router
 from app.routers.ai_assistant import router as ai_router
 
-app.include_router(auth_router, prefix="/api/v1")
-app.include_router(oauth_router, prefix="/api/v1")
-app.include_router(users_router, prefix="/api/v1")
-app.include_router(artworks_router, prefix="/api/v1")
-app.include_router(campaigns_router, prefix="/api/v1")
-app.include_router(donations_router, prefix="/api/v1")
-app.include_router(products_router, prefix="/api/v1")
-app.include_router(orders_router, prefix="/api/v1")
-app.include_router(payments_router, prefix="/api/v1")
-app.include_router(admin_router, prefix="/api/v1")
-app.include_router(supply_chain_router, prefix="/api/v1")
-app.include_router(contact_router, prefix="/api/v1")
-app.include_router(clothing_intakes_router, prefix="/api/v1")
-app.include_router(reviews_router, prefix="/api/v1")
-app.include_router(after_sales_router, prefix="/api/v1")
-app.include_router(sustainability_router, prefix="/api/v1")
-app.include_router(ai_router, prefix="/api/v1")
+routers = (
+    auth_router,
+    users_router,
+    artworks_router,
+    campaigns_router,
+    donations_router,
+    products_router,
+    orders_router,
+    payments_router,
+    admin_router,
+    supply_chain_router,
+    contact_router,
+    clothing_intakes_router,
+    reviews_router,
+    after_sales_router,
+    sustainability_router,
+    ai_router,
+)
+
+# Keep both prefixes alive during the migration from /api/v1 -> /api.
+# This prevents the web app, tests, and older clients from breaking while
+# different environments roll forward at different times.
+for api_prefix in ("/api", "/api/v1"):
+    for router in routers:
+        app.include_router(router, prefix=api_prefix)
 
 
 if __name__ == "__main__":
