@@ -11,10 +11,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <Sidebar />
       <div className={`main-area ${collapsed ? 'sidebar-collapsed' : 'sidebar-expanded'}`}>
         <TopBar />
-        <div className="content-area">
+        <main className="content-area">
           <Breadcrumb />
           {children}
-        </div>
+        </main>
       </div>
     </div>
   );
