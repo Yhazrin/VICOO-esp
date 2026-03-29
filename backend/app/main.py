@@ -29,12 +29,9 @@ logging.getLogger("tonghua.auth").setLevel(_log_level)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: create tables if they don't exist
-    try:
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-    except Exception:
-        logger.warning("Database initialization failed — mock data fallback will be used", exc_info=True)
+    # Note: Database schema is managed by Alembic migrations
+    # Run: docker compose exec backend alembic upgrade head
+
     # Auto-seed demo data on first run (only when users table is empty)
     if settings.APP_ENV == "development":
         try:

@@ -88,6 +88,36 @@ docker compose down -v   # 删除数据卷（清空数据库！）
 docker compose up -d     # 重新启动
 ```
 
+# 数据库查看
+使用方法（在 deploy/easy 目录下）：
+
+  # 查看所有表
+  ./db.sh tables
+
+  # 查看表结构
+  ./db.sh schema users
+
+  # 查看表数据
+  ./db.sh data users
+
+  # 运行自定义 SQL
+  ./db.sh query "SELECT id, email, nickname FROM users LIMIT 5;"
+
+  # 快捷命令
+  ./db.sh users
+  ./db.sh products
+  ./db.sh orders
+
+  ---
+  修改 models 后更新数据库（开发环境最简单的方式）：
+
+  # 删除旧数据，重新初始化
+  docker compose down -v
+  docker compose up -d
+
+  ▎ ⚠️ 警告：这会删除所有数据，仅适合开发环境。
+  
+
 ## 自定义端口
 
 编辑 `docker-compose.yml` 中的端口映射：
@@ -112,6 +142,60 @@ services:
 ```bash
 docker compose down -v
 docker compose up -d --build
+```
+
+## 数据库迁移
+
+项目使用 [Alembic](https://alembic.sqlalchemy.org/) 管理数据库版本。首次启动时自动执行迁移。
+
+### 修改数据模型后
+
+当修改 `backend/app/models/` 中的模型后，需要生成并应用迁移：
+
+```bash
+# 1. 生成本次迁移脚本（修改模型后执行）
+docker compose exec backend alembic revision --autogenerate -m "描述本次修改"
+
+# 2. 查看生成的迁移文件
+docker compose exec backend alembic history
+
+# 3. 执行迁移
+docker compose exec backend alembic upgrade head
+```
+
+### 常用命令
+
+```bash
+# 查看当前迁移版本
+docker compose exec backend alembic current
+
+# 查看所有迁移历史
+docker compose exec backend alembic history
+
+# 回滚上一次迁移
+docker compose exec backend alembic downgrade -1
+
+# 回滚到指定版本
+docker compose exec backend alembic downgrade <revision>
+```
+
+### 重置数据库（开发环境）
+
+```bash
+# 删除所有数据并重新创建（所有数据会丢失！）
+docker compose down -v
+docker compose up -d
+```
+
+### 本地开发（非 Docker）
+
+```bash
+cd backend
+
+# 生成本地迁移（需要设置 DATABASE_URL 环境变量）
+export DATABASE_URL="mysql+aiomysql://vicoo:vicoo_pass_2026@localhost:3306/vicoo"
+alembic revision --autogenerate -m "描述本次修改"
+alembic upgrade head
 ```
 
 ## 文件说明

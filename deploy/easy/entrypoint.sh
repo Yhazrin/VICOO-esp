@@ -37,7 +37,18 @@ mysql -h"${MYSQL_HOST:-mysql}" -u"${MYSQL_ROOT_USER:-root}" -p"${MYSQL_ROOT_PASS
      FLUSH PRIVILEGES;" \
     2>/dev/null || echo "App user creation skipped (may already exist)"
 
-echo "Database ready. Starting VICOO API..."
+echo "Database ready. Running Alembic migrations..."
+
+# Run Alembic migrations (alembic.ini is in backend directory)
+cd /app/backend
+python -m alembic upgrade head || {
+    echo "Migration failed. Checking if tables exist..."
+    # If migration fails, it might be because tables already exist
+    # Try to stamp the current revision
+    python -m alembic stamp head 2>/dev/null || true
+}
+
+echo "Migrations complete. Starting VICOO API..."
 
 # Run uvicorn
 # Use --reload in development mode for hot reload

@@ -1,10 +1,11 @@
-# 修复记录：本地开发环境热更新配置
+# 修复记录：本地开发环境热更新配置 + Alembic 迁移
 
 ## 问题描述
 
 在进行本地开发时，希望实现：
 1. 后端代码修改后自动重载，无需重建 Docker 容器
 2. 前端可以使用 `npm run dev` 进行开发（热更新更快）
+3. 数据库使用 Alembic 管理迁移，修改模型后可以保留数据
 
 ## 问题表现
 
@@ -27,6 +28,11 @@
 
 - **现象**：API 请求成功到达后端，但返回 401 未授权
 - **原因**：需要使用正确的 mock 用户账号密码
+
+### 问题 5：数据库无法迁移
+
+- **现象**：修改模型字段后，需要删除数据库重建才能生效
+- **原因**：使用 `Base.metadata.create_all()` 自动创建表，不支持迁移
 
 ---
 
@@ -136,6 +142,47 @@ MOCK_USER_PASSWORD=vicoo-mock
 
 ---
 
+### 5. Alembic 迁移配置
+
+**修改文件**：
+- `backend/alembic/env.py` - 添加 target_metadata 和数据库 URL 读取
+- `backend/alembic.ini` - 修改数据库 URL 配置
+- `backend/app/main.py` - 移除 `Base.metadata.create_all()`
+- `deploy/easy/entrypoint.sh` - 添加迁移命令
+- `deploy/easy/README.md` - 添加迁移文档
+
+**关键变更**：
+
+1. `alembic/env.py` - 添加模型导入和 target_metadata：
+```python
+from app.database import Base
+from app.models.user import User, ChildParticipant
+from app.models.artwork import Artwork
+# ... 其他模型
+
+target_metadata = Base.metadata
+```
+
+2. `alembic/env.py` - 从环境变量读取数据库 URL：
+```python
+def get_url():
+    db_url = settings.DATABASE_URL
+    if "mysql+pymysql" in db_url:
+        db_url = db_url.replace("mysql+pymysql", "mysql+aiomysql")
+    return db_url
+```
+
+3. `entrypoint.sh` - 启动时运行迁移：
+```bash
+cd /app/backend
+python -m alembic upgrade head || {
+    echo "Migration failed. Checking if tables exist..."
+    python -m alembic stamp head 2>/dev/null || true
+}
+```
+
+---
+
 ## README 更新
 
 ### 开发模式说明
@@ -150,17 +197,82 @@ MOCK_USER_PASSWORD=vicoo-mock
 前端开发推荐使用宿主机开发服务器（热更新更快）：
 
 ```bash
-# 1. 停止 Docker 前端容器（避免端口冲突）
+# 1. 重新构建后端（首次配置或修改 CORS 后需要）
+docker compose build backend
+docker compose up -d backend
+
+# 2. 停止 Docker 前端容器（避免端口冲突）
 docker compose stop frontend
 
-# 2. 启动前端开发服务器
+# 3. 启动前端开发服务器
 cd frontend/web-react
 npm run dev
 ```
 
-访问 http://localhost:9111 即可。
+访问前端开发服务器显示的端口（通常是 9111 或 5173）即可。
 
-> 注意：后端已配置 CORS 允许 http://127.0.0.1:9111 请求 API。
+> 注意：后端已配置 CORS 允许 http://localhost:9111 和 http://localhost:5173 请求 API。
+
+**测试账号**（开发模式 mock 用户）：
+- 邮箱：admin@tonghua.org
+- 密码：vicoo-mock（由 MOCK_USER_PASSWORD 环境变量设置）
+```
+
+### 数据库迁移说明
+
+在 `deploy/easy/README.md` 中添加了数据库迁移章节：
+
+```markdown
+## 数据库迁移
+
+项目使用 [Alembic](https://alembic.sqlalchemy.org/) 管理数据库版本。首次启动时自动执行迁移。
+
+### 修改数据模型后
+
+当修改 `backend/app/models/` 中的模型后，需要生成并应用迁移：
+
+```bash
+# 1. 生成本次迁移脚本（修改模型后执行）
+docker compose exec backend alembic revision --autogenerate -m "描述本次修改"
+
+# 2. 查看生成的迁移文件
+docker compose exec backend alembic history
+
+# 3. 执行迁移
+docker compose exec backend alembic upgrade head
+```
+
+### 常用命令
+
+```bash
+# 查看当前迁移版本
+docker compose exec backend alembic current
+
+# 查看所有迁移历史
+docker compose exec backend alembic history
+
+# 回滚上一次迁移
+docker compose exec backend alembic downgrade -1
+```
+
+### 重置数据库（开发环境）
+
+```bash
+# 删除所有数据并重新创建（所有数据会丢失！）
+docker compose down -v
+docker compose up -d
+```
+
+### 本地开发（非 Docker）
+
+```bash
+cd backend
+
+# 生成本地迁移（需要设置 DATABASE_URL 环境变量）
+export DATABASE_URL="mysql+aiomysql://vicoo:vicoo_pass_2026@localhost:3306/vicoo"
+alembic revision --autogenerate -m "描述本次修改"
+alembic upgrade head
+```
 ```
 
 ---
@@ -198,6 +310,7 @@ npm run dev
 |---------|------|
 | 后端 Python 代码 | 自动重载（无需重启） |
 | 前端代码 | 浏览器自动刷新（Vite HMR） |
+| 数据库模型 | 需要生成迁移并执行 |
 | .env 配置文件 | 需要重建容器：`docker compose build <service>` |
 
 ---
@@ -207,10 +320,39 @@ npm run dev
 | 文件路径 | 变更类型 | 说明 |
 |---------|---------|------|
 | `deploy/easy/docker-compose.yml` | 修改 | 添加后端源代码挂载，添加开发端口 5173 到 CORS |
-| `deploy/easy/entrypoint.sh` | 修改 | 开发模式使用 `--reload` 参数 |
+| `deploy/easy/entrypoint.sh` | 修改 | 开发模式使用 `--reload` 参数，启动时运行迁移 |
 | `deploy/easy/.env` | 修改 | VITE_API_BASE_URL 改为 `/api/v1`，CORS 添加 9111 端口 |
-| `deploy/easy/README.md` | 修改 | 添加本地开发说明章节 |
+| `deploy/easy/README.md` | 修改 | 添加本地开发说明和数据库迁移章节 |
+| `deploy/easy/backend.dockerfile` | 修改 | 调整 PYTHONPATH |
 | `frontend/web-react/.env.development` | 新建 | 本地开发时的 API 地址配置 |
+| `backend/alembic/env.py` | 修改 | 添加 target_metadata，从环境变量读取数据库 URL |
+| `backend/alembic.ini` | 修改 | 数据库 URL 配置 |
+| `backend/app/main.py` | 修改 | 移除 Base.metadata.create_all() |
+
+---
+
+## 数据库查看脚本
+
+项目提供了 `deploy/easy/db.sh` 脚本：
+
+```bash
+# 查看所有表
+./db.sh tables
+
+# 查看表结构
+./db.sh schema users
+
+# 查看表数据
+./db.sh data users
+
+# 运行自定义 SQL
+./db.sh query "SELECT id, email, nickname FROM users LIMIT 5;"
+
+# 快捷命令
+./db.sh users
+./db.sh products
+./db.sh orders
+```
 
 ---
 
@@ -241,3 +383,16 @@ docker compose restart backend
 
 - 使用正确的 mock 账号：`admin@tonghua.org` / `vicoo-mock`
 - 查看后端日志：`docker compose logs backend`
+
+### Q：迁移失败
+
+```bash
+# 查看当前迁移状态
+docker compose exec backend alembic current
+
+# 查看所有迁移
+docker compose exec backend alembic history
+
+# 手动标记当前版本（如果表已存在）
+docker compose exec backend alembic stamp head
+```
