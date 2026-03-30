@@ -63,10 +63,10 @@ class Settings(BaseSettings):
 
     # Resend (Mailer)
     RESEND_API_KEY: Optional[str] = None
-    MAIL_FROM: str = "VICOO <onboarding@resend.dev>"
+    MAIL_FROM: str = "VICOO <onboarding@vicoo.yhazrin.xyz>"
 
     # Frontend URL (for OAuth callback redirect)
-    FRONTEND_URL: str = "http://localhost:5173"
+    FRONTEND_URL: str = "http://localhost"
 
     # Rate Limiting
     GLOBAL_RATE_LIMIT: int = 1000
