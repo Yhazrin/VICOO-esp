@@ -77,10 +77,20 @@ async def get_current_user(
         stmt = select(User).where(User.id == user_id)
         result = await db.execute(stmt)
         user = result.scalar_one_or_none()
-        if user and user.status == "banned":
+        if not user:
+            raise HTTPException(status_code=401, detail="User not found")
+        if user.status == "banned":
             raise HTTPException(status_code=403, detail="User is banned")
-        if user:
-            return {"id": user.id, "email": user.email, "role": user.role, "nickname": user.nickname}
+        
+        # Return the actual user object or a dict with the role value
+        role_value = user.role.value if hasattr(user.role, "value") else str(user.role)
+        return {
+            "id": user.id, 
+            "email": user.email, 
+            "role": role_value, 
+            "nickname": user.nickname,
+            "user_obj": user  # Include the full object for complex checks
+        }
     except HTTPException:
         raise
     except Exception:

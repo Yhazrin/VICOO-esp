@@ -18,5 +18,8 @@ class PaymentTransaction(Base):
         default="pending",
         nullable=False,
     )
+    payment_url = Column(String(500), nullable=True)
+    expires_at = Column(DateTime, nullable=True)
+    idempotency_key = Column(String(100), unique=True, nullable=True, index=True)
     raw_response = Column(JSON, nullable=True)
     created_at = Column(DateTime, server_default=func.now(), nullable=False)

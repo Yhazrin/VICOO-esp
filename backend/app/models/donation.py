@@ -22,4 +22,6 @@ class Donation(Base):
     )
     is_anonymous = Column(Boolean, default=False, nullable=False)
     message = Column(Text, nullable=True)
+    certificate_no = Column(String(100), unique=True, nullable=True, index=True)
+    certificate_url = Column(String(500), nullable=True)
     created_at = Column(DateTime, server_default=func.now(), nullable=False)

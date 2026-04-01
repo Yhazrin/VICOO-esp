@@ -3,7 +3,6 @@ Shared test fixtures for Tonghua Public Welfare test suite.
 Provides test database, auth helpers, and mock data factories.
 """
 
-import asyncio
 import os
 import sys
 import uuid
@@ -65,17 +64,19 @@ async def mock_wechat_get(self, url, **kwargs):
 httpx_patch = patch.object(AsyncClient, 'get', new=mock_wechat_get)
 httpx_patch.start()
 
-# Add backend directory to Python path to allow importing backend modules
-# Assumes tests are in tonghua-project/tests/ directory
-# backend/app is the package root (since main.py uses `from app.config ...`)
-backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'backend'))
+# Add the backend package root to Python path so `import app...` works
+# no matter whether pytest is launched from repo root or from `backend/`.
+tests_dir = os.path.abspath(os.path.dirname(__file__))
+backend_dir = os.path.abspath(os.path.join(tests_dir, ".."))
 if backend_dir not in sys.path:
     sys.path.insert(0, backend_dir)
+
+test_db_path = os.path.join(backend_dir, "test.db")
 
 # Set required environment variables for testing
 # These are required by app.config.Settings
 os.environ.setdefault("TESTING", "1")
-os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///test.db")
+os.environ.setdefault("DATABASE_URL", f"sqlite+aiosqlite:///{test_db_path}")
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379")
 os.environ.setdefault("APP_SECRET_KEY", "test-secret-key-for-hmac-sha256")
 os.environ.setdefault("ENCRYPTION_KEY", "test-encryption-key-32-bytes-long!!!")
@@ -94,18 +95,6 @@ os.environ.setdefault("WECHAT_APP_SECRET", "test-app-secret")
 os.environ.setdefault("WECHAT_MCH_ID", "test-mch-id")
 os.environ.setdefault("WECHAT_PAY_API_KEY", "test-api-key")
 os.environ.setdefault("WECHAT_NOTIFY_URL", "http://localhost:8000/api/v1/payments/wechat-notify")
-
-# ---------------------------------------------------------------------------
-# Event loop
-# ---------------------------------------------------------------------------
-
-@pytest.fixture(scope="session")
-def event_loop():
-    """Create a session-scoped event loop for async tests."""
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
-
 
 # ---------------------------------------------------------------------------
 # Database fixtures
@@ -137,6 +126,9 @@ async def app():
     Create the FastAPI application for testing.
     Imports the app from the backend module.
     """
+    if os.path.exists(test_db_path):
+        os.remove(test_db_path)
+
     try:
         # Since backend_dir is in sys.path, app is the top-level package
         from app.main import app as application
@@ -161,7 +153,7 @@ async def app():
         from app.security import hash_password
         from sqlalchemy import select
 
-        # Ensure tables exist (replicate lifespan logic)
+        # Create a fresh schema for the session.
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
 

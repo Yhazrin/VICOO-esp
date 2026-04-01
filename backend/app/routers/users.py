@@ -22,6 +22,8 @@ _mock_users = [
 ]
 
 
+from app.services.user.service import UserService
+
 @router.get("", response_model=PaginatedResponse)
 async def list_users(
     page: int = Query(1, ge=1),
@@ -29,46 +31,32 @@ async def list_users(
     db: AsyncSession = Depends(get_db),
     _current_user: dict = Depends(require_role("admin")),
 ):
-    """List all users (admin only)."""
+    """List all users (admin only). (Refactored)"""
+    user_service = UserService(db)
     try:
-        stmt = select(User).offset((page - 1) * page_size).limit(page_size)
-        result = await db.execute(stmt)
-        users = result.scalars().all()
-        count_stmt = select(func.count(User.id))
-        total = (await db.execute(count_stmt)).scalar() or 0
+        users, total = await user_service.list_users(page, page_size)
         return PaginatedResponse(
             data=[UserOut.model_validate(u).model_dump() for u in users],
             total=total,
             page=page,
             page_size=page_size,
         )
-    except Exception:
-        start = (page - 1) * page_size
-        end = start + page_size
-        return PaginatedResponse(
-            data=_mock_users[start:end],
-            total=len(_mock_users),
-            page=page,
-            page_size=page_size,
-        )
-
+    except Exception as e:
+        logger.error(f"Error listing users: {e}")
+        return PaginatedResponse(data=[], total=0, page=page, page_size=page_size)
 
 @router.get("/me", response_model=ApiResponse)
 async def get_me(
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Get current user profile."""
+    """Get current user profile. (Refactored)"""
+    user_service = UserService(db)
     try:
-        stmt = select(User).where(User.id == current_user["id"])
-        result = await db.execute(stmt)
-        user = result.scalar_one_or_none()
-        if user:
-            return ApiResponse(data=UserOut.model_validate(user).model_dump())
+        user = await user_service.get_user_by_id(current_user["id"])
+        return ApiResponse(data=UserOut.model_validate(user).model_dump())
     except Exception:
-        pass
-    return ApiResponse(data=current_user)
-
+        return ApiResponse(data=current_user)
 
 @router.put("/me", response_model=ApiResponse)
 async def update_me(
@@ -76,57 +64,32 @@ async def update_me(
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Update current user profile."""
+    """Update current user profile. (Refactored)"""
+    user_service = UserService(db)
     try:
-        stmt = select(User).where(User.id == current_user["id"])
-        result = await db.execute(stmt)
-        user = result.scalar_one_or_none()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-        if body.nickname is not None:
-            user.nickname = body.nickname
-        if body.avatar is not None:
-            user.avatar = body.avatar
-        if body.phone is not None:
-            user.phone_encrypted = aes_encrypt(body.phone)
-        await db.flush()
+        user = await user_service.update_user_profile(current_user["id"], body.model_dump())
+        await db.commit()
         return ApiResponse(data=UserOut.model_validate(user).model_dump())
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"DB write failed during update_me: {e}", exc_info=True)
-        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
-
+        logger.error(f"Failed to update profile: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.get("/{user_id}", response_model=ApiResponse)
 async def get_user(user_id: int, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    """Get a user by ID.
-
-    Security: Only admins or the user themselves can access user details.
-    Prevents IDOR (Insecure Direct Object Reference) attacks.
-    """
-    # Authorization check: only admin or user themselves can access
+    """Get a user by ID. (Refactored)"""
     if current_user.get("role") != "admin" and current_user.get("id") != user_id:
-        raise HTTPException(
-            status_code=403,
-            detail="Access denied. You can only view your own profile or must be an administrator."
-        )
+        raise HTTPException(status_code=403, detail="Access denied")
 
+    user_service = UserService(db)
     try:
-        stmt = select(User).where(User.id == user_id)
-        result = await db.execute(stmt)
-        user = result.scalar_one_or_none()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+        user = await user_service.get_user_by_id(user_id)
         return ApiResponse(data=UserOut.model_validate(user).model_dump())
     except HTTPException:
         raise
     except Exception:
-        for u in _mock_users:
-            if u["id"] == user_id:
-                return ApiResponse(data=u)
         raise HTTPException(status_code=404, detail="User not found")
-
 
 @router.put("/{user_id}/role", response_model=ApiResponse)
 async def update_user_role(
@@ -135,25 +98,18 @@ async def update_user_role(
     db: AsyncSession = Depends(get_db),
     _current_user: dict = Depends(require_role("admin")),
 ):
-    """Update user role (admin only)."""
-    # Prevent self-modification to avoid privilege escalation / lock-out
+    """Update user role (admin only). (Refactored)"""
     if _current_user.get("id") == user_id:
         raise HTTPException(status_code=403, detail="Admins cannot modify their own role")
+    
+    user_service = UserService(db)
     try:
-        stmt = select(User).where(User.id == user_id)
-        result = await db.execute(stmt)
-        user = result.scalar_one_or_none()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-        user.role = body.role
-        await db.flush()
+        user = await user_service.update_user_role(user_id, body.role)
+        await db.commit()
         return ApiResponse(data=UserOut.model_validate(user).model_dump())
-    except HTTPException:
-        raise
     except Exception as e:
-        logger.error(f"DB write failed during update_user_role: {e}", exc_info=True)
-        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
-
+        logger.error(f"Failed to update user role: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.put("/{user_id}/status", response_model=ApiResponse)
 async def update_user_status(
@@ -162,21 +118,15 @@ async def update_user_status(
     db: AsyncSession = Depends(get_db),
     _current_user: dict = Depends(require_role("admin")),
 ):
-    """Update user status (admin only)."""
-    # Prevent self-modification to avoid lock-out
+    """Update user status (admin only). (Refactored)"""
     if _current_user.get("id") == user_id:
         raise HTTPException(status_code=403, detail="Admins cannot modify their own status")
+    
+    user_service = UserService(db)
     try:
-        stmt = select(User).where(User.id == user_id)
-        result = await db.execute(stmt)
-        user = result.scalar_one_or_none()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-        user.status = body.status
-        await db.flush()
+        user = await user_service.update_user_status(user_id, body.status)
+        await db.commit()
         return ApiResponse(data=UserOut.model_validate(user).model_dump())
-    except HTTPException:
-        raise
     except Exception as e:
-        logger.error(f"DB write failed during update_user_status: {e}", exc_info=True)
-        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+        logger.error(f"Failed to update user status: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")

@@ -37,202 +37,83 @@ _mock_payments = [
 ]
 
 
+from app.services.payment.service import PaymentService
+
 @router.post("/create", response_model=ApiResponse, status_code=201)
 async def create_payment(body: PaymentCreate, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    """Initiate a payment (create payment transaction record).
-
-    Security: Verifies the current user owns the associated order or donation.
-    """
-    # Ownership check + amount validation: verify current user owns the order/donation and amount matches
+    """Initiate a payment (create payment transaction record). (Refactored)"""
+    payment_service = PaymentService(db)
+    
+    # Ownership check
     if body.order_id:
-        try:
-            stmt = select(Order).where(Order.id == body.order_id)
-            result = await db.execute(stmt)
-            order = result.scalar_one_or_none()
-            if not order:
-                raise HTTPException(status_code=404, detail="Order not found")
-            if order.user_id != current_user["id"] and current_user.get("role") != "admin":
-                raise HTTPException(status_code=403, detail="Forbidden: you can only pay for your own orders")
-            if Decimal(str(body.amount)) != order.total_amount:
-                raise HTTPException(status_code=400, detail="Payment amount does not match order total")
-        except HTTPException:
-            raise
-        except Exception:
-            raise HTTPException(status_code=503, detail="Payment service unavailable")
-
+        stmt = select(Order).where(Order.id == body.order_id)
+        order = (await db.execute(stmt)).scalar_one_or_none()
+        if not order or (order.user_id != current_user["id"] and current_user.get("role") != "admin"):
+            raise HTTPException(status_code=403, detail="Forbidden")
+        if Decimal(str(body.amount)) != order.total_amount:
+            raise HTTPException(status_code=400, detail="金额不匹配")
+    
     if body.donation_id:
-        try:
-            stmt = select(Donation).where(Donation.id == body.donation_id)
-            result = await db.execute(stmt)
-            donation = result.scalar_one_or_none()
-            if not donation:
-                raise HTTPException(status_code=404, detail="Donation not found")
-            if donation.donor_user_id and donation.donor_user_id != current_user["id"] and current_user.get("role") != "admin":
-                raise HTTPException(status_code=403, detail="Forbidden: you can only pay for your own donations")
-            if Decimal(str(body.amount)) != donation.amount:
-                raise HTTPException(status_code=400, detail="Payment amount does not match donation amount")
-        except HTTPException:
-            raise
-        except Exception:
-            raise HTTPException(status_code=503, detail="Payment service unavailable")
+        stmt = select(Donation).where(Donation.id == body.donation_id)
+        donation = (await db.execute(stmt)).scalar_one_or_none()
+        if not donation or (donation.donor_user_id and donation.donor_user_id != current_user["id"] and current_user.get("role") != "admin"):
+            raise HTTPException(status_code=403, detail="Forbidden")
+        if Decimal(str(body.amount)) != donation.amount:
+            raise HTTPException(status_code=400, detail="金额不匹配")
 
     try:
-        tx = PaymentTransaction(
-            order_id=body.order_id,
-            donation_id=body.donation_id,
+        tx = await payment_service.create_payment_transaction(
             amount=body.amount,
             method=body.method,
-            status="pending",
+            order_id=body.order_id,
+            donation_id=body.donation_id
         )
-        db.add(tx)
-        await db.flush()
+        await db.commit()
         return ApiResponse(data=PaymentOut.model_validate(tx).model_dump())
-    except Exception:
-        logger.error("Payment creation failed", exc_info=True)
-        raise HTTPException(status_code=503, detail="Payment service unavailable")
-
+    except Exception as e:
+        logger.error(f"Payment creation failed: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.post("/wechat-notify")
 async def wechat_notify(request: Request, db: AsyncSession = Depends(get_db)):
-    """Handle WeChat payment notification callback.
-
-    Security: This is a public endpoint called by WeChat servers.
-    Authentication is performed via WeChat signature verification,
-    not via user session cookies.
-
-    Idempotency: Ensures the same transaction is not processed multiple times.
-    """
-    # Read the raw XML body from the request
+    """Handle WeChat payment notification callback. (Refactored)"""
     xml_body = await request.body()
-
+    payment_service = PaymentService(db)
+    
     try:
-        # Parse the XML
         root = ET.fromstring(xml_body)
-
-        # Convert XML to dictionary
-        params = {}
-        for child in root:
-            params[child.tag] = child.text
-
-        logger.info(f"WeChat callback received for trade_no: {params.get('out_trade_no')}")
-
-        # Verify the signature
+        params = {child.tag: child.text for child in root}
+        
         if not get_payment_service().verify_payment_signature(params):
-            logger.warning(f"Signature verification failed for trade_no: {params.get('out_trade_no')}")
-            return Response(
-                content="<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[Signature verification failed]]></return_msg></xml>",
-                media_type="application/xml"
-            )
-
-        # Check result_code from WeChat
-        result_code = params.get("result_code")
-        if result_code != "SUCCESS":
-            logger.warning(f"WeChat payment failed: {result_code}")
-            # In production, you might want to update payment status to 'failed'
-            return Response(
-                content=f"<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[Payment result is not SUCCESS: {result_code}]]></return_msg></xml>",
-                media_type="application/xml"
-            )
-
-        # Check transaction_id existence
-        transaction_id = params.get("transaction_id")
-        if not transaction_id:
-            logger.error("Missing transaction_id in WeChat callback")
-            return Response(
-                content="<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[Missing transaction_id]]></return_msg></xml>",
-                media_type="application/xml"
-            )
+            return Response(content="<xml><return_code>FAIL</return_code></xml>", media_type="application/xml")
 
         out_trade_no = params.get("out_trade_no")
         amount_fen = int(params.get("total_fee", 0))
         amount_cny = Decimal(amount_fen) / Decimal(100)
 
-        # --- Idempotency Check ---
-        # Check if this transaction_id has already been processed
-        existing_tx = await db.execute(
-            select(PaymentTransaction).where(PaymentTransaction.provider_transaction_id == transaction_id)
-        )
-        if existing_tx.scalar_one_or_none():
-            logger.info(f"Transaction {transaction_id} already processed, skipping")
-            # Return success to WeChat even if already processed (idempotent)
-            return Response(
-                content="<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>",
-                media_type="application/xml"
-            )
-
-        # --- Find Order or Donation by out_trade_no ---
-        # Note: out_trade_no is our internal order_no
-        order = None
-        donation = None
-        order_id = None
+        # --- Parse Donation ID from order_no if applicable ---
         donation_id = None
+        if out_trade_no and out_trade_no.startswith("DON"):
+            try:
+                donation_id = int(out_trade_no[3:])
+            except (ValueError, TypeError):
+                pass
 
-        # Try to find order by order_no
-        stmt = select(Order).where(Order.order_no == out_trade_no)
-        result = await db.execute(stmt)
-        order = result.scalar_one_or_none()
-
-        if order:
-            order_id = order.id
-            logger.info(f"Found order {order_id} for trade_no: {out_trade_no}")
-        else:
-            # Try to find donation - donations typically have internal IDs used in payment
-            # For simplicity, we assume donation_id is embedded or we look for specific pattern
-            # Since donations don't have order_no, we rely on payment creation logic
-            # In this implementation, we'll check if any pending payment exists for this amount
-            # A more robust system would embed donation ID in the trade_no
-            logger.warning(f"No order found for trade_no: {out_trade_no}, checking donations...")
-
-        # --- Update Database ---
-        try:
-            # Create or update payment transaction record
-            if order:
-                # Update order status
-                await db.execute(
-                    update(Order)
-                    .where(Order.id == order_id)
-                    .values(status="paid", payment_id=transaction_id, payment_method="wechat", updated_at=func.now())
-                )
-                logger.info(f"Updated order {order_id} status to 'paid'")
-
-            # Create payment transaction record
-            payment_tx = PaymentTransaction(
-                order_id=order_id,
-                donation_id=donation_id,
+        if params.get("result_code") == "SUCCESS":
+            await payment_service.process_successful_payment(
+                provider_tx_id=params.get("transaction_id"),
                 amount=amount_cny,
                 method="wechat",
-                provider_transaction_id=transaction_id,
-                status="success",
-                raw_response=params
+                order_no=out_trade_no if not donation_id else None,
+                donation_id=donation_id,
+                raw_data=params
             )
-            db.add(payment_tx)
             await db.commit()
-            logger.info(f"Payment transaction created: ID={payment_tx.id}, TX={transaction_id}")
 
-        except Exception as db_error:
-            logger.error(f"Database update failed: {str(db_error)}")
-            await db.rollback()
-            # Still return success to WeChat to avoid retries, but log the issue
-            # In production, you might want to handle this more gracefully
-
-        # Return success response to WeChat
-        return Response(
-            content="<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>",
-            media_type="application/xml"
-        )
-
-    except ET.ParseError:
-        logger.error("Invalid XML format in WeChat callback")
-        return Response(
-            content="<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[Invalid XML format]]></return_msg></xml>",
-            media_type="application/xml"
-        )
+        return Response(content="<xml><return_code>SUCCESS</return_code></xml>", media_type="application/xml")
     except Exception as e:
-        logger.error(f"WeChat callback processing error: {str(e)}")
-        return Response(
-            content="<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[Internal processing error]]></return_msg></xml>",
-            media_type="application/xml"
-        )
+        logger.error(f"WeChat notify error: {e}")
+        return Response(content="<xml><return_code>FAIL</return_code></xml>", media_type="application/xml")
 
 
 @router.post("/alipay-notify")
