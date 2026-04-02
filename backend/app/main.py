@@ -156,6 +156,18 @@ async def business_exception_handler(request: Request, exc: BusinessException):
         content={"success": False, "data": exc.data, "message": exc.message, "code": exc.code},
     )
 
+def _serialize_error(obj):
+    """Recursively convert non-serializable objects to strings."""
+    if isinstance(obj, bytes):
+        return obj.decode("utf-8", errors="replace")
+    if isinstance(obj, dict):
+        return {k: _serialize_error(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_serialize_error(item) for item in obj]
+    if isinstance(obj, set):
+        return list(obj)
+    return obj
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     message = "Validation error"
@@ -168,14 +180,17 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
                 message = err["msg"]
     except Exception:
         pass
-        
+
+    # Sanitize errors to ensure JSON serializability
+    sanitized_errors = _serialize_error(exc.errors())
+
     return JSONResponse(
         status_code=422,
         content={
-            "success": False, 
-            "data": None, 
-            "message": message, 
-            "errors": exc.errors(), 
+            "success": False,
+            "data": None,
+            "message": message,
+            "errors": sanitized_errors,
             "code": "VALIDATION_FAILED"
         },
     )

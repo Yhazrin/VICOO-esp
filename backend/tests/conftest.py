@@ -17,11 +17,21 @@ from unittest.mock import AsyncMock, patch
 # Patch redis for testing (avoid Redis connection errors)
 # This must be done before importing any backend modules that use redis
 redis_mock = AsyncMock()
+# Track voted keys for duplicate vote detection
+_voted_keys = set()
+
+async def mock_exists(key):
+    """Mock exists - returns True if key was voted."""
+    return key in _voted_keys
+
+async def mock_setex(key, ttl, value):
+    """Mock setex - marks key as voted."""
+    _voted_keys.add(key)
+    return True
+
 # Configure default behavior for Redis methods used in the app
-# exists should return False (no duplicate votes)
-redis_mock.exists = AsyncMock(return_value=False)
-# setex should just complete successfully
-redis_mock.setex = AsyncMock(return_value=True)
+redis_mock.exists = mock_exists
+redis_mock.setex = mock_setex
 # incr should increment (for rate limiting)
 redis_mock.incr = AsyncMock(side_effect=lambda key: 1) # First call returns 1
 redis_mock.expire = AsyncMock(return_value=True)

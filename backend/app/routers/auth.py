@@ -81,17 +81,30 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
     logger.debug("Login attempt")
     auth_service = AuthService(db)
 
-    # ── WeChat login ──
-    if body.wechat_code:
-        # WeChat logic still in router for now as it's highly IO-specific, 
-        # but in next pass we move it to AuthService too.
-        # (Keeping existing implementation for safety during first refactor)
+    # ── Input validation ──
+    has_wechat = bool(body.wechat_code)
+    has_email = bool(body.email)
+    has_password = bool(body.password)
+
+    # Must provide either wechat_code OR (email + password)
+    if has_wechat:
+        if not body.wechat_code:
+            raise HTTPException(status_code=422, detail="WeChat code is required")
+        # TODO: WeChat login implementation
+        raise HTTPException(status_code=501, detail="WeChat login not implemented")
+    elif has_email and has_password:
+        # Email + password login
         pass
+    elif has_email or has_password:
+        # Partial credentials - return 422 for clear error
+        raise HTTPException(status_code=422, detail="Both email and password are required")
+    else:
+        raise HTTPException(status_code=422, detail="Either WeChat code or email+password is required")
 
     # ── Email Login (Refactored to Service) ──
     try:
         user, token, refresh = await auth_service.authenticate_user(body.email, body.password)
-        
+
         response_data = ApiResponse(
             success=True,
             data={
