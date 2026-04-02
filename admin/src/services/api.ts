@@ -187,8 +187,7 @@ export async function fetchChildParticipants(params: FilterParams = {}): Promise
 }
 
 export async function fetchAuditLogs(params: FilterParams = {}): Promise<PaginatedResponse<AuditLogEntry>> {
-  await delay(300);
-  return paginate(mockAuditLogs, params);
+  return api.get('/audit-logs', { params }).then((r) => r.data);
 }
 
 export async function fetchSystemSettings(): Promise<SystemSettings> {
