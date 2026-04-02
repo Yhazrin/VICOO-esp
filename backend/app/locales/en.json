@@ -1,0 +1,18 @@
+{
+    "errors": {
+        "not_found": "Resource not found.",
+        "unauthorized": "Unauthorized access.",
+        "forbidden": "Forbidden.",
+        "rate_limited": "Rate limit exceeded. Please try again later.",
+        "ai_unavailable": "AI Assistant is temporarily unavailable."
+    },
+    "emails": {
+        "welcome": {
+            "subject": "The First Edition: Welcome to VICOO",
+            "greeting": "Dear {nickname},",
+            "body_intro": "You have just joined a movement where children's raw creativity meets the principles of sustainable craftsmanship.",
+            "body_main": "At VICOO, we don't just showcase art; we transform it into a tangible legacy of hope.",
+            "cta": "Explore the Archive"
+        }
+    }
+}

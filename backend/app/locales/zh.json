@@ -1,0 +1,18 @@
+{
+    "errors": {
+        "not_found": "未找到资源。",
+        "unauthorized": "未授权访问。",
+        "forbidden": "禁止访问。",
+        "rate_limited": "请求频率过高，请稍后再试。",
+        "ai_unavailable": "智能助手暂时不可用。"
+    },
+    "emails": {
+        "welcome": {
+            "subject": "首刊发行：欢迎来到 VICOO",
+            "greeting": "亲爱的 {nickname}：",
+            "body_intro": "你刚刚加入了一场将孩子们原始的创造力与可持续工艺原则相结合的运动。",
+            "body_main": "在 VICOO，我们不仅展示艺术，还将其转化为切实可行的希望。每一件作品都承载着一个真实的故事，而不是工业流水线的产物。",
+            "cta": "探索作品档案库"
+        }
+    }
+}

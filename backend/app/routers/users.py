@@ -41,6 +41,8 @@ async def list_users(
             page=page,
             page_size=page_size,
         )
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error listing users: {e}")
         return PaginatedResponse(data=[], total=0, page=page, page_size=page_size)
@@ -55,6 +57,8 @@ async def get_me(
     try:
         user = await user_service.get_user_by_id(current_user["id"])
         return ApiResponse(data=UserOut.model_validate(user).model_dump())
+    except HTTPException:
+        raise
     except Exception:
         return ApiResponse(data=current_user)
 
@@ -70,6 +74,7 @@ async def update_me(
         user = await user_service.update_user_profile(current_user["id"], body.model_dump())
         await db.commit()
         return ApiResponse(data=UserOut.model_validate(user).model_dump())
+        raise
     except HTTPException:
         raise
     except Exception as e:
@@ -86,6 +91,7 @@ async def get_user(user_id: int, db: AsyncSession = Depends(get_db), current_use
     try:
         user = await user_service.get_user_by_id(user_id)
         return ApiResponse(data=UserOut.model_validate(user).model_dump())
+        raise
     except HTTPException:
         raise
     except Exception:
@@ -107,6 +113,8 @@ async def update_user_role(
         user = await user_service.update_user_role(user_id, body.role)
         await db.commit()
         return ApiResponse(data=UserOut.model_validate(user).model_dump())
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Failed to update user role: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -127,6 +135,8 @@ async def update_user_status(
         user = await user_service.update_user_status(user_id, body.status)
         await db.commit()
         return ApiResponse(data=UserOut.model_validate(user).model_dump())
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Failed to update user status: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")

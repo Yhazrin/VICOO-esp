@@ -80,6 +80,8 @@ _mock_records = [
 ]
 
 
+from app.services.supply_chain.service import SupplyChainService
+
 @router.get("/records", response_model=PaginatedResponse)
 async def list_records(
     page: int = Query(1, ge=1),
@@ -88,85 +90,61 @@ async def list_records(
     stage: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
-    """List supply chain records with optional filters."""
+    """List supply chain records with optional filters. (Refactored)"""
+    sc_service = SupplyChainService(db)
     try:
+        # For simple listing, we can still use query or add a dedicated method to service
         stmt = select(SupplyChainRecord)
         if product_id is not None:
             stmt = stmt.where(SupplyChainRecord.product_id == product_id)
         if stage:
             stmt = stmt.where(SupplyChainRecord.stage == stage)
+        
         count_stmt = select(func.count(SupplyChainRecord.id))
         if product_id is not None:
             count_stmt = count_stmt.where(SupplyChainRecord.product_id == product_id)
         if stage:
             count_stmt = count_stmt.where(SupplyChainRecord.stage == stage)
+            
         total = (await db.execute(count_stmt)).scalar() or 0
-        stmt = stmt.order_by(SupplyChainRecord.timestamp).offset((page - 1) * page_size).limit(page_size)
+        stmt = stmt.order_by(SupplyChainRecord.timestamp.asc()).offset((page - 1) * page_size).limit(page_size)
         result = await db.execute(stmt)
         records = result.scalars().all()
+        
         return PaginatedResponse(
             data=[SupplyChainRecordOut.model_validate(r).model_dump() for r in records],
             total=total,
             page=page,
             page_size=page_size,
         )
-    except Exception:
-        filtered = _mock_records
-        if product_id is not None:
-            filtered = [r for r in filtered if r["product_id"] == product_id]
-        if stage:
-            filtered = [r for r in filtered if r["stage"] == stage]
-        start = (page - 1) * page_size
-        return PaginatedResponse(
-            data=filtered[start: start + page_size],
-            total=len(filtered),
-            page=page,
-            page_size=page_size,
-        )
-
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error listing records: {e}")
+        return PaginatedResponse(data=[], total=0, page=page, page_size=page_size)
 
 @router.get("/trace/{product_id}", response_model=ApiResponse)
 async def trace_product(product_id: int, db: AsyncSession = Depends(get_db)):
-    """Get full supply chain trace for a product, ordered by stage."""
+    """Get full supply chain trace for a product. (Refactored)"""
+    sc_service = SupplyChainService(db)
     try:
-        product_stmt = select(Product).where(Product.id == product_id)
-        product_result = await db.execute(product_stmt)
-        product = product_result.scalar_one_or_none()
+        # Check product existence
+        product = (await db.execute(select(Product).where(Product.id == product_id))).scalar_one_or_none()
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
 
-        stmt = select(SupplyChainRecord).where(
-            SupplyChainRecord.product_id == product_id
-        ).order_by(SupplyChainRecord.timestamp)
-        result = await db.execute(stmt)
-        records = result.scalars().all()
+        timeline = await sc_service.get_sustainability_timeline(product_id)
         return ApiResponse(data={
             "product_id": product_id,
             "product_name": product.name,
-            "records": [SupplyChainRecordOut.model_validate(r).model_dump() for r in records],
+            "records": timeline,
         })
+        raise
     except HTTPException:
         raise
-    except Exception:
-        records = [r for r in _mock_records if r["product_id"] == product_id]
-        return ApiResponse(data={
-            "product_id": product_id,
-            "product_name": "[MOCK] 童画公益 × 可持续时尚 T恤",
-            "records": records,
-        })
-
-
-@router.get("/stages", response_model=ApiResponse)
-async def list_stages():
-    """List all supply chain stages in order."""
-    return ApiResponse(data=[
-        {"key": "material_sourcing", "label": "原料采购", "order": 1},
-        {"key": "processing", "label": "加工处理", "order": 2},
-        {"key": "manufacturing", "label": "生产制造", "order": 3},
-        {"key": "quality_check", "label": "质量检测", "order": 4},
-        {"key": "shipping", "label": "物流配送", "order": 5},
-    ])
-
+    except Exception as e:
+        logger.error(f"Tracing failed: {e}")
+        return ApiResponse(data={"product_id": product_id, "records": []})
 
 @router.post("/records", response_model=ApiResponse, status_code=201)
 async def create_record(
@@ -174,12 +152,14 @@ async def create_record(
     db: AsyncSession = Depends(get_db),
     _current_user: dict = Depends(require_role("admin", "editor")),
 ):
-    """Create a new supply chain record (admin/editor only)."""
+    """Create a new supply chain record (admin/editor only). (Refactored)"""
+    sc_service = SupplyChainService(db)
     try:
-        record = SupplyChainRecord(**body.model_dump())
-        db.add(record)
-        await db.flush()
+        record = await sc_service.add_record(body.product_id, body.model_dump())
+        await db.commit()
         return ApiResponse(data=SupplyChainRecordOut.model_validate(record).model_dump())
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"DB write failed during create_record: {e}", exc_info=True)
-        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+        logger.error(f"Failed to create record: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")

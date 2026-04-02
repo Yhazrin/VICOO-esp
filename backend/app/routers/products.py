@@ -64,6 +64,8 @@ async def list_products(
             page=page,
             page_size=page_size,
         )
+    except HTTPException:
+        raise
     except Exception:
         filtered = _mock_products
         if category:
@@ -91,6 +93,8 @@ async def list_categories(db: AsyncSession = Depends(get_db)):
             if row[0]
         ]
         return ApiResponse(data=categories)
+    except HTTPException:
+        raise
     except Exception:
         cat_counts: dict[str, int] = {}
         for p in _mock_products:
@@ -115,6 +119,8 @@ async def get_product_supply_chain(product_id: int, db: AsyncSession = Depends(g
         result = await db.execute(stmt)
         records = result.scalars().all()
         return ApiResponse(data=[SupplyChainRecordOut.model_validate(r).model_dump() for r in records])
+    except HTTPException:
+        raise
     except Exception:
         records = [r for r in _mock_supply_chain if r["product_id"] == product_id]
         return ApiResponse(data=records)
@@ -130,6 +136,7 @@ async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
         return ApiResponse(data=ProductOut.model_validate(product).model_dump())
+        raise
     except HTTPException:
         raise
     except Exception:
@@ -147,6 +154,7 @@ async def create_product(body: ProductCreate, db: AsyncSession = Depends(get_db)
         db.add(product)
         await db.flush()
         return ApiResponse(data=ProductOut.model_validate(product).model_dump())
+        raise
     except HTTPException:
         raise
     except Exception as e:
@@ -167,6 +175,7 @@ async def update_product(product_id: int, body: ProductUpdate, db: AsyncSession 
             setattr(product, k, v)
         await db.flush()
         return ApiResponse(data=ProductOut.model_validate(product).model_dump())
+        raise
     except HTTPException:
         raise
     except Exception as e:

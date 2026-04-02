@@ -118,3 +118,26 @@ class AIChatResponse(BaseModel):
     reply: str
     model: str
     source: str = Field("openai", description="openai | stub")
+
+
+class ArtworkAnalysisRequest(BaseModel):
+    image_url: str = Field(..., max_length=500)
+    description: Optional[str] = Field(None, max_length=2000)
+
+
+class ArtworkAnalysisResponse(BaseModel):
+    suggested_title: Optional[str] = None
+    suggested_tags: list[str] = Field(default_factory=list)
+    style_description: Optional[str] = None
+    safety_rating: str = Field("safe", pattern="^(safe|borderline|unsafe)$")
+    moderation_notes: Optional[str] = None
+
+
+class ContentModerationRequest(BaseModel):
+    text: str = Field(..., min_length=1, max_length=10000)
+
+
+class ContentModerationResponse(BaseModel):
+    is_safe: bool
+    reason: Optional[str] = None
+    flagged_categories: list[str] = Field(default_factory=list)

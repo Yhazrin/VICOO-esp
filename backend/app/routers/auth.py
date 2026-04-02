@@ -285,6 +285,9 @@ async def logout(request: Request):
             if jti and exp:
                 ttl = max(int(exp - time.time()), 60)
                 await redis.setex(f"blacklist:{jti}", ttl, "1")
+            raise
+        except HTTPException:
+            raise
         except Exception:
             pass
 
@@ -299,6 +302,9 @@ async def logout(request: Request):
             if jti and exp:
                 ttl = max(int(exp - time.time()), 60)
                 await redis.setex(f"blacklist:{jti}", ttl, "1")
+            raise
+        except HTTPException:
+            raise
         except Exception:
             pass
 

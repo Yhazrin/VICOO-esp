@@ -86,6 +86,8 @@ async def list_campaigns(
             page=page,
             page_size=page_size,
         )
+    except HTTPException:
+        raise
     except Exception:
         filtered = _mock_campaigns
         if status:
@@ -109,6 +111,7 @@ async def get_active_campaign(db: AsyncSession = Depends(get_db)):
         if not campaign:
             raise HTTPException(status_code=404, detail="No active campaign found")
         return ApiResponse(data=CampaignOut.model_validate(campaign).model_dump())
+        raise
     except HTTPException:
         raise
     except Exception:
@@ -135,6 +138,7 @@ async def get_campaign(campaign_id: int, db: AsyncSession = Depends(get_db)):
         if not campaign:
             raise HTTPException(status_code=404, detail="Campaign not found")
         return ApiResponse(data=CampaignOut.model_validate(campaign).model_dump())
+        raise
     except HTTPException:
         raise
     except Exception:
@@ -156,6 +160,7 @@ async def create_campaign(
         db.add(campaign)
         await db.flush()
         return ApiResponse(data=CampaignOut.model_validate(campaign).model_dump())
+        raise
     except HTTPException:
         raise
     except Exception as e:
@@ -181,6 +186,7 @@ async def update_campaign(
             setattr(campaign, k, v)
         await db.flush()
         return ApiResponse(data=CampaignOut.model_validate(campaign).model_dump())
+        raise
     except HTTPException:
         raise
     except Exception as e:
@@ -204,6 +210,7 @@ async def delete_campaign(
         await db.delete(campaign)
         await db.flush()
         return ApiResponse(data={"deleted": campaign_id})
+        raise
     except HTTPException:
         raise
     except Exception as e:

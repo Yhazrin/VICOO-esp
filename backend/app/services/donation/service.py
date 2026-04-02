@@ -53,8 +53,27 @@ class DonationService(BaseService):
     async def create_donation(self, donation_data: Dict[str, Any]) -> Donation:
         """
         Create a new donation and update campaign amount.
+        Includes anomaly detection check for suspicious behavior.
         """
-        amount = Decimal(str(donation_data.get("amount", 0))).quantize(Decimal("0.00"))
+        from app.services.anomaly_detection.service import AnomalyDetectionService
+        anomaly_service = AnomalyDetectionService(self.db)
+        
+        user_id = donation_data.get("donor_user_id")
+        amount_val = donation_data.get("amount", 0)
+        
+        # Security: Anomaly Detection
+        if user_id:
+            if await anomaly_service.is_transaction_risky(user_id, float(amount_val)):
+                logger.warning(f"Blocking potentially risky donation from User {user_id}")
+                await anomaly_service.log_anomaly(
+                    user_id, "RISKY_DONATION", f"Frequent small donations or unusual activity. Amount: {amount_val}"
+                )
+                raise HTTPException(
+                    status_code=403, 
+                    detail="Transaction flagged by security system. Please try again later or contact support."
+                )
+
+        amount = Decimal(str(amount_val)).quantize(Decimal("0.00"))
         donation_data["amount"] = amount
         
         donation = Donation(**donation_data)

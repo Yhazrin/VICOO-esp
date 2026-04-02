@@ -70,6 +70,8 @@ async def create_payment(body: PaymentCreate, db: AsyncSession = Depends(get_db)
         )
         await db.commit()
         return ApiResponse(data=PaymentOut.model_validate(tx).model_dump())
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Payment creation failed: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -111,6 +113,8 @@ async def wechat_notify(request: Request, db: AsyncSession = Depends(get_db)):
             await db.commit()
 
         return Response(content="<xml><return_code>SUCCESS</return_code></xml>", media_type="application/xml")
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"WeChat notify error: {e}")
         return Response(content="<xml><return_code>FAIL</return_code></xml>", media_type="application/xml")
@@ -168,6 +172,8 @@ async def alipay_notify(request: Request, db: AsyncSession = Depends(get_db)):
                     hashes.SHA256(),
                 )
                 logger.info(f"Alipay signature verified for trade_no: {params.get('out_trade_no')}")
+            except HTTPException:
+                raise
             except Exception as verify_error:
                 logger.error(f"Alipay signature verification failed: {verify_error}")
                 return PlainTextResponse("failure")
@@ -227,7 +233,8 @@ async def alipay_notify(request: Request, db: AsyncSession = Depends(get_db)):
         logger.info(f"Alipay payment transaction created: TX={trade_no}")
 
         return PlainTextResponse("success")
-
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Alipay callback processing error: {str(e)}")
         await db.rollback()
@@ -277,6 +284,8 @@ async def test_wechat_params(current_user: dict = Depends(get_current_user)):
             donation_id=999
         )
         return ApiResponse(data=payment_params)
+    except HTTPException:
+        raise
     except Exception:
         raise HTTPException(status_code=500, detail="Payment parameter generation failed")
 
@@ -318,7 +327,7 @@ async def get_payment(payment_id: int, db: AsyncSession = Depends(get_db), curre
 
         # If not found in DB, fall through to mock data check
         raise ValueError("Payment not found in DB, checking mock data")
-
+        raise
     except HTTPException:
         raise
     except Exception:

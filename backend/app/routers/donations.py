@@ -27,10 +27,6 @@ def _redact_name(name: str | None, is_anonymous: bool | None = None) -> str:
     return name[0] + "*" * (len(name) - 1)
 
 # ── MOCK DATA (served when database is unavailable) ──────────────
-# These records are illustrative examples for development/demo purposes.
-# Real donation data is loaded from the database when available.
-# Donor names, payment IDs, and messages below are fictional.
-# ────────────────────────────────────────────────────────────────
 _mock_donations = [
     {"id": 1, "donor_name": "张先生", "donor_user_id": 3, "amount": "500.00", "currency": "CNY", "payment_method": "wechat", "payment_id": "wx20250301123456", "campaign_id": 1, "status": "completed", "is_anonymous": False, "message": "支持孩子们的艺术梦想！", "created_at": "2025-03-01T10:30:00"},
     {"id": 2, "donor_name": "李女士", "donor_user_id": 4, "amount": "1000.00", "currency": "CNY", "payment_method": "alipay", "payment_id": "ali20250302654321", "campaign_id": 1, "status": "completed", "is_anonymous": False, "message": "为乡村美育尽一份力", "created_at": "2025-03-02T14:20:00"},
@@ -57,7 +53,7 @@ async def list_donations(
     db: AsyncSession = Depends(get_db),
     current_user: dict | None = Depends(get_optional_current_user),
 ):
-    """List donations with optional filters. (Refactored)"""
+    """List donations with optional filters."""
     donation_service = DonationService(db)
     try:
         donations, total = await donation_service.list_donations(page, page_size, campaign_id, status)
@@ -75,32 +71,33 @@ async def list_donations(
             page=page,
             page_size=page_size,
         )
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error listing donations: {e}")
-        # Mock fallback (omitted for brevity, keeping same behavior as before)
         return PaginatedResponse(data=[], total=0, page=page, page_size=page_size)
 
 @router.get("/stats", response_model=ApiResponse)
 async def donation_stats(db: AsyncSession = Depends(get_db)):
-    """Get public donation statistics. (Refactored)"""
+    """Get public donation statistics."""
     donation_service = DonationService(db)
     try:
         stats = await donation_service.get_stats()
         return ApiResponse(data=stats)
+    except HTTPException:
+        raise
     except Exception:
         return ApiResponse(data={"total_amount": "0.00", "total_donors": 0, "currency": "CNY"})
 
 @router.get("/{donation_id}", response_model=ApiResponse)
 async def get_donation(donation_id: int, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    """Get a donation by ID. (Refactored)"""
+    """Get a donation by ID."""
     donation_service = DonationService(db)
     try:
         donation = await donation_service.get_donation_by_id(donation_id)
-        # Authorization check
         if current_user.get("role") != "admin" and donation.donor_user_id != current_user.get("id"):
             if donation.donor_user_id is not None:
                 raise HTTPException(status_code=403, detail="Access denied")
-
         return ApiResponse(data=DonationOut.model_validate(donation).model_dump())
     except HTTPException:
         raise
@@ -110,7 +107,7 @@ async def get_donation(donation_id: int, db: AsyncSession = Depends(get_db), cur
 @router.post("", response_model=ApiResponse, status_code=201)
 @router.post("/create", response_model=ApiResponse, status_code=201)
 async def create_donation(body: DonationCreate, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    """Create a new donation. (Refactored)"""
+    """Create a new donation."""
     donation_service = DonationService(db)
     try:
         donation_data = body.model_dump()
@@ -124,16 +121,28 @@ async def create_donation(body: DonationCreate, db: AsyncSession = Depends(get_d
         response_data["donationId"] = donation.id
 
         if body.payment_method == "wechat":
-            payment_params = get_payment_service().create_unified_order(
-                order_no=f"DON{donation.id}",
-                amount=body.amount,
-                description=f"公益捐赠" if body.is_anonymous else f"公益捐赠 - {body.donor_name}",
-                trade_type="JSAPI",
-                donation_id=donation.id
-            )
-            response_data.update(payment_params)
+            try:
+                payment_params = get_payment_service().create_unified_order(
+                    order_no=f"DON{donation.id}",
+                    amount=body.amount,
+                    description=f"公益捐赠" if body.is_anonymous else f"公益捐赠 - {body.donor_name}",
+                    trade_type="JSAPI",
+                    donation_id=donation.id
+                )
+                response_data.update(payment_params)
+            except HTTPException:
+                raise
+            except Exception as pay_error:
+                logger.error(f"Payment parameter generation failed: {pay_error}")
+                if settings.APP_ENV == "development":
+                    response_data["payment_error"] = str(pay_error)
+                    response_data["simulation_mode"] = True
+                else:
+                    raise HTTPException(status_code=400, detail="Payment initialization failed. Please check configuration.")
 
         return ApiResponse(data=response_data)
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Donation creation failed: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -141,7 +150,7 @@ async def create_donation(body: DonationCreate, db: AsyncSession = Depends(get_d
 
 @router.get("/{donation_id}/certificate", response_model=ApiResponse)
 async def get_donation_certificate(donation_id: int, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    """Get donation certificate data for a completed donation (donor or admin only)."""
+    """Get donation certificate data."""
     try:
         stmt = select(Donation).where(Donation.id == donation_id)
         result = await db.execute(stmt)
@@ -162,23 +171,8 @@ async def get_donation_certificate(donation_id: int, db: AsyncSession = Depends(
             "certificate_no": f"TH-DON-{donation.id:06d}",
             "certificate_url": f"/api/donations/{donation.id}/certificate",
         })
+        
     except HTTPException:
         raise
     except Exception:
-        for d in _mock_donations:
-            if d["id"] == donation_id:
-                if current_user.get("role") != "admin" and d.get("donor_user_id") and d["donor_user_id"] != current_user["id"]:
-                    raise HTTPException(status_code=403, detail="Forbidden")
-                if d["status"] != "completed":
-                    raise HTTPException(status_code=400, detail="Certificate available only for completed donations")
-                return ApiResponse(data={
-                    "donation_id": d["id"],
-                    "donor_name": d["donor_name"] if not d["is_anonymous"] else "爱心人士",
-                    "amount": d["amount"],
-                    "currency": d["currency"],
-                    "date": d["created_at"],
-                    "campaign_id": d.get("campaign_id"),
-                    "certificate_no": f"TH-DON-{d['id']:06d}",
-                    "certificate_url": f"/api/donations/{d['id']}/certificate",
-                })
         raise HTTPException(status_code=404, detail="Donation not found")

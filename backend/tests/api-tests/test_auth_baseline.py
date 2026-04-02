@@ -1,6 +1,5 @@
 import pytest
 from httpx import AsyncClient
-from app.main import app
 from app.security import create_access_token
 
 @pytest.mark.asyncio
@@ -26,3 +25,27 @@ async def test_auth_me_with_token(client: AsyncClient):
     response = await client.get("/api/v1/users/me", headers=headers)
     # 只要不返回 401/404，说明 Token 解析链路正常
     assert response.status_code in (200, 404) 
+
+
+@pytest.mark.asyncio
+async def test_create_donation_wechat_in_development_does_not_500(client: AsyncClient):
+    """开发环境下，微信捐赠创建应可安全降级，不应因外部支付依赖导致 500。"""
+    token = create_access_token(subject="1", role="user")
+    headers = {"Authorization": f"Bearer {token}"}
+    payload = {
+        "donor_name": "Test Donor",
+        "amount": 88.8,
+        "currency": "CNY",
+        "payment_method": "wechat",
+        "is_anonymous": False,
+        "message": "integration check",
+    }
+
+    response = await client.post("/api/v1/donations", json=payload, headers=headers)
+
+    assert response.status_code == 201
+    data = response.json()["data"]
+    assert data["payment_method"] == "wechat"
+    assert data["status"] == "pending"
+    assert "donationId" in data
+    assert "transactionId" in data
