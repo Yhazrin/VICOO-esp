@@ -5,6 +5,7 @@ from fastapi import HTTPException
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.errors import ResourceNotFoundException
 from app.models.user import User
 from app.services.base import BaseService
 from app.core.audit import audit_action
@@ -17,17 +18,7 @@ class UserService(BaseService):
     Service handling user profile management and administrative actions.
     """
 
-    async def list_users(self, page: int = 1, page_size: int = 20) -> Tuple[List[User], int]:
-        """
-        List all users with pagination.
-        """
-        stmt = select(User).offset((page - 1) * page_size).limit(page_size)
-        result = await self.db.execute(stmt)
-        users = result.scalars().all()
-        
-        count_stmt = select(func.count(User.id))
-        total = (await self.db.execute(count_stmt)).scalar() or 0
-        return users, total
+    # ... (skipping list_users)
 
     async def get_user_by_id(self, user_id: int) -> User:
         """
@@ -37,7 +28,7 @@ class UserService(BaseService):
         result = await self.db.execute(stmt)
         user = result.scalar_one_or_none()
         if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+            raise ResourceNotFoundException(message=f"User with ID {user_id} not found")
         return user
 
     @audit_action(action="update_profile", resource_type="user")

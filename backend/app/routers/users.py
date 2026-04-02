@@ -84,18 +84,20 @@ async def update_me(
 @router.get("/{user_id}", response_model=ApiResponse)
 async def get_user(user_id: int, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
     """Get a user by ID. (Refactored)"""
-    if current_user.get("role") != "admin" and current_user.get("id") != user_id:
-        raise HTTPException(status_code=403, detail="Access denied")
-
     user_service = UserService(db)
     try:
         user = await user_service.get_user_by_id(user_id)
+        
+        # Check permissions after confirming existence
+        if current_user.get("role") != "admin" and current_user.get("id") != user_id:
+            raise HTTPException(status_code=403, detail="Access denied")
+            
         return ApiResponse(data=UserOut.model_validate(user).model_dump())
-        raise
     except HTTPException:
         raise
-    except Exception:
-        raise HTTPException(status_code=404, detail="User not found")
+    except Exception as e:
+        logger.error(f"Error fetching user: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.put("/{user_id}/role", response_model=ApiResponse)
 async def update_user_role(
