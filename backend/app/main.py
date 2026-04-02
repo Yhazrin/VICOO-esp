@@ -189,15 +189,42 @@ async def request_logging_middleware(request: Request, call_next):
 
 
 # ── Exception handlers ──────────────────────────────────────────
+from app.core.errors import BusinessException
+
+# ... (rest of imports)
+
+@app.exception_handler(BusinessException)
+async def business_exception_handler(request: Request, exc: BusinessException):
+    """Handle custom business exceptions with a consistent response format."""
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "success": False,
+            "data": exc.data,
+            "message": exc.message,
+            "code": exc.code
+        },
+    )
+
+
 @app.exception_handler(422)
 async def validation_exception_handler(request: Request, exc):
+    """Refined validation error response."""
+    # Try to extract the first error message for the main message field
+    message = "Validation error"
+    if hasattr(exc, "errors") and isinstance(exc.errors(), list) and len(exc.errors()) > 0:
+        err = exc.errors()[0]
+        if "msg" in err:
+            message = err["msg"]
+            
     return JSONResponse(
         status_code=422,
         content={
             "success": False,
             "data": None,
-            "message": "Validation error",
+            "message": message,
             "errors": exc.errors() if hasattr(exc, "errors") else str(exc),
+            "code": "VALIDATION_FAILED"
         },
     )
 
@@ -211,6 +238,7 @@ async def internal_server_error_handler(request: Request, exc):
             "success": False,
             "data": None,
             "message": "Internal server error",
+            "code": "INTERNAL_SERVER_ERROR"
         },
     )
 
@@ -218,7 +246,42 @@ async def internal_server_error_handler(request: Request, exc):
 # Health check
 @app.get("/health", tags=["Health"])
 async def health():
-    return {"status": "ok", "app": settings.APP_NAME, "version": settings.APP_VERSION}
+    """Detailed health check including database status."""
+    health_data = {
+        "status": "ok", 
+        "app": settings.APP_NAME, 
+        "version": settings.APP_VERSION,
+        "timestamp": time.time(),
+        "services": {
+            "database": "unknown",
+            "redis": "unknown"
+        }
+    }
+    
+    # Check Database
+    try:
+        async with AsyncSessionLocal() as session:
+            from sqlalchemy import text
+            await session.execute(text("SELECT 1"))
+            health_data["services"]["database"] = "healthy"
+    except Exception as e:
+        logger.error(f"Health check: Database unreachable: {e}")
+        health_data["services"]["database"] = "unhealthy"
+        health_data["status"] = "degraded"
+
+    # Check Redis
+    if settings.REDIS_URL:
+        try:
+            import redis.asyncio as redis
+            r = redis.from_url(settings.REDIS_URL, socket_timeout=2)
+            await r.ping()
+            health_data["services"]["redis"] = "healthy"
+        except Exception as e:
+            logger.warning(f"Health check: Redis unreachable: {e}")
+            health_data["services"]["redis"] = "unhealthy"
+            # Redis is optional, don't degrade overall status unless critical
+    
+    return health_data
 
 
 # ── Register routers ─────────────────────────────────────────────
