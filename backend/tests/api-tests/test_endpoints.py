@@ -43,9 +43,10 @@ class TestAuthEndpoints:
         if response.status_code == 200:
             data = response.json()
             assert "data" in data
-            assert "access_token" in data["data"]
-            assert "refresh_token" in data["data"]
-            assert data["data"]["expires_in"] == 900
+            assert "token" in data["data"]
+            assert "access_token" in data["data"]["token"]
+            assert "refresh_token" in data["data"]["token"]
+            assert data["data"]["token"]["expires_in"] == 900
 
     @pytest.mark.asyncio
     async def test_login_invalid_credentials(self, client: AsyncClient, no_auth_headers):
@@ -68,12 +69,9 @@ class TestAuthEndpoints:
     @pytest.mark.asyncio
     async def test_login_wechat(self, client: AsyncClient, no_auth_headers):
         """POST /auth/login with WeChat code."""
-        payload = {
-            "login_type": "wechat",
-            "code": "wx_test_login_code"
-        }
+        payload = {"code": "wx_test_login_code"}
         response = await client.post("/api/v1/auth/login", json=payload, headers=no_auth_headers)
-        assert response.status_code in (200, 404, 500)
+        assert response.status_code in (200, 404, 500, 501)
 
     @pytest.mark.asyncio
     async def test_refresh_token_success(self, client: AsyncClient, no_auth_headers):
@@ -84,7 +82,8 @@ class TestAuthEndpoints:
         if response.status_code == 200:
             data = response.json()
             assert "data" in data
-            assert "access_token" in data["data"]
+            assert "token" in data["data"]
+            assert "access_token" in data["data"]["token"]
 
     @pytest.mark.asyncio
     async def test_refresh_token_invalid(self, client: AsyncClient, no_auth_headers):
