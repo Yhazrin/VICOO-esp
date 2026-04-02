@@ -19,9 +19,10 @@ class Donation(Base):
         Enum("pending", "completed", "failed", "refunded", name="donation_status"),
         default="pending",
         nullable=False,
+        index=True,
     )
     is_anonymous = Column(Boolean, default=False, nullable=False)
     message = Column(Text, nullable=True)
     certificate_no = Column(String(100), unique=True, nullable=True, index=True)
     certificate_url = Column(String(500), nullable=True)
-    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False, index=True)

@@ -215,7 +215,6 @@ class TestArtworkEndpoints:
             assert "id" in data
             assert "title" in data
             assert "vote_count" in data
-            assert "id" in data
 
     @pytest.mark.asyncio
     async def test_get_artwork_not_found(self, client: AsyncClient, no_auth_headers):

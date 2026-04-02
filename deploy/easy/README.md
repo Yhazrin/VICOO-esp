@@ -216,6 +216,46 @@ deploy/easy/
 
 ## 故障排查
 
+### `docker compose exec backend alembic ...` 报 `No config file 'alembic.ini' found`
+
+这通常说明你正在使用旧版本 backend 容器，默认工作目录不是 `/app/backend`。
+
+先重建 backend：
+
+```bash
+docker compose up -d --build backend
+```
+
+然后再执行：
+
+```bash
+docker compose exec backend alembic current
+docker compose exec backend alembic upgrade head
+```
+
+如需兼容旧容器或手动指定工作目录，也可使用：
+
+```bash
+docker compose exec backend sh -lc 'cd /app/backend && alembic current'
+docker compose exec backend sh -lc 'cd /app/backend && alembic upgrade head'
+```
+
+### backend 一直是 `unhealthy`
+
+如果 MySQL 已经正常，但 backend 一直显示 `unhealthy`，请检查是否使用了最新 compose 配置。
+
+当前健康检查路径应为：
+
+```text
+http://localhost:8000/api/health
+```
+
+如果容器还是旧配置，请重建：
+
+```bash
+docker compose up -d --build backend
+```
+
 ### "MySQL connection refused" 错误
 
 MySQL 启动较慢，等待约 30 秒后重试：

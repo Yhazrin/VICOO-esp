@@ -12,6 +12,8 @@ from app.models.campaign import Campaign
 from app.services.base import BaseService
 from app.core.audit import audit_action
 
+from app.utils.cache import cached
+
 logger = logging.getLogger("tonghua.donation_service")
 
 class DonationService(BaseService):
@@ -19,6 +21,7 @@ class DonationService(BaseService):
     Service handling donation creation, listing, and statistics.
     """
 
+    @cached(prefix="donations:list", ttl=60)
     async def list_donations(
         self, 
         page: int = 1, 

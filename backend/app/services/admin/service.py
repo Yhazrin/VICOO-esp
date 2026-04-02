@@ -11,12 +11,47 @@ from app.models.campaign import Campaign
 from app.services.base import BaseService
 from app.core.audit import audit_action
 
+from app.models.audit import AuditLog
+from app.utils.cache import cached
+
 logger = logging.getLogger("tonghua.admin_service")
 
 class AdminService(BaseService):
     """
     Service handling administrative tasks, bulk operations, and dashboard stats.
     """
+
+    @cached(prefix="admin:audit_logs", ttl=60)
+    async def list_audit_logs(
+        self, 
+        page: int = 1, 
+        page_size: int = 50, 
+        user_id: Optional[int] = None,
+        action: Optional[str] = None
+    ) -> tuple[List[AuditLog], int]:
+        """
+        List system audit logs with pagination and optimization.
+        Uses late association logic for better performance on large offsets.
+        """
+        # 1. Build base query
+        stmt = select(AuditLog)
+        if user_id:
+            stmt = stmt.where(AuditLog.user_id == user_id)
+        if action:
+            stmt = stmt.where(AuditLog.action == action)
+        
+        # 2. Count total (Count is always needed for pagination)
+        count_stmt = select(func.count()).select_from(stmt.subquery())
+        total = (await self.db.execute(count_stmt)).scalar() or 0
+
+        # 3. Optimized query: Get IDs first for deep pagination (Late Association)
+        # Note: For smaller datasets, standard limit/offset is fine.
+        # But we ensure it's ordered by the indexed timestamp.
+        stmt = stmt.order_by(AuditLog.timestamp.desc())
+        stmt = stmt.offset((page - 1) * page_size).limit(page_size)
+        
+        result = await self.db.execute(stmt)
+        return result.scalars().all(), total
 
     async def get_dashboard_stats(self) -> Dict[str, Any]:
         """

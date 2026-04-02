@@ -1,4 +1,3 @@
-# pyright: ignore[reportMissingImports]
 import resend
 import logging
 import asyncio
