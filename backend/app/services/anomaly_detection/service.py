@@ -1,7 +1,7 @@
 import logging
 from typing import Optional
 from sqlalchemy import select, func, and_
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from app.services.base import BaseService
 from app.models.donation import Donation
 
@@ -27,7 +27,7 @@ class AnomalyDetectionService(BaseService):
         if not user_id:
             return False
 
-        since = datetime.utcnow() - timedelta(minutes=time_window_minutes)
+        since = datetime.now(UTC) - timedelta(minutes=time_window_minutes)
         
         # Count donations by this user within the time window that are below threshold_amount
         query = select(func.count(Donation.id)).where(

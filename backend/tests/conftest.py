@@ -17,16 +17,16 @@ from unittest.mock import AsyncMock, patch
 # Patch redis for testing (avoid Redis connection errors)
 # This must be done before importing any backend modules that use redis
 redis_mock = AsyncMock()
-# Track voted keys for duplicate vote detection
-_voted_keys = set()
+# Track in-memory Redis keys for the current test
+_redis_keys = set()
 
 async def mock_exists(key):
-    """Mock exists - returns True if key was voted."""
-    return key in _voted_keys
+    """Mock exists for duplicate-vote and token-blacklist checks."""
+    return key in _redis_keys
 
 async def mock_setex(key, ttl, value):
-    """Mock setex - marks key as voted."""
-    _voted_keys.add(key)
+    """Mock setex - stores keys in memory for the current test."""
+    _redis_keys.add(key)
     return True
 
 # Configure default behavior for Redis methods used in the app
@@ -227,6 +227,36 @@ async def app():
                 db.add(user)
                 await db.commit()
                 print("Test user seeded successfully.")
+
+            stmt_admin = select(User).where(User.email == "admin@tonghua.test")
+            result_admin = await db.execute(stmt_admin)
+            admin_user = result_admin.scalar_one_or_none()
+            if not admin_user:
+                admin_user = User(
+                    email="admin@tonghua.test",
+                    password_hash=hash_password("adminpass123"),
+                    nickname="Test Admin",
+                    role="admin",
+                    status="active",
+                )
+                db.add(admin_user)
+                await db.commit()
+                print("Test admin user seeded successfully.")
+
+            stmt_guardian = select(User).where(User.email == "guardian@tonghua.test")
+            result_guardian = await db.execute(stmt_guardian)
+            guardian_user = result_guardian.scalar_one_or_none()
+            if not guardian_user:
+                guardian_user = User(
+                    email="guardian@tonghua.test",
+                    password_hash=hash_password("guardianpass123"),
+                    nickname="Test Guardian",
+                    role="guardian",
+                    status="active",
+                )
+                db.add(guardian_user)
+                await db.commit()
+                print("Test guardian user seeded successfully.")
     except Exception as e:
         print(f"Warning: Could not seed test user: {e}")
 
@@ -239,6 +269,14 @@ async def client(app) -> AsyncGenerator[AsyncClient, None]:
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
+
+
+@pytest.fixture(autouse=True)
+def reset_mock_redis_state():
+    """Keep Redis-backed test behavior isolated between test cases."""
+    _redis_keys.clear()
+    yield
+    _redis_keys.clear()
 
 
 # ---------------------------------------------------------------------------
@@ -309,7 +347,7 @@ def expired_auth_headers():
 def admin_auth_headers():
     """Return authorization headers for an admin user."""
     from app.security import create_access_token
-    token = create_access_token(subject="admin-1", role="super_admin")
+    token = create_access_token(subject="2", role="admin")
     return {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",
@@ -320,7 +358,7 @@ def admin_auth_headers():
 def guardian_auth_headers():
     """Return authorization headers for a guardian user."""
     from app.security import create_access_token
-    token = create_access_token(subject="guardian-1", role="guardian")
+    token = create_access_token(subject="3", role="guardian")
     return {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",

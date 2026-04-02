@@ -1,10 +1,13 @@
 import logging
 import time
 import re
+import math
 from contextlib import asynccontextmanager
 from typing import Optional
+from decimal import Decimal
 
 from fastapi import FastAPI, Request, HTTPException
+from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
@@ -160,6 +163,10 @@ def _serialize_error(obj):
     """Recursively convert non-serializable objects to strings."""
     if isinstance(obj, bytes):
         return obj.decode("utf-8", errors="replace")
+    if isinstance(obj, Decimal):
+        return str(obj)
+    if isinstance(obj, float) and not math.isfinite(obj):
+        return str(obj)
     if isinstance(obj, dict):
         return {k: _serialize_error(v) for k, v in obj.items()}
     if isinstance(obj, (list, tuple)):
@@ -182,7 +189,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         pass
 
     # Sanitize errors to ensure JSON serializability
-    sanitized_errors = _serialize_error(exc.errors())
+    sanitized_errors = jsonable_encoder(_serialize_error(exc.errors()))
 
     return JSONResponse(
         status_code=422,

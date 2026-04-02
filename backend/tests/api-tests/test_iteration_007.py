@@ -61,7 +61,7 @@ class TestAIAndAdvancedFeatures:
             assert response.status_code == 403
             assert "flagged by security system" in response.json()["detail"]
 
-    def test_i18n_utility(self):
+    async def test_i18n_utility(self):
         """Test i18n utility directly."""
         # English
         assert "Resource not found." in t("errors.not_found", locale="en")
