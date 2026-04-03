@@ -50,6 +50,10 @@ class RefreshRequest(BaseModel):
     refresh_token: str
 
 
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
 # ── Audit / Admin ─────────────────────────────────────────────────
 class AuditLogOut(BaseModel):
     id: int

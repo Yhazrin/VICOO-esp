@@ -16,6 +16,38 @@
     "profile": "Profile",
     "logout": "Logout"
   },
+  "auth": {
+    "loginSuccess": "Login successful",
+    "registerSuccess": "Registration successful",
+    "logoutSuccess": "Logged out successfully"
+  },
+  "login": {
+    "title": "Login",
+    "email": "Email",
+    "password": "Password",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password",
+    "submit": "Login",
+    "submitting": "Logging in...",
+    "register": "Register a new account",
+    "orContinueWith": "or continue with",
+    "error": {
+      "invalidCredentials": "Invalid email or password",
+      "userNotFound": "User not found"
+    }
+  },
+  "register": {
+    "title": "Register",
+    "email": "Email",
+    "password": "Password",
+    "nickname": "Nickname",
+    "submit": "Create Account",
+    "submitting": "Creating...",
+    "login": "Already have an account? Login",
+    "error": {
+      "userExists": "User already exists"
+    }
+  },
   "profile": {
     "title": "My Profile",
     "notLoggedIn": "Please log in to view your profile.",
@@ -248,6 +280,14 @@
       "customAmount": "Or enter a custom amount",
       "placeholder": "Enter amount",
       "currency": "CNY",
+      "payment": {
+        "title": "Payment Method",
+        "stripe": "Card / Stripe",
+        "wechat": "WeChat Pay",
+        "alipay": "Alipay",
+        "stripeHint": "Recommended for the web experience in local and development environments.",
+        "domesticHint": "Domestic payment methods require additional merchant configuration. If unavailable, the server will return a clear setup message instead of a generic failure."
+      },
       "frequency": {
         "title": "Donation Frequency",
         "once": "One-time",

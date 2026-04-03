@@ -15,6 +15,7 @@ import FAQAccordion from '@/components/editorial/FAQAccordion';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 import MagneticButton from '@/components/animations/MagneticButton';
 import { donationsApi } from '@/services/donations';
+import { getErrorMessage } from '@/utils/error';
 
 /* ─── Impact Area Data ─── */
 
@@ -244,12 +245,16 @@ export default function Donate() {
         donor_name: data.anonymous ? t('donate.anonymousName') : (user?.nickname || user?.email || t('donate.guestName')),
         amount: data.amount,
         currency: 'CNY',
-        payment_method: data.paymentMethod || 'wechat',
+        payment_method: data.paymentMethod,
         is_anonymous: data.anonymous,
         message: data.message || undefined,
       });
     },
   });
+
+  const donationErrorMessage = donateMutation.error
+    ? getErrorMessage(donateMutation.error, t('donate.error', 'Something went wrong. Please try again.'))
+    : null;
 
   const donationStories = [
     {
@@ -333,7 +338,7 @@ export default function Donate() {
             {donateMutation.isError && (
               <div className="mb-4 p-4 border border-rust bg-red-50">
                 <p className="font-body text-body-sm text-rust">
-                  {t('donate.error', 'Something went wrong. Please try again.')}
+                  {donationErrorMessage}
                 </p>
               </div>
             )}

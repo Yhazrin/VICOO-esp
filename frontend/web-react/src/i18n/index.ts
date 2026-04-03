@@ -8,9 +8,24 @@ const resources = {
   zh: { translation: zh },
 };
 
+const getInitialLanguage = () => {
+  try {
+    const stored = localStorage.getItem('tonghua-ui-settings');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (parsed.state?.currentLocale) {
+        return parsed.state.currentLocale;
+      }
+    }
+  } catch (e) {
+    // localStorage not available
+  }
+  return 'en';
+};
+
 i18n.use(initReactI18next).init({
   resources,
-  lng: 'en',
+  lng: getInitialLanguage(),
   fallbackLng: 'en',
   interpolation: {
     escapeValue: false,

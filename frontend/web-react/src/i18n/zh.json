@@ -16,6 +16,38 @@
     "profile": "个人中心",
     "logout": "退出"
   },
+  "auth": {
+    "loginSuccess": "登录成功",
+    "registerSuccess": "注册成功",
+    "logoutSuccess": "退出成功"
+  },
+  "login": {
+    "title": "登录",
+    "email": "邮箱",
+    "password": "密码",
+    "rememberMe": "记住我",
+    "forgotPassword": "忘记密码",
+    "submit": "登录",
+    "submitting": "正在登录...",
+    "register": "注册新账号",
+    "orContinueWith": "或使用以下方式继续",
+    "error": {
+      "invalidCredentials": "邮箱或密码错误",
+      "userNotFound": "用户不存在"
+    }
+  },
+  "register": {
+    "title": "注册",
+    "email": "邮箱",
+    "password": "密码",
+    "nickname": "昵称",
+    "submit": "创建账号",
+    "submitting": "正在创建...",
+    "login": "已有账号？登录",
+    "error": {
+      "userExists": "用户已存在"
+    }
+  },
   "profile": {
     "title": "个人中心",
     "notLoggedIn": "请登录以查看您的个人资料。",
@@ -248,6 +280,14 @@
       "customAmount": "或输入自定义金额",
       "placeholder": "输入金额",
       "currency": "元",
+      "payment": {
+        "title": "支付方式",
+        "stripe": "银行卡 / Stripe",
+        "wechat": "微信支付",
+        "alipay": "支付宝",
+        "stripeHint": "本地开发和网页端当前更推荐使用该方式。",
+        "domesticHint": "国内支付方式需要额外的商户配置。如果当前环境未配置，服务端会返回明确提示，而不是通用 500 错误。"
+      },
       "frequency": {
         "title": "捐赠频率",
         "once": "一次性",
