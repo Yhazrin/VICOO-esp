@@ -835,5 +835,92 @@
   "campaigns.detail.backToAll": "to all campaigns",
   "traceability.location": "Location",
   "traceability.partner": "Partner",
-  "traceability.date": "Date"
+  "traceability.date": "Date",
+  "donateClothing": {
+    "loginRequired": "Please log in to register a clothing donation",
+    "title": "Clothing Donation Registration",
+    "subtitle": "Sorted and sanitized before entering the recycled product pool, listed by operations",
+    "summary": "Item Summary *",
+    "types": "Types (e.g., outerwear, children's clothing)",
+    "qty": "Estimated Quantity",
+    "condition": "Condition & Notes",
+    "pickup": "Pickup / Shipping Address",
+    "phone": "Contact Phone",
+    "error": "Submission failed, please try again later",
+    "submit": "Submit Registration",
+    "disclaimer": "You can check progress in your profile after submission; personal information is used only for logistics coordination.",
+    "clothingHint": "Idle clothing can also be donated, processed into sustainable fashion products, with proceeds supporting rural arts education.",
+    "donateLink": "Donate Clothing →"
+  },
+  "support": {
+    "loginRequired": "Log in to submit after-sales ticket",
+    "title": "After-Sales Service",
+    "subtitle": "Link order number for easier processing",
+    "orderId": "Order ID *",
+    "category": "Category",
+    "subject": "Subject *",
+    "description": "Description",
+    "success": "Submitted successfully, check progress in your profile",
+    "error": "Submission failed, please verify the order belongs to your account",
+    "submit": "Submit Ticket",
+    "return": "Return",
+    "exchange": "Exchange",
+    "quality": "Quality Issue",
+    "logistics": "Logistics",
+    "other": "Other"
+  },
+  "aiAssistant": {
+    "title": "AI Assistant",
+    "subtitle": "Donations, shopping, logistics & sustainability practices",
+    "context": "Context",
+    "error": "Request failed, please try again later.",
+    "empty": "Type a question to start chatting. Demo responses returned when API is not configured.",
+    "placeholder": "e.g.: How long until donated clothing is listed?",
+    "send": "Send",
+    "greeting": "Hello! I am VICOO AI Assistant. Feel free to ask about donation processes, art activities, or sustainable fashion.",
+    "replyError": "Sorry, I cannot answer right now.",
+    "connectionError": "Failed to connect to assistant, please try again later.",
+    "general": "General",
+    "donation": "Donations & Clothing",
+    "shopCategory": "Shop & Payment",
+    "logisticsCategory": "Order Logistics",
+    "sustainability": "Sustainability & Traceability"
+  },
+  "profile": {
+    "clothingIntakes": "Clothing Donations",
+    "afterSales": "After-Sales",
+    "orderNo": "Order No.",
+    "viewLogistics": "View Logistics & Details",
+    "clothingIntakeProgress": "Clothing Donation Progress",
+    "newClothingIntake": "Register New Clothing Donation",
+    "intakesError": "Unable to load clothing donations at this time.",
+    "noIntakes": "No donations yet",
+    "viewLinkedProduct": "View Linked Product",
+    "afterSalesService": "After-Sales Service",
+    "newTicket": "Submit After-Sales Ticket",
+    "ticketsError": "Unable to load tickets at this time.",
+    "noTickets": "No tickets yet",
+    "orderId": "Order"
+  },
+  "orderDetail": {
+    "error": "Unable to load order",
+    "title": "Order & Logistics",
+    "status": "Status",
+    "total": "Total",
+    "address": "Shipping Address",
+    "items": "Items",
+    "logistics": "Logistics Tracking"
+  },
+  "shop": {
+    "detail": {
+      "reviews": "Reviews",
+      "noReviews": "No reviews yet",
+      "rating": "Rating",
+      "writeReview": "Write a Review",
+      "reviewTitle": "Title (optional)",
+      "reviewBody": "Share your wearing or packaging experience",
+      "reviewError": "You may have already reviewed this product",
+      "submitReview": "Submit"
+    }
+  }
 }

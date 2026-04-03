@@ -1,22 +1,24 @@
 import { NavLink, useLocation } from 'react-router-dom';
-
-const menuItems = [
-  { path: '/', label: 'DASHBOARD', icon: '01' },
-  { path: '/artworks', label: 'ARTWORKS', icon: '02' },
-  { path: '/campaigns', label: 'CAMPAIGNS', icon: '03' },
-  { path: '/donations', label: 'DONATIONS', icon: '04' },
-  { path: '/orders', label: 'ORDERS', icon: '05' },
-  { path: '/clothing-donations', label: 'CLOTHING', icon: '06' },
-  { path: '/after-sales', label: 'AFTER-SALES', icon: '07' },
-  { path: '/users', label: 'USERS', icon: '08' },
-  { path: '/child-audit', label: 'CHILD AUDIT', icon: '09' },
-  { divider: true },
-  { path: '/audit-log', label: 'AUDIT LOG', icon: '10' },
-  { path: '/settings', label: 'SETTINGS', icon: '11' },
-];
+import { useTranslation } from 'react-i18next';
 
 export default function Sidebar() {
+  const { t } = useTranslation();
   const location = useLocation();
+
+  const menuItems = [
+    { path: '/', labelKey: 'sidebar.dashboard', icon: '01' },
+    { path: '/artworks', labelKey: 'sidebar.artworks', icon: '02' },
+    { path: '/campaigns', labelKey: 'sidebar.campaigns', icon: '03' },
+    { path: '/donations', labelKey: 'sidebar.donations', icon: '04' },
+    { path: '/orders', labelKey: 'sidebar.orders', icon: '05' },
+    { path: '/clothing-donations', labelKey: 'sidebar.clothing', icon: '06' },
+    { path: '/after-sales', labelKey: 'sidebar.afterSales', icon: '07' },
+    { path: '/users', labelKey: 'sidebar.users', icon: '08' },
+    { path: '/child-audit', labelKey: 'sidebar.childAudit', icon: '09' },
+    { divider: true },
+    { path: '/audit-log', labelKey: 'sidebar.auditLog', icon: '10' },
+    { path: '/settings', labelKey: 'sidebar.settings', icon: '11' },
+  ];
 
   return (
     <aside style={{
@@ -30,7 +32,6 @@ export default function Sidebar() {
       flexDirection: 'column',
       overflow: 'hidden',
     }}>
-      {/* Editorial Masthead (Logo) */}
       <div style={{
         padding: '40px 30px',
         display: 'flex',
@@ -50,7 +51,7 @@ export default function Sidebar() {
         }}>
           VICOO
         </div>
-        <div style={{ 
+        <div style={{
           marginTop: '8px',
           fontFamily: 'var(--font-body)',
           fontSize: '10px',
@@ -58,11 +59,10 @@ export default function Sidebar() {
           letterSpacing: '0.3em',
           color: 'var(--color-sepia-mid)'
         }}>
-          Admin System
+          {t('sidebar.systemName')}
         </div>
       </div>
 
-      {/* Table of Contents (Menu) */}
       <nav style={{ flex: 1, padding: '20px 0', overflowY: 'auto' }}>
         {menuItems.map((item: any, i) => {
           if (item.divider) {
@@ -90,7 +90,6 @@ export default function Sidebar() {
                 position: 'relative'
               } as any}
             >
-              {/* Index Number */}
               <span style={{
                 fontFamily: 'var(--font-display)',
                 fontSize: isActive ? '18px' : '14px',
@@ -101,9 +100,8 @@ export default function Sidebar() {
               }}>
                 {item.icon}
               </span>
-
-              <span style={{ 
-                fontSize: '12px', 
+              <span style={{
+                fontSize: '12px',
                 fontFamily: 'var(--font-body)',
                 fontWeight: isActive ? 600 : 400,
                 letterSpacing: '0.15em',
@@ -112,14 +110,13 @@ export default function Sidebar() {
                 borderBottom: isActive ? '1px solid var(--color-archive-brown)' : '1px solid transparent',
                 paddingBottom: '2px'
               }}>
-                {item.label}
+                {t(item.labelKey)}
               </span>
             </NavLink>
           );
         })}
       </nav>
 
-      {/* Footer / Colophon */}
       <div style={{
         padding: '20px 30px',
         borderTop: '1px solid var(--color-warm-gray)',
@@ -129,8 +126,8 @@ export default function Sidebar() {
         textTransform: 'uppercase',
         letterSpacing: '0.1em'
       }}>
-        Edition 2026.03<br/>
-        All Rights Reserved
+        {t('sidebar.edition')}<br/>
+        {t('sidebar.allRightsReserved')}
       </div>
     </aside>
   );

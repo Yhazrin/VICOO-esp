@@ -59,13 +59,25 @@ function paginate<T>(items: T[], params: FilterParams): PaginatedResponse<T> {
   return { data, total, page, pageSize, totalPages };
 }
 
-// Delay helper to simulate network
-const delay = (ms = 300) => new Promise((r) => setTimeout(r, ms));
+/**
+ * 网络延迟模拟工具函数
+ * 用于在开发环境中模拟真实的网络请求延迟
+ * @param ms - 延迟时间（毫秒），默认 300ms
+ * @returns Promise<void> - 在指定时间后 resolve 的 Promise
+ */
+const delay = (ms = 300) => new Promise<void>((r) => setTimeout(r, ms));
 
-// === API Functions (using mock data for development) ===
+// === API 函数（开发阶段使用 Mock 数据） ===
 
-export async function fetchDashboardMetrics(): Promise[DashboardMetrics] {
+/**
+ * 获取仪表盘指标数据
+ * 返回系统的关键运营指标（总作品数、活动数、订单数等）
+ * @returns DashboardMetrics 对象，包含各项统计指标
+ */
+export async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
+  // 模拟 200ms 的网络延迟
   await delay(200);
+  // 返回 Mock 数据的深拷贝，避免修改原始数据
   return { ...mockDashboardMetrics };
 }
 

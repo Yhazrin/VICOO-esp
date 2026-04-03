@@ -7,14 +7,6 @@ import PaperTextureBackground from '@/components/editorial/PaperTextureBackgroun
 import GrainOverlay from '@/components/editorial/GrainOverlay';
 import { aiAssistantApi, type AIChatMessage } from '@/services/aiAssistant';
 
-const CONTEXT_OPTIONS = [
-  { value: 'general', label: '通用' },
-  { value: 'donation', label: '捐赠与衣物' },
-  { value: 'shop', label: '商城与支付' },
-  { value: 'logistics', label: '订单物流' },
-  { value: 'sustainability', label: '可持续与溯源' },
-];
-
 export default function AiAssistant() {
   const { t } = useTranslation();
   const [context, setContext] = useState('general');
@@ -22,6 +14,14 @@ export default function AiAssistant() {
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<AIChatMessage[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  const contextOptions = [
+    { value: 'general', label: t('aiAssistant.general') },
+    { value: 'donation', label: t('aiAssistant.donation') },
+    { value: 'shop', label: t('aiAssistant.shopCategory') },
+    { value: 'logistics', label: t('aiAssistant.logisticsCategory') },
+    { value: 'sustainability', label: t('aiAssistant.sustainability') },
+  ];
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -67,7 +67,7 @@ export default function AiAssistant() {
               onChange={(e) => setContext(e.target.value)}
               className="font-body text-body-sm border border-warm-gray/40 bg-paper px-3 py-2 text-ink"
             >
-              {CONTEXT_OPTIONS.map((o) => (
+              {contextOptions.map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}
                 </option>
@@ -87,7 +87,7 @@ export default function AiAssistant() {
                 key={i}
                 className={`font-body text-body-sm leading-relaxed ${m.role === 'user' ? 'text-ink pl-4 border-l-2 border-rust/40' : 'text-ink-faded'}`}
               >
-                <span className="text-overline text-sepia-mid block mb-1">{m.role === 'user' ? 'You' : 'Assistant'}</span>
+                <span className="text-overline text-sepia-mid block mb-1">{m.role === 'user' ? t('aiAssistant.userLabel') : t('aiAssistant.assistantLabel')}</span>
                 {m.content}
               </div>
             ))}

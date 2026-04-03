@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import i18n from 'i18next';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
@@ -249,7 +250,7 @@ export default function Profile() {
                   : 'text-sepia-mid hover:text-ink'
               }`}
             >
-              {t('profile.orders', 'Orders')} ({orders.length})
+              {t('profile.tabs.orders')} ({orders.length})
             </button>
             <button
               role="tab"
@@ -265,7 +266,7 @@ export default function Profile() {
                   : 'text-sepia-mid hover:text-ink'
               }`}
             >
-              {t('profile.donations', 'Donations')} ({donations.length})
+              {t('profile.tabs.donations')} ({donations.length})
             </button>
             <button
               role="tab"
@@ -281,7 +282,7 @@ export default function Profile() {
                   : 'text-sepia-mid hover:text-ink'
               }`}
             >
-              {t('profile.clothingIntakes', '衣物捐献')} ({intakes.length})
+              {t('profile.tabs.clothing')} ({intakes.length})
             </button>
             <button
               role="tab"
@@ -297,30 +298,30 @@ export default function Profile() {
                   : 'text-sepia-mid hover:text-ink'
               }`}
             >
-              {t('profile.afterSales', '售后')} ({tickets.length})
+              {t('profile.tabs.support')} ({tickets.length})
             </button>
           </div>
 
           {/* Orders tab */}
           {activeTab === 'orders' && (
             <div role="tabpanel" id="panel-orders" aria-labelledby="tab-orders">
-              <NumberedSectionHeading number="01" title={t('profile.orderHistory', 'Order History')} />
+              <NumberedSectionHeading number="01" title={t('profile.orderHistory')} />
               {loadingOrders ? (
                 <p className="font-body text-body-sm text-ink-faded">{t('common.loading', 'Loading...')}</p>
               ) : errorOrders ? (
                 <p className="font-body text-body-sm text-rust">
-                  {t('profile.ordersError', 'We could not load your orders right now.')}
+                  {t('profile.ordersError')}
                 </p>
               ) : orders.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="font-body text-body-sm text-ink-faded mb-4">
-                    {t('profile.noOrders', 'No orders yet')}
+                    {t('profile.noOrders')}
                   </p>
                   <Link
                     to="/shop"
                     className="inline-block font-body text-overline tracking-[0.15em] uppercase text-rust hover:text-ink transition-colors"
                   >
-                    {t('profile.browseShop', 'Browse the shop')} &rarr;
+                    {t('profile.browseShop')} &rarr;
                   </Link>
                 </div>
               ) : (
@@ -328,8 +329,8 @@ export default function Profile() {
                   {orders.map((order: OrderDetail, index: number) => (
                     <Link key={order.id} to={`/orders/${order.id}`} className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-rust/40">
                       <EditorialCard
-                        title={`${t('profile.orderNo', '单号')} ${order.order_no}`}
-                        subtitle={new Date(order.created_at).toLocaleDateString('en-US', {
+                        title={`${t('profile.orderNo')} ${order.order_no}`}
+                        subtitle={new Date(order.created_at).toLocaleDateString(i18n.language, {
                           year: 'numeric',
                           month: 'short',
                           day: 'numeric',
@@ -343,7 +344,7 @@ export default function Profile() {
                           </span>
                           {order.tracking_number && (
                             <span className="font-body text-caption text-ink-faded truncate max-w-[50%]" title={order.tracking_number}>
-                              {order.carrier ?? '物流'} · {order.tracking_number}
+                              {order.carrier ?? t('profile.logistics')} · {order.tracking_number}
                             </span>
                           )}
                         </div>
@@ -359,7 +360,7 @@ export default function Profile() {
                         ))}
                         <div className="flex justify-between pt-2 border-t border-warm-gray/20 mt-1">
                           <span className="font-body text-caption tracking-wider uppercase text-sepia-mid">
-                            {t('profile.total', 'Total')}
+                            {t('profile.total')}
                           </span>
                           <span className="font-display text-base text-ink">
                             CNY {Number(order.total_amount).toFixed(2)}
@@ -379,23 +380,23 @@ export default function Profile() {
           {/* Donations tab */}
           {activeTab === 'donations' && (
             <div role="tabpanel" id="panel-donations" aria-labelledby="tab-donations">
-              <NumberedSectionHeading number="02" title={t('profile.donationHistory', 'Donation History')} />
+              <NumberedSectionHeading number="02" title={t('profile.donationHistory')} />
               {loadingDonations ? (
                 <p className="font-body text-body-sm text-ink-faded">{t('common.loading', 'Loading...')}</p>
               ) : errorDonations ? (
                 <p className="font-body text-body-sm text-rust">
-                  {t('profile.donationsError', 'We could not load your donations right now.')}
+                  {t('profile.donationsError')}
                 </p>
               ) : donations.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="font-body text-body-sm text-ink-faded mb-4">
-                    {t('profile.noDonations', 'No donations yet')}
+                    {t('profile.noDonations')}
                   </p>
                   <Link
                     to="/donate"
                     className="inline-block font-body text-overline tracking-[0.15em] uppercase text-rust hover:text-ink transition-colors"
                   >
-                    {t('profile.makeDonation', 'Make a donation')} &rarr;
+                    {t('profile.makeDonation')} &rarr;
                   </Link>
                 </div>
               ) : (
@@ -404,7 +405,7 @@ export default function Profile() {
                     <EditorialCard
                       key={donation.id}
                       title={`${donation.currency} ${donation.amount.toFixed(2)}`}
-                      subtitle={new Date(donation.createdAt).toLocaleDateString('en-US', {
+                      subtitle={new Date(donation.createdAt).toLocaleDateString(i18n.language, {
                         year: 'numeric',
                         month: 'short',
                         day: 'numeric',
@@ -424,7 +425,7 @@ export default function Profile() {
                       )}
                       {donation.is_anonymous && (
                         <p className="font-body text-overline text-sepia-mid mt-2">
-                          {t('profile.anonymous', 'Anonymous donation')}
+                          {t('profile.anonymous')}
                         </p>
                       )}
                     </EditorialCard>
@@ -436,10 +437,10 @@ export default function Profile() {
 
           {activeTab === 'clothing' && (
             <div role="tabpanel" id="panel-clothing" aria-labelledby="tab-clothing">
-              <NumberedSectionHeading number="03" title={t('profile.clothingIntakes', '衣物捐献进度')} />
+              <NumberedSectionHeading number="03" title={t('profile.clothingIntakes')} />
               <p className="font-body text-body-sm text-ink-faded mb-6">
                 <Link to="/donate-clothing" className="text-rust hover:text-ink underline-offset-4">
-                  {t('profile.newClothingIntake', '登记新的衣物捐献')}
+                  {t('profile.newClothingIntake')}
                 </Link>
               </p>
               {loadingIntakes ? (
@@ -473,10 +474,10 @@ export default function Profile() {
 
           {activeTab === 'support' && (
             <div role="tabpanel" id="panel-support" aria-labelledby="tab-support">
-              <NumberedSectionHeading number="04" title={t('profile.afterSales', '售后服务')} />
+              <NumberedSectionHeading number="04" title={t('profile.afterSales')} />
               <p className="font-body text-body-sm text-ink-faded mb-6">
                 <Link to="/support" className="text-rust hover:text-ink underline-offset-4">
-                  {t('profile.newTicket', '提交售后工单')}
+                  {t('profile.newTicket')}
                 </Link>
               </p>
               {loadingTickets ? (

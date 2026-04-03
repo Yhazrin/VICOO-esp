@@ -16,7 +16,7 @@ import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 export default function ScrollNarrative() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = useReducedMotion() ?? false;
 
   // Reliable scroll tracking using native events
   useEffect(() => {
