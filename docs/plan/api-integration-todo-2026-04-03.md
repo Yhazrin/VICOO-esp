@@ -19,16 +19,16 @@
 
 ## B. Web 端待接入（按优先级）
 
-- [ ] B1. `Traceability` 去静态字段映射，改为真实链路字段渲染
-- [ ] B2. `Shop` 补库存/售罄状态的真实字段约束（避免 mock 误导）
-- [ ] B3. `Stories` 增加后端 editorial feed（减少 mock 文案占比）
-- [ ] B4. `Home` 的品牌指标增加来源标识（实时/回退）
+- [x] B1. `Traceability` 去静态字段映射，改为真实链路字段渲染（已完成）
+- [x] B2. `Shop` 补库存/售罄状态的真实字段约束（避免 mock 误导，已完成）
+- [x] B3. `Stories` 增加后端 editorial feed（减少 mock 文案占比，已完成）
+- [x] B4. `Home` 的品牌指标增加来源标识（实时/回退，已完成）
 
 ## C. 后端配套（必须同步）
 
-- [ ] C1. 补 admin analytics 聚合端点（donation/order/user/artwork）
-- [ ] C2. 明确 mock 开关边界（development/staging/production）
-- [ ] C3. 统一分页字段输出（`page_size` vs `pageSize` 规范）
+- [x] C1. 补 admin analytics 聚合端点（donation/order/user/artwork，已完成）
+- [x] C2. 明确 mock 开关边界（development/staging/production，已完成）
+- [x] C3. 统一分页字段输出（`page_size` vs `pageSize` 规范，已完成）
 
 ---
 

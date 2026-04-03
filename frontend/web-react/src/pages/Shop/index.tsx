@@ -12,6 +12,7 @@ import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import VintageSelect from '@/components/editorial/VintageSelect';
 import { productsApi } from '@/services/products';
 import type { Product } from '@/types';
+import { allowWebMockFallback } from '@/config/runtime';
 
 type Category = 'all' | 'apparel' | 'accessories' | 'stationery' | 'prints';
 type SortOption = 'default' | 'price-asc' | 'price-desc' | 'sustainability';
@@ -118,7 +119,8 @@ export default function Shop() {
         });
         return result;
       } catch {
-        return null;
+        if (allowWebMockFallback) return null;
+        throw new Error('Products unavailable and fallback disabled');
       }
     },
     staleTime: 5 * 60 * 1000,
@@ -129,7 +131,8 @@ export default function Shop() {
       try {
         return await productsApi.getCategories();
       } catch {
-        return null;
+        if (allowWebMockFallback) return null;
+        throw new Error('Category list unavailable and fallback disabled');
       }
     },
     staleTime: 10 * 60 * 1000,
@@ -169,7 +172,7 @@ export default function Shop() {
   ];
 
   const filtered = useMemo(() => {
-    let list = data?.items ?? MOCK_PRODUCTS;
+    let list = data?.items?.length ? data.items : (allowWebMockFallback ? MOCK_PRODUCTS : []);
 
     if (activeCategory !== 'all') {
       list = list.filter((p) => p.category === activeCategory);

@@ -25,6 +25,12 @@ const coreApi = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 const USE_REAL_API = import.meta.env.VITE_ADMIN_USE_REAL_API !== 'false';
+const ALLOW_ADMIN_MOCK_FALLBACK = (() => {
+  const flag = import.meta.env.VITE_ADMIN_ALLOW_MOCK_FALLBACK;
+  if (flag === 'true') return true;
+  if (flag === 'false') return false;
+  return import.meta.env.MODE !== 'production';
+})();
 
 api.interceptors.response.use(
   (res) => res,
@@ -50,6 +56,9 @@ async function withFallback<T>(realCall: () => Promise<T>, mockCall: () => Promi
   try {
     return await realCall();
   } catch (error) {
+    if (!ALLOW_ADMIN_MOCK_FALLBACK) {
+      throw error;
+    }
     console.warn('[admin-api] real API failed, fallback to mock:', error);
     return await Promise.resolve(mockCall());
   }

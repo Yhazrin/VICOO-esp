@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Dict, Generic, List, Optional, TypeVar
 
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field, EmailStr, model_validator
 
 T = TypeVar("T")
 
@@ -21,6 +21,13 @@ class PaginatedResponse(BaseModel, Generic[T]):
     total: int = 0
     page: int = 1
     page_size: int = 20
+    pageSize: int = 20
+
+    @model_validator(mode="after")
+    def sync_page_size_alias(self):
+        # Keep both snake_case and camelCase for backward compatibility.
+        self.pageSize = self.page_size
+        return self
 
 
 # ── Auth ──────────────────────────────────────────────────────────

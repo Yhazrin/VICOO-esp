@@ -5,6 +5,8 @@ import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { artworksApi } from '@/services/artworks';
 import { campaignsApi } from '@/services/campaigns';
+import { editorialApi } from '@/services/editorial';
+import { allowWebMockFallback } from '@/config/runtime';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import EditorialHero from '@/components/editorial/EditorialHero';
@@ -288,24 +290,41 @@ export default function Stories() {
 
   const categories: Category[] = ['all', 'impact', 'fashion', 'community', 'education'];
 
-  // Fetch artworks + active campaign from API and convert to story format
+  // Fetch editorial feed + artworks/campaign enrichments from API.
   const { data: storiesFeed } = useQuery({
     queryKey: ['stories-feed'],
     queryFn: async () => {
       try {
-        const [artworks, activeCampaign] = await Promise.all([
+        const [editorialFeed, artworks, activeCampaign] = await Promise.all([
+          editorialApi.getFeed(10),
           artworksApi.getAll({ page_size: 10 }),
           campaignsApi.getActive().catch(() => null),
         ]);
-        return { artworks, activeCampaign };
+        return { editorialFeed, artworks, activeCampaign };
       }
-      catch { return null; }
+      catch {
+        if (allowWebMockFallback) return null;
+        throw new Error('Stories feed unavailable and fallback disabled');
+      }
     },
     staleTime: 5 * 60 * 1000,
   });
 
-  // Convert API artworks to StoryItem format; fall back to MOCK_STORIES
+  // Convert API feed/artworks to StoryItem format; fall back to MOCK_STORIES when enabled.
   const stories: StoryItem[] = useMemo(() => {
+    if (storiesFeed?.editorialFeed?.length) {
+      return storiesFeed.editorialFeed.map((item, i) => ({
+        id: String(item.id),
+        title: item.title,
+        excerpt: item.excerpt,
+        pullQuote: item.pull_quote || t('stories.mock.pull3'),
+        coverImage: item.cover_image || `https://picsum.photos/seed/editorial-${item.id}/800/600`,
+        author: item.author || t('stories.anonymousArtist'),
+        publishedAt: item.published_at || '2026-01-01',
+        readTimeMinutes: item.read_time_minutes || (5 + (i % 4) * 3),
+        category: (item.category || ['impact', 'community', 'education', 'fashion'][i % 4]) as StoryItem['category'],
+      }));
+    }
     if (storiesFeed?.artworks?.items?.length) {
       return storiesFeed.artworks.items.map((artwork, i) => ({
         id: String(artwork.id),
@@ -319,7 +338,7 @@ export default function Stories() {
         category: ['impact', 'community', 'education', 'fashion'][i % 4] as StoryItem['category'],
       }));
     }
-    return getMockStories(t);
+    return allowWebMockFallback ? getMockStories(t) : [];
   }, [storiesFeed, t]);
 
   // Compute category counts
