@@ -6,6 +6,7 @@ import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request, Cookie
 from fastapi.responses import JSONResponse
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -73,6 +74,99 @@ def _set_auth_cookies(response: JSONResponse, access_token: str, refresh_token: 
     return response
 
 
+async def _wechat_login_response(wechat_code: str, db: AsyncSession) -> JSONResponse:
+    """Exchange wechat_code and return a standard auth response with cookies."""
+    if not wechat_code:
+        raise HTTPException(status_code=400, detail="wechat_code is required")
+
+    if not settings.WECHAT_APP_ID or not settings.WECHAT_APP_SECRET:
+        raise HTTPException(status_code=500, detail="WeChat configuration is missing")
+
+    async with httpx.AsyncClient() as client:
+        wx_response = await client.post(
+            "https://api.weixin.qq.com/sns/jscode2session",
+            data={
+                "appid": settings.WECHAT_APP_ID,
+                "secret": settings.WECHAT_APP_SECRET,
+                "js_code": wechat_code,
+                "grant_type": "authorization_code",
+            },
+        )
+
+    if wx_response.status_code != 200:
+        raise HTTPException(status_code=401, detail="Invalid WeChat code")
+
+    session_data = wx_response.json()
+
+    if "errcode" in session_data and session_data["errcode"] != 0:
+        raise HTTPException(status_code=401, detail="WeChat authentication failed")
+
+    openid = session_data.get("openid")
+    if not openid:
+        raise HTTPException(status_code=401, detail="WeChat authentication failed")
+
+    wechat_email = f"wechat_{openid}@wechat.local"
+    user_result = await db.execute(select(User).where(User.email == wechat_email))
+    user = user_result.scalar_one_or_none()
+
+    if user is None:
+        user = User(
+            email=wechat_email,
+            nickname=f"微信用户{openid[-6:]}",
+            role="user",
+            status="active",
+        )
+        db.add(user)
+        try:
+            await db.commit()
+        except IntegrityError:
+            await db.rollback()
+            # Handle rare race-condition on first login
+            retry_result = await db.execute(select(User).where(User.email == wechat_email))
+            user = retry_result.scalar_one_or_none()
+            if user is None:
+                raise HTTPException(status_code=500, detail="Failed to create WeChat user")
+        else:
+            await db.refresh(user)
+
+    if user.status == "banned":
+        raise HTTPException(status_code=403, detail="User is banned")
+
+    role_value = user.role.value if hasattr(user.role, "value") else str(user.role)
+    token = create_access_token(subject=str(user.id), role=role_value, extra={"auth_provider": "wechat"})
+    refresh = create_refresh_token(subject=str(user.id), role=role_value)
+    token_payload = TokenResponse(
+        access_token=token,
+        refresh_token=refresh,
+        expires_in=900,
+    ).model_dump()
+    user_payload = {
+        "id": user.id,
+        "email": user.email,
+        "nickname": user.nickname,
+        "role": role_value,
+        "created_at": user.created_at.isoformat() if user.created_at else None,
+    }
+
+    response_data = ApiResponse(
+        success=True,
+        # Keep both nested token and top-level token fields for compatibility.
+        data={
+            "user": user_payload,
+            "token": token_payload,
+            **token_payload,
+        },
+        message="WeChat login successful",
+    )
+
+    json_response = JSONResponse(
+        status_code=200,
+        content=response_data.model_dump(),
+    )
+    _set_auth_cookies(json_response, token, refresh)
+    return json_response
+
+
 from app.services.auth.service import AuthService
 
 @router.post("/login")
@@ -88,10 +182,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
 
     # Must provide either wechat_code OR (email + password)
     if has_wechat:
-        if not body.wechat_code:
-            raise HTTPException(status_code=422, detail="WeChat code is required")
-        # TODO: WeChat login implementation
-        raise HTTPException(status_code=501, detail="WeChat login not implemented")
+        return await _wechat_login_response(body.wechat_code, db)
     elif has_email and has_password:
         # Email + password login
         pass
@@ -159,59 +250,7 @@ async def wx_login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
     3. Server exchanges code via https://api.weixin.qq.com/sns/jscode2session
     4. Server creates/returns user with WeChat openid
     """
-    if not body.wechat_code:
-        raise HTTPException(status_code=400, detail="wechat_code is required")
-
-    # 调用微信 code2Session 接口验证 Code 的有效性
-    if not settings.WECHAT_APP_ID or not settings.WECHAT_APP_SECRET:
-        raise HTTPException(status_code=500, detail="WeChat configuration is missing")
-
-    async with httpx.AsyncClient() as client:
-        wx_response = await client.post(
-            "https://api.weixin.qq.com/sns/jscode2session",
-            data={
-                "appid": settings.WECHAT_APP_ID,
-                "secret": settings.WECHAT_APP_SECRET,
-                "js_code": body.wechat_code,
-                "grant_type": "authorization_code",
-            },
-        )
-
-        if wx_response.status_code != 200:
-            raise HTTPException(status_code=401, detail="Invalid WeChat code")
-
-        session_data = wx_response.json()
-
-        # 检查微信 API 返回的错误
-        if "errcode" in session_data and session_data["errcode"] != 0:
-            raise HTTPException(status_code=401, detail="WeChat authentication failed")
-
-        openid = session_data.get("openid")
-        if not openid:
-            raise HTTPException(status_code=401, detail="WeChat authentication failed")
-
-        # 查找或创建用户
-        # 这里简化处理，实际应用中应查询数据库是否存在该 openid 用户
-        # 如果不存在，则创建新用户
-
-        # 使用 openid 创建 JWT token
-        token = create_access_token(subject=openid, role="user", extra={"openid": openid})
-        refresh = create_refresh_token(subject=openid, role="user")
-
-        response_data = ApiResponse(
-            success=True,
-            data=TokenResponse(
-                access_token=token, refresh_token=refresh, expires_in=900
-            ).model_dump(),
-            message="WeChat login successful",
-        )
-
-        json_response = JSONResponse(
-            status_code=200,
-            content=response_data.model_dump(),
-        )
-        _set_auth_cookies(json_response, token, refresh)
-        return json_response
+    return await _wechat_login_response(body.wechat_code, db)
 
 
 @router.post("/refresh")

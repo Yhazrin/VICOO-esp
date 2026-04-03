@@ -8,24 +8,27 @@ import { api } from '../services/api';
 import dayjs from 'dayjs';
 
 const statusLabels: Record<string, string> = {
-  pending: '待处理',
-  approved: '已通过',
-  rejected: '已拒绝',
-  completed: '已完成',
+  open: '待处理',
+  in_progress: '处理中',
+  resolved: '已解决',
+  closed: '已关闭',
 };
 
-const typeLabels: Record<string, string> = {
+const categoryLabels: Record<string, string> = {
   return: '退货',
   exchange: '换货',
-  repair: '维修',
+  quality: '质量问题',
+  logistics: '物流问题',
+  other: '其他',
 };
 
 interface AfterSales {
   id: number;
   order_id: number;
   user_id: number;
-  type: string;
-  reason: string;
+  category: string;
+  subject: string;
+  description?: string;
   status: string;
   created_at: string;
 }
@@ -39,7 +42,7 @@ export default function AfterSalesPage() {
     queryFn: async () => {
       const res = await api.get('/after-sales', {
         params: { page, page_size: 10, status: statusFilter || undefined },
-        baseURL: '/api/v1',
+        baseURL: '/api',
       });
       return res.data;
     },
@@ -47,13 +50,16 @@ export default function AfterSalesPage() {
 
   const items: AfterSales[] = data?.data ?? [];
   const total = data?.total ?? 0;
+  const pageSize = data?.page_size ?? 10;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   const columns: Column<AfterSales>[] = [
     { key: 'id', title: 'ID', width: 80 },
     { key: 'order_id', title: '订单 ID', width: 90 },
     { key: 'user_id', title: '用户 ID', width: 90 },
-    { key: 'type', title: '类型', width: 80, render: (v) => typeLabels[v] || v },
-    { key: 'reason', title: '原因', width: 200, render: (v) => (v ? String(v).slice(0, 40) + (String(v).length > 40 ? '…' : '') : '-') },
+    { key: 'category', title: '类型', width: 100, render: (v) => categoryLabels[v] || v },
+    { key: 'subject', title: '主题', width: 180, render: (v) => (v ? String(v).slice(0, 40) + (String(v).length > 40 ? '…' : '') : '-') },
+    { key: 'description', title: '描述', width: 220, render: (v) => (v ? String(v).slice(0, 50) + (String(v).length > 50 ? '…' : '') : '-') },
     { key: 'status', title: '状态', width: 100, render: (v) => <StatusBadge status={v} /> },
     { key: 'created_at', title: '申请时间', width: 160, render: (v) => dayjs(v).format('YYYY-MM-DD HH:mm') },
   ];
@@ -70,7 +76,10 @@ export default function AfterSalesPage() {
       <div style={{ marginBottom: 16, display: 'flex', gap: 8 }}>
         <select
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
+          onChange={(e) => {
+            setStatusFilter(e.target.value);
+            setPage(1);
+          }}
           style={{ padding: '8px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}
         >
           <option value="">全部状态</option>
@@ -80,13 +89,14 @@ export default function AfterSalesPage() {
         </select>
       </div>
 
-      <DataTable columns={columns} data={items} loading={isLoading} />
+      <DataTable columns={columns} data={items} loading={isLoading} rowKey="id" />
 
       {total > 0 && (
         <Pagination
           page={page}
-          pageSize={10}
+          pageSize={pageSize}
           total={total}
+          totalPages={totalPages}
           onPageChange={setPage}
         />
       )}

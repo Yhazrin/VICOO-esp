@@ -123,8 +123,25 @@ export default function Shop() {
     },
     staleTime: 5 * 60 * 1000,
   });
+  const { data: categoriesData } = useQuery({
+    queryKey: ['product-categories'],
+    queryFn: async () => {
+      try {
+        return await productsApi.getCategories();
+      } catch {
+        return null;
+      }
+    },
+    staleTime: 10 * 60 * 1000,
+  });
 
-  const categories: Category[] = ['all', 'apparel', 'accessories', 'stationery', 'prints'];
+  const categories: Category[] = useMemo(() => {
+    const fromApi = (categoriesData ?? [])
+      .filter((c): c is Category => ['apparel', 'accessories', 'stationery', 'prints'].includes(c))
+      .filter((c, i, arr) => arr.indexOf(c) === i);
+    const fallback: Category[] = ['apparel', 'accessories', 'stationery', 'prints'];
+    return ['all', ...(fromApi.length ? fromApi : fallback)];
+  }, [categoriesData]);
 
   const handleTabKeyDown = useCallback(
     (e: React.KeyboardEvent, cat: Category) => {

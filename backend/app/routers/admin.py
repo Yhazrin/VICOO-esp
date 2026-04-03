@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Any
 import logging
 
 from app.database import get_db
@@ -40,6 +40,31 @@ _mock_child_participants = [
     {"id": 4, "child_name": "小刚", "display_name": "星空少年", "age": 12, "guardian_name": "刘芳", "region": "河南信阳", "school": "信阳实验小学", "consent_given": True, "artwork_count": 2, "status": "active", "created_at": "2025-02-10T10:00:00"},
     {"id": 5, "child_name": "小雨", "display_name": "雨滴画室", "age": 9, "guardian_name": "陈志明", "region": "四川凉山", "school": "凉山公益小学", "consent_given": True, "artwork_count": 3, "status": "active", "created_at": "2025-02-15T10:00:00"},
 ]
+
+_admin_settings_store: dict[str, Any] = {
+    "site_name": "童画公益",
+    "site_tagline": "Sustainable Fashion for a Better World",
+    "contact_email": "admin@vicoo.test",
+    "donation_enabled": True,
+    "shop_enabled": True,
+    "registration_enabled": True,
+    "maintenance_mode": False,
+    "donation_min_amount": 1,
+    "donation_max_amount": 100000,
+    "supported_currencies": ["CNY", "USD"],
+    "supported_payment_methods": ["wechat", "alipay", "stripe", "paypal"],
+    "child_participant_min_age": 1,
+    "child_participant_max_age": 17,
+    "require_guardian_consent": True,
+    "gdpr_enabled": True,
+    "languages": ["zh-CN", "en-US"],
+    "payment_methods": {
+        "wechat": {"enabled": True, "appId": None, "merchantId": None},
+        "alipay": {"enabled": True, "appId": None},
+        "stripe": {"enabled": True, "publicKey": None},
+        "paypal": {"enabled": True, "clientId": None},
+    },
+}
 
 
 from typing import List
@@ -106,31 +131,37 @@ async def get_settings(
     _current_user: dict = Depends(require_role("admin")),
 ):
     """Get admin settings."""
-    return ApiResponse(
-        data={
-            "site_name": "童画公益",
-            "site_tagline": "Sustainable Fashion for a Better World",
-            "donation_min_amount": 1,
-            "donation_max_amount": 100000,
-            "supported_currencies": ["CNY", "USD"],
-            "supported_payment_methods": ["wechat", "alipay", "stripe", "paypal"],
-            "maintenance_mode": False,
-            "registration_enabled": True,
-            "child_participant_min_age": 1,
-            "child_participant_max_age": 17,
-            "require_guardian_consent": True,
-            "gdpr_enabled": True,
-            "languages": ["zh-CN", "en-US"],
-        }
-    )
+    return ApiResponse(data=_admin_settings_store)
 
 
 @router.put("/settings", response_model=ApiResponse)
 async def update_settings(
+    body: dict[str, Any],
     _current_user: dict = Depends(require_role("admin")),
 ):
     """Update admin settings."""
-    return ApiResponse(data={"message": "Settings updated successfully"})
+    # flat fields
+    for key in [
+        "site_name",
+        "site_tagline",
+        "contact_email",
+        "donation_enabled",
+        "shop_enabled",
+        "registration_enabled",
+        "maintenance_mode",
+    ]:
+        if key in body:
+            _admin_settings_store[key] = body[key]
+
+    # nested payment methods
+    payment_methods = body.get("payment_methods")
+    if isinstance(payment_methods, dict):
+        for method, conf in payment_methods.items():
+            if method not in _admin_settings_store["payment_methods"] or not isinstance(conf, dict):
+                continue
+            _admin_settings_store["payment_methods"][method].update(conf)
+
+    return ApiResponse(data=_admin_settings_store)
 
 
 @router.get("/audit-logs", response_model=PaginatedResponse)

@@ -57,11 +57,11 @@ export default function Login() {
           <div className="relative z-10">
             <BleedTitleBlock className="mb-8">
               <span className="text-rust italic font-light opacity-80 block mb-2 text-2xl md:text-3xl lg:text-4xl">
-                The Story of
+                Visual · Circle
               </span>
-              <span className="text-ink uppercase">Handmade</span>
+              <span className="text-ink uppercase">Children's</span>
               <br />
-              <span className="text-archive-brown">Futures</span>
+              <span className="text-archive-brown">Creative Futures</span>
             </BleedTitleBlock>
 
             <div className="max-w-xl mb-12">
@@ -70,7 +70,7 @@ export default function Login() {
                 alt="Children's artwork"
                 aspectRatio="landscape"
                 className="shadow-xl rotate-[-1deg]"
-                caption="Spring Collection 2026 — Featured Artist: Anonymous, Age 9"
+                caption="VICOO Editorial — From a child's drawing to traceable social impact"
               />
             </div>
 
@@ -80,7 +80,7 @@ export default function Login() {
               transition={{ delay: 0.5, duration: 1 }}
               className="font-body text-lg text-ink-faded leading-relaxed max-w-md hidden lg:block"
             >
-              "Every brushstroke is a silent dialogue between a child's dream and the world we choose to build for them."
+              "Every brushstroke can become wearable art, and every order can be traced to real public-good impact."
             </motion.p>
           </div>
 
@@ -113,10 +113,10 @@ export default function Login() {
             >
               <div className="mb-12">
                 <h2 className="font-display text-4xl md:text-5xl text-ink mb-4 italic leading-tight">
-                  Welcome Back.
+                  Welcome Back to VICOO.
                 </h2>
                 <p className="font-body text-ink-faded opacity-80">
-                  Please identify yourself to continue the journey.
+                  Continue your journey from children's creativity to transparent social impact.
                 </p>
               </div>
 

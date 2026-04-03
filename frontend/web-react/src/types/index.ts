@@ -8,7 +8,7 @@ export interface User {
   nickname: string;
   avatarUrl?: string;
   role: 'user' | 'admin' | 'moderator';
-  createdAt: string;
+  createdAt?: string;
 }
 
 export interface ChildParticipant {
