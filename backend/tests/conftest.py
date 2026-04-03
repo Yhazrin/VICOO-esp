@@ -3,7 +3,6 @@ Shared test fixtures for Tonghua Public Welfare test suite.
 Provides test database, auth helpers, and mock data factories.
 """
 
-import asyncio
 import os
 import sys
 import uuid
@@ -18,11 +17,21 @@ from unittest.mock import AsyncMock, patch
 # Patch redis for testing (avoid Redis connection errors)
 # This must be done before importing any backend modules that use redis
 redis_mock = AsyncMock()
+# Track in-memory Redis keys for the current test
+_redis_keys = set()
+
+async def mock_exists(key):
+    """Mock exists for duplicate-vote and token-blacklist checks."""
+    return key in _redis_keys
+
+async def mock_setex(key, ttl, value):
+    """Mock setex - stores keys in memory for the current test."""
+    _redis_keys.add(key)
+    return True
+
 # Configure default behavior for Redis methods used in the app
-# exists should return False (no duplicate votes)
-redis_mock.exists = AsyncMock(return_value=False)
-# setex should just complete successfully
-redis_mock.setex = AsyncMock(return_value=True)
+redis_mock.exists = mock_exists
+redis_mock.setex = mock_setex
 # incr should increment (for rate limiting)
 redis_mock.incr = AsyncMock(side_effect=lambda key: 1) # First call returns 1
 redis_mock.expire = AsyncMock(return_value=True)
@@ -65,17 +74,19 @@ async def mock_wechat_get(self, url, **kwargs):
 httpx_patch = patch.object(AsyncClient, 'get', new=mock_wechat_get)
 httpx_patch.start()
 
-# Add backend directory to Python path to allow importing backend modules
-# Assumes tests are in tonghua-project/tests/ directory
-# backend/app is the package root (since main.py uses `from app.config ...`)
-backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'backend'))
+# Add the backend package root to Python path so `import app...` works
+# no matter whether pytest is launched from repo root or from `backend/`.
+tests_dir = os.path.abspath(os.path.dirname(__file__))
+backend_dir = os.path.abspath(os.path.join(tests_dir, ".."))
 if backend_dir not in sys.path:
     sys.path.insert(0, backend_dir)
+
+test_db_path = os.path.join(backend_dir, "test.db")
 
 # Set required environment variables for testing
 # These are required by app.config.Settings
 os.environ.setdefault("TESTING", "1")
-os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///test.db")
+os.environ.setdefault("DATABASE_URL", f"sqlite+aiosqlite:///{test_db_path}")
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379")
 os.environ.setdefault("APP_SECRET_KEY", "test-secret-key-for-hmac-sha256")
 os.environ.setdefault("ENCRYPTION_KEY", "test-encryption-key-32-bytes-long!!!")
@@ -94,18 +105,6 @@ os.environ.setdefault("WECHAT_APP_SECRET", "test-app-secret")
 os.environ.setdefault("WECHAT_MCH_ID", "test-mch-id")
 os.environ.setdefault("WECHAT_PAY_API_KEY", "test-api-key")
 os.environ.setdefault("WECHAT_NOTIFY_URL", "http://localhost:8000/api/v1/payments/wechat-notify")
-
-# ---------------------------------------------------------------------------
-# Event loop
-# ---------------------------------------------------------------------------
-
-@pytest.fixture(scope="session")
-def event_loop():
-    """Create a session-scoped event loop for async tests."""
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
-
 
 # ---------------------------------------------------------------------------
 # Database fixtures
@@ -137,6 +136,9 @@ async def app():
     Create the FastAPI application for testing.
     Imports the app from the backend module.
     """
+    if os.path.exists(test_db_path):
+        os.remove(test_db_path)
+
     try:
         # Since backend_dir is in sys.path, app is the top-level package
         from app.main import app as application
@@ -161,7 +163,7 @@ async def app():
         from app.security import hash_password
         from sqlalchemy import select
 
-        # Ensure tables exist (replicate lifespan logic)
+        # Create a fresh schema for the session.
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
 
@@ -225,6 +227,36 @@ async def app():
                 db.add(user)
                 await db.commit()
                 print("Test user seeded successfully.")
+
+            stmt_admin = select(User).where(User.email == "admin@tonghua.test")
+            result_admin = await db.execute(stmt_admin)
+            admin_user = result_admin.scalar_one_or_none()
+            if not admin_user:
+                admin_user = User(
+                    email="admin@tonghua.test",
+                    password_hash=hash_password("adminpass123"),
+                    nickname="Test Admin",
+                    role="admin",
+                    status="active",
+                )
+                db.add(admin_user)
+                await db.commit()
+                print("Test admin user seeded successfully.")
+
+            stmt_guardian = select(User).where(User.email == "guardian@tonghua.test")
+            result_guardian = await db.execute(stmt_guardian)
+            guardian_user = result_guardian.scalar_one_or_none()
+            if not guardian_user:
+                guardian_user = User(
+                    email="guardian@tonghua.test",
+                    password_hash=hash_password("guardianpass123"),
+                    nickname="Test Guardian",
+                    role="guardian",
+                    status="active",
+                )
+                db.add(guardian_user)
+                await db.commit()
+                print("Test guardian user seeded successfully.")
     except Exception as e:
         print(f"Warning: Could not seed test user: {e}")
 
@@ -237,6 +269,14 @@ async def client(app) -> AsyncGenerator[AsyncClient, None]:
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
+
+
+@pytest.fixture(autouse=True)
+def reset_mock_redis_state():
+    """Keep Redis-backed test behavior isolated between test cases."""
+    _redis_keys.clear()
+    yield
+    _redis_keys.clear()
 
 
 # ---------------------------------------------------------------------------
@@ -307,7 +347,7 @@ def expired_auth_headers():
 def admin_auth_headers():
     """Return authorization headers for an admin user."""
     from app.security import create_access_token
-    token = create_access_token(subject="admin-1", role="super_admin")
+    token = create_access_token(subject="2", role="admin")
     return {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",
@@ -318,7 +358,7 @@ def admin_auth_headers():
 def guardian_auth_headers():
     """Return authorization headers for a guardian user."""
     from app.security import create_access_token
-    token = create_access_token(subject="guardian-1", role="guardian")
+    token = create_access_token(subject="3", role="guardian")
     return {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",

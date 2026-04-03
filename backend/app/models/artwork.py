@@ -17,11 +17,12 @@ class Artwork(Base):
         Enum("draft", "pending", "approved", "rejected", "featured", name="artwork_status"),
         default="draft",
         nullable=False,
+        index=True,
     )
     like_count = Column(Integer, default=0, nullable=False)
     view_count = Column(Integer, default=0, nullable=False)
     campaign_id = Column(Integer, ForeignKey("campaigns.id"), nullable=True, index=True)
-    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False, index=True)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
 
     # Relationships

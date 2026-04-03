@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, Enum, Text, func
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, Enum, Text, func, ForeignKey
 from sqlalchemy.orm import relationship
 from app.database import Base
 from app.security import aes_encrypt, aes_decrypt
@@ -12,7 +12,11 @@ class User(Base):
     password_hash = Column(String(255), nullable=True)  # Nullable for OAuth users
     nickname = Column(String(100), nullable=False, default="用户")
     avatar = Column(String(500), nullable=True)
-    role = Column(Enum("admin", "editor", "user", name="user_role"), default="user", nullable=False)
+    role = Column(
+        Enum("admin", "editor", "user", "guardian", "compliance", name="user_role"),
+        default="user",
+        nullable=False,
+    )
     phone_encrypted = Column(Text, nullable=True)  # AES-256-GCM encrypted
     status = Column(Enum("active", "banned", name="user_status"), default="active", nullable=False)
 
@@ -32,6 +36,7 @@ class ChildParticipant(Base):
     child_name = Column(Text, nullable=False)  # AES-256-GCM encrypted
     display_name = Column(String(100), nullable=False)
     age = Column(Integer, nullable=False)
+    guardian_user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
     guardian_name = Column(Text, nullable=False)  # AES-256-GCM encrypted
     guardian_phone_encrypted = Column(Text, nullable=True)  # AES-256-GCM encrypted
     guardian_email_encrypted = Column(Text, nullable=True)  # AES-256-GCM encrypted

@@ -41,12 +41,7 @@ echo "Database ready. Running Alembic migrations..."
 
 # Run Alembic migrations (alembic.ini is in backend directory)
 cd /app/backend
-python -m alembic upgrade head || {
-    echo "Migration failed. Checking if tables exist..."
-    # If migration fails, it might be because tables already exist
-    # Try to stamp the current revision
-    python -m alembic stamp head 2>/dev/null || true
-}
+python -m alembic upgrade head
 
 echo "Migrations complete. Starting VICOO API..."
 

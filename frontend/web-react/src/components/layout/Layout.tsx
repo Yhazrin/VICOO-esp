@@ -4,6 +4,7 @@ import EditorialFooter from './EditorialFooter';
 import MobileNav from './MobileNav';
 import HorizontalSlideTransition from '../transitions/HorizontalSlideTransition';
 import GrainOverlay from '../animations/GrainOverlay';
+import { AIAssistantBall } from './AIAssistantBall';
 
 export default function Layout() {
   return (
@@ -23,6 +24,7 @@ export default function Layout() {
       </main>
       <EditorialFooter />
       <GrainOverlay />
+      <AIAssistantBall />
     </div>
   );
 }

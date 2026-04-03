@@ -53,6 +53,8 @@ async def sustainability_summary(db: AsyncSession = Depends(get_db)):
                 "notes": "指标来自可核验的链路与运营数据；上线后请以审计报告为准。",
             }
         )
+    except HTTPException:
+        raise
     except Exception:
         return ApiResponse(
             data={

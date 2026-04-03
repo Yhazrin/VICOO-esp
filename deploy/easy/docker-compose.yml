@@ -55,6 +55,7 @@ services:
       context: ../../
       dockerfile: deploy/easy/backend.dockerfile
     container_name: vicoo-backend
+    working_dir: /app/backend
     restart: unless-stopped
     environment:
       APP_ENV: ${APP_ENV:-development}
@@ -89,7 +90,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10

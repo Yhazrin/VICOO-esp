@@ -13,6 +13,7 @@ class Order(Base):
         Enum("pending", "paid", "shipped", "completed", "cancelled", name="order_status"),
         default="pending",
         nullable=False,
+        index=True,
     )
     shipping_address = Column(Text, nullable=True)
     payment_method = Column(String(50), nullable=True)
@@ -20,7 +21,7 @@ class Order(Base):
     carrier = Column(String(100), nullable=True)
     tracking_number = Column(String(120), nullable=True, index=True)
     logistics_events = Column(Text, nullable=True)
-    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False, index=True)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
 
 

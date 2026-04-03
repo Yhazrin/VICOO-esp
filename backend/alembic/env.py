@@ -74,7 +74,7 @@ def run_migrations_online() -> None:
 
     # Create synchronous engine for migration
     # Replace async driver with sync driver for Alembic
-    sync_url = url.replace("+aiomysql", "+pymysql").replace("+aiosqlite", "+sqlite3")
+    sync_url = url.replace("+aiomysql", "+pymysql").replace("+aiosqlite", "")
 
     connectable = engine_from_config(
         {"sqlalchemy.url": sync_url},

@@ -187,8 +187,7 @@ export async function fetchChildParticipants(params: FilterParams = {}): Promise
 }
 
 export async function fetchAuditLogs(params: FilterParams = {}): Promise<PaginatedResponse<AuditLogEntry>> {
-  await delay(300);
-  return paginate(mockAuditLogs, params);
+  return api.get('/audit-logs', { params }).then((r) => r.data);
 }
 
 export async function fetchSystemSettings(): Promise<SystemSettings> {
@@ -200,6 +199,19 @@ export async function updateSystemSettings(data: Partial<SystemSettings>): Promi
   await delay(300);
   Object.assign(mockSystemSettings, data);
   return { ...mockSystemSettings };
+}
+
+export async function analyzeArtwork(imageUrl: string, description?: string): Promise<any> {
+  // In real implementation, this calls /api/ai/analyze-artwork
+  // For now, we simulate the AI response
+  await delay(1000);
+  return {
+    suggested_title: "璀璨的童心",
+    suggested_tags: ["自然", "明亮", "莫兰迪色系", "装饰性"],
+    style_description: "这件作品展现了极强的色彩控制力，低饱和度的色调呈现出宁静而充满希望的氛围，符合平台的‘编辑出版物’美学。",
+    safety_rating: "safe",
+    moderation_notes: "内容完全合规，适合公开展示。"
+  };
 }
 
 export { api };

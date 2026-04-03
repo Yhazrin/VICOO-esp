@@ -18,22 +18,33 @@ class WeChatPayService:
     """WeChat Pay unified order service."""
 
     def __init__(self):
-        # Raise exception if required configs are missing
+        is_production = settings.APP_ENV == "production"
+
         if not settings.WECHAT_APP_ID:
-            raise ValueError("WECHAT_APP_ID environment variable is required for payment security")
-        self.app_id = settings.WECHAT_APP_ID
+            if is_production:
+                raise ValueError("WECHAT_APP_ID environment variable is required for payment security")
+            logger.warning("WECHAT_APP_ID is missing; using development placeholder.")
+        self.app_id = settings.WECHAT_APP_ID or "dev-wechat-app-id"
+
         if not settings.WECHAT_MCH_ID:
-            raise ValueError("WECHAT_MCH_ID environment variable is required for payment security")
-        self.mch_id = settings.WECHAT_MCH_ID
-        # Use dedicated WeChat Pay API key, not the system AES key
-        # Raise exception if API key is not configured (security requirement)
+            if is_production:
+                raise ValueError("WECHAT_MCH_ID environment variable is required for payment security")
+            logger.warning("WECHAT_MCH_ID is missing; using development placeholder.")
+        self.mch_id = settings.WECHAT_MCH_ID or "dev-wechat-mch-id"
+
+        # Use dedicated WeChat Pay API key, not the system AES key.
         if not settings.WECHAT_PAY_API_KEY:
-            raise ValueError("WECHAT_PAY_API_KEY environment variable is required for payment security")
-        self.api_key = settings.WECHAT_PAY_API_KEY
-        # Use dedicated WeChat Pay notification URL, not CORS origins
+            if is_production:
+                raise ValueError("WECHAT_PAY_API_KEY environment variable is required for payment security")
+            logger.warning("WECHAT_PAY_API_KEY is missing; using development placeholder.")
+        self.api_key = settings.WECHAT_PAY_API_KEY or "dev-wechat-pay-key"
+
+        # Use dedicated WeChat Pay notification URL, not CORS origins.
         if not settings.WECHAT_NOTIFY_URL:
-            raise ValueError("WECHAT_NOTIFY_URL environment variable is required for payment notifications")
-        self.notify_url = settings.WECHAT_NOTIFY_URL
+            if is_production:
+                raise ValueError("WECHAT_NOTIFY_URL environment variable is required for payment notifications")
+            logger.warning("WECHAT_NOTIFY_URL is missing; using development placeholder.")
+        self.notify_url = settings.WECHAT_NOTIFY_URL or "http://localhost/api/v1/payments/wechat-notify"
 
     def generate_nonce_str(self) -> str:
         """Generate random nonce string using cryptographically secure random."""
@@ -164,6 +175,21 @@ class WeChatPayService:
         if amount <= 0:
             raise ValueError("Amount must be positive")
 
+        is_non_production = settings.APP_ENV != "production"
+
+        # React Web / local development typically do not have a WeChat openid.
+        # In non-production environments we return mock parameters so donation
+        # creation can complete without calling the external WeChat API.
+        if trade_type == "JSAPI" and not openid:
+            if is_non_production:
+                logger.warning(
+                    "Missing openid for JSAPI unified order %s; falling back to mock payment params in %s.",
+                    order_no,
+                    settings.APP_ENV,
+                )
+                return self._generate_wx_payment_params(order_no, amount, description, donation_id)
+            raise ValueError("openid is required for JSAPI payments")
+
         # Convert amount to fen (WeChat Pay uses fen)
         amount_fen = int(amount * 100)
 
@@ -188,6 +214,14 @@ class WeChatPayService:
             api_response = self._call_unified_order_api(params)
             prepay_id = api_response["prepay_id"]
         except Exception as e:
+            if is_non_production:
+                logger.warning(
+                    "WeChat unified order failed for %s in %s; returning mock payment params instead. Error: %s",
+                    order_no,
+                    settings.APP_ENV,
+                    str(e),
+                )
+                return self._generate_wx_payment_params(order_no, amount, description, donation_id)
             logger.error(f"Failed to create unified order: {str(e)}")
             raise
 

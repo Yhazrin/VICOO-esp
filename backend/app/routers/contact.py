@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, EmailStr, Field
-from datetime import datetime
+from datetime import datetime, timezone
 import time
 
 from app.schemas import ApiResponse
@@ -56,7 +56,7 @@ async def submit_contact_form(body: ContactForm, request: Request):
     new_msg = {
         "id": len(_mock_messages) + 1,
         **body.model_dump(),
-        "created_at": datetime.utcnow().isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
         "status": "unread",
     }
     _mock_messages.append(new_msg)

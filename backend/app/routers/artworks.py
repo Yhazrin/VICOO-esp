@@ -114,6 +114,8 @@ async def list_artworks(
             page=page,
             page_size=page_size,
         )
+    except HTTPException:
+        raise
     except Exception:
         filtered = _mock_artworks
         if status:
@@ -215,6 +217,7 @@ async def create_artwork(
         await db.flush()
         await db.refresh(artwork, ["child_participant"])
         return ApiResponse(data=_serialize_artwork(artwork))
+        raise
     except HTTPException:
         raise
     except Exception as e:
@@ -236,6 +239,7 @@ async def update_artwork(artwork_id: int, body: ArtworkUpdate, db: AsyncSession 
         await db.flush()
         await db.refresh(artwork, ["child_participant"])
         return ApiResponse(data=_serialize_artwork(artwork))
+        raise
     except HTTPException:
         raise
     except Exception as e:
@@ -253,6 +257,7 @@ async def get_artwork_status(artwork_id: int, db: AsyncSession = Depends(get_db)
         if not artwork:
             raise HTTPException(status_code=404, detail="Artwork not found")
         return ApiResponse(data={"id": artwork.id, "status": artwork.status})
+        raise
     except HTTPException:
         raise
     except Exception:
@@ -275,6 +280,7 @@ async def update_artwork_status(artwork_id: int, body: ArtworkStatusUpdate, db: 
         await db.flush()
         await db.refresh(artwork, ["child_participant"])
         return ApiResponse(data=_serialize_artwork(artwork))
+        raise
     except HTTPException:
         raise
     except Exception as e:
@@ -316,6 +322,7 @@ async def vote_artwork(artwork_id: int, db: AsyncSession = Depends(get_db), redi
         response_data = _serialize_artwork(artwork)
         response_data["has_voted"] = True
         return ApiResponse(data=response_data)
+        raise
     except HTTPException:
         raise
     except Exception as e:
@@ -335,6 +342,7 @@ async def delete_artwork(artwork_id: int, db: AsyncSession = Depends(get_db), cu
         await db.delete(artwork)
         await db.flush()
         return ApiResponse(data={"deleted": artwork_id})
+        raise
     except HTTPException:
         raise
     except Exception as e:

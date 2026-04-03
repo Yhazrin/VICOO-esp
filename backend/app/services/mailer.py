@@ -3,12 +3,14 @@ import logging
 import asyncio
 from app.config import settings
 
+from app.utils.i18n import t
+
 logger = logging.getLogger("vicoo.mailer")
 
 if settings.RESEND_API_KEY:
     resend.api_key = settings.RESEND_API_KEY
 
-async def send_welcome_email(to_email: str, nickname: str):
+async def send_welcome_email(to_email: str, nickname: str, locale: str = "en"):
     """Send a rich, editorial-style welcome email to a new user via Resend."""
     if not settings.RESEND_API_KEY:
         logger.warning(f"RESEND_API_KEY not configured. Skipping welcome email to {to_email}")
@@ -19,6 +21,13 @@ async def send_welcome_email(to_email: str, nickname: str):
         logger.info(f"Skipping welcome email for placeholder address: {to_email}")
         return
 
+    # Localized content
+    subject = t("emails.welcome.subject", locale=locale)
+    greeting = t("emails.welcome.greeting", locale=locale, nickname=nickname)
+    body_intro = t("emails.welcome.body_intro", locale=locale)
+    body_main = t("emails.welcome.body_main", locale=locale)
+    cta_text = t("emails.welcome.cta", locale=locale)
+
     try:
         loop = asyncio.get_running_loop()
         
@@ -26,7 +35,7 @@ async def send_welcome_email(to_email: str, nickname: str):
             return resend.Emails.send({
                 "from": settings.MAIL_FROM,
                 "to": [to_email],
-                "subject": "The First Edition: Welcome to VICOO",
+                "subject": subject,
                 "html": f"""
                 <!DOCTYPE html>
                 <html>
@@ -73,8 +82,9 @@ async def send_welcome_email(to_email: str, nickname: str):
                                         "Art is the most intense mode of individualism that the world has known."
                                     </h2>
                                     <p style="font-size: 15px; line-height: 1.8; margin: 0;">
-                                        Dear {nickname},<br><br>
-                                        You have just joined a movement where children's raw creativity meets the principles of sustainable craftsmanship. At VICOO, we don't just showcase art; we transform it into a tangible legacy of hope.
+                                        {greeting}<br><br>
+                                        {body_intro}<br><br>
+                                        {body_main}
                                     </p>
                                 </div>
                             </td>
@@ -94,7 +104,7 @@ async def send_welcome_email(to_email: str, nickname: str):
                                             </p>
                                             <div style="margin-top: 30px;">
                                                 <a href="{settings.FRONTEND_URL}" style="display: inline-block; padding: 15px 30px; background-color: #1A1A16; color: #F5F0E8; text-decoration: none; font-size: 12px; text-transform: uppercase; letter-spacing: 0.2em;">
-                                                    Explore the Archive
+                                                    {cta_text}
                                                 </a>
                                             </div>
                                         </td>

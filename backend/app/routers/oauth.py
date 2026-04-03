@@ -184,6 +184,7 @@ async def github_callback(code: str, state: str = "", request: Request = None, d
         if user.status == "banned":
             raise HTTPException(status_code=403, detail="Account is banned")
         return _build_auth_redirect(user)
+        raise
     except HTTPException:
         raise
     except Exception as e:
@@ -274,6 +275,7 @@ async def google_callback(code: str, state: str = "", request: Request = None, d
         if user.status == "banned":
             raise HTTPException(status_code=403, detail="Account is banned")
         return _build_auth_redirect(user)
+        raise
     except HTTPException:
         raise
     except Exception as e:

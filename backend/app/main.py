@@ -1,10 +1,13 @@
 import logging
 import time
 import re
+import math
 from contextlib import asynccontextmanager
 from typing import Optional
+from decimal import Decimal
 
 from fastapi import FastAPI, Request, HTTPException
+from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
@@ -29,13 +32,9 @@ logging.getLogger("tonghua.auth").setLevel(_log_level)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Note: Database schema is managed by Alembic migrations
-    # Run: docker compose exec backend alembic upgrade head
-
-    # Auto-seed demo data on first run (only when users table is empty)
+    # Auto-seed demo data on first run
     if settings.APP_ENV == "development":
         try:
-            from app.security import hash_password
             from app.models.user import User
             async with AsyncSessionLocal() as session:
                 from sqlalchemy import select
@@ -48,7 +47,6 @@ async def lifespan(app: FastAPI):
         except Exception:
             logger.warning("Demo data seeding failed (non-critical)", exc_info=True)
     yield
-    # Shutdown
     await engine.dispose()
 
 
@@ -59,34 +57,25 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Security: Only allow specific hosts
-# Configure allowed hosts via CORS_ORIGINS or add a dedicated setting
-# TrustedHostMiddleware expects hostnames (with optional port), e.g., "example.com" or "localhost:8000"
+# Security: Trusted Hosts
 def extract_host(url: str) -> str:
-    """Extract host:port from a URL or host string."""
     url = url.strip()
     if "://" in url:
-        # Remove scheme (e.g., "https://") and path
         netloc = url.split("://", 1)[1].split("/", 1)[0]
     else:
-        # No scheme, assume it's just host:port or domain
         netloc = url.split("/", 1)[0]
     return netloc
 
 allowed_hosts = [extract_host(origin) for origin in settings.CORS_ORIGINS]
-# Add localhost and localhost:8081 for development
 allowed_hosts.extend(["localhost", "localhost:8081", "localhost:8080", "127.0.0.1", "127.0.0.1:8081"])
-# Remove duplicates
 allowed_hosts = list(set(allowed_hosts))
 if not allowed_hosts:
     allowed_hosts = ["localhost"]
-logger.info(f"Allowed hosts: {allowed_hosts}")
-# Enable TrustedHostMiddleware in non-development environments
+
 if settings.APP_ENV != "development":
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)
 
-# CORS - Restrict to specific origins (no wildcard)
-logger.info(f"CORS Origins: {settings.CORS_ORIGINS}")
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
@@ -102,11 +91,9 @@ app.add_middleware(
     ],
 )
 
-
-# ── Request size limit middleware ─────────────────────────────────
+# Request size limit
 @app.middleware("http")
 async def request_size_limit_middleware(request: Request, call_next):
-    """Limit request body size to prevent DoS attacks."""
     content_length = request.headers.get("content-length")
     if content_length:
         try:
@@ -114,29 +101,16 @@ async def request_size_limit_middleware(request: Request, call_next):
             if size > MAX_REQUEST_BODY_SIZE:
                 return JSONResponse(
                     status_code=413,
-                    content={
-                        "success": False,
-                        "data": None,
-                        "message": "Request body too large",
-                    },
+                    content={"success": False, "data": None, "message": "Request body too large"},
                 )
         except ValueError:
             pass
-    response = await call_next(request)
-    return response
+    return await call_next(request)
 
-
-# ── Signature verification middleware ─────────────────────────────────
-# DISABLED: HMAC signing secret was exposed in the frontend bundle.
-# Auth is handled by JWT Bearer tokens + httpOnly refresh cookies instead.
-# The verification helper remains available in deps.py for future server-to-server use.
-
-
-# ── Rate Limiting middleware (applied before logging) ────────────
+# Rate Limiting
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
-    # Apply rate limiting (skip for health check endpoint)
-    if request.url.path == "/health":
+    if "/health" in request.url.path:
         return await call_next(request)
 
     try:
@@ -147,22 +121,16 @@ async def rate_limit_middleware(request: Request, call_next):
         raise
     except Exception as e:
         if settings.APP_ENV != "development":
-            logger.error(f"Rate limiting error (failing closed): {e}", exc_info=True)
             return JSONResponse(
                 status_code=503,
                 content={"success": False, "data": None, "message": "Service temporarily unavailable"},
             )
-        logger.warning(f"Rate limiting error (development mode, failing open): {e}", exc_info=True)
-    response = await call_next(request)
-    return response
+    return await call_next(request)
 
-
-# ── Security headers middleware ───────────────────────────────────
+# Security headers
 @app.middleware("http")
 async def security_headers_middleware(request: Request, call_next):
     response = await call_next(request)
-    # Content Security Policy
-    # Note: This is restrictive; adjust if serving specific assets or headers.
     response.headers["Content-Security-Policy"] = "default-src 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
@@ -170,56 +138,77 @@ async def security_headers_middleware(request: Request, call_next):
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     return response
 
-
-# ── Request logging middleware ───────────────────────────────────
+# Logging
 @app.middleware("http")
 async def request_logging_middleware(request: Request, call_next):
     start = time.time()
     response = await call_next(request)
     elapsed = time.time() - start
-    logger.info(
-        "%s %s %.3fs %d",
-        request.method,
-        request.url.path,
-        elapsed,
-        response.status_code,
-    )
+    logger.info("%s %s %.3fs %d", request.method, request.url.path, elapsed, response.status_code)
     response.headers["X-Process-Time"] = f"{elapsed:.3f}"
     return response
 
-
 # ── Exception handlers ──────────────────────────────────────────
-@app.exception_handler(422)
-async def validation_exception_handler(request: Request, exc):
+from app.core.errors import BusinessException
+from fastapi.exceptions import RequestValidationError
+
+@app.exception_handler(BusinessException)
+async def business_exception_handler(request: Request, exc: BusinessException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"success": False, "data": exc.data, "message": exc.message, "code": exc.code},
+    )
+
+def _serialize_error(obj):
+    """Recursively convert non-serializable objects to strings."""
+    if isinstance(obj, bytes):
+        return obj.decode("utf-8", errors="replace")
+    if isinstance(obj, Decimal):
+        return str(obj)
+    if isinstance(obj, float) and not math.isfinite(obj):
+        return str(obj)
+    if isinstance(obj, dict):
+        return {k: _serialize_error(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_serialize_error(item) for item in obj]
+    if isinstance(obj, set):
+        return list(obj)
+    return obj
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    message = "Validation error"
+    # Try to extract the first error message
+    try:
+        errors = exc.errors()
+        if errors and len(errors) > 0:
+            err = errors[0]
+            if "msg" in err:
+                message = err["msg"]
+    except Exception:
+        pass
+
+    # Sanitize errors to ensure JSON serializability
+    sanitized_errors = jsonable_encoder(_serialize_error(exc.errors()))
+
     return JSONResponse(
         status_code=422,
         content={
             "success": False,
             "data": None,
-            "message": "Validation error",
-            "errors": exc.errors() if hasattr(exc, "errors") else str(exc),
+            "message": message,
+            "errors": sanitized_errors,
+            "code": "VALIDATION_FAILED"
         },
     )
-
 
 @app.exception_handler(500)
 async def internal_server_error_handler(request: Request, exc):
     logger.error("Internal server error: %s %s", request.method, request.url.path, exc_info=True)
     return JSONResponse(
         status_code=500,
-        content={
-            "success": False,
-            "data": None,
-            "message": "Internal server error",
-        },
+        content={"success": False, "data": None, "message": "Internal server error", "code": "INTERNAL_SERVER_ERROR"},
     )
-
-
-# Health check
-@app.get("/health", tags=["Health"])
-async def health():
-    return {"status": "ok", "app": settings.APP_NAME, "version": settings.APP_VERSION}
-
 
 # ── Register routers ─────────────────────────────────────────────
 from app.routers.auth import router as auth_router
@@ -240,33 +229,45 @@ from app.routers.after_sales import router as after_sales_router
 from app.routers.sustainability import router as sustainability_router
 from app.routers.ai_assistant import router as ai_router
 
+# Health check router
+from fastapi import APIRouter
+health_router = APIRouter(tags=["Health"])
+
+@health_router.get("/health")
+async def health():
+    health_data = {
+        "status": "ok", "app": settings.APP_NAME, "version": settings.APP_VERSION, "timestamp": time.time(),
+        "services": {"database": "unknown", "redis": "unknown"}
+    }
+    try:
+        async with AsyncSessionLocal() as session:
+            from sqlalchemy import text
+            await session.execute(text("SELECT 1"))
+            health_data["services"]["database"] = "healthy"
+    except Exception as e:
+        health_data["services"]["database"] = "unhealthy"
+        health_data["status"] = "degraded"
+    
+    if settings.REDIS_URL:
+        try:
+            import redis.asyncio as redis
+            r = redis.from_url(settings.REDIS_URL, socket_timeout=2)
+            await r.ping()
+            health_data["services"]["redis"] = "healthy"
+        except Exception:
+            health_data["services"]["redis"] = "unhealthy"
+    return health_data
+
 routers = (
-    auth_router,
-    oauth_router,
-    users_router,
-    artworks_router,
-    campaigns_router,
-    donations_router,
-    products_router,
-    orders_router,
-    payments_router,
-    admin_router,
-    supply_chain_router,
-    contact_router,
-    clothing_intakes_router,
-    reviews_router,
-    after_sales_router,
-    sustainability_router,
-    ai_router,
+    auth_router, oauth_router, users_router, artworks_router, campaigns_router,
+    donations_router, products_router, orders_router, payments_router, admin_router,
+    supply_chain_router, contact_router, clothing_intakes_router, reviews_router,
+    after_sales_router, sustainability_router, ai_router, health_router,
 )
 
-# Keep both prefixes alive during the migration from /api/v1 -> /api.
-# This prevents the web app, tests, and older clients from breaking while
-# different environments roll forward at different times.
 for api_prefix in ("/api", "/api/v1"):
     for router in routers:
         app.include_router(router, prefix=api_prefix)
-
 
 if __name__ == "__main__":
     import uvicorn

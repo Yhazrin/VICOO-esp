@@ -42,47 +42,63 @@ _mock_child_participants = [
 ]
 
 
+from typing import List
+from app.services.admin.service import AdminService
+
 @router.get("/dashboard", response_model=ApiResponse)
 async def dashboard(
     db: AsyncSession = Depends(get_db),
-    _current_user: dict = Depends(require_role("admin")),
+    _current_user: dict = Depends(require_role("admin", "editor")),
 ):
-    """Get dashboard metrics."""
+    """Get aggregated dashboard statistics for admin. (Refactored)"""
+    admin_service = AdminService(db)
     try:
-        user_count = (await db.execute(select(func.count(User.id)))).scalar() or 0
-        artwork_count = (await db.execute(select(func.count(Artwork.id)))).scalar() or 0
-        campaign_count = (await db.execute(select(func.count(Campaign.id)))).scalar() or 0
-        donation_count = (await db.execute(select(func.count(Donation.id)))).scalar() or 0
-        donation_amount = (await db.execute(select(func.coalesce(func.sum(Donation.amount), 0)))).scalar() or 0
-        product_count = (await db.execute(select(func.count(Product.id)))).scalar() or 0
-        order_count = (await db.execute(select(func.count(Order.id)))).scalar() or 0
-        active_campaigns = (
-            await db.execute(select(func.count(Campaign.id)).where(Campaign.status == "active"))
-        ).scalar() or 0
-        metrics = DashboardMetrics(
-            total_users=user_count,
-            total_artworks=artwork_count,
-            total_campaigns=campaign_count,
-            total_donations=donation_count,
-            total_donation_amount=str(donation_amount),
-            total_products=product_count,
-            total_orders=order_count,
-            active_campaigns=active_campaigns,
-        )
-        return ApiResponse(data=metrics.model_dump())
-    except Exception:
-        return ApiResponse(
-            data=DashboardMetrics(
-                total_users=5,
-                total_artworks=20,
-                total_campaigns=3,
-                total_donations=10,
-                total_donation_amount="11818.00",
-                total_products=8,
-                total_orders=5,
-                active_campaigns=3,
-            ).model_dump()
-        )
+        stats = await admin_service.get_dashboard_stats()
+        return ApiResponse(data=stats)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Dashboard stats failed: {e}")
+        # Fallback to older metrics structure if needed, but here we return the new one
+        return ApiResponse(data={"total_users": 0, "pending_artworks": 0})
+
+@router.post("/artworks/batch-moderate", response_model=ApiResponse)
+async def batch_moderate_artworks(
+    artwork_ids: List[int],
+    status: str,
+    db: AsyncSession = Depends(get_db),
+    _current_user: dict = Depends(require_role("admin", "editor")),
+):
+    """Batch approve or reject artworks."""
+    admin_service = AdminService(db)
+    try:
+        result = await admin_service.batch_moderate_artworks(artwork_ids, status)
+        await db.commit()
+        return ApiResponse(data=result)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Batch moderation failed: {e}")
+        raise HTTPException(status_code=500, detail="Batch operation failed")
+
+@router.post("/children/batch-moderate", response_model=ApiResponse)
+async def batch_moderate_children(
+    child_ids: List[int],
+    status: str,
+    db: AsyncSession = Depends(get_db),
+    _current_user: dict = Depends(require_role("admin", "compliance")),
+):
+    """Batch approve or withdraw child participants."""
+    admin_service = AdminService(db)
+    try:
+        result = await admin_service.batch_moderate_children(child_ids, status)
+        await db.commit()
+        return ApiResponse(data=result)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Batch child moderation failed: {e}")
+        raise HTTPException(status_code=500, detail="Batch operation failed")
 
 
 @router.get("/settings", response_model=ApiResponse)
@@ -148,6 +164,8 @@ async def list_audit_logs(
             page=page,
             page_size=page_size,
         )
+    except HTTPException:
+        raise
     except Exception:
         filtered = _mock_audit_logs
         if action:
@@ -200,6 +218,8 @@ async def list_child_participants(
             for p in participants
         ]
         return PaginatedResponse(data=data, total=count, page=page, page_size=page_size)
+    except HTTPException:
+        raise
     except Exception:
         filtered = _mock_child_participants
         if status:
@@ -244,6 +264,7 @@ async def approve_child_consent(
         await db.flush()
 
         return ApiResponse(data={"id": child.id, "consent_given": True, "status": "active"})
+        raise
     except HTTPException:
         raise
     except Exception as e:
@@ -283,6 +304,8 @@ async def donation_analytics(
         ]
 
         return ApiResponse(data={"by_method": by_method, "by_campaign": by_campaign})
+    except HTTPException:
+        raise
     except Exception:
         return ApiResponse(data={
             "by_method": [
@@ -319,6 +342,8 @@ async def artwork_analytics(
             "total_views": total_views,
             "total_likes": total_likes,
         })
+    except HTTPException:
+        raise
     except Exception:
         return ApiResponse(data={
             "by_status": {"draft": 2, "pending": 2, "approved": 14, "rejected": 0, "featured": 2},
@@ -346,6 +371,8 @@ async def order_analytics(
             "by_status": by_status,
             "total_revenue": str(total_revenue),
         })
+    except HTTPException:
+        raise
     except Exception:
         return ApiResponse(data={
             "by_status": {"pending": 1, "paid": 1, "shipped": 1, "completed": 2, "cancelled": 0},
