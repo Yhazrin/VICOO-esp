@@ -1,5 +1,4 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { useUIStore } from '../../stores/uiStore';
 
 const menuItems = [
   { path: '/', label: 'DASHBOARD', icon: '01' },
@@ -17,22 +16,19 @@ const menuItems = [
 ];
 
 export default function Sidebar() {
-  const collapsed = useUIStore((s) => s.sidebarCollapsed);
   const location = useLocation();
 
   return (
     <aside style={{
       position: 'fixed',
       left: 0, top: 0, bottom: 0,
-      width: collapsed ? '0px' : 'var(--sidebar-width)',
+      width: 'var(--sidebar-width)',
       backgroundColor: 'var(--color-paper)',
-      borderRight: collapsed ? 'none' : '1px solid var(--color-ink)',
-      transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      borderRight: '1px solid var(--color-ink)',
       zIndex: 100,
       display: 'flex',
       flexDirection: 'column',
       overflow: 'hidden',
-      visibility: collapsed ? 'hidden' : 'visible'
     }}>
       {/* Editorial Masthead (Logo) */}
       <div style={{

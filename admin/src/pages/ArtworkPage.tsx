@@ -11,17 +11,6 @@ import { fetchArtworks, updateArtworkStatus, analyzeArtwork } from '../services/
 import type { Artwork } from '../types';
 import dayjs from 'dayjs';
 
-const columns: Column<Artwork>[] = [
-  { key: 'id', title: 'ID', width: 80 },
-  { key: 'title', title: '作品名称', sorter: true },
-  { key: 'childName', title: '作者', width: 100 },
-  { key: 'category', title: '类别', width: 100 },
-  { key: 'votes', title: '票数', width: 80, sorter: true },
-  { key: 'status', title: '状态', width: 100, render: (v) => <StatusBadge status={v} /> },
-  { key: 'createdAt', title: '提交时间', width: 160, sorter: true, render: (v) => dayjs(v).format('YYYY-MM-DD HH:mm') },
-  { key: 'action', title: '操作', width: 200 },
-];
-
 export default function ArtworkPage() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
@@ -72,77 +61,66 @@ export default function ArtworkPage() {
     setDetailModal(true);
   };
 
-  const renderColumns: Column<Artwork>[] = columns.map((col) => {
-    if (col.key === 'action') {
-      return {
-        ...col,
-        render: (_: any, record: Artwork) => (
-          <div style={{ display: 'flex', gap: 6 }}>
-            <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); handleOpenDetail(record); }}>
-              查看
+  const columns: Column<Artwork>[] = [
+    { key: 'id', title: 'Archive ID', width: 120, render: (v) => <code style={{ fontFamily: 'var(--font-mono)', fontSize: '11px' }}>{v}</code> },
+    { key: 'title', title: 'Work Title', minWidth: 180, sorter: true, render: (v) => <span style={{ fontWeight: 600, fontFamily: 'var(--font-display)' }}>{v}</span> },
+    { key: 'childName', title: 'Artist', width: 120 },
+    { key: 'category', title: 'Medium', width: 120 },
+    { key: 'votes', title: 'Impact', width: 100, sorter: true, render: (v) => <span style={{ fontFamily: 'var(--font-mono)' }}>{v} pts</span> },
+    { key: 'status', title: 'Status', width: 120, render: (v) => <StatusBadge status={v} /> },
+    { key: 'createdAt', title: 'Submitted', width: 160, sorter: true, render: (v) => dayjs(v).format('YYYY-MM-DD HH:mm') },
+    {
+      key: 'action', title: 'Command', width: 180,
+      render: (_: any, record: Artwork) => (
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); handleOpenDetail(record); }}>
+            Inspect
+          </Button>
+          {record.status === 'pending' && (
+            <Button size="sm" variant="primary" onClick={(e) => { e.stopPropagation(); updateMutation.mutate({ id: record.id, status: 'approved' }); }}>
+              Approve
             </Button>
-            {record.status === 'pending' && (
-              <>
-                <Button size="sm" variant="primary" onClick={(e) => { e.stopPropagation(); updateMutation.mutate({ id: record.id, status: 'approved' }); }}>
-                  通过
-                </Button>
-                <Button size="sm" variant="danger" onClick={(e) => { e.stopPropagation(); updateMutation.mutate({ id: record.id, status: 'rejected' }); }}>
-                  拒绝
-                </Button>
-              </>
-            )}
-          </div>
-        ),
-      };
+          )}
+        </div>
+      ),
     }
-    return col;
-  });
+  ];
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
-        <div>
-          <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4, fontFamily: 'var(--font-serif)' }}>作品管理</h1>
-          <p style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
-            审核和管理儿童画作作品，利用 AI 辅助美学评估
-          </p>
-        </div>
+      <div style={{ marginBottom: 40 }}>
+        <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8, fontFamily: 'var(--font-serif)' }}>Artwork Collection</h1>
+        <p style={{ fontSize: 14, color: 'var(--color-sepia-mid)', maxWidth: '600px', lineHeight: 1.6 }}>
+          Review and curate the creative expressions submitted by our young participants. Each piece represents a unique narrative of hope and imagination.
+        </p>
       </div>
 
       {/* Filters */}
       <div style={{
-        display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center',
+        display: 'flex', gap: 16, marginBottom: 24, flexWrap: 'wrap', alignItems: 'center',
       }}>
         <input
           type="text"
-          placeholder="搜索作品名称..."
+          placeholder="Search by title..."
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          style={{
-            padding: '8px 14px', border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-sm)', fontSize: 13, width: 220, outline: 'none',
-            fontFamily: 'var(--font-mono)'
-          }}
+          style={filterStyle}
         />
         <select
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          style={{
-            padding: '8px 12px', border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-sm)', fontSize: 13, outline: 'none',
-            background: 'var(--color-bg-card)',
-          }}
+          style={filterStyle}
         >
-          <option value="">全部状态</option>
-          <option value="pending">待审核</option>
-          <option value="approved">已通过</option>
-          <option value="rejected">已拒绝</option>
-          <option value="archived">已归档</option>
+          <option value="">All Statuses</option>
+          <option value="pending">Pending Review</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+          <option value="archived">Archived</option>
         </select>
       </div>
 
       <DataTable
-        columns={renderColumns}
+        columns={columns}
         data={data?.data || []}
         rowKey="id"
         loading={isLoading}
@@ -152,112 +130,115 @@ export default function ArtworkPage() {
         onRowClick={(record) => handleOpenDetail(record)}
       />
 
-      <Pagination
-        page={page}
-        totalPages={data?.totalPages || 1}
-        total={data?.total || 0}
-        pageSize={10}
-        onPageChange={setPage}
-      />
+      <div style={{ marginTop: 32 }}>
+        <Pagination
+          page={page}
+          totalPages={data?.totalPages || 1}
+          total={data?.total || 0}
+          pageSize={10}
+          onPageChange={setPage}
+        />
+      </div>
 
       {/* Detail Modal */}
       <Modal
         open={detailModal}
-        title="作品详情"
+        title="Artifact Examination"
         onClose={() => setDetailModal(false)}
-        width={600}
+        width={650}
         footer={
           <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 12 }}>
               {!aiResult && selectedArtwork && (
                 <Button 
-                  variant="ghost" 
+                  variant="secondary" 
                   onClick={() => aiMutation.mutate(selectedArtwork)}
                   loading={aiMutation.isPending}
                 >
-                  ✨ AI 智能分析
+                  ✨ AI Aesthetic Analysis
                 </Button>
               )}
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 12 }}>
               {selectedArtwork?.status === 'pending' ? (
                 <>
-                  <Button variant="danger" onClick={() => { updateMutation.mutate({ id: selectedArtwork.id, status: 'rejected' }); setDetailModal(false); }}>拒绝</Button>
-                  <Button variant="primary" onClick={() => { updateMutation.mutate({ id: selectedArtwork.id, status: 'approved' }); setDetailModal(false); }}>通过审核</Button>
+                  <Button variant="danger" onClick={() => { updateMutation.mutate({ id: selectedArtwork.id, status: 'rejected' }); setDetailModal(false); }}>Reject</Button>
+                  <Button variant="primary" onClick={() => { updateMutation.mutate({ id: selectedArtwork.id, status: 'approved' }); setDetailModal(false); }}>Approve Submission</Button>
                 </>
               ) : (
-                <Button variant="secondary" onClick={() => setDetailModal(false)}>关闭</Button>
+                <Button variant="secondary" onClick={() => setDetailModal(false)}>Close View</Button>
               )}
             </div>
           </div>
         }
       >
         {selectedArtwork && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             <div style={{
-              width: '100%', height: 260,
-              background: '#f5f3f0', borderRadius: 'var(--radius-md)',
+              width: '100%', height: 320,
+              background: 'var(--color-aged-stock)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'var(--color-text-light)', fontSize: 13,
-              overflow: 'hidden', border: '1px solid var(--color-border)'
+              overflow: 'hidden', border: '1px solid var(--color-ink)',
+              boxShadow: 'inset 0 0 40px rgba(0,0,0,0.05)'
             }}>
               {selectedArtwork.imageUrl ? (
-                <img src={selectedArtwork.imageUrl} alt={selectedArtwork.title} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                <img src={selectedArtwork.imageUrl} alt={selectedArtwork.title} style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'sepia(0.1)' }} />
               ) : (
-                <div style={{ fontStyle: 'italic', opacity: 0.5 }}>[作品图片预览区]</div>
+                <div style={{ fontStyle: 'italic', color: 'var(--color-sepia-mid)' }}>Digital asset not found</div>
               )}
             </div>
 
             {aiResult && (
               <div style={{ 
-                padding: 16, 
-                background: 'rgba(92, 64, 51, 0.03)', 
-                border: '1px solid rgba(92, 64, 51, 0.1)',
-                borderRadius: 'var(--radius-md)',
-                fontFamily: 'var(--font-serif)'
+                padding: '24px', 
+                background: 'var(--color-paper)', 
+                border: '1px solid var(--color-rust)',
+                position: 'relative'
               }}>
                 <div style={{ 
-                  fontSize: 11, 
-                  textTransform: 'uppercase', 
-                  letterSpacing: '0.1em', 
-                  color: '#8B3A2A',
-                  marginBottom: 12,
-                  fontWeight: 600,
-                  display: 'flex',
-                  justifyContent: 'space-between'
+                  position: 'absolute', top: '-10px', left: '20px', 
+                  background: 'var(--color-rust)', color: 'white', 
+                  fontSize: '9px', padding: '2px 8px', textTransform: 'uppercase',
+                  letterSpacing: '0.1em'
                 }}>
-                  <span>AI Editorial Analysis</span>
-                  <span>Safety: {aiResult.safety_rating.toUpperCase()}</span>
+                  AI Editorial Insights
                 </div>
-                <h3 style={{ fontSize: 18, marginBottom: 8, fontStyle: 'italic', fontWeight: 700 }}>{aiResult.suggested_title}</h3>
-                <p style={{ fontSize: 13, lineHeight: 1.6, marginBottom: 12, color: 'var(--color-text-primary)' }}>{aiResult.style_description}</p>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16, borderBottom: '1px solid var(--color-rust)40', paddingBottom: 8 }}>
+                  <span style={{ fontSize: '11px', color: 'var(--color-sepia-mid)' }}>Safety Rating: <strong style={{ color: 'var(--color-success)' }}>{aiResult.safety_rating.toUpperCase()}</strong></span>
+                  <span style={{ fontSize: '11px', color: 'var(--color-sepia-mid)' }}>Protocol: v1.0.4</span>
+                </div>
+                <h3 style={{ fontSize: 20, marginBottom: 12, fontStyle: 'italic', color: 'var(--color-ink)' }}>{aiResult.suggested_title}</h3>
+                <p style={{ fontSize: 14, lineHeight: 1.7, marginBottom: 16, color: 'var(--color-ink-faded)' }}>{aiResult.style_description}</p>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   {aiResult.suggested_tags.map((tag: string) => (
                     <span key={tag} style={{ 
-                      fontSize: 10, 
-                      padding: '2px 8px', 
-                      background: 'rgba(92, 64, 51, 0.08)', 
-                      borderRadius: 10,
-                      color: 'var(--color-text-secondary)',
-                      fontFamily: 'var(--font-mono)'
+                      fontSize: '10px', 
+                      padding: '4px 10px', 
+                      background: 'var(--color-aged-stock)', 
+                      border: '1px solid var(--color-ink)20',
+                      color: 'var(--color-archive-brown)',
+                      fontFamily: 'var(--font-mono)',
+                      textTransform: 'uppercase'
                     }}>#{tag}</span>
                   ))}
                 </div>
               </div>
             )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 24px' }}>
-              <DetailRow label="作品编号" value={selectedArtwork.id} />
-              <DetailRow label="作者" value={`${selectedArtwork.childName} (${selectedArtwork.childAge}岁)`} />
-              <DetailRow label="作品名称" value={selectedArtwork.title} />
-              <DetailRow label="类别" value={selectedArtwork.category} />
-              <DetailRow label="状态" value={<StatusBadge status={selectedArtwork.status} />} />
-              <DetailRow label="提交时间" value={dayjs(selectedArtwork.createdAt).format('YYYY-MM-DD HH:mm')} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 32px' }}>
+              <DetailRow label="Identity Code" value={<code style={{ fontFamily: 'var(--font-mono)' }}>{selectedArtwork.id}</code>} />
+              <DetailRow label="Artist Name" value={selectedArtwork.childName} />
+              <DetailRow label="Artist Age" value={`${selectedArtwork.childAge} Years`} />
+              <DetailRow label="Medium" value={selectedArtwork.category} />
+              <DetailRow label="Curatorial Status" value={<StatusBadge status={selectedArtwork.status} />} />
+              <DetailRow label="Submission Date" value={dayjs(selectedArtwork.createdAt).format('YYYY-MM-DD')} />
             </div>
             
-            <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 16 }}>
-              <div style={{ fontSize: 11, textTransform: 'uppercase', color: 'var(--color-text-secondary)', marginBottom: 6, letterSpacing: '0.05em' }}>作品描述</div>
-              <div style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--color-text-primary)' }}>{selectedArtwork.description}</div>
+            <div style={{ borderTop: '1px solid var(--color-warm-gray)', paddingTop: 20 }}>
+              <div style={{ fontSize: 11, textTransform: 'uppercase', color: 'var(--color-sepia-mid)', marginBottom: 8, letterSpacing: '0.05em' }}>Artist's Narrative</div>
+              <div style={{ fontSize: 14, lineHeight: 1.8, color: 'var(--color-ink)', fontStyle: 'italic', padding: '16px', background: 'var(--color-aged-stock)40', borderLeft: '3px solid var(--color-sepia-mid)' }}>
+                "{selectedArtwork.description}"
+              </div>
             </div>
           </div>
         )}
@@ -268,9 +249,20 @@ export default function ArtworkPage() {
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <span style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>{label}</span>
-      <span style={{ fontSize: 13, fontWeight: 500 }}>{value}</span>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <span style={{ fontSize: 11, color: 'var(--color-sepia-mid)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
+      <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-ink)' }}>{value}</span>
     </div>
   );
 }
+
+const filterStyle: React.CSSProperties = {
+  padding: '10px 16px', 
+  border: '1px solid var(--color-ink)',
+  borderRadius: '2px', 
+  fontSize: '13px',
+  background: 'var(--color-paper)', 
+  outline: 'none',
+  fontFamily: 'var(--font-mono)',
+  minWidth: '240px'
+};

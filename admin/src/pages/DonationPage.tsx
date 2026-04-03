@@ -21,7 +21,6 @@ export default function DonationPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [search, setSearch] = useState('');
   const [paymentFilter, setPaymentFilter] = useState('');
-  const [dateRange, setDateRange] = useState({ start: '', end: '' });
 
   const { data, isLoading } = useQuery({
     queryKey: ['donations', page, statusFilter, search, paymentFilter],
@@ -42,18 +41,18 @@ export default function DonationPage() {
   }, [filteredData]);
 
   const columns: Column<Donation>[] = [
-    { key: 'id', title: 'ID', width: 90 },
-    { key: 'donorName', title: '捐赠者' },
-    { key: 'amount', title: '金额', width: 120, sorter: true, render: (v, r) => (
-      <span style={{ fontWeight: 600, color: 'var(--color-success)' }}>
+    { key: 'id', title: 'Ledger ID', width: 120, render: (v) => <code style={{ fontFamily: 'var(--font-mono)', fontSize: '11px' }}>{v}</code> },
+    { key: 'donorName', title: 'Benefactor', minWidth: 150, render: (v) => <span style={{ fontWeight: 600 }}>{v}</span> },
+    { key: 'amount', title: 'Grant Amount', width: 140, sorter: true, render: (v, r) => (
+      <span style={{ fontWeight: 700, color: 'var(--color-ink)', fontFamily: 'var(--font-display)', fontSize: '15px' }}>
         {r.currency === 'CNY' ? '\u00a5' : '$'}{v.toLocaleString()}
       </span>
     )},
-    { key: 'paymentMethod', title: '支付方式', width: 100, render: (v) => paymentLabels[v] || v },
-    { key: 'campaignTitle', title: '关联活动', width: 160, render: (v) => v || '-' },
-    { key: 'status', title: '状态', width: 100, render: (v) => <StatusBadge status={v} /> },
-    { key: 'isAnonymous', title: '匿名', width: 60, render: (v) => v ? '是' : '否' },
-    { key: 'createdAt', title: '捐赠时间', width: 160, sorter: true, render: (v) => dayjs(v).format('YYYY-MM-DD HH:mm') },
+    { key: 'paymentMethod', title: 'Channel', width: 120, render: (v) => paymentLabels[v] || v },
+    { key: 'campaignTitle', title: 'Assigned Project', minWidth: 200, render: (v) => v || '-' },
+    { key: 'status', title: 'State', width: 120, render: (v) => <StatusBadge status={v} /> },
+    { key: 'isAnonymous', title: 'Anon', width: 80, render: (v) => v ? 'YES' : 'NO' },
+    { key: 'createdAt', title: 'Recorded At', width: 160, sorter: true, render: (v) => dayjs(v).format('YYYY-MM-DD HH:mm') },
   ];
 
   const handleExport = () => {
@@ -72,70 +71,82 @@ export default function DonationPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 40 }}>
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>捐赠管理</h1>
-          <p style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
-            查看捐赠记录与生成报告
+          <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8, fontFamily: 'var(--font-serif)' }}>Donation Ledger</h1>
+          <p style={{ fontSize: 14, color: 'var(--color-sepia-mid)', maxWidth: '600px', lineHeight: 1.6 }}>
+            Comprehensive record of philanthropic contributions. Each entry represents a unique transaction within our ecosystem, traceable to specific campaigns and sustainability goals.
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <Button variant="secondary" onClick={handleExport}>导出 CSV</Button>
-          <Button variant="primary">生成报告</Button>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <Button variant="secondary" onClick={handleExport}>Export Data</Button>
+          <Button variant="primary">Generate Report</Button>
         </div>
       </div>
 
-      {/* Summary */}
+      {/* Summary Cards */}
       <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 20,
+        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24, marginBottom: 32,
       }}>
         {[
-          { label: '本页总笔数', value: filteredData.length },
-          { label: '本页总额', value: `\u00a5${totalAmount.toLocaleString()}` },
-          { label: '完成笔数', value: filteredData.filter((d) => d.status === 'completed').length },
-          { label: '失败笔数', value: filteredData.filter((d) => d.status === 'failed').length },
+          { label: 'Current Selection', value: filteredData.length, unit: 'Records' },
+          { label: 'Aggregate Value', value: `\u00a5${totalAmount.toLocaleString()}`, unit: 'CNY Total' },
+          { label: 'Verified Success', value: filteredData.filter((d) => d.status === 'completed').length, unit: 'Transactions' },
+          { label: 'System Errors', value: filteredData.filter((d) => d.status === 'failed').length, unit: 'Action Required' },
         ].map((s) => (
           <div key={s.label} style={{
-            padding: '16px 20px', background: 'var(--color-bg-card)',
-            border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)',
+            padding: '24px', 
+            background: 'var(--color-paper)',
+            border: '1px solid var(--color-ink)', 
+            borderRadius: '2px',
+            boxShadow: '4px 4px 0px rgba(26, 26, 22, 0.05)'
           }}>
-            <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{s.label}</div>
-            <div style={{ fontSize: 20, fontWeight: 700, marginTop: 4 }}>{s.value}</div>
+            <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-sepia-mid)', marginBottom: 12 }}>{s.label}</div>
+            <div style={{ fontSize: 24, fontWeight: 700, fontFamily: 'var(--font-display)', color: 'var(--color-ink)' }}>{s.value}</div>
+            <div style={{ fontSize: 10, color: 'var(--color-archive-brown)', marginTop: 4 }}>{s.unit}</div>
           </div>
         ))}
       </div>
 
       {/* Filters */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 16, marginBottom: 24, flexWrap: 'wrap' }}>
         <input
-          type="text" placeholder="搜索捐赠者..."
+          type="text" placeholder="Search benefactor name..."
           value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           style={filterStyle}
         />
         <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }} style={filterStyle}>
-          <option value="">全部状态</option>
-          <option value="completed">已完成</option>
-          <option value="pending">待处理</option>
-          <option value="failed">失败</option>
-          <option value="refunded">已退款</option>
+          <option value="">All States</option>
+          <option value="completed">Completed</option>
+          <option value="pending">Pending</option>
+          <option value="failed">Failed</option>
+          <option value="refunded">Refunded</option>
         </select>
         <select value={paymentFilter} onChange={(e) => setPaymentFilter(e.target.value)} style={filterStyle}>
-          <option value="">全部支付方式</option>
-          <option value="wechat">微信支付</option>
-          <option value="alipay">支付宝</option>
+          <option value="">All Channels</option>
+          <option value="wechat">WeChat Pay</option>
+          <option value="alipay">Alipay</option>
           <option value="stripe">Stripe</option>
           <option value="paypal">PayPal</option>
         </select>
       </div>
 
       <DataTable columns={columns} data={filteredData} rowKey="id" loading={isLoading} />
-      <Pagination page={page} totalPages={data?.totalPages || 1} total={data?.total || 0} pageSize={10} onPageChange={setPage} />
+      
+      <div style={{ marginTop: 32 }}>
+        <Pagination page={page} totalPages={data?.totalPages || 1} total={data?.total || 0} pageSize={10} onPageChange={setPage} />
+      </div>
     </div>
   );
 }
 
 const filterStyle: React.CSSProperties = {
-  padding: '8px 12px', border: '1px solid var(--color-border)',
-  borderRadius: 'var(--radius-sm)', fontSize: 13,
-  background: 'var(--color-bg-card)', outline: 'none',
+  padding: '10px 16px', 
+  border: '1px solid var(--color-ink)',
+  borderRadius: '2px', 
+  fontSize: '13px',
+  background: 'var(--color-paper)', 
+  outline: 'none',
+  fontFamily: 'var(--font-mono)',
+  minWidth: '240px'
 };

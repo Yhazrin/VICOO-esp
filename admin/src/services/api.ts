@@ -9,7 +9,7 @@ import {
   mockArtworks, mockCampaigns, mockDonations, mockOrders, mockUsers,
   mockChildParticipants, mockAuditLogs, mockDashboardMetrics,
   mockDonationTrend, mockArtworkByCategory, mockOrderTrend,
-  mockUserGrowth, mockSystemSettings,
+  mockUserGrowth, mockSystemSettings, mockAfterSales
 } from './mockData';
 
 const api = axios.create({
@@ -63,11 +63,8 @@ function paginate<T>(items: T[], params: FilterParams): PaginatedResponse<T> {
 const delay = (ms = 300) => new Promise((r) => setTimeout(r, ms));
 
 // === API Functions (using mock data for development) ===
-// NOTE: Mock data is used for development and testing purposes.
-// When backend is ready, replace mock calls with real API calls:
-// Example: return api.get('/dashboard/metrics').then(r => r.data);
 
-export async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
+export async function fetchDashboardMetrics(): Promise[DashboardMetrics] {
   await delay(200);
   return { ...mockDashboardMetrics };
 }
@@ -187,7 +184,13 @@ export async function fetchChildParticipants(params: FilterParams = {}): Promise
 }
 
 export async function fetchAuditLogs(params: FilterParams = {}): Promise<PaginatedResponse<AuditLogEntry>> {
-  return api.get('/audit-logs', { params }).then((r) => r.data);
+  await delay(300);
+  return paginate(mockAuditLogs, params);
+}
+
+export async function fetchAfterSales(params: FilterParams = {}): Promise<PaginatedResponse<any>> {
+  await delay(300);
+  return paginate(mockAfterSales, params);
 }
 
 export async function fetchSystemSettings(): Promise<SystemSettings> {
@@ -202,8 +205,6 @@ export async function updateSystemSettings(data: Partial<SystemSettings>): Promi
 }
 
 export async function analyzeArtwork(imageUrl: string, description?: string): Promise<any> {
-  // In real implementation, this calls /api/ai/analyze-artwork
-  // For now, we simulate the AI response
   await delay(1000);
   return {
     suggested_title: "璀璨的童心",
