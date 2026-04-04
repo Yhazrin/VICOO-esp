@@ -9,35 +9,39 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variants = {
   primary: {
-    background: 'var(--color-accent)',
-    color: '#fff',
-    border: 'none',
-    hoverBg: 'var(--color-accent-hover)',
+    background: 'var(--color-ink)',
+    color: 'var(--color-paper)',
+    border: '1px solid var(--color-ink)',
+    hoverBg: 'var(--color-rust)',
+    hoverColor: 'white',
   },
   secondary: {
-    background: 'var(--color-bg-card)',
-    color: 'var(--color-text)',
-    border: '1px solid var(--color-border)',
-    hoverBg: '#f9f9f7',
+    background: 'transparent',
+    color: 'var(--color-ink)',
+    border: '1px solid var(--color-ink)',
+    hoverBg: 'var(--color-aged-stock)',
+    hoverColor: 'var(--color-ink)',
   },
   danger: {
     background: 'var(--color-danger)',
-    color: '#fff',
-    border: 'none',
-    hoverBg: '#b34a4a',
+    color: 'white',
+    border: '1px solid var(--color-danger)',
+    hoverBg: '#5a1515',
+    hoverColor: 'white',
   },
   ghost: {
     background: 'transparent',
-    color: 'var(--color-text-secondary)',
+    color: 'var(--color-sepia-mid)',
     border: '1px solid transparent',
-    hoverBg: '#f3f4f6',
+    hoverBg: 'var(--color-aged-stock)',
+    hoverColor: 'var(--color-ink)',
   },
 };
 
 const sizes = {
-  sm: { padding: '6px 12px', fontSize: 12 },
-  md: { padding: '8px 16px', fontSize: 13 },
-  lg: { padding: '10px 20px', fontSize: 14 },
+  sm: { padding: '6px 12px', fontSize: '11px' },
+  md: { padding: '8px 16px', fontSize: '12px' },
+  lg: { padding: '12px 24px', fontSize: '13px' },
 };
 
 export default function Button({
@@ -45,24 +49,33 @@ export default function Button({
 }: ButtonProps) {
   const v = variants[variant];
   const s = sizes[size];
+  const [hover, setHover] = React.useState(false);
 
   return (
     <button
       disabled={disabled || loading}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
       style={{
         ...s,
-        background: v.background,
-        color: v.color,
+        background: hover ? v.hoverBg : v.background,
+        color: hover ? v.hoverColor : v.color,
         border: v.border,
-        borderRadius: 'var(--radius-sm)',
-        fontWeight: 500,
+        borderRadius: '2px', // Minimalist editorial style
+        fontWeight: 700,
+        textTransform: 'uppercase',
+        letterSpacing: '0.12em',
         cursor: disabled || loading ? 'not-allowed' : 'pointer',
-        opacity: disabled ? 0.6 : 1,
+        opacity: disabled ? 0.4 : 1,
         display: 'inline-flex',
         alignItems: 'center',
-        gap: 6,
-        transition: 'all 0.15s',
+        justifyContent: 'center',
+        gap: 8,
+        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         whiteSpace: 'nowrap',
+        fontFamily: 'var(--font-body)',
+        boxShadow: hover && !disabled ? '4px 4px 0px rgba(26, 26, 22, 0.1)' : 'none',
+        transform: hover && !disabled ? 'translate(-2px, -2px)' : 'none',
         ...style,
       }}
       {...rest}

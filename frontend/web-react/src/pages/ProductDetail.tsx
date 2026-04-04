@@ -21,17 +21,19 @@ function ThumbnailButton({
   index,
   selected,
   onSelect,
+  label,
 }: {
   url: string;
   index: number;
   selected: boolean;
   onSelect: () => void;
+  label: string;
 }) {
   const [loaded, setLoaded] = useState(false);
   return (
     <button
       onClick={onSelect}
-      aria-label={'View image ' + (index + 1)}
+      aria-label={label + (index + 1)}
       className={`w-16 h-16 overflow-hidden border-2 transition-colors relative cursor-pointer ${
         selected ? 'border-ink' : 'border-transparent'
       }`}
@@ -195,7 +197,7 @@ export default function ProductDetail() {
       <PageWrapper>
         <PaperTextureBackground variant="paper" className="py-16 md:py-24">
           <SectionContainer>
-            <p className="font-body text-sepia-mid">{t('shop.loading', 'Loading product...')}</p>
+            <p className="font-body text-sepia-mid">{t('shop.detail.loading')}</p>
           </SectionContainer>
         </PaperTextureBackground>
       </PageWrapper>
@@ -249,6 +251,7 @@ export default function ProductDetail() {
                       index={index}
                       selected={selectedImage === index}
                       onSelect={() => setSelectedImage(index)}
+                      label={t('shop.detail.viewImage', '查看图片')}
                     />
                   ))}
                 </div>

@@ -9,7 +9,7 @@ import {
   mockArtworks, mockCampaigns, mockDonations, mockOrders, mockUsers,
   mockChildParticipants, mockAuditLogs, mockDashboardMetrics,
   mockDonationTrend, mockArtworkByCategory, mockOrderTrend,
-  mockUserGrowth, mockSystemSettings,
+  mockUserGrowth, mockSystemSettings, mockAfterSales
 } from './mockData';
 
 const api = axios.create({
@@ -59,16 +59,25 @@ function paginate<T>(items: T[], params: FilterParams): PaginatedResponse<T> {
   return { data, total, page, pageSize, totalPages };
 }
 
-// Delay helper to simulate network
-const delay = (ms = 300) => new Promise((r) => setTimeout(r, ms));
+/**
+ * 网络延迟模拟工具函数
+ * 用于在开发环境中模拟真实的网络请求延迟
+ * @param ms - 延迟时间（毫秒），默认 300ms
+ * @returns Promise<void> - 在指定时间后 resolve 的 Promise
+ */
+const delay = (ms = 300) => new Promise<void>((r) => setTimeout(r, ms));
 
-// === API Functions (using mock data for development) ===
-// NOTE: Mock data is used for development and testing purposes.
-// When backend is ready, replace mock calls with real API calls:
-// Example: return api.get('/dashboard/metrics').then(r => r.data);
+// === API 函数（开发阶段使用 Mock 数据） ===
 
+/**
+ * 获取仪表盘指标数据
+ * 返回系统的关键运营指标（总作品数、活动数、订单数等）
+ * @returns DashboardMetrics 对象，包含各项统计指标
+ */
 export async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
+  // 模拟 200ms 的网络延迟
   await delay(200);
+  // 返回 Mock 数据的深拷贝，避免修改原始数据
   return { ...mockDashboardMetrics };
 }
 
@@ -187,7 +196,13 @@ export async function fetchChildParticipants(params: FilterParams = {}): Promise
 }
 
 export async function fetchAuditLogs(params: FilterParams = {}): Promise<PaginatedResponse<AuditLogEntry>> {
-  return api.get('/audit-logs', { params }).then((r) => r.data);
+  await delay(300);
+  return paginate(mockAuditLogs, params);
+}
+
+export async function fetchAfterSales(params: FilterParams = {}): Promise<PaginatedResponse<any>> {
+  await delay(300);
+  return paginate(mockAfterSales, params);
 }
 
 export async function fetchSystemSettings(): Promise<SystemSettings> {
@@ -202,8 +217,6 @@ export async function updateSystemSettings(data: Partial<SystemSettings>): Promi
 }
 
 export async function analyzeArtwork(imageUrl: string, description?: string): Promise<any> {
-  // In real implementation, this calls /api/ai/analyze-artwork
-  // For now, we simulate the AI response
   await delay(1000);
   return {
     suggested_title: "璀璨的童心",

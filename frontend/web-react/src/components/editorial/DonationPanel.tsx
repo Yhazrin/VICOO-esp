@@ -10,6 +10,7 @@ interface DonationPanelProps {
     frequency: 'once' | 'monthly';
     anonymous: boolean;
     message: string;
+    paymentMethod: 'wechat' | 'alipay' | 'stripe';
   }) => void;
   isSubmitting?: boolean;
   className?: string;
@@ -29,6 +30,7 @@ export default function DonationPanel({
   const [selectedAmount, setSelectedAmount] = useState<number>(100);
   const [customAmount, setCustomAmount] = useState<string>('');
   const [frequency, setFrequency] = useState<'once' | 'monthly'>('once');
+  const [paymentMethod, setPaymentMethod] = useState<'wechat' | 'alipay' | 'stripe'>('stripe');
   const [anonymous, setAnonymous] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState<string>('');
@@ -64,6 +66,7 @@ export default function DonationPanel({
         frequency,
         anonymous,
         message,
+        paymentMethod,
       });
     }
   };
@@ -105,12 +108,10 @@ export default function DonationPanel({
               transition={{ duration: 0.3, delay: index * 0.05 }}
               whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
               whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
-              aria-pressed={selectedAmount === amount && !customAmount}
               onClick={() => {
                 setSelectedAmount(amount);
                 setCustomAmount('');
               }}
-              aria-pressed={selectedAmount === amount && !customAmount}
               className={`
                 relative p-4 text-center transition-all duration-300 cursor-pointer overflow-hidden
                 ${selectedAmount === amount && !customAmount
@@ -204,6 +205,41 @@ export default function DonationPanel({
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Payment Method */}
+        <div className="mb-8">
+          <label className="block font-body text-caption tracking-[0.05em] text-sepia-mid mb-3">
+            {t('donate.form.payment.title', 'Payment Method')}
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3" role="group" aria-label={t('donate.form.payment.title', 'Payment Method')}>
+            {([
+              { value: 'stripe', label: t('donate.form.payment.stripe', 'Card / Stripe') },
+              { value: 'wechat', label: t('donate.form.payment.wechat', 'WeChat Pay') },
+              { value: 'alipay', label: t('donate.form.payment.alipay', 'Alipay') },
+            ] as const).map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                aria-pressed={paymentMethod === option.value}
+                onClick={() => setPaymentMethod(option.value)}
+                className={`
+                  px-4 py-3 border text-left transition-all duration-300 cursor-pointer
+                  ${paymentMethod === option.value
+                    ? 'border-rust bg-rust/[0.04] text-ink'
+                    : 'border-warm-gray/60 bg-paper text-sepia-mid hover:border-rust/60 hover:text-ink'
+                  }
+                `}
+              >
+                <span className="font-body text-body-sm">{option.label}</span>
+              </button>
+            ))}
+          </div>
+          <p className="mt-3 font-body text-caption text-ink-faded leading-relaxed">
+            {paymentMethod === 'stripe'
+              ? t('donate.form.payment.stripeHint', 'Recommended for the web experience in local and development environments.')
+              : t('donate.form.payment.domesticHint', 'Domestic payment methods require additional merchant configuration. If unavailable, the server will return a clear setup message instead of a generic failure.')}
+          </p>
         </div>
 
         {/* Options */}

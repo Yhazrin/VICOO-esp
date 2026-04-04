@@ -1,85 +1,140 @@
-import { useEffect } from 'react';
+import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ModalProps {
   open: boolean;
+  onClose: () => void;
   title: string;
   children: React.ReactNode;
-  onClose: () => void;
-  width?: number;
   footer?: React.ReactNode;
+  width?: number;
 }
 
-export default function Modal({ open, title, children, onClose, width = 520, footer }: ModalProps) {
-  useEffect(() => {
-    if (open) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => { document.body.style.overflow = ''; };
-  }, [open]);
-
-  if (!open) return null;
-
+export default function Modal({ open, onClose, title, children, footer, width = 500 }: ModalProps) {
   return (
-    <div
-      style={{
-        position: 'fixed', inset: 0, zIndex: 1000,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}
-      onClick={onClose}
-    >
-      <div style={{
-        position: 'absolute', inset: 0,
-        background: 'rgba(0, 0, 0, 0.4)',
-        backdropFilter: 'blur(2px)',
-      }} />
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          position: 'relative',
-          width: '90%', maxWidth: width,
-          background: 'var(--color-bg-card)',
-          borderRadius: 'var(--radius-lg)',
-          boxShadow: 'var(--shadow-lg)',
-          maxHeight: '85vh',
-          display: 'flex', flexDirection: 'column',
-        }}
-      >
+    <AnimatePresence>
+      {open && (
         <div style={{
-          padding: '20px 24px',
-          borderBottom: '1px solid var(--color-border)',
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          position: 'fixed',
+          inset: 0,
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px',
         }}>
-          <h3 style={{ fontSize: 16, fontWeight: 600 }}>{title}</h3>
-          <button
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             onClick={onClose}
             style={{
-              width: 32, height: 32,
-              borderRadius: 'var(--radius-sm)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 18, color: 'var(--color-text-secondary)',
-              transition: 'background 0.15s',
+              position: 'absolute',
+              inset: 0,
+              backgroundColor: 'rgba(26, 26, 22, 0.4)',
+              backdropFilter: 'blur(2px)',
             }}
-            onMouseEnter={(e) => { (e.target as HTMLElement).style.background = '#f3f4f6'; }}
-            onMouseLeave={(e) => { (e.target as HTMLElement).style.background = 'transparent'; }}
+          />
+
+          {/* Modal Content */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            style={{
+              position: 'relative',
+              width: '100%',
+              maxWidth: width,
+              backgroundColor: 'var(--color-paper)',
+              border: '2px solid var(--color-ink)',
+              boxShadow: '12px 12px 0px rgba(26, 26, 22, 0.1)',
+              display: 'flex',
+              flexDirection: 'column',
+              maxHeight: '90vh',
+              borderRadius: '2px',
+            }}
           >
-            &times;
-          </button>
+            {/* Editorial Header */}
+            <div style={{
+              padding: '24px 32px',
+              borderBottom: '1px solid var(--color-ink)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              backgroundColor: 'var(--color-aged-stock)',
+            }}>
+              <div>
+                <span style={{ 
+                  display: 'block', 
+                  fontSize: '9px', 
+                  textTransform: 'uppercase', 
+                  letterSpacing: '0.2em', 
+                  color: 'var(--color-sepia-mid)',
+                  marginBottom: '4px'
+                }}>
+                  Document Archive / Detail View
+                </span>
+                <h2 style={{ 
+                  margin: 0, 
+                  fontSize: '20px', 
+                  fontFamily: 'var(--font-display)',
+                  lineHeight: 1.2
+                }}>
+                  {title}
+                </h2>
+              </div>
+              <button
+                onClick={onClose}
+                style={{
+                  background: 'none',
+                  border: '1px solid var(--color-ink)',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  fontSize: '20px',
+                  lineHeight: 1,
+                  paddingBottom: '4px',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-ink)'; e.currentTarget.style.color = 'var(--color-paper)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--color-ink)'; }}
+              >
+                &times;
+              </button>
+            </div>
+
+            {/* Scrollable Body */}
+            <div style={{
+              padding: '32px',
+              overflowY: 'auto',
+              flex: 1,
+              backgroundColor: 'white',
+              backgroundImage: 'url("https://www.transparenttextures.com/patterns/felt.png")',
+            }}>
+              {children}
+            </div>
+
+            {/* Footer */}
+            {footer && (
+              <div style={{
+                padding: '20px 32px',
+                borderTop: '1px solid var(--color-warm-gray)',
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '12px',
+                backgroundColor: 'var(--color-paper)',
+              }}>
+                {footer}
+              </div>
+            )}
+          </motion.div>
         </div>
-        <div style={{ padding: 24, overflowY: 'auto', flex: 1 }}>
-          {children}
-        </div>
-        {footer && (
-          <div style={{
-            padding: '16px 24px',
-            borderTop: '1px solid var(--color-border)',
-            display: 'flex', justifyContent: 'flex-end', gap: 8,
-          }}>
-            {footer}
-          </div>
-        )}
-      </div>
-    </div>
+      )}
+    </AnimatePresence>
   );
 }

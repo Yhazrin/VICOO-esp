@@ -23,6 +23,18 @@
   --color-rust: #8B3A2A;
   --color-archive-brown: #5C4033;
 
+  /* Status Colors - Refined High Contrast */
+  --color-success: #2D4A22;
+  --color-success-light: #E9F0E6;
+  --color-warning: #A6611A;
+  --color-warning-light: #F5EFE1;
+  --color-danger: #7B1D1D;
+  --color-danger-light: #F9EBEB;
+  --color-info: #2B4561;
+  --color-info-light: #EBF1F9;
+  --color-accent: #5C4033;
+  --color-accent-light: #F0EDE9;
+
   /* Layout Constants */
   --sidebar-width: 280px;
   --sidebar-collapsed-width: 0px; /* Fully retracted */
@@ -55,16 +67,23 @@ body {
   background-attachment: fixed;
 }
 
-h1, h2, h3 {
+/* Typography Refinement */
+h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
   font-weight: 700;
   color: var(--color-ink);
+  letter-spacing: -0.01em;
 }
 
+h1 { font-size: 32px; line-height: 1.2; }
+h2 { font-size: 24px; line-height: 1.3; }
+h3 { font-size: 20px; line-height: 1.4; }
+
 .font-display { font-family: var(--font-display); }
+.font-serif { font-family: var(--font-display); }
 .font-mono { font-family: var(--font-mono); }
 
-/* Layout System - Fix Overlap */
+/* Layout System */
 .app-layout {
   display: flex;
   min-height: 100vh;
@@ -74,25 +93,55 @@ h1, h2, h3 {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-width: 0; /* Prevents flex items from overflowing */
-  transition: padding-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 0;
+  background-color: var(--color-paper);
 }
 
-/* Compensate for fixed sidebar */
-.main-area.sidebar-expanded {
+.main-area.sidebar-permanent {
   padding-left: var(--sidebar-width);
-}
-
-.main-area.sidebar-collapsed {
-  padding-left: var(--sidebar-collapsed-width);
 }
 
 .content-area {
   flex: 1;
-  padding: 40px;
-  max-width: 1600px;
-  margin: 0 auto;
+  padding: 48px 60px; /* Increased padding for better breathing room */
+  max-width: 1400px; /* More focused width for admin tasks */
+  margin: 0; /* Align to left since sidebar is there */
   width: 100%;
+}
+
+/* Table Styling Refinement */
+.data-table-container {
+  border: 1px solid var(--color-ink);
+  background: white;
+  box-shadow: 4px 4px 0px rgba(26, 26, 22, 0.05);
+}
+
+th {
+  background-color: var(--color-aged-stock);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-ink);
+  text-align: left;
+}
+
+td {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-warm-gray);
+  font-size: 13px;
+  color: var(--color-ink-faded);
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+tr:hover td {
+  background-color: rgba(237, 230, 214, 0.3);
 }
 
 /* Global Work Styles */

@@ -27,6 +27,7 @@ build/
 *.aab
 .gradle/
 *.iml
+*.tsbuildinfo
 
 # Environment variables
 .env

@@ -27,6 +27,24 @@ import DonateClothing from '@/pages/DonateClothing';
 import Support from '@/pages/Support';
 import AiAssistant from '@/pages/AiAssistant';
 import { useSessionRestore } from '@/hooks/useSessionRestore';
+import { Toaster } from 'react-hot-toast';
+import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useUIStore } from '@/stores/uiStore';
+
+function AppLocaleSync() {
+  const { i18n } = useTranslation();
+  const currentLocale = useUIStore((state) => state.currentLocale);
+
+  useEffect(() => {
+    if (i18n.language !== currentLocale) {
+      void i18n.changeLanguage(currentLocale);
+    }
+    document.documentElement.lang = currentLocale;
+  }, [currentLocale, i18n]);
+
+  return null;
+}
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -74,5 +92,48 @@ function AnimatedRoutes() {
 }
 
 export default function App() {
-  return <AnimatedRoutes />;
+  return (
+    <>
+      <AppLocaleSync />
+      <Toaster
+        position="top-right"
+        gutter={12}
+        containerStyle={{ top: 24, right: 24 }}
+        toastOptions={{
+          duration: 2600,
+          style: {
+            background: 'color-mix(in srgb, var(--color-paper) 94%, white)',
+            color: 'var(--color-ink)',
+            border: '1px solid color-mix(in srgb, var(--color-warm-gray) 72%, transparent)',
+            boxShadow: '0 14px 38px rgba(26, 26, 22, 0.12)',
+            padding: '14px 16px',
+            borderRadius: '4px',
+            fontSize: '14px',
+            lineHeight: '1.5',
+            maxWidth: '420px',
+          },
+          success: {
+            iconTheme: {
+              primary: 'var(--color-sage)',
+              secondary: 'var(--color-paper)',
+            },
+            style: {
+              border: '1px solid color-mix(in srgb, var(--color-sage) 28%, var(--color-warm-gray))',
+              background: 'linear-gradient(135deg, color-mix(in srgb, var(--color-paper) 96%, white), color-mix(in srgb, var(--color-aged-stock) 90%, white))',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: 'var(--color-rust)',
+              secondary: 'var(--color-paper)',
+            },
+            style: {
+              border: '1px solid color-mix(in srgb, var(--color-rust) 32%, var(--color-warm-gray))',
+            },
+          },
+        }}
+      />
+      <AnimatedRoutes />
+    </>
+  );
 }

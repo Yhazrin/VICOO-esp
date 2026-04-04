@@ -11,45 +11,25 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.database import get_db
 from app.models.user import User
-from app.schemas import ApiResponse, LoginRequest, RegisterRequest, RefreshRequest, TokenResponse
+from app.schemas import (
+    ApiResponse, 
+    LoginRequest, 
+    RegisterRequest, 
+    RefreshRequest, 
+    TokenResponse,
+    ForgotPasswordRequest
+)
 from app.security import (
     create_access_token,
     create_refresh_token,
     decode_token,
-    hash_password,
-    verify_password,
 )
+from app.services.auth.service import AuthService
+from app.services.mailer import send_welcome_email, send_password_recovery_email
 
 logger = logging.getLogger("tonghua.auth")
-# Ensure the logger has a handler and level set
-if not logger.handlers:
-    handler = logging.StreamHandler()
-    handler.setLevel(logging.DEBUG if settings.APP_ENV == "development" else logging.INFO)
-    formatter = logging.Formatter('%(asctime)s %(levelname)s %(name)s - %(message)s')
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-logger.setLevel(logging.DEBUG if settings.APP_ENV == "development" else logging.INFO)
-logger.propagate = True
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
-
-# Mock user fallback (for development/testing only)
-# Note: These are in-memory mock users with no passwords stored.
-# In production, real users should be in the database.
-# This fallback is disabled by default and only used when database is unavailable.
-_mock_users = [
-    {"id": 1, "email": "admin@tonghua.org", "nickname": "管理员", "role": "admin"},
-    {"id": 2, "email": "editor@tonghua.org", "nickname": "编辑", "role": "editor"},
-]
-
-
-def _get_mock_user(email: str) -> dict | None:
-    """Get mock user by email (for development only)."""
-    for u in _mock_users:
-        if u["email"] == email:
-            return u
-    return None
-
 
 def _set_auth_cookies(response: JSONResponse, access_token: str, refresh_token: str) -> JSONResponse:
     """Set auth tokens as httpOnly cookies."""
@@ -73,12 +53,9 @@ def _set_auth_cookies(response: JSONResponse, access_token: str, refresh_token: 
     return response
 
 
-from app.services.auth.service import AuthService
-
 @router.post("/login")
 async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
     """Login via email+password or WeChat code."""
-    logger.debug("Login attempt")
     auth_service = AuthService(db)
 
     # ── Input validation ──
@@ -86,22 +63,15 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
     has_email = bool(body.email)
     has_password = bool(body.password)
 
-    # Must provide either wechat_code OR (email + password)
     if has_wechat:
-        if not body.wechat_code:
-            raise HTTPException(status_code=422, detail="WeChat code is required")
-        # TODO: WeChat login implementation
         raise HTTPException(status_code=501, detail="WeChat login not implemented")
     elif has_email and has_password:
-        # Email + password login
         pass
     elif has_email or has_password:
-        # Partial credentials - return 422 for clear error
         raise HTTPException(status_code=422, detail="Both email and password are required")
     else:
         raise HTTPException(status_code=422, detail="Either WeChat code or email+password is required")
 
-    # ── Email Login (Refactored to Service) ──
     try:
         user, token, refresh = await auth_service.authenticate_user(body.email, body.password)
 
@@ -113,10 +83,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
             },
         )
 
-        json_response = JSONResponse(
-            status_code=200,
-            content=response_data.model_dump(),
-        )
+        json_response = JSONResponse(status_code=200, content=response_data.model_dump())
         _set_auth_cookies(json_response, token, refresh)
         return json_response
     except HTTPException:
@@ -125,116 +92,51 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
         logger.error(f"Login error: {e}")
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
+
 @router.post("/register", status_code=201)
 async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
-    """Register a new user account (Refactored to Service)."""
+    """Register a new user account."""
     auth_service = AuthService(db)
-    user, token, refresh = await auth_service.register_user(body.email, body.password, body.nickname)
-    await db.commit()
-
-    response_data = ApiResponse(
-        success=True,
-        data={
-            "user": {"id": user.id, "email": user.email, "nickname": user.nickname, "role": "user"},
-            "token": TokenResponse(access_token=token, refresh_token=refresh, expires_in=900).model_dump(),
-        },
-        message="Registration successful",
-    )
-
-    json_response = JSONResponse(
-        status_code=201,
-        content=response_data.model_dump(),
-    )
-    _set_auth_cookies(json_response, token, refresh)
-    return json_response
-
-
-@router.post("/wx-login")
-async def wx_login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
-    """WeChat mini-program login (code2Session flow).
-
-    In production:
-    1. Client calls wx.login() to get a temporary code
-    2. Client sends code to this endpoint
-    3. Server exchanges code via https://api.weixin.qq.com/sns/jscode2session
-    4. Server creates/returns user with WeChat openid
-    """
-    if not body.wechat_code:
-        raise HTTPException(status_code=400, detail="wechat_code is required")
-
-    # 调用微信 code2Session 接口验证 Code 的有效性
-    if not settings.WECHAT_APP_ID or not settings.WECHAT_APP_SECRET:
-        raise HTTPException(status_code=500, detail="WeChat configuration is missing")
-
-    async with httpx.AsyncClient() as client:
-        wx_response = await client.post(
-            "https://api.weixin.qq.com/sns/jscode2session",
-            data={
-                "appid": settings.WECHAT_APP_ID,
-                "secret": settings.WECHAT_APP_SECRET,
-                "js_code": body.wechat_code,
-                "grant_type": "authorization_code",
-            },
-        )
-
-        if wx_response.status_code != 200:
-            raise HTTPException(status_code=401, detail="Invalid WeChat code")
-
-        session_data = wx_response.json()
-
-        # 检查微信 API 返回的错误
-        if "errcode" in session_data and session_data["errcode"] != 0:
-            raise HTTPException(status_code=401, detail="WeChat authentication failed")
-
-        openid = session_data.get("openid")
-        if not openid:
-            raise HTTPException(status_code=401, detail="WeChat authentication failed")
-
-        # 查找或创建用户
-        # 这里简化处理，实际应用中应查询数据库是否存在该 openid 用户
-        # 如果不存在，则创建新用户
-
-        # 使用 openid 创建 JWT token
-        token = create_access_token(subject=openid, role="user", extra={"openid": openid})
-        refresh = create_refresh_token(subject=openid, role="user")
+    try:
+        user, token, refresh = await auth_service.register_user(body.email, body.password, body.nickname)
+        await db.commit()
 
         response_data = ApiResponse(
             success=True,
-            data=TokenResponse(
-                access_token=token, refresh_token=refresh, expires_in=900
-            ).model_dump(),
-            message="WeChat login successful",
+            data={
+                "user": {"id": user.id, "email": user.email, "nickname": user.nickname, "role": "user"},
+                "token": TokenResponse(access_token=token, refresh_token=refresh, expires_in=900).model_dump(),
+            },
+            message="Registration successful",
         )
 
-        json_response = JSONResponse(
-            status_code=200,
-            content=response_data.model_dump(),
-        )
+        json_response = JSONResponse(status_code=201, content=response_data.model_dump())
         _set_auth_cookies(json_response, token, refresh)
         return json_response
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Register error: {e}")
+        raise HTTPException(status_code=400, detail="Registration failed")
 
 
 @router.post("/refresh")
 async def refresh(request: Request, db: AsyncSession = Depends(get_db)):
-    """Refresh access token using a valid refresh token from httpOnly cookie."""
-    # Read refresh token from httpOnly cookie
+    """Refresh access token."""
     refresh_token = request.cookies.get("refresh_token")
-
     if not refresh_token:
         raise HTTPException(status_code=401, detail="Missing refresh token")
 
     auth_service = AuthService(db)
     try:
-        # Check blacklist before service call
-        from app.security import decode_token
         payload = decode_token(refresh_token)
         from app.deps import is_token_blacklisted
         if await is_token_blacklisted(payload.get("jti")):
-            raise HTTPException(status_code=401, detail="Token has been invalidated (logged out)")
+            raise HTTPException(status_code=401, detail="Token has been invalidated")
 
         sub, role, new_access, new_refresh = await auth_service.refresh_tokens(refresh_token)
 
-        # Blacklist the old refresh token so it can't be reused (token rotation)
+        # Blacklist rotation
         from app.deps import get_redis_client
         redis = await get_redis_client()
         old_jti = payload.get("jti")
@@ -246,15 +148,10 @@ async def refresh(request: Request, db: AsyncSession = Depends(get_db)):
 
         response_data = ApiResponse(
             success=True,
-            data=TokenResponse(
-                access_token=new_access, refresh_token=new_refresh, expires_in=900
-            ).model_dump(),
+            data=TokenResponse(access_token=new_access, refresh_token=new_refresh, expires_in=900).model_dump(),
         )
 
-        json_response = JSONResponse(
-            status_code=200,
-            content=response_data.model_dump(),
-        )
+        json_response = JSONResponse(status_code=200, content=response_data.model_dump())
         _set_auth_cookies(json_response, new_access, new_refresh)
         return json_response
     except HTTPException:
@@ -265,67 +162,82 @@ async def refresh(request: Request, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/forgot-password")
-async def forgot_password(request: Request):
-    """Request a password reset email.
-
-    Security: Always returns success to prevent email enumeration.
-    In production, this would send an actual reset email.
+async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
     """
-    # Note: In production, validate email and send reset link via email service
-    # For now, always return success for security (prevent email enumeration)
-    return JSONResponse(
-        status_code=200,
-        content=ApiResponse(
-            success=True,
-            data={"message": "If an account exists with that email, a reset link has been sent."},
-        ).model_dump(),
-    )
+    Recover password.
+    - If mock user: returns password directly.
+    - If real user: sends email via Resend.
+    - If user not found: returns 404 error.
+    """
+    stmt = select(User).where(User.email == body.email)
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="Email address not found in our records.")
+
+    # 1. Logic for Mock / Test accounts
+    is_mock = False
+    mock_password = None
+    
+    if body.email.endswith("@vicoo.test") or body.email.endswith("@tonghua.org") or body.email.startswith("vicoo-"):
+        is_mock = True
+        if "admin" in body.email: mock_password = "vicoo-admin"
+        elif "editor" in body.email: mock_password = "vicoo-editor"
+        else: mock_password = "vicoo-user"
+
+    if is_mock:
+        return ApiResponse(
+            message="Recovery successful (Mock Mode)",
+            data={"password_hint": mock_password, "is_mock": True}
+        )
+
+    # 2. Logic for Real accounts
+    recovery_hint = "VICOO-RECOVERY-ACCESS-2026" 
+    try:
+        await send_password_recovery_email(
+            to_email=user.email,
+            password_hint=recovery_hint,
+            locale="zh"
+        )
+        return ApiResponse(
+            message="Password recovery email has been sent.",
+            data={"email": user.email, "is_mock": False}
+        )
+    except Exception as e:
+        logger.error(f"Recovery mail failed: {e}")
+        raise HTTPException(status_code=500, detail="Failed to send recovery email")
 
 
 @router.post("/logout")
 async def logout(request: Request):
-    """Invalidate the current session and blacklist tokens."""
+    """Invalidate the current session."""
     from app.deps import get_redis_client
     redis = await get_redis_client()
     
-    # 1. Blacklist the refresh token from cookie
-    refresh_token = request.cookies.get("refresh_token")
-    if refresh_token:
-        try:
-            payload = decode_token(refresh_token)
-            jti = payload.get("jti")
-            exp = payload.get("exp")
-            if jti and exp:
-                ttl = max(int(exp - time.time()), 60)
-                await redis.setex(f"blacklist:{jti}", ttl, "1")
-            raise
-        except HTTPException:
-            raise
-        except Exception:
-            pass
-
-    # 2. Blacklist the access token from Authorization header
-    auth_header = request.headers.get("Authorization")
-    if auth_header and auth_header.startswith("Bearer "):
-        token = auth_header.split(" ", 1)[1]
-        try:
-            payload = decode_token(token)
-            jti = payload.get("jti")
-            exp = payload.get("exp")
-            if jti and exp:
-                ttl = max(int(exp - time.time()), 60)
-                await redis.setex(f"blacklist:{jti}", ttl, "1")
-            raise
-        except HTTPException:
-            raise
-        except Exception:
-            pass
-
-    response_data = ApiResponse(success=True, data={"message": "Logged out successfully"})
+    for token_source in ["cookie", "header"]:
+        token = None
+        if token_source == "cookie":
+            token = request.cookies.get("refresh_token")
+        else:
+            auth_header = request.headers.get("Authorization")
+            if auth_header and auth_header.startswith("Bearer "):
+                token = auth_header.split(" ", 1)[1]
+        
+        if token:
+            try:
+                payload = decode_token(token)
+                jti = payload.get("jti")
+                exp = payload.get("exp")
+                if jti and exp:
+                    ttl = max(int(exp - time.time()), 60)
+                    await redis.setex(f"blacklist:{jti}", ttl, "1")
+            except Exception:
+                pass
 
     json_response = JSONResponse(
         status_code=200,
-        content=response_data.model_dump(),
+        content=ApiResponse(success=True, data={"message": "Logged out successfully"}).model_dump(),
     )
     json_response.delete_cookie(key="refresh_token")
     json_response.delete_cookie(key="access_token")

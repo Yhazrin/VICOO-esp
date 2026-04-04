@@ -13,6 +13,11 @@
             "body_intro": "You have just joined a movement where children's raw creativity meets the principles of sustainable craftsmanship.",
             "body_main": "At VICOO, we don't just showcase art; we transform it into a tangible legacy of hope.",
             "cta": "Explore the Archive"
+        },
+        "recovery": {
+            "subject": "VICOO Account Recovery",
+            "title": "Your password hint or temporary access",
+            "content": "You requested a password recovery. Your current password hint or access key is shown above. Please use it to log in and change your password."
         }
     }
 }

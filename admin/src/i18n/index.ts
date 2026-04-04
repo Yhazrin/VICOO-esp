@@ -10,7 +10,7 @@ const resources = {
 
 const getInitialLanguage = () => {
   try {
-    const stored = localStorage.getItem('tonghua-ui-settings');
+    const stored = localStorage.getItem('vicoo-admin-settings');
     if (stored) {
       const parsed = JSON.parse(stored);
       if (parsed.state?.currentLocale) {
@@ -20,7 +20,7 @@ const getInitialLanguage = () => {
   } catch (e) {
     // localStorage not available
   }
-  return 'en';
+  return 'zh'; // Default for admin
 };
 
 i18n.use(initReactI18next).init({

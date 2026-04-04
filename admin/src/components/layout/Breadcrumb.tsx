@@ -1,35 +1,58 @@
+/**
+ * 面包屑导航组件 (Breadcrumb)
+ *
+ * 功能说明：
+ * - 根据当前路由路径动态生成面包屑导航
+ * - 将路径段转换为可读的页面名称
+ * - 支持中英文国际化切换
+ *
+ * 使用场景：
+ * 显示当前页面在网站结构中的位置，提供导航返回
+ */
+
+import { useTranslation } from 'react-i18next';
 import { useLocation, Link } from 'react-router-dom';
 
-const pathNames: Record<string, string> = {
-  '': '仪表盘',
-  artworks: '作品管理',
-  campaigns: '活动管理',
-  donations: '捐赠管理',
-  orders: '订单管理',
-  users: '用户管理',
-  'child-audit': '儿童审计',
-  'audit-log': '审计日志',
-  settings: '系统设置',
+/**
+ * 路径到翻译 key 的映射
+ * 将路由路径段映射到对应的翻译文件中的 key
+ */
+const pathToKey: Record<string, string> = {
+  '': 'breadcrumb.dashboard',
+  artworks: 'breadcrumb.artworks',
+  campaigns: 'breadcrumb.campaigns',
+  donations: 'breadcrumb.donations',
+  orders: 'breadcrumb.orders',
+  users: 'breadcrumb.users',
+  'clothing-donations': 'breadcrumb.clothingDonations',
+  'after-sales': 'breadcrumb.afterSales',
+  'child-audit': 'breadcrumb.childAudit',
+  'audit-log': 'breadcrumb.auditLog',
+  settings: 'breadcrumb.settings',
 };
 
 export default function Breadcrumb() {
+  const { t } = useTranslation();
   const location = useLocation();
   const segments = location.pathname.split('/').filter(Boolean);
 
   return (
     <nav style={{
-      display: 'flex', alignItems: 'center', gap: 8,
-      marginBottom: 20, fontSize: 13,
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      marginBottom: 20,
+      fontSize: 13,
     }}>
       <Link
         to="/"
         style={{ color: 'var(--color-text-secondary)', textDecoration: 'none' }}
       >
-        首页
+        {t('breadcrumb.home')}
       </Link>
       {segments.map((seg, i) => {
         const path = '/' + segments.slice(0, i + 1).join('/');
-        const label = pathNames[seg] || seg;
+        const label = t(pathToKey[seg] || 'breadcrumb.unknown');
         const isLast = i === segments.length - 1;
 
         return (

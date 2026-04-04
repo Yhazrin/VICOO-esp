@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import DataTable from '../components/ui/DataTable';
 import type { Column } from '../components/ui/DataTable';
@@ -12,6 +13,7 @@ import type { Order } from '../types';
 import dayjs from 'dayjs';
 
 export default function OrderPage() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
@@ -27,33 +29,35 @@ export default function OrderPage() {
     mutationFn: ({ id, status }: { id: string; status: Order['status'] }) => updateOrderStatus(id, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
-      toast.success('订单状态已更新');
+      toast.success(t('order.toastUpdated'));
     },
   });
 
+  const getPaymentLabel = (v: string) => v === 'wechat' ? t('order.paymentWechat') : t('order.paymentAlipay');
+
   const columns: Column<Order>[] = [
-    { key: 'orderNo', title: '订单号', width: 130, sorter: true },
-    { key: 'userName', title: '用户', width: 100 },
-    { key: 'items', title: '商品', width: 200, render: (items: Order['items']) => (
+    { key: 'orderNo', title: t('order.colOrderNo'), width: 130, sorter: true },
+    { key: 'userName', title: t('order.colUser'), width: 100 },
+    { key: 'items', title: t('order.colProduct'), width: 200, render: (items: Order['items']) => (
       <span>{items.map((i) => `${i.productName} x${i.quantity}`).join(', ')}</span>
     )},
-    { key: 'totalAmount', title: '金额', width: 100, sorter: true, render: (v) => <span style={{ fontWeight: 600 }}>\u00a5{v.toLocaleString()}</span> },
-    { key: 'paymentMethod', title: '支付方式', width: 100, render: (v) => v === 'wechat' ? '微信' : '支付宝' },
-    { key: 'status', title: '状态', width: 100, render: (v) => <StatusBadge status={v} /> },
-    { key: 'createdAt', title: '下单时间', width: 160, sorter: true, render: (v) => dayjs(v).format('YYYY-MM-DD HH:mm') },
+    { key: 'totalAmount', title: t('order.colAmount'), width: 100, sorter: true, render: (v) => <span style={{ fontWeight: 600 }}>\u00a5{v.toLocaleString()}</span> },
+    { key: 'paymentMethod', title: t('order.colPaymentMethod'), width: 100, render: (v) => getPaymentLabel(v) },
+    { key: 'status', title: t('order.colStatus'), width: 100, render: (v) => <StatusBadge status={v} /> },
+    { key: 'createdAt', title: t('order.colCreatedAt'), width: 160, sorter: true, render: (v) => dayjs(v).format('YYYY-MM-DD HH:mm') },
     {
-      key: 'action', title: '操作', width: 200,
+      key: 'action', title: t('order.colAction'), width: 200,
       render: (_: any, record: Order) => (
         <div style={{ display: 'flex', gap: 6 }}>
           <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); setSelectedOrder(record); }}>
-            详情
+            {t('order.btnDetail')}
           </Button>
           {record.status === 'paid' && (
             <Button size="sm" variant="primary" onClick={(e) => {
               e.stopPropagation();
               updateMutation.mutate({ id: record.id, status: 'shipped' });
             }}>
-              发货
+              {t('order.btnShip')}
             </Button>
           )}
           {record.status === 'shipped' && (
@@ -61,7 +65,7 @@ export default function OrderPage() {
               e.stopPropagation();
               updateMutation.mutate({ id: record.id, status: 'delivered' });
             }}>
-              确认送达
+              {t('order.btnConfirmDelivery')}
             </Button>
           )}
         </div>
@@ -72,48 +76,45 @@ export default function OrderPage() {
   return (
     <div>
       <div style={{ marginBottom: 20 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>订单管理</h1>
-        <p style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
-          查看和管理商品订单
-        </p>
+        <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>{t('order.title')}</h1>
+        <p style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>{t('order.description')}</p>
       </div>
 
       <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
         <input
-          type="text" placeholder="搜索订单号或用户..."
+          type="text" placeholder={t('order.searchPlaceholder')}
           value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           style={filterStyle}
         />
         <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }} style={filterStyle}>
-          <option value="">全部状态</option>
-          <option value="pending">待支付</option>
-          <option value="paid">已支付</option>
-          <option value="shipped">已发货</option>
-          <option value="delivered">已送达</option>
-          <option value="cancelled">已取消</option>
-          <option value="refunded">已退款</option>
+          <option value="">{t('order.filterAllStatuses')}</option>
+          <option value="pending">{t('order.filterPending')}</option>
+          <option value="paid">{t('order.filterPaid')}</option>
+          <option value="shipped">{t('order.filterShipped')}</option>
+          <option value="delivered">{t('order.filterDelivered')}</option>
+          <option value="cancelled">{t('order.filterCancelled')}</option>
+          <option value="refunded">{t('order.filterRefunded')}</option>
         </select>
       </div>
 
       <DataTable columns={columns} data={data?.data || []} rowKey="id" loading={isLoading} />
       <Pagination page={page} totalPages={data?.totalPages || 1} total={data?.total || 0} pageSize={10} onPageChange={setPage} />
 
-      {/* Detail Modal */}
-      <Modal open={!!selectedOrder} title="订单详情" onClose={() => setSelectedOrder(null)} width={520}>
+      <Modal open={!!selectedOrder} title={t('order.modalTitle')} onClose={() => setSelectedOrder(null)} width={520}>
         {selectedOrder && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <DetailRow label="订单号" value={selectedOrder.orderNo} />
-            <DetailRow label="用户" value={selectedOrder.userName} />
-            <DetailRow label="金额" value={`\u00a5${selectedOrder.totalAmount.toLocaleString()}`} />
-            <DetailRow label="状态" value={<StatusBadge status={selectedOrder.status} />} />
-            <DetailRow label="支付方式" value={selectedOrder.paymentMethod === 'wechat' ? '微信支付' : '支付宝'} />
-            <DetailRow label="收货地址" value={selectedOrder.shippingAddress} />
-            {selectedOrder.trackingNo && <DetailRow label="快递单号" value={selectedOrder.trackingNo} />}
-            <DetailRow label="下单时间" value={dayjs(selectedOrder.createdAt).format('YYYY-MM-DD HH:mm:ss')} />
-            {selectedOrder.paidAt && <DetailRow label="支付时间" value={dayjs(selectedOrder.paidAt).format('YYYY-MM-DD HH:mm:ss')} />}
-            {selectedOrder.shippedAt && <DetailRow label="发货时间" value={dayjs(selectedOrder.shippedAt).format('YYYY-MM-DD HH:mm:ss')} />}
+            <DetailRow label={t('order.detailOrderNo')} value={selectedOrder.orderNo} />
+            <DetailRow label={t('order.detailUser')} value={selectedOrder.userName} />
+            <DetailRow label={t('order.detailAmount')} value={`\u00a5${selectedOrder.totalAmount.toLocaleString()}`} />
+            <DetailRow label={t('order.detailStatus')} value={<StatusBadge status={selectedOrder.status} />} />
+            <DetailRow label={t('order.detailPaymentMethod')} value={getPaymentLabel(selectedOrder.paymentMethod)} />
+            <DetailRow label={t('order.detailShippingAddress')} value={selectedOrder.shippingAddress} />
+            {selectedOrder.trackingNo && <DetailRow label={t('order.detailTrackingNo')} value={selectedOrder.trackingNo} />}
+            <DetailRow label={t('order.detailOrderTime')} value={dayjs(selectedOrder.createdAt).format('YYYY-MM-DD HH:mm:ss')} />
+            {selectedOrder.paidAt && <DetailRow label={t('order.detailPayTime')} value={dayjs(selectedOrder.paidAt).format('YYYY-MM-DD HH:mm:ss')} />}
+            {selectedOrder.shippedAt && <DetailRow label={t('order.detailShipTime')} value={dayjs(selectedOrder.shippedAt).format('YYYY-MM-DD HH:mm:ss')} />}
             <div style={{ marginTop: 8 }}>
-              <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 8 }}>商品明细</div>
+              <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 8 }}>{t('order.detailItemsLabel')}</div>
               {selectedOrder.items.map((item, i) => (
                 <div key={i} style={{
                   display: 'flex', justifyContent: 'space-between', padding: '8px 0',
