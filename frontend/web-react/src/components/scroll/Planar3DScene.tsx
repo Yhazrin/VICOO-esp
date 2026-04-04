@@ -76,7 +76,7 @@ export default function Planar3DScene() {
       { x: 4, y: -3, z: 1, color: COLORS.rust, scale: 0.9 },
     ];
 
-    blockData.forEach((data, i) => {
+    blockData.forEach((data) => {
       const geometry = new THREE.BoxGeometry(1.5, 2, 0.8);
       const material = new THREE.MeshBasicMaterial({
         color: data.color,

@@ -11,11 +11,13 @@ import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
 import { supplyChainApi } from '@/services/supply-chain';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
+import { allowWebMockFallback } from '@/config/runtime';
 
 // Extended record with story, image, and status for enhanced timeline
 interface EnhancedSupplyChainRecord {
   id: number;
   stage: string;
+  stageLabel?: string;
   description: string;
   location: string;
   date: string;
@@ -31,14 +33,16 @@ interface EnhancedSupplyChainRecord {
   created_at?: string;
 }
 
-// Map backend stage keys to frontend stage keys
-const STAGE_MAP: Record<string, string> = {
-  material_sourcing: 'material',
-  processing: 'production',
-  manufacturing: 'production',
-  quality_check: 'quality',
-  shipping: 'shipping',
-};
+function normalizeStageKey(stage: string): string {
+  return stage.trim().toLowerCase().replace(/[\s-]+/g, '_');
+}
+
+function stageLabelFromBackend(stage: string, t: (key: string) => string): string {
+  const key = normalizeStageKey(stage);
+  const translated = t(`traceability.stages.${key}`);
+  if (translated !== `traceability.stages.${key}`) return translated;
+  return key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 const CARBON_DATA = {
   conventional: 33.4,
@@ -267,7 +271,7 @@ function EnhancedTimelineEntry({ record, index, t }: {
           {/* Header with status */}
           <div className="flex justify-between items-start flex-wrap gap-3 mb-4">
             <h4 className="font-display text-[clamp(18px,2vw,24px)] font-bold text-ink">
-              {t(`traceability.stages.${record.stage}`)}
+              {record.stageLabel ?? stageLabelFromBackend(record.stage, t)}
             </h4>
             <span className={`font-body text-overline tracking-[0.1em] uppercase px-3 py-1 ${config.bg} ${config.text} border ${config.border}`}>
               {config.label}
@@ -398,14 +402,15 @@ export default function Traceability() {
         if (cancelled || !res.length) return;
         const localizedMockRecords = getMockRecords(t);
         const mapped: EnhancedSupplyChainRecord[] = res.map((r, i) => {
-          const stage = STAGE_MAP[r.stage] || r.stage;
-          const staticRecord = MOCK_RECORDS_STATIC.find((m) => m.stage === stage) ?? MOCK_RECORDS_STATIC[i];
-          const localizedRecord = localizedMockRecords.find((m) => m.stage === stage) ?? localizedMockRecords[i];
+          const stage = normalizeStageKey(r.stage || 'unknown');
+          const staticRecord = MOCK_RECORDS_STATIC[i];
+          const localizedRecord = localizedMockRecords[i];
           const verified = r.certified ?? (r.certifications?.length ?? 0) > 0;
 
           return {
             id: Number(r.id) || staticRecord?.id || i + 1,
             stage,
+            stageLabel: stageLabelFromBackend(r.stage || stage, t),
             description: r.description,
             location: r.location,
             date: r.timestamp ? r.timestamp.split('T')[0] : staticRecord?.date || '',
@@ -414,7 +419,7 @@ export default function Traceability() {
             partnerName: r.artisan?.name ?? r.productName ?? staticRecord?.partnerName ?? '',
             carbonFootprint: staticRecord?.carbonFootprint,
             story: localizedRecord?.story ?? r.description,
-            imageUrl: staticRecord?.imageUrl ?? r.artisan?.imageUrl ?? `https://picsum.photos/seed/stage-${stage}/200/200`,
+            imageUrl: r.artisan?.imageUrl ?? staticRecord?.imageUrl ?? `https://picsum.photos/seed/stage-${stage}/200/200`,
             status: (verified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
             cert_image_url: r.cert_image_url ?? null,
             timestamp: r.timestamp,
@@ -424,10 +429,12 @@ export default function Traceability() {
         setRecords(mapped);
       })
       .catch(() => {
-        // Keep mock data on failure
+        if (!allowWebMockFallback) {
+          setRecords([]);
+        }
       });
     return () => { cancelled = true; };
-  }, []);
+  }, [t]);
 
   // Handle product lookup — try API trace, fallback to local search
   const handleSearch = useCallback((query: string) => {
@@ -444,13 +451,14 @@ export default function Traceability() {
       .then((journey) => {
         if (journey.length > 0) {
           const first = journey[0];
-          const stage = STAGE_MAP[first.stage] || first.stage;
-          const staticRecord = MOCK_RECORDS_STATIC.find((m) => m.stage === stage);
-          const localizedRecord = getMockRecords(t).find((m) => m.stage === stage);
+          const stage = normalizeStageKey(first.stage || 'unknown');
+          const staticRecord = MOCK_RECORDS_STATIC.find((m) => m.id === Number(first.id)) ?? MOCK_RECORDS_STATIC[0];
+          const localizedRecord = getMockRecords(t).find((m) => m.id === Number(first.id)) ?? getMockRecords(t)[0];
           const verified = first.certified ?? (first.certifications?.length ?? 0) > 0;
           const enhanced: EnhancedSupplyChainRecord = {
             id: Number(first.id) || staticRecord?.id || 1,
             stage,
+            stageLabel: stageLabelFromBackend(first.stage || stage, t),
             description: first.description,
             location: first.location,
             date: first.timestamp ? first.timestamp.split('T')[0] : staticRecord?.date || '',
@@ -471,6 +479,10 @@ export default function Traceability() {
         setIsSearching(false);
       })
       .catch(() => {
+        if (!allowWebMockFallback) {
+          setIsSearching(false);
+          return;
+        }
         // Fallback: local search through records
         const found = records.find(
           (r) =>
@@ -484,7 +496,7 @@ export default function Traceability() {
         }
         setIsSearching(false);
       });
-  }, [records]);
+  }, [records, t]);
 
   const reductionPercent = Math.round(
     ((CARBON_DATA.conventional - CARBON_DATA.vicoo) / CARBON_DATA.conventional) * 100

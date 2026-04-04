@@ -4,6 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { artworksApi } from '@/services/artworks';
+import { campaignsApi } from '@/services/campaigns';
+import { editorialApi } from '@/services/editorial';
+import { allowWebMockFallback } from '@/config/runtime';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import EditorialHero from '@/components/editorial/EditorialHero';
@@ -287,33 +290,56 @@ export default function Stories() {
 
   const categories: Category[] = ['all', 'impact', 'fashion', 'community', 'education'];
 
-  // Fetch artworks from API and convert to story format
-  const { data: artworksData } = useQuery({
-    queryKey: ['artworks-stories'],
+  // Fetch editorial feed + artworks/campaign enrichments from API.
+  const { data: storiesFeed } = useQuery({
+    queryKey: ['stories-feed'],
     queryFn: async () => {
-      try { return await artworksApi.getAll({ page_size: 10 }); }
-      catch { return null; }
+      try {
+        const [editorialFeed, artworks, activeCampaign] = await Promise.all([
+          editorialApi.getFeed(10),
+          artworksApi.getAll({ page_size: 10 }),
+          campaignsApi.getActive().catch(() => null),
+        ]);
+        return { editorialFeed, artworks, activeCampaign };
+      }
+      catch {
+        if (allowWebMockFallback) return null;
+        throw new Error('Stories feed unavailable and fallback disabled');
+      }
     },
     staleTime: 5 * 60 * 1000,
   });
 
-  // Convert API artworks to StoryItem format; fall back to MOCK_STORIES
+  // Convert API feed/artworks to StoryItem format; fall back to MOCK_STORIES when enabled.
   const stories: StoryItem[] = useMemo(() => {
-    if (artworksData?.items?.length) {
-      return artworksData.items.map((artwork, i) => ({
+    if (storiesFeed?.editorialFeed?.length) {
+      return storiesFeed.editorialFeed.map((item, i) => ({
+        id: String(item.id),
+        title: item.title,
+        excerpt: item.excerpt,
+        pullQuote: item.pull_quote || t('stories.mock.pull3'),
+        coverImage: item.cover_image || `https://picsum.photos/seed/editorial-${item.id}/800/600`,
+        author: item.author || t('stories.anonymousArtist'),
+        publishedAt: item.published_at || '2026-01-01',
+        readTimeMinutes: item.read_time_minutes || (5 + (i % 4) * 3),
+        category: (item.category || ['impact', 'community', 'education', 'fashion'][i % 4]) as StoryItem['category'],
+      }));
+    }
+    if (storiesFeed?.artworks?.items?.length) {
+      return storiesFeed.artworks.items.map((artwork, i) => ({
         id: String(artwork.id),
         title: artwork.title,
         excerpt: artwork.description || t('stories.artworkFallback'),
         pullQuote: artwork.vote_count > 0 ? t('stories.supporters', { count: artwork.vote_count }) : t('stories.mock.pull3'),
         coverImage: artwork.image_url || `https://picsum.photos/seed/artwork-${artwork.id}/800/600`,
-        author: artwork.childParticipant?.firstName || t('stories.anonymousArtist'),
+        author: artwork.childParticipant?.firstName || storiesFeed.activeCampaign?.featuredChild?.name || t('stories.anonymousArtist'),
         publishedAt: artwork.created_at ? artwork.created_at.split('T')[0] : '2026-01-01',
         readTimeMinutes: 5 + (i % 4) * 3,
         category: ['impact', 'community', 'education', 'fashion'][i % 4] as StoryItem['category'],
       }));
     }
-    return getMockStories(t);
-  }, [artworksData, t]);
+    return allowWebMockFallback ? getMockStories(t) : [];
+  }, [storiesFeed, t]);
 
   // Compute category counts
   const categoryCounts = useMemo(() => {

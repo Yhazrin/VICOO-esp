@@ -1,142 +1,16 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
 import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import ScrollNarrative from '@/components/scroll/ScrollNarrative';
 import Planar3DScene from '@/components/scroll/Planar3DScene';
-import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import MagneticButton from '@/components/animations/MagneticButton';
-import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 import { KineticTextMarquee } from '@/components/animations/KineticMarquee';
-
-/* ─── Gallery Item (extracted to fix useState-in-map bug) ─── */
-
-interface GalleryItemProps {
-  src: string;
-  alt: string;
-  index: number;
-}
-
-function GalleryItem({ src, alt, index }: GalleryItemProps) {
-  const prefersReducedMotion = useReducedMotion();
-  const [imageLoaded, setImageLoaded] = useState(false);
-
-  return (
-    <motion.div
-      {...(prefersReducedMotion ? {} : { initial: { opacity: 0, y: 20 }, whileInView: { opacity: 1, y: 0 } })}
-      viewport={{ once: true }}
-      transition={{
-        type: 'spring',
-        stiffness: 380,
-        damping: 30,
-        delay: index * 0.08,
-      }}
-      whileHover={prefersReducedMotion ? undefined : { y: -4 }}
-      className="relative aspect-square overflow-hidden border-2 border-warm-gray/50 bg-aged-stock group"
-    >
-      <SectionGrainOverlay className="z-10" />
-
-      {/* Sepia frame effect */}
-      <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/8 via-transparent to-archive-brown/8" aria-hidden="true" />
-
-      {/* Decorative corner accents */}
-      <div className="absolute top-2 left-2 w-6 h-6 border-t border-l border-rust/30 z-20 pointer-events-none" aria-hidden="true" />
-      <div className="absolute bottom-2 right-2 w-6 h-6 border-b border-r border-rust/30 z-20 pointer-events-none" aria-hidden="true" />
-
-      {/* Loading skeleton */}
-      {!imageLoaded && (
-        <ImageSkeleton className="absolute inset-0" aspectRatio="aspect-square" />
-      )}
-
-      <img
-        src={src}
-        alt={alt}
-        className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 sepia-[0.1] ${
-          imageLoaded ? 'opacity-100' : 'opacity-0'
-        }`}
-        loading="lazy"
-        onLoad={() => setImageLoaded(true)}
-      />
-    </motion.div>
-  );
-}
-
-/* ─── Latest Artwork Card ─── */
-
-interface LatestArtworkCardProps {
-  src: string;
-  childName: string;
-  campaignName: string;
-  date: string;
-  index: number;
-  wide?: boolean;
-}
-
-function LatestArtworkCard({
-  src,
-  childName,
-  campaignName,
-  date,
-  index,
-  wide = false,
-}: LatestArtworkCardProps) {
-  const prefersReducedMotion = useReducedMotion();
-  const [imageLoaded, setImageLoaded] = useState(false);
-
-  return (
-    <motion.div
-      {...(prefersReducedMotion ? {} : { initial: { opacity: 0, y: 30 }, whileInView: { opacity: 1, y: 0 } })}
-      viewport={{ once: true }}
-      transition={{
-        type: 'spring',
-        stiffness: 380,
-        damping: 30,
-        delay: index * 0.12,
-      }}
-      className={`group ${wide ? 'md:col-span-2' : 'md:col-span-1'}`}
-    >
-      <div
-        className={`relative overflow-hidden border border-warm-gray/60 bg-aged-stock ${
-          wide ? 'aspect-[16/10]' : 'aspect-[3/4]'
-        }`}
-      >
-        <SectionGrainOverlay className="z-10" />
-        <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/5 via-transparent to-archive-brown/5" aria-hidden="true" />
-
-        {!imageLoaded && (
-          <ImageSkeleton
-            className="absolute inset-0"
-            aspectRatio={wide ? 'aspect-[16/10]' : 'aspect-[3/4]'}
-          />
-        )}
-
-        <img
-          src={src}
-          alt={`Artwork by ${childName}`}
-          className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 sepia-[0.1] ${
-            imageLoaded ? 'opacity-100' : 'opacity-0'
-          }`}
-          loading="lazy"
-          onLoad={() => setImageLoaded(true)}
-        />
-      </div>
-
-      <div className="mt-4 flex items-baseline justify-between gap-4">
-        <div>
-          <p className="font-display text-body-sm font-semibold text-ink leading-snug">
-            {childName}
-          </p>
-          <p className="font-body text-caption text-ink-faded mt-1">{campaignName}</p>
-        </div>
-        <span className="font-body text-caption text-sepia-mid tracking-[0.1em] whitespace-nowrap">
-          {date}
-        </span>
-      </div>
-    </motion.div>
-  );
-}
+import { artworksApi } from '@/services/artworks';
+import { donationsApi } from '@/services/donations';
+import { allowWebMockFallback } from '@/config/runtime';
 
 /* ─── Brand Pillar ─── */
 
@@ -181,6 +55,33 @@ export default function Home() {
   const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
   const { scrollYProgress } = useScroll();
+  const { data: homeLiveStats } = useQuery({
+    queryKey: ['home-live-stats'],
+    queryFn: async () => {
+      try {
+        const [artworks, donations] = await Promise.all([
+          artworksApi.getAll({ page_size: 1 }),
+          donationsApi.getImpactStats(),
+        ]);
+        return {
+          totalArtworks: artworks.total ?? 0,
+          totalDonations: Number(donations.total_amount ?? 0),
+          source: 'live' as const,
+        };
+      } catch {
+        if (!allowWebMockFallback) {
+          throw new Error('Home metrics unavailable and fallback disabled');
+        }
+        return {
+          totalArtworks: 2847,
+          totalDonations: 890000,
+          source: 'fallback' as const,
+        };
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
+  });
 
   // CTA section scroll-driven animations — headline fades up first
   const headlineOpacity = useTransform(
@@ -230,39 +131,14 @@ export default function Home() {
     prefersReducedMotion ? [1, 1] : [0.8, 1]
   );
 
-  const galleryImages = [
-    { src: 'https://picsum.photos/seed/children-art-1/400/400', alt: t('home.gallery.alt.watercolor') },
-    { src: 'https://picsum.photos/seed/children-art-2/400/400', alt: t('home.gallery.alt.crayon') },
-    { src: 'https://picsum.photos/seed/children-art-3/400/400', alt: t('home.gallery.alt.pastel') },
-    { src: 'https://picsum.photos/seed/children-art-4/400/400', alt: t('home.gallery.alt.ink') },
-  ];
-
-  const latestArtworks = [
-    {
-      src: 'https://picsum.photos/seed/spring-bloom-art/800/500',
-      childName: 'Lin Xiaomei',
-      campaignName: 'Spring Bloom Campaign',
-      date: 'Mar 2026',
-    },
-    {
-      src: 'https://picsum.photos/seed/ocean-dreams-art/400/533',
-      childName: 'Zhang Yufei',
-      campaignName: 'Ocean Dreams',
-      date: 'Feb 2026',
-    },
-    {
-      src: 'https://picsum.photos/seed/mountain-song-art/400/533',
-      childName: 'Wang Haoran',
-      campaignName: 'Mountain Song',
-      date: 'Jan 2026',
-    },
-  ];
-
   const brandPillars = [
     { label: t('home.pillars.traceable'), value: '100%' },
-    { label: t('home.pillars.children'), value: '2,847' },
-    { label: t('home.pillars.reinvested'), value: '890,000' },
+    { label: t('home.pillars.children'), value: (homeLiveStats?.totalArtworks ?? 2847).toLocaleString() },
+    { label: t('home.pillars.reinvested'), value: Math.round(homeLiveStats?.totalDonations ?? 890000).toLocaleString() },
   ];
+  const sourceLabel = homeLiveStats?.source === 'live'
+    ? t('home.metricsSource.live', 'Live API')
+    : t('home.metricsSource.fallback', 'Fallback Data');
 
   return (
     <PageWrapper>
@@ -358,6 +234,9 @@ export default function Home() {
               />
             ))}
           </div>
+          <p className="mt-8 font-body text-caption tracking-[0.1em] uppercase text-sepia-mid">
+            {t('home.metricsSource.label', 'Metrics Source')}: {sourceLabel}
+          </p>
         </div>
       </SectionContainer>
     </PageWrapper>

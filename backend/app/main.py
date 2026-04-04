@@ -228,6 +228,7 @@ from app.routers.reviews import router as reviews_router
 from app.routers.after_sales import router as after_sales_router
 from app.routers.sustainability import router as sustainability_router
 from app.routers.ai_assistant import router as ai_router
+from app.routers.editorial import router as editorial_router
 
 # Health check router
 from fastapi import APIRouter
@@ -262,7 +263,7 @@ routers = (
     auth_router, oauth_router, users_router, artworks_router, campaigns_router,
     donations_router, products_router, orders_router, payments_router, admin_router,
     supply_chain_router, contact_router, clothing_intakes_router, reviews_router,
-    after_sales_router, sustainability_router, ai_router, health_router,
+    after_sales_router, sustainability_router, ai_router, editorial_router, health_router,
 )
 
 for api_prefix in ("/api", "/api/v1"):
