@@ -84,6 +84,9 @@ class Settings(BaseSettings):
     SEED_USER_PASSWORD: str = "vicoo-user"
     MOCK_USER_PASSWORD: str = "vicoo-mock"
 
+    # Demo mode -- when True, uncontrolled mock fallbacks are allowed on DB failures
+    DEMO_MODE: bool = False
+
     @model_validator(mode="before")
     @classmethod
     def parse_cors_before(cls, values):

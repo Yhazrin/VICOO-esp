@@ -1,5 +1,7 @@
 const mode = import.meta.env.MODE;
 
+export const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true';
+
 /**
  * Controlled fallback boundary:
  * - production: fallback disabled by default

@@ -1,5 +1,18 @@
+import enum
+
 from sqlalchemy import Column, Integer, String, DateTime, Text, DECIMAL, Enum, ForeignKey, JSON, func
 from app.database import Base
+
+
+class ProductCategory(str, enum.Enum):
+    APPAREL = "apparel"
+    ACCESSORIES = "accessories"
+    STATIONERY = "stationery"
+    PRINTS = "prints"
+    LIFESTYLE = "lifestyle"
+    FOOTWEAR = "footwear"
+    HOME = "home"
+    GIFT_BOX = "gift_box"
 
 
 class Product(Base):

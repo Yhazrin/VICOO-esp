@@ -10,6 +10,7 @@ import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeadin
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import { VintageInput } from '@/components/editorial/VintageInput';
 import { campaignsApi } from '@/services/campaigns';
+import { allowWebMockFallback } from '@/config/runtime';
 import type { Campaign } from '@/types';
 
 const MOCK_CAMPAIGNS: Campaign[] = [
@@ -141,15 +142,16 @@ export default function Campaigns() {
           status: filter === 'all' ? undefined : filter,
         });
         return result;
-      } catch {
-        return null;
+      } catch (error) {
+        if (allowWebMockFallback) return null;
+        throw error;
       }
     },
     staleTime: 5 * 60 * 1000,
   });
 
   const campaigns = useMemo(() => {
-    let list = data?.items ?? MOCK_CAMPAIGNS;
+    let list = data?.items?.length ? data.items : (allowWebMockFallback ? MOCK_CAMPAIGNS : []);
 
     if (filter !== 'all') {
       list = list.filter((c) => c.status === filter);

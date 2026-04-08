@@ -1,3 +1,5 @@
+⚠️ Historical document — may be outdated. Current API prefix standard is `/api/v1`. See `DEVELOPMENT_GUIDE.md` for current guidance.
+
 # Update 002: API Path Correction & Validation
 
 **Date:** 2026-03-28

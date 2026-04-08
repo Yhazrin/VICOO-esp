@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Optional, Any
 import logging
 
+from app.config import settings
 from app.database import get_db
 from app.models.user import User, ChildParticipant
 from app.models.artwork import Artwork
@@ -84,7 +85,8 @@ async def dashboard(
         raise
     except Exception as e:
         logger.error(f"Dashboard stats failed: {e}")
-        # Fallback to older metrics structure if needed, but here we return the new one
+        if not settings.DEMO_MODE:
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         return ApiResponse(data={"total_users": 0, "pending_artworks": 0})
 
 @router.post("/artworks/batch-moderate", response_model=ApiResponse)
@@ -198,6 +200,8 @@ async def list_audit_logs(
     except HTTPException:
         raise
     except Exception:
+        if not settings.DEMO_MODE:
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         filtered = _mock_audit_logs
         if action:
             filtered = [l for l in filtered if l["action"] == action]
@@ -252,6 +256,8 @@ async def list_child_participants(
     except HTTPException:
         raise
     except Exception:
+        if not settings.DEMO_MODE:
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         filtered = _mock_child_participants
         if status:
             filtered = [p for p in filtered if p["status"] == status]
@@ -338,6 +344,8 @@ async def donation_analytics(
     except HTTPException:
         raise
     except Exception:
+        if not settings.DEMO_MODE:
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         return ApiResponse(data={
             "by_method": [
                 {"method": "wechat", "count": 4, "total": "3000.00"},
@@ -376,6 +384,8 @@ async def artwork_analytics(
     except HTTPException:
         raise
     except Exception:
+        if not settings.DEMO_MODE:
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         return ApiResponse(data={
             "by_status": {"draft": 2, "pending": 2, "approved": 14, "rejected": 0, "featured": 2},
             "total_views": 10180,
@@ -405,6 +415,8 @@ async def order_analytics(
     except HTTPException:
         raise
     except Exception:
+        if not settings.DEMO_MODE:
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         return ApiResponse(data={
             "by_status": {"pending": 1, "paid": 1, "shipped": 1, "completed": 2, "cancelled": 0},
             "total_revenue": "1465.00",
@@ -438,6 +450,8 @@ async def user_analytics(
     except HTTPException:
         raise
     except Exception:
+        if not settings.DEMO_MODE:
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         return ApiResponse(data={
             "by_role": {"admin": 1, "editor": 2, "user": 32, "guardian": 5},
             "by_month": [

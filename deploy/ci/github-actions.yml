@@ -96,7 +96,7 @@ jobs:
       - uses: docker/build-push-action@v5
         with:
           context: .
-          file: deploy/docker/Dockerfiles/backend.Dockerfile
+          file: deploy/easy/backend.dockerfile
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/backend:latest
@@ -158,6 +158,8 @@ jobs:
         run: |
           npm ci
           npm run build
+      - name: Copy nginx config for Docker build context
+        run: cp deploy/easy/nginx.conf frontend/web-react/nginx.conf
       - uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -166,7 +168,7 @@ jobs:
       - uses: docker/build-push-action@v5
         with:
           context: frontend/web-react
-          file: ../../deploy/docker/Dockerfiles/frontend.Dockerfile
+          file: ../../deploy/easy/frontend.dockerfile
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/frontend:latest

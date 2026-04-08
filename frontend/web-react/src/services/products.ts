@@ -6,9 +6,10 @@ const CATEGORY_MAP: Record<string, Product['category']> = {
   accessories: 'accessories',
   stationery: 'stationery',
   prints: 'prints',
-  服装: 'apparel',
-  配饰: 'accessories',
-  文具: 'stationery',
+  lifestyle: 'lifestyle',
+  footwear: 'footwear',
+  home: 'home',
+  gift_box: 'gift_box',
 };
 
 function normalizeCategory(raw: unknown): Product['category'] {

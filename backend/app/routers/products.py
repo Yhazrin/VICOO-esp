@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from decimal import Decimal
 import logging
 
+from app.config import settings
 from app.database import get_db
 from app.models.product import Product
 from app.models.supply_chain import SupplyChainRecord
@@ -15,14 +16,14 @@ router = APIRouter(prefix="/products", tags=["Products"])
 logger = logging.getLogger(__name__)
 
 _mock_products = [
-    {"id": 1, "name": "彩虹鱼棉质 T 恤", "description": "采用有机棉面料，印有获奖作品《彩虹鱼》。每件 T 恤的收益 30% 用于乡村美育基金。", "price": "168.00", "currency": "CNY", "image_url": "/static/products/tshirt1.jpg", "category": "服装", "stock": 200, "status": "active", "created_at": "2025-04-01T10:00:00"},
-    {"id": 2, "name": "星星之夜帆布袋", "description": "再生帆布材质，印有梵高风格星空画作。环保材质，可持续时尚。", "price": "89.00", "currency": "CNY", "image_url": "/static/products/bag1.jpg", "category": "配饰", "stock": 150, "status": "active", "created_at": "2025-04-05T10:00:00"},
-    {"id": 3, "name": "春天的花园丝巾", "description": "100% 真丝面料，孩子们的画作化为丝巾图案，每一条都是独一无二的艺术品。", "price": "258.00", "currency": "CNY", "image_url": "/static/products/scarf1.jpg", "category": "配饰", "stock": 80, "status": "active", "created_at": "2025-04-10T10:00:00"},
-    {"id": 4, "name": "妈妈的手环保笔记本", "description": "再生纸制作，封面印有《妈妈的手》。可用于记录生活中的美好瞬间。", "price": "39.00", "currency": "CNY", "image_url": "/static/products/notebook1.jpg", "category": "文具", "stock": 500, "status": "active", "created_at": "2025-04-15T10:00:00"},
-    {"id": 5, "name": "太空旅行马克杯", "description": "陶瓷马克杯，印有《太空旅行》画作。送给每个梦想家。", "price": "68.00", "currency": "CNY", "image_url": "/static/products/cup1.jpg", "category": "生活", "stock": 120, "status": "active", "created_at": "2025-04-20T10:00:00"},
-    {"id": 6, "name": "我的家帆布鞋", "description": "有机棉帆布鞋面，可降解鞋底。鞋侧印有《我的家》画作。", "price": "198.00", "currency": "CNY", "image_url": "/static/products/shoes1.jpg", "category": "鞋履", "stock": 0, "status": "sold_out", "created_at": "2025-04-25T10:00:00"},
-    {"id": 7, "name": "画出未来环保抱枕", "description": "再生棉填充，有机棉外套。科幻画作成为你客厅的亮点。", "price": "128.00", "currency": "CNY", "image_url": "/static/products/pillow1.jpg", "category": "家居", "stock": 90, "status": "active", "created_at": "2025-05-01T10:00:00"},
-    {"id": 8, "name": "过年了限定礼盒", "description": "包含 T 恤、帆布袋、笔记本三件套，精美包装。限量 100 套。", "price": "368.00", "currency": "CNY", "image_url": "/static/products/giftbox1.jpg", "category": "礼盒", "stock": 35, "status": "active", "created_at": "2025-05-05T10:00:00"},
+    {"id": 1, "name": "彩虹鱼棉质 T 恤", "description": "采用有机棉面料，印有获奖作品《彩虹鱼》。每件 T 恤的收益 30% 用于乡村美育基金。", "price": "168.00", "currency": "CNY", "image_url": "/static/products/tshirt1.jpg", "category": "apparel", "stock": 200, "status": "active", "created_at": "2025-04-01T10:00:00"},
+    {"id": 2, "name": "星星之夜帆布袋", "description": "再生帆布材质，印有梵高风格星空画作。环保材质，可持续时尚。", "price": "89.00", "currency": "CNY", "image_url": "/static/products/bag1.jpg", "category": "accessories", "stock": 150, "status": "active", "created_at": "2025-04-05T10:00:00"},
+    {"id": 3, "name": "春天的花园丝巾", "description": "100% 真丝面料，孩子们的画作化为丝巾图案，每一条都是独一无二的艺术品。", "price": "258.00", "currency": "CNY", "image_url": "/static/products/scarf1.jpg", "category": "accessories", "stock": 80, "status": "active", "created_at": "2025-04-10T10:00:00"},
+    {"id": 4, "name": "妈妈的手环保笔记本", "description": "再生纸制作，封面印有《妈妈的手》。可用于记录生活中的美好瞬间。", "price": "39.00", "currency": "CNY", "image_url": "/static/products/notebook1.jpg", "category": "stationery", "stock": 500, "status": "active", "created_at": "2025-04-15T10:00:00"},
+    {"id": 5, "name": "太空旅行马克杯", "description": "陶瓷马克杯，印有《太空旅行》画作。送给每个梦想家。", "price": "68.00", "currency": "CNY", "image_url": "/static/products/cup1.jpg", "category": "lifestyle", "stock": 120, "status": "active", "created_at": "2025-04-20T10:00:00"},
+    {"id": 6, "name": "我的家帆布鞋", "description": "有机棉帆布鞋面，可降解鞋底。鞋侧印有《我的家》画作。", "price": "198.00", "currency": "CNY", "image_url": "/static/products/shoes1.jpg", "category": "footwear", "stock": 0, "status": "sold_out", "created_at": "2025-04-25T10:00:00"},
+    {"id": 7, "name": "画出未来环保抱枕", "description": "再生棉填充，有机棉外套。科幻画作成为你客厅的亮点。", "price": "128.00", "currency": "CNY", "image_url": "/static/products/pillow1.jpg", "category": "home", "stock": 90, "status": "active", "created_at": "2025-05-01T10:00:00"},
+    {"id": 8, "name": "过年了限定礼盒", "description": "包含 T 恤、帆布袋、笔记本三件套，精美包装。限量 100 套。", "price": "368.00", "currency": "CNY", "image_url": "/static/products/giftbox1.jpg", "category": "gift_box", "stock": 35, "status": "active", "created_at": "2025-05-05T10:00:00"},
 ]
 
 _mock_supply_chain = [
@@ -67,6 +68,8 @@ async def list_products(
     except HTTPException:
         raise
     except Exception:
+        if not settings.DEMO_MODE:
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         filtered = _mock_products
         if category:
             filtered = [p for p in filtered if p["category"] == category]
@@ -96,6 +99,8 @@ async def list_categories(db: AsyncSession = Depends(get_db)):
     except HTTPException:
         raise
     except Exception:
+        if not settings.DEMO_MODE:
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         cat_counts: dict[str, int] = {}
         for p in _mock_products:
             cat = p.get("category", "未分类")
@@ -105,10 +110,20 @@ async def list_categories(db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/featured", response_model=ApiResponse)
-async def list_featured_products():
+async def list_featured_products(db: AsyncSession = Depends(get_db)):
     """List featured products (active with stock, limit 8)."""
-    featured = [p for p in _mock_products if p["status"] == "active" and p["stock"] > 0][:8]
-    return ApiResponse(data=featured)
+    try:
+        stmt = select(Product).where(Product.status == "active", Product.stock > 0).limit(8)
+        result = await db.execute(stmt)
+        products = result.scalars().all()
+        return ApiResponse(data=[ProductOut.model_validate(p).model_dump() for p in products])
+    except HTTPException:
+        raise
+    except Exception:
+        if not settings.DEMO_MODE:
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+        featured = [p for p in _mock_products if p["status"] == "active" and p["stock"] > 0][:8]
+        return ApiResponse(data=featured)
 
 
 @router.get("/{product_id}/supply-chain", response_model=ApiResponse)
@@ -122,6 +137,8 @@ async def get_product_supply_chain(product_id: int, db: AsyncSession = Depends(g
     except HTTPException:
         raise
     except Exception:
+        if not settings.DEMO_MODE:
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         records = [r for r in _mock_supply_chain if r["product_id"] == product_id]
         return ApiResponse(data=records)
 
@@ -140,6 +157,8 @@ async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
     except HTTPException:
         raise
     except Exception:
+        if not settings.DEMO_MODE:
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         for p in _mock_products:
             if p["id"] == product_id:
                 return ApiResponse(data=p)

@@ -804,7 +804,7 @@ echo "[$(date)] 旧备份清理完成"
 docker compose ps
 
 # 手动触发健康检查
-curl -f http://localhost:8000/api/health && echo "Backend OK" || echo "Backend FAIL"
+curl -f http://localhost:8000/api/v1/health && echo "Backend OK" || echo "Backend FAIL"
 wget -q -O- http://localhost:80 && echo "Frontend OK" || echo "Frontend FAIL"
 ```
 
@@ -866,7 +866,7 @@ docker compose up -d --build backend
 sleep 30 && docker compose ps backend
 
 # 手动测试健康检查端点
-curl -f http://localhost:8000/api/health
+curl -f http://localhost:8000/api/v1/health
 ```
 
 #### **❌ 问题 3：端口被占用**
@@ -922,7 +922,7 @@ docker compose exec backend sh -lc 'cd /app/backend && alembic current'
 ```bash
 # 1. 检查 Backend 是否正常运行
 docker compose ps backend
-curl http://localhost:8000/api/health
+curl http://localhost:8000/api/v1/health
 
 # 2. 查看 Nginx 错误日志
 docker compose logs frontend 2>&1 | grep -i error

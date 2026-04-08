@@ -391,7 +391,7 @@ export default function Traceability() {
   const [isSearching, setIsSearching] = useState(false);
   const [highlightedId, setHighlightedId] = useState<number | null>(null);
   const [searchResult, setSearchResult] = useState<EnhancedSupplyChainRecord | null>(null);
-  const [records, setRecords] = useState<EnhancedSupplyChainRecord[]>(getMockRecords(t));
+  const [records, setRecords] = useState<EnhancedSupplyChainRecord[]>(allowWebMockFallback ? getMockRecords(t) : []);
 
   // Fetch supply chain records from API on mount (fallback to mock)
   useEffect(() => {

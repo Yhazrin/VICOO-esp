@@ -14,6 +14,7 @@ import { useCartStore } from '@/stores/cartStore';
 import { productsApi } from '@/services/products';
 import { reviewsApi } from '@/services/reviewsApi';
 import { useAuthStore } from '@/stores/authStore';
+import { allowWebMockFallback } from '@/config/runtime';
 import type { Product, SupplyChainTimelineRecord } from '@/types';
 
 function ThumbnailButton({
@@ -146,7 +147,7 @@ export default function ProductDetail() {
     queryKey: ['product', id],
     queryFn: () => productsApi.getById(id!),
     enabled: !!id,
-    placeholderData: MOCK_PRODUCT,
+    placeholderData: allowWebMockFallback ? MOCK_PRODUCT : undefined,
     retry: false,
   });
 
