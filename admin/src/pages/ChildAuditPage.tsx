@@ -20,7 +20,7 @@ import Pagination from '../components/ui/Pagination';
 import StatusBadge from '../components/ui/StatusBadge';
 import Modal from '../components/ui/Modal';
 import Button from '../components/ui/Button';
-import { fetchChildParticipants } from '../services/api';
+import { fetchChildParticipants, api } from '../services/api';
 import type { ChildParticipant } from '../types';
 import dayjs from 'dayjs';
 
@@ -41,19 +41,10 @@ export default function ChildAuditPage() {
 
   const handleAccess = async () => {
     try {
-      const response = await fetch('/api/v1/admin/auth/verify-audit-access', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ accessCode }),
-      });
-      if (response.ok) {
-        setAccessGranted(true);
-      } else {
-        alert(t('childAudit.alertWrongCode'));
-      }
+      await api.post('/admin/auth/verify-access', { accessCode });
+      setAccessGranted(true);
     } catch {
-      alert(t('childAudit.alertVerifyFailed'));
+      alert(t('childAudit.alertWrongCode'));
     }
   };
 
