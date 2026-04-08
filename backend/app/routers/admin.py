@@ -16,56 +16,11 @@ from app.models.order import Order
 from app.models.audit import AuditLog
 from app.schemas import ApiResponse, AuditLogOut, DashboardMetrics, PaginatedResponse
 from app.deps import require_role
+from app.models.settings import SiteSettings
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
 logger = logging.getLogger(__name__)
-
-_mock_audit_logs = [
-    {"id": 1, "user_id": 1, "user_name": "管理员", "action": "login", "resource": "auth", "resource_id": None, "details": "管理员登录成功", "ip_address": "192.168.1.100", "timestamp": "2025-03-01T08:00:00"},
-    {"id": 2, "user_id": 1, "user_name": "管理员", "action": "create", "resource": "campaign", "resource_id": "1", "details": "创建活动：春天的色彩", "ip_address": "192.168.1.100", "timestamp": "2025-03-01T08:30:00"},
-    {"id": 3, "user_id": 1, "user_name": "管理员", "action": "update", "resource": "artwork", "resource_id": "4", "details": "将作品《星星之夜》设为推荐", "ip_address": "192.168.1.100", "timestamp": "2025-03-05T10:00:00"},
-    {"id": 4, "user_id": 2, "user_name": "编辑小王", "action": "create", "resource": "product", "resource_id": "1", "details": "上架商品：彩虹鱼棉质 T 恤", "ip_address": "192.168.1.101", "timestamp": "2025-04-01T10:00:00"},
-    {"id": 5, "user_id": 1, "user_name": "管理员", "action": "update_role", "resource": "user", "resource_id": "2", "details": "将用户角色修改为 editor", "ip_address": "192.168.1.100", "timestamp": "2025-04-10T14:00:00"},
-    {"id": 6, "user_id": 1, "user_name": "管理员", "action": "export", "resource": "donation", "resource_id": None, "details": "导出捐赠数据报表", "ip_address": "192.168.1.100", "timestamp": "2025-04-15T16:00:00"},
-    {"id": 7, "user_id": 2, "user_name": "编辑小王", "action": "approve", "resource": "artwork", "resource_id": "7", "details": "审核通过作品《丰收的秋天》", "ip_address": "192.168.1.101", "timestamp": "2025-04-20T09:00:00"},
-    {"id": 8, "user_id": 1, "user_name": "管理员", "action": "update", "resource": "order", "resource_id": "2", "details": "修改订单状态为已发货", "ip_address": "192.168.1.100", "timestamp": "2025-04-06T09:00:00"},
-    {"id": 9, "user_id": 1, "user_name": "管理员", "action": "create", "resource": "child_participant", "resource_id": "1", "details": "新增儿童参与者：小明", "ip_address": "192.168.1.100", "timestamp": "2025-03-10T11:00:00"},
-    {"id": 10, "user_id": 2, "user_name": "编辑小王", "action": "review", "resource": "child_participant", "resource_id": "3", "details": "审核儿童参与者资料（监护人已同意）", "ip_address": "192.168.1.101", "timestamp": "2025-03-15T14:00:00"},
-]
-
-_mock_child_participants = [
-    {"id": 1, "child_name": "小明", "display_name": "小小画家", "age": 10, "guardian_name": "李建国", "region": "云南大理", "school": "大理希望小学", "consent_given": True, "artwork_count": 3, "status": "active", "created_at": "2025-01-15T10:00:00"},
-    {"id": 2, "child_name": "小红", "display_name": "彩虹小画家", "age": 8, "guardian_name": "张秀英", "region": "贵州遵义", "school": "遵义阳光小学", "consent_given": True, "artwork_count": 2, "status": "active", "created_at": "2025-01-20T10:00:00"},
-    {"id": 3, "child_name": "小丽", "display_name": "丽丽的画笔", "age": 11, "guardian_name": "王大伟", "region": "甘肃定西", "school": "定西育才小学", "consent_given": True, "artwork_count": 4, "status": "active", "created_at": "2025-02-01T10:00:00"},
-    {"id": 4, "child_name": "小刚", "display_name": "星空少年", "age": 12, "guardian_name": "刘芳", "region": "河南信阳", "school": "信阳实验小学", "consent_given": True, "artwork_count": 2, "status": "active", "created_at": "2025-02-10T10:00:00"},
-    {"id": 5, "child_name": "小雨", "display_name": "雨滴画室", "age": 9, "guardian_name": "陈志明", "region": "四川凉山", "school": "凉山公益小学", "consent_given": True, "artwork_count": 3, "status": "active", "created_at": "2025-02-15T10:00:00"},
-]
-
-_admin_settings_store: dict[str, Any] = {
-    "site_name": "童画公益",
-    "site_tagline": "Sustainable Fashion for a Better World",
-    "contact_email": "admin@vicoo.test",
-    "donation_enabled": True,
-    "shop_enabled": True,
-    "registration_enabled": True,
-    "maintenance_mode": False,
-    "donation_min_amount": 1,
-    "donation_max_amount": 100000,
-    "supported_currencies": ["CNY", "USD"],
-    "supported_payment_methods": ["wechat", "alipay", "stripe", "paypal"],
-    "child_participant_min_age": 1,
-    "child_participant_max_age": 17,
-    "require_guardian_consent": True,
-    "gdpr_enabled": True,
-    "languages": ["zh-CN", "en-US"],
-    "payment_methods": {
-        "wechat": {"enabled": True, "appId": None, "merchantId": None},
-        "alipay": {"enabled": True, "appId": None},
-        "stripe": {"enabled": True, "publicKey": None},
-        "paypal": {"enabled": True, "clientId": None},
-    },
-}
 
 
 from typing import List
@@ -128,42 +83,68 @@ async def batch_moderate_children(
         raise HTTPException(status_code=500, detail="Batch operation failed")
 
 
+@router.post("/auth/verify-access", response_model=ApiResponse)
+async def verify_audit_access(
+    body: dict[str, str],
+    _current_user: dict = Depends(require_role("admin")),
+):
+    """Verify admin audit access code."""
+    access_code = body.get("accessCode", "")
+    if not access_code:
+        raise HTTPException(status_code=400, detail="Access code required")
+    import os
+    expected = os.environ.get("ADMIN_AUDIT_CODE", "vicoo-admin-2025")
+    if access_code != expected:
+        raise HTTPException(status_code=403, detail="Invalid access code")
+    return ApiResponse(data={"verified": True})
+
+
 @router.get("/settings", response_model=ApiResponse)
 async def get_settings(
+    db: AsyncSession = Depends(get_db),
     _current_user: dict = Depends(require_role("admin")),
 ):
     """Get admin settings."""
-    return ApiResponse(data=_admin_settings_store)
+    result = await db.execute(select(SiteSettings))
+    rows = result.scalars().all()
+    settings_dict = {}
+    for row in rows:
+        settings_dict[row.key] = row.value
+    # Defaults if no settings exist yet
+    defaults = {
+        "site_name": "童画公益",
+        "site_tagline": "Sustainable Fashion for a Better World",
+        "contact_email": "admin@vicoo.test",
+        "donation_enabled": True,
+        "shop_enabled": True,
+        "registration_enabled": True,
+        "maintenance_mode": False,
+    }
+    for k, v in defaults.items():
+        if k not in settings_dict:
+            settings_dict[k] = v
+    return ApiResponse(data=settings_dict)
 
 
 @router.put("/settings", response_model=ApiResponse)
 async def update_settings(
     body: dict[str, Any],
+    db: AsyncSession = Depends(get_db),
     _current_user: dict = Depends(require_role("admin")),
 ):
     """Update admin settings."""
-    # flat fields
-    for key in [
-        "site_name",
-        "site_tagline",
-        "contact_email",
-        "donation_enabled",
-        "shop_enabled",
-        "registration_enabled",
-        "maintenance_mode",
-    ]:
-        if key in body:
-            _admin_settings_store[key] = body[key]
-
-    # nested payment methods
-    payment_methods = body.get("payment_methods")
-    if isinstance(payment_methods, dict):
-        for method, conf in payment_methods.items():
-            if method not in _admin_settings_store["payment_methods"] or not isinstance(conf, dict):
-                continue
-            _admin_settings_store["payment_methods"][method].update(conf)
-
-    return ApiResponse(data=_admin_settings_store)
+    for key, value in body.items():
+        result = await db.execute(select(SiteSettings).where(SiteSettings.key == key))
+        row = result.scalar_one_or_none()
+        if row:
+            row.value = value
+        else:
+            db.add(SiteSettings(key=key, value=value))
+    await db.flush()
+    # Return updated settings
+    result = await db.execute(select(SiteSettings))
+    rows = result.scalars().all()
+    return ApiResponse(data={r.key: r.value for r in rows})
 
 
 @router.get("/audit-logs", response_model=PaginatedResponse)
@@ -200,20 +181,7 @@ async def list_audit_logs(
     except HTTPException:
         raise
     except Exception:
-        if not settings.DEMO_MODE:
-            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
-        filtered = _mock_audit_logs
-        if action:
-            filtered = [l for l in filtered if l["action"] == action]
-        if resource:
-            filtered = [l for l in filtered if l["resource"] == resource]
-        start = (page - 1) * page_size
-        return PaginatedResponse(
-            data=filtered[start: start + page_size],
-            total=len(filtered),
-            page=page,
-            page_size=page_size,
-        )
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.get("/child-participants", response_model=PaginatedResponse)
@@ -256,18 +224,7 @@ async def list_child_participants(
     except HTTPException:
         raise
     except Exception:
-        if not settings.DEMO_MODE:
-            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
-        filtered = _mock_child_participants
-        if status:
-            filtered = [p for p in filtered if p["status"] == status]
-        start = (page - 1) * page_size
-        return PaginatedResponse(
-            data=filtered[start: start + page_size],
-            total=len(filtered),
-            page=page,
-            page_size=page_size,
-        )
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.put("/child-participants/{child_id}/consent", response_model=ApiResponse)
@@ -301,7 +258,6 @@ async def approve_child_consent(
         await db.flush()
 
         return ApiResponse(data={"id": child.id, "consent_given": True, "status": "active"})
-        raise
     except HTTPException:
         raise
     except Exception as e:
