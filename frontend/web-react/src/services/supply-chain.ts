@@ -73,8 +73,14 @@ export const supplyChainApi = {
     return response.data.data;
   },
 
-  getStages: async (): Promise<{ key: string; label: string; order: number }[]> => {
-    const response = await api.get('/supply-chain/stages');
-    return response.data.data ?? [];
+  getStages: (): { key: string; label: string; order: number }[] => {
+    // Static fallback — backend has no /stages endpoint
+    return [
+      { key: 'material_sourcing', label: 'Material Sourcing', order: 1 },
+      { key: 'processing', label: 'Processing', order: 2 },
+      { key: 'manufacturing', label: 'Manufacturing', order: 3 },
+      { key: 'quality_check', label: 'Quality Check', order: 4 },
+      { key: 'shipping', label: 'Shipping', order: 5 },
+    ];
   },
 };
