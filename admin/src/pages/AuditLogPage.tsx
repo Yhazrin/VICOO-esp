@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import DataTable from '../components/ui/DataTable';
 import type { Column } from '../components/ui/DataTable';
 import Pagination from '../components/ui/Pagination';
@@ -9,138 +10,147 @@ import { fetchAuditLogs } from '../services/api';
 import type { AuditLogEntry } from '../types';
 import dayjs from 'dayjs';
 
-const actionColors: Record<string, string> = {
-  '登录系统': 'var(--color-info)',
-  '审核作品': 'var(--color-accent)',
-  '修改用户角色': 'var(--color-warning)',
-  '导出数据': 'var(--color-info)',
-  '修改设置': 'var(--color-warning)',
-  '创建活动': 'var(--color-success)',
-  '处理捐赠': 'var(--color-success)',
-  '更新订单状态': 'var(--color-accent)',
-  '查看儿童信息': 'var(--color-danger)',
-  '删除数据': 'var(--color-danger)',
-};
-
 export default function AuditLogPage() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [actionFilter, setActionFilter] = useState('');
-  const [resourceFilter, setResourceFilter] = useState('');
   const [selected, setSelected] = useState<AuditLogEntry | null>(null);
+
+  const actionColors: Record<string, string> = {
+    login: '#7A6A58', review_artwork: '#8B3A2A', modify_user_role: '#5C4033',
+    export_data: '#7A6A58', modify_settings: '#5C4033', create_campaign: '#8B3A2A',
+    process_donation: '#5C4033', update_order_status: '#8B3A2A',
+    view_child_info: '#8B3A2A', delete_data: '#8B3A2A',
+  };
+
+  const getActionLabel = (v: string) => {
+    const map: Record<string, string> = {
+      login: t('auditLog.actionLogin'), review_artwork: t('auditLog.actionReviewArtwork'),
+      modify_user_role: t('auditLog.actionModifyUserRole'), export_data: t('auditLog.actionExportData'),
+      modify_settings: t('auditLog.actionModifySettings'), create_campaign: t('auditLog.actionCreateCampaign'),
+      process_donation: t('auditLog.actionProcessDonation'), update_order_status: t('auditLog.actionUpdateOrderStatus'),
+      view_child_info: t('auditLog.actionViewChildInfo'), delete_data: t('auditLog.actionDeleteData'),
+    };
+    return map[v] || v;
+  };
 
   const { data, isLoading } = useQuery({
     queryKey: ['auditLogs', page, search, actionFilter],
-    queryFn: () => fetchAuditLogs({ page, pageSize: 15, search: search || undefined }),
-  });
-
-  const filteredData = (data?.data || []).filter((log) => {
-    if (actionFilter && log.action !== actionFilter) return false;
-    if (resourceFilter && log.resource !== resourceFilter) return false;
-    return true;
+    queryFn: () => fetchAuditLogs({
+      page,
+      pageSize: 15,
+      search: search || undefined,
+      status: actionFilter || undefined
+    }),
   });
 
   const columns: Column<AuditLogEntry>[] = [
-    { key: 'timestamp', title: '时间', width: 160, sorter: true, render: (v) => dayjs(v).format('YYYY-MM-DD HH:mm:ss') },
-    { key: 'userName', title: '操作人', width: 100 },
-    { key: 'action', title: '操作', width: 140, render: (v) => (
+    { key: 'timestamp', title: t('auditLog.detailTimestamp'), width: 180, sorter: true, render: (v) => dayjs(v).format('YYYY-MM-DD HH:mm:ss') },
+    { key: 'userName', title: t('auditLog.detailOperator'), width: 120 },
+    { key: 'action', title: t('auditLog.detailAction'), width: 150, render: (v) => (
       <span style={{
-        padding: '2px 8px', borderRadius: 4, fontSize: 12, fontWeight: 600,
-        background: `${actionColors[v]}15`, color: actionColors[v] || 'var(--color-text)',
+        padding: '2px 8px',
+        borderRadius: '2px',
+        fontSize: '11px',
+        fontWeight: 600,
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em',
+        border: `1px solid ${actionColors[v] || 'var(--color-ink)'}`,
+        color: actionColors[v] || 'var(--color-ink)',
+      }}>
+        {getActionLabel(v)}
+      </span>
+    )},
+    { key: 'resource', title: t('auditLog.detailResource'), width: 120 },
+    { key: 'details', title: t('common.detail'), render: (v) => (
+      <span style={{
+        color: 'var(--color-ink-faded)',
+        maxWidth: 400,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        display: 'block',
+        whiteSpace: 'nowrap',
+        fontSize: '13px'
       }}>
         {v}
       </span>
     )},
-    { key: 'resource', title: '资源', width: 100 },
-    { key: 'details', title: '详情', render: (v) => (
-      <span style={{ color: 'var(--color-text-secondary)', maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', whiteSpace: 'nowrap' }}>
-        {v}
-      </span>
-    )},
-    { key: 'ipAddress', title: 'IP 地址', width: 130 },
+    { key: 'ipAddress', title: t('auditLog.detailIpAddress'), width: 140, render: (v) => <code style={{ fontFamily: 'var(--font-mono)', fontSize: '11px' }}>{v}</code> },
     {
-      key: 'action_col', title: '操作', width: 80,
+      key: 'action_col', title: t('common.operation'), width: 100,
       render: (_: any, record: AuditLogEntry) => (
         <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); setSelected(record); }}>
-          详情
+          {t('auditLog.btnViewDetail')}
         </Button>
       ),
     },
   ];
 
-  const uniqueActions = [...new Set((data?.data || []).map((l) => l.action))];
-  const uniqueResources = [...new Set((data?.data || []).map((l) => l.resource))];
-
   return (
     <div>
-      <div style={{ marginBottom: 20 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>审计日志</h1>
-        <p style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
-          查看系统操作记录与安全审计事件
+      <div style={{ marginBottom: 32 }}>
+        <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8, fontFamily: 'var(--font-serif)' }}>{t('auditLog.title')}</h1>
+        <p style={{ fontSize: 14, color: 'var(--color-sepia-mid)', maxWidth: '600px', lineHeight: 1.6 }}>
+          {t('auditLog.description')}
         </p>
       </div>
 
-      {/* Filters */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 16, marginBottom: 24, alignItems: 'center' }}>
         <input
-          type="text" placeholder="搜索操作人或详情..."
+          type="text" placeholder={t('auditLog.searchPlaceholder')}
           value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           style={filterStyle}
         />
         <select value={actionFilter} onChange={(e) => setActionFilter(e.target.value)} style={filterStyle}>
-          <option value="">全部操作</option>
-          {uniqueActions.map((a) => <option key={a} value={a}>{a}</option>)}
+          <option value="">{t('auditLog.filterAllActions')}</option>
+          <option value="login">{t('auditLog.actionLogin')}</option>
+          <option value="review_artwork">{t('auditLog.actionReviewArtwork')}</option>
+          <option value="modify_user_role">{t('auditLog.actionModifyUserRole')}</option>
+          <option value="export_data">{t('auditLog.actionExportData')}</option>
+          <option value="modify_settings">{t('auditLog.actionModifySettings')}</option>
+          <option value="create_campaign">{t('auditLog.actionCreateCampaign')}</option>
+          <option value="process_donation">{t('auditLog.actionProcessDonation')}</option>
+          <option value="update_order_status">{t('auditLog.actionUpdateOrderStatus')}</option>
+          <option value="view_child_info">{t('auditLog.actionViewChildInfo')}</option>
+          <option value="delete_data">{t('auditLog.actionDeleteData')}</option>
         </select>
-        <select value={resourceFilter} onChange={(e) => setResourceFilter(e.target.value)} style={filterStyle}>
-          <option value="">全部资源</option>
-          {uniqueResources.map((r) => <option key={r} value={r}>{r}</option>)}
-        </select>
+
+        <div style={{ marginLeft: 'auto', fontSize: '12px', color: 'var(--color-sepia-mid)' }}>
+          {t('auditLog.recordCount', { count: data?.total || 0 })}
+        </div>
       </div>
 
-      {/* Stats */}
-      <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 16,
-      }}>
-        {[
-          { label: '总操作数', value: data?.total || 0 },
-          { label: '安全操作', value: filteredData.filter((l) => l.action === '查看儿童信息' || l.action === '删除数据').length },
-          { label: '今日操作', value: filteredData.filter((l) => dayjs(l.timestamp).format('YYYY-MM-DD') === dayjs().format('YYYY-MM-DD')).length },
-          { label: '涉及用户', value: new Set(filteredData.map((l) => l.userId)).size },
-        ].map((s) => (
-          <div key={s.label} style={{
-            padding: '12px 16px', background: 'var(--color-bg-card)',
-            border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)',
-          }}>
-            <div style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>{s.label}</div>
-            <div style={{ fontSize: 18, fontWeight: 700, marginTop: 2 }}>{s.value}</div>
-          </div>
-        ))}
+      <DataTable columns={columns} data={data?.data || []} rowKey="id" loading={isLoading} />
+
+      <div style={{ marginTop: 32 }}>
+        <Pagination page={page} totalPages={data?.totalPages || 1} total={data?.total || 0} pageSize={15} onPageChange={setPage} />
       </div>
 
-      <DataTable columns={columns} data={filteredData} rowKey="id" loading={isLoading} />
-      <Pagination page={page} totalPages={data?.totalPages || 1} total={data?.total || 0} pageSize={15} onPageChange={setPage} />
-
-      {/* Detail Modal */}
-      <Modal open={!!selected} title="审计日志详情" onClose={() => setSelected(null)} width={520}>
+      <Modal open={!!selected} title={t('auditLog.modalTitle')} onClose={() => setSelected(null)} width={600}>
         {selected && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <Row label="日志 ID" value={selected.id} />
-            <Row label="操作人" value={selected.userName} />
-            <Row label="用户 ID" value={selected.userId} />
-            <Row label="操作" value={selected.action} />
-            <Row label="资源" value={selected.resource} />
-            {selected.resourceId && <Row label="资源 ID" value={selected.resourceId} />}
-            <Row label="IP 地址" value={selected.ipAddress} />
-            <Row label="时间" value={dayjs(selected.timestamp).format('YYYY-MM-DD HH:mm:ss')} />
-            <div>
-              <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 4 }}>操作详情</div>
-              <div style={{ fontSize: 13, padding: '8px 12px', background: '#f9f9f7', borderRadius: 'var(--radius-sm)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20, padding: '10px 0' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 32px' }}>
+              <Row label={t('auditLog.detailLogId')} value={<code style={{ fontFamily: 'var(--font-mono)' }}>{selected.id}</code>} />
+              <Row label={t('auditLog.detailTimestamp')} value={dayjs(selected.timestamp).format('YYYY-MM-DD HH:mm:ss')} />
+              <Row label={t('auditLog.detailOperator')} value={selected.userName} />
+              <Row label={t('auditLog.detailUserId')} value={<code style={{ fontFamily: 'var(--font-mono)' }}>{selected.userId}</code>} />
+              <Row label={t('auditLog.detailAction')} value={selected.action} />
+              <Row label={t('auditLog.detailResource')} value={selected.resource} />
+              <Row label={t('auditLog.detailResourceId')} value={selected.resourceId ? <code style={{ fontFamily: 'var(--font-mono)' }}>{selected.resourceId}</code> : '-'} />
+              <Row label={t('auditLog.detailIpAddress')} value={<code style={{ fontFamily: 'var(--font-mono)' }}>{selected.ipAddress}</code>} />
+            </div>
+
+            <div style={{ borderTop: '1px solid var(--color-warm-gray)', paddingTop: 20 }}>
+              <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-sepia-mid)', marginBottom: 8 }}>{t('auditLog.detailOperationDetails')}</div>
+              <div style={{ fontSize: 14, padding: '16px', background: 'var(--color-paper)', border: '1px solid var(--color-warm-gray)', lineHeight: 1.6 }}>
                 {selected.details}
               </div>
             </div>
+
             <div>
-              <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 4 }}>User Agent</div>
-              <div style={{ fontSize: 12, padding: '8px 12px', background: '#f9f9f7', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-mono)', wordBreak: 'break-all' }}>
+              <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-sepia-mid)', marginBottom: 8 }}>{t('auditLog.detailUserAgent')}</div>
+              <div style={{ fontSize: 12, padding: '12px', background: 'var(--color-paper)', border: '1px solid var(--color-warm-gray)', fontFamily: 'var(--font-mono)', wordBreak: 'break-all', color: 'var(--color-ink-faded)' }}>
                 {selected.userAgent}
               </div>
             </div>
@@ -153,15 +163,20 @@ export default function AuditLogPage() {
 
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-      <span style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>{label}</span>
-      <span style={{ fontSize: 13, fontWeight: 500 }}>{value}</span>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <span style={{ fontSize: 11, color: 'var(--color-sepia-mid)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
+      <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--color-ink)' }}>{value}</span>
     </div>
   );
 }
 
 const filterStyle: React.CSSProperties = {
-  padding: '8px 12px', border: '1px solid var(--color-border)',
-  borderRadius: 'var(--radius-sm)', fontSize: 13,
-  background: 'var(--color-bg-card)', outline: 'none',
+  padding: '10px 16px',
+  border: '1px solid var(--color-ink)',
+  borderRadius: '2px',
+  fontSize: '13px',
+  background: 'var(--color-paper)',
+  outline: 'none',
+  fontFamily: 'var(--font-mono)',
+  minWidth: '240px'
 };

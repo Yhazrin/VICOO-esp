@@ -6,6 +6,7 @@ from datetime import datetime
 import logging
 
 from app.database import get_db
+from app.config import settings
 from app.models.donation import Donation
 from app.models.campaign import Campaign
 from app.schemas import ApiResponse, DonationCreate, DonationOut, PaginatedResponse
@@ -15,6 +16,23 @@ from app.services.payment_service import get_payment_service
 router = APIRouter(prefix="/donations", tags=["Donations"])
 
 logger = logging.getLogger(__name__)
+
+
+def _serialize_donation(donation: Donation) -> dict:
+    return DonationOut(
+        id=donation.id,
+        donor_name=donation.donor_name,
+        donor_user_id=donation.donor_user_id,
+        amount=donation.amount,
+        currency=donation.currency,
+        payment_method=donation.payment_method,
+        payment_id=donation.payment_id,
+        campaign_id=donation.campaign_id,
+        status=donation.status,
+        is_anonymous=donation.is_anonymous,
+        message=donation.message,
+        created_at=donation.created_at,
+    ).model_dump(mode="json")
 
 
 def _redact_name(name: str | None, is_anonymous: bool | None = None) -> str:
@@ -116,8 +134,9 @@ async def create_donation(body: DonationCreate, db: AsyncSession = Depends(get_d
 
         donation = await donation_service.create_donation(donation_data)
         await db.commit()
+        await db.refresh(donation)
 
-        response_data = DonationOut.model_validate(donation).model_dump()
+        response_data = _serialize_donation(donation)
         response_data["donationId"] = donation.id
 
         if body.payment_method == "wechat":
@@ -139,6 +158,18 @@ async def create_donation(body: DonationCreate, db: AsyncSession = Depends(get_d
                     response_data["simulation_mode"] = True
                 else:
                     raise HTTPException(status_code=400, detail="Payment initialization failed. Please check configuration.")
+        elif body.payment_method == "alipay":
+            is_alipay_configured = all([
+                settings.ALIPAY_APP_ID,
+                settings.ALIPAY_PRIVATE_KEY,
+                settings.ALIPAY_PUBLIC_KEY,
+                settings.ALIPAY_NOTIFY_URL,
+            ])
+            if not is_alipay_configured:
+                if settings.APP_ENV == "production":
+                    raise HTTPException(status_code=400, detail="Alipay is not configured for this environment.")
+                response_data["payment_notice"] = "Alipay web payment is not configured in this environment yet."
+                response_data["simulation_mode"] = True
 
         return ApiResponse(data=response_data)
     except HTTPException:

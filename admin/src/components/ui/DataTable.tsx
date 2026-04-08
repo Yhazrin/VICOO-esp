@@ -4,6 +4,7 @@ interface Column<T> {
   key: string;
   title: string;
   width?: number | string;
+  minWidth?: number | string;
   render?: (value: any, record: T, index: number) => React.ReactNode;
   sorter?: boolean;
 }
@@ -23,90 +24,110 @@ export default function DataTable<T extends Record<string, any>>({
   columns, data, rowKey, loading, sortBy, sortOrder, onSort, onRowClick,
 }: DataTableProps<T>) {
   const renderSortIcon = (key: string) => {
-    if (sortBy !== key) return <span style={{ color: '#ccc', marginLeft: 4 }}>&#8693;</span>;
+    if (sortBy !== key) return <span style={{ color: 'var(--color-warm-gray)', marginLeft: 6 }}>&#8693;</span>;
     return (
-      <span style={{ color: 'var(--color-accent)', marginLeft: 4 }}>
+      <span style={{ color: 'var(--color-rust)', marginLeft: 6, fontWeight: 'bold' }}>
         {sortOrder === 'asc' ? '\u2191' : '\u2193'}
       </span>
     );
   };
 
   return (
-    <div style={{
-      background: 'var(--color-bg-card)',
-      border: '1px solid var(--color-border)',
-      borderRadius: 'var(--radius-lg)',
-      overflow: 'hidden',
+    <div className="data-table-container" style={{
+      borderRadius: 'var(--radius-sm)',
+      position: 'relative',
+      width: '100%',
     }}>
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', minWidth: 600 }}>
+      <div style={{ 
+        overflowX: 'auto', 
+        width: '100%',
+        WebkitOverflowScrolling: 'touch',
+      }}>
+        <table style={{ 
+          width: '100%', 
+          minWidth: 'max-content', // Crucial: table takes as much space as columns need
+          borderCollapse: 'separate', // Needed for sticky header borders
+          borderSpacing: 0
+        }}>
           <thead>
-            <tr style={{ borderBottom: '2px solid var(--color-border)' }}>
+            <tr>
               {columns.map((col) => (
                 <th
                   key={col.key}
                   onClick={() => col.sorter && onSort?.(col.key)}
                   style={{
-                    padding: '14px 16px',
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 10,
+                    padding: '16px 24px',
                     textAlign: 'left',
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: 'var(--color-text-secondary)',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: 'var(--color-ink)',
+                    backgroundColor: 'var(--color-aged-stock)',
                     textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
+                    letterSpacing: '0.12em',
                     width: col.width,
+                    minWidth: col.minWidth || 120,
                     cursor: col.sorter ? 'pointer' : 'default',
                     userSelect: 'none',
                     whiteSpace: 'nowrap',
+                    borderBottom: '1px solid var(--color-ink)',
+                    transition: 'background-color 0.2s',
                   }}
+                  onMouseEnter={(e) => { if(col.sorter) e.currentTarget.style.backgroundColor = 'var(--color-warm-gray)'; }}
+                  onMouseLeave={(e) => { if(col.sorter) e.currentTarget.style.backgroundColor = 'var(--color-aged-stock)'; }}
                 >
-                  {col.title}
-                  {col.sorter && renderSortIcon(col.key)}
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    {col.title}
+                    {col.sorter && renderSortIcon(col.key)}
+                  </div>
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody>
+          <tbody style={{ backgroundColor: 'white' }}>
             {loading ? (
               <tr>
-                <td colSpan={columns.length} style={{ padding: 40, textAlign: 'center', color: 'var(--color-text-light)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                <td colSpan={columns.length} style={{ padding: 60, textAlign: 'center', color: 'var(--color-sepia-mid)' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
                     <div style={{
-                      width: 20, height: 20,
-                      border: '2px solid var(--color-border)',
-                      borderTopColor: 'var(--color-accent)',
+                      width: 24, height: 24,
+                      border: '2px solid var(--color-warm-gray)',
+                      borderTopColor: 'var(--color-rust)',
                       borderRadius: '50%',
-                      animation: 'spin 0.8s linear infinite',
+                      animation: 'spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite',
                     }} />
-                    加载中...
+                    <span style={{ fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Synchronizing Archive...</span>
                   </div>
                 </td>
               </tr>
             ) : data.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} style={{ padding: 40, textAlign: 'center', color: 'var(--color-text-light)' }}>
-                  暂无数据
+                <td colSpan={columns.length} style={{ padding: 60, textAlign: 'center', color: 'var(--color-sepia-mid)', fontStyle: 'italic' }}>
+                  No records found in the current selection.
                 </td>
               </tr>
             ) : (
               data.map((record, idx) => (
                 <tr
-                  key={record[rowKey]}
+                  key={record[rowKey] || idx}
                   onClick={() => onRowClick?.(record)}
                   style={{
-                    borderBottom: '1px solid var(--color-border-light)',
                     cursor: onRowClick ? 'pointer' : 'default',
-                    transition: 'background 0.15s',
+                    transition: 'background-color 0.1s ease',
                   }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLTableRowElement).style.background = '#fafaf8'; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLTableRowElement).style.background = 'transparent'; }}
+                  className="table-row-hover"
                 >
                   {columns.map((col) => (
                     <td key={col.key} style={{
-                      padding: '12px 16px',
+                      padding: '16px 24px',
                       fontSize: 13,
-                      color: 'var(--color-text)',
-                      maxWidth: col.width || 300,
+                      lineHeight: 1.5,
+                      color: 'var(--color-ink)',
+                      width: col.width,
+                      minWidth: col.minWidth || 120,
+                      borderBottom: '1px solid var(--color-warm-gray)',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap',
@@ -120,7 +141,20 @@ export default function DataTable<T extends Record<string, any>>({
           </tbody>
         </table>
       </div>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .table-row-hover:hover td {
+          background-color: rgba(92, 64, 51, 0.04);
+        }
+        .data-table-container::after {
+          content: '';
+          position: absolute;
+          top: 0; right: 0; bottom: 0;
+          width: 20px;
+          pointer-events: none;
+          background: linear-gradient(to right, transparent, rgba(0,0,0,0.02));
+        }
+      `}</style>
     </div>
   );
 }

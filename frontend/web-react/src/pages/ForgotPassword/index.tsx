@@ -15,17 +15,22 @@ export default function ForgotPassword() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [recoveryData, setRecoveryData] = useState<{ password_hint?: string; is_mock?: boolean } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      await api.post('/auth/forgot-password', { email });
+      const response = await api.post('/auth/forgot-password', { email });
+      setRecoveryData(response.data?.data || null);
       setSubmitted(true);
-    } catch {
-      // Always show success to prevent email enumeration
-      setSubmitted(true);
+    } catch (err: any) {
+      if (err.response?.status === 404) {
+        setError(t('forgotPassword.errorNotFound', 'Email address not found in our records.'));
+      } else {
+        setError(t('forgotPassword.errorGeneric', 'An error occurred. Please try again later.'));
+      }
     } finally {
       setLoading(false);
     }
@@ -53,7 +58,9 @@ export default function ForgotPassword() {
               transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6, ease: [0, 0, 0.2, 1], delay: 0.1 }}
               className="font-body text-body-sm text-ink-faded"
             >
-              {t('forgotPassword.subtitle', 'Enter your email and we\'ll send you a reset link')}
+              {recoveryData?.is_mock 
+                ? t('forgotPassword.mockTitle', 'Account Found (Mock Mode)')
+                : t('forgotPassword.subtitle', 'Enter your email and we\'ll send you a reset link')}
             </motion.p>
             <motion.div
               {...(prefersReducedMotion ? {} : { initial: { scaleX: 0 }, animate: { scaleX: 1 }, transition: { duration: 0.8, delay: 0.3 } })}
@@ -69,22 +76,43 @@ export default function ForgotPassword() {
               className="text-center space-y-6"
             >
               <div className="w-16 h-16 mx-auto border-2 border-rust/30 flex items-center justify-center">
-                <svg className="w-8 h-8 text-rust" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
+                {recoveryData?.is_mock ? (
+                  <span className="text-2xl font-bold text-rust">!</span>
+                ) : (
+                  <svg className="w-8 h-8 text-rust" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                )}
               </div>
-              <p className="font-body text-body-sm text-ink">
-                {t('forgotPassword.sent', 'If an account exists with that email, we\'ve sent a password reset link.')}
-              </p>
-              <p className="font-body text-caption text-ink-faded">
-                {t('forgotPassword.checkSpam', 'Check your spam folder if you don\'t see it within a few minutes.')}
-              </p>
-              <Link
-                to="/login"
-                className="inline-block font-body text-body-sm tracking-[0.15em] uppercase text-rust hover:text-ink transition-colors cursor-pointer"
-              >
-                &larr; {t('forgotPassword.backToLogin', 'Back to login')}
-              </Link>
+
+              {recoveryData?.is_mock ? (
+                <div className="space-y-4">
+                  <p className="font-body text-body-sm text-ink">
+                    {t('forgotPassword.mockInstruction', 'Since this is a test account, your password is shown below:')}
+                  </p>
+                  <div className="bg-[#EDE6D6] p-4 border border-dashed border-rust font-mono text-lg font-bold text-ink">
+                    {recoveryData.password_hint}
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <p className="font-body text-body-sm text-ink">
+                    {t('forgotPassword.sent', 'If an account exists with that email, we\'ve sent a password reset link.')}
+                  </p>
+                  <p className="font-body text-caption text-ink-faded">
+                    {t('forgotPassword.checkSpam', 'Check your spam folder if you don\'t see it within a few minutes.')}
+                  </p>
+                </>
+              )}
+              
+              <div className="pt-4">
+                <Link
+                  to="/login"
+                  className="inline-block font-body text-body-sm tracking-[0.15em] uppercase text-rust hover:text-ink transition-colors cursor-pointer"
+                >
+                  &larr; {t('forgotPassword.backToLogin', 'Back to login')}
+                </Link>
+              </div>
             </motion.div>
           ) : (
             <motion.form

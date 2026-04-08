@@ -7,10 +7,11 @@ interface VintageInputProps extends React.InputHTMLAttributes<HTMLInputElement |
   helperText?: string;
   error?: string;
   icon?: 'search' | 'email' | 'user' | 'lock';
+  suffix?: React.ReactNode;
 }
 
 export const VintageInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, VintageInputProps>(
-  ({ label, type = 'text', helperText, error, icon, className = '', ...props }, ref) => {
+  ({ label, type = 'text', helperText, error, icon, suffix, className = '', ...props }, ref) => {
     const id = useId();
     const prefersReducedMotion = useReducedMotion();
     const inputId = `${id}-input`;
@@ -101,13 +102,20 @@ export const VintageInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, V
               />
             </div>
           ) : (
-            <motion.input
-              {...inputProps}
-              ref={ref as React.Ref<HTMLInputElement>}
-              type={type}
-              whileFocus={prefersReducedMotion ? undefined : { scale: 1.01 }}
-              className={baseClasses + ' ' + className + ' pt-3 pl-3 pr-3'}
-            />
+            <div className="relative">
+              <motion.input
+                {...inputProps}
+                ref={ref as React.Ref<HTMLInputElement>}
+                type={type}
+                whileFocus={prefersReducedMotion ? undefined : { scale: 1.01 }}
+                className={baseClasses + ' ' + className + ' pt-3 pl-3 ' + (suffix ? 'pr-10' : 'pr-3')}
+              />
+              {suffix && (
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 pr-3 flex items-center z-20">
+                  {suffix}
+                </div>
+              )}
+            </div>
           )}
         </div>
 

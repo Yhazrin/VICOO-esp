@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 interface PaginationProps {
   page: number;
   totalPages: number;
@@ -7,6 +9,7 @@ interface PaginationProps {
 }
 
 export default function Pagination({ page, totalPages, total, pageSize, onPageChange }: PaginationProps) {
+  const { t } = useTranslation();
   const start = (page - 1) * pageSize + 1;
   const end = Math.min(page * pageSize, total);
 
@@ -29,7 +32,7 @@ export default function Pagination({ page, totalPages, total, pageSize, onPageCh
   if (totalPages <= 1) {
     return (
       <div style={{ padding: '12px 0', fontSize: 13, color: 'var(--color-text-secondary)' }}>
-        共 {total} 条记录
+        {t('pagination.total', { count: total })}
       </div>
     );
   }
@@ -40,7 +43,7 @@ export default function Pagination({ page, totalPages, total, pageSize, onPageCh
       padding: '12px 0', flexWrap: 'wrap', gap: 12,
     }}>
       <span style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
-        显示 {start}-{end} / 共 {total} 条
+        {t('pagination.page', { current: page, total: totalPages })}
       </span>
       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         <PageBtn onClick={() => onPageChange(page - 1)} disabled={page <= 1}>

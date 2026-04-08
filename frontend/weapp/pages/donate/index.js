@@ -1,5 +1,6 @@
 var http = require('../../utils/request');
 var auth = require('../../utils/auth');
+var app = getApp();
 
 Page({
   data: {
@@ -27,38 +28,29 @@ Page({
     var self = this;
     var amount = self.getFinalAmount();
     if (!amount || amount <= 0) { wx.showToast({ title: '请选择金额', icon: 'none' }); return; }
-    auth.ensureLogin().then(function() {
+    auth.ensureLogin().then(function(userInfo) {
       self.setData({ submitting: true });
       http.post('/donations/create', {
-        amount: amount * 100,
+        donor_name: self.data.anonymous
+          ? '匿名用户'
+          : ((userInfo && (userInfo.nickname || userInfo.email)) || '小程序用户'),
+        amount: amount,
+        currency: 'CNY',
+        payment_method: 'wechat',
         message: self.data.message,
-        anonymous: self.data.anonymous
+        is_anonymous: self.data.anonymous
       }).then(function(order) {
         wx.requestPayment({
           timeStamp: order.timeStamp,
           nonceStr: order.nonceStr,
           package: order.package,
-          signType: order.signType || 'RSA',
+          signType: order.signType || 'SHA256',
           paySign: order.paySign,
           success: function() {
-            // Verify payment with server before showing success
-            http.post('/donations/verify', {
-              orderId: order.orderId || order.donationId,
-              transactionId: order.transactionId
-            }).then(function(verified) {
-              self.setData({
-                showResult: true,
-                donationResult: { amount: amount, verified: true },
-                submitting: false
-              });
-            }).catch(function() {
-              // Payment went through but verification failed - still show success
-              // Server will reconcile asynchronously
-              self.setData({
-                showResult: true,
-                donationResult: { amount: amount, verified: false },
-                submitting: false
-              });
+            self.setData({
+              showResult: true,
+              donationResult: { amount: amount, verified: true, donationId: order.donationId },
+              submitting: false
             });
           },
           fail: function() {
@@ -76,7 +68,7 @@ Page({
         });
       }).catch(function() {
         self.setData({ submitting: false });
-        wx.showToast({ title: '创建订单失败', icon: 'none' });
+        wx.showToast({ title: '创建捐赠失败', icon: 'none' });
       });
     });
   },

@@ -83,6 +83,30 @@ function applyTheme(theme: ThemeId) {
   document.documentElement.setAttribute('data-theme', theme);
 }
 
+function applyLocale(locale: Locale) {
+  document.documentElement.lang = locale;
+}
+
+function getStoredUISettings(): { currentTheme: ThemeId; currentLocale: Locale } {
+  try {
+    const stored = localStorage.getItem('tonghua-ui-settings');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return {
+        currentTheme: (parsed.state?.currentTheme as ThemeId) || 'editorial',
+        currentLocale: (parsed.state?.currentLocale as Locale) || 'en',
+      };
+    }
+  } catch {
+    // localStorage not available
+  }
+
+  return {
+    currentTheme: 'editorial',
+    currentLocale: 'en',
+  };
+}
+
 interface UIState {
   mobileNavOpen: boolean;
   currentLocale: Locale;
@@ -102,15 +126,18 @@ export const useUIStore = create<UIState>()(
   persist(
     (set) => ({
       mobileNavOpen: false,
-      currentLocale: 'en',
-      currentTheme: 'editorial',
+      currentLocale: getStoredUISettings().currentLocale,
+      currentTheme: getStoredUISettings().currentTheme,
       menuTriggerRef: null,
       settingsMenuOpen: false,
 
       setMobileNavOpen: (mobileNavOpen) => set({ mobileNavOpen }),
       toggleMobileNav: () =>
         set((state) => ({ mobileNavOpen: !state.mobileNavOpen })),
-      setLocale: (currentLocale) => set({ currentLocale }),
+      setLocale: (currentLocale) => {
+        applyLocale(currentLocale);
+        set({ currentLocale });
+      },
       setMenuTriggerRef: (menuTriggerRef) => set({ menuTriggerRef }),
       setTheme: (currentTheme) => {
         applyTheme(currentTheme);
@@ -131,27 +158,15 @@ export const useUIStore = create<UIState>()(
         if (state?.currentTheme) {
           applyTheme(state.currentTheme);
         }
+        if (state?.currentLocale) {
+          applyLocale(state.currentLocale);
+        }
       },
     }
   )
 );
 
 // Apply theme on first load (before hydration) to prevent flash
-const storedTheme = (() => {
-  try {
-    const stored = localStorage.getItem('tonghua-ui-settings');
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      if (parsed.state?.currentTheme) {
-        return parsed.state.currentTheme as ThemeId;
-      }
-    }
-  } catch {
-    // localStorage not available
-  }
-  return null;
-})();
-
-if (storedTheme) {
-  applyTheme(storedTheme);
-}
+const initialUISettings = getStoredUISettings();
+applyTheme(initialUISettings.currentTheme);
+applyLocale(initialUISettings.currentLocale);

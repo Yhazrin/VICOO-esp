@@ -137,3 +137,37 @@ async def send_welcome_email(to_email: str, nickname: str, locale: str = "en"):
     except Exception as e:
         logger.error(f"Failed to send welcome email to {to_email}: {e}", exc_info=True)
         return None
+
+async def send_password_recovery_email(to_email: str, password_hint: str, locale: str = "en"):
+    """Send a password recovery email via Resend."""
+    if not settings.RESEND_API_KEY:
+        logger.warning(f"RESEND_API_KEY not configured. Skipping password recovery for {to_email}")
+        return
+
+    subject = t("emails.recovery.subject", locale=locale)
+    body_title = t("emails.recovery.title", locale=locale)
+    body_content = t("emails.recovery.content", locale=locale, password=password_hint)
+    
+    try:
+        loop = asyncio.get_running_loop()
+        def _send():
+            return resend.Emails.send({
+                "from": settings.MAIL_FROM,
+                "to": [to_email],
+                "subject": subject,
+                "html": f"""
+                <div style="font-family: 'IBM Plex Mono', monospace; background-color: #F5F0E8; padding: 40px; border: 1px solid #D4CFC4; color: #1A1A16;">
+                    <h1 style="font-family: 'Playfair Display', serif; font-size: 32px; border-bottom: 2px solid #1A1A16; padding-bottom: 10px;">VICOO Recovery</h1>
+                    <p style="margin-top: 30px; font-size: 16px;">{body_title}</p>
+                    <div style="background-color: #EDE6D6; padding: 20px; border: 1px dashed #8B3A2A; margin: 20px 0; font-size: 20px; font-weight: bold; text-align: center;">
+                        {password_hint}
+                    </div>
+                    <p style="font-size: 14px; color: #7A6A58;">{body_content}</p>
+                    <p style="margin-top: 40px; font-size: 10px; color: #D4CFC4;">© 2026 VICOO PUBLIC WELFARE PROJECT</p>
+                </div>
+                """
+            })
+        await loop.run_in_executor(None, _send)
+        logger.info(f"Recovery email sent to {to_email}")
+    except Exception as e:
+        logger.error(f"Failed to send recovery email to {to_email}: {e}")
