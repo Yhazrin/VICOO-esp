@@ -1,9 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, EmailStr, Field
-from datetime import datetime, timezone
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 import time
 
+from app.database import get_db
+from app.models.contact import ContactMessage
 from app.schemas import ApiResponse
+from app.schemas.contact import ContactMessageOut
 from app.deps import require_role
 
 router = APIRouter(prefix="/contact", tags=["Contact"])
@@ -30,11 +34,8 @@ class ContactForm(BaseModel):
     message: str = Field(..., min_length=10, max_length=5000)
 
 
-_mock_messages: list[dict] = []
-
-
 @router.post("", response_model=ApiResponse, status_code=201)
-async def submit_contact_form(body: ContactForm, request: Request):
+async def submit_contact_form(body: ContactForm, request: Request, db: AsyncSession = Depends(get_db)):
     """Submit a contact form message."""
     # Per-IP rate limiting
     client_ip = request.client.host if request.client else "unknown"
@@ -53,17 +54,23 @@ async def submit_contact_form(body: ContactForm, request: Request):
         _contact_rate_limit[client_ip] = now
         _contact_rate_limit[f"{client_ip}_count"] = 1
 
-    new_msg = {
-        "id": len(_mock_messages) + 1,
-        **body.model_dump(),
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "status": "unread",
-    }
-    _mock_messages.append(new_msg)
-    return ApiResponse(data={"id": new_msg["id"], "message": "Contact form submitted successfully"})
+    msg = ContactMessage(
+        name=body.name,
+        email=body.email,
+        subject=body.subject,
+        message=body.message,
+    )
+    db.add(msg)
+    await db.flush()
+    return ApiResponse(data={"id": msg.id, "message": "Contact form submitted successfully"})
 
 
 @router.get("/messages", response_model=ApiResponse)
-async def list_contact_messages(_admin: dict = Depends(require_role("admin"))):
-    """List all contact form messages (admin only in production)."""
-    return ApiResponse(data=_mock_messages)
+async def list_contact_messages(
+    db: AsyncSession = Depends(get_db),
+    _admin: dict = Depends(require_role("admin")),
+):
+    """List all contact form messages (admin only)."""
+    result = await db.execute(select(ContactMessage).order_by(ContactMessage.created_at.desc()))
+    messages = result.scalars().all()
+    return ApiResponse(data=[ContactMessageOut.model_validate(m).model_dump() for m in messages])

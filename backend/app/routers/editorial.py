@@ -1,48 +1,50 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.database import get_db
+from app.models.editorial import EditorialArticle
 from app.schemas import ApiResponse
+from app.schemas.editorial import EditorialArticleOut, EditorialArticleCreate
+from app.deps import require_role
 
 router = APIRouter(prefix="/editorial", tags=["Editorial"])
 
-_mock_feed = [
-    {
-        "id": "ed-1",
-        "title": "From Classroom Sketch to Circular Fashion",
-        "excerpt": "How a village art class became a traceable apparel capsule that funds art supplies.",
-        "pull_quote": "Every stitch carries a child's imagination forward.",
-        "cover_image": "https://picsum.photos/seed/editorial-1/1200/800",
-        "author": "Tonghua Editorial",
-        "published_at": "2026-03-12",
-        "read_time_minutes": 7,
-        "category": "impact",
-    },
-    {
-        "id": "ed-2",
-        "title": "Why Recycled Cotton Matters for Rural Communities",
-        "excerpt": "A field report on material sourcing, artisan income, and lower footprint fulfillment.",
-        "pull_quote": "Sustainability is strongest when it is measurable and shared.",
-        "cover_image": "https://picsum.photos/seed/editorial-2/1200/800",
-        "author": "Sustainability Desk",
-        "published_at": "2026-02-24",
-        "read_time_minutes": 9,
-        "category": "fashion",
-    },
-    {
-        "id": "ed-3",
-        "title": "Meet the Families Behind the Artwork",
-        "excerpt": "Guardians and teachers discuss confidence growth after children see their work in public.",
-        "pull_quote": "Our child started believing their voice mattered.",
-        "cover_image": "https://picsum.photos/seed/editorial-3/1200/800",
-        "author": "Community Team",
-        "published_at": "2026-02-08",
-        "read_time_minutes": 6,
-        "category": "community",
-    },
-]
-
 
 @router.get("/feed", response_model=ApiResponse)
-async def get_editorial_feed(limit: int = 10):
+async def get_editorial_feed(limit: int = 10, db: AsyncSession = Depends(get_db)):
     """Lightweight editorial feed for Stories page integration."""
     safe_limit = max(1, min(limit, 20))
-    return ApiResponse(data={"items": _mock_feed[:safe_limit], "total": len(_mock_feed)})
+    result = await db.execute(
+        select(EditorialArticle)
+        .where(EditorialArticle.status == "published")
+        .order_by(EditorialArticle.published_at.desc())
+        .limit(safe_limit)
+    )
+    articles = result.scalars().all()
+    items = [EditorialArticleOut.model_validate(a).model_dump() for a in articles]
+    return ApiResponse(data={"items": items, "total": len(items)})
+
+
+@router.post("", response_model=ApiResponse, status_code=201)
+async def create_editorial_article(
+    body: EditorialArticleCreate,
+    db: AsyncSession = Depends(get_db),
+    _admin: dict = Depends(require_role("admin", "editor")),
+):
+    """Create a new editorial article (admin/editor only)."""
+    from datetime import datetime
+    article = EditorialArticle(
+        title=body.title,
+        excerpt=body.excerpt,
+        pull_quote=body.pull_quote,
+        cover_image=body.cover_image,
+        author=body.author,
+        read_time_minutes=body.read_time_minutes,
+        category=body.category,
+        status="published",
+        published_at=datetime.utcnow(),
+    )
+    db.add(article)
+    await db.flush()
+    return ApiResponse(data=EditorialArticleOut.model_validate(article).model_dump())
