@@ -10,7 +10,6 @@ import MagneticButton from '@/components/animations/MagneticButton';
 import { KineticTextMarquee } from '@/components/animations/KineticMarquee';
 import { artworksApi } from '@/services/artworks';
 import { donationsApi } from '@/services/donations';
-import { allowWebMockFallback } from '@/config/runtime';
 
 /* ─── Brand Pillar ─── */
 
@@ -58,26 +57,15 @@ export default function Home() {
   const { data: homeLiveStats } = useQuery({
     queryKey: ['home-live-stats'],
     queryFn: async () => {
-      try {
-        const [artworks, donations] = await Promise.all([
-          artworksApi.getAll({ page_size: 1 }),
-          donationsApi.getImpactStats(),
-        ]);
-        return {
-          totalArtworks: artworks.total ?? 0,
-          totalDonations: Number(donations.total_amount ?? 0),
-          source: 'live' as const,
-        };
-      } catch {
-        if (!allowWebMockFallback) {
-          throw new Error('Home metrics unavailable and fallback disabled');
-        }
-        return {
-          totalArtworks: 2847,
-          totalDonations: 890000,
-          source: 'fallback' as const,
-        };
-      }
+      const [artworks, donations] = await Promise.all([
+        artworksApi.getAll({ page_size: 1 }),
+        donationsApi.getImpactStats(),
+      ]);
+      return {
+        totalArtworks: artworks.total ?? 0,
+        totalDonations: Number(donations.total_amount ?? 0),
+        source: 'live' as const,
+      };
     },
     staleTime: 5 * 60 * 1000,
     retry: 1,
@@ -133,12 +121,12 @@ export default function Home() {
 
   const brandPillars = [
     { label: t('home.pillars.traceable'), value: '100%' },
-    { label: t('home.pillars.children'), value: (homeLiveStats?.totalArtworks ?? 2847).toLocaleString() },
-    { label: t('home.pillars.reinvested'), value: Math.round(homeLiveStats?.totalDonations ?? 890000).toLocaleString() },
+    { label: t('home.pillars.children'), value: (homeLiveStats?.totalArtworks ?? 0).toLocaleString() },
+    { label: t('home.pillars.reinvested'), value: Math.round(homeLiveStats?.totalDonations ?? 0).toLocaleString() },
   ];
   const sourceLabel = homeLiveStats?.source === 'live'
     ? t('home.metricsSource.live', 'Live API')
-    : t('home.metricsSource.fallback', 'Fallback Data');
+    : '--';
 
   return (
     <PageWrapper>

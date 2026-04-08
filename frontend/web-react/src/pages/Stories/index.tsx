@@ -6,7 +6,6 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { artworksApi } from '@/services/artworks';
 import { campaignsApi } from '@/services/campaigns';
 import { editorialApi } from '@/services/editorial';
-import { allowWebMockFallback } from '@/config/runtime';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import EditorialHero from '@/components/editorial/EditorialHero';
@@ -39,67 +38,6 @@ function getStoryQuotes(t: (key: string) => string) {
     { text: t('stories.marquee.quote3'), attribution: t('stories.marquee.attr3') },
     { text: t('stories.marquee.quote4'), attribution: t('stories.marquee.attr4') },
     { text: t('stories.marquee.quote5'), attribution: t('stories.marquee.attr5') },
-  ];
-}
-
-// Mock stories data (requires i18n t function)
-function getMockStories(t: (key: string) => string): StoryItem[] {
-  return [
-    {
-      id: '1',
-      title: t('stories.mock.title1'),
-      excerpt: t('stories.mock.excerpt1'),
-      pullQuote: t('stories.mock.pull1'),
-      coverImage: 'https://picsum.photos/seed/ocean-girl/800/600',
-      author: t('stories.mock.author1'),
-      publishedAt: '2026-02-15',
-      readTimeMinutes: 8,
-      category: 'impact',
-    },
-    {
-      id: '2',
-      title: t('stories.mock.title2'),
-      excerpt: t('stories.mock.excerpt2'),
-      pullQuote: t('stories.mock.pull2'),
-      coverImage: 'https://picsum.photos/seed/waste-wearable/800/600',
-      author: t('stories.mock.author2'),
-      publishedAt: '2026-02-01',
-      readTimeMinutes: 12,
-      category: 'fashion',
-    },
-    {
-      id: '3',
-      title: t('stories.mock.title3'),
-      excerpt: t('stories.mock.excerpt3'),
-      pullQuote: t('stories.mock.pull3'),
-      coverImage: 'https://picsum.photos/seed/classroom-gallery/800/600',
-      author: t('stories.mock.author3'),
-      publishedAt: '2026-01-20',
-      readTimeMinutes: 6,
-      category: 'community',
-    },
-    {
-      id: '4',
-      title: t('stories.mock.title4'),
-      excerpt: t('stories.mock.excerpt4'),
-      pullQuote: t('stories.mock.pull4'),
-      coverImage: 'https://picsum.photos/seed/sustainability-art/800/600',
-      author: t('stories.mock.author4'),
-      publishedAt: '2026-01-10',
-      readTimeMinutes: 10,
-      category: 'education',
-    },
-    {
-      id: '5',
-      title: t('stories.mock.title5'),
-      excerpt: t('stories.mock.excerpt5'),
-      pullQuote: t('stories.mock.pull5'),
-      coverImage: 'https://picsum.photos/seed/numbers-mission/800/600',
-      author: t('stories.mock.author5'),
-      publishedAt: '2025-12-28',
-      readTimeMinutes: 15,
-      category: 'impact',
-    },
   ];
 }
 
@@ -294,23 +232,17 @@ export default function Stories() {
   const { data: storiesFeed } = useQuery({
     queryKey: ['stories-feed'],
     queryFn: async () => {
-      try {
-        const [editorialFeed, artworks, activeCampaign] = await Promise.all([
-          editorialApi.getFeed(10),
-          artworksApi.getAll({ page_size: 10 }),
-          campaignsApi.getActive().catch(() => null),
-        ]);
-        return { editorialFeed, artworks, activeCampaign };
-      }
-      catch {
-        if (allowWebMockFallback) return null;
-        throw new Error('Stories feed unavailable and fallback disabled');
-      }
+      const [editorialFeed, artworks, activeCampaign] = await Promise.all([
+        editorialApi.getFeed(10),
+        artworksApi.getAll({ page_size: 10 }),
+        campaignsApi.getActive().catch(() => null),
+      ]);
+      return { editorialFeed, artworks, activeCampaign };
     },
     staleTime: 5 * 60 * 1000,
   });
 
-  // Convert API feed/artworks to StoryItem format; fall back to MOCK_STORIES when enabled.
+  // Convert API feed/artworks to StoryItem format.
   const stories: StoryItem[] = useMemo(() => {
     if (storiesFeed?.editorialFeed?.length) {
       return storiesFeed.editorialFeed.map((item, i) => ({
@@ -338,7 +270,7 @@ export default function Stories() {
         category: ['impact', 'community', 'education', 'fashion'][i % 4] as StoryItem['category'],
       }));
     }
-    return allowWebMockFallback ? getMockStories(t) : [];
+    return [];
   }, [storiesFeed, t]);
 
   // Compute category counts
