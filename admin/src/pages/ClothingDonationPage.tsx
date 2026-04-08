@@ -40,19 +40,17 @@ import { api } from '../services/api';
 import dayjs from 'dayjs';
 
 /**
- * 衣物捐献数据接口定义
+ * 衣物捐献数据接口定义（对应后端 ClothingIntake 模型）
  */
 interface ClothingDonation {
-  id: number;              // 捐献记录唯一标识符
-  donor_user_id?: number;  // 捐赠者用户 ID（可选）
-  donor_phone?: string;    // 捐赠者联系电话（可选）
-  donor_address?: string;  // 捐赠者地址（可选）
-  item_type: string;       // 物品类型：clothing/accessory/shoes/other
-  item_count: number;      // 物品数量
-  item_description?: string; // 物品描述信息（可选）
-  status: string;          // 当前处理状态
-  product_id?: number;     // 关联转化后的商品 ID（可选）
-  created_at: string;      // 提交时间（ISO 格式字符串）
+  id: number;                // 捐献记录唯一标识符
+  garment_types?: string;    // 衣物类型
+  quantity_estimate?: number; // 预估数量
+  pickup_address?: string;   // 取件地址
+  contact_phone?: string;    // 联系电话
+  condition_notes?: string;  // 衣物状况说明
+  status: string;            // 当前处理状态
+  created_at: string;        // 提交时间（ISO 格式字符串）
 }
 
 export default function ClothingDonationPage() {
@@ -67,14 +65,14 @@ export default function ClothingDonationPage() {
 
   /**
    * 使用 React Query 获取衣物捐献数据
-   * 通过 API 实例发送 GET 请求到 /clothing-donations 端点
+   * 通过 API 实例发送 GET 请求到 /clothing-intakes 端点
    * queryKey 包含页码和状态筛选条件，任一变化都会触发重新请求
    */
   const { data, isLoading } = useQuery({
-    queryKey: ['clothing-donations', page, statusFilter],
+    queryKey: ['clothing-intakes', page, statusFilter],
     queryFn: async () => {
       // 发送 GET 请求获取数据，包含分页和筛选参数
-      const res = await api.get('/clothing-donations', {
+      const res = await api.get('/clothing-intakes', {
         params: { page, page_size: 10, status: statusFilter || undefined },
         baseURL: '/api/v1',  // 使用 v1 版本的 API 基础路径
       });
@@ -95,12 +93,12 @@ export default function ClothingDonationPage() {
    */
   const columns: Column<ClothingDonation>[] = [
     { key: 'id', title: t('clothingDonation.colId'), width: 80 },
-    { key: 'item_type', title: t('clothingDonation.colType'), width: 90, render: (v) => t(`clothingDonation.type${v.charAt(0).toUpperCase() + v.slice(1)}`) },
-    { key: 'item_count', title: t('clothingDonation.colItemCount'), width: 80 },
-    { key: 'item_description', title: t('clothingDonation.colDescription'), width: 200, render: (v) => (v ? String(v).slice(0, 50) + (String(v).length > 50 ? '…' : '') : '-') },
-    { key: 'donor_phone', title: t('clothingDonation.colPhone'), width: 120, render: (v) => v || '-' },
+    { key: 'garment_types', title: t('clothingDonation.colType'), width: 90, render: (v) => v || '-' },
+    { key: 'quantity_estimate', title: t('clothingDonation.colItemCount'), width: 80, render: (v) => v ?? '-' },
+    { key: 'condition_notes', title: t('clothingDonation.colDescription'), width: 200, render: (v) => (v ? String(v).slice(0, 50) + (String(v).length > 50 ? '…' : '') : '-') },
+    { key: 'contact_phone', title: t('clothingDonation.colPhone'), width: 120, render: (v) => v || '-' },
+    { key: 'pickup_address', title: t('clothingDonation.colAddress', 'Pickup Address'), width: 160, render: (v) => (v ? String(v).slice(0, 40) + (String(v).length > 40 ? '…' : '') : '-') },
     { key: 'status', title: t('clothingDonation.colStatus'), width: 100, render: (v) => <StatusBadge status={v} /> },
-    { key: 'product_id', title: t('clothingDonation.colLinkedProduct'), width: 90, render: (v) => (v ? `#${v}` : '-') },
     { key: 'created_at', title: t('clothingDonation.colSubmittedAt'), width: 160, render: (v) => dayjs(v).format('YYYY-MM-DD HH:mm') },
   ];
 

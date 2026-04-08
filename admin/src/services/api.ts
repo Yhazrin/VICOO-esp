@@ -185,8 +185,6 @@ export async function fetchArtworks(params: FilterParams = {}): Promise<Paginate
       page: params.page ?? 1,
       page_size: params.pageSize ?? 10,
       status: params.status || undefined,
-      sort_by: params.sortBy || undefined,
-      order: params.sortOrder || undefined,
     },
   });
   const paginated = adaptPaginated<any>(envelope);
@@ -385,7 +383,7 @@ export async function fetchDonations(params: FilterParams = {}): Promise<Paginat
     params: {
       page: params.page ?? 1,
       page_size: params.pageSize ?? 10,
-      campaign_id: params.status || undefined,
+      status: params.status || undefined,
     },
   });
   const paginated = adaptPaginated<any>(envelope);
