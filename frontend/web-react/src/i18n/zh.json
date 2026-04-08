@@ -416,7 +416,11 @@
       "apparel": "服装",
       "accessories": "配饰",
       "stationery": "文具",
-      "prints": "艺术印刷品"
+      "prints": "艺术印刷品",
+      "lifestyle": "生活",
+      "footwear": "鞋履",
+      "home": "家居",
+      "gift_box": "礼盒"
     },
     "card": {
       "viewDetails": "查看详情",

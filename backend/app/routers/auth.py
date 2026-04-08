@@ -176,11 +176,11 @@ async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depend
     if not user:
         raise HTTPException(status_code=404, detail="Email address not found in our records.")
 
-    # 1. Logic for Mock / Test accounts
+    # 1. Logic for Mock / Test accounts (only in DEMO_MODE)
     is_mock = False
     mock_password = None
-    
-    if body.email.endswith("@vicoo.test") or body.email.endswith("@tonghua.org") or body.email.startswith("vicoo-"):
+
+    if settings.DEMO_MODE and (body.email.endswith("@vicoo.test") or body.email.endswith("@tonghua.org") or body.email.startswith("vicoo-")):
         is_mock = True
         if "admin" in body.email: mock_password = "vicoo-admin"
         elif "editor" in body.email: mock_password = "vicoo-editor"

@@ -80,7 +80,7 @@ export interface Product {
   price: number;
   currency: string;
   image_url: string | null;
-  category: 'apparel' | 'accessories' | 'stationery' | 'prints';
+  category: 'apparel' | 'accessories' | 'stationery' | 'prints' | 'lifestyle' | 'footwear' | 'home' | 'gift_box';
   inStock: boolean;
   stockCount: number;
   artworkSource?: Artwork;

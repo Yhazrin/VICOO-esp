@@ -414,7 +414,11 @@
       "apparel": "Apparel",
       "accessories": "Accessories",
       "stationery": "Stationery",
-      "prints": "Art Prints"
+      "prints": "Art Prints",
+      "lifestyle": "Lifestyle",
+      "footwear": "Footwear",
+      "home": "Home",
+      "gift_box": "Gift Box"
     },
     "card": {
       "viewDetails": "View Details",

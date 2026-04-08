@@ -99,7 +99,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/health || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/v1/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -118,8 +118,8 @@ services:
       dockerfile: ../../deploy/easy/frontend.dockerfile
     container_name: vicoo-frontend
     restart: unless-stopped
-    # environment:
-    #   VITE_API_BASE_URL: /api/v1
+    environment:
+      VITE_API_BASE_URL: /api/v1
     #   CHOKIDAR_USEPOLLING: "true"  # Enable file watching in container
     ports:
       - "80:80"

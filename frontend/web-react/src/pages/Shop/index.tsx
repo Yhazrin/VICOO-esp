@@ -14,7 +14,7 @@ import { productsApi } from '@/services/products';
 import type { Product } from '@/types';
 import { allowWebMockFallback } from '@/config/runtime';
 
-type Category = 'all' | 'apparel' | 'accessories' | 'stationery' | 'prints';
+type Category = 'all' | 'apparel' | 'accessories' | 'stationery' | 'prints' | 'lifestyle' | 'footwear' | 'home' | 'gift_box';
 type SortOption = 'default' | 'price-asc' | 'price-desc' | 'sustainability';
 
 export default function Shop() {
@@ -140,9 +140,9 @@ export default function Shop() {
 
   const categories: Category[] = useMemo(() => {
     const fromApi = (categoriesData ?? [])
-      .filter((c): c is Category => ['apparel', 'accessories', 'stationery', 'prints'].includes(c))
+      .filter((c): c is Category => ['apparel', 'accessories', 'stationery', 'prints', 'lifestyle', 'footwear', 'home', 'gift_box'].includes(c))
       .filter((c, i, arr) => arr.indexOf(c) === i);
-    const fallback: Category[] = ['apparel', 'accessories', 'stationery', 'prints'];
+    const fallback: Category[] = allowWebMockFallback ? ['apparel', 'accessories', 'stationery', 'prints', 'lifestyle', 'footwear', 'home', 'gift_box'] : [];
     return ['all', ...(fromApi.length ? fromApi : fallback)];
   }, [categoriesData]);
 

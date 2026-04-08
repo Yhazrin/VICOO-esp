@@ -1,40 +1,30 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
 import StatusBadge from '../components/ui/StatusBadge';
-
-const API_BASE = '/api/v1';
-
-interface Artwork {
-  id: number;
-  title: string;
-  artist_name: string;
-  medium: string;
-  status: string;
-}
+import {
+  fetchDashboardMetrics,
+  fetchArtworks,
+} from '../services/api';
 
 export default function DashboardPage() {
   const { t } = useTranslation();
-  const [artworks, setArtworks] = useState<Artwork[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchDashboard = async () => {
-      try {
-        setError(null);
-        const response = await fetch(`${API_BASE}/admin/artworks?limit=4&sort_by=created_at&order=desc`, { credentials: 'include' });
-        if (!response.ok) throw new Error('Failed to fetch');
-        const data = await response.json();
-        setArtworks(data.data?.items || data.items || []);
-      } catch (err) {
-        console.error('Dashboard fetch error:', err);
-        setError(t('dashboard.fetchError'));
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDashboard();
-  }, [t]);
+  const metricsQuery = useQuery({
+    queryKey: ['dashboardMetrics'],
+    queryFn: fetchDashboardMetrics,
+  });
+
+  const artworksQuery = useQuery({
+    queryKey: ['dashboardArtworks'],
+    queryFn: () =>
+      fetchArtworks({ pageSize: 4, sortBy: 'created_at', sortOrder: 'desc' }),
+  });
+
+  const metrics = metricsQuery.data;
+  const artworks = artworksQuery.data?.data ?? [];
+  const loading = metricsQuery.isLoading || artworksQuery.isLoading;
+  const error = metricsQuery.isError || artworksQuery.isError;
 
   return (
     <div>
@@ -78,11 +68,33 @@ export default function DashboardPage() {
         marginBottom: '50px'
       }}>
         {[
-          { label: t('dashboard.metricTotalWorks'), value: '—', icon: '📚' },
-          { label: t('dashboard.metricPending'), value: '—', icon: '⏳' },
-          { label: t('dashboard.metricDonations'), value: '¥ —', icon: '💰' },
-          { label: t('dashboard.metricOrders'), value: '—', icon: '📦' },
-          { label: t('dashboard.metricUsers'), value: '—', icon: '👥' }
+          {
+            label: t('dashboard.metricDonations'),
+            value: metrics
+              ? `¥ ${metrics.totalDonationAmount.toLocaleString()}`
+              : '—',
+            icon: '💰',
+          },
+          {
+            label: t('dashboard.metricPending'),
+            value: metrics ? String(metrics.pendingArtworks) : '—',
+            icon: '⏳',
+          },
+          {
+            label: t('dashboard.metricOrders'),
+            value: metrics ? String(metrics.activeCampaigns) : '—',
+            icon: '📦',
+          },
+          {
+            label: t('dashboard.metricUsers'),
+            value: metrics ? String(metrics.totalUsers) : '—',
+            icon: '👥',
+          },
+          {
+            label: t('dashboard.metricTotalWorks'),
+            value: metrics ? String(metrics.totalArtworks) : '—',
+            icon: '📚',
+          },
         ].map((metric, i) => (
           <div key={i} style={{
             padding: '28px 24px',
@@ -173,7 +185,7 @@ export default function DashboardPage() {
                 fontFamily: 'var(--font-body)',
                 fontSize: '14px'
               }}>
-                {error}
+                {t('dashboard.fetchError')}
               </div>
             ) : loading ? (
               <div style={{ padding: '60px', textAlign: 'center', color: 'var(--color-sepia-mid)' }}>...</div>
@@ -182,7 +194,7 @@ export default function DashboardPage() {
                 {t('common.noData')}
               </div>
             ) : (
-              artworks.map((artwork: any) => (
+              artworks.map((artwork) => (
                 <div key={artwork.id} style={{
                   padding: '16px 30px',
                   borderBottom: '1px solid var(--color-border)',
@@ -201,7 +213,7 @@ export default function DashboardPage() {
                     overflow: 'hidden',
                     flexShrink: 0
                   }}>
-                    <img src={artwork.asset_url || '/placeholder.png'} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={artwork.imageUrl || '/placeholder.png'} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
@@ -220,7 +232,7 @@ export default function DashboardPage() {
                       color: 'var(--color-sepia-mid)',
                       marginTop: '3px'
                     }}>
-                      {artwork.artist_name} · {artwork.medium}
+                      {artwork.childName} · {artwork.category}
                     </div>
                   </div>
                   <StatusBadge status={artwork.status} />

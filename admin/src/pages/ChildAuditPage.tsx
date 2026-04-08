@@ -41,7 +41,7 @@ export default function ChildAuditPage() {
 
   const handleAccess = async () => {
     try {
-      const response = await fetch('/api/admin/auth/verify-audit-access', {
+      const response = await fetch('/api/v1/admin/auth/verify-audit-access', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

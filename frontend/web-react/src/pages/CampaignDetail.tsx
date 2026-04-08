@@ -12,6 +12,7 @@ import DonationPanel from '@/components/editorial/DonationPanel';
 import ArtworkCard from '@/components/editorial/ArtworkCard';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import { campaignsApi } from '@/services/campaigns';
+import { allowWebMockFallback } from '@/config/runtime';
 import type { Campaign, Artwork } from '@/types';
 
 const MOCK_CAMPAIGN: Campaign = {
@@ -88,7 +89,9 @@ export default function CampaignDetail() {
 
   useEffect(() => {
     if (!id) {
-      setCampaign(MOCK_CAMPAIGN);
+      if (allowWebMockFallback) {
+        setCampaign(MOCK_CAMPAIGN);
+      }
       setLoading(false);
       return;
     }
@@ -114,7 +117,9 @@ export default function CampaignDetail() {
       })
       .catch(() => {
         if (!cancelled) {
-          setCampaign(MOCK_CAMPAIGN);
+          if (allowWebMockFallback) {
+            setCampaign(MOCK_CAMPAIGN);
+          }
           setLoading(false);
         }
       });
@@ -246,7 +251,7 @@ export default function CampaignDetail() {
         <SectionContainer>
           <NumberedSectionHeading number="02" title={t('campaigns.detail.artworks')} />
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-            {MOCK_ARTWORKS.map((artwork, index) => (
+            {(allowWebMockFallback ? MOCK_ARTWORKS : []).map((artwork, index) => (
               <ArtworkCard key={artwork.id} artwork={artwork} index={index} />
             ))}
           </div>

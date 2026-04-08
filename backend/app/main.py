@@ -10,7 +10,7 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 
 from app.config import settings
 from app.database import engine, Base, AsyncSessionLocal
@@ -266,9 +266,17 @@ routers = (
     after_sales_router, sustainability_router, ai_router, editorial_router, health_router,
 )
 
-for api_prefix in ("/api", "/api/v1"):
-    for router in routers:
-        app.include_router(router, prefix=api_prefix)
+# Compat: redirect legacy /api/* requests to /api/v1/* (301)
+@app.middleware("http")
+async def legacy_api_redirect_middleware(request: Request, call_next):
+    path = request.url.path
+    if path.startswith("/api/") and not path.startswith("/api/v1/"):
+        new_url = str(request.url).replace("/api/", "/api/v1/", 1)
+        return RedirectResponse(url=new_url, status_code=301)
+    return await call_next(request)
+
+for router in routers:
+    app.include_router(router, prefix="/api/v1")
 
 if __name__ == "__main__":
     import uvicorn
