@@ -6,13 +6,6 @@ import type {
   ChartDataPoint, SystemSettings, FilterParams, PaginatedResponse,
 } from '../types';
 
-// TODO: The following mock imports are still needed for functions not yet migrated.
-// Remove them as each function is migrated to real HTTP requests.
-import {
-  mockCampaigns, mockDonations, mockUsers,
-  mockChildParticipants,
-  mockSystemSettings, mockAfterSales
-} from './mockData';
 
 // ---------------------------------------------------------------------------
 // Axios instance – baseURL is /api/v1 (not /api/v1/admin) because some
@@ -34,38 +27,6 @@ api.interceptors.response.use(
     return Promise.reject(err);
   }
 );
-
-// ---------------------------------------------------------------------------
-// Helper: paginate mock array  (still used by unmigrated mock functions)
-// ---------------------------------------------------------------------------
-function paginate<T>(items: T[], params: FilterParams): PaginatedResponse<T> {
-  const page = params.page || 1;
-  const pageSize = params.pageSize || 10;
-  let filtered = [...items];
-
-  if (params.search) {
-    const s = params.search.toLowerCase();
-    filtered = filtered.filter((item) => JSON.stringify(item).toLowerCase().includes(s));
-  }
-  if (params.status) {
-    filtered = filtered.filter((item: any) => item.status === params.status);
-  }
-  if (params.sortBy) {
-    filtered.sort((a: any, b: any) => {
-      const av = a[params.sortBy!];
-      const bv = b[params.sortBy!];
-      const cmp = av < bv ? -1 : av > bv ? 1 : 0;
-      return params.sortOrder === 'desc' ? -cmp : cmp;
-    });
-  }
-
-  const total = filtered.length;
-  const totalPages = Math.ceil(total / pageSize);
-  const start = (page - 1) * pageSize;
-  const data = filtered.slice(start, start + pageSize);
-
-  return { data, total, page, pageSize, totalPages };
-}
 
 // ---------------------------------------------------------------------------
 // Helper: adapt a paginated API response to the frontend PaginatedResponse
@@ -340,110 +301,262 @@ export async function updateOrderStatus(id: string, status: Order['status']): Pr
 }
 
 // ---------------------------------------------------------------------------
-// Unmigrated mock functions – TODO: migrate to real HTTP requests
+// Campaigns
 // ---------------------------------------------------------------------------
-const delay = (ms = 300) => new Promise<void>((r) => setTimeout(r, ms));
+
+function adaptCampaign(item: any): Campaign {
+  return {
+    id: String(item.id),
+    title: item.title ?? '',
+    description: item.description ?? '',
+    startDate: item.start_date ?? '',
+    endDate: item.end_date ?? '',
+    status: item.status ?? 'draft',
+    targetAmount: parseFloat(item.goal_amount ?? '0') || 0,
+    raisedAmount: parseFloat(item.current_amount ?? '0') || 0,
+    participantCount: item.participant_count ?? 0,
+    artworkCount: item.artwork_count ?? 0,
+    coverImage: item.cover_image,
+    createdAt: item.created_at ?? '',
+  };
+}
 
 export async function fetchCampaigns(params: FilterParams = {}): Promise<PaginatedResponse<Campaign>> {
-  // TODO: migrate to real endpoint
-  await delay(300);
-  return paginate(mockCampaigns, params);
+  const { data: envelope } = await api.get('/campaigns', {
+    params: {
+      page: params.page ?? 1,
+      page_size: params.pageSize ?? 10,
+      status: params.status || undefined,
+    },
+  });
+  const paginated = adaptPaginated<any>(envelope);
+  return { ...paginated, data: paginated.data.map(adaptCampaign) };
 }
 
 export async function createCampaign(data: Partial<Campaign>): Promise<Campaign> {
-  // TODO: migrate to real endpoint
-  await delay(300);
-  const newCampaign: Campaign = {
-    id: `camp-${mockCampaigns.length + 1}`,
-    title: data.title || '',
-    description: data.description || '',
-    startDate: data.startDate || '',
-    endDate: data.endDate || '',
-    status: 'draft',
-    targetAmount: data.targetAmount || 0,
-    raisedAmount: 0,
-    participantCount: 0,
-    artworkCount: 0,
-    createdAt: new Date().toISOString(),
-  };
-  mockCampaigns.push(newCampaign);
-  return newCampaign;
+  const { data: envelope } = await api.post('/campaigns', {
+    title: data.title,
+    description: data.description,
+    start_date: data.startDate,
+    end_date: data.endDate,
+    goal_amount: data.targetAmount,
+    cover_image: data.coverImage,
+  });
+  return adaptCampaign(envelope.data);
 }
 
 export async function updateCampaign(id: string, data: Partial<Campaign>): Promise<Campaign> {
-  // TODO: migrate to real endpoint
-  await delay(200);
-  const idx = mockCampaigns.findIndex((c) => c.id === id);
-  if (idx >= 0) {
-    mockCampaigns[idx] = { ...mockCampaigns[idx], ...data };
-    return mockCampaigns[idx];
-  }
-  throw new Error('Campaign not found');
+  const body: Record<string, any> = {};
+  if (data.title !== undefined) body.title = data.title;
+  if (data.description !== undefined) body.description = data.description;
+  if (data.startDate !== undefined) body.start_date = data.startDate;
+  if (data.endDate !== undefined) body.end_date = data.endDate;
+  if (data.status !== undefined) body.status = data.status;
+  if (data.targetAmount !== undefined) body.goal_amount = data.targetAmount;
+  if (data.coverImage !== undefined) body.cover_image = data.coverImage;
+  const { data: envelope } = await api.put(`/campaigns/${id}`, body);
+  return adaptCampaign(envelope.data);
+}
+
+// ---------------------------------------------------------------------------
+// Donations
+// ---------------------------------------------------------------------------
+
+function adaptDonation(item: any): Donation {
+  return {
+    id: String(item.id),
+    donorName: item.donor_name ?? '',
+    donorEmail: item.donor_email ?? '',
+    amount: parseFloat(item.amount ?? '0') || 0,
+    currency: item.currency ?? 'CNY',
+    paymentMethod: item.payment_method ?? 'wechat',
+    status: item.status ?? 'pending',
+    campaignId: item.campaign_id ? String(item.campaign_id) : undefined,
+    campaignTitle: item.campaign_title,
+    message: item.message,
+    isAnonymous: item.is_anonymous ?? false,
+    transactionId: item.payment_id ?? '',
+    createdAt: item.created_at ?? '',
+  };
 }
 
 export async function fetchDonations(params: FilterParams = {}): Promise<PaginatedResponse<Donation>> {
-  // TODO: migrate to real endpoint
-  await delay(300);
-  return paginate(mockDonations, params);
+  const { data: envelope } = await api.get('/donations', {
+    params: {
+      page: params.page ?? 1,
+      page_size: params.pageSize ?? 10,
+      campaign_id: params.status || undefined,
+    },
+  });
+  const paginated = adaptPaginated<any>(envelope);
+  return { ...paginated, data: paginated.data.map(adaptDonation) };
+}
+
+// ---------------------------------------------------------------------------
+// Users
+// ---------------------------------------------------------------------------
+
+function adaptUser(item: any): User {
+  return {
+    id: String(item.id),
+    username: item.nickname ?? item.email ?? '',
+    email: item.email ?? '',
+    role: item.role ?? 'user',
+    status: item.status ?? 'active',
+    avatar: item.avatar,
+    createdAt: item.created_at ?? '',
+    lastLogin: item.last_login,
+  };
 }
 
 export async function fetchUsers(params: FilterParams = {}): Promise<PaginatedResponse<User>> {
-  // TODO: migrate to real endpoint
-  await delay(300);
-  return paginate(mockUsers, params);
+  const { data: envelope } = await api.get('/users', {
+    params: {
+      page: params.page ?? 1,
+      page_size: params.pageSize ?? 10,
+    },
+  });
+  const paginated = adaptPaginated<any>(envelope);
+  return { ...paginated, data: paginated.data.map(adaptUser) };
 }
 
 export async function updateUserRole(id: string, role: User['role']): Promise<User> {
-  // TODO: migrate to real endpoint
-  await delay(200);
-  const user = mockUsers.find((u) => u.id === id);
-  if (user) user.role = role;
-  return { ...user! };
+  const { data: envelope } = await api.put(`/users/${id}/role`, { role });
+  return adaptUser(envelope.data);
 }
 
 export async function updateUserStatus(id: string, status: User['status']): Promise<User> {
-  // TODO: migrate to real endpoint
-  await delay(200);
-  const user = mockUsers.find((u) => u.id === id);
-  if (user) user.status = status;
-  return { ...user! };
+  const { data: envelope } = await api.put(`/users/${id}/status`, { status });
+  return adaptUser(envelope.data);
 }
+
+// ---------------------------------------------------------------------------
+// Child Participants
+// ---------------------------------------------------------------------------
 
 export async function fetchChildParticipants(params: FilterParams = {}): Promise<PaginatedResponse<ChildParticipant>> {
-  // TODO: migrate to real endpoint
-  await delay(300);
-  return paginate(mockChildParticipants, params);
+  const { data: envelope } = await api.get('/admin/child-participants', {
+    params: {
+      page: params.page ?? 1,
+      page_size: params.pageSize ?? 10,
+      status: params.status || undefined,
+    },
+  });
+  const paginated = adaptPaginated<any>(envelope);
+  return {
+    ...paginated,
+    data: paginated.data.map((item: any) => ({
+      id: String(item.id),
+      childName: item.child_name ?? '',
+      age: item.age ?? 0,
+      guardianName: item.guardian_name ?? '',
+      guardianPhone: item.guardian_phone ?? '',
+      guardianEmail: item.guardian_email ?? '',
+      consentGiven: item.consent_given ?? false,
+      consentDate: item.consent_date ?? '',
+      region: item.region ?? '',
+      school: item.school,
+      artworkCount: item.artwork_count ?? 0,
+      status: item.status ?? 'pending_review',
+      createdAt: item.created_at ?? '',
+      lastActivity: item.last_activity,
+    })),
+  };
 }
+
+// ---------------------------------------------------------------------------
+// After-Sales
+// ---------------------------------------------------------------------------
 
 export async function fetchAfterSales(params: FilterParams = {}): Promise<PaginatedResponse<any>> {
-  // TODO: migrate to real endpoint
-  await delay(300);
-  return paginate(mockAfterSales, params);
+  const { data: envelope } = await api.get('/after-sales', {
+    params: {
+      page: params.page ?? 1,
+      page_size: params.pageSize ?? 10,
+      status: params.status || undefined,
+    },
+  });
+  const paginated = adaptPaginated<any>(envelope);
+  return {
+    ...paginated,
+    data: paginated.data.map((item: any) => ({
+      id: String(item.id),
+      userId: String(item.user_id ?? ''),
+      orderId: String(item.order_id ?? ''),
+      category: item.category ?? '',
+      subject: item.subject ?? '',
+      description: item.description ?? '',
+      status: item.status ?? 'open',
+      createdAt: item.created_at ?? '',
+      updatedAt: item.updated_at ?? '',
+    })),
+  };
 }
 
+// ---------------------------------------------------------------------------
+// System Settings
+// ---------------------------------------------------------------------------
+
 export async function fetchSystemSettings(): Promise<SystemSettings> {
-  // TODO: migrate to real endpoint
-  await delay(200);
-  return { ...mockSystemSettings };
+  const { data: envelope } = await api.get('/admin/settings');
+  const d = envelope.data;
+  return {
+    siteName: d.site_name ?? '',
+    siteDescription: d.site_tagline ?? '',
+    contactEmail: d.contact_email ?? '',
+    donationEnabled: d.donation_enabled ?? true,
+    shopEnabled: d.shop_enabled ?? true,
+    registrationEnabled: d.registration_enabled ?? true,
+    maintenanceMode: d.maintenance_mode ?? false,
+    paymentMethods: {
+      wechat: { enabled: d.payment_methods?.wechat?.enabled ?? false, appId: d.payment_methods?.wechat?.appId, merchantId: d.payment_methods?.wechat?.merchantId },
+      alipay: { enabled: d.payment_methods?.alipay?.enabled ?? false, appId: d.payment_methods?.alipay?.appId },
+      stripe: { enabled: d.payment_methods?.stripe?.enabled ?? false, publicKey: d.payment_methods?.stripe?.publicKey },
+      paypal: { enabled: d.payment_methods?.paypal?.enabled ?? false, clientId: d.payment_methods?.paypal?.clientId },
+    },
+  };
 }
 
 export async function updateSystemSettings(data: Partial<SystemSettings>): Promise<SystemSettings> {
-  // TODO: migrate to real endpoint
-  await delay(300);
-  Object.assign(mockSystemSettings, data);
-  return { ...mockSystemSettings };
+  const body: Record<string, any> = {};
+  if (data.siteName !== undefined) body.site_name = data.siteName;
+  if (data.siteDescription !== undefined) body.site_tagline = data.siteDescription;
+  if (data.contactEmail !== undefined) body.contact_email = data.contactEmail;
+  if (data.donationEnabled !== undefined) body.donation_enabled = data.donationEnabled;
+  if (data.shopEnabled !== undefined) body.shop_enabled = data.shopEnabled;
+  if (data.registrationEnabled !== undefined) body.registration_enabled = data.registrationEnabled;
+  if (data.maintenanceMode !== undefined) body.maintenance_mode = data.maintenanceMode;
+  if (data.paymentMethods !== undefined) {
+    body.payment_methods = {};
+    for (const [k, v] of Object.entries(data.paymentMethods)) {
+      body.payment_methods[k] = { enabled: v.enabled, appId: v.appId, merchantId: (v as any).merchantId, publicKey: (v as any).publicKey, clientId: (v as any).clientId };
+    }
+  }
+  const { data: envelope } = await api.put('/admin/settings', body);
+  const d = envelope.data;
+  return {
+    siteName: d.site_name ?? '',
+    siteDescription: d.site_tagline ?? '',
+    contactEmail: d.contact_email ?? '',
+    donationEnabled: d.donation_enabled ?? true,
+    shopEnabled: d.shop_enabled ?? true,
+    registrationEnabled: d.registration_enabled ?? true,
+    maintenanceMode: d.maintenance_mode ?? false,
+    paymentMethods: {
+      wechat: { enabled: d.payment_methods?.wechat?.enabled ?? false, appId: d.payment_methods?.wechat?.appId, merchantId: d.payment_methods?.wechat?.merchantId },
+      alipay: { enabled: d.payment_methods?.alipay?.enabled ?? false, appId: d.payment_methods?.alipay?.appId },
+      stripe: { enabled: d.payment_methods?.stripe?.enabled ?? false, publicKey: d.payment_methods?.stripe?.publicKey },
+      paypal: { enabled: d.payment_methods?.paypal?.enabled ?? false, clientId: d.payment_methods?.paypal?.clientId },
+    },
+  };
 }
 
 export async function analyzeArtwork(imageUrl: string, description?: string): Promise<any> {
-  // TODO: migrate to real endpoint
-  await delay(1000);
-  return {
-    suggested_title: "璀璨的童心",
-    suggested_tags: ["自然", "明亮", "莫兰迪色系", "装饰性"],
-    style_description: "这件作品展现了极强的色彩控制力，低饱和度的色调呈现出宁静而充满希望的氛围，符合平台的'编辑出版物'美学。",
-    safety_rating: "safe",
-    moderation_notes: "内容完全合规，适合公开展示。"
-  };
+  const { data: envelope } = await api.post('/ai/analyze-artwork', {
+    image_url: imageUrl,
+    description: description ?? '',
+  });
+  return envelope.data;
 }
 
 export { api };
