@@ -31,6 +31,9 @@ from app.models.order import Order, OrderItem
 from app.models.supply_chain import SupplyChainRecord
 from app.models.payment import PaymentTransaction
 from app.models.audit import AuditLog
+from app.models.settings import SiteSettings
+from app.models.contact import ContactMessage
+from app.models.editorial import EditorialArticle
 from app.security import hash_password
 from app.config import settings
 
@@ -469,6 +472,43 @@ async def seed():
                      resource_id="7", details="审核通过作品《丰收的秋天》", ip_address="192.168.1.101"),
         ]
         session.add_all(audit_logs)
+
+        # ── Site Settings ──────────────────────────────────────
+        print("Seeding site settings...")
+        settings_data = [
+            SiteSettings(key="site_name", value="童画公益"),
+            SiteSettings(key="site_tagline", value="Sustainable Fashion for a Better World"),
+            SiteSettings(key="contact_email", value="admin@vicoo.test"),
+            SiteSettings(key="donation_enabled", value=True),
+            SiteSettings(key="shop_enabled", value=True),
+            SiteSettings(key="registration_enabled", value=True),
+            SiteSettings(key="maintenance_mode", value=False),
+        ]
+        session.add_all(settings_data)
+
+        # ── Contact Messages ───────────────────────────────────
+        print("Seeding contact messages...")
+        contact_msgs = [
+            ContactMessage(name="王阿姨", email="wang@example.com", subject="商品咨询", message="请问彩虹鱼T恤还有其他颜色吗？小朋友特别喜欢这个图案。", status="read"),
+            ContactMessage(name="Mike Johnson", email="mike@example.com", subject="Partnership inquiry", message="We are a local art gallery interested in exhibiting the children's artworks. Please contact us.", status="unread"),
+        ]
+        session.add_all(contact_msgs)
+
+        # ── Editorial Articles ─────────────────────────────────
+        print("Seeding editorial articles...")
+        from datetime import datetime as dt
+        articles = [
+            EditorialArticle(title="From Classroom Sketch to Circular Fashion", excerpt="How a village art class became a traceable apparel capsule that funds art supplies.", pull_quote="Every stitch carries a child's imagination forward.", cover_image="https://picsum.photos/seed/editorial-1/1200/800", author="Tonghua Editorial", published_at=dt(2026, 3, 12), read_time_minutes=7, category="impact", status="published"),
+            EditorialArticle(title="Why Recycled Cotton Matters for Rural Communities", excerpt="A field report on material sourcing, artisan income, and lower footprint fulfillment.", pull_quote="Sustainability is strongest when it is measurable and shared.", cover_image="https://picsum.photos/seed/editorial-2/1200/800", author="Sustainability Desk", published_at=dt(2026, 2, 24), read_time_minutes=9, category="fashion", status="published"),
+            EditorialArticle(title="Meet the Families Behind the Artwork", excerpt="Guardians and teachers discuss confidence growth after children see their work in public.", pull_quote="Our child started believing their voice mattered.", cover_image="https://picsum.photos/seed/editorial-3/1200/800", author="Community Team", published_at=dt(2026, 2, 8), read_time_minutes=6, category="community", status="published"),
+        ]
+        session.add_all(articles)
+
+        # ── Add carbon data to supply chain records ────────────
+        print("Adding carbon data to supply chain records...")
+        for i, record in enumerate(supply_records):
+            record.carbon_kg = Decimal(str([3.2, 2.1, 4.5, 0.8, 1.2][i]))
+            record.carbon_note = ["Organic cotton farming + transport", "Solar-powered spinning mill", "Fair trade certified factory", "Third-party SGS inspection", "Biodegradable packaging + carbon-neutral logistics"][i]
 
         await session.commit()
         print("Seed complete!")
