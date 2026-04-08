@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 
 const API_BASE = '/api';
 
@@ -10,6 +11,7 @@ interface Message {
 }
 
 export const AIAssistantBall: React.FC = () => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -36,10 +38,10 @@ export const AIAssistantBall: React.FC = () => {
         context: 'general'
       });
       
-      const reply = response.data?.data?.reply || '抱歉，我现在无法回答。';
+      const reply = response.data?.data?.reply || t('aiAssistant.replyError');
       setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
     } catch (error) {
-      setMessages(prev => [...prev, { role: 'system', content: '连接助手失败，请稍后再试。' }]);
+      setMessages(prev => [...prev, { role: 'system', content: t('aiAssistant.connectionError') }]);
     } finally {
       setIsLoading(false);
     }
@@ -74,7 +76,7 @@ export const AIAssistantBall: React.FC = () => {
               {messages.length === 0 && (
                 <div className="text-center py-10 px-4">
                   <p className="text-sm italic opacity-60">"Art is the most intense mode of individualism that the world has known."</p>
-                  <p className="mt-4 text-xs">你好！我是 VICOO 智能助手。关于捐赠流程、艺术活动或可持续时尚，欢迎向我提问。</p>
+                  <p className="mt-4 text-xs">{t('aiAssistant.greeting')}</p>
                 </div>
               )}
               {messages.map((m, i) => (

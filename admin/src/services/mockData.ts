@@ -178,6 +178,17 @@ export const mockAuditLogs: AuditLogEntry[] = Array.from({ length: 200 }, (_, i)
   timestamp: randomDate('2025-06-01', '2026-03-19', i * 7 + 12),
 }));
 
+// Mock After-Sales
+export const mockAfterSales = Array.from({ length: 24 }, (_, i) => ({
+  id: 1000 + i,
+  order_id: 20250000 + i,
+  user_id: (i % 30) + 1,
+  type: ['return', 'exchange', 'repair'][i % 3],
+  reason: ['尺寸不合适', '颜色有色差', '线头较多', '包装破损', '不喜欢了'][i % 5],
+  status: ['pending', 'approved', 'rejected', 'completed'][i % 4],
+  created_at: randomDate('2026-01-01', '2026-03-19', i * 7 + 13),
+}));
+
 // Dashboard Metrics
 export const mockDashboardMetrics: DashboardMetrics = {
   totalArtworks: 86,

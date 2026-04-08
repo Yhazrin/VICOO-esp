@@ -5,6 +5,7 @@ from app.schemas.common import (
     ApiResponse,
     AuditLogOut,
     DashboardMetrics,
+    ForgotPasswordRequest,
     LoginRequest,
     PaginatedResponse,
     RefreshRequest,

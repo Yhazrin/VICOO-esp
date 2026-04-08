@@ -1,204 +1,287 @@
-import { useQuery } from '@tanstack/react-query';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import StatusBadge from '../components/ui/StatusBadge';
-import {
-  fetchDashboardMetrics, fetchDonationTrend, fetchArtworkByCategory,
-  fetchArtworks, fetchDonations,
-} from '../services/api';
-import dayjs from 'dayjs';
+
+const API_BASE = '/api/v1';
+
+interface Artwork {
+  id: number;
+  title: string;
+  artist_name: string;
+  medium: string;
+  status: string;
+}
 
 export default function DashboardPage() {
-  const { data: metrics } = useQuery({ queryKey: ['metrics'], queryFn: fetchDashboardMetrics });
-  const { data: recentArtworks } = useQuery({
-    queryKey: ['recentArtworks'],
-    queryFn: () => fetchArtworks({ page: 1, pageSize: 5, sortBy: 'createdAt', sortOrder: 'desc' }),
-  });
-  const { data: recentDonations } = useQuery({
-    queryKey: ['recentDonations'],
-    queryFn: () => fetchDonations({ page: 1, pageSize: 5, sortBy: 'createdAt', sortOrder: 'desc' }),
-  });
+  const { t } = useTranslation();
+  const [artworks, setArtworks] = useState<Artwork[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        setError(null);
+        const response = await fetch(`${API_BASE}/admin/artworks?limit=4&sort_by=created_at&order=desc`, { credentials: 'include' });
+        if (!response.ok) throw new Error('Failed to fetch');
+        const data = await response.json();
+        setArtworks(data.data?.items || data.items || []);
+      } catch (err) {
+        console.error('Dashboard fetch error:', err);
+        setError(t('dashboard.fetchError'));
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDashboard();
+  }, [t]);
 
   return (
-    <div style={{ maxWidth: '1200px' }}>
-      {/* Editorial Header */}
-      <div style={{ marginBottom: '60px' }}>
-        <div style={{ 
-          fontSize: '12px', 
-          fontFamily: 'var(--font-body)', 
-          textTransform: 'uppercase', 
-          letterSpacing: '0.3em',
-          color: 'var(--color-sepia-mid)',
-          marginBottom: '12px'
-        }}>
-          Authorized Access — Issue No. 01
+    <div>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: '40px'
+      }}>
+        <div>
+          <h1 style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: '42px',
+            fontStyle: 'italic',
+            fontWeight: 700,
+            margin: 0,
+            color: 'var(--color-ink)',
+            letterSpacing: '-0.02em'
+          }}>
+            {t('dashboard.title')}
+            <span style={{ color: 'var(--color-sepia-mid)', fontStyle: 'normal', fontSize: '24px' }}>
+              {' / '}
+              {t('dashboard.titleItalic')}
+            </span>
+          </h1>
+          <p style={{
+            fontFamily: 'var(--font-body)',
+            fontSize: '14px',
+            marginTop: '8px',
+            color: 'var(--color-sepia-mid)'
+          }}>
+            {t('dashboard.issueLabel')}
+          </p>
         </div>
-        <h1 style={{ 
-          fontSize: 'var(--text-h1)', 
-          fontFamily: 'var(--font-display)', 
-          lineHeight: 1,
-          margin: '0 0 20px 0'
-        }}>
-          The Archive <span style={{ fontStyle: 'italic', fontWeight: 400 }}>Overview</span>
-        </h1>
-        <div className="divider-heavy" />
       </div>
 
-      {/* Metrics Row - Typographic Focus */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: '40px',
-        marginBottom: '80px',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+        gap: '20px',
+        marginBottom: '50px'
       }}>
         {[
-          { label: 'Total Works', value: metrics?.totalArtworks || 0, sub: `Pending: ${metrics?.pendingArtworks || 0}` },
-          { label: 'Donations', value: `¥${(metrics?.totalDonationAmount || 0).toLocaleString()}`, sub: `${metrics?.totalDonations || 0} Records` },
-          { label: 'Orders', value: metrics?.totalOrders || 0, sub: 'Active Fulfillment' },
-          { label: 'Authorized Users', value: metrics?.totalUsers || 0, sub: 'Community Growth' },
-        ].map((stat, idx) => (
-          <div key={idx} style={{ borderLeft: '1px solid var(--color-ink)', paddingLeft: '20px' }}>
-            <div style={{ 
-              fontSize: '10px', 
-              fontFamily: 'var(--font-body)', 
-              textTransform: 'uppercase', 
+          { label: t('dashboard.metricTotalWorks'), value: '—', icon: '📚' },
+          { label: t('dashboard.metricPending'), value: '—', icon: '⏳' },
+          { label: t('dashboard.metricDonations'), value: '¥ —', icon: '💰' },
+          { label: t('dashboard.metricOrders'), value: '—', icon: '📦' },
+          { label: t('dashboard.metricUsers'), value: '—', icon: '👥' }
+        ].map((metric, i) => (
+          <div key={i} style={{
+            padding: '28px 24px',
+            backgroundColor: 'var(--color-bg-card)',
+            border: '1px solid var(--color-border)',
+            position: 'relative'
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: '16px',
+              right: '16px',
+              fontSize: '22px'
+            }}>{metric.icon}</div>
+            <div style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: '11px',
+              textTransform: 'uppercase',
               letterSpacing: '0.15em',
               color: 'var(--color-sepia-mid)',
               marginBottom: '10px'
             }}>
-              {stat.label}
+              {metric.label}
             </div>
-            <div style={{ 
-              fontSize: '32px', 
-              fontFamily: 'var(--font-display)', 
+            <div style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: '32px',
               fontWeight: 700,
               color: 'var(--color-ink)',
               lineHeight: 1
             }}>
-              {stat.value}
-            </div>
-            <div style={{ 
-              fontSize: '11px', 
-              fontFamily: 'var(--font-body)', 
-              marginTop: '8px',
-              color: 'var(--color-archive-brown)'
-            }}>
-              {stat.sub}
+              {metric.value}
             </div>
           </div>
         ))}
       </div>
 
-      {/* Main Content Split: Asymmetrical Grid */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: '7fr 4fr',
-        gap: '80px',
+        gridTemplateColumns: '2fr 1fr',
+        gap: '30px',
+        alignItems: 'start'
       }}>
-        {/* Left Column: Recent Artworks Gallery Style */}
-        <div>
-          <h2 style={{ 
-            fontFamily: 'var(--font-display)', 
-            fontSize: '24px', 
-            fontStyle: 'italic',
-            marginBottom: '30px',
+        <div style={{
+          border: '1px solid var(--color-border)',
+          background: 'var(--color-bg-card)'
+        }}>
+          <div style={{
+            padding: '20px 30px',
+            borderBottom: '1px solid var(--color-border)',
             display: 'flex',
-            alignItems: 'center',
-            gap: '15px'
+            justifyContent: 'space-between',
+            alignItems: 'center'
           }}>
-            <span style={{ fontSize: '14px', fontStyle: 'normal', color: 'var(--color-sepia-mid)' }}>01 —</span>
-            Curated Artworks
-          </h2>
-          
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {(recentArtworks?.data || []).map((art) => (
-              <div key={art.id} style={{
-                padding: '20px 0',
-                borderBottom: '1px solid var(--color-warm-gray)',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start'
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
+              <span style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: '18px',
+                fontStyle: 'italic',
+                color: 'var(--color-sepia-mid)'
               }}>
-                <div style={{ display: 'flex', gap: '20px' }}>
-                  <div style={{ 
-                    width: '60px', 
-                    height: '60px', 
-                    backgroundColor: 'var(--color-aged-stock)',
-                    border: '1px solid var(--color-warm-gray)',
-                    overflow: 'hidden'
+                {t('dashboard.sectionArtworksLabel')}
+              </span>
+              <span style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: '18px',
+                fontWeight: 700,
+                color: 'var(--color-ink)'
+              }}>
+                {t('dashboard.sectionArtworksTitle')}
+              </span>
+            </div>
+            <a href="/artworks" style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '12px',
+              color: 'var(--color-archive-brown)',
+              textDecoration: 'none',
+              transition: 'opacity 0.2s'
+            }}>
+              {t('dashboard.accessFullArchive')}
+            </a>
+          </div>
+          <div style={{ padding: '0' }}>
+            {error ? (
+              <div style={{
+                padding: '40px',
+                textAlign: 'center',
+                color: 'var(--color-rust)',
+                fontFamily: 'var(--font-body)',
+                fontSize: '14px'
+              }}>
+                {error}
+              </div>
+            ) : loading ? (
+              <div style={{ padding: '60px', textAlign: 'center', color: 'var(--color-sepia-mid)' }}>...</div>
+            ) : artworks.length === 0 ? (
+              <div style={{ padding: '40px', textAlign: 'center', color: 'var(--color-sepia-mid)' }}>
+                {t('common.noData')}
+              </div>
+            ) : (
+              artworks.map((artwork: any) => (
+                <div key={artwork.id} style={{
+                  padding: '16px 30px',
+                  borderBottom: '1px solid var(--color-border)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '16px',
+                  transition: 'background 0.15s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-warm-gray)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                >
+                  <div style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '2px',
+                    overflow: 'hidden',
+                    flexShrink: 0
                   }}>
-                    {art.imageUrl && <img src={art.imageUrl} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'sepia(0.3)' }} />}
+                    <img src={artwork.asset_url || '/placeholder.png'} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
-                  <div>
-                    <div style={{ fontSize: '15px', fontWeight: 600, fontFamily: 'var(--font-display)' }}>{art.title}</div>
-                    <div style={{ fontSize: '12px', color: 'var(--color-sepia-mid)', fontFamily: 'var(--font-body)', marginTop: '4px' }}>
-                      {art.childName.toUpperCase()} / {art.category}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}>
+                      {artwork.title}
+                    </div>
+                    <div style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '11px',
+                      color: 'var(--color-sepia-mid)',
+                      marginTop: '3px'
+                    }}>
+                      {artwork.artist_name} · {artwork.medium}
                     </div>
                   </div>
+                  <StatusBadge status={artwork.status} />
                 </div>
-                <StatusBadge status={art.status} />
-              </div>
-            ))}
-          </div>
-          
-          <div style={{ marginTop: '30px' }}>
-            <a href="/artworks" style={{ 
-              fontSize: '11px', 
-              fontFamily: 'var(--font-body)', 
-              textTransform: 'uppercase', 
-              letterSpacing: '0.1em',
-              textDecoration: 'underline',
-              color: 'var(--color-rust)'
-            }}>
-              Access Full Archive →
-            </a>
+              ))
+            )}
           </div>
         </div>
 
-        {/* Right Column: Financial Records */}
-        <div>
-          <h2 style={{ 
-            fontFamily: 'var(--font-display)', 
-            fontSize: '24px', 
-            fontStyle: 'italic',
-            marginBottom: '30px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '15px'
-          }}>
-            <span style={{ fontSize: '14px', fontStyle: 'normal', color: 'var(--color-sepia-mid)' }}>02 —</span>
-            Financials
-          </h2>
-
-          <div style={{ 
-            backgroundColor: 'var(--color-aged-stock)', 
-            padding: '30px',
-            border: '1px solid var(--color-warm-gray)'
-          }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {(recentDonations?.data || []).map((don) => (
-                <div key={don.id} style={{
-                  paddingBottom: '15px',
-                  borderBottom: '1px solid var(--color-warm-gray)',
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                    <div style={{ fontSize: '13px', fontWeight: 600, fontFamily: 'var(--font-body)' }}>
-                      {don.isAnonymous ? 'ANON' : don.donorName.toUpperCase()}
-                    </div>
-                    <div style={{ fontSize: '14px', fontWeight: 700, fontFamily: 'var(--font-display)', color: 'var(--color-rust)' }}>
-                      {don.currency === 'CNY' ? '¥' : '$'}{don.amount.toLocaleString()}
-                    </div>
-                  </div>
-                  <div style={{ fontSize: '10px', color: 'var(--color-sepia-mid)', fontFamily: 'var(--font-body)', marginTop: '4px' }}>
-                    {dayjs(don.createdAt).format('DD MMM YYYY')} — AUTH OK
-                  </div>
-                </div>
-              ))}
-            </div>
+        <div style={{
+          border: '1px solid var(--color-border)',
+          background: 'var(--color-bg-card)',
+          padding: '30px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', marginBottom: '25px' }}>
+            <span style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: '18px',
+              fontStyle: 'italic',
+              color: 'var(--color-sepia-mid)'
+            }}>
+              {t('dashboard.sectionFinancialsLabel')}
+            </span>
+            <span style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: '18px',
+              fontWeight: 700,
+              color: 'var(--color-ink)'
+            }}>
+              {t('dashboard.sectionFinancialsTitle')}
+            </span>
           </div>
 
-          <div style={{ marginTop: '20px', padding: '20px', border: '1px dashed var(--color-warm-gray)' }}>
-            <p style={{ fontSize: '12px', fontFamily: 'var(--font-body)', lineHeight: 1.6, color: 'var(--color-sepia-mid)', margin: 0 }}>
-              "Transparency is the cornerstone of trust. Every record here represents a child's story supported."
-            </p>
+          <div style={{
+            fontFamily: 'var(--font-body)',
+            fontSize: '14px',
+            lineHeight: 1.9,
+            color: 'var(--color-archive-brown)',
+            fontStyle: 'italic'
+          }}>
+            &ldquo;{t('dashboard.transparencyQuote')}&rdquo;
+          </div>
+
+          <div style={{ marginTop: '30px', borderTop: '1px solid var(--color-border)', paddingTop: '20px' }}>
+            <div style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '11px',
+              color: 'var(--color-sepia-mid)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              marginBottom: '8px'
+            }}>
+              {t('donation.anonLabel')} / {t('donation.authOkLabel')}
+            </div>
+            <div style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: '13px',
+              color: 'var(--color-text-secondary)'
+            }}>
+              {t('donation.summaryVerifiedSuccess')}
+            </div>
           </div>
         </div>
       </div>

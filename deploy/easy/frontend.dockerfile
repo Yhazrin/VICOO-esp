@@ -8,7 +8,7 @@ FROM node:18-alpine AS builder
 WORKDIR /build
 
 COPY package.json package-lock.json* ./
-RUN npm ci --legacy-peer-deps
+RUN npm install --legacy-peer-deps
 
 COPY . .
 

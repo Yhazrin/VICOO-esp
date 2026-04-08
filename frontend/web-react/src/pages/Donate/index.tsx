@@ -15,6 +15,7 @@ import FAQAccordion from '@/components/editorial/FAQAccordion';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 import MagneticButton from '@/components/animations/MagneticButton';
 import { donationsApi } from '@/services/donations';
+import { getErrorMessage } from '@/utils/error';
 
 /* ─── Impact Area Data ─── */
 
@@ -237,19 +238,23 @@ export default function Donate() {
       frequency: 'once' | 'monthly';
       anonymous: boolean;
       message: string;
-      paymentMethod?: 'wechat' | 'alipay' | 'stripe' | 'paypal';
+      paymentMethod: 'wechat' | 'alipay' | 'stripe' | 'paypal';
     }) => {
       const { user } = useAuthStore.getState();
       return donationsApi.create({
         donor_name: data.anonymous ? t('donate.anonymousName') : (user?.nickname || user?.email || t('donate.guestName')),
         amount: data.amount,
         currency: 'CNY',
-        payment_method: data.paymentMethod || 'wechat',
+        payment_method: data.paymentMethod,
         is_anonymous: data.anonymous,
         message: data.message || undefined,
       });
     },
   });
+
+  const donationErrorMessage = donateMutation.error
+    ? getErrorMessage(donateMutation.error, t('donate.error'))
+    : null;
 
   const donationStories = [
     {
@@ -326,14 +331,14 @@ export default function Donate() {
             {donateMutation.isSuccess && (
               <div className="mb-4 p-4 border border-sepia-light bg-paper-warm">
                 <p className="font-body text-body-sm text-ink">
-                  {t('donate.success', 'Thank you for your donation! Your generosity helps children explore their creativity.')}
+                  {t('donate.success')}
                 </p>
               </div>
             )}
             {donateMutation.isError && (
               <div className="mb-4 p-4 border border-rust bg-red-50">
                 <p className="font-body text-body-sm text-rust">
-                  {t('donate.error', 'Something went wrong. Please try again.')}
+                  {donationErrorMessage}
                 </p>
               </div>
             )}
@@ -343,13 +348,13 @@ export default function Donate() {
             />
             <div className="mt-8 p-4 border border-warm-gray/30 bg-paper/50">
               <p className="font-body text-body-sm text-ink-faded mb-2">
-                闲置衣物也可捐献，经处理后转为可持续时尚商品，收益支持乡村美育。
+                {t('donateClothing.clothingHint')}
               </p>
               <Link
                 to="/donate-clothing"
                 className="font-body text-overline tracking-[0.1em] uppercase text-rust hover:text-ink transition-colors"
               >
-                捐献衣物 →
+                {t('donateClothing.donateLink')}
               </Link>
             </div>
           </div>

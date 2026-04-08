@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../stores/authStore';
 import toast from 'react-hot-toast';
 
 const API_BASE = '/api/v1';
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   const login = useAuthStore((s) => s.login);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -14,7 +16,7 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username || !password) {
-      toast.error('请输入用户名和密码');
+      toast.error(t('login.errorRequired'));
       return;
     }
     setLoading(true);
@@ -27,7 +29,7 @@ export default function LoginPage() {
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        throw new Error(data.message || '用户名或密码错误');
+        throw new Error(data.message || t('login.errorInvalidCredentials'));
       }
       const data = await response.json();
       const userData = data.data?.user || data.user;
@@ -35,9 +37,9 @@ export default function LoginPage() {
       const accessToken = tokenData.access_token || tokenData.accessToken;
       const refreshToken = tokenData.refresh_token || tokenData.refreshToken;
       login(userData, accessToken);
-      toast.success('登录成功');
+      toast.success(t('login.toastSuccess'));
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : '登录失败，请重试';
+      const message = err instanceof Error ? err.message : t('login.errorLoginFailed');
       toast.error(message);
     } finally {
       setLoading(false);
@@ -51,7 +53,6 @@ export default function LoginPage() {
       backgroundColor: 'var(--color-paper)',
       overflow: 'hidden',
     }}>
-      {/* Editorial Cover Section (Left) */}
       <div style={{
         flex: '0 0 62%',
         position: 'relative',
@@ -73,8 +74,8 @@ export default function LoginPage() {
           display: 'flex',
           justifyContent: 'space-between'
         }}>
-          <span>Vol. 1 — Issue 01</span>
-          <span>Security & Authorization</span>
+          <span>{t('login.volumeLabel')}</span>
+          <span>{t('login.securityLabel')}</span>
         </div>
 
         <div>
@@ -87,7 +88,7 @@ export default function LoginPage() {
             color: 'var(--color-ink)',
             marginLeft: '-0.05em'
           }}>
-            VICOO
+            {t('login.siteName')}
           </h1>
           <p style={{
             fontFamily: 'var(--font-body)',
@@ -97,7 +98,7 @@ export default function LoginPage() {
             maxWidth: '400px',
             lineHeight: 1.8
           }}>
-            "Internal Access Portal. Authorized personnel only. Please verify your cryptographic credentials to proceed."
+            &ldquo;{t('login.description')}&rdquo;
           </p>
         </div>
 
@@ -108,13 +109,12 @@ export default function LoginPage() {
           display: 'flex',
           gap: '40px'
         }}>
-          <div>EST. 2026</div>
-          <div>ADMIN v1.0.4</div>
-          <div style={{ marginLeft: 'auto' }}>SECURE_LAYER_ID: 0x7A2</div>
+          <div>{t('login.estLabel')}</div>
+          <div>{t('login.versionLabel')}</div>
+          <div style={{ marginLeft: 'auto' }}>{t('login.secureIdLabel')}</div>
         </div>
       </div>
 
-      {/* Login Form Section (Right) */}
       <div style={{
         flex: 1,
         display: 'flex',
@@ -130,7 +130,7 @@ export default function LoginPage() {
             marginBottom: '40px',
             color: 'var(--color-ink)'
           }}>
-            Identify Yourself.
+            {t('login.title')}
           </h2>
 
           <form onSubmit={handleLogin}>
@@ -144,7 +144,7 @@ export default function LoginPage() {
                 marginBottom: '8px',
                 color: 'var(--color-sepia-mid)'
               }}>
-                Identification / Email
+                {t('login.emailLabel')}
               </label>
               <input
                 type="text"
@@ -175,7 +175,7 @@ export default function LoginPage() {
                 marginBottom: '8px',
                 color: 'var(--color-sepia-mid)'
               }}>
-                Security Key / Password
+                {t('login.passwordLabel')}
               </label>
               <input
                 type={showPassword ? 'text' : 'password'}
@@ -242,27 +242,9 @@ export default function LoginPage() {
               onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-archive-brown)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-ink)'; }}
             >
-              {loading ? 'Authenticating...' : 'Authorize Access'}
+              {loading ? t('login.loggingInButton') : t('login.loginButton')}
             </button>
           </form>
-
-          {/* <div style={{
-            marginTop: '40px',
-            padding: '20px',
-            border: '1px dashed var(--color-warm-gray)',
-            textAlign: 'center'
-          }}>
-            <p style={{ 
-              fontSize: '10px', 
-              fontFamily: 'var(--font-mono)', 
-              color: 'var(--color-sepia-mid)', 
-              margin: 0,
-              lineHeight: 1.6
-            }}>
-              NOTICE: This terminal is monitored. <br/>
-              Attempts to use unauthorized OAuth methods are logged.
-            </p>
-          </div> */}
         </div>
       </div>
     </div>

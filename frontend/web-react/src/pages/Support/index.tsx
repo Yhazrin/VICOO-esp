@@ -12,14 +12,6 @@ import { VintageSelect } from '@/components/editorial/VintageSelect';
 import { afterSalesApi } from '@/services/afterSales';
 import { useAuthStore } from '@/stores/authStore';
 
-const CATEGORIES = [
-  { value: 'return', label: '退货' },
-  { value: 'exchange', label: '换货' },
-  { value: 'quality', label: '质量问题' },
-  { value: 'logistics', label: '物流' },
-  { value: 'other', label: '其他' },
-];
-
 export default function Support() {
   const { t } = useTranslation();
   const qc = useQueryClient();
@@ -28,6 +20,14 @@ export default function Support() {
   const [category, setCategory] = useState('quality');
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
+
+  const categories = [
+    { value: 'return', label: t('support.return') },
+    { value: 'exchange', label: t('support.exchange') },
+    { value: 'quality', label: t('support.quality') },
+    { value: 'logistics', label: t('support.logistics') },
+    { value: 'other', label: t('support.other') },
+  ];
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -83,7 +83,7 @@ export default function Support() {
               label={t('support.category', '类型')}
               value={category}
               onChange={(e: ChangeEvent<HTMLSelectElement>) => setCategory(e.target.value)}
-              options={CATEGORIES}
+              options={categories}
             />
             <VintageInput
               label={t('support.subject', '主题 *')}
