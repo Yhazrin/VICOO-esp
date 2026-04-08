@@ -50,7 +50,6 @@ class ProductOut(BaseModel):
     category: Optional[str] = None
     stock: int
     status: str
-    supply_chain_id: Optional[int] = None
     # Circular commerce: sustainability fields
     source_clothing_intake_id: Optional[int] = None
     sustainability_score: Optional[float] = None
