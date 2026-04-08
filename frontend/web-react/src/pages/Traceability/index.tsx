@@ -11,7 +11,6 @@ import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
 import { supplyChainApi } from '@/services/supply-chain';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
-import { allowWebMockFallback } from '@/config/runtime';
 
 // Extended record with story, image, and status for enhanced timeline
 interface EnhancedSupplyChainRecord {
@@ -44,29 +43,11 @@ function stageLabelFromBackend(stage: string, t: (key: string) => string): strin
   return key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+// Industry benchmark comparison (kg CO2 per garment — not from API)
 const CARBON_DATA = {
   conventional: 33.4,
   vicoo: 8.2,
 };
-
-// Static data for mock records (non-localized fields)
-const MOCK_RECORDS_STATIC = [
-  { id: 1, stage: 'artwork', location: 'Shanghai, China', date: '2025-11-15', verified: true, partnerName: 'Dongfeng Elementary School', carbonFootprint: 0, status: 'verified' as const, imageUrl: 'https://picsum.photos/seed/artwork-studio/200/200' },
-  { id: 2, stage: 'design', location: 'Shanghai, China', date: '2025-12-01', verified: true, partnerName: 'Tonghua Design Studio', carbonFootprint: 0.2, status: 'verified' as const, imageUrl: 'https://picsum.photos/seed/design-studio/200/200' },
-  { id: 3, stage: 'material', location: 'Xinjiang, China', date: '2025-12-20', verified: true, partnerName: 'GreenCotton Cooperative', carbonFootprint: 1.8, status: 'verified' as const, imageUrl: 'https://picsum.photos/seed/cotton-fields/200/200' },
-  { id: 4, stage: 'production', location: 'Guangzhou, China', date: '2026-01-10', verified: true, partnerName: 'FairWear Manufacturing', carbonFootprint: 2.4, status: 'verified' as const, imageUrl: 'https://picsum.photos/seed/factory-floor/200/200' },
-  { id: 5, stage: 'quality', location: 'Guangzhou, China', date: '2026-01-25', verified: true, partnerName: 'FairWear Manufacturing', carbonFootprint: 0.1, status: 'verified' as const, imageUrl: 'https://picsum.photos/seed/quality-check/200/200' },
-  { id: 6, stage: 'shipping', location: 'Guangzhou to Shanghai', date: '2026-02-05', verified: true, partnerName: 'GreenLogistics Co.', carbonFootprint: 0.8, status: 'in-progress' as const, imageUrl: 'https://picsum.photos/seed/logistics-hub/200/200' },
-];
-
-// Build localized mock records from i18n keys
-function getMockRecords(t: (key: string) => string): EnhancedSupplyChainRecord[] {
-  return MOCK_RECORDS_STATIC.map((r) => ({
-    ...r,
-    description: t(`traceability.mock.records.${r.id}.description`),
-    story: t(`traceability.mock.records.${r.id}.story`),
-  }));
-}
 
 // Animated counter for reduction percentage
 function AnimatedCounter({ value, suffix = '' }: { value: number; suffix?: string }) {
@@ -391,35 +372,32 @@ export default function Traceability() {
   const [isSearching, setIsSearching] = useState(false);
   const [highlightedId, setHighlightedId] = useState<number | null>(null);
   const [searchResult, setSearchResult] = useState<EnhancedSupplyChainRecord | null>(null);
-  const [records, setRecords] = useState<EnhancedSupplyChainRecord[]>(allowWebMockFallback ? getMockRecords(t) : []);
+  const [records, setRecords] = useState<EnhancedSupplyChainRecord[]>([]);
 
-  // Fetch supply chain records from API on mount (fallback to mock)
+  // Fetch supply chain records from API on mount
   useEffect(() => {
     let cancelled = false;
     supplyChainApi
       .getRecords()
       .then((res) => {
         if (cancelled || !res.length) return;
-        const localizedMockRecords = getMockRecords(t);
         const mapped: EnhancedSupplyChainRecord[] = res.map((r, i) => {
           const stage = normalizeStageKey(r.stage || 'unknown');
-          const staticRecord = MOCK_RECORDS_STATIC[i];
-          const localizedRecord = localizedMockRecords[i];
           const verified = r.certified ?? (r.certifications?.length ?? 0) > 0;
 
           return {
-            id: Number(r.id) || staticRecord?.id || i + 1,
+            id: Number(r.id) || i + 1,
             stage,
             stageLabel: stageLabelFromBackend(r.stage || stage, t),
             description: r.description,
             location: r.location,
-            date: r.timestamp ? r.timestamp.split('T')[0] : staticRecord?.date || '',
+            date: r.timestamp ? r.timestamp.split('T')[0] : '',
             verified,
             certified: r.certified,
-            partnerName: r.artisan?.name ?? r.productName ?? staticRecord?.partnerName ?? '',
-            carbonFootprint: staticRecord?.carbonFootprint,
-            story: localizedRecord?.story ?? r.description,
-            imageUrl: r.artisan?.imageUrl ?? staticRecord?.imageUrl ?? `https://picsum.photos/seed/stage-${stage}/200/200`,
+            partnerName: r.artisan?.name ?? r.productName ?? '',
+            carbonFootprint: r.carbon_kg ?? undefined,
+            story: r.description,
+            imageUrl: r.artisan?.imageUrl ?? `https://picsum.photos/seed/stage-${stage}/200/200`,
             status: (verified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
             cert_image_url: r.cert_image_url ?? null,
             timestamp: r.timestamp,
@@ -429,14 +407,14 @@ export default function Traceability() {
         setRecords(mapped);
       })
       .catch(() => {
-        if (!allowWebMockFallback) {
+        if (!cancelled) {
           setRecords([]);
         }
       });
     return () => { cancelled = true; };
   }, [t]);
 
-  // Handle product lookup — try API trace, fallback to local search
+  // Handle product lookup — try API trace
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
     setHighlightedId(null);
@@ -452,22 +430,20 @@ export default function Traceability() {
         if (journey.length > 0) {
           const first = journey[0];
           const stage = normalizeStageKey(first.stage || 'unknown');
-          const staticRecord = MOCK_RECORDS_STATIC.find((m) => m.id === Number(first.id)) ?? MOCK_RECORDS_STATIC[0];
-          const localizedRecord = getMockRecords(t).find((m) => m.id === Number(first.id)) ?? getMockRecords(t)[0];
           const verified = first.certified ?? (first.certifications?.length ?? 0) > 0;
           const enhanced: EnhancedSupplyChainRecord = {
-            id: Number(first.id) || staticRecord?.id || 1,
+            id: Number(first.id) || 1,
             stage,
             stageLabel: stageLabelFromBackend(first.stage || stage, t),
             description: first.description,
             location: first.location,
-            date: first.timestamp ? first.timestamp.split('T')[0] : staticRecord?.date || '',
+            date: first.timestamp ? first.timestamp.split('T')[0] : '',
             verified,
             certified: first.certified,
-            partnerName: first.artisan?.name ?? first.productName ?? staticRecord?.partnerName ?? '',
-            carbonFootprint: staticRecord?.carbonFootprint,
-            story: localizedRecord?.story ?? first.description,
-            imageUrl: staticRecord?.imageUrl ?? first.artisan?.imageUrl ?? `https://picsum.photos/seed/${stage}/200/200`,
+            partnerName: first.artisan?.name ?? first.productName ?? '',
+            carbonFootprint: first.carbon_kg ?? undefined,
+            story: first.description,
+            imageUrl: first.artisan?.imageUrl ?? `https://picsum.photos/seed/${stage}/200/200`,
             status: (verified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
             cert_image_url: first.cert_image_url ?? null,
             timestamp: first.timestamp,
@@ -479,24 +455,9 @@ export default function Traceability() {
         setIsSearching(false);
       })
       .catch(() => {
-        if (!allowWebMockFallback) {
-          setIsSearching(false);
-          return;
-        }
-        // Fallback: local search through records
-        const found = records.find(
-          (r) =>
-            String(r.id) === query.trim() ||
-            r.partnerName.toLowerCase().includes(query.toLowerCase()) ||
-            query.toUpperCase().includes('VICOO')
-        );
-        if (found) {
-          setHighlightedId(found.id);
-          setSearchResult(found);
-        }
         setIsSearching(false);
       });
-  }, [records, t]);
+  }, [t]);
 
   const reductionPercent = Math.round(
     ((CARBON_DATA.conventional - CARBON_DATA.vicoo) / CARBON_DATA.conventional) * 100

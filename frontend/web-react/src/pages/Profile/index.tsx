@@ -405,7 +405,7 @@ export default function Profile() {
                     <EditorialCard
                       key={donation.id}
                       title={`${donation.currency} ${donation.amount.toFixed(2)}`}
-                      subtitle={new Date(donation.createdAt).toLocaleDateString(i18n.language, {
+                      subtitle={new Date(donation.createdAt ?? donation.created_at).toLocaleDateString(i18n.language, {
                         year: 'numeric',
                         month: 'short',
                         day: 'numeric',

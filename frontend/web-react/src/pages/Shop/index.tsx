@@ -12,7 +12,6 @@ import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import VintageSelect from '@/components/editorial/VintageSelect';
 import { productsApi } from '@/services/products';
 import type { Product } from '@/types';
-import { allowWebMockFallback } from '@/config/runtime';
 
 type Category = 'all' | 'apparel' | 'accessories' | 'stationery' | 'prints' | 'lifestyle' | 'footwear' | 'home' | 'gift_box';
 type SortOption = 'default' | 'price-asc' | 'price-desc' | 'sustainability';
@@ -20,92 +19,6 @@ type SortOption = 'default' | 'price-asc' | 'price-desc' | 'sustainability';
 export default function Shop() {
   const { t } = useTranslation();
 
-  const MOCK_PRODUCTS: Product[] = [
-    {
-      id: 1,
-      name: t('shop.mock.product1.name'),
-      description: t('shop.mock.product1.description'),
-      price: 298,
-      currency: 'CNY',
-      image_url: 'https://picsum.photos/seed/dreamscape-tee/600/800',
-      category: 'apparel',
-      inStock: true,
-      stockCount: 24,
-      sustainabilityScore: 87,
-      supplyChain: [],
-      artworkBy: { childName: t('shop.mock.product1.childName'), age: 8, campaign: t('shop.mock.product1.campaign') },
-    },
-    {
-      id: 2,
-      name: t('shop.mock.product2.name'),
-      description: t('shop.mock.product2.description'),
-      price: 168,
-      currency: 'CNY',
-      image_url: 'https://picsum.photos/seed/bloom-tote/600/800',
-      category: 'accessories',
-      inStock: true,
-      stockCount: 3,
-      sustainabilityScore: 92,
-      supplyChain: [],
-      artworkBy: { childName: t('shop.mock.product2.childName'), age: 7, campaign: t('shop.mock.product2.campaign') },
-    },
-    {
-      id: 3,
-      name: t('shop.mock.product3.name'),
-      description: t('shop.mock.product3.description'),
-      price: 58,
-      currency: 'CNY',
-      image_url: 'https://picsum.photos/seed/sketchbook/600/800',
-      category: 'stationery',
-      inStock: true,
-      stockCount: 156,
-      sustainabilityScore: 95,
-      supplyChain: [],
-      artworkBy: { childName: t('shop.mock.product3.childName'), age: 6, campaign: t('shop.mock.product3.campaign') },
-    },
-    {
-      id: 4,
-      name: t('shop.mock.product4.name'),
-      description: t('shop.mock.product4.description'),
-      price: 128,
-      currency: 'CNY',
-      image_url: 'https://picsum.photos/seed/ocean-print/600/800',
-      category: 'prints',
-      inStock: true,
-      stockCount: 42,
-      sustainabilityScore: 88,
-      supplyChain: [],
-      artworkBy: { childName: t('shop.mock.product4.childName'), age: 9, campaign: t('shop.mock.product4.campaign') },
-    },
-    {
-      id: 5,
-      name: t('shop.mock.product5.name'),
-      description: t('shop.mock.product5.description'),
-      price: 458,
-      currency: 'CNY',
-      image_url: 'https://picsum.photos/seed/cityscape-hoodie/600/800',
-      category: 'apparel',
-      inStock: false,
-      stockCount: 0,
-      sustainabilityScore: 84,
-      supplyChain: [],
-      artworkBy: { childName: t('shop.mock.product5.childName'), age: 10, campaign: t('shop.mock.product5.campaign') },
-    },
-    {
-      id: 6,
-      name: t('shop.mock.product6.name'),
-      description: t('shop.mock.product6.description'),
-      price: 48,
-      currency: 'CNY',
-      image_url: 'https://picsum.photos/seed/rainbow-pins/600/800',
-      category: 'accessories',
-      inStock: true,
-      stockCount: 89,
-      sustainabilityScore: 90,
-      supplyChain: [],
-      artworkBy: { childName: t('shop.mock.product6.childName'), age: 8, campaign: t('shop.mock.product6.campaign') },
-    },
-  ];
   const prefersReducedMotion = useReducedMotion();
   const [activeCategory, setActiveCategory] = useState<Category>('all');
   const [sortBy, setSortBy] = useState<SortOption>('default');
@@ -113,27 +26,17 @@ export default function Shop() {
   const { data } = useQuery({
     queryKey: ['products', { category: activeCategory }],
     queryFn: async () => {
-      try {
-        const result = await productsApi.getAll({
-          category: activeCategory === 'all' ? undefined : activeCategory,
-        });
-        return result;
-      } catch {
-        if (allowWebMockFallback) return null;
-        throw new Error('Products unavailable and fallback disabled');
-      }
+      const result = await productsApi.getAll({
+        category: activeCategory === 'all' ? undefined : activeCategory,
+      });
+      return result;
     },
     staleTime: 5 * 60 * 1000,
   });
   const { data: categoriesData } = useQuery({
     queryKey: ['product-categories'],
     queryFn: async () => {
-      try {
-        return await productsApi.getCategories();
-      } catch {
-        if (allowWebMockFallback) return null;
-        throw new Error('Category list unavailable and fallback disabled');
-      }
+      return await productsApi.getCategories();
     },
     staleTime: 10 * 60 * 1000,
   });
@@ -142,8 +45,7 @@ export default function Shop() {
     const fromApi = (categoriesData ?? [])
       .filter((c): c is Category => ['apparel', 'accessories', 'stationery', 'prints', 'lifestyle', 'footwear', 'home', 'gift_box'].includes(c))
       .filter((c, i, arr) => arr.indexOf(c) === i);
-    const fallback: Category[] = allowWebMockFallback ? ['apparel', 'accessories', 'stationery', 'prints', 'lifestyle', 'footwear', 'home', 'gift_box'] : [];
-    return ['all', ...(fromApi.length ? fromApi : fallback)];
+    return ['all', ...fromApi];
   }, [categoriesData]);
 
   const handleTabKeyDown = useCallback(
@@ -172,7 +74,7 @@ export default function Shop() {
   ];
 
   const filtered = useMemo(() => {
-    let list = data?.items?.length ? data.items : (allowWebMockFallback ? MOCK_PRODUCTS : []);
+    let list = data?.items ?? [];
 
     if (activeCategory !== 'all') {
       list = list.filter((p) => p.category === activeCategory);
