@@ -7,7 +7,7 @@ export interface User {
   email: string;
   nickname: string;
   avatarUrl?: string;
-  role: 'user' | 'admin' | 'moderator';
+  role: 'user' | 'admin' | 'editor' | 'guardian' | 'compliance';
   createdAt?: string;
 }
 
@@ -26,12 +26,14 @@ export interface Artwork {
   title: string;
   description: string;
   image_url: string;
-  childParticipant: ChildParticipant;
+  childParticipant?: ChildParticipant;
+  artist_name?: string;
   campaign_id?: number;
   status: 'pending' | 'approved' | 'featured' | 'rejected';
   vote_count: number;
+  like_count?: number;
   created_at: string;
-  tags: string[];
+  tags?: string[];
 }
 
 export interface Campaign {
@@ -100,6 +102,8 @@ export interface SupplyChainTimelineRecord {
   verified: boolean;
   partnerName: string;
   carbonFootprint?: number;
+  carbon_kg?: number;
+  carbon_note?: string;
 }
 
 export interface SupplyChainRecord extends SupplyChainTimelineRecord {}
@@ -109,7 +113,7 @@ export interface DonationTier {
   amount: number;
   label: string;
   description: string;
-  impactStatement: string;
+  impactStatement?: string;
 }
 
 export interface Donation {
@@ -138,7 +142,7 @@ export interface Order {
   items: CartItem[];
   totalAmount: number;
   currency: string;
-  status: 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled';
+  status: 'pending' | 'paid' | 'shipped' | 'completed' | 'cancelled';
   shipping_address?: string;
   createdAt: string;
   paidAt?: string;
