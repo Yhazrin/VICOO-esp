@@ -153,7 +153,6 @@ async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
         return ApiResponse(data=ProductOut.model_validate(product).model_dump())
-        raise
     except HTTPException:
         raise
     except Exception:
@@ -173,7 +172,6 @@ async def create_product(body: ProductCreate, db: AsyncSession = Depends(get_db)
         db.add(product)
         await db.flush()
         return ApiResponse(data=ProductOut.model_validate(product).model_dump())
-        raise
     except HTTPException:
         raise
     except Exception as e:
@@ -194,7 +192,6 @@ async def update_product(product_id: int, body: ProductUpdate, db: AsyncSession 
             setattr(product, k, v)
         await db.flush()
         return ApiResponse(data=ProductOut.model_validate(product).model_dump())
-        raise
     except HTTPException:
         raise
     except Exception as e:

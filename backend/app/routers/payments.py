@@ -19,7 +19,7 @@ from app.schemas import ApiResponse, PaymentCreate, PaymentOut, PaginatedRespons
 from app.deps import get_current_user
 from app.services.payment_service import get_payment_service
 from app.routers.orders import _mock_orders
-from app.routers.donations import _mock_donations
+_mock_donations: list = []
 
 logger = logging.getLogger(__name__)
 
