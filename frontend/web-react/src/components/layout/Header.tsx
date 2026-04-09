@@ -5,19 +5,127 @@ import { useUIStore, THEMES, type ThemeId } from '@/stores/uiStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/useMediaQuery';
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 
-const NAV_ITEMS = [
+// ── Company nav: normal brand services ──
+const COMPANY_NAV = [
   { key: 'home', path: '/' },
-  { key: 'about', path: '/about' },
-  { key: 'campaigns', path: '/campaigns' },
-  { key: 'stories', path: '/stories' },
-  { key: 'donate', path: '/donate' },
   { key: 'shop', path: '/shop' },
-  { key: 'traceability', path: '/traceability' },
+  { key: 'about', path: '/about' },
   { key: 'contact', path: '/contact' },
 ];
+
+// ── Impact nav tabs ──
+const IMPACT_TABS = [
+  { key: 'campaigns' },
+  { key: 'stories' },
+  { key: 'traceability' },
+  { key: 'donate' },
+];
+
+// ── PillWindow: capsule "window" with a horizontal sliding rail ──
+// Both tag groups sit side-by-side on one rail.  The capsule auto-resizes
+// to fit the active group while the rail slides to reveal it — like a
+// microfilm viewer advancing to the next frame.
+//
+// Extracted to module scope so the component identity is stable across
+// Header re-renders (prevents remount jitter).
+function PillWindow({
+  impactMode,
+  activeImpactTab,
+  setActiveImpactTab,
+  locationPathname,
+}: {
+  impactMode: boolean;
+  activeImpactTab: string;
+  setActiveImpactTab: (tab: string) => void;
+  locationPathname: string;
+}) {
+  const { t } = useTranslation();
+
+  const companyRef = useRef<HTMLDivElement>(null);
+  const impactRef = useRef<HTMLDivElement>(null);
+  const [companyW, setCompanyW] = useState(0);
+  const [impactW, setImpactW] = useState(0);
+
+  const measure = useCallback(() => {
+    if (companyRef.current) setCompanyW(companyRef.current.offsetWidth);
+    if (impactRef.current) setImpactW(impactRef.current.offsetWidth);
+  }, []);
+
+  useEffect(() => {
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [measure]);
+
+  // Re-measure when language changes (text width changes)
+  useEffect(() => {
+    const id = requestAnimationFrame(measure);
+    return () => cancelAnimationFrame(id);
+  }, [t, measure]);
+
+  // Capsule has px-2 (8px each side = 16px padding).
+  // Offset uses pure content width; capsule width adds padding so
+  // the first & last tags have equal breathing room on both sides.
+  const PADDING = 16;
+  const xOffset = impactMode ? -companyW : 0;
+  const capsuleW = (impactMode ? impactW : companyW) + PADDING;
+
+  return (
+    <motion.div
+      className="flex items-center rounded-full bg-white/80 backdrop-blur-xl shadow-sm px-2 py-1 overflow-hidden"
+      animate={{ width: capsuleW || 'auto' }}
+      transition={{ duration: 0.45, ease: [0.32, 0.72, 0, 1] }}
+      style={{ width: (companyW + PADDING) || 'auto' }}
+    >
+      <motion.div
+        className="flex items-center"
+        animate={{ x: xOffset }}
+        transition={{ duration: 0.45, ease: [0.32, 0.72, 0, 1] }}
+        style={{ minWidth: 'max-content', willChange: 'transform' }}
+      >
+        {/* Company group */}
+        <div ref={companyRef} className="flex items-center flex-shrink-0">
+          {COMPANY_NAV.map((item) => {
+            const isActive = locationPathname === item.path;
+            return (
+              <Link
+                key={item.key}
+                to={item.path}
+                className={`
+                  font-body text-label tracking-wide px-3 py-1 rounded-full transition-all duration-200 cursor-pointer whitespace-nowrap
+                  ${isActive ? 'text-ink font-medium bg-rust/15' : 'text-ink-faded hover:text-ink'}
+                `}
+              >
+                {t(`nav.${item.key}`)}
+              </Link>
+            );
+          })}
+        </div>
+        {/* Impact group */}
+        <div ref={impactRef} className="flex items-center flex-shrink-0">
+          {IMPACT_TABS.map((tab) => {
+            const isActive = activeImpactTab === tab.key;
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setActiveImpactTab(tab.key)}
+                className={`
+                  font-body text-label tracking-wide px-3 py-1 rounded-full transition-all duration-200 cursor-pointer whitespace-nowrap
+                  ${isActive ? 'text-ink font-medium bg-rust/15' : 'text-ink-faded hover:text-ink'}
+                `}
+              >
+                {t(`nav.${tab.key}`)}
+              </button>
+            );
+          })}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
 
 export default function Header() {
   const { t, i18n } = useTranslation();
@@ -37,6 +145,10 @@ export default function Header() {
     setTheme,
     settingsMenuOpen,
     setSettingsMenuOpen,
+    impactMode,
+    setImpactMode,
+    activeImpactTab,
+    setActiveImpactTab,
   } = useUIStore();
 
   const { user, isAuthenticated } = useAuthStore();
@@ -90,80 +202,92 @@ export default function Header() {
 
   const currentThemeConfig = THEMES.find((t) => t.id === currentTheme);
 
+  const handleImpactToggle = () => {
+    if (impactMode) {
+      setImpactMode(false);
+    } else {
+      setImpactMode(true);
+      setActiveImpactTab('campaigns');
+    }
+  };
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-paper/90 backdrop-blur-sm">
+    <header className="fixed top-0 left-0 right-0 z-50">
       <SectionGrainOverlay />
-      <div className="relative max-w-[1400px] mx-auto px-6 md:px-10 flex items-center justify-between h-16 md:h-20">
+      <div className="relative max-w-[1400px] mx-auto px-6 md:px-10 flex items-center justify-between h-14">
         {/* Logo */}
         <Link
           to="/"
-          className="font-display text-ink text-lg md:text-xl font-bold tracking-tight cursor-pointer"
-          onClick={() => setMobileNavOpen(false)}
+          className="font-display text-ink text-lg md:text-xl font-medium tracking-wide cursor-pointer"
+          onClick={() => {
+            setMobileNavOpen(false);
+            setImpactMode(false);
+          }}
         >
           VICOO
         </Link>
 
-        {/* Desktop Navigation */}
-        {!isMobile && (
-          <nav className="flex items-center gap-1" aria-label="Main navigation">
-            {NAV_ITEMS.map((item, index) => {
-              const isActive = location.pathname === item.path;
-              return (
-                <Link
-                  key={item.key}
-                  to={item.path}
-                  className={`
-                    font-body text-label tracking-wide px-3 py-2 transition-colors duration-200 cursor-pointer
-                    ${isActive ? 'text-rust' : 'text-ink-faded hover:text-ink'}
-                  `}
-                >
-                  <span className="text-overline tracking-[0.2em] text-sepia-mid mr-2 font-body">
-                    {String(index + 1).padStart(2, '0')}
-                  </span>
-                  {t(`nav.${item.key}`)}
-                </Link>
-              );
-            })}
-          </nav>
-        )}
-
-        {/* Right side controls */}
+        {/* Right side: pill groups + controls */}
         <div className="flex items-center gap-3">
+          {/* Desktop Navigation — pill-group style */}
+          {!isMobile && (
+            <nav className="flex items-center gap-3" aria-label="Main navigation">
+              {/* Pill group — capsule "window", both tag groups ride on one sliding rail */}
+              <PillWindow
+                impactMode={impactMode}
+                activeImpactTab={activeImpactTab}
+                setActiveImpactTab={setActiveImpactTab}
+                locationPathname={location.pathname}
+              />
+
+              {/* Impact toggle button */}
+              <button
+                onClick={handleImpactToggle}
+                className={`
+                  font-body text-label tracking-wide px-5 py-1.5 rounded-full transition-all duration-300 cursor-pointer
+                  ${impactMode
+                    ? 'bg-ink text-paper font-medium'
+                    : 'bg-white/80 backdrop-blur-xl shadow-sm text-ink-faded hover:text-ink'
+                  }
+                `}
+              >
+                {t('nav.impact', '公益')}
+              </button>
+            </nav>
+          )}
+
+          {/* Language toggle — white disc */}
           <button
             onClick={toggleLocale}
-            className="font-body text-caption text-ink-faded hover:text-ink transition-colors px-2 py-1 border border-warm-gray/40 cursor-pointer"
+            className="font-body text-caption text-ink-faded hover:text-ink transition-colors w-9 h-9 rounded-full bg-white shadow-sm flex items-center justify-center cursor-pointer"
             aria-label="Toggle language"
           >
-            {currentLocale === 'zh' ? '英文' : 'CN'}
+            {currentLocale === 'zh' ? 'EN' : '中'}
           </button>
 
-          {/* User menu - shows username/avatar when logged in, login button when not */}
+          {/* User menu — white disc avatar */}
           <div className="relative" ref={userMenuRef}>
             <button
               onClick={() => {
                 setUserMenuOpen(!userMenuOpen);
                 setActiveSubmenu(null);
               }}
-              className="hidden md:flex items-center gap-2 font-body text-label text-ink-faded hover:text-ink transition-colors px-3 py-1.5 border border-warm-gray/40 cursor-pointer"
+              className="flex items-center justify-center w-9 h-9 rounded-full bg-white shadow-sm hover:shadow-md transition-all cursor-pointer"
               aria-label="User menu"
               aria-expanded={userMenuOpen}
               aria-haspopup="menu"
             >
               {isAuthenticated && user ? (
-                <>
-                  <div className="w-5 h-5 rounded-full bg-sepia-mid flex items-center justify-center">
-                    <span className="text-caption text-paper font-medium">
-                      {user.nickname?.charAt(0).toUpperCase() || 'U'}
-                    </span>
-                  </div>
-                  <span className="max-w-20 truncate">{user.nickname}</span>
-                </>
+                <div className="w-8 h-8 rounded-full bg-sepia-mid flex items-center justify-center">
+                  <span className="text-caption text-paper font-medium">
+                    {user.nickname?.charAt(0).toUpperCase() || 'U'}
+                  </span>
+                </div>
               ) : (
-                <span>{t('nav.login')}</span>
+                <svg className="w-4 h-4 text-ink-faded" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
               )}
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
             </button>
 
             {/* Dropdown menu */}
@@ -176,10 +300,9 @@ export default function Header() {
                   transition={{ duration: 0.15 }}
                   role="menu"
                   aria-label="User menu"
-                  className="absolute right-0 top-full mt-2 w-56 bg-paper border border-warm-gray/40 shadow-lg z-50"
+                  className="absolute right-0 top-full mt-2 w-56 bg-paper border border-warm-gray/40 shadow-lg z-50 rounded-lg"
                 >
                   {activeSubmenu === 'theme' ? (
-                    /* Theme submenu */
                     <div className="py-2">
                       <div className="px-4 py-2 border-b border-warm-gray/20 flex items-center gap-2">
                         <button
@@ -226,7 +349,6 @@ export default function Header() {
                       </div>
                     </div>
                   ) : (
-                    /* Main menu */
                     <div className="py-2">
                       {isAuthenticated && user ? (
                         <>
@@ -235,7 +357,6 @@ export default function Header() {
                             <p className="font-body text-caption text-sepia-mid truncate">{user.email}</p>
                           </div>
 
-                          {/* Theme setting shortcut */}
                           <button
                             onClick={() => setActiveSubmenu('theme')}
                             className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-warm-gray/10 transition-colors cursor-pointer"
@@ -285,7 +406,6 @@ export default function Header() {
                             <p className="font-body text-caption text-ink-faded">{t('nav.settings.title', 'Settings')}</p>
                           </div>
 
-                          {/* Theme setting shortcut */}
                           <button
                             onClick={() => setActiveSubmenu('theme')}
                             className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-warm-gray/10 transition-colors cursor-pointer"
