@@ -26,6 +26,8 @@ import OrderDetail from '@/pages/OrderDetail';
 import DonateClothing from '@/pages/DonateClothing';
 import Support from '@/pages/Support';
 import AiAssistant from '@/pages/AiAssistant';
+import Checkout from '@/pages/Checkout';
+import CartDrawer from '@/components/cart/CartDrawer';
 import { useSessionRestore } from '@/hooks/useSessionRestore';
 import { Toaster } from 'react-hot-toast';
 import { useEffect } from 'react';
@@ -59,6 +61,11 @@ function AnimatedRoutes() {
             <Route index element={<ErrorBoundary><Home /></ErrorBoundary>} />
           </Route>
 
+          {/* Auth pages — standalone, no header/footer */}
+          <Route path="login" element={<ErrorBoundary><Login /></ErrorBoundary>} />
+          <Route path="register" element={<ErrorBoundary><Register /></ErrorBoundary>} />
+          <Route path="forgot-password" element={<ErrorBoundary><ForgotPassword /></ErrorBoundary>} />
+
           {/* Other pages use standard Layout with HorizontalSlideTransition */}
           <Route element={<Layout />}>
             <Route path="about" element={<ErrorBoundary><About /></ErrorBoundary>} />
@@ -72,12 +79,10 @@ function AnimatedRoutes() {
             <Route path="shop/:id" element={<ErrorBoundary><ProductDetail /></ErrorBoundary>} />
             <Route path="traceability" element={<ErrorBoundary><Traceability /></ErrorBoundary>} />
             <Route path="contact" element={<ErrorBoundary><Contact /></ErrorBoundary>} />
-            <Route path="login" element={<ErrorBoundary><Login /></ErrorBoundary>} />
             <Route path="auth/callback" element={<ErrorBoundary><AuthCallback /></ErrorBoundary>} />
-            <Route path="forgot-password" element={<ErrorBoundary><ForgotPassword /></ErrorBoundary>} />
-            <Route path="register" element={<ErrorBoundary><Register /></ErrorBoundary>} />
             <Route path="profile" element={<ErrorBoundary><Profile /></ErrorBoundary>} />
             <Route path="orders/:id" element={<ErrorBoundary><OrderDetail /></ErrorBoundary>} />
+            <Route path="checkout" element={<ErrorBoundary><Checkout /></ErrorBoundary>} />
             <Route path="support" element={<ErrorBoundary><Support /></ErrorBoundary>} />
             <Route path="assistant" element={<ErrorBoundary><AiAssistant /></ErrorBoundary>} />
             <Route path="privacy" element={<ErrorBoundary><Privacy /></ErrorBoundary>} />
@@ -134,6 +139,7 @@ export default function App() {
         }}
       />
       <AnimatedRoutes />
+      <CartDrawer />
     </>
   );
 }

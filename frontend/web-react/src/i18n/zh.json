@@ -14,7 +14,12 @@
     "login": "登录",
     "register": "注册",
     "profile": "个人中心",
-    "logout": "退出"
+    "logout": "退出",
+    "impact": "公益",
+    "group": {
+      "company": "品牌服务",
+      "impact": "可持续发展"
+    }
   },
   "auth": {
     "loginSuccess": "登录成功",
@@ -420,7 +425,18 @@
       "lifestyle": "生活",
       "footwear": "鞋履",
       "home": "家居",
-      "gift_box": "礼盒"
+      "gift_box": "礼盒",
+      "priceRange": "价格区间",
+      "size": "尺码",
+      "color": "颜色",
+      "sustainability": "可持续评分",
+      "season": "季节",
+      "clearAll": "清除全部",
+      "activeFilters": "已选筛选",
+      "springSummer": "春/夏",
+      "fallWinter": "秋/冬",
+      "allSeasons": "四季通用",
+      "filterButton": "筛选"
     },
     "card": {
       "viewDetails": "查看详情",
@@ -444,7 +460,15 @@
       "artwork": "基于作品",
       "size": "尺码",
       "quantity": "数量",
-      "loading": "加载中..."
+      "loading": "加载中...",
+      "reviews": "评价",
+      "noReviews": "暂无评价",
+      "rating": "评分",
+      "writeReview": "撰写评价",
+      "reviewTitle": "标题（可选）",
+      "reviewBody": "分享穿着或包装体验",
+      "reviewError": "您可能已评价过该商品",
+      "submitReview": "提交"
     },
     "sort": {
       "label": "排序",
@@ -466,17 +490,17 @@
     },
     "behindCollection": "系列背后",
     "workshop": {
-      "imageAlt": "孩子们在 VICOO 工作坊中创作",
-      "imageCaption": "成都的一个周六上午工作坊，孩子们在这里绘制将成为我们下一个系列的梦想。"
+      "imageAlt": "VICOO 纺织工作室中的匠人",
+      "imageCaption": "我们的设计工作室，材料创新与永恒工艺的交汇。"
     },
     "editorial": {
-      "paragraph1": "这个系列中的每一件服装都始于同一种方式——一个孩子、一张白纸、以及想象的自由。我们与十二个城市的学校和社区中心合作，开展工作坊，让孩子们画出他们对世界的希望。",
-      "paragraph2": "我们的设计师随后将这些原始、真挚的艺术品转化为图案、印花和刺绣——从不改变孩子最初的愿景。最终呈现的是承载真实故事的服装，而非人为制造的故事。"
+      "paragraph1": "这个系列中的每一件服装都始于面料——来自经过认证的有机农场、再生纤维项目和负责任的纺织厂。我们相信时尚应该让人感觉良好并做好事，绝不妥协。",
+      "paragraph2": "我们的设计师对悬垂感、质地和持久性精益求精。每件单品都经过预洗、耐久性测试，裁剪时尽量减少浪费。最终呈现的是跨越季节的服装，而非追逐潮流。"
     },
     "quote": {
-      "text": "我画了海洋，因为我希望它永远是蓝色的。",
-      "author": "小林",
-      "role": "8岁，海洋之梦活动"
+      "text": "我们不为 T 台设计，我们为经得起时间考验的衣橱而设计。",
+      "author": "VICOO 设计工作室",
+      "role": "设计总监"
     },
     "mock": {
       "product1": {
@@ -515,6 +539,46 @@
         "childName": "安琪",
         "campaign": "希望的颜色"
       }
+    },
+    "promo": {
+      "story": "我们的故事",
+      "storyBody": "用心打造，历久弥新。了解 VICOO 如何从纤维到成衣打造持久时尚。",
+      "sustainability": "可持续发展",
+      "sustainabilityBody": "GOTS 认证有机棉、再生羊绒、碳中和物流。每件成衣，可衡量的影响力。",
+      "editorial": "编辑精选",
+      "editorialBody": "季节造型手册、材料深度解析，以及每一针背后的匠人故事。",
+      "cta": "了解更多"
+    }
+  },
+  "impactShop": {
+    "hero": {
+      "title": "公益商城",
+      "subtitle": "每件商品承载一个孩子的画作，每笔消费点亮他们的未来。"
+    },
+    "artworkVoting": {
+      "title": "为下一个设计投票",
+      "subtitle": "帮助选择哪些孩子的画作成为我们的下一个系列。",
+      "vote": "投票",
+      "votes": "{{count}} 票"
+    },
+    "donationBadge": "捐赠 {{percentage}}%",
+    "supportsCampaign": "支持项目：{{campaign}}",
+    "viewTraceability": "溯源",
+    "filterByCampaign": "按活动筛选",
+    "allCampaigns": "全部活动",
+    "collection": "公益系列",
+    "results": "{{count}} 件公益商品",
+    "empty": "暂无公益商品。",
+    "impactSummary": {
+      "title": "你的影响力",
+      "childrenHelped": "受助儿童",
+      "fundsRaised": "筹集善款",
+      "artworksTransformed": "转化画作"
+    },
+    "cta": {
+      "title": "追溯每一根线",
+      "subtitle": "查看产品的完整来源——从有机棉田到成衣。",
+      "button": "探索溯源"
     }
   },
   "traceability": {
@@ -773,7 +837,9 @@
     "sections": {
       "publication": "出版物",
       "connect": "联系我们",
-      "legal": "法律信息"
+      "legal": "法律信息",
+      "explore": "探索",
+      "support": "支持"
     },
     "links": {
       "about": "关于我们",
@@ -791,7 +857,8 @@
     "newsletter": {
       "title": "通讯订阅",
       "description": "来自编辑部的季度通讯。不发垃圾邮件，只发故事。",
-      "subscribe": "订阅"
+      "subscribe": "订阅",
+      "subscribed": "已发送"
     },
     "brand": {
       "description": "创意机遇中的愿景"
@@ -940,28 +1007,121 @@
       "orders": "我的订单",
       "donations": "我的捐赠",
       "clothing": "衣物捐献",
-      "support": "售后服务"
+      "support": "售后服务",
+      "addresses": "地址管理"
+    },
+    "cancelOrder": "取消订单",
+    "orders": {
+      "filterAll": "全部",
+      "filterPending": "待付款",
+      "filterPaid": "已付款",
+      "filterShipped": "已发货",
+      "filterCompleted": "已完成",
+      "filterCancelled": "已取消",
+      "searchPlaceholder": "搜索订单号..."
+    },
+    "addresses": {
+      "title": "收货地址",
+      "addAddress": "添加地址",
+      "editAddress": "编辑地址",
+      "deleteAddress": "删除地址",
+      "setDefault": "设为默认",
+      "label": "标签",
+      "labelPlaceholder": "家 / 公司",
+      "recipient": "收件人",
+      "phone": "电话",
+      "province": "省份",
+      "city": "城市",
+      "district": "区/县",
+      "detailAddress": "详细地址",
+      "postalCode": "邮编",
+      "noAddresses": "暂无保存的地址",
+      "defaultBadge": "默认"
     }
   },
   "orderDetail": {
     "error": "无法加载订单",
     "title": "订单与物流",
-    "status": "状态",
+    "status": {
+      "pending": "待付款",
+      "paid": "已付款",
+      "shipped": "已发货",
+      "completed": "已完成"
+    },
     "total": "合计",
     "address": "收货地址",
     "items": "明细",
-    "logistics": "物流轨迹"
-  },
-  "shop": {
-    "detail": {
-      "reviews": "评价",
-      "noReviews": "暂无评价",
-      "rating": "评分",
-      "writeReview": "撰写评价",
-      "reviewTitle": "标题（可选）",
-      "reviewBody": "分享穿着或包装体验",
-      "reviewError": "您可能已评价过该商品",
-      "submitReview": "提交"
+    "logistics": "物流轨迹",
+    "orderDate": "下单时间",
+    "returnExchange": {
+      "title": "申请退换",
+      "return": "退货",
+      "exchange": "换货",
+      "selectItems": "选择商品",
+      "reason": "原因",
+      "reasonPlaceholder": "请说明退换原因...",
+      "submit": "提交申请",
+      "success": "申请已提交",
+      "successDesc": "我们将在1-3个工作日内处理您的申请"
     }
+  },
+  "cart": {
+    "title": "购物袋",
+    "empty": "购物袋是空的",
+    "emptySubtitle": "浏览我们的系列，将心仪商品加入购物袋。",
+    "subtotal": "小计",
+    "checkout": "去结算",
+    "continueShopping": "继续购物",
+    "remove": "移除",
+    "quantity": "数量",
+    "items": "{{count}} 件商品",
+    "addedToBag": "已加入购物袋",
+    "viewBag": "查看购物袋"
+  },
+  "checkout": {
+    "title": "结算",
+    "step1": "收货地址",
+    "step2": "支付方式",
+    "step3": "确认订单",
+    "step4": "完成",
+    "next": "继续",
+    "back": "返回",
+    "placeOrder": "提交订单",
+    "fullName": "收货人",
+    "phone": "联系电话",
+    "street": "详细地址",
+    "city": "城市",
+    "province": "省份",
+    "postalCode": "邮政编码",
+    "country": "国家",
+    "paymentMethod": "支付方式",
+    "wechatPay": "微信支付",
+    "alipay": "支付宝",
+    "stripe": "信用卡",
+    "paypal": "PayPal",
+    "orderSummary": "订单摘要",
+    "subtotal": "小计",
+    "shipping": "运费",
+    "total": "合计",
+    "freeShipping": "免运费",
+    "orderPlaced": "下单成功！",
+    "orderNumber": "订单编号",
+    "thankYou": "感谢您的购买，确认邮件将很快送达。",
+    "viewOrder": "查看订单",
+    "continueShopping": "继续购物",
+    "processing": "处理中...",
+    "error": "出了点问题，请重试。",
+    "loginRequired": "请先登录再进行结算。",
+    "savedAddresses": "已保存的地址",
+    "enterNewAddress": "输入新地址",
+    "saveAddress": "保存到地址簿"
+  },
+  "common": {
+    "loading": "加载中...",
+    "save": "保存",
+    "cancel": "取消",
+    "edit": "编辑",
+    "delete": "删除",
+    "close": "关闭"
   }
 }

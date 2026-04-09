@@ -4,8 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
-import EditorialHero from '@/components/editorial/EditorialHero';
-import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeading';
 import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
@@ -91,22 +89,13 @@ export default function About() {
 
   return (
     <PageWrapper>
-      <EditorialHero
-        title={t('about.hero.title')}
-        subtitle={t('about.hero.subtitle')}
-        fullHeight={true}
-        scrambleTitle={true}
-        scrambleDuration={1200}
-      />
-
       {/* Mission */}
       <SectionContainer noTopSpacing>
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16">
           <div className="md:col-span-5">
-            <NumberedSectionHeading
-              number="01"
-              title={t('about.mission.title')}
-            />
+            <h2 className="font-display text-h3 font-bold text-ink mb-8">
+              {t('about.mission.title')}
+            </h2>
           </div>
           <div className="md:col-span-7 md:pt-8 relative">
             {/* Decorative vertical line alongside mission text */}
@@ -153,10 +142,9 @@ export default function About() {
 
       {/* Values */}
       <SectionContainer>
-        <NumberedSectionHeading
-          number="02"
-          title={t('about.values.title')}
-        />
+        <h2 className="font-display text-h3 font-bold text-ink mb-8">
+          {t('about.values.title')}
+        </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
           {VALUES.map((key, i) => (
@@ -188,11 +176,12 @@ export default function About() {
 
       {/* Team */}
       <SectionContainer>
-        <NumberedSectionHeading
-          number="03"
-          title={t('about.team.title')}
-          subtitle={t('about.team.subtitle')}
-        />
+        <h2 className="font-display text-h3 font-bold text-ink mb-8">
+          {t('about.team.title')}
+        </h2>
+        <p className="font-body text-body-sm text-ink-faded mb-8">
+          {t('about.team.subtitle')}
+        </p>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
           {TEAM_MEMBERS.map((member, i) => (
@@ -215,7 +204,9 @@ export default function About() {
           transition={{ duration: 0.6 }}
           className="text-center"
         >
-          <NumberedSectionHeading number="04" title={t('about.cta.title', 'Get Involved')} />
+          <h2 className="font-display text-h3 font-bold text-ink mb-8">
+            {t('about.cta.title', 'Get Involved')}
+          </h2>
           <p className="font-body text-body-sm text-ink-faded leading-relaxed max-w-[540px] mx-auto mb-8">
             {t('about.cta.body', 'Whether you donate, volunteer, or simply share our stories — every action helps a child\'s imagination reach the world.')}
           </p>

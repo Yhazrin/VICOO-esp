@@ -569,7 +569,7 @@ function StatCard({
       </div>
 
       {/* Number */}
-      <div className="font-display text-h2 md:text-h1 font-bold text-ink leading-none tracking-tight mb-3">
+      <div className="font-display text-h2 md:text-h1 font-medium text-ink leading-none tracking-wide mb-3">
         {stat.prefix}{displayValue.toLocaleString()}
       </div>
 

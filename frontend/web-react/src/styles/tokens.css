@@ -3,6 +3,15 @@
    1990s Editorial / Print-Inspired / Humanistic
    ───────────────────────────────────────────────────────────── */
 
+/* ── Local Font: Smiley Sans (得意黑) ── */
+@font-face {
+  font-family: 'Smiley Sans';
+  src: url('../fonts/SmileySans-Oblique.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   /* ── Color Palette — Paper & Ink ── */
   --color-paper: #F5F0E8;
@@ -46,8 +55,8 @@
   --color-info: #3D4A5C;
 
   /* ── Typography ── */
-  --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
-  --font-mono: 'IBM Plex Mono', 'Courier New', Courier, monospace;
+  --font-display: 'Smiley Sans', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'Inter', 'Source Sans Pro', sans-serif;
   --font-ui: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
   /* ── Font Sizes — Modular Scale (1.25 ratio) ── */

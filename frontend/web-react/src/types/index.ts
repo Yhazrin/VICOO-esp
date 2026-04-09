@@ -90,6 +90,16 @@ export interface Product {
   supplyChain: SupplyChainTimelineRecord[];
   /** Sustainability score (0-100) based on GOTS/SA8000/LCA audits. See /sustainability-methodology for scoring details. */
   sustainabilityScore: number;
+  /** Whether this product belongs to the impact/charity shop (children's artwork) */
+  isImpactProduct?: boolean;
+  /** Linked campaign ID for impact products */
+  campaignId?: number | null;
+  /** Percentage of sale price donated to public welfare */
+  donationPercentage?: number;
+  /** Available sizes for this product */
+  sizes?: string[];
+  /** Available colors for this product (name + hex) */
+  colors?: { name: string; hex: string }[];
 }
 
 /** Frontend display type for TraceabilityTimeline — not a direct API response type */
@@ -133,6 +143,8 @@ export interface Donation {
 export interface CartItem {
   product: Product;
   quantity: number;
+  selectedSize?: string;
+  selectedColor?: string;
 }
 
 /** @deprecated 请使用 services/orders 的 OrderDetail（与 API 字段一致） */
@@ -222,6 +234,7 @@ export interface CreateDonationRequest {
 export interface CreateOrderRequest {
   items: { product_id: number; quantity: number }[];
   shipping_address?: string;
+  address_id?: number;
   payment_method?: 'wechat' | 'alipay' | 'stripe' | 'paypal';
 }
 

@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import BleedTitleBlock from '@/components/editorial/BleedTitleBlock';
-import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeading';
+
 import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
 import DonationPanel from '@/components/editorial/DonationPanel';
@@ -103,7 +103,9 @@ export default function CampaignDetail() {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-16">
             {/* Main content */}
             <div className="md:col-span-7">
-              <NumberedSectionHeading number="01" title={t('campaigns.detail.about')} />
+              <h2 className="font-display text-h3 font-bold text-ink mb-8">
+                {t('campaigns.detail.about')}
+              </h2>
               <p className="font-body text-body-sm text-ink-faded leading-[1.8] mb-6">
                 {campaign.description}
               </p>
@@ -175,7 +177,9 @@ export default function CampaignDetail() {
       {/* Campaign Artworks */}
       <PaperTextureBackground variant="aged" className="py-16 md:py-24">
         <SectionContainer>
-          <NumberedSectionHeading number="02" title={t('campaigns.detail.artworks')} />
+          <h2 className="font-display text-h3 font-bold text-ink mb-8">
+            {t('campaigns.detail.artworks')}
+          </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
             {(campaignArtworks ?? []).map((artwork, index) => (
               <ArtworkCard key={artwork.id} artwork={artwork} index={index} />

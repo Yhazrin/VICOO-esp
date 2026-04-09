@@ -20,13 +20,46 @@ class OrderService(BaseService):
     Service handling e-commerce orders and inventory management.
     """
 
-    async def list_orders(self, user_id: int, page: int = 1, page_size: int = 20) -> Tuple[List[Order], int]:
+    async def list_orders(
+        self,
+        user_id: int,
+        page: int = 1,
+        page_size: int = 20,
+        status: Optional[str] = None,
+        keyword: Optional[str] = None,
+        date_from: Optional[str] = None,
+        date_to: Optional[str] = None,
+    ) -> Tuple[List[Order], int]:
         """
-        List orders for a specific user with pagination.
+        List orders for a specific user with pagination and optional filters.
         """
         stmt = select(Order).where(Order.user_id == user_id)
         count_stmt = select(func.count(Order.id)).where(Order.user_id == user_id)
-        
+
+        if status:
+            stmt = stmt.where(Order.status == status)
+            count_stmt = count_stmt.where(Order.status == status)
+        if keyword:
+            like = f"%{keyword}%"
+            stmt = stmt.where(Order.order_no.ilike(like))
+            count_stmt = count_stmt.where(Order.order_no.ilike(like))
+        if date_from:
+            from datetime import datetime as dt
+            try:
+                d = dt.fromisoformat(date_from)
+                stmt = stmt.where(Order.created_at >= d)
+                count_stmt = count_stmt.where(Order.created_at >= d)
+            except ValueError:
+                pass
+        if date_to:
+            from datetime import datetime as dt
+            try:
+                d = dt.fromisoformat(date_to)
+                stmt = stmt.where(Order.created_at <= d)
+                count_stmt = count_stmt.where(Order.created_at <= d)
+            except ValueError:
+                pass
+
         total = (await self.db.execute(count_stmt)).scalar() or 0
         stmt = stmt.order_by(Order.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
         result = await self.db.execute(stmt)

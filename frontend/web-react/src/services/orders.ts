@@ -5,6 +5,8 @@ import type { CreateOrderRequest } from '@/types';
 export interface OrderLineItem {
   id: number;
   product_id: number;
+  product_name?: string | null;
+  product_image?: string | null;
   quantity: number;
   price: string;
 }
@@ -33,6 +35,24 @@ export interface OrderDetail {
   updated_at: string;
 }
 
+export interface OrderFilters {
+  status?: string;
+  keyword?: string;
+  date_from?: string;
+  date_to?: string;
+  page?: number;
+  page_size?: number;
+}
+
+export interface ReturnRequestData {
+  type: 'return' | 'exchange';
+  items: { order_item_id: number; quantity: number }[];
+  reason?: string;
+  exchange_product_id?: number;
+  exchange_size?: string;
+  exchange_color?: string;
+}
+
 export const ordersApi = {
   create: async (data: CreateOrderRequest): Promise<OrderDetail> => {
     const response = await api.post('/orders', data);
@@ -44,13 +64,26 @@ export const ordersApi = {
     return response.data.data;
   },
 
-  getMyOrders: async (): Promise<OrderDetail[]> => {
-    const response = await api.get('/orders/mine');
+  getMyOrders: async (filters?: OrderFilters): Promise<OrderDetail[]> => {
+    const params = new URLSearchParams();
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.keyword) params.append('keyword', filters.keyword);
+    if (filters?.date_from) params.append('date_from', filters.date_from);
+    if (filters?.date_to) params.append('date_to', filters.date_to);
+    if (filters?.page) params.append('page', String(filters.page));
+    if (filters?.page_size) params.append('page_size', String(filters.page_size));
+    const qs = params.toString();
+    const response = await api.get(`/orders/mine${qs ? `?${qs}` : ''}`);
     return response.data.data;
   },
 
   cancel: async (id: string): Promise<OrderDetail> => {
     const response = await api.post(`/orders/${id}/cancel`);
+    return response.data.data;
+  },
+
+  requestReturn: async (orderId: string, data: ReturnRequestData) => {
+    const response = await api.post(`/orders/${orderId}/return`, data);
     return response.data.data;
   },
 };
