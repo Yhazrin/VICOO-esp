@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
-import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeading';
+
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
 import TraceabilityTimeline from '@/components/editorial/TraceabilityTimeline';
@@ -94,6 +94,7 @@ export default function ProductDetail() {
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
+  const setCartOpen = useCartStore((s) => s.setCartOpen);
   const addedTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
@@ -106,6 +107,7 @@ export default function ProductDetail() {
     if (!product) return;
     addItem(product, quantity);
     setAdded(true);
+    setCartOpen(true);
     if (addedTimeoutRef.current) clearTimeout(addedTimeoutRef.current);
     addedTimeoutRef.current = setTimeout(() => setAdded(false), 2000);
   };
@@ -276,11 +278,12 @@ export default function ProductDetail() {
       {/* Supply Chain Journey */}
       <PaperTextureBackground variant="aged" className="py-16 md:py-24">
         <SectionContainer>
-          <NumberedSectionHeading
-            number="01"
-            title={t('shop.detail.supplyChain')}
-            subtitle={`Total carbon footprint: ${totalCarbon.toFixed(1)} kg CO\u2082e \u00b7 Offset via verified programs`}
-          />
+          <h2 className="font-display text-h3 font-bold text-ink mb-8">
+            {t('shop.detail.supplyChain')}
+          </h2>
+          <p className="font-body text-body-sm text-ink-faded mt-2 mb-8">
+            {`Total carbon footprint: ${totalCarbon.toFixed(1)} kg CO\u2082e \u00b7 Offset via verified programs`}
+          </p>
           <TraceabilityTimeline records={supplyChain} />
         </SectionContainer>
       </PaperTextureBackground>
@@ -288,7 +291,9 @@ export default function ProductDetail() {
       {/* Reviews */}
       <PaperTextureBackground variant="paper" className="py-16 md:py-24">
         <SectionContainer>
-          <NumberedSectionHeading number="02" title={t('shop.detail.reviews', '评价')} />
+          <h2 className="font-display text-h3 font-bold text-ink mb-8">
+            {t('shop.detail.reviews', '评价')}
+          </h2>
           <ul className="space-y-4 mb-10">
             {(reviewsResult?.data ?? []).length === 0 && (
               <li className="font-body text-caption text-ink-faded">{t('shop.detail.noReviews', '暂无评价')}</li>

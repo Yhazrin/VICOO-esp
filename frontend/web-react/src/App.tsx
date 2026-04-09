@@ -26,6 +26,8 @@ import OrderDetail from '@/pages/OrderDetail';
 import DonateClothing from '@/pages/DonateClothing';
 import Support from '@/pages/Support';
 import AiAssistant from '@/pages/AiAssistant';
+import Checkout from '@/pages/Checkout';
+import CartDrawer from '@/components/cart/CartDrawer';
 import { useSessionRestore } from '@/hooks/useSessionRestore';
 import { Toaster } from 'react-hot-toast';
 import { useEffect } from 'react';
@@ -78,6 +80,7 @@ function AnimatedRoutes() {
             <Route path="register" element={<ErrorBoundary><Register /></ErrorBoundary>} />
             <Route path="profile" element={<ErrorBoundary><Profile /></ErrorBoundary>} />
             <Route path="orders/:id" element={<ErrorBoundary><OrderDetail /></ErrorBoundary>} />
+            <Route path="checkout" element={<ErrorBoundary><Checkout /></ErrorBoundary>} />
             <Route path="support" element={<ErrorBoundary><Support /></ErrorBoundary>} />
             <Route path="assistant" element={<ErrorBoundary><AiAssistant /></ErrorBoundary>} />
             <Route path="privacy" element={<ErrorBoundary><Privacy /></ErrorBoundary>} />
@@ -134,6 +137,7 @@ export default function App() {
         }}
       />
       <AnimatedRoutes />
+      <CartDrawer />
     </>
   );
 }
