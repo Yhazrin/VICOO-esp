@@ -27,30 +27,41 @@
     "logoutSuccess": "退出成功"
   },
   "login": {
-    "title": "登录",
+    "title": "欢迎回来",
+    "subtitle": "登录以继续您的旅程。",
     "email": "邮箱",
     "password": "密码",
     "rememberMe": "记住我",
-    "forgotPassword": "忘记密码",
+    "forgotPassword": "忘记密码？",
     "submit": "登录",
-    "submitting": "正在登录...",
-    "register": "注册新账号",
+    "submitting": "登录中...",
+    "register": "创建账户",
     "orContinueWith": "或使用以下方式继续",
+    "wechat": "微信",
     "error": {
       "invalidCredentials": "邮箱或密码错误",
       "userNotFound": "用户不存在"
     }
   },
   "register": {
-    "title": "注册",
+    "title": "加入我们的社区",
+    "subtitle": "创建账户，开始您的旅程。",
+    "nickname": "昵称",
     "email": "邮箱",
     "password": "密码",
-    "nickname": "昵称",
-    "submit": "创建账号",
-    "submitting": "正在创建...",
-    "login": "已有账号？登录",
+    "confirmPassword": "确认密码",
+    "submit": "创建账户",
+    "submitting": "创建中...",
+    "login": "登录",
+    "orContinueWith": "或使用以下方式继续",
+    "wechat": "微信",
+    "alreadyHaveAccount": "已有账户？",
     "error": {
       "userExists": "用户已存在"
+    },
+    "errors": {
+      "passwordMismatch": "密码不匹配",
+      "passwordTooShort": "密码至少需要8个字符"
     }
   },
   "profile": {
@@ -59,9 +70,71 @@
     "accountDetails": "账户详情",
     "userId": "用户ID",
     "role": "角色",
-    "productFallback": "商品"
+    "productFallback": "商品",
+    "orderHistory": "订单历史",
+    "donationHistory": "捐赠历史",
+    "clothingIntakes": "衣物捐献",
+    "afterSales": "售后",
+    "orderNo": "单号",
+    "viewLogistics": "查看物流与详情",
+    "clothingIntakeProgress": "衣物捐献进度",
+    "newClothingIntake": "登记新的衣物捐献",
+    "intakesError": "暂时无法加载衣物登记。",
+    "noIntakes": "暂无登记",
+    "viewLinkedProduct": "查看关联商品",
+    "afterSalesService": "售后服务",
+    "newTicket": "提交售后工单",
+    "ticketsError": "暂时无法加载售后单。",
+    "noTickets": "暂无工单",
+    "orderId": "订单",
+    "ordersError": "暂时无法加载订单。",
+    "noOrders": "暂无订单",
+    "browseShop": "浏览商城",
+    "donationsError": "暂时无法加载捐赠记录。",
+    "noDonations": "暂无捐赠",
+    "makeDonation": "进行捐赠",
+    "anonymous": "匿名捐赠",
+    "logistics": "物流",
+    "total": "合计",
+    "viewDetails": "查看详情",
+    "tabs": {
+      "orders": "我的订单",
+      "donations": "我的捐赠",
+      "clothing": "衣物捐献",
+      "support": "售后服务",
+      "addresses": "地址管理"
+    },
+    "cancelOrder": "取消订单",
+    "orders": {
+      "filterAll": "全部",
+      "filterPending": "待付款",
+      "filterPaid": "已付款",
+      "filterShipped": "已发货",
+      "filterCompleted": "已完成",
+      "filterCancelled": "已取消",
+      "searchPlaceholder": "搜索订单号..."
+    },
+    "addresses": {
+      "title": "收货地址",
+      "addAddress": "添加地址",
+      "editAddress": "编辑地址",
+      "deleteAddress": "删除地址",
+      "setDefault": "设为默认",
+      "label": "标签",
+      "labelPlaceholder": "家 / 公司",
+      "recipient": "收件人",
+      "phone": "电话",
+      "province": "省份",
+      "city": "城市",
+      "district": "区/县",
+      "detailAddress": "详细地址",
+      "postalCode": "邮编",
+      "noAddresses": "暂无保存的地址",
+      "defaultBadge": "默认"
+    }
   },
   "home": {
+    "est": "创立于 2026",
     "hero": {
       "title": "小手编织时尚的未来",
       "subtitle": "每一个孩子的想象力，都编织成可持续的丝线。每一份购买，都是迈向更公平世界的一步。",
@@ -796,37 +869,6 @@
       }
     }
   },
-  "login": {
-    "title": "欢迎回来",
-    "subtitle": "登录以继续您的旅程。",
-    "email": "邮箱",
-    "password": "密码",
-    "submit": "登录",
-    "register": "创建账户",
-    "forgotPassword": "忘记密码？",
-    "orContinueWith": "或使用以下方式继续",
-    "wechat": "微信",
-    "rememberMe": "记住我",
-    "submitting": "登录中..."
-  },
-  "register": {
-    "title": "加入我们的社区",
-    "subtitle": "创建账户，开始您的旅程。",
-    "nickname": "昵称",
-    "email": "邮箱",
-    "password": "密码",
-    "confirmPassword": "确认密码",
-    "submit": "创建账户",
-    "submitting": "创建中...",
-    "login": "登录",
-    "orContinueWith": "或使用以下方式继续",
-    "wechat": "微信",
-    "alreadyHaveAccount": "已有账户？",
-    "errors": {
-      "passwordMismatch": "密码不匹配",
-      "passwordTooShort": "密码至少需要8个字符"
-    }
-  },
   "notFound": {
     "title": "页面未找到",
     "subtitle": "这个章节似乎从我们的出版物中遗失了。",
@@ -896,7 +938,12 @@
     },
     "emailAriaLabel": "电子邮箱",
     "emailPlaceholder": "your@email.com",
-    "allRightsReserved": "保留所有权利。"
+    "allRightsReserved": "保留所有权利。",
+    "save": "保存",
+    "cancel": "取消",
+    "edit": "编辑",
+    "delete": "删除",
+    "scroll": "滚动"
   },
   "error": {
     "somethingWentWrong": "出了点问题",
@@ -969,75 +1016,6 @@
     "demomode": "演示模式",
     "userLabel": "您",
     "assistantLabel": "助手"
-  },
-  "profile": {
-    "title": "个人中心",
-    "notLoggedIn": "请登录以查看您的个人资料。",
-    "accountDetails": "账户详情",
-    "userId": "用户ID",
-    "role": "角色",
-    "productFallback": "商品",
-    "orderHistory": "订单历史",
-    "donationHistory": "捐赠历史",
-    "clothingIntakes": "衣物捐献",
-    "afterSales": "售后",
-    "orderNo": "单号",
-    "viewLogistics": "查看物流与详情",
-    "clothingIntakeProgress": "衣物捐献进度",
-    "newClothingIntake": "登记新的衣物捐献",
-    "intakesError": "暂时无法加载衣物登记。",
-    "noIntakes": "暂无登记",
-    "viewLinkedProduct": "查看关联商品",
-    "afterSalesService": "售后服务",
-    "newTicket": "提交售后工单",
-    "ticketsError": "暂时无法加载售后单。",
-    "noTickets": "暂无工单",
-    "orderId": "订单",
-    "ordersError": "暂时无法加载订单。",
-    "noOrders": "暂无订单",
-    "browseShop": "浏览商城",
-    "donationsError": "暂时无法加载捐赠记录。",
-    "noDonations": "暂无捐赠",
-    "makeDonation": "进行捐赠",
-    "anonymous": "匿名捐赠",
-    "logistics": "物流",
-    "total": "合计",
-    "viewDetails": "查看详情",
-    "tabs": {
-      "orders": "我的订单",
-      "donations": "我的捐赠",
-      "clothing": "衣物捐献",
-      "support": "售后服务",
-      "addresses": "地址管理"
-    },
-    "cancelOrder": "取消订单",
-    "orders": {
-      "filterAll": "全部",
-      "filterPending": "待付款",
-      "filterPaid": "已付款",
-      "filterShipped": "已发货",
-      "filterCompleted": "已完成",
-      "filterCancelled": "已取消",
-      "searchPlaceholder": "搜索订单号..."
-    },
-    "addresses": {
-      "title": "收货地址",
-      "addAddress": "添加地址",
-      "editAddress": "编辑地址",
-      "deleteAddress": "删除地址",
-      "setDefault": "设为默认",
-      "label": "标签",
-      "labelPlaceholder": "家 / 公司",
-      "recipient": "收件人",
-      "phone": "电话",
-      "province": "省份",
-      "city": "城市",
-      "district": "区/县",
-      "detailAddress": "详细地址",
-      "postalCode": "邮编",
-      "noAddresses": "暂无保存的地址",
-      "defaultBadge": "默认"
-    }
   },
   "orderDetail": {
     "error": "无法加载订单",
@@ -1116,13 +1094,5 @@
     "savedAddresses": "已保存的地址",
     "enterNewAddress": "输入新地址",
     "saveAddress": "保存到地址簿"
-  },
-  "common": {
-    "loading": "加载中...",
-    "save": "保存",
-    "cancel": "取消",
-    "edit": "编辑",
-    "delete": "删除",
-    "close": "关闭"
   }
 }
