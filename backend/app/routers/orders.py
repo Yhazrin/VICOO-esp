@@ -17,6 +17,7 @@ from app.schemas import (
     OrderStatusUpdate,
     PaginatedResponse,
 )
+from app.schemas.order import ReturnRequestCreate
 from app.deps import get_current_user, require_role
 from app.security import generate_order_no
 from app.services.payment_service import get_payment_service
@@ -212,13 +213,20 @@ async def list_orders(
 async def my_orders(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
+    status: str | None = Query(None),
+    keyword: str | None = Query(None),
+    date_from: str | None = Query(None),
+    date_to: str | None = Query(None),
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Get current user's orders."""
+    """Get current user's orders with optional filters."""
     order_service = OrderService(db)
     try:
-        orders, total = await order_service.list_orders(current_user["id"], page, page_size)
+        orders, total = await order_service.list_orders(
+            current_user["id"], page, page_size,
+            status=status, keyword=keyword, date_from=date_from, date_to=date_to,
+        )
         data = []
         for order in orders:
             item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
@@ -243,7 +251,19 @@ async def create_order(
     """Create a new order with inventory reservation. (Refactored)"""
     order_service = OrderService(db)
     try:
-        order = await order_service.place_order(current_user["id"], body.model_dump())
+        # Resolve address_id to shipping_address string
+        order_data = body.model_dump()
+        if body.address_id:
+            from app.models.address import Address
+            addr_stmt = select(Address).where(Address.id == body.address_id, Address.user_id == current_user["id"])
+            addr_result = await db.execute(addr_stmt)
+            addr = addr_result.scalar_one_or_none()
+            if not addr:
+                raise HTTPException(status_code=404, detail="Address not found")
+            parts = [addr.province, addr.city, addr.district, addr.detail_address]
+            order_data["shipping_address"] = f"{addr.recipient_name} {addr.phone}, " + " ".join(p for p in parts if p)
+
+        order = await order_service.place_order(current_user["id"], order_data)
         await db.commit()
         
         # Re-fetch with items for full detail
@@ -379,3 +399,72 @@ async def update_order_logistics(
     items = (await db.execute(item_stmt)).scalars().all()
     product_map = await _build_product_map(db, items)
     return ApiResponse(data=order_to_out_dict(order, list(items), product_map))
+
+
+@router.post("/{order_id}/return", response_model=ApiResponse, status_code=201)
+async def request_return(
+    order_id: int,
+    body: ReturnRequestCreate,
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Request a return or exchange for a completed order."""
+    from app.models.circular_commerce import AfterSaleTicket
+
+    # Validate order exists and belongs to user
+    stmt = select(Order).where(Order.id == order_id)
+    result = await db.execute(stmt)
+    order = result.scalar_one_or_none()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if order.user_id != current_user["id"] and current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Access denied")
+    if order.status != "completed":
+        raise HTTPException(status_code=400, detail="Can only request returns for completed orders")
+
+    # Validate items belong to this order
+    item_stmt = select(OrderItem).where(OrderItem.order_id == order_id)
+    order_items = {i.id: i for i in (await db.execute(item_stmt)).scalars().all()}
+
+    for ri in body.items:
+        if ri.order_item_id not in order_items:
+            raise HTTPException(status_code=400, detail=f"Order item {ri.order_item_id} not found in this order")
+        if ri.quantity > order_items[ri.order_item_id].quantity:
+            raise HTTPException(status_code=400, detail=f"Return quantity exceeds ordered quantity for item {ri.order_item_id}")
+
+    # Build structured description
+    items_desc = []
+    for ri in body.items:
+        oi = order_items[ri.order_item_id]
+        items_desc.append({
+            "order_item_id": ri.order_item_id,
+            "product_id": oi.product_id,
+            "quantity": ri.quantity,
+            "price": str(oi.price),
+        })
+
+    import json as _json
+    description_parts = [f"Items: {_json.dumps(items_desc, ensure_ascii=False)}"]
+    if body.reason:
+        description_parts.append(f"Reason: {body.reason}")
+    if body.type == "exchange":
+        if body.exchange_product_id:
+            description_parts.append(f"Exchange product ID: {body.exchange_product_id}")
+        if body.exchange_size:
+            description_parts.append(f"Exchange size: {body.exchange_size}")
+        if body.exchange_color:
+            description_parts.append(f"Exchange color: {body.exchange_color}")
+
+    ticket = AfterSaleTicket(
+        user_id=current_user["id"],
+        order_id=order_id,
+        category=body.type,
+        status="open",
+        subject=f"{'退货' if body.type == 'return' else '换货'}申请 - {order.order_no}",
+        description="\n".join(description_parts),
+    )
+    db.add(ticket)
+    await db.flush()
+
+    from app.schemas.circular_commerce import AfterSaleOut
+    return ApiResponse(data=AfterSaleOut.model_validate(ticket).model_dump())

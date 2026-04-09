@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from 'i18next';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
@@ -17,6 +17,7 @@ import { ordersApi, type OrderDetail } from '@/services/orders';
 import { donationsApi } from '@/services/donations';
 import { clothingIntakesApi, type ClothingIntake } from '@/services/clothingIntakes';
 import { afterSalesApi, type AfterSaleTicket } from '@/services/afterSales';
+import { addressesApi, type Address, type AddressCreateData } from '@/services/addresses';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'text-sepia-mid',
@@ -29,6 +30,10 @@ const STATUS_COLORS: Record<string, string> = {
   refunded: 'text-sepia-mid',
 };
 
+type TabKey = 'orders' | 'donations' | 'clothing' | 'support' | 'addresses';
+
+const ORDER_STATUSES = ['', 'pending', 'paid', 'shipped', 'completed', 'cancelled'] as const;
+
 export default function Profile() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -36,12 +41,24 @@ export default function Profile() {
   const { user, isAuthenticated } = useAuthStore();
   const { logout } = useAuth();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<'orders' | 'donations' | 'clothing' | 'support'>('orders');
+  const [activeTab, setActiveTab] = useState<TabKey>('orders');
 
-  const tabs: Array<'orders' | 'donations' | 'clothing' | 'support'> = ['orders', 'donations', 'clothing', 'support'];
+  // Order filters
+  const [orderStatus, setOrderStatus] = useState('');
+  const [orderKeyword, setOrderKeyword] = useState('');
+
+  // Address form state
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<Address | null>(null);
+  const [addressForm, setAddressForm] = useState<AddressCreateData>({
+    label: '', recipient_name: '', phone: '', province: '', city: '',
+    district: '', detail_address: '', postal_code: '', is_default: false,
+  });
+
+  const tabs: TabKey[] = ['orders', 'donations', 'clothing', 'support', 'addresses'];
 
   const handleTabKeyDown = useCallback(
-    (e: React.KeyboardEvent, tab: 'orders' | 'donations' | 'clothing' | 'support') => {
+    (e: React.KeyboardEvent, tab: TabKey) => {
       const idx = tabs.indexOf(tab);
       if (e.key === 'ArrowRight') {
         e.preventDefault();
@@ -59,8 +76,11 @@ export default function Profile() {
   );
 
   const { data: orders = [], isLoading: loadingOrders, isError: errorOrders } = useQuery({
-    queryKey: ['my-orders'],
-    queryFn: () => ordersApi.getMyOrders(),
+    queryKey: ['my-orders', orderStatus, orderKeyword],
+    queryFn: () => ordersApi.getMyOrders({
+      status: orderStatus || undefined,
+      keyword: orderKeyword || undefined,
+    }),
     enabled: isAuthenticated,
   });
 
@@ -82,9 +102,63 @@ export default function Profile() {
     enabled: isAuthenticated,
   });
 
+  const { data: addresses = [], isLoading: loadingAddresses } = useQuery({
+    queryKey: ['my-addresses'],
+    queryFn: () => addressesApi.getAll(),
+    enabled: isAuthenticated,
+  });
+
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+
+  const resetAddressForm = () => {
+    setAddressForm({ label: '', recipient_name: '', phone: '', province: '', city: '', district: '', detail_address: '', postal_code: '', is_default: false });
+    setEditingAddress(null);
+    setShowAddressForm(false);
+  };
+
+  const handleSaveAddress = async () => {
+    try {
+      if (editingAddress) {
+        await addressesApi.update(editingAddress.id, addressForm);
+      } else {
+        await addressesApi.create(addressForm);
+      }
+      queryClient.invalidateQueries({ queryKey: ['my-addresses'] });
+      resetAddressForm();
+    } catch { /* silent */ }
+  };
+
+  const handleDeleteAddress = async (id: number) => {
+    try {
+      await addressesApi.remove(id);
+      queryClient.invalidateQueries({ queryKey: ['my-addresses'] });
+    } catch { /* silent */ }
+  };
+
+  const handleSetDefault = async (id: number) => {
+    try {
+      await addressesApi.setDefault(id);
+      queryClient.invalidateQueries({ queryKey: ['my-addresses'] });
+    } catch { /* silent */ }
+  };
+
+  const startEditAddress = (addr: Address) => {
+    setAddressForm({
+      label: addr.label || '',
+      recipient_name: addr.recipient_name,
+      phone: addr.phone,
+      province: addr.province,
+      city: addr.city,
+      district: addr.district || '',
+      detail_address: addr.detail_address,
+      postal_code: addr.postal_code || '',
+      is_default: addr.is_default,
+    });
+    setEditingAddress(addr);
+    setShowAddressForm(true);
   };
 
   if (!isAuthenticated || !user) {
@@ -212,7 +286,7 @@ export default function Profile() {
 
       <MagazineDivider variant="decorative" />
 
-      {/* Orders & Donations */}
+      {/* Orders & Donations & Addresses */}
       <PaperTextureBackground variant="aged" className="py-16 md:py-24 relative">
         <GrainOverlay />
         <SectionContainer>
@@ -222,94 +296,81 @@ export default function Profile() {
             className="flex items-center mb-12 rounded-full bg-white/80 backdrop-blur-xl shadow-sm px-2 py-1 overflow-x-auto"
             role="tablist"
             onKeyDown={(e) => {
-              const tabs = e.currentTarget.querySelectorAll('[role="tab"]');
-              const tabIds = ['orders', 'donations', 'clothing', 'support'] as const;
+              const tabIds = ['orders', 'donations', 'clothing', 'support', 'addresses'] as const;
               const currentIndex = tabIds.indexOf(activeTab);
               if (e.key === 'ArrowRight') {
                 e.preventDefault();
                 const next = tabIds[(currentIndex + 1) % tabIds.length];
                 setActiveTab(next);
-                (tabs[(currentIndex + 1) % tabs.length] as HTMLElement)?.focus();
+                (e.currentTarget.querySelectorAll('[role="tab"]')[(currentIndex + 1) % tabIds.length] as HTMLElement)?.focus();
               } else if (e.key === 'ArrowLeft') {
                 e.preventDefault();
                 const prev = tabIds[(currentIndex - 1 + tabIds.length) % tabIds.length];
                 setActiveTab(prev);
-                (tabs[(currentIndex - 1 + tabs.length) % tabIds.length] as HTMLElement)?.focus();
+                (e.currentTarget.querySelectorAll('[role="tab"]')[(currentIndex - 1 + tabIds.length) % tabIds.length] as HTMLElement)?.focus();
               }
             }}
           >
-            <button
-              role="tab"
-              id="tab-orders"
-              aria-selected={activeTab === 'orders'}
-              aria-controls="panel-orders"
-              tabIndex={activeTab === 'orders' ? 0 : -1}
-              onClick={() => setActiveTab('orders')}
-              onKeyDown={(e) => handleTabKeyDown(e, 'orders')}
-              className={`font-body text-label tracking-wide px-3 py-1 rounded-full transition-all duration-200 cursor-pointer whitespace-nowrap ${
-                activeTab === 'orders'
-                  ? 'text-ink font-medium bg-rust/15'
-                  : 'text-ink-faded hover:text-ink'
-              }`}
-            >
-              {t('profile.tabs.orders')} ({orders.length})
-            </button>
-            <button
-              role="tab"
-              id="tab-donations"
-              aria-selected={activeTab === 'donations'}
-              aria-controls="panel-donations"
-              tabIndex={activeTab === 'donations' ? 0 : -1}
-              onClick={() => setActiveTab('donations')}
-              onKeyDown={(e) => handleTabKeyDown(e, 'donations')}
-              className={`font-body text-label tracking-wide px-3 py-1 rounded-full transition-all duration-200 cursor-pointer whitespace-nowrap ${
-                activeTab === 'donations'
-                  ? 'text-ink font-medium bg-rust/15'
-                  : 'text-ink-faded hover:text-ink'
-              }`}
-            >
-              {t('profile.tabs.donations')} ({donations.length})
-            </button>
-            <button
-              role="tab"
-              id="tab-clothing"
-              aria-selected={activeTab === 'clothing'}
-              aria-controls="panel-clothing"
-              tabIndex={activeTab === 'clothing' ? 0 : -1}
-              onClick={() => setActiveTab('clothing')}
-              onKeyDown={(e) => handleTabKeyDown(e, 'clothing')}
-              className={`font-body text-label tracking-wide px-3 py-1 rounded-full transition-all duration-200 cursor-pointer whitespace-nowrap ${
-                activeTab === 'clothing'
-                  ? 'text-ink font-medium bg-rust/15'
-                  : 'text-ink-faded hover:text-ink'
-              }`}
-            >
-              {t('profile.tabs.clothing')} ({intakes.length})
-            </button>
-            <button
-              role="tab"
-              id="tab-support"
-              aria-selected={activeTab === 'support'}
-              aria-controls="panel-support"
-              tabIndex={activeTab === 'support' ? 0 : -1}
-              onClick={() => setActiveTab('support')}
-              onKeyDown={(e) => handleTabKeyDown(e, 'support')}
-              className={`font-body text-label tracking-wide px-3 py-1 rounded-full transition-all duration-200 cursor-pointer whitespace-nowrap ${
-                activeTab === 'support'
-                  ? 'text-ink font-medium bg-rust/15'
-                  : 'text-ink-faded hover:text-ink'
-              }`}
-            >
-              {t('profile.tabs.support')} ({tickets.length})
-            </button>
+            {tabs.map((tab) => (
+              <button
+                key={tab}
+                role="tab"
+                id={`tab-${tab}`}
+                aria-selected={activeTab === tab}
+                aria-controls={`panel-${tab}`}
+                tabIndex={activeTab === tab ? 0 : -1}
+                onClick={() => setActiveTab(tab)}
+                onKeyDown={(e) => handleTabKeyDown(e, tab)}
+                className={`font-body text-label tracking-wide px-3 py-1 rounded-full transition-all duration-200 cursor-pointer whitespace-nowrap ${
+                  activeTab === tab
+                    ? 'text-ink font-medium bg-rust/15'
+                    : 'text-ink-faded hover:text-ink'
+                }`}
+              >
+                {t(`profile.tabs.${tab}`)} ({
+                  tab === 'orders' ? orders.length :
+                  tab === 'donations' ? donations.length :
+                  tab === 'clothing' ? intakes.length :
+                  tab === 'support' ? tickets.length :
+                  addresses.length
+                })
+              </button>
+            ))}
           </div>
 
           {/* Orders tab */}
           {activeTab === 'orders' && (
             <div role="tabpanel" id="panel-orders" aria-labelledby="tab-orders">
-              <h2 className="font-display text-h3 font-bold text-ink mb-8">
+              <h2 className="font-display text-h3 font-bold text-ink mb-6">
                 {t('profile.orderHistory')}
               </h2>
+
+              {/* Order filters */}
+              <div className="flex flex-wrap items-center gap-3 mb-8">
+                {/* Status chips */}
+                {ORDER_STATUSES.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setOrderStatus(s)}
+                    className={`font-body text-[11px] tracking-[0.1em] uppercase px-3 py-1.5 border transition-all cursor-pointer ${
+                      orderStatus === s
+                        ? 'border-rust/50 bg-rust/10 text-ink'
+                        : 'border-warm-gray/25 text-sepia-mid hover:border-warm-gray/40'
+                    }`}
+                  >
+                    {s ? t(`profile.orders.filter${s.charAt(0).toUpperCase() + s.slice(1)}`, s) : t('profile.orders.filterAll', 'All')}
+                  </button>
+                ))}
+                {/* Search */}
+                <input
+                  type="text"
+                  value={orderKeyword}
+                  onChange={(e) => setOrderKeyword(e.target.value)}
+                  placeholder={t('profile.orders.searchPlaceholder', 'Search order number...')}
+                  className="ml-auto px-3 py-1.5 border border-warm-gray/25 bg-transparent font-body text-caption text-ink focus:outline-none focus:border-rust/50 transition-colors w-48"
+                />
+              </div>
+
               {loadingOrders ? (
                 <p className="font-body text-body-sm text-ink-faded">{t('common.loading', 'Loading...')}</p>
               ) : errorOrders ? (
@@ -452,7 +513,7 @@ export default function Profile() {
                     <EditorialCard
                       key={donation.id}
                       title={`${donation.currency} ${donation.amount.toFixed(2)}`}
-                      subtitle={new Date(donation.createdAt ?? donation.created_at).toLocaleDateString(i18n.language, {
+                      subtitle={new Date(donation.createdAt).toLocaleDateString(i18n.language, {
                         year: 'numeric',
                         month: 'short',
                         day: 'numeric',
@@ -553,6 +614,138 @@ export default function Profile() {
                         <p className="font-body text-caption text-ink-faded mt-2 border-l-2 border-warm-gray/30 pl-3">{tk.description}</p>
                       )}
                     </EditorialCard>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Addresses tab */}
+          {activeTab === 'addresses' && (
+            <div role="tabpanel" id="panel-addresses" aria-labelledby="tab-addresses">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="font-display text-h3 font-bold text-ink">
+                  {t('profile.addresses.title', '收货地址')}
+                </h2>
+                {!showAddressForm && (
+                  <button
+                    onClick={() => { resetAddressForm(); setShowAddressForm(true); }}
+                    className="font-body text-overline tracking-[0.1em] uppercase text-rust hover:text-rust-light transition-colors cursor-pointer"
+                  >
+                    + {t('profile.addresses.addAddress', '添加地址')}
+                  </button>
+                )}
+              </div>
+
+              {/* Address form */}
+              <AnimatePresence>
+                {showAddressForm && (
+                  <motion.div
+                    initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, height: 0 }}
+                    className="border border-warm-gray/25 bg-paper p-6 mb-8 overflow-hidden"
+                  >
+                    <h3 className="font-body text-label text-ink mb-4">
+                      {editingAddress ? t('profile.addresses.editAddress', '编辑地址') : t('profile.addresses.addAddress', '添加地址')}
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block font-body text-[10px] tracking-wider uppercase text-sepia-mid mb-1">{t('profile.addresses.label', '标签')}</label>
+                        <input type="text" value={addressForm.label} onChange={(e) => setAddressForm({ ...addressForm, label: e.target.value })} placeholder={t('profile.addresses.labelPlaceholder', '家 / 公司')} className="w-full px-3 py-2 border border-warm-gray/30 bg-transparent font-body text-body-sm text-ink focus:outline-none focus:border-rust/50" />
+                      </div>
+                      <div>
+                        <label className="block font-body text-[10px] tracking-wider uppercase text-sepia-mid mb-1">{t('profile.addresses.recipient', '收件人')}</label>
+                        <input type="text" value={addressForm.recipient_name} onChange={(e) => setAddressForm({ ...addressForm, recipient_name: e.target.value })} className="w-full px-3 py-2 border border-warm-gray/30 bg-transparent font-body text-body-sm text-ink focus:outline-none focus:border-rust/50" />
+                      </div>
+                      <div>
+                        <label className="block font-body text-[10px] tracking-wider uppercase text-sepia-mid mb-1">{t('profile.addresses.phone', '电话')}</label>
+                        <input type="tel" value={addressForm.phone} onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })} className="w-full px-3 py-2 border border-warm-gray/30 bg-transparent font-body text-body-sm text-ink focus:outline-none focus:border-rust/50" />
+                      </div>
+                      <div>
+                        <label className="block font-body text-[10px] tracking-wider uppercase text-sepia-mid mb-1">{t('profile.addresses.province', '省份')}</label>
+                        <input type="text" value={addressForm.province} onChange={(e) => setAddressForm({ ...addressForm, province: e.target.value })} className="w-full px-3 py-2 border border-warm-gray/30 bg-transparent font-body text-body-sm text-ink focus:outline-none focus:border-rust/50" />
+                      </div>
+                      <div>
+                        <label className="block font-body text-[10px] tracking-wider uppercase text-sepia-mid mb-1">{t('profile.addresses.city', '城市')}</label>
+                        <input type="text" value={addressForm.city} onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })} className="w-full px-3 py-2 border border-warm-gray/30 bg-transparent font-body text-body-sm text-ink focus:outline-none focus:border-rust/50" />
+                      </div>
+                      <div>
+                        <label className="block font-body text-[10px] tracking-wider uppercase text-sepia-mid mb-1">{t('profile.addresses.district', '区/县')}</label>
+                        <input type="text" value={addressForm.district} onChange={(e) => setAddressForm({ ...addressForm, district: e.target.value })} className="w-full px-3 py-2 border border-warm-gray/30 bg-transparent font-body text-body-sm text-ink focus:outline-none focus:border-rust/50" />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="block font-body text-[10px] tracking-wider uppercase text-sepia-mid mb-1">{t('profile.addresses.detailAddress', '详细地址')}</label>
+                        <input type="text" value={addressForm.detail_address} onChange={(e) => setAddressForm({ ...addressForm, detail_address: e.target.value })} className="w-full px-3 py-2 border border-warm-gray/30 bg-transparent font-body text-body-sm text-ink focus:outline-none focus:border-rust/50" />
+                      </div>
+                      <div>
+                        <label className="block font-body text-[10px] tracking-wider uppercase text-sepia-mid mb-1">{t('profile.addresses.postalCode', '邮编')}</label>
+                        <input type="text" value={addressForm.postal_code} onChange={(e) => setAddressForm({ ...addressForm, postal_code: e.target.value })} className="w-full px-3 py-2 border border-warm-gray/30 bg-transparent font-body text-body-sm text-ink focus:outline-none focus:border-rust/50" />
+                      </div>
+                      <div className="flex items-end">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input type="checkbox" checked={addressForm.is_default} onChange={(e) => setAddressForm({ ...addressForm, is_default: e.target.checked })} className="accent-rust" />
+                          <span className="font-body text-caption text-ink">{t('profile.addresses.setDefault', '设为默认')}</span>
+                        </label>
+                      </div>
+                    </div>
+                    <div className="flex gap-3 mt-6">
+                      <button onClick={handleSaveAddress} disabled={!addressForm.recipient_name || !addressForm.phone || !addressForm.province || !addressForm.city || !addressForm.detail_address} className="font-body text-label tracking-wide bg-ink text-paper px-6 py-2.5 hover:bg-rust transition-colors cursor-pointer disabled:opacity-40">
+                        {t('common.save', '保存')}
+                      </button>
+                      <button onClick={resetAddressForm} className="font-body text-label tracking-wide text-sepia-mid hover:text-ink transition-colors cursor-pointer">
+                        {t('common.cancel', '取消')}
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {loadingAddresses ? (
+                <p className="font-body text-body-sm text-ink-faded">{t('common.loading', 'Loading...')}</p>
+              ) : addresses.length === 0 && !showAddressForm ? (
+                <div className="text-center py-12">
+                  <p className="font-body text-body-sm text-ink-faded mb-4">
+                    {t('profile.addresses.noAddresses', '暂无保存的地址')}
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {addresses.map((addr) => (
+                    <div key={addr.id} className="border border-warm-gray/25 bg-paper p-5 hover:border-rust/25 transition-colors">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          {addr.label && (
+                            <span className="font-body text-overline tracking-[0.1em] uppercase text-sepia-mid bg-warm-gray/15 px-2 py-0.5">
+                              {addr.label}
+                            </span>
+                          )}
+                          {addr.is_default && (
+                            <span className="font-body text-[10px] tracking-wider uppercase text-sage border border-sage/30 bg-sage/5 px-2 py-0.5">
+                              {t('profile.addresses.defaultBadge', '默认')}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => startEditAddress(addr)} className="font-body text-[11px] text-sepia-mid hover:text-ink transition-colors cursor-pointer">
+                            {t('common.edit', '编辑')}
+                          </button>
+                          <button onClick={() => handleDeleteAddress(addr.id)} className="font-body text-[11px] text-rust hover:text-rust-light transition-colors cursor-pointer">
+                            {t('common.delete', '删除')}
+                          </button>
+                        </div>
+                      </div>
+                      <p className="font-body text-body-sm text-ink">{addr.recipient_name} · {addr.phone}</p>
+                      <p className="font-body text-caption text-ink-faded mt-1">
+                        {[addr.province, addr.city, addr.district, addr.detail_address].filter(Boolean).join(' ')}
+                        {addr.postal_code && ` (${addr.postal_code})`}
+                      </p>
+                      {!addr.is_default && (
+                        <button onClick={() => handleSetDefault(addr.id)} className="font-body text-[11px] text-rust hover:text-rust-light transition-colors cursor-pointer mt-2">
+                          {t('profile.addresses.setDefault', '设为默认')}
+                        </button>
+                      )}
+                    </div>
                   ))}
                 </div>
               )}

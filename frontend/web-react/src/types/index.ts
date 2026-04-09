@@ -234,6 +234,7 @@ export interface CreateDonationRequest {
 export interface CreateOrderRequest {
   items: { product_id: number; quantity: number }[];
   shipping_address?: string;
+  address_id?: number;
   payment_method?: 'wechat' | 'alipay' | 'stripe' | 'paypal';
 }
 

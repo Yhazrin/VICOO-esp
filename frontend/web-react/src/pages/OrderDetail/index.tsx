@@ -1,12 +1,13 @@
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
 import GrainOverlay from '@/components/editorial/GrainOverlay';
-import { ordersApi } from '@/services/orders';
+import { ordersApi, type ReturnRequestData } from '@/services/orders';
 import TraceabilityTimeline from '@/components/editorial/TraceabilityTimeline';
 import type { SupplyChainTimelineRecord } from '@/types';
 
@@ -23,9 +24,16 @@ const STATUS_COLORS: Record<string, string> = {
 export default function OrderDetail() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const prefersReducedMotion = useReducedMotion();
   const queryClient = useQueryClient();
+
+  // Return/exchange modal state
+  const [showReturnModal, setShowReturnModal] = useState(false);
+  const [returnType, setReturnType] = useState<'return' | 'exchange'>('return');
+  const [selectedItems, setSelectedItems] = useState<Record<number, number>>({});
+  const [returnReason, setReturnReason] = useState('');
+  const [isSubmittingReturn, setIsSubmittingReturn] = useState(false);
+  const [returnSuccess, setReturnSuccess] = useState(false);
 
   const { data: order, isLoading, isError } = useQuery({
     queryKey: ['order', id],
@@ -55,6 +63,51 @@ export default function OrderDetail() {
       await ordersApi.cancel(String(order.id));
       queryClient.invalidateQueries({ queryKey: ['order', id] });
     } catch { /* silent */ }
+  };
+
+  const toggleItemSelection = (itemId: number, _maxQty: number) => {
+    setSelectedItems((prev) => {
+      if (prev[itemId] !== undefined) {
+        const next = { ...prev };
+        delete next[itemId];
+        return next;
+      }
+      return { ...prev, [itemId]: 1 };
+    });
+  };
+
+  const updateItemQty = (itemId: number, qty: number, maxQty: number) => {
+    const clamped = Math.max(1, Math.min(qty, maxQty));
+    setSelectedItems((prev) => ({ ...prev, [itemId]: clamped }));
+  };
+
+  const handleSubmitReturn = async () => {
+    if (!order || Object.keys(selectedItems).length === 0) return;
+    setIsSubmittingReturn(true);
+    try {
+      const data: ReturnRequestData = {
+        type: returnType,
+        items: Object.entries(selectedItems).map(([itemId, qty]) => ({
+          order_item_id: Number(itemId),
+          quantity: qty,
+        })),
+        reason: returnReason || undefined,
+      };
+      await ordersApi.requestReturn(String(order.id), data);
+      setReturnSuccess(true);
+      queryClient.invalidateQueries({ queryKey: ['my-after-sales'] });
+    } catch { /* silent */ }
+    finally {
+      setIsSubmittingReturn(false);
+    }
+  };
+
+  const resetReturnModal = () => {
+    setShowReturnModal(false);
+    setSelectedItems({});
+    setReturnReason('');
+    setReturnType('return');
+    setReturnSuccess(false);
   };
 
   if (isLoading || !order) {
@@ -189,16 +242,24 @@ export default function OrderDetail() {
               </div>
 
               {/* Actions */}
-              {order.status === 'pending' && (
-                <div className="mt-6">
+              <div className="mt-6 flex items-center gap-4">
+                {order.status === 'pending' && (
                   <button
                     onClick={handleCancel}
                     className="font-body text-label tracking-wide text-rust hover:text-rust-light transition-colors cursor-pointer border border-rust/30 px-6 py-2.5 hover:bg-rust/5"
                   >
                     {t('profile.cancelOrder', '取消订单')}
                   </button>
-                </div>
-              )}
+                )}
+                {order.status === 'completed' && (
+                  <button
+                    onClick={() => setShowReturnModal(true)}
+                    className="font-body text-label tracking-wide text-ink hover:text-rust transition-colors cursor-pointer border border-warm-gray/30 px-6 py-2.5 hover:border-rust/30"
+                  >
+                    {t('orderDetail.returnExchange.title', '申请退换')}
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Sidebar: shipping + payment */}
@@ -263,6 +324,126 @@ export default function OrderDetail() {
           </SectionContainer>
         </PaperTextureBackground>
       )}
+
+      {/* Return/Exchange Modal */}
+      <AnimatePresence>
+        {showReturnModal && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-ink/40 z-40"
+              onClick={resetReturnModal}
+            />
+            <motion.div
+              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
+              className="fixed inset-x-4 top-[10%] md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-lg bg-paper border border-warm-gray/25 z-50 p-6 max-h-[80vh] overflow-y-auto"
+            >
+              {returnSuccess ? (
+                <div className="text-center py-8">
+                  <div className="w-12 h-12 mx-auto mb-4 bg-sage/10 border border-sage/30 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-sage" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  </div>
+                  <h3 className="font-display text-lg font-bold text-ink mb-2">
+                    {t('orderDetail.returnExchange.success', '申请已提交')}
+                  </h3>
+                  <p className="font-body text-body-sm text-ink-faded mb-6">
+                    {t('orderDetail.returnExchange.successDesc', '我们将在1-3个工作日内处理您的申请')}
+                  </p>
+                  <button onClick={resetReturnModal} className="font-body text-label tracking-wide bg-ink text-paper px-8 py-3 hover:bg-rust transition-colors cursor-pointer">
+                    {t('common.close', '关闭')}
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="font-display text-lg font-bold text-ink">
+                      {t('orderDetail.returnExchange.title', '申请退换')}
+                    </h3>
+                    <button onClick={resetReturnModal} className="text-sepia-mid hover:text-ink transition-colors cursor-pointer">
+                      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" /></svg>
+                    </button>
+                  </div>
+
+                  {/* Return type selector */}
+                  <div className="flex gap-3 mb-6">
+                    {(['return', 'exchange'] as const).map((type) => (
+                      <button
+                        key={type}
+                        onClick={() => setReturnType(type)}
+                        className={`flex-1 py-2.5 border text-center font-body text-label tracking-wide transition-all cursor-pointer ${
+                          returnType === type
+                            ? 'border-rust/50 bg-rust/[0.03] text-ink'
+                            : 'border-warm-gray/25 text-sepia-mid hover:border-warm-gray/40'
+                        }`}
+                      >
+                        {t(`orderDetail.returnExchange.${type}`, type === 'return' ? '退货' : '换货')}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Item selection */}
+                  <p className="font-body text-caption text-sepia-mid tracking-wider uppercase mb-3">
+                    {t('orderDetail.returnExchange.selectItems', '选择商品')}
+                  </p>
+                  <div className="space-y-3 mb-6">
+                    {order.items.map((item) => (
+                      <div key={item.id} className="flex items-center gap-3 border border-warm-gray/15 p-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedItems[item.id] !== undefined}
+                          onChange={() => toggleItemSelection(item.id, item.quantity)}
+                          className="accent-rust cursor-pointer"
+                        />
+                        <div className="w-10 h-12 flex-shrink-0 overflow-hidden border border-warm-gray/10 bg-aged-stock">
+                          {item.product_image && <img src={item.product_image} alt="" className="w-full h-full object-cover" loading="lazy" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-body text-body-sm text-ink truncate">{item.product_name || `#${item.product_id}`}</p>
+                          <p className="font-mono text-[11px] text-sepia-mid">¥{Number(item.price).toFixed(2)} × {item.quantity}</p>
+                        </div>
+                        {selectedItems[item.id] !== undefined && (
+                          <div className="flex items-center gap-1">
+                            <button onClick={() => updateItemQty(item.id, selectedItems[item.id] - 1, item.quantity)} className="w-6 h-6 border border-warm-gray/25 flex items-center justify-center text-sepia-mid hover:text-ink cursor-pointer">−</button>
+                            <span className="font-mono text-xs w-6 text-center">{selectedItems[item.id]}</span>
+                            <button onClick={() => updateItemQty(item.id, selectedItems[item.id] + 1, item.quantity)} className="w-6 h-6 border border-warm-gray/25 flex items-center justify-center text-sepia-mid hover:text-ink cursor-pointer">+</button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Reason */}
+                  <div className="mb-6">
+                    <label className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
+                      {t('orderDetail.returnExchange.reason', '原因')}
+                    </label>
+                    <textarea
+                      value={returnReason}
+                      onChange={(e) => setReturnReason(e.target.value)}
+                      rows={3}
+                      className="w-full px-3 py-2 border border-warm-gray/30 bg-transparent font-body text-body-sm text-ink focus:outline-none focus:border-rust/50 resize-none"
+                      placeholder={t('orderDetail.returnExchange.reasonPlaceholder', '请说明退换原因...')}
+                    />
+                  </div>
+
+                  {/* Submit */}
+                  <button
+                    onClick={handleSubmitReturn}
+                    disabled={Object.keys(selectedItems).length === 0 || isSubmittingReturn}
+                    className="w-full font-body text-label tracking-[0.1em] uppercase bg-ink text-paper py-3 hover:bg-rust transition-colors cursor-pointer disabled:opacity-40"
+                  >
+                    {isSubmittingReturn ? t('checkout.processing', '处理中...') : t('orderDetail.returnExchange.submit', '提交申请')}
+                  </button>
+                </>
+              )}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </PageWrapper>
   );
 }

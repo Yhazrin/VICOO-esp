@@ -971,16 +971,81 @@
     "newTicket": "Submit After-Sales Ticket",
     "ticketsError": "Unable to load tickets at this time.",
     "noTickets": "No tickets yet",
-    "orderId": "Order"
+    "orderId": "Order",
+    "title": "My Profile",
+    "notLoggedIn": "Please log in to view your profile.",
+    "accountDetails": "Account Details",
+    "userId": "User ID",
+    "role": "Role",
+    "ordersError": "Unable to load orders at this time.",
+    "noOrders": "No orders yet",
+    "browseShop": "Browse Shop",
+    "donationsError": "Unable to load donations at this time.",
+    "noDonations": "No donations yet",
+    "makeDonation": "Make a Donation",
+    "anonymous": "Anonymous",
+    "total": "Total",
+    "cancelOrder": "Cancel Order",
+    "tabs": {
+      "orders": "My Orders",
+      "donations": "My Donations",
+      "clothing": "Clothing",
+      "support": "Support",
+      "addresses": "Addresses"
+    },
+    "orders": {
+      "filterAll": "All",
+      "filterPending": "Pending",
+      "filterPaid": "Paid",
+      "filterShipped": "Shipped",
+      "filterCompleted": "Completed",
+      "filterCancelled": "Cancelled",
+      "searchPlaceholder": "Search order number..."
+    },
+    "addresses": {
+      "title": "Saved Addresses",
+      "addAddress": "Add Address",
+      "editAddress": "Edit Address",
+      "deleteAddress": "Delete Address",
+      "setDefault": "Set as Default",
+      "label": "Label",
+      "labelPlaceholder": "Home / Office",
+      "recipient": "Recipient",
+      "phone": "Phone",
+      "province": "Province",
+      "city": "City",
+      "district": "District",
+      "detailAddress": "Detailed Address",
+      "postalCode": "Postal Code",
+      "noAddresses": "No saved addresses yet",
+      "defaultBadge": "Default"
+    }
   },
   "orderDetail": {
     "error": "Unable to load order",
     "title": "Order & Logistics",
-    "status": "Status",
+    "status": {
+      "pending": "Pending",
+      "paid": "Paid",
+      "shipped": "Shipped",
+      "completed": "Completed"
+    },
     "total": "Total",
     "address": "Shipping Address",
     "items": "Items",
-    "logistics": "Logistics Tracking"
+    "logistics": "Logistics Tracking",
+    "orderDate": "Order Date",
+    "returnExchange": {
+      "title": "Request Return/Exchange",
+      "return": "Return",
+      "exchange": "Exchange",
+      "selectItems": "Select Items",
+      "reason": "Reason",
+      "reasonPlaceholder": "Please describe the reason...",
+      "submit": "Submit Request",
+      "success": "Request Submitted",
+      "successDesc": "We will process your request within 1-3 business days."
+    }
   },
   "cart": {
     "title": "Shopping Bag",
@@ -1029,6 +1094,17 @@
     "continueShopping": "Continue Shopping",
     "processing": "Processing...",
     "error": "Something went wrong. Please try again.",
-    "loginRequired": "Please log in to continue checkout."
+    "loginRequired": "Please log in to continue checkout.",
+    "savedAddresses": "Saved Addresses",
+    "enterNewAddress": "Enter a new address",
+    "saveAddress": "Save to address book"
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "close": "Close"
   }
 }

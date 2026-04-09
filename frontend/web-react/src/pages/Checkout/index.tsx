@@ -2,12 +2,14 @@ import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import { useCartStore, selectTotalPrice } from '@/stores/cartStore';
 import { useAuthStore } from '@/stores/authStore';
 import { ordersApi } from '@/services/orders';
 import { paymentsApi } from '@/services/payments';
+import { addressesApi, type Address } from '@/services/addresses';
 import type { CreateOrderRequest } from '@/types';
 
 type PaymentMethod = 'wechat' | 'alipay' | 'stripe' | 'paypal';
@@ -50,12 +52,35 @@ export default function Checkout() {
     postalCode: '',
     country: 'China',
   });
+  const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
+  const [showManualAddress, setShowManualAddress] = useState(false);
+  const [saveAddress, setSaveAddress] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('wechat');
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderResult, setOrderResult] = useState<{ orderId: string; orderNo: string } | null>(null);
   const [error, setError] = useState('');
 
-  const canProceedStep1 = address.name && address.phone && address.street && address.city && address.province;
+  const { data: savedAddresses = [] } = useQuery({
+    queryKey: ['my-addresses'],
+    queryFn: () => addressesApi.getAll(),
+    enabled: isAuthenticated,
+  });
+
+  const canProceedStep1 = selectedAddressId || (address.name && address.phone && address.street && address.city && address.province);
+
+  const selectSavedAddress = (addr: Address) => {
+    setSelectedAddressId(addr.id);
+    setShowManualAddress(false);
+    setAddress({
+      name: addr.recipient_name,
+      phone: addr.phone,
+      street: [addr.district, addr.detail_address].filter(Boolean).join(' '),
+      city: addr.city,
+      province: addr.province,
+      postalCode: addr.postal_code || '',
+      country: 'China',
+    });
+  };
 
   const stepContent = useMemo(() => {
     switch (step) {
@@ -118,7 +143,8 @@ export default function Checkout() {
           product_id: item.product.id,
           quantity: item.quantity,
         })),
-        shipping_address: `${address.name}, ${address.phone}, ${address.street}, ${address.city}, ${address.province} ${address.postalCode}, ${address.country}`,
+        shipping_address: selectedAddressId ? undefined : `${address.name}, ${address.phone}, ${address.street}, ${address.city}, ${address.province} ${address.postalCode}, ${address.country}`,
+        address_id: selectedAddressId || undefined,
         payment_method: paymentMethod,
       };
 
@@ -132,6 +158,23 @@ export default function Checkout() {
       });
 
       setOrderResult({ orderId: String(order.id), orderNo: order.order_no });
+
+      // Save address to address book if requested
+      if (saveAddress && !selectedAddressId && address.name && address.phone) {
+        try {
+          await addressesApi.create({
+            recipient_name: address.name,
+            phone: address.phone,
+            province: address.province,
+            city: address.city,
+            district: '',
+            detail_address: address.street,
+            postal_code: address.postalCode || undefined,
+            is_default: false,
+          });
+        } catch { /* silent — don't block order flow */ }
+      }
+
       clearCart();
       setStep(3);
     } catch {
@@ -201,6 +244,48 @@ export default function Checkout() {
                   <div className="space-y-5">
                     <h2 className="font-display text-h3 font-semibold text-ink mb-6">{t('checkout.step1')}</h2>
 
+                    {/* Saved addresses */}
+                    {savedAddresses.length > 0 && !showManualAddress && (
+                      <div className="space-y-3 mb-4">
+                        <p className="font-body text-caption text-sepia-mid tracking-wider uppercase">
+                          {t('checkout.savedAddresses', '已保存的地址')}
+                        </p>
+                        {savedAddresses.map((addr) => (
+                          <button
+                            key={addr.id}
+                            onClick={() => selectSavedAddress(addr)}
+                            className={`w-full text-left px-4 py-3 border transition-all cursor-pointer ${
+                              selectedAddressId === addr.id
+                                ? 'border-rust/50 bg-rust/[0.03]'
+                                : 'border-warm-gray/25 hover:border-warm-gray/40'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 mb-1">
+                              {addr.label && (
+                                <span className="font-body text-[10px] tracking-wider uppercase text-sepia-mid">{addr.label}</span>
+                              )}
+                              {addr.is_default && (
+                                <span className="font-body text-[10px] tracking-wider uppercase text-sage">{t('profile.addresses.defaultBadge', '默认')}</span>
+                              )}
+                            </div>
+                            <p className="font-body text-body-sm text-ink">{addr.recipient_name} · {addr.phone}</p>
+                            <p className="font-body text-caption text-ink-faded">
+                              {[addr.province, addr.city, addr.district, addr.detail_address].filter(Boolean).join(' ')}
+                            </p>
+                          </button>
+                        ))}
+                        <button
+                          onClick={() => { setShowManualAddress(true); setSelectedAddressId(null); }}
+                          className="font-body text-caption text-rust hover:text-rust-light transition-colors cursor-pointer"
+                        >
+                          + {t('checkout.enterNewAddress', '输入新地址')}
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Manual address form */}
+                    {(showManualAddress || savedAddresses.length === 0) && (
+                    <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
@@ -279,6 +364,16 @@ export default function Checkout() {
                         />
                       </div>
                     </div>
+
+                    {/* Save address checkbox */}
+                    {!selectedAddressId && (
+                      <label className="flex items-center gap-2 cursor-pointer mt-2">
+                        <input type="checkbox" checked={saveAddress} onChange={(e) => setSaveAddress(e.target.checked)} className="accent-rust" />
+                        <span className="font-body text-caption text-ink">{t('checkout.saveAddress', '保存到地址簿')}</span>
+                      </label>
+                    )}
+                    </>
+                    )}
                   </div>
                 )}
 
