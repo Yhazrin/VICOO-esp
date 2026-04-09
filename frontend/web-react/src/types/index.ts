@@ -96,6 +96,10 @@ export interface Product {
   campaignId?: number | null;
   /** Percentage of sale price donated to public welfare */
   donationPercentage?: number;
+  /** Available sizes for this product */
+  sizes?: string[];
+  /** Available colors for this product (name + hex) */
+  colors?: { name: string; hex: string }[];
 }
 
 /** Frontend display type for TraceabilityTimeline — not a direct API response type */
@@ -139,6 +143,8 @@ export interface Donation {
 export interface CartItem {
   product: Product;
   quantity: number;
+  selectedSize?: string;
+  selectedColor?: string;
 }
 
 /** @deprecated 请使用 services/orders 的 OrderDetail（与 API 字段一致） */

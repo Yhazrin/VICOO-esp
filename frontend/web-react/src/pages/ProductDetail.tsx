@@ -11,6 +11,7 @@ import PaperTextureBackground from '@/components/editorial/PaperTextureBackgroun
 import TraceabilityTimeline from '@/components/editorial/TraceabilityTimeline';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import { useCartStore } from '@/stores/cartStore';
+import { useWishlistStore } from '@/stores/wishlistStore';
 import { productsApi } from '@/services/products';
 import { reviewsApi } from '@/services/reviewsApi';
 import { useAuthStore } from '@/stores/authStore';
@@ -93,8 +94,13 @@ export default function ProductDetail() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
+  const [selectedSize, setSelectedSize] = useState<string>('');
+  const [selectedColor, setSelectedColor] = useState<string>('');
   const addItem = useCartStore((s) => s.addItem);
   const setCartOpen = useCartStore((s) => s.setCartOpen);
+  const toggleWishlist = useWishlistStore((s) => s.toggleItem);
+  const wishlistItems = useWishlistStore((s) => s.items);
+  const isWishlisted = product ? wishlistItems.some((p) => p.id === product.id) : false;
   const addedTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
@@ -105,7 +111,7 @@ export default function ProductDetail() {
 
   const handleAddToCart = () => {
     if (!product) return;
-    addItem(product, quantity);
+    addItem(product, quantity, selectedSize || undefined, selectedColor || undefined);
     setAdded(true);
     setCartOpen(true);
     if (addedTimeoutRef.current) clearTimeout(addedTimeoutRef.current);
@@ -140,6 +146,8 @@ export default function ProductDetail() {
     inStock: product.inStock ?? true,
     sustainabilityScore: product.sustainabilityScore ?? 0,
     image_url: product.image_url ?? '',
+    sizes: product.sizes ?? undefined,
+    colors: product.colors ?? undefined,
   };
 
   return (
@@ -203,6 +211,62 @@ export default function ProductDetail() {
                 </p>
               </div>
 
+              {/* Size selector */}
+              {safeProduct.sizes && safeProduct.sizes.length > 0 && (
+                <div className="mb-6">
+                  <p className="font-body text-caption tracking-wider uppercase text-sepia-mid mb-3">
+                    {t('shop.detail.size', 'Size')}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {safeProduct.sizes.map((size) => (
+                      <button
+                        key={size}
+                        onClick={() => setSelectedSize(selectedSize === size ? '' : size)}
+                        className={`
+                          min-w-[44px] h-10 px-3 font-mono text-xs flex items-center justify-center transition-all duration-200 cursor-pointer
+                          ${selectedSize === size
+                            ? 'bg-ink text-paper border border-ink'
+                            : 'bg-transparent text-ink border border-warm-gray/30 hover:border-warm-gray/60'
+                          }
+                        `}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Color selector */}
+              {safeProduct.colors && safeProduct.colors.length > 0 && (
+                <div className="mb-6">
+                  <p className="font-body text-caption tracking-wider uppercase text-sepia-mid mb-3">
+                    {t('shop.detail.color', 'Color')}
+                    {selectedColor && (
+                      <span className="text-ink ml-2 normal-case">{selectedColor}</span>
+                    )}
+                  </p>
+                  <div className="flex flex-wrap gap-3">
+                    {safeProduct.colors.map((color) => (
+                      <button
+                        key={color.name}
+                        onClick={() => setSelectedColor(selectedColor === color.name ? '' : color.name)}
+                        className={`
+                          w-9 h-9 rounded-full border-2 transition-all duration-200 cursor-pointer
+                          ${selectedColor === color.name
+                            ? 'border-ink scale-110'
+                            : 'border-warm-gray/30 hover:border-warm-gray/60'
+                          }
+                        `}
+                        style={{ backgroundColor: color.hex }}
+                        aria-label={color.name}
+                        title={color.name}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Sustainability score */}
               <div className="mb-8">
                 <p className="font-body text-caption tracking-wider uppercase text-sepia-mid mb-2">
@@ -251,25 +315,48 @@ export default function ProductDetail() {
                 </div>
               </div>
 
-              <motion.button
-                whileHover={prefersReducedMotion ? undefined : { scale: 1.01 }}
-                whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
-                onClick={handleAddToCart}
-                disabled={!safeProduct.inStock}
-                className={`w-full font-body text-body-sm tracking-[0.15em] uppercase py-4 transition-all duration-300 ${
-                  added
-                    ? 'bg-archive-brown text-paper'
-                    : safeProduct.inStock
-                      ? 'bg-ink text-paper hover:bg-ink-faded cursor-pointer'
-                      : 'bg-warm-gray text-ink-faded cursor-not-allowed'
-                }`}
-              >
-                {!safeProduct.inStock
-                  ? t('shop.card.soldOut')
-                  : added
-                    ? t('shop.detail.added') + ' \u2713'
-                    : t('shop.detail.addToCart')}
-              </motion.button>
+              <div className="flex gap-3">
+                <motion.button
+                  whileHover={prefersReducedMotion ? undefined : { scale: 1.01 }}
+                  whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
+                  onClick={handleAddToCart}
+                  disabled={!safeProduct.inStock}
+                  className={`flex-1 font-body text-body-sm tracking-[0.15em] uppercase py-4 transition-all duration-300 ${
+                    added
+                      ? 'bg-archive-brown text-paper'
+                      : safeProduct.inStock
+                        ? 'bg-ink text-paper hover:bg-ink-faded cursor-pointer'
+                        : 'bg-warm-gray text-ink-faded cursor-not-allowed'
+                  }`}
+                >
+                  {!safeProduct.inStock
+                    ? t('shop.card.soldOut')
+                    : added
+                      ? t('shop.detail.added') + ' \u2713'
+                      : t('shop.detail.addToCart')}
+                </motion.button>
+                <button
+                  onClick={() => product && toggleWishlist(product)}
+                  className="w-14 flex-shrink-0 border border-warm-gray/30 hover:border-rust/40 flex items-center justify-center transition-colors cursor-pointer"
+                  aria-label="Toggle wishlist"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    viewBox="0 0 24 24"
+                    fill={isWishlisted ? 'currentColor' : 'none'}
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"
+                      className={isWishlisted ? 'text-rust' : 'text-ink-faded/50'}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
         </SectionContainer>

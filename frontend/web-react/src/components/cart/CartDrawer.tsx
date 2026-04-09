@@ -86,9 +86,11 @@ export default function CartDrawer() {
                 </div>
               ) : (
                 <ul className="space-y-4">
-                  {items.map((item) => (
+                  {items.map((item) => {
+                    const itemKey = `${item.product.id}-${item.selectedSize || ''}-${item.selectedColor || ''}`;
+                    return (
                     <motion.li
-                      key={item.product.id}
+                      key={itemKey}
                       layout
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -117,6 +119,11 @@ export default function CartDrawer() {
                         <h3 className="font-display text-sm font-semibold text-ink leading-tight truncate">
                           {item.product.name}
                         </h3>
+                        {(item.selectedSize || item.selectedColor) && (
+                          <p className="font-body text-[11px] text-sepia-mid mt-0.5">
+                            {[item.selectedSize, item.selectedColor].filter(Boolean).join(' / ')}
+                          </p>
+                        )}
                         <p className="font-mono text-xs text-sepia-mid mt-1">
                           {item.product.currency === 'CNY' ? '¥' : '$'}{item.product.price.toFixed(2)}
                         </p>
@@ -125,7 +132,7 @@ export default function CartDrawer() {
                         <div className="flex items-center gap-3 mt-2">
                           <div className="flex items-center border border-warm-gray/25">
                             <button
-                              onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                              onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.selectedSize, item.selectedColor)}
                               className="w-7 h-7 flex items-center justify-center text-ink-faded hover:text-ink transition-colors cursor-pointer"
                               aria-label="Decrease quantity"
                             >
@@ -135,7 +142,7 @@ export default function CartDrawer() {
                             </button>
                             <span className="w-8 text-center font-mono text-xs text-ink">{item.quantity}</span>
                             <button
-                              onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                              onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.selectedSize, item.selectedColor)}
                               className="w-7 h-7 flex items-center justify-center text-ink-faded hover:text-ink transition-colors cursor-pointer"
                               aria-label="Increase quantity"
                             >
@@ -147,7 +154,7 @@ export default function CartDrawer() {
                           </div>
 
                           <button
-                            onClick={() => removeItem(item.product.id)}
+                            onClick={() => removeItem(item.product.id, item.selectedSize, item.selectedColor)}
                             className="font-body text-[11px] text-sepia-mid hover:text-rust transition-colors cursor-pointer"
                           >
                             {t('cart.remove')}
@@ -162,7 +169,8 @@ export default function CartDrawer() {
                         </span>
                       </div>
                     </motion.li>
-                  ))}
+                    );
+                  })}
                 </ul>
               )}
             </div>

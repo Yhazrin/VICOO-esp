@@ -158,6 +158,9 @@ export default function Header() {
   const totalCartItems = useCartStore(selectTotalItems);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [activeSubmenu, setActiveSubmenu] = useState<'main' | 'theme' | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const menuTriggerRef = useRef<HTMLButtonElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -204,6 +207,22 @@ export default function Header() {
   };
 
   const currentThemeConfig = THEMES.find((t) => t.id === currentTheme);
+
+  useEffect(() => {
+    if (searchOpen) {
+      requestAnimationFrame(() => searchInputRef.current?.focus());
+    }
+  }, [searchOpen]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = searchQuery.trim();
+    if (q) {
+      navigate(`/shop?search=${encodeURIComponent(q)}`);
+      setSearchOpen(false);
+      setSearchQuery('');
+    }
+  };
 
   const handleImpactToggle = () => {
     if (impactMode) {
@@ -256,6 +275,59 @@ export default function Header() {
                 {t('nav.impact', '公益')}
               </button>
             </nav>
+          )}
+
+          {/* Search — expandable */}
+          {!isMobile && (
+            <div className="relative flex items-center">
+              <AnimatePresence>
+                {searchOpen && (
+                  <motion.form
+                    initial={{ width: 0, opacity: 0 }}
+                    animate={{ width: 200, opacity: 1 }}
+                    exit={{ width: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
+                    onSubmit={handleSearch}
+                    className="absolute right-full mr-2 overflow-hidden"
+                  >
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder={t('search.placeholder', 'Search products...')}
+                      className="w-full px-4 py-1.5 rounded-full bg-white/90 backdrop-blur-xl shadow-sm font-body text-sm text-ink placeholder:text-warm-gray/60 focus:outline-none focus:ring-1 focus:ring-rust/30"
+                      onBlur={() => {
+                        if (!searchQuery) setSearchOpen(false);
+                      }}
+                    />
+                  </motion.form>
+                )}
+              </AnimatePresence>
+              <button
+                onClick={() => setSearchOpen(!searchOpen)}
+                className="flex items-center justify-center w-9 h-9 rounded-full bg-white shadow-sm hover:shadow-md transition-all cursor-pointer"
+                aria-label="Search"
+              >
+                <svg className="w-4 h-4 text-ink-faded" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="M21 21l-4.35-4.35" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
+          )}
+
+          {/* Wishlist icon — white disc (desktop only) */}
+          {!isMobile && (
+            <Link
+              to="/wishlist"
+              className="flex items-center justify-center w-9 h-9 rounded-full bg-white shadow-sm hover:shadow-md transition-all cursor-pointer"
+              aria-label="Wishlist"
+            >
+              <svg className="w-4 h-4 text-ink-faded" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </Link>
           )}
 
           {/* Cart icon — white disc */}
