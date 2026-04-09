@@ -97,10 +97,10 @@ export default function Campaigns() {
           />
         </div>
 
-        {/* Filter tabs */}
+        {/* Filter tabs — capsule style */}
         {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
         <div
-          className="flex items-center gap-1 mb-12 border-b border-warm-gray/30 overflow-x-auto"
+          className="flex items-center mb-12 rounded-full bg-white/80 backdrop-blur-xl shadow-sm px-2 py-1 overflow-x-auto"
           role="tablist"
           onKeyDown={(e) => {
             const tabs = e.currentTarget.querySelectorAll('[role="tab"]');
@@ -118,8 +118,8 @@ export default function Campaigns() {
             }
           }}
         >
-          {statuses.map((status, index) => (
-            <motion.button
+          {statuses.map((status) => (
+            <button
               key={status}
               role="tab"
               id={`tab-campaign-${status}`}
@@ -129,43 +129,29 @@ export default function Campaigns() {
               onClick={() => handleFilterChange(status)}
               onKeyDown={(e) => {
                 if (e.key === 'ArrowRight') {
+                  const index = statuses.indexOf(filter);
                   const next = statuses[(index + 1) % statuses.length];
                   handleFilterChange(next);
                   document.getElementById(`tab-campaign-${next}`)?.focus();
                 } else if (e.key === 'ArrowLeft') {
+                  const index = statuses.indexOf(filter);
                   const prev = statuses[(index - 1 + statuses.length) % statuses.length];
                   handleFilterChange(prev);
                   document.getElementById(`tab-campaign-${prev}`)?.focus();
                 }
               }}
-              {...(prefersReducedMotion ? {} : {
-                initial: { opacity: 0, y: 10 },
-                animate: { opacity: 1, y: 0 },
-                transition: { delay: index * 0.05 },
-                whileHover: { y: -2 },
-              })}
               className={`
-                font-body text-caption tracking-[0.15em] uppercase px-4 py-3 transition-all duration-200 border-b-2 -mb-px whitespace-nowrap relative cursor-pointer
+                font-body text-label tracking-wide px-3 py-1 rounded-full transition-all duration-200 cursor-pointer whitespace-nowrap
                 ${filter === status
-                  ? 'border-rust text-rust'
-                  : 'border-transparent text-sepia-mid hover:text-ink'
+                  ? 'text-ink font-medium bg-rust/15'
+                  : 'text-ink-faded hover:text-ink'
                 }
               `}
             >
-              <span className="font-body text-overline text-sepia-mid mr-1.5">
-                {String(index + 1).padStart(2, '0')}
-              </span>
               {status === 'all'
                 ? t('campaigns.filter.all')
                 : t(`campaigns.status.${status}`)}
-              {filter === status && (
-                <motion.span
-                  layoutId="campaign-category-indicator"
-                  className="absolute bottom-0 left-0 right-0 h-px bg-rust"
-                  transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                />
-              )}
-            </motion.button>
+            </button>
           ))}
         </div>
 
@@ -341,42 +327,44 @@ export default function Campaigns() {
         )}
         </div>
 
-        {/* Pagination */}
+        {/* Pagination — capsule style */}
         {totalPages > 1 && (
-          <nav aria-label={t('campaigns.pagination.ariaLabel')} className="flex items-center justify-center gap-2 mt-16">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              aria-label={t('campaigns.pagination.prevAria')}
-              className="font-body text-caption tracking-wider uppercase px-4 py-2 border border-warm-gray/30 text-sepia-mid hover:border-rust hover:text-rust disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all"
-            >
-              {t('campaigns.pagination.prev')}
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+          <nav aria-label={t('campaigns.pagination.ariaLabel')} className="flex items-center justify-center mt-16">
+            <div className="flex items-center rounded-full bg-white/80 backdrop-blur-xl shadow-sm px-2 py-1">
               <button
-                key={p}
-                onClick={() => setPage(p)}
-                aria-label={`${t('campaigns.pagination.pageAria')} ${p}`}
-                aria-current={page === p ? 'page' : undefined}
-                className={`
-                  w-11 h-11 font-body text-caption border transition-all cursor-pointer
-                  ${page === p
-                    ? 'border-rust bg-rust text-paper'
-                    : 'border-warm-gray/30 text-sepia-mid hover:border-rust hover:text-rust'
-                  }
-                `}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                aria-label={t('campaigns.pagination.prevAria')}
+                className="font-body text-label tracking-wider uppercase px-3 py-1 rounded-full text-ink-faded hover:text-ink disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all"
               >
-                {String(p).padStart(2, '0')}
+                {t('campaigns.pagination.prev')}
               </button>
-            ))}
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-              aria-label={t('campaigns.pagination.nextAria')}
-              className="font-body text-caption tracking-wider uppercase px-4 py-2 border border-warm-gray/30 text-sepia-mid hover:border-rust hover:text-rust disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all"
-            >
-              {t('campaigns.pagination.next')}
-            </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPage(p)}
+                  aria-label={`${t('campaigns.pagination.pageAria')} ${p}`}
+                  aria-current={page === p ? 'page' : undefined}
+                  className={`
+                    w-9 h-9 font-body text-caption rounded-full transition-all cursor-pointer
+                    ${page === p
+                      ? 'bg-rust text-paper font-medium'
+                      : 'text-ink-faded hover:text-ink'
+                    }
+                  `}
+                >
+                  {String(p).padStart(2, '0')}
+                </button>
+              ))}
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                aria-label={t('campaigns.pagination.nextAria')}
+                className="font-body text-label tracking-wider uppercase px-3 py-1 rounded-full text-ink-faded hover:text-ink disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all"
+              >
+                {t('campaigns.pagination.next')}
+              </button>
+            </div>
           </nav>
         )}
 
