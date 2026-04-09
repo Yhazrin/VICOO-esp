@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Locale } from '@/types';
 
-export type ThemeId = 'editorial' | 'morandi' | 'sepia' | 'monochrome' | 'ink' | 'forest' | 'autumn' | 'mist-blue' | 'deep-sea';
+export type ThemeId = 'editorial' | 'morandi' | 'sepia' | 'monochrome' | 'ink' | 'forest' | 'autumn' | 'mist-blue' | 'deep-sea' | 'dopamine';
 
 export interface ThemeConfig {
   id: ThemeId;
@@ -76,6 +76,13 @@ export const THEMES: ThemeConfig[] = [
     description: 'Professional, engineering-focused, suitable for backend systems',
     preview: 'linear-gradient(135deg, #647684 0%, #B4C0CA 100%)',
   },
+  {
+    id: 'dopamine',
+    name: 'Dopamine',
+    nameCn: '多巴胺红蓝',
+    description: 'Vibrant red-blue-white energy palette',
+    preview: 'linear-gradient(135deg, #2668FD 0%, #FD4401 100%)',
+  },
 ];
 
 // Apply theme to document root
@@ -102,7 +109,7 @@ function getStoredUISettings(): { currentTheme: ThemeId; currentLocale: Locale }
   }
 
   return {
-    currentTheme: 'editorial',
+    currentTheme: 'monochrome',
     currentLocale: 'en',
   };
 }
@@ -113,6 +120,8 @@ interface UIState {
   currentTheme: ThemeId;
   menuTriggerRef: React.RefObject<HTMLButtonElement> | null;
   settingsMenuOpen: boolean;
+  impactMode: boolean;
+  activeImpactTab: string;
   setMobileNavOpen: (open: boolean) => void;
   toggleMobileNav: () => void;
   setLocale: (locale: Locale) => void;
@@ -120,6 +129,8 @@ interface UIState {
   setTheme: (theme: ThemeId) => void;
   setSettingsMenuOpen: (open: boolean) => void;
   toggleSettingsMenu: () => void;
+  setImpactMode: (on: boolean) => void;
+  setActiveImpactTab: (tab: string) => void;
 }
 
 export const useUIStore = create<UIState>()(
@@ -130,6 +141,8 @@ export const useUIStore = create<UIState>()(
       currentTheme: getStoredUISettings().currentTheme,
       menuTriggerRef: null,
       settingsMenuOpen: false,
+      impactMode: false,
+      activeImpactTab: 'campaigns',
 
       setMobileNavOpen: (mobileNavOpen) => set({ mobileNavOpen }),
       toggleMobileNav: () =>
@@ -146,6 +159,8 @@ export const useUIStore = create<UIState>()(
       setSettingsMenuOpen: (settingsMenuOpen) => set({ settingsMenuOpen }),
       toggleSettingsMenu: () =>
         set((state) => ({ settingsMenuOpen: !state.settingsMenuOpen })),
+      setImpactMode: (impactMode) => set({ impactMode }),
+      setActiveImpactTab: (activeImpactTab) => set({ activeImpactTab }),
     }),
     {
       name: 'tonghua-ui-settings',

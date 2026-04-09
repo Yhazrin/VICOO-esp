@@ -44,6 +44,7 @@ export default function DonationPanel({
   }, [apiTiers]);
 
   const [selectedAmount, setSelectedAmount] = useState<number>(0);
+  const [customAmount, setCustomAmount] = useState<string>('');
 
   // Default to first preset when tiers load
   useEffect(() => {
@@ -51,7 +52,6 @@ export default function DonationPanel({
       setSelectedAmount(amountPresets[0]);
     }
   }, [amountPresets, selectedAmount, customAmount]);
-  const [customAmount, setCustomAmount] = useState<string>('');
   const [frequency, setFrequency] = useState<'once' | 'monthly'>('once');
   const [paymentMethod, setPaymentMethod] = useState<'wechat' | 'alipay' | 'stripe'>('stripe');
   const [anonymous, setAnonymous] = useState(false);

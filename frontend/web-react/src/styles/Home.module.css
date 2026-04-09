@@ -27,7 +27,7 @@
   font-size: var(--text-hero);
   font-weight: 900;
   line-height: 0.9;
-  letter-spacing: -0.03em;
+  letter-spacing: 0.12em;
   color: var(--color-ink);
   margin-bottom: var(--space-xl);
 }

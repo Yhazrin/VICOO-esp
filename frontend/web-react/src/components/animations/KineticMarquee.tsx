@@ -229,7 +229,7 @@ export function KineticStatsMarquee({
             key={`stat-${stat.value}`}
             className="flex flex-col items-center px-8 min-w-[180px]"
           >
-            <span className="font-display text-display font-bold text-pale-gold tracking-tight">
+            <span className="font-display text-display font-medium text-pale-gold tracking-wide">
               {stat.value}
             </span>
             <span className="font-body text-caption text-paper/70 tracking-widest uppercase mt-1">

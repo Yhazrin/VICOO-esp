@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useMutation } from '@tanstack/react-query';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
-import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeading';
+
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
 import GrainOverlay from '@/components/editorial/GrainOverlay';
 import { VintageInput } from '@/components/editorial/VintageInput';
@@ -54,11 +54,12 @@ export default function DonateClothing() {
       <PaperTextureBackground variant="paper" className="py-16 md:py-24 relative">
         <GrainOverlay />
         <SectionContainer>
-          <NumberedSectionHeading
-            number="05"
-            title={t('donateClothing.title', '衣物捐献登记')}
-            subtitle={t('donateClothing.subtitle', '分拣消毒后进入再生商品池，由运营上架')}
-          />
+          <h2 className="font-display text-h3 font-bold text-ink mb-8">
+            {t('donateClothing.title', '衣物捐献登记')}
+          </h2>
+          <p className="font-body text-body-sm text-ink-faded mt-2 mb-8">
+            {t('donateClothing.subtitle', '分拣消毒后进入再生商品池，由运营上架')}
+          </p>
           <form
             className="max-w-xl space-y-6 border border-warm-gray/30 p-6 md:p-8 bg-paper/90"
             onSubmit={(e) => {
