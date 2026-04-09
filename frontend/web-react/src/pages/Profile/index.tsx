@@ -214,10 +214,10 @@ export default function Profile() {
       <PaperTextureBackground variant="aged" className="py-16 md:py-24 relative">
         <GrainOverlay />
         <SectionContainer>
-          {/* Tab switcher */}
+          {/* Tab switcher — capsule style */}
           {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
           <div
-            className="flex gap-8 mb-12 border-b border-warm-gray/30"
+            className="flex items-center mb-12 rounded-full bg-white/80 backdrop-blur-xl shadow-sm px-2 py-1 overflow-x-auto"
             role="tablist"
             onKeyDown={(e) => {
               const tabs = e.currentTarget.querySelectorAll('[role="tab"]');
@@ -244,10 +244,10 @@ export default function Profile() {
               tabIndex={activeTab === 'orders' ? 0 : -1}
               onClick={() => setActiveTab('orders')}
               onKeyDown={(e) => handleTabKeyDown(e, 'orders')}
-              className={`cursor-pointer pb-4 font-body text-body-sm tracking-[0.15em] uppercase transition-colors ${
+              className={`font-body text-label tracking-wide px-3 py-1 rounded-full transition-all duration-200 cursor-pointer whitespace-nowrap ${
                 activeTab === 'orders'
-                  ? 'text-ink border-b-2 border-ink'
-                  : 'text-sepia-mid hover:text-ink'
+                  ? 'text-ink font-medium bg-rust/15'
+                  : 'text-ink-faded hover:text-ink'
               }`}
             >
               {t('profile.tabs.orders')} ({orders.length})
@@ -260,10 +260,10 @@ export default function Profile() {
               tabIndex={activeTab === 'donations' ? 0 : -1}
               onClick={() => setActiveTab('donations')}
               onKeyDown={(e) => handleTabKeyDown(e, 'donations')}
-              className={`cursor-pointer pb-4 font-body text-body-sm tracking-[0.15em] uppercase transition-colors ${
+              className={`font-body text-label tracking-wide px-3 py-1 rounded-full transition-all duration-200 cursor-pointer whitespace-nowrap ${
                 activeTab === 'donations'
-                  ? 'text-ink border-b-2 border-ink'
-                  : 'text-sepia-mid hover:text-ink'
+                  ? 'text-ink font-medium bg-rust/15'
+                  : 'text-ink-faded hover:text-ink'
               }`}
             >
               {t('profile.tabs.donations')} ({donations.length})
@@ -276,10 +276,10 @@ export default function Profile() {
               tabIndex={activeTab === 'clothing' ? 0 : -1}
               onClick={() => setActiveTab('clothing')}
               onKeyDown={(e) => handleTabKeyDown(e, 'clothing')}
-              className={`cursor-pointer pb-4 font-body text-body-sm tracking-[0.15em] uppercase transition-colors ${
+              className={`font-body text-label tracking-wide px-3 py-1 rounded-full transition-all duration-200 cursor-pointer whitespace-nowrap ${
                 activeTab === 'clothing'
-                  ? 'text-ink border-b-2 border-ink'
-                  : 'text-sepia-mid hover:text-ink'
+                  ? 'text-ink font-medium bg-rust/15'
+                  : 'text-ink-faded hover:text-ink'
               }`}
             >
               {t('profile.tabs.clothing')} ({intakes.length})
@@ -292,10 +292,10 @@ export default function Profile() {
               tabIndex={activeTab === 'support' ? 0 : -1}
               onClick={() => setActiveTab('support')}
               onKeyDown={(e) => handleTabKeyDown(e, 'support')}
-              className={`cursor-pointer pb-4 font-body text-body-sm tracking-[0.15em] uppercase transition-colors ${
+              className={`font-body text-label tracking-wide px-3 py-1 rounded-full transition-all duration-200 cursor-pointer whitespace-nowrap ${
                 activeTab === 'support'
-                  ? 'text-ink border-b-2 border-ink'
-                  : 'text-sepia-mid hover:text-ink'
+                  ? 'text-ink font-medium bg-rust/15'
+                  : 'text-ink-faded hover:text-ink'
               }`}
             >
               {t('profile.tabs.support')} ({tickets.length})

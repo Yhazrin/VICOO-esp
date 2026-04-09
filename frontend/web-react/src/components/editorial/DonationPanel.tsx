@@ -201,12 +201,12 @@ export default function DonationPanel({
           </motion.div>
         )}
 
-        {/* Frequency */}
+        {/* Frequency — capsule toggle */}
         <div className="mb-8">
           <label className="block font-body text-caption tracking-[0.05em] text-sepia-mid mb-3">
             {t('donate.form.frequency.title')}
           </label>
-          <div className="flex" role="group" aria-label={t('donate.form.frequency.title')}>
+          <div className="inline-flex items-center rounded-full bg-white/80 backdrop-blur-xl shadow-sm px-2 py-1" role="group" aria-label={t('donate.form.frequency.title')}>
             {(['once', 'monthly'] as const).map((freq) => (
               <button
                 key={freq}
@@ -220,12 +220,10 @@ export default function DonationPanel({
                   }
                 }}
                 className={`
-                  flex-1 py-3 font-body text-caption tracking-[0.05em] uppercase text-center border transition-all cursor-pointer
-                  ${freq === 'once' ? 'border-r-0' : ''}
-                  ${
-                    frequency === freq
-                      ? 'bg-ink text-paper border-ink'
-                      : 'bg-transparent text-sepia-mid border-warm-gray hover:border-ink'
+                  px-5 py-1 font-body text-label tracking-wide uppercase text-center rounded-full transition-all cursor-pointer whitespace-nowrap
+                  ${frequency === freq
+                    ? 'bg-ink text-paper font-medium'
+                    : 'text-ink-faded hover:text-ink'
                   }
                 `}
               >
@@ -235,12 +233,13 @@ export default function DonationPanel({
           </div>
         </div>
 
-        {/* Payment Method */}
+        {/* Payment Method — capsule selector */}
         <div className="mb-8">
           <label className="block font-body text-caption tracking-[0.05em] text-sepia-mid mb-3">
             {t('donate.form.payment.title', 'Payment Method')}
           </label>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3" role="group" aria-label={t('donate.form.payment.title', 'Payment Method')}>
+          {/* Mobile: vertical stack; Desktop (sm+): horizontal pill bar */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-0 sm:rounded-full sm:bg-white/80 sm:backdrop-blur-xl sm:shadow-sm sm:px-2 sm:py-1" role="group" aria-label={t('donate.form.payment.title', 'Payment Method')}>
             {([
               { value: 'stripe', label: t('donate.form.payment.stripe', 'Card / Stripe') },
               { value: 'wechat', label: t('donate.form.payment.wechat', 'WeChat Pay') },
@@ -252,14 +251,14 @@ export default function DonationPanel({
                 aria-pressed={paymentMethod === option.value}
                 onClick={() => setPaymentMethod(option.value)}
                 className={`
-                  px-4 py-3 border text-left transition-all duration-300 cursor-pointer
+                  px-4 py-2 sm:py-1 text-left sm:text-center rounded-full font-body text-label tracking-wide transition-all cursor-pointer whitespace-nowrap
                   ${paymentMethod === option.value
-                    ? 'border-rust bg-rust/[0.04] text-ink'
-                    : 'border-warm-gray/60 bg-paper text-sepia-mid hover:border-rust/60 hover:text-ink'
+                    ? 'bg-rust/15 text-ink font-medium sm:bg-rust/15'
+                    : 'text-ink-faded hover:text-ink bg-white/80 shadow-sm sm:bg-transparent sm:shadow-none sm:hover:text-ink'
                   }
                 `}
               >
-                <span className="font-body text-body-sm">{option.label}</span>
+                {option.label}
               </button>
             ))}
           </div>

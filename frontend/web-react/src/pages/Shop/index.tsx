@@ -106,10 +106,10 @@ export default function Shop() {
 
         {/* Filters and sort row */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
-          {/* Category filter */}
-          <div className="flex items-center gap-1 border-b border-warm-gray/30 overflow-x-auto flex-1" role="tablist">
-            {categories.map((cat, index) => (
-              <motion.button
+          {/* Category filter — capsule style */}
+          <div className="flex items-center rounded-full bg-white/80 backdrop-blur-xl shadow-sm px-2 py-1 overflow-x-auto flex-1" role="tablist">
+            {categories.map((cat) => (
+              <button
                 key={cat}
                 id={`shop-tab-${cat}`}
                 role="tab"
@@ -118,27 +118,16 @@ export default function Shop() {
                 tabIndex={activeCategory === cat ? 0 : -1}
                 onClick={() => setActiveCategory(cat)}
                 onKeyDown={(e) => handleTabKeyDown(e, cat)}
-                initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
-                animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-                whileHover={prefersReducedMotion ? undefined : { y: -2 }}
                 className={`
-                  font-body text-caption tracking-[0.15em] uppercase px-4 py-3 transition-all duration-200 border-b-2 -mb-px whitespace-nowrap relative cursor-pointer
+                  font-body text-label tracking-wide px-3 py-1 rounded-full transition-all duration-200 cursor-pointer whitespace-nowrap
                   ${activeCategory === cat
-                    ? 'border-rust text-rust'
-                    : 'border-transparent text-sepia-mid hover:text-ink'
+                    ? 'text-ink font-medium bg-rust/15'
+                    : 'text-ink-faded hover:text-ink'
                   }
                 `}
               >
                 {t(`shop.filters.${cat}`)}
-                {activeCategory === cat && (
-                  <motion.span
-                    layoutId="category-indicator"
-                    className="absolute bottom-0 left-0 right-0 h-px bg-rust"
-                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                  />
-                )}
-              </motion.button>
+              </button>
             ))}
           </div>
 
