@@ -6,7 +6,6 @@ import { useAuthStore } from '@/stores/authStore';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { useRef, useEffect, useState, useCallback } from 'react';
-import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 
 // ── Company nav: normal brand services ──
 const COMPANY_NAV = [
@@ -22,6 +21,7 @@ const IMPACT_TABS = [
   { key: 'stories' },
   { key: 'traceability' },
   { key: 'donate' },
+  { key: 'shop' },
 ];
 
 // ── PillWindow: capsule "window" with a horizontal sliding rail ──
@@ -213,7 +213,6 @@ export default function Header() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
-      <SectionGrainOverlay />
       <div className="relative max-w-[1400px] mx-auto px-6 md:px-10 flex items-center justify-between h-14">
         {/* Logo */}
         <Link
