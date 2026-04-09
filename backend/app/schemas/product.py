@@ -15,6 +15,9 @@ class ProductCreate(BaseModel):
     image_url: Optional[str] = Field(None, max_length=500, description="Product image URL")
     category: Optional[str] = Field(None, max_length=100, description="Product category. Valid values: apparel, accessories, stationery, prints, lifestyle, footwear, home, gift_box")
     stock: int = Field(0, ge=0, description="Available stock quantity")
+    is_impact_product: bool = Field(False, description="Whether this product belongs to the impact/charity shop")
+    campaign_id: Optional[int] = Field(None, description="Linked campaign ID for impact products")
+    donation_percentage: Optional[Decimal] = Field(None, ge=0, le=100, description="Percentage of sale price donated")
 
 
 class ProductUpdate(BaseModel):
@@ -25,6 +28,9 @@ class ProductUpdate(BaseModel):
     category: Optional[str] = Field(None, max_length=100, description="Product category. Valid values: apparel, accessories, stationery, prints, lifestyle, footwear, home, gift_box")
     stock: Optional[int] = Field(None, ge=0)
     status: Optional[str] = Field(None, pattern="^(active|inactive|sold_out)$")
+    is_impact_product: Optional[bool] = None
+    campaign_id: Optional[int] = None
+    donation_percentage: Optional[Decimal] = Field(None, ge=0, le=100)
 
 
 class ProductListItem(BaseModel):
@@ -54,6 +60,10 @@ class ProductOut(BaseModel):
     source_clothing_intake_id: Optional[int] = None
     sustainability_score: Optional[float] = None
     sustainability_details: Optional[dict] = None
+    # Impact / public welfare fields
+    is_impact_product: bool = False
+    campaign_id: Optional[int] = None
+    donation_percentage: Optional[float] = None
     created_at: datetime
 
     model_config = {"from_attributes": True}

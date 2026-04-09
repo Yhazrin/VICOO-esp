@@ -14,7 +14,12 @@
     "login": "Login",
     "register": "Register",
     "profile": "Profile",
-    "logout": "Logout"
+    "logout": "Logout",
+    "impact": "Impact",
+    "group": {
+      "company": "Company",
+      "impact": "Impact"
+    }
   },
   "auth": {
     "loginSuccess": "Login successful",
@@ -418,7 +423,18 @@
       "lifestyle": "Lifestyle",
       "footwear": "Footwear",
       "home": "Home",
-      "gift_box": "Gift Box"
+      "gift_box": "Gift Box",
+      "priceRange": "Price Range",
+      "size": "Size",
+      "color": "Color",
+      "sustainability": "Sustainability",
+      "season": "Season",
+      "clearAll": "Clear All",
+      "activeFilters": "Active Filters",
+      "springSummer": "Spring/Summer",
+      "fallWinter": "Fall/Winter",
+      "allSeasons": "All Seasons",
+      "filterButton": "Filters"
     },
     "card": {
       "viewDetails": "View Details",
@@ -441,7 +457,15 @@
       "sustainability": "Sustainability Score",
       "artwork": "Based on artwork by",
       "size": "Size",
-      "quantity": "Quantity"
+      "quantity": "Quantity",
+      "reviews": "Reviews",
+      "noReviews": "No reviews yet",
+      "rating": "Rating",
+      "writeReview": "Write a Review",
+      "reviewTitle": "Title (optional)",
+      "reviewBody": "Share your wearing or packaging experience",
+      "reviewError": "You may have already reviewed this product",
+      "submitReview": "Submit"
     },
     "sort": {
       "label": "Sort by",
@@ -463,17 +487,17 @@
     },
     "behindCollection": "Behind the Collection",
     "workshop": {
-      "imageAlt": "Children creating artwork in a VICOO workshop",
-      "imageCaption": "A Saturday morning workshop in Chengdu, where children paint the dreams that will become our next collection."
+      "imageAlt": "Artisan at work in a VICOO textile studio",
+      "imageCaption": "Our design studio, where material innovation meets timeless craftsmanship."
     },
     "editorial": {
-      "paragraph1": "Every garment in this collection begins the same way — with a child, a blank page, and the freedom to imagine. We partner with schools and community centres across twelve cities, running workshops where children draw their hopes for the world.",
-      "paragraph2": "Our designers then translate these raw, honest artworks into patterns, prints, and embroideries — never altering the child's original vision. The result is clothing that carries real stories, not manufactured ones."
+      "paragraph1": "Every garment in this collection starts with the material — sourced from certified organic farms, recycled fibre programmes, and responsible mills. We believe fashion should feel good and do good, without compromise.",
+      "paragraph2": "Our designers obsess over drape, texture, and longevity. Each piece is pre-washed, tested for durability, and cut to minimise waste. The result is clothing that lasts seasons, not trends."
     },
     "quote": {
-      "text": "I drew the ocean because I want it to stay blue forever.",
-      "author": "Xiao Lin",
-      "role": "Age 8, Ocean Dreams campaign"
+      "text": "We don't design for the runway. We design for the wardrobe that endures.",
+      "author": "VICOO Studio",
+      "role": "Head of Design"
     },
     "mock": {
       "product1": {
@@ -512,6 +536,46 @@
         "childName": "An Qi",
         "campaign": "Colors of Hope"
       }
+    },
+    "promo": {
+      "story": "Our Story",
+      "storyBody": "Crafted with intention. Learn how VICOO builds fashion that lasts, from fibre to finish.",
+      "sustainability": "Sustainability",
+      "sustainabilityBody": "GOTS-certified organic cotton, recycled cashmere, carbon-neutral logistics. Measurable impact, every garment.",
+      "editorial": "Editorial",
+      "editorialBody": "Seasonal lookbooks, material deep-dives, and the artisans behind every stitch.",
+      "cta": "Learn More"
+    }
+  },
+  "impactShop": {
+    "hero": {
+      "title": "Impact Shop",
+      "subtitle": "Every product carries a child's artwork. Every purchase funds their future."
+    },
+    "artworkVoting": {
+      "title": "Vote for the Next Design",
+      "subtitle": "Help choose which children's artwork becomes our next collection.",
+      "vote": "Vote",
+      "votes": "{{count}} votes"
+    },
+    "donationBadge": "{{percentage}}% donated",
+    "supportsCampaign": "Supports: {{campaign}}",
+    "viewTraceability": "Trace to Source",
+    "filterByCampaign": "Filter by Campaign",
+    "allCampaigns": "All Campaigns",
+    "collection": "Impact Collection",
+    "results": "{{count}} impact products",
+    "empty": "No impact products found.",
+    "impactSummary": {
+      "title": "Your Impact",
+      "childrenHelped": "Children Supported",
+      "fundsRaised": "Funds Raised",
+      "artworksTransformed": "Artworks Transformed"
+    },
+    "cta": {
+      "title": "Trace Every Thread",
+      "subtitle": "See exactly where your product comes from — from organic cotton field to finished garment.",
+      "button": "Explore Traceability"
     }
   },
   "traceability": {
@@ -770,7 +834,9 @@
     "sections": {
       "publication": "Publication",
       "connect": "Connect",
-      "legal": "Legal"
+      "legal": "Legal",
+      "explore": "Explore",
+      "support": "Support"
     },
     "links": {
       "about": "About Us",
@@ -788,7 +854,8 @@
     "newsletter": {
       "title": "Newsletter",
       "description": "Quarterly dispatches from the editor's desk. No spam, only stories.",
-      "subscribe": "Subscribe"
+      "subscribe": "Subscribe",
+      "subscribed": "Sent"
     },
     "brand": {
       "description": "Vision In Creative Opportunity"
@@ -904,27 +971,140 @@
     "newTicket": "Submit After-Sales Ticket",
     "ticketsError": "Unable to load tickets at this time.",
     "noTickets": "No tickets yet",
-    "orderId": "Order"
+    "orderId": "Order",
+    "title": "My Profile",
+    "notLoggedIn": "Please log in to view your profile.",
+    "accountDetails": "Account Details",
+    "userId": "User ID",
+    "role": "Role",
+    "ordersError": "Unable to load orders at this time.",
+    "noOrders": "No orders yet",
+    "browseShop": "Browse Shop",
+    "donationsError": "Unable to load donations at this time.",
+    "noDonations": "No donations yet",
+    "makeDonation": "Make a Donation",
+    "anonymous": "Anonymous",
+    "total": "Total",
+    "cancelOrder": "Cancel Order",
+    "tabs": {
+      "orders": "My Orders",
+      "donations": "My Donations",
+      "clothing": "Clothing",
+      "support": "Support",
+      "addresses": "Addresses"
+    },
+    "orders": {
+      "filterAll": "All",
+      "filterPending": "Pending",
+      "filterPaid": "Paid",
+      "filterShipped": "Shipped",
+      "filterCompleted": "Completed",
+      "filterCancelled": "Cancelled",
+      "searchPlaceholder": "Search order number..."
+    },
+    "addresses": {
+      "title": "Saved Addresses",
+      "addAddress": "Add Address",
+      "editAddress": "Edit Address",
+      "deleteAddress": "Delete Address",
+      "setDefault": "Set as Default",
+      "label": "Label",
+      "labelPlaceholder": "Home / Office",
+      "recipient": "Recipient",
+      "phone": "Phone",
+      "province": "Province",
+      "city": "City",
+      "district": "District",
+      "detailAddress": "Detailed Address",
+      "postalCode": "Postal Code",
+      "noAddresses": "No saved addresses yet",
+      "defaultBadge": "Default"
+    }
   },
   "orderDetail": {
     "error": "Unable to load order",
     "title": "Order & Logistics",
-    "status": "Status",
+    "status": {
+      "pending": "Pending",
+      "paid": "Paid",
+      "shipped": "Shipped",
+      "completed": "Completed"
+    },
     "total": "Total",
     "address": "Shipping Address",
     "items": "Items",
-    "logistics": "Logistics Tracking"
-  },
-  "shop": {
-    "detail": {
-      "reviews": "Reviews",
-      "noReviews": "No reviews yet",
-      "rating": "Rating",
-      "writeReview": "Write a Review",
-      "reviewTitle": "Title (optional)",
-      "reviewBody": "Share your wearing or packaging experience",
-      "reviewError": "You may have already reviewed this product",
-      "submitReview": "Submit"
+    "logistics": "Logistics Tracking",
+    "orderDate": "Order Date",
+    "returnExchange": {
+      "title": "Request Return/Exchange",
+      "return": "Return",
+      "exchange": "Exchange",
+      "selectItems": "Select Items",
+      "reason": "Reason",
+      "reasonPlaceholder": "Please describe the reason...",
+      "submit": "Submit Request",
+      "success": "Request Submitted",
+      "successDesc": "We will process your request within 1-3 business days."
     }
+  },
+  "cart": {
+    "title": "Shopping Bag",
+    "empty": "Your bag is empty",
+    "emptySubtitle": "Browse our collection and add items to your bag.",
+    "subtotal": "Subtotal",
+    "checkout": "Checkout",
+    "continueShopping": "Continue Shopping",
+    "remove": "Remove",
+    "quantity": "Qty",
+    "items": "{{count}} item",
+    "items_plural": "{{count}} items",
+    "addedToBag": "Added to bag",
+    "viewBag": "View Bag"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "step1": "Shipping Address",
+    "step2": "Payment Method",
+    "step3": "Review Order",
+    "step4": "Confirmation",
+    "next": "Continue",
+    "back": "Back",
+    "placeOrder": "Place Order",
+    "fullName": "Full Name",
+    "phone": "Phone Number",
+    "street": "Street Address",
+    "city": "City",
+    "province": "Province / State",
+    "postalCode": "Postal Code",
+    "country": "Country",
+    "paymentMethod": "Payment Method",
+    "wechatPay": "WeChat Pay",
+    "alipay": "Alipay",
+    "stripe": "Credit Card",
+    "paypal": "PayPal",
+    "orderSummary": "Order Summary",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "total": "Total",
+    "freeShipping": "Free Shipping",
+    "orderPlaced": "Order Placed!",
+    "orderNumber": "Order No.",
+    "thankYou": "Thank you for your purchase. You will receive a confirmation email shortly.",
+    "viewOrder": "View Order",
+    "continueShopping": "Continue Shopping",
+    "processing": "Processing...",
+    "error": "Something went wrong. Please try again.",
+    "loginRequired": "Please log in to continue checkout.",
+    "savedAddresses": "Saved Addresses",
+    "enterNewAddress": "Enter a new address",
+    "saveAddress": "Save to address book"
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "close": "Close"
   }
 }

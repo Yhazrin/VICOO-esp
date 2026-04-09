@@ -37,6 +37,11 @@ function normalizeProduct(raw: any): Product {
     supplyChain: Array.isArray(raw?.supplyChain) ? raw.supplyChain : [],
     sustainabilityScore: Number(raw?.sustainability_score ?? raw?.sustainabilityScore ?? 85),
     artworkBy: raw?.artworkBy,
+    isImpactProduct: Boolean(raw?.is_impact_product ?? raw?.isImpactProduct ?? false),
+    campaignId: raw?.campaign_id ?? raw?.campaignId ?? null,
+    donationPercentage: raw?.donation_percentage != null ? Number(raw.donation_percentage) : (raw?.donationPercentage != null ? Number(raw.donationPercentage) : undefined),
+    sizes: raw?.sizes ?? undefined,
+    colors: raw?.colors ?? undefined,
   };
 }
 
@@ -45,8 +50,16 @@ export const productsApi = {
     page?: number;
     page_size?: number;
     category?: string;
+    isImpactProduct?: boolean;
   }): Promise<PaginatedResponse<Product>> => {
-    const response = await api.get('/products', { params });
+    const response = await api.get('/products', {
+      params: {
+        page: params?.page,
+        page_size: params?.page_size,
+        category: params?.category,
+        is_impact_product: params?.isImpactProduct,
+      },
+    });
     const d = response.data;
     return {
       items: (d.data ?? []).map(normalizeProduct),

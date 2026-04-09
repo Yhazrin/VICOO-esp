@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useUIStore, THEMES, type ThemeId } from '@/stores/uiStore';
 import { useAuthStore } from '@/stores/authStore';
+import { useCartStore, selectTotalItems } from '@/stores/cartStore';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { useRef, useEffect, useState, useCallback } from 'react';
-import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 
 // ── Company nav: normal brand services ──
 const COMPANY_NAV = [
@@ -22,6 +22,7 @@ const IMPACT_TABS = [
   { key: 'stories' },
   { key: 'traceability' },
   { key: 'donate' },
+  { key: 'shop' },
 ];
 
 // ── PillWindow: capsule "window" with a horizontal sliding rail ──
@@ -153,8 +154,13 @@ export default function Header() {
 
   const { user, isAuthenticated } = useAuthStore();
   const { logout } = useAuth();
+  const toggleCart = useCartStore((s) => s.toggleCart);
+  const totalCartItems = useCartStore(selectTotalItems);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [activeSubmenu, setActiveSubmenu] = useState<'main' | 'theme' | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const menuTriggerRef = useRef<HTMLButtonElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -202,6 +208,22 @@ export default function Header() {
 
   const currentThemeConfig = THEMES.find((t) => t.id === currentTheme);
 
+  useEffect(() => {
+    if (searchOpen) {
+      requestAnimationFrame(() => searchInputRef.current?.focus());
+    }
+  }, [searchOpen]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = searchQuery.trim();
+    if (q) {
+      navigate(`/shop?search=${encodeURIComponent(q)}`);
+      setSearchOpen(false);
+      setSearchQuery('');
+    }
+  };
+
   const handleImpactToggle = () => {
     if (impactMode) {
       setImpactMode(false);
@@ -213,7 +235,6 @@ export default function Header() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
-      <SectionGrainOverlay />
       <div className="relative max-w-[1400px] mx-auto px-6 md:px-10 flex items-center justify-between h-14">
         {/* Logo */}
         <Link
@@ -255,6 +276,64 @@ export default function Header() {
               </button>
             </nav>
           )}
+
+          {/* Search — expandable */}
+          {!isMobile && (
+            <div className="relative flex items-center">
+              <AnimatePresence>
+                {searchOpen && (
+                  <motion.form
+                    initial={{ width: 0, opacity: 0 }}
+                    animate={{ width: 200, opacity: 1 }}
+                    exit={{ width: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
+                    onSubmit={handleSearch}
+                    className="absolute right-full mr-2 overflow-hidden"
+                  >
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder={t('search.placeholder', 'Search products...')}
+                      className="w-full px-4 py-1.5 rounded-full bg-white/90 backdrop-blur-xl shadow-sm font-body text-sm text-ink placeholder:text-warm-gray/60 focus:outline-none focus:ring-1 focus:ring-rust/30"
+                      onBlur={() => {
+                        if (!searchQuery) setSearchOpen(false);
+                      }}
+                    />
+                  </motion.form>
+                )}
+              </AnimatePresence>
+              <button
+                onClick={() => setSearchOpen(!searchOpen)}
+                className="flex items-center justify-center w-9 h-9 rounded-full bg-white shadow-sm hover:shadow-md transition-all cursor-pointer"
+                aria-label="Search"
+              >
+                <svg className="w-4 h-4 text-ink-faded" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="M21 21l-4.35-4.35" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
+          )}
+
+          {/* Cart icon — white disc */}
+          <button
+            onClick={toggleCart}
+            className="relative flex items-center justify-center w-9 h-9 rounded-full bg-white shadow-sm hover:shadow-md transition-all cursor-pointer"
+            aria-label={t('cart.title')}
+          >
+            <svg className="w-4 h-4 text-ink-faded" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <path d="M16 10a4 4 0 01-8 0" />
+            </svg>
+            {totalCartItems > 0 && (
+              <span className="absolute -top-1 -right-1 w-4.5 h-4.5 min-w-[18px] min-h-[18px] flex items-center justify-center bg-rust text-paper font-mono text-[10px] rounded-full leading-none">
+                {totalCartItems > 99 ? '99+' : totalCartItems}
+              </span>
+            )}
+          </button>
 
           {/* Language toggle — white disc */}
           <button

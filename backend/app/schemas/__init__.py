@@ -69,6 +69,8 @@ from app.schemas.order import (
     OrderLogisticsUpdate,
     OrderOut,
     OrderStatusUpdate,
+    ReturnRequestCreate,
+    ReturnRequestItem,
 )
 
 # Payment
@@ -129,6 +131,13 @@ from app.schemas.editorial import (
     EditorialArticleCreate,
 )
 
+# Address
+from app.schemas.address import (
+    AddressCreate,
+    AddressOut,
+    AddressUpdate,
+)
+
 __all__ = [
     # Common
     "ApiResponse",
@@ -179,6 +188,8 @@ __all__ = [
     "OrderOut",
     "LogisticsEvent",
     "OrderLogisticsUpdate",
+    "ReturnRequestCreate",
+    "ReturnRequestItem",
     "WeChatPaymentParams",
     # Payment
     "PaymentCreate",
@@ -215,4 +226,8 @@ __all__ = [
     # Editorial
     "EditorialArticleOut",
     "EditorialArticleCreate",
+    # Address
+    "AddressCreate",
+    "AddressOut",
+    "AddressUpdate",
 ]

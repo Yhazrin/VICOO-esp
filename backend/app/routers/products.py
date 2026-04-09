@@ -16,14 +16,19 @@ router = APIRouter(prefix="/products", tags=["Products"])
 logger = logging.getLogger(__name__)
 
 _mock_products = [
-    {"id": 1, "name": "彩虹鱼棉质 T 恤", "description": "采用有机棉面料，印有获奖作品《彩虹鱼》。每件 T 恤的收益 30% 用于乡村美育基金。", "price": "168.00", "currency": "CNY", "image_url": "/static/products/tshirt1.jpg", "category": "apparel", "stock": 200, "status": "active", "created_at": "2025-04-01T10:00:00"},
-    {"id": 2, "name": "星星之夜帆布袋", "description": "再生帆布材质，印有梵高风格星空画作。环保材质，可持续时尚。", "price": "89.00", "currency": "CNY", "image_url": "/static/products/bag1.jpg", "category": "accessories", "stock": 150, "status": "active", "created_at": "2025-04-05T10:00:00"},
-    {"id": 3, "name": "春天的花园丝巾", "description": "100% 真丝面料，孩子们的画作化为丝巾图案，每一条都是独一无二的艺术品。", "price": "258.00", "currency": "CNY", "image_url": "/static/products/scarf1.jpg", "category": "accessories", "stock": 80, "status": "active", "created_at": "2025-04-10T10:00:00"},
-    {"id": 4, "name": "妈妈的手环保笔记本", "description": "再生纸制作，封面印有《妈妈的手》。可用于记录生活中的美好瞬间。", "price": "39.00", "currency": "CNY", "image_url": "/static/products/notebook1.jpg", "category": "stationery", "stock": 500, "status": "active", "created_at": "2025-04-15T10:00:00"},
-    {"id": 5, "name": "太空旅行马克杯", "description": "陶瓷马克杯，印有《太空旅行》画作。送给每个梦想家。", "price": "68.00", "currency": "CNY", "image_url": "/static/products/cup1.jpg", "category": "lifestyle", "stock": 120, "status": "active", "created_at": "2025-04-20T10:00:00"},
-    {"id": 6, "name": "我的家帆布鞋", "description": "有机棉帆布鞋面，可降解鞋底。鞋侧印有《我的家》画作。", "price": "198.00", "currency": "CNY", "image_url": "/static/products/shoes1.jpg", "category": "footwear", "stock": 0, "status": "sold_out", "created_at": "2025-04-25T10:00:00"},
-    {"id": 7, "name": "画出未来环保抱枕", "description": "再生棉填充，有机棉外套。科幻画作成为你客厅的亮点。", "price": "128.00", "currency": "CNY", "image_url": "/static/products/pillow1.jpg", "category": "home", "stock": 90, "status": "active", "created_at": "2025-05-01T10:00:00"},
-    {"id": 8, "name": "过年了限定礼盒", "description": "包含 T 恤、帆布袋、笔记本三件套，精美包装。限量 100 套。", "price": "368.00", "currency": "CNY", "image_url": "/static/products/giftbox1.jpg", "category": "gift_box", "stock": 35, "status": "active", "created_at": "2025-05-05T10:00:00"},
+    {"id": 1, "name": "彩虹鱼棉质 T 恤", "description": "采用有机棉面料，印有获奖作品《彩虹鱼》。每件 T 恤的收益 30% 用于乡村美育基金。", "price": "168.00", "currency": "CNY", "image_url": "/static/products/tshirt1.jpg", "category": "apparel", "stock": 200, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "30.00", "sizes": ["S", "M", "L", "XL"], "colors": [{"name": "White", "hex": "#F5F0E8"}, {"name": "Navy", "hex": "#1C2841"}, {"name": "Rust", "hex": "#8B3A2A"}], "created_at": "2025-04-01T10:00:00"},
+    {"id": 2, "name": "星星之夜帆布袋", "description": "再生帆布材质，印有梵高风格星空画作。环保材质，可持续时尚。", "price": "89.00", "currency": "CNY", "image_url": "/static/products/bag1.jpg", "category": "accessories", "stock": 150, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "25.00", "created_at": "2025-04-05T10:00:00"},
+    {"id": 3, "name": "春天的花园丝巾", "description": "100% 真丝面料，孩子们的画作化为丝巾图案，每一条都是独一无二的艺术品。", "price": "258.00", "currency": "CNY", "image_url": "/static/products/scarf1.jpg", "category": "accessories", "stock": 80, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "30.00", "created_at": "2025-04-10T10:00:00"},
+    {"id": 4, "name": "妈妈的手环保笔记本", "description": "再生纸制作，封面印有《妈妈的手》。可用于记录生活中的美好瞬间。", "price": "39.00", "currency": "CNY", "image_url": "/static/products/notebook1.jpg", "category": "stationery", "stock": 500, "status": "active", "is_impact_product": True, "campaign_id": 2, "donation_percentage": "20.00", "created_at": "2025-04-15T10:00:00"},
+    {"id": 5, "name": "太空旅行马克杯", "description": "陶瓷马克杯，印有《太空旅行》画作。送给每个梦想家。", "price": "68.00", "currency": "CNY", "image_url": "/static/products/cup1.jpg", "category": "lifestyle", "stock": 120, "status": "active", "is_impact_product": True, "campaign_id": 3, "donation_percentage": "25.00", "created_at": "2025-04-20T10:00:00"},
+    {"id": 6, "name": "我的家帆布鞋", "description": "有机棉帆布鞋面，可降解鞋底。鞋侧印有《我的家》画作。", "price": "198.00", "currency": "CNY", "image_url": "/static/products/shoes1.jpg", "category": "footwear", "stock": 0, "status": "sold_out", "is_impact_product": True, "campaign_id": 2, "donation_percentage": "30.00", "sizes": ["36", "37", "38", "39", "40", "41", "42", "43"], "colors": [{"name": "White", "hex": "#F5F0E8"}, {"name": "Black", "hex": "#1A1A16"}], "created_at": "2025-04-25T10:00:00"},
+    {"id": 7, "name": "画出未来环保抱枕", "description": "再生棉填充，有机棉外套。科幻画作成为你客厅的亮点。", "price": "128.00", "currency": "CNY", "image_url": "/static/products/pillow1.jpg", "category": "home", "stock": 90, "status": "active", "is_impact_product": True, "campaign_id": 3, "donation_percentage": "25.00", "created_at": "2025-05-01T10:00:00"},
+    {"id": 8, "name": "过年了限定礼盒", "description": "包含 T 恤、帆布袋、笔记本三件套，精美包装。限量 100 套。", "price": "368.00", "currency": "CNY", "image_url": "/static/products/giftbox1.jpg", "category": "gift_box", "stock": 35, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "30.00", "sizes": ["S", "M", "L", "XL"], "created_at": "2025-05-05T10:00:00"},
+    # Regular fashion products (no charity attributes)
+    {"id": 9, "name": "Organic Linen Oversized Shirt", "description": "Relaxed-fit shirt in GOTS-certified organic linen. Pre-washed for a lived-in softness.", "price": "328.00", "currency": "CNY", "image_url": "/static/products/shirt_regular1.jpg", "category": "apparel", "stock": 150, "status": "active", "is_impact_product": False, "campaign_id": None, "donation_percentage": None, "sizes": ["XS", "S", "M", "L", "XL", "XXL"], "colors": [{"name": "White", "hex": "#F5F0E8"}, {"name": "Sand", "hex": "#C4A45A"}, {"name": "Sage", "hex": "#3F4F45"}], "created_at": "2025-06-01T10:00:00"},
+    {"id": 10, "name": "Recycled Cashmere Crewneck", "description": "100% recycled Italian cashmere. Circular knit technology, zero waste pattern cutting.", "price": "598.00", "currency": "CNY", "image_url": "/static/products/sweater_regular1.jpg", "category": "apparel", "stock": 80, "status": "active", "is_impact_product": False, "campaign_id": None, "donation_percentage": None, "sizes": ["S", "M", "L", "XL"], "colors": [{"name": "Black", "hex": "#1A1A16"}, {"name": "Navy", "hex": "#1C2841"}, {"name": "Rust", "hex": "#8B3A2A"}], "created_at": "2025-06-05T10:00:00"},
+    {"id": 11, "name": "Hemp Canvas Tote", "description": "Natural hemp canvas tote bag. Durable, biodegradable, minimal aesthetic.", "price": "128.00", "currency": "CNY", "image_url": "/static/products/tote_regular1.jpg", "category": "accessories", "stock": 200, "status": "active", "is_impact_product": False, "campaign_id": None, "donation_percentage": None, "created_at": "2025-06-10T10:00:00"},
+    {"id": 12, "name": "Merino Wool Scarf", "description": "Ethically sourced merino wool. Hand-finished edges, natural dye in rust and sage.", "price": "198.00", "currency": "CNY", "image_url": "/static/products/scarf_regular1.jpg", "category": "accessories", "stock": 120, "status": "active", "is_impact_product": False, "campaign_id": None, "donation_percentage": None, "colors": [{"name": "Rust", "hex": "#8B3A2A"}, {"name": "Sage", "hex": "#3F4F45"}], "created_at": "2025-06-15T10:00:00"},
 ]
 
 _mock_supply_chain = [
@@ -41,6 +46,7 @@ async def list_products(
     page_size: int = Query(20, ge=1, le=100),
     category: str | None = Query(None),
     status: str | None = Query(None),
+    is_impact_product: bool | None = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
     """List products with optional filtering."""
@@ -50,11 +56,15 @@ async def list_products(
             stmt = stmt.where(Product.category == category)
         if status:
             stmt = stmt.where(Product.status == status)
+        if is_impact_product is not None:
+            stmt = stmt.where(Product.is_impact_product == is_impact_product)
         count_stmt = select(func.count(Product.id))
         if category:
             count_stmt = count_stmt.where(Product.category == category)
         if status:
             count_stmt = count_stmt.where(Product.status == status)
+        if is_impact_product is not None:
+            count_stmt = count_stmt.where(Product.is_impact_product == is_impact_product)
         total = (await db.execute(count_stmt)).scalar() or 0
         stmt = stmt.offset((page - 1) * page_size).limit(page_size)
         result = await db.execute(stmt)
@@ -75,6 +85,8 @@ async def list_products(
             filtered = [p for p in filtered if p["category"] == category]
         if status:
             filtered = [p for p in filtered if p["status"] == status]
+        if is_impact_product is not None:
+            filtered = [p for p in filtered if p.get("is_impact_product", False) == is_impact_product]
         start = (page - 1) * page_size
         return PaginatedResponse(
             data=filtered[start : start + page_size],

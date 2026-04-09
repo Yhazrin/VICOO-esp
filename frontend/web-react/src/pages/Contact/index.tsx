@@ -3,8 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
-import EditorialHero from '@/components/editorial/EditorialHero';
-import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeading';
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import FAQAccordion from '@/components/editorial/FAQAccordion';
 import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
@@ -323,16 +321,11 @@ export default function Contact() {
 
   return (
     <PageWrapper>
-      {/* Hero Section */}
-      <EditorialHero
-        title={t('contact.hero.title')}
-        subtitle={t('contact.hero.welcome')}
-        fullHeight={false}
-      />
-
       {/* FAQ Section */}
       <SectionContainer noTopSpacing>
-        <NumberedSectionHeading number="01" title={t('contact.faq.title')} />
+        <h2 className="font-display text-h3 font-bold text-ink mb-8">
+          {t('contact.faq.title')}
+        </h2>
 
         <div className="max-w-3xl">
           {Array.isArray(faqItems) && <FAQAccordion items={faqItems} />}
@@ -360,7 +353,9 @@ export default function Contact() {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-16">
           {/* Form */}
           <div className="md:col-span-7">
-            <NumberedSectionHeading number="02" title={t('contact.formTitle')} />
+            <h2 className="font-display text-h3 font-bold text-ink mb-8">
+              {t('contact.formTitle')}
+            </h2>
 
             <AnimatePresence mode="wait">
               {status === 'success' ? (
@@ -533,7 +528,9 @@ export default function Contact() {
 
           {/* Contact info sidebar */}
           <div className="md:col-span-5">
-            <NumberedSectionHeading number="03" title={t('contact.info.title')} />
+            <h2 className="font-display text-h3 font-bold text-ink mb-8">
+              {t('contact.info.title')}
+            </h2>
 
             <div className="space-y-8">
               <div>
@@ -583,7 +580,9 @@ export default function Contact() {
 
       {/* Contact Info Cards */}
       <SectionContainer>
-        <NumberedSectionHeading number="04" title={t('contact.contactTitle')} />
+        <h2 className="font-display text-h3 font-bold text-ink mb-8">
+          {t('contact.contactTitle')}
+        </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
           {CONTACT_CARDS.map((card, index) => (

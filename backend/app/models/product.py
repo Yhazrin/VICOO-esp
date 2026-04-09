@@ -1,6 +1,6 @@
 import enum
 
-from sqlalchemy import Column, Integer, String, DateTime, Text, DECIMAL, Enum, ForeignKey, JSON, func
+from sqlalchemy import Column, Integer, String, DateTime, Text, DECIMAL, Enum, ForeignKey, Boolean, JSON, func
 from app.database import Base
 
 
@@ -35,4 +35,8 @@ class Product(Base):
     source_clothing_intake_id = Column(Integer, ForeignKey("clothing_intakes.id"), nullable=True, index=True)
     sustainability_score = Column(DECIMAL(3, 2), nullable=True)
     sustainability_details = Column(JSON, nullable=True)
+    # Impact / public welfare fields
+    is_impact_product = Column(Boolean, default=False, nullable=False, index=True)
+    campaign_id = Column(Integer, ForeignKey("campaigns.id"), nullable=True, index=True)
+    donation_percentage = Column(DECIMAL(5, 2), nullable=True)
     created_at = Column(DateTime, server_default=func.now(), nullable=False)

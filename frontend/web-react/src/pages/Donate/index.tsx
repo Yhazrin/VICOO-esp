@@ -5,8 +5,6 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/authStore';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
-import EditorialHero from '@/components/editorial/EditorialHero';
-import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeading';
 import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import DonationPanel from '@/components/editorial/DonationPanel';
@@ -279,12 +277,6 @@ export default function Donate() {
 
   return (
     <PageWrapper>
-      <EditorialHero
-        title={t('donate.hero.title')}
-        subtitle={t('donate.hero.subtitle')}
-        fullHeight={true}
-      />
-
       {/* Emotional Introduction */}
       <SectionContainer narrow>
         <StoryQuoteBlock
@@ -299,10 +291,9 @@ export default function Donate() {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-16">
           {/* Left: Impact Breakdown */}
           <div className="md:col-span-5">
-            <NumberedSectionHeading
-              number="01"
-              title={t('donate.impact.title')}
-            />
+            <h2 className="font-display text-h3 font-bold text-ink mb-8">
+              {t('donate.impact.title')}
+            </h2>
 
             {/* Enhanced impact progress bars */}
             <div className="space-y-7 mt-8">
@@ -363,10 +354,9 @@ export default function Donate() {
 
       {/* Donation Success Stories */}
       <SectionContainer>
-        <NumberedSectionHeading
-          number="02"
-          title={t('donate.stories.title')}
-        />
+        <h2 className="font-display text-h3 font-bold text-ink mb-8">
+          {t('donate.stories.title')}
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
           {donationStories.map((story, i) => (
             <DonationStoryCard
@@ -490,10 +480,9 @@ export default function Donate() {
       {/* FAQ Section */}
       <SectionContainer>
         <div className="max-w-3xl mx-auto">
-          <NumberedSectionHeading
-            number="03"
-            title={t('donate.faq.title')}
-          />
+          <h2 className="font-display text-h3 font-bold text-ink mb-8">
+            {t('donate.faq.title')}
+          </h2>
           <div className="mt-8">
             <FAQAccordion
               items={[

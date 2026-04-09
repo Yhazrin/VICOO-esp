@@ -42,3 +42,7 @@
 *.so binary
 *.dll binary
 *.exe binary
+*.otf binary
+*.ttf binary
+*.woff binary
+*.woff2 binary

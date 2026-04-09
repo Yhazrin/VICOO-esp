@@ -4,8 +4,6 @@ import { motion, useInView, AnimatePresence, useReducedMotion } from 'framer-mot
 import { Link } from 'react-router-dom';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
-import EditorialHero from '@/components/editorial/EditorialHero';
-import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeading';
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
@@ -472,20 +470,14 @@ export default function Traceability() {
 
   return (
     <PageWrapper>
-      <h1 className="sr-only">{t('traceability.hero.title')}</h1>
-      <EditorialHero
-        title={t('traceability.hero.title')}
-        subtitle={t('traceability.hero.subtitle')}
-        hideHero={true}
-      />
-
       {/* Section 01: Trace Your Product — Interactive Lookup */}
       <SectionContainer noTopSpacing>
-        <NumberedSectionHeading
-          number="01"
-          title={t('traceability.lookup.title')}
-          subtitle={t('traceability.lookup.subtitle')}
-        />
+        <h2 className="font-display text-h3 font-bold text-ink mb-8">
+          {t('traceability.lookup.title')}
+        </h2>
+        <p className="font-body text-body-sm text-ink-faded mb-8">
+          {t('traceability.lookup.subtitle')}
+        </p>
 
         <motion.div
           {...(prefersReducedMotion ? {} : {
@@ -571,11 +563,12 @@ export default function Traceability() {
 
       {/* Section 02: Featured traceability example with enhanced timeline */}
       <SectionContainer>
-        <NumberedSectionHeading
-          number="02"
-          title={t('traceability.example.title')}
-          subtitle={t('traceability.example.subtitle')}
-        />
+        <h2 className="font-display text-h3 font-bold text-ink mb-8">
+          {t('traceability.example.title')}
+        </h2>
+        <p className="font-body text-body-sm text-ink-faded mb-8">
+          {t('traceability.example.subtitle')}
+        </p>
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
           {/* Image + carbon sidebar */}
@@ -670,11 +663,12 @@ export default function Traceability() {
       {/* Section 03: Carbon Footprint Visualization */}
       <section className="bg-aged-stock section-spacing">
         <SectionContainer>
-          <NumberedSectionHeading
-            number="03"
-            title={t('traceability.carbon.title')}
-            subtitle={t('traceability.carbon.subtitle')}
-          />
+          <h2 className="font-display text-h3 font-bold text-ink mb-8">
+            {t('traceability.carbon.title')}
+          </h2>
+          <p className="font-body text-body-sm text-ink-faded mb-8">
+            {t('traceability.carbon.subtitle')}
+          </p>
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-16">
             {/* Bar chart */}
@@ -744,10 +738,9 @@ export default function Traceability() {
       {/* Section 04: How it works */}
       <section className="section-spacing">
         <SectionContainer>
-          <NumberedSectionHeading
-            number="04"
-            title={t('traceability.howItWorks.title')}
-          />
+          <h2 className="font-display text-h3 font-bold text-ink mb-8">
+            {t('traceability.howItWorks.title')}
+          </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
@@ -795,11 +788,12 @@ export default function Traceability() {
       {/* Section 05: Certification Badges */}
       <section className="bg-aged-stock section-spacing">
         <SectionContainer>
-          <NumberedSectionHeading
-            number="05"
-            title={t('traceability.certifications.title')}
-            subtitle={t('traceability.certifications.subtitle')}
-          />
+          <h2 className="font-display text-h3 font-bold text-ink mb-8">
+            {t('traceability.certifications.title')}
+          </h2>
+          <p className="font-body text-body-sm text-ink-faded mb-8">
+            {t('traceability.certifications.subtitle')}
+          </p>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {certifications.map((cert, index) => (

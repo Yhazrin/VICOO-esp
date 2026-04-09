@@ -8,8 +8,6 @@ import { campaignsApi } from '@/services/campaigns';
 import { editorialApi } from '@/services/editorial';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
-import EditorialHero from '@/components/editorial/EditorialHero';
-import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeading';
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import { VintageInput } from '@/components/editorial/VintageInput';
@@ -300,13 +298,6 @@ export default function Stories() {
 
   return (
     <PageWrapper>
-      <h1 className="sr-only">{t('stories.hero.title')}</h1>
-      <EditorialHero
-        title={t('stories.hero.title')}
-        subtitle={t('stories.hero.subtitle')}
-        hideHero={true}
-      />
-
       {/* Kinetic marquee with attributed quotes */}
       <KineticTextMarquee
         items={getStoryQuotes(t).map((q) => `${q.text} — ${q.attribution}`)}
@@ -316,10 +307,10 @@ export default function Stories() {
       />
 
       <SectionContainer noTopSpacing>
-        {/* Category filter with count badges */}
-        <div className="flex items-center gap-1 mb-12 border-b border-warm-gray/30 overflow-x-auto" role="tablist">
+        {/* Category filter — capsule style */}
+        <div className="flex items-center mb-12 rounded-full bg-white/80 backdrop-blur-xl shadow-sm px-2 py-1 overflow-x-auto" role="tablist">
           {categories.map((cat, catIndex) => (
-            <motion.button
+            <button
               key={cat}
               role="tab"
               id={`tab-story-${cat}`}
@@ -338,15 +329,11 @@ export default function Stories() {
                   document.getElementById(`tab-story-${prev}`)?.focus();
                 }
               }}
-              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
-              animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              whileHover={prefersReducedMotion ? undefined : { y: -2 }}
               className={`
-                font-body text-caption tracking-[0.15em] uppercase px-4 py-3 transition-all duration-200 border-b-2 -mb-px whitespace-nowrap relative cursor-pointer
+                font-body text-label tracking-wide px-3 py-1 rounded-full transition-all duration-200 cursor-pointer whitespace-nowrap
                 ${activeCategory === cat
-                  ? 'border-rust text-rust'
-                  : 'border-transparent text-sepia-mid hover:text-ink'
+                  ? 'text-ink font-medium bg-rust/15'
+                  : 'text-ink-faded hover:text-ink'
                 }
               `}
             >
@@ -354,7 +341,7 @@ export default function Stories() {
                 {t(`stories.categories.${cat}`)}
                 <span
                   className={`
-                    inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-sm text-overline font-medium leading-none
+                    inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-overline font-medium leading-none
                     ${activeCategory === cat
                       ? 'bg-rust/10 text-rust'
                       : 'bg-warm-gray/20 text-ink-light'
@@ -364,14 +351,7 @@ export default function Stories() {
                   {categoryCounts[cat]}
                 </span>
               </span>
-              {activeCategory === cat && (
-                <motion.span
-                  layoutId="story-category-indicator"
-                  className="absolute bottom-0 left-0 right-0 h-px bg-rust"
-                  transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                />
-              )}
-            </motion.button>
+            </button>
           ))}
         </div>
 
@@ -489,11 +469,12 @@ export default function Stories() {
       <section className="bg-aged-stock section-spacing">
         <SectionContainer narrow>
           <div className="text-center">
-            <NumberedSectionHeading
-              number="05"
-              title={t('stories.newsletter.title')}
-              subtitle={t('stories.newsletter.subtitle')}
-            />
+            <h2 className="font-display text-h3 font-bold text-ink mb-8">
+              {t('stories.newsletter.title')}
+            </h2>
+            <p className="font-body text-body-sm text-ink-faded mb-8">
+              {t('stories.newsletter.subtitle')}
+            </p>
 
             {/* Emotional hook */}
             <p className="font-display text-lg md:text-xl italic text-ink-faded mt-4 mb-6">

@@ -11,6 +11,7 @@ from app.models.circular_commerce import ClothingIntake, ProductReview, AfterSal
 from app.models.settings import SiteSettings
 from app.models.contact import ContactMessage
 from app.models.editorial import EditorialArticle
+from app.models.address import Address
 
 __all__ = [
     "User",
@@ -30,4 +31,5 @@ __all__ = [
     "SiteSettings",
     "ContactMessage",
     "EditorialArticle",
+    "Address",
 ]

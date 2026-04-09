@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
-import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeading';
+
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
 import GrainOverlay from '@/components/editorial/GrainOverlay';
 import { VintageInput } from '@/components/editorial/VintageInput';
@@ -64,7 +64,12 @@ export default function Support() {
       <PaperTextureBackground variant="aged" className="py-16 md:py-24 relative">
         <GrainOverlay />
         <SectionContainer>
-          <NumberedSectionHeading number="06" title={t('support.title', '售后服务')} subtitle={t('support.subtitle', '关联订单号，便于运营处理')} />
+          <h2 className="font-display text-h3 font-bold text-ink mb-8">
+            {t('support.title', '售后服务')}
+          </h2>
+          <p className="font-body text-body-sm text-ink-faded mt-2 mb-8">
+            {t('support.subtitle', '关联订单号，便于运营处理')}
+          </p>
           <form
             className="max-w-xl space-y-6 border border-warm-gray/30 p-6 md:p-8"
             onSubmit={(e) => {
