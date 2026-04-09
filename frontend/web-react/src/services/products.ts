@@ -40,6 +40,8 @@ function normalizeProduct(raw: any): Product {
     isImpactProduct: Boolean(raw?.is_impact_product ?? raw?.isImpactProduct ?? false),
     campaignId: raw?.campaign_id ?? raw?.campaignId ?? null,
     donationPercentage: raw?.donation_percentage != null ? Number(raw.donation_percentage) : (raw?.donationPercentage != null ? Number(raw.donationPercentage) : undefined),
+    sizes: raw?.sizes ?? undefined,
+    colors: raw?.colors ?? undefined,
   };
 }
 

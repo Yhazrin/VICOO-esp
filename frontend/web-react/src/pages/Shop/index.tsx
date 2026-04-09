@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
@@ -83,6 +84,8 @@ function FilterSection({ title, children, defaultOpen = true }: { title: string;
 export default function Shop() {
   const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get('search')?.trim() ?? '';
   const [activeCategory, setActiveCategory] = useState<Category>('all');
   const [sortBy, setSortBy] = useState<SortOption>('default');
 
@@ -181,6 +184,15 @@ export default function Shop() {
   const filtered = useMemo(() => {
     let list = data?.items ?? [];
 
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter((p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.description.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q)
+      );
+    }
+
     if (activeCategory !== 'all') {
       list = list.filter((p) => p.category === activeCategory);
     }
@@ -203,7 +215,7 @@ export default function Shop() {
       default:
         return list;
     }
-  }, [data, activeCategory, sortBy, priceRange, sustainFilter]);
+  }, [data, activeCategory, sortBy, priceRange, sustainFilter, searchQuery]);
 
   const gridItems = useMemo(() => {
     const items: Array<{ type: 'product'; product: Product } | { type: 'promo'; variant: PromoVariant }> = [];
@@ -228,8 +240,18 @@ export default function Shop() {
               {t('shop.collection')}
             </span>
             <h1 className="font-display text-[clamp(28px,4vw,48px)] font-bold text-ink leading-[1.05] tracking-[-0.02em]">
-              {activeCategory === 'all' ? t('shop.filters.all') : t(`shop.filters.${activeCategory}`)}
+              {searchQuery
+                ? `"${searchQuery}"`
+                : activeCategory === 'all'
+                  ? t('shop.filters.all')
+                  : t(`shop.filters.${activeCategory}`)
+              }
             </h1>
+            {searchQuery && (
+              <p className="font-body text-caption text-sepia-mid mt-1">
+                {t('shop.results', { count: filtered.length })}
+              </p>
+            )}
           </div>
           <span className="font-body text-caption text-sepia-mid tracking-wider hidden sm:block">
             {t('shop.results', { count: filtered.length })}

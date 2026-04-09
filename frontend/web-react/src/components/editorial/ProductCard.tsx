@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
+import { useWishlistStore } from '@/stores/wishlistStore';
 import TiltCard from '@/components/animations/TiltCard';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import { VintageInput } from '@/components/editorial/VintageInput';
@@ -35,6 +36,8 @@ export default function ProductCard({
   const [notifySubmitted, setNotifySubmitted] = useState(false);
 
   const sustainability = getSustainabilityTier(product.sustainabilityScore);
+  const toggleWishlist = useWishlistStore((s) => s.toggleItem);
+  const isWishlisted = useWishlistStore((s) => s.isWishlisted(product.id));
 
   const handleNotifySubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,6 +100,35 @@ export default function ProductCard({
 
           {/* Hover overlay */}
           <div className="absolute inset-0 z-15 bg-ink/0 group-hover:bg-ink/5 transition-colors duration-300" aria-hidden="true" />
+
+          {/* Wishlist heart */}
+          <motion.button
+            whileHover={prefersReducedMotion ? undefined : { scale: 1.15 }}
+            whileTap={prefersReducedMotion ? undefined : { scale: 0.85 }}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              toggleWishlist(product);
+            }}
+            className="absolute top-3 left-3 z-30 w-8 h-8 flex items-center justify-center rounded-full bg-paper/80 backdrop-blur-sm border border-warm-gray/20 hover:border-rust/40 transition-colors cursor-pointer"
+            aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+          >
+            <svg
+              className="w-4 h-4 transition-colors"
+              viewBox="0 0 24 24"
+              fill={isWishlisted ? 'currentColor' : 'none'}
+              stroke="currentColor"
+              strokeWidth="1.5"
+              aria-hidden="true"
+            >
+              <path
+                d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"
+                className={isWishlisted ? 'text-rust' : 'text-ink-faded/60'}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </motion.button>
         </div>
 
         {/* Info */}

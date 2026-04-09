@@ -5,12 +5,18 @@ import type { CartItem, Product } from '@/types';
 interface CartState {
   items: CartItem[];
   isOpen: boolean;
-  addItem: (product: Product, quantity?: number) => void;
-  removeItem: (productId: number) => void;
-  updateQuantity: (productId: number, quantity: number) => void;
+  addItem: (product: Product, quantity?: number, selectedSize?: string, selectedColor?: string) => void;
+  removeItem: (productId: number, selectedSize?: string, selectedColor?: string) => void;
+  updateQuantity: (productId: number, quantity: number, selectedSize?: string, selectedColor?: string) => void;
   clearCart: () => void;
   toggleCart: () => void;
   setCartOpen: (open: boolean) => void;
+}
+
+function matchesItem(item: CartItem, productId: number, selectedSize?: string, selectedColor?: string) {
+  return item.product.id === productId &&
+    item.selectedSize === selectedSize &&
+    item.selectedColor === selectedColor;
 }
 
 export const useCartStore = create<CartState>()(
@@ -19,40 +25,38 @@ export const useCartStore = create<CartState>()(
       items: [],
       isOpen: false,
 
-      addItem: (product, quantity = 1) =>
+      addItem: (product, quantity = 1, selectedSize, selectedColor) =>
         set((state) => {
           const existing = state.items.find(
-            (item) => item.product.id === product.id
+            (item) => matchesItem(item, product.id, selectedSize, selectedColor)
           );
           if (existing) {
             return {
               items: state.items.map((item) =>
-                item.product.id === product.id
+                matchesItem(item, product.id, selectedSize, selectedColor)
                   ? { ...item, quantity: item.quantity + quantity }
                   : item
               ),
             };
           }
-          return { items: [...state.items, { product, quantity }] };
+          return { items: [...state.items, { product, quantity, selectedSize, selectedColor }] };
         }),
 
-      removeItem: (productId) =>
+      removeItem: (productId, selectedSize, selectedColor) =>
         set((state) => ({
-          items: state.items.filter((item) => item.product.id !== productId),
+          items: state.items.filter((item) => !matchesItem(item, productId, selectedSize, selectedColor)),
         })),
 
-      updateQuantity: (productId, quantity) =>
+      updateQuantity: (productId, quantity, selectedSize, selectedColor) =>
         set((state) => {
           if (quantity <= 0) {
             return {
-              items: state.items.filter(
-                (item) => item.product.id !== productId
-              ),
+              items: state.items.filter((item) => !matchesItem(item, productId, selectedSize, selectedColor)),
             };
           }
           return {
             items: state.items.map((item) =>
-              item.product.id === productId ? { ...item, quantity } : item
+              matchesItem(item, productId, selectedSize, selectedColor) ? { ...item, quantity } : item
             ),
           };
         }),
