@@ -2,6 +2,11 @@
 
 > 童画公益 x 可持续时尚 平台部署文档
 
+> **WARNING**: This document references the legacy `deploy/docker` path, which is
+> frozen as of 2026-04-08. All new deployments should use **`deploy/easy`**.
+> See [`deploy/docker/LEGACY.md`](../../deploy/docker/LEGACY.md) and
+> [`deploy/easy/README.md`](../../deploy/easy/README.md) for the current workflow.
+
 ## Table of Contents
 
 - [Prerequisites](#prerequisites)

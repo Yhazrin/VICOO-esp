@@ -31,6 +31,9 @@ from app.models.order import Order, OrderItem
 from app.models.supply_chain import SupplyChainRecord
 from app.models.payment import PaymentTransaction
 from app.models.audit import AuditLog
+from app.models.settings import SiteSettings
+from app.models.contact import ContactMessage
+from app.models.editorial import EditorialArticle
 from app.security import hash_password
 from app.config import settings
 
@@ -247,49 +250,49 @@ async def seed():
                 name="彩虹鱼棉质 T 恤",
                 description="采用有机棉面料，印有获奖作品《彩虹鱼》。每件 T 恤的收益 30% 用于乡村美育基金。",
                 price=Decimal("168.00"), currency="CNY",
-                image_url="/static/products/tshirt1.jpg", category="服装", stock=200, status="active",
+                image_url="/static/products/tshirt1.jpg", category="apparel", stock=200, status="active",
             ),
             Product(
                 name="星星之夜帆布袋",
                 description="再生帆布材质，印有梵高风格星空画作。环保材质，可持续时尚。",
                 price=Decimal("89.00"), currency="CNY",
-                image_url="/static/products/bag1.jpg", category="配饰", stock=150, status="active",
+                image_url="/static/products/bag1.jpg", category="accessories", stock=150, status="active",
             ),
             Product(
                 name="春天的花园丝巾",
                 description="100% 真丝面料，孩子们的画作化为丝巾图案，每一条都是独一无二的艺术品。",
                 price=Decimal("258.00"), currency="CNY",
-                image_url="/static/products/scarf1.jpg", category="配饰", stock=80, status="active",
+                image_url="/static/products/scarf1.jpg", category="accessories", stock=80, status="active",
             ),
             Product(
                 name="妈妈的手环保笔记本",
                 description="再生纸制作，封面印有《妈妈的手》。可用于记录生活中的美好瞬间。",
                 price=Decimal("39.00"), currency="CNY",
-                image_url="/static/products/notebook1.jpg", category="文具", stock=500, status="active",
+                image_url="/static/products/notebook1.jpg", category="stationery", stock=500, status="active",
             ),
             Product(
                 name="太空旅行马克杯",
                 description="陶瓷马克杯，印有《太空旅行》画作。送给每个梦想家。",
                 price=Decimal("68.00"), currency="CNY",
-                image_url="/static/products/cup1.jpg", category="生活", stock=120, status="active",
+                image_url="/static/products/cup1.jpg", category="lifestyle", stock=120, status="active",
             ),
             Product(
                 name="我的家帆布鞋",
                 description="有机棉帆布鞋面，可降解鞋底。鞋侧印有《我的家》画作。",
                 price=Decimal("198.00"), currency="CNY",
-                image_url="/static/products/shoes1.jpg", category="鞋履", stock=0, status="sold_out",
+                image_url="/static/products/shoes1.jpg", category="footwear", stock=0, status="sold_out",
             ),
             Product(
                 name="画出未来环保抱枕",
                 description="再生棉填充，有机棉外套。科幻画作成为你客厅的亮点。",
                 price=Decimal("128.00"), currency="CNY",
-                image_url="/static/products/pillow1.jpg", category="家居", stock=90, status="active",
+                image_url="/static/products/pillow1.jpg", category="home", stock=90, status="active",
             ),
             Product(
                 name="过年了限定礼盒",
                 description="包含 T 恤、帆布袋、笔记本三件套，精美包装。限量 100 套。",
                 price=Decimal("368.00"), currency="CNY",
-                image_url="/static/products/giftbox1.jpg", category="礼盒", stock=35, status="active",
+                image_url="/static/products/giftbox1.jpg", category="gift_box", stock=35, status="active",
             ),
         ]
         session.add_all(products)
@@ -469,6 +472,43 @@ async def seed():
                      resource_id="7", details="审核通过作品《丰收的秋天》", ip_address="192.168.1.101"),
         ]
         session.add_all(audit_logs)
+
+        # ── Site Settings ──────────────────────────────────────
+        print("Seeding site settings...")
+        settings_data = [
+            SiteSettings(key="site_name", value="童画公益"),
+            SiteSettings(key="site_tagline", value="Sustainable Fashion for a Better World"),
+            SiteSettings(key="contact_email", value="admin@vicoo.test"),
+            SiteSettings(key="donation_enabled", value=True),
+            SiteSettings(key="shop_enabled", value=True),
+            SiteSettings(key="registration_enabled", value=True),
+            SiteSettings(key="maintenance_mode", value=False),
+        ]
+        session.add_all(settings_data)
+
+        # ── Contact Messages ───────────────────────────────────
+        print("Seeding contact messages...")
+        contact_msgs = [
+            ContactMessage(name="王阿姨", email="wang@example.com", subject="商品咨询", message="请问彩虹鱼T恤还有其他颜色吗？小朋友特别喜欢这个图案。", status="read"),
+            ContactMessage(name="Mike Johnson", email="mike@example.com", subject="Partnership inquiry", message="We are a local art gallery interested in exhibiting the children's artworks. Please contact us.", status="unread"),
+        ]
+        session.add_all(contact_msgs)
+
+        # ── Editorial Articles ─────────────────────────────────
+        print("Seeding editorial articles...")
+        from datetime import datetime as dt
+        articles = [
+            EditorialArticle(title="From Classroom Sketch to Circular Fashion", excerpt="How a village art class became a traceable apparel capsule that funds art supplies.", pull_quote="Every stitch carries a child's imagination forward.", cover_image="https://picsum.photos/seed/editorial-1/1200/800", author="Tonghua Editorial", published_at=dt(2026, 3, 12), read_time_minutes=7, category="impact", status="published"),
+            EditorialArticle(title="Why Recycled Cotton Matters for Rural Communities", excerpt="A field report on material sourcing, artisan income, and lower footprint fulfillment.", pull_quote="Sustainability is strongest when it is measurable and shared.", cover_image="https://picsum.photos/seed/editorial-2/1200/800", author="Sustainability Desk", published_at=dt(2026, 2, 24), read_time_minutes=9, category="fashion", status="published"),
+            EditorialArticle(title="Meet the Families Behind the Artwork", excerpt="Guardians and teachers discuss confidence growth after children see their work in public.", pull_quote="Our child started believing their voice mattered.", cover_image="https://picsum.photos/seed/editorial-3/1200/800", author="Community Team", published_at=dt(2026, 2, 8), read_time_minutes=6, category="community", status="published"),
+        ]
+        session.add_all(articles)
+
+        # ── Add carbon data to supply chain records ────────────
+        print("Adding carbon data to supply chain records...")
+        for i, record in enumerate(supply_records):
+            record.carbon_kg = Decimal(str([3.2, 2.1, 4.5, 0.8, 1.2][i]))
+            record.carbon_note = ["Organic cotton farming + transport", "Solar-powered spinning mill", "Fair trade certified factory", "Third-party SGS inspection", "Biodegradable packaging + carbon-neutral logistics"][i]
 
         await session.commit()
         print("Seed complete!")

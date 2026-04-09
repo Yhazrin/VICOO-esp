@@ -37,7 +37,7 @@ class UserOutSensitive(UserOut):
 
 
 class UserRoleUpdate(BaseModel):
-    role: str = Field(..., pattern="^(admin|editor|user)$", description="New role for the user")
+    role: str = Field(..., pattern="^(admin|editor|user|guardian|compliance)$", description="New role for the user")
 
 
 class UserStatusUpdate(BaseModel):

@@ -106,9 +106,9 @@ export default function ArtworkDetail() {
                   {t('artwork.detail.artist')}
                 </p>
                 <p className="font-body text-caption text-ink-faded">
-                  {artwork.childParticipant.firstName}, age {artwork.childParticipant.age}
+                  {artwork.childParticipant?.firstName ?? artwork.artist_name ?? t('artwork.detail.unknownArtist', 'Unknown')}, {artwork.childParticipant?.age != null ? `age ${artwork.childParticipant.age}` : ''}
                 </p>
-                {artwork.childParticipant.schoolName && (
+                {artwork.childParticipant?.schoolName && (
                   <p className="font-body text-caption text-ink-faded mt-1">
                     {artwork.childParticipant.schoolName}
                   </p>

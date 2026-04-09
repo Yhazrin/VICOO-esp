@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import BleedTitleBlock from '@/components/editorial/BleedTitleBlock';
@@ -12,72 +13,8 @@ import DonationPanel from '@/components/editorial/DonationPanel';
 import ArtworkCard from '@/components/editorial/ArtworkCard';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import { campaignsApi } from '@/services/campaigns';
+import { artworksApi } from '@/services/artworks';
 import type { Campaign, Artwork } from '@/types';
-
-const MOCK_CAMPAIGN: Campaign = {
-  id: 1,
-  title: 'Threads of Tomorrow',
-  subtitle: 'Children from rural Guizhou reimagine what sustainable fashion means through watercolors and dreams.',
-  description:
-    "In the misty villages of Guizhou Province, children aged 6-12 are given watercolors and a simple prompt: \"Draw the clothes you wish existed.\" What emerges is a torrent of imagination — dresses that bloom with flowers, jackets that change color with the weather, shoes that carry you to the moon. This campaign collects their artwork and, with the help of sustainable textile partners, transforms select designs into real garments. Every purchase funds the next workshop, the next set of supplies, the next child's creative journey.",
-  coverImageUrl:
-    'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=1400&h=600&fit=crop',
-  startDate: '2026-01-15',
-  endDate: '2026-06-30',
-  status: 'active',
-  artworkCount: 142,
-  participantCount: 89,
-  goalAmount: 50000,
-  raisedAmount: 32500,
-  featured: true,
-};
-
-const MOCK_ARTWORKS: Artwork[] = [
-  {
-    id: 1,
-    title: 'The Garden That Grows Clothes',
-    description: '',
-    image_url: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=600&h=800&fit=crop',
-    childParticipant: { id: 1, firstName: 'Mei', age: 8, guardianId: 1, consentGiven: true },
-    status: 'featured',
-    vote_count: 234,
-    created_at: '2026-01-20',
-    tags: ['nature'],
-  },
-  {
-    id: 2,
-    title: 'Butterfly Factory',
-    description: '',
-    image_url: 'https://images.unsplash.com/photo-1560807707-8cc77767d783?w=600&h=800&fit=crop',
-    childParticipant: { id: 2, firstName: 'Jun', age: 7, guardianId: 2, consentGiven: true },
-    status: 'approved',
-    vote_count: 189,
-    created_at: '2026-01-22',
-    tags: ['animals'],
-  },
-  {
-    id: 3,
-    title: 'Rain on My Umbrella Hat',
-    description: '',
-    image_url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&h=800&fit=crop',
-    childParticipant: { id: 3, firstName: 'Lan', age: 9, guardianId: 3, consentGiven: true },
-    status: 'approved',
-    vote_count: 167,
-    created_at: '2026-01-25',
-    tags: ['weather'],
-  },
-  {
-    id: 4,
-    title: 'Stars in My Pockets',
-    description: '',
-    image_url: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=600&h=800&fit=crop',
-    childParticipant: { id: 4, firstName: 'Hao', age: 6, guardianId: 4, consentGiven: true },
-    status: 'approved',
-    vote_count: 145,
-    created_at: '2026-01-28',
-    tags: ['space'],
-  },
-];
 
 export default function CampaignDetail() {
   const { id } = useParams<{ id: string }>();
@@ -88,7 +25,6 @@ export default function CampaignDetail() {
 
   useEffect(() => {
     if (!id) {
-      setCampaign(MOCK_CAMPAIGN);
       setLoading(false);
       return;
     }
@@ -97,29 +33,24 @@ export default function CampaignDetail() {
       .getById(id)
       .then((data: Campaign) => {
         if (!cancelled) {
-          setCampaign({
-            ...MOCK_CAMPAIGN,
-            ...data,
-            id: data.id ?? Number(id),
-            coverImageUrl: data.coverImageUrl ?? MOCK_CAMPAIGN.coverImageUrl,
-            startDate: data.startDate ?? MOCK_CAMPAIGN.startDate,
-            endDate: data.endDate ?? MOCK_CAMPAIGN.endDate,
-            artworkCount: data.artworkCount ?? MOCK_CAMPAIGN.artworkCount,
-            participantCount: data.participantCount ?? MOCK_CAMPAIGN.participantCount,
-            goalAmount: Number(data.goalAmount ?? MOCK_CAMPAIGN.goalAmount),
-            raisedAmount: Number(data.raisedAmount ?? MOCK_CAMPAIGN.raisedAmount),
-          });
+          setCampaign(data);
           setLoading(false);
         }
       })
       .catch(() => {
         if (!cancelled) {
-          setCampaign(MOCK_CAMPAIGN);
           setLoading(false);
         }
       });
     return () => { cancelled = true; };
   }, [id]);
+
+  const { data: campaignArtworks } = useQuery({
+    queryKey: ['campaign-artworks', id],
+    queryFn: () => artworksApi.getByCampaign(id!),
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+  });
 
   if (loading || !campaign) {
     return (
@@ -246,7 +177,7 @@ export default function CampaignDetail() {
         <SectionContainer>
           <NumberedSectionHeading number="02" title={t('campaigns.detail.artworks')} />
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-            {MOCK_ARTWORKS.map((artwork, index) => (
+            {(campaignArtworks ?? []).map((artwork, index) => (
               <ArtworkCard key={artwork.id} artwork={artwork} index={index} />
             ))}
           </div>

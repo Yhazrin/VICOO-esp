@@ -1,3 +1,5 @@
+⚠️ Historical document — may be outdated. Current API prefix standard is `/api/v1`. See `DEVELOPMENT_GUIDE.md` for current guidance.
+
 # 修复记录：本地开发环境热更新配置 + Alembic 迁移
 
 ## 问题描述

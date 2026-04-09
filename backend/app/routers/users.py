@@ -74,7 +74,6 @@ async def update_me(
         user = await user_service.update_user_profile(current_user["id"], body.model_dump())
         await db.commit()
         return ApiResponse(data=UserOut.model_validate(user).model_dump())
-        raise
     except HTTPException:
         raise
     except Exception as e:

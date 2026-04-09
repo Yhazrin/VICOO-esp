@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 
-const API_BASE = '/api';
+const API_BASE = '/api/v1';
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
