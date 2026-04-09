@@ -229,8 +229,8 @@ export default function Donate() {
 
   const totalAmount = impactStats?.total_amount
     ? parseFloat(impactStats.total_amount)
-    : 890000;
-  const totalDonors = impactStats?.total_donors ?? 2847;
+    : 0;
+  const totalDonors = impactStats?.total_donors ?? 0;
 
   const donateMutation = useMutation({
     mutationFn: async (data: {

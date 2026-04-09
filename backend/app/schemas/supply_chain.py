@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from decimal import Decimal
 from typing import List, Optional
 
 from pydantic import BaseModel, Field
@@ -17,6 +18,8 @@ class SupplyChainRecordCreate(BaseModel):
     location: Optional[str] = Field(None, max_length=300, description="Geographic location of this stage")
     certified: bool = Field(False, description="Whether this stage has certification")
     cert_image_url: Optional[str] = Field(None, max_length=500, description="Certification document image URL")
+    carbon_kg: Optional[Decimal] = None
+    carbon_note: Optional[str] = Field(None, max_length=500)
     timestamp: Optional[datetime] = Field(None, description="Actual date/time of this stage")
 
 
@@ -36,6 +39,8 @@ class SupplyChainRecordOut(BaseModel):
     location: Optional[str] = None
     certified: bool
     cert_image_url: Optional[str] = None
+    carbon_kg: Optional[Decimal] = None
+    carbon_note: Optional[str] = None
     timestamp: Optional[datetime] = None
     created_at: datetime
 

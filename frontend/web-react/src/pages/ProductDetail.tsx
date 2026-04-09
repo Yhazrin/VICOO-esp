@@ -14,7 +14,7 @@ import { useCartStore } from '@/stores/cartStore';
 import { productsApi } from '@/services/products';
 import { reviewsApi } from '@/services/reviewsApi';
 import { useAuthStore } from '@/stores/authStore';
-import type { Product, SupplyChainTimelineRecord } from '@/types';
+import type { Product } from '@/types';
 
 function ThumbnailButton({
   url,
@@ -51,87 +51,6 @@ function ThumbnailButton({
   );
 }
 
-const MOCK_SUPPLY_CHAIN: SupplyChainTimelineRecord[] = [
-  {
-    id: 1,
-    stage: 'artwork',
-    description: 'Mei, age 8, painted the original design during a workshop in Bijie, Guizhou.',
-    location: 'Bijie, Guizhou',
-    date: '2025-11-15',
-    verified: true,
-    partnerName: 'Bijie Community Center',
-    carbonFootprint: 0,
-  },
-  {
-    id: 2,
-    stage: 'design',
-    description:
-      'Our creative team adapted the watercolor for screen printing while preserving brushstroke authenticity.',
-    location: 'Shanghai',
-    date: '2025-12-01',
-    verified: true,
-    partnerName: 'Tonghua Creative Team',
-    carbonFootprint: 0.2,
-  },
-  {
-    id: 3,
-    stage: 'material',
-    description:
-      '100% mulberry silk sourced from a six-generation cooperative using traditional sericulture methods.',
-    location: 'Huzhou, Zhejiang',
-    date: '2026-01-10',
-    verified: true,
-    partnerName: 'Huzhou Silk Cooperative',
-    carbonFootprint: 1.8,
-  },
-  {
-    id: 4,
-    stage: 'production',
-    description:
-      'Screen-printed by hand using water-based, non-toxic inks. Each scarf takes 45 minutes to print.',
-    location: 'Hangzhou',
-    date: '2026-01-20',
-    verified: true,
-    partnerName: 'Wang Artisan Workshop',
-    carbonFootprint: 2.1,
-  },
-  {
-    id: 5,
-    stage: 'quality',
-    description: 'Individually inspected for print clarity, color accuracy, and fabric integrity.',
-    location: 'Shanghai',
-    date: '2026-02-01',
-    verified: true,
-    partnerName: 'Tonghua QC',
-    carbonFootprint: 0.1,
-  },
-  {
-    id: 6,
-    stage: 'shipping',
-    description: 'Packaged in recycled kraft paper. Carbon-offset delivery via SF Express.',
-    location: 'Nationwide',
-    date: '2026-02-05',
-    verified: true,
-    partnerName: 'SF Express (Carbon Offset)',
-    carbonFootprint: 0.8,
-  },
-];
-
-const MOCK_PRODUCT: Product = {
-  id: 1,
-  name: "Typhoon Silk Scarf — Mei's Garden",
-  description:
-    "Hand-printed from 8-year-old Mei's watercolor of a swirling garden. Each scarf is individually printed by artisan Wang Laoshi in her Hangzhou workshop using traditional screen-printing methods. The mulberry silk is sourced from a cooperative in Zhejiang that has been producing silk for six generations. The design preserves Mei's original brushstrokes — the slightly uneven edges, the places where colors bled into each other — because that imperfection is the point.",
-  price: 380,
-  currency: 'CNY',
-  image_url: 'https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=800&h=1000&fit=crop',
-  category: 'accessories',
-  inStock: true,
-  stockCount: 12,
-  sustainabilityScore: 90,
-  supplyChain: MOCK_SUPPLY_CHAIN,
-};
-
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
@@ -146,7 +65,6 @@ export default function ProductDetail() {
     queryKey: ['product', id],
     queryFn: () => productsApi.getById(id!),
     enabled: !!id,
-    placeholderData: MOCK_PRODUCT,
     retry: false,
   });
 

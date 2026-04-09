@@ -1,5 +1,10 @@
 # 童花公益 · 开发启动指南
 
+> **注意**：本文档中引用的 `deploy/docker` 路径已冻结（2026-04-08）。
+> 所有 Docker 部署请改用 **`deploy/easy`**。
+> 参见 [`deploy/docker/LEGACY.md`](../../deploy/docker/LEGACY.md) 和
+> [`deploy/easy/README.md`](../../deploy/easy/README.md)。
+
 ## 目录
 
 1. [项目结构](#项目结构)
@@ -130,6 +135,14 @@ curl -s http://localhost:8000/api/v1/products | python3 -m json.tool | head -5
 - **API 基础地址**: http://localhost:8000
 - **API 文档**: http://localhost:8000/docs
 - **健康检查**: http://localhost:8000/health
+
+### API 前缀标准
+
+**唯一标准前缀：`/api/v1`**
+
+所有 API 路由均注册在 `/api/v1` 下（见 `backend/app/main.py`）。旧版 `/api` 请求会被 301 永久重定向到 `/api/v1`，但不应依赖此行为——所有新代码和文档必须使用 `/api/v1`。
+
+> 如果你在历史文档中看到 `/api`（无 `/v1`）的写法，请忽略它，以本指南为准。
 
 ---
 

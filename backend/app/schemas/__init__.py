@@ -111,6 +111,24 @@ from app.schemas.circular_commerce import (
     PublishFromIntakeBody,
 )
 
+# Settings
+from app.schemas.settings import (
+    SettingsOut,
+    SettingsBulkUpdate,
+)
+
+# Contact
+from app.schemas.contact import (
+    ContactFormCreate,
+    ContactMessageOut,
+)
+
+# Editorial
+from app.schemas.editorial import (
+    EditorialArticleOut,
+    EditorialArticleCreate,
+)
+
 __all__ = [
     # Common
     "ApiResponse",
@@ -188,4 +206,13 @@ __all__ = [
     "ArtworkAnalysisResponse",
     "ContentModerationRequest",
     "ContentModerationResponse",
+    # Settings
+    "SettingsOut",
+    "SettingsBulkUpdate",
+    # Contact
+    "ContactFormCreate",
+    "ContactMessageOut",
+    # Editorial
+    "EditorialArticleOut",
+    "EditorialArticleCreate",
 ]

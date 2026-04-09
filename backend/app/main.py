@@ -10,7 +10,7 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 
 from app.config import settings
 from app.database import engine, Base, AsyncSessionLocal
@@ -228,6 +228,7 @@ from app.routers.reviews import router as reviews_router
 from app.routers.after_sales import router as after_sales_router
 from app.routers.sustainability import router as sustainability_router
 from app.routers.ai_assistant import router as ai_router
+from app.routers.editorial import router as editorial_router
 
 # Health check router
 from fastapi import APIRouter
@@ -262,12 +263,20 @@ routers = (
     auth_router, oauth_router, users_router, artworks_router, campaigns_router,
     donations_router, products_router, orders_router, payments_router, admin_router,
     supply_chain_router, contact_router, clothing_intakes_router, reviews_router,
-    after_sales_router, sustainability_router, ai_router, health_router,
+    after_sales_router, sustainability_router, ai_router, editorial_router, health_router,
 )
 
-for api_prefix in ("/api", "/api/v1"):
-    for router in routers:
-        app.include_router(router, prefix=api_prefix)
+# Compat: redirect legacy /api/* requests to /api/v1/* (301)
+@app.middleware("http")
+async def legacy_api_redirect_middleware(request: Request, call_next):
+    path = request.url.path
+    if path.startswith("/api/") and not path.startswith("/api/v1/"):
+        new_url = str(request.url).replace("/api/", "/api/v1/", 1)
+        return RedirectResponse(url=new_url, status_code=301)
+    return await call_next(request)
+
+for router in routers:
+    app.include_router(router, prefix="/api/v1")
 
 if __name__ == "__main__":
     import uvicorn

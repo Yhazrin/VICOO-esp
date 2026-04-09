@@ -18,15 +18,41 @@ interface BackendRegisterResponse {
 // Backend response structure (nested - login endpoint, now consistent with register)
 interface BackendLoginResponse {
   success: boolean;
-  data: {
-    user: User;
-    token: {
-      access_token: string;
-      refresh_token: string;
-      expires_in: number;
-    };
-  };
+  data: BackendAuthData;
   message?: string;
+}
+
+interface BackendAuthData {
+  user: User & { created_at?: string };
+  token?: {
+    access_token: string;
+    refresh_token: string;
+    expires_in: number;
+  };
+  access_token?: string;
+  refresh_token?: string;
+}
+
+function extractTokens(data: BackendAuthData) {
+  const nested = data.token;
+  const accessToken = nested?.access_token ?? data.access_token;
+  const refreshToken = nested?.refresh_token ?? data.refresh_token;
+
+  if (!accessToken || !refreshToken) {
+    throw new Error('Missing token fields in auth response');
+  }
+
+  return {
+    access_token: accessToken,
+    refresh_token: refreshToken,
+  };
+}
+
+function normalizeUser(user: BackendAuthData['user']): User {
+  return {
+    ...user,
+    createdAt: user.createdAt ?? user.created_at,
+  };
 }
 
 /**
@@ -47,11 +73,12 @@ interface BackendLoginResponse {
 export const authApi = {
   login: async (data: LoginRequest): Promise<AuthResponse> => {
     const response = await api.post<BackendLoginResponse>('/auth/login', data);
+    const tokens = extractTokens(response.data.data);
     // Transform backend response to frontend format
     return {
-      user: response.data.data.user,
-      access_token: response.data.data.token.access_token,
-      refresh_token: response.data.data.token.refresh_token,
+      user: normalizeUser(response.data.data.user),
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token,
     };
   },
 
@@ -59,7 +86,7 @@ export const authApi = {
     const response = await api.post<BackendRegisterResponse>('/auth/register', data);
     // Transform backend response to frontend format
     return {
-      user: response.data.data.user,
+      user: normalizeUser(response.data.data.user),
       access_token: response.data.data.token.access_token,
       refresh_token: response.data.data.token.refresh_token,
     };

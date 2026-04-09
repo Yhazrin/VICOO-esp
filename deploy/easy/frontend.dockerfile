@@ -13,8 +13,8 @@ RUN npm install --legacy-peer-deps
 COPY . .
 
 # Build without API URL restriction (nginx proxies locally)
-# Set VITE_API_BASE_URL to /api so app uses relative paths
-ARG VITE_API_BASE_URL=/api
+# Set VITE_API_BASE_URL to /api/v1 to match backend router prefix
+ARG VITE_API_BASE_URL=/api/v1
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
 # Skip tsc type-checking to avoid TS errors in dev code

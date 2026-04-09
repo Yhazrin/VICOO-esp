@@ -8,6 +8,9 @@ from app.models.supply_chain import SupplyChainRecord
 from app.models.payment import PaymentTransaction
 from app.models.audit import AuditLog
 from app.models.circular_commerce import ClothingIntake, ProductReview, AfterSaleTicket
+from app.models.settings import SiteSettings
+from app.models.contact import ContactMessage
+from app.models.editorial import EditorialArticle
 
 __all__ = [
     "User",
@@ -24,4 +27,7 @@ __all__ = [
     "ClothingIntake",
     "ProductReview",
     "AfterSaleTicket",
+    "SiteSettings",
+    "ContactMessage",
+    "EditorialArticle",
 ]

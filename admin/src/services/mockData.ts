@@ -21,11 +21,11 @@ const randomDate = (start: string, end: string, seed: number) => {
   return new Date(s + seeded(seed) * (e - s)).toISOString();
 };
 
-const statuses: Artwork['status'][] = ['pending', 'approved', 'rejected', 'archived'];
+const statuses: Artwork['status'][] = ['pending', 'approved', 'rejected', 'featured'];
 const categories = ['油画', '水彩', '素描', '蜡笔画', '拼贴', '数字艺术'];
 const regions = ['北京市', '上海市', '广州市', '成都市', '西安市', '杭州市', '南京市', '重庆市'];
 const paymentMethods: Donation['paymentMethod'][] = ['wechat', 'alipay', 'stripe', 'paypal'];
-const orderStatuses: Order['status'][] = ['pending', 'paid', 'shipped', 'delivered', 'cancelled', 'refunded'];
+const orderStatuses: Order['status'][] = ['pending', 'paid', 'shipped', 'completed', 'cancelled'];
 
 // Mock Users
 export const mockUsers: User[] = Array.from({ length: 48 }, (_, i) => ({

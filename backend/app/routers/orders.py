@@ -190,6 +190,30 @@ async def list_orders(
         logger.error(f"Error listing orders: {e}")
         return PaginatedResponse(data=[], total=0, page=page, page_size=page_size)
 
+@router.get("/mine", response_model=PaginatedResponse)
+async def my_orders(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get current user's orders."""
+    order_service = OrderService(db)
+    try:
+        orders, total = await order_service.list_orders(current_user["id"], page, page_size)
+        data = []
+        for order in orders:
+            item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
+            items = (await db.execute(item_stmt)).scalars().all()
+            data.append(order_to_out_dict(order, list(items)))
+        return PaginatedResponse(data=data, total=total, page=page, page_size=page_size)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error listing user orders: {e}")
+        return PaginatedResponse(data=[], total=0, page=page, page_size=page_size)
+
+
 @router.post("", response_model=ApiResponse, status_code=201)
 @router.post("/create", response_model=ApiResponse, status_code=201)
 async def create_order(
@@ -219,7 +243,6 @@ async def create_order(
             response_data.update(payment_params)
 
         return ApiResponse(data=response_data)
-        raise
     except HTTPException:
         raise
     except Exception as e:
@@ -242,7 +265,6 @@ async def get_order(
         item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
         items = (await db.execute(item_stmt)).scalars().all()
         return ApiResponse(data=order_to_out_dict(order, list(items)))
-        raise
     except HTTPException:
         raise
     except Exception:
@@ -267,7 +289,6 @@ async def cancel_order(
         item_stmt = select(OrderItem).where(OrderItem.order_id == order_id)
         items = (await db.execute(item_stmt)).scalars().all()
         return ApiResponse(data=order_to_out_dict(cancelled_order, list(items)))
-        raise
     except HTTPException:
         raise
     except Exception as e:
@@ -299,7 +320,6 @@ async def update_order_status(
         item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
         items = (await db.execute(item_stmt)).scalars().all()
         return ApiResponse(data=order_to_out_dict(order, list(items)))
-        raise
     except HTTPException:
         raise
     except Exception as e:

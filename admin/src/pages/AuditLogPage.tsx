@@ -13,7 +13,6 @@ import dayjs from 'dayjs';
 export default function AuditLogPage() {
   const { t } = useTranslation();
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
   const [actionFilter, setActionFilter] = useState('');
   const [selected, setSelected] = useState<AuditLogEntry | null>(null);
 
@@ -36,12 +35,11 @@ export default function AuditLogPage() {
   };
 
   const { data, isLoading } = useQuery({
-    queryKey: ['auditLogs', page, search, actionFilter],
+    queryKey: ['auditLogs', page, actionFilter],
     queryFn: () => fetchAuditLogs({
       page,
       pageSize: 15,
-      search: search || undefined,
-      status: actionFilter || undefined
+      search: actionFilter || undefined
     }),
   });
 
@@ -97,12 +95,7 @@ export default function AuditLogPage() {
       </div>
 
       <div style={{ display: 'flex', gap: 16, marginBottom: 24, alignItems: 'center' }}>
-        <input
-          type="text" placeholder={t('auditLog.searchPlaceholder')}
-          value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          style={filterStyle}
-        />
-        <select value={actionFilter} onChange={(e) => setActionFilter(e.target.value)} style={filterStyle}>
+        <select value={actionFilter} onChange={(e) => { setActionFilter(e.target.value); setPage(1); }} style={filterStyle}>
           <option value="">{t('auditLog.filterAllActions')}</option>
           <option value="login">{t('auditLog.actionLogin')}</option>
           <option value="review_artwork">{t('auditLog.actionReviewArtwork')}</option>

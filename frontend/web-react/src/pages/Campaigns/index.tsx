@@ -12,114 +12,6 @@ import { VintageInput } from '@/components/editorial/VintageInput';
 import { campaignsApi } from '@/services/campaigns';
 import type { Campaign } from '@/types';
 
-const MOCK_CAMPAIGNS: Campaign[] = [
-  {
-    id: 1,
-    title: 'Threads of Tomorrow',
-    subtitle: 'Children from rural Guizhou reimagine what sustainable fashion means through watercolors and dreams.',
-    description: 'A campaign exploring the intersection of childhood imagination and sustainable textile production.',
-    coverImageUrl: 'https://picsum.photos/seed/threads-tomorrow/800/500',
-    startDate: '2026-01-15',
-    endDate: '2026-06-30',
-    status: 'active',
-    artworkCount: 142,
-    participantCount: 89,
-    goalAmount: 50000,
-    raisedAmount: 32500,
-    featured: true,
-    featuredChild: {
-      name: 'Xiao Lin',
-      age: 8,
-      quote: 'I never thought my painting of the ocean would become something people can wear.',
-    },
-  },
-  {
-    id: 2,
-    title: 'Ocean Dreams',
-    subtitle: 'Shanghai coastal communities paint their vision of a plastic-free ocean, transformed into beachwear.',
-    description: 'Marine-themed artwork by children from fishing communities, turned into sustainable swimwear.',
-    coverImageUrl: 'https://picsum.photos/seed/ocean-dreams/800/500',
-    startDate: '2026-03-01',
-    endDate: '2026-09-30',
-    status: 'active',
-    artworkCount: 67,
-    participantCount: 45,
-    goalAmount: 35000,
-    raisedAmount: 12800,
-    featured: true,
-    featuredChild: {
-      name: 'Mei Hua',
-      age: 10,
-      quote: 'My grandmother taught me to love the sea. Now I can show everyone why it matters.',
-    },
-  },
-  {
-    id: 3,
-    title: 'Mountain Stories',
-    subtitle: 'Yunnan children share their relationship with the mountains through textile art.',
-    description: 'A completed campaign that brought mountain-inspired textile art to international fashion shows.',
-    coverImageUrl: 'https://picsum.photos/seed/mountain-stories/800/500',
-    startDate: '2025-09-01',
-    endDate: '2026-02-28',
-    status: 'completed',
-    artworkCount: 203,
-    participantCount: 156,
-    goalAmount: 80000,
-    raisedAmount: 82400,
-    featured: true,
-    featuredChild: {
-      name: 'Ah Jie',
-      age: 7,
-      quote: 'The mountain behind my school is where I go to think. Now my drawing of it is on a real jacket.',
-    },
-  },
-  {
-    id: 4,
-    title: 'City Rhythms',
-    subtitle: 'Urban children interpret the pulse of their city through abstract prints and patterns.',
-    description: 'Launching this summer — registration for schools opens May 2026.',
-    coverImageUrl: 'https://picsum.photos/seed/city-rhythms/800/500',
-    startDate: '2026-07-01',
-    endDate: '2026-12-31',
-    status: 'upcoming',
-    artworkCount: 0,
-    participantCount: 0,
-    goalAmount: 45000,
-    raisedAmount: 0,
-    featured: false,
-  },
-  {
-    id: 5,
-    title: 'Forest Whispers',
-    subtitle: 'Children from Sichuan villages paint the stories their grandparents told about the ancient forests.',
-    description: 'A campaign connecting oral tradition with sustainable forestry and textile sourcing.',
-    coverImageUrl: 'https://picsum.photos/seed/forest-whispers/800/500',
-    startDate: '2025-06-01',
-    endDate: '2025-12-31',
-    status: 'completed',
-    artworkCount: 178,
-    participantCount: 120,
-    goalAmount: 60000,
-    raisedAmount: 64200,
-    featured: false,
-  },
-  {
-    id: 6,
-    title: 'Starlight Weavers',
-    subtitle: 'Night sky patterns from Tibetan highland children woven into scarves and wraps.',
-    description: 'High-altitude astronomy meets textile craftsmanship in this unique cross-cultural project.',
-    coverImageUrl: 'https://picsum.photos/seed/starlight-weavers/800/500',
-    startDate: '2026-04-01',
-    endDate: '2026-10-31',
-    status: 'active',
-    artworkCount: 34,
-    participantCount: 28,
-    goalAmount: 55000,
-    raisedAmount: 8700,
-    featured: false,
-  },
-];
-
 const PAGE_SIZE = 6;
 
 type StatusFilter = 'all' | 'active' | 'upcoming' | 'completed';
@@ -134,22 +26,18 @@ export default function Campaigns() {
   const { data, isLoading } = useQuery({
     queryKey: ['campaigns', { status: filter, page, search }],
     queryFn: async () => {
-      try {
-        const result = await campaignsApi.getAll({
-          page,
-          page_size: PAGE_SIZE,
-          status: filter === 'all' ? undefined : filter,
-        });
-        return result;
-      } catch {
-        return null;
-      }
+      const result = await campaignsApi.getAll({
+        page,
+        page_size: PAGE_SIZE,
+        status: filter === 'all' ? undefined : filter,
+      });
+      return result;
     },
     staleTime: 5 * 60 * 1000,
   });
 
   const campaigns = useMemo(() => {
-    let list = data?.items ?? MOCK_CAMPAIGNS;
+    let list = data?.items ?? [];
 
     if (filter !== 'all') {
       list = list.filter((c) => c.status === filter);
@@ -160,7 +48,7 @@ export default function Campaigns() {
       list = list.filter(
         (c) =>
           c.title.toLowerCase().includes(q) ||
-          c.subtitle.toLowerCase().includes(q)
+          (c.subtitle ?? '').toLowerCase().includes(q)
       );
     }
 
@@ -168,9 +56,7 @@ export default function Campaigns() {
   }, [data, filter, search]);
 
   const totalPages = data?.totalPages ?? Math.ceil(campaigns.length / PAGE_SIZE);
-  const paginated = data?.items
-    ? campaigns
-    : campaigns.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const paginated = campaigns;
 
   const statuses: StatusFilter[] = ['all', 'active', 'upcoming', 'completed'];
 

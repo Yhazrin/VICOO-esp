@@ -13,7 +13,7 @@ def test_github_actions_uses_nested_project_paths() -> None:
 
 
 def test_backend_dockerfile_starts_backend_app_module() -> None:
-    dockerfile = (PROJECT_ROOT / "deploy/docker/Dockerfiles/backend.Dockerfile").read_text(
+    dockerfile = (PROJECT_ROOT / "deploy/easy/backend.dockerfile").read_text(
         encoding="utf-8"
     )
 
@@ -24,10 +24,10 @@ def test_backend_dockerfile_starts_backend_app_module() -> None:
 
 
 def test_frontend_dockerfile_uses_repo_root_context() -> None:
-    dockerfile = (PROJECT_ROOT / "deploy/docker/Dockerfiles/frontend.Dockerfile").read_text(
+    dockerfile = (PROJECT_ROOT / "deploy/easy/frontend.dockerfile").read_text(
         encoding="utf-8"
     )
-    compose = (PROJECT_ROOT / "deploy/docker/docker-compose.yml").read_text(encoding="utf-8")
+    compose = (PROJECT_ROOT / "deploy/easy/docker-compose.yml").read_text(encoding="utf-8")
 
     # Updated to match current project structure
     assert "nginx" in dockerfile.lower() or "COPY package.json" in dockerfile

@@ -247,7 +247,7 @@ docker compose exec backend sh -lc 'cd /app/backend && alembic upgrade head'
 当前健康检查路径应为：
 
 ```text
-http://localhost:8000/api/health
+http://localhost:8000/api/v1/health
 ```
 
 如果容器还是旧配置，请重建：

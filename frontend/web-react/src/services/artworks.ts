@@ -24,6 +24,11 @@ export const artworksApi = {
     return response.data.data;
   },
 
+  getByCampaign: async (campaignId: string | number): Promise<Artwork[]> => {
+    const response = await api.get('/artworks', { params: { campaign_id: campaignId, status: 'approved' } });
+    return response.data.data ?? response.data;
+  },
+
   getFeatured: async (): Promise<Artwork[]> => {
     const response = await api.get('/artworks/featured');
     return response.data.data;

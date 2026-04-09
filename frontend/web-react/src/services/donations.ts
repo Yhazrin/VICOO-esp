@@ -1,5 +1,5 @@
 import api from './api';
-import type { Donation, DonationTier, CreateDonationRequest } from '@/types';
+import type { Donation, DonationTier, CreateDonationRequest, PaginatedResponse } from '@/types';
 
 export const donationsApi = {
   getTiers: async (): Promise<DonationTier[]> => {
@@ -20,6 +20,18 @@ export const donationsApi = {
   getMyDonations: async (): Promise<Donation[]> => {
     const response = await api.get('/donations/mine');
     return response.data.data;
+  },
+
+  getMine: async (page = 1, pageSize = 20): Promise<PaginatedResponse<Donation>> => {
+    const response = await api.get('/donations/mine', { params: { page, page_size: pageSize } });
+    const d = response.data;
+    return {
+      items: d.data ?? [],
+      total: d.total ?? 0,
+      page: d.page ?? 1,
+      pageSize: d.page_size ?? 20,
+      totalPages: Math.ceil((d.total ?? 0) / (d.page_size ?? 20)),
+    };
   },
 
   getImpactStats: async (): Promise<{

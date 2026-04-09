@@ -22,7 +22,7 @@ function ensureLogin() {
     }
 
     // 2. Verify session with server
-    http.get('/api/user/me')
+    http.get('/api/v1/user/me')
       .then(function(res) {
         // Assuming response structure is { data: { ... } } or similar
         // Adjust if the API response is direct object

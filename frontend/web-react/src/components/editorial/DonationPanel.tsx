@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
 import { VintageInput } from '@/components/editorial/VintageInput';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
+import { donationsApi } from '@/services/donations';
 
 interface DonationPanelProps {
   onSubmit?: (data: {
@@ -16,7 +18,7 @@ interface DonationPanelProps {
   className?: string;
 }
 
-const AMOUNT_PRESETS = [50, 100, 200, 500];
+const AMOUNT_PRESETS_FALLBACK = [50, 100, 200, 500];
 const MIN_AMOUNT = 1;
 const MAX_AMOUNT = 100000;
 
@@ -27,7 +29,28 @@ export default function DonationPanel({
 }: DonationPanelProps) {
   const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
-  const [selectedAmount, setSelectedAmount] = useState<number>(100);
+
+  const { data: apiTiers } = useQuery({
+    queryKey: ['donation-tiers'],
+    queryFn: () => donationsApi.getTiers(),
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const amountPresets = useMemo(() => {
+    if (apiTiers && apiTiers.length > 0) {
+      return apiTiers.map((tier) => tier.amount);
+    }
+    return AMOUNT_PRESETS_FALLBACK;
+  }, [apiTiers]);
+
+  const [selectedAmount, setSelectedAmount] = useState<number>(0);
+
+  // Default to first preset when tiers load
+  useEffect(() => {
+    if (selectedAmount === 0 && !customAmount && amountPresets.length > 0) {
+      setSelectedAmount(amountPresets[0]);
+    }
+  }, [amountPresets, selectedAmount, customAmount]);
   const [customAmount, setCustomAmount] = useState<string>('');
   const [frequency, setFrequency] = useState<'once' | 'monthly'>('once');
   const [paymentMethod, setPaymentMethod] = useState<'wechat' | 'alipay' | 'stripe'>('stripe');
@@ -98,7 +121,7 @@ export default function DonationPanel({
       <form onSubmit={handleSubmit}>
         {/* Amount Presets */}
         <div className="grid grid-cols-2 gap-3 mb-8" role="group" aria-label={t('donate.form.amountPresets', 'Donation amount presets')}>
-          {AMOUNT_PRESETS.map((amount, index) => (
+          {amountPresets.map((amount, index) => (
             <motion.button
               key={amount}
               type="button"
@@ -138,6 +161,11 @@ export default function DonationPanel({
                 <span className="block font-display text-[clamp(20px,2.5vw,28px)] font-extrabold text-ink">
                   {amount}
                 </span>
+                {apiTiers?.find((tier) => tier.amount === amount)?.label && (
+                  <span className="block font-body text-caption text-rust mt-0.5">
+                    {apiTiers.find((tier) => tier.amount === amount)?.label}
+                  </span>
+                )}
                 <span className="block font-body text-overline tracking-[0.1em] uppercase text-sepia-mid mt-1">
                   {t('donate.form.currency')}
                 </span>

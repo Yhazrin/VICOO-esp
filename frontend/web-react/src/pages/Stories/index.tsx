@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { artworksApi } from '@/services/artworks';
+import { campaignsApi } from '@/services/campaigns';
+import { editorialApi } from '@/services/editorial';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import EditorialHero from '@/components/editorial/EditorialHero';
@@ -36,67 +38,6 @@ function getStoryQuotes(t: (key: string) => string) {
     { text: t('stories.marquee.quote3'), attribution: t('stories.marquee.attr3') },
     { text: t('stories.marquee.quote4'), attribution: t('stories.marquee.attr4') },
     { text: t('stories.marquee.quote5'), attribution: t('stories.marquee.attr5') },
-  ];
-}
-
-// Mock stories data (requires i18n t function)
-function getMockStories(t: (key: string) => string): StoryItem[] {
-  return [
-    {
-      id: '1',
-      title: t('stories.mock.title1'),
-      excerpt: t('stories.mock.excerpt1'),
-      pullQuote: t('stories.mock.pull1'),
-      coverImage: 'https://picsum.photos/seed/ocean-girl/800/600',
-      author: t('stories.mock.author1'),
-      publishedAt: '2026-02-15',
-      readTimeMinutes: 8,
-      category: 'impact',
-    },
-    {
-      id: '2',
-      title: t('stories.mock.title2'),
-      excerpt: t('stories.mock.excerpt2'),
-      pullQuote: t('stories.mock.pull2'),
-      coverImage: 'https://picsum.photos/seed/waste-wearable/800/600',
-      author: t('stories.mock.author2'),
-      publishedAt: '2026-02-01',
-      readTimeMinutes: 12,
-      category: 'fashion',
-    },
-    {
-      id: '3',
-      title: t('stories.mock.title3'),
-      excerpt: t('stories.mock.excerpt3'),
-      pullQuote: t('stories.mock.pull3'),
-      coverImage: 'https://picsum.photos/seed/classroom-gallery/800/600',
-      author: t('stories.mock.author3'),
-      publishedAt: '2026-01-20',
-      readTimeMinutes: 6,
-      category: 'community',
-    },
-    {
-      id: '4',
-      title: t('stories.mock.title4'),
-      excerpt: t('stories.mock.excerpt4'),
-      pullQuote: t('stories.mock.pull4'),
-      coverImage: 'https://picsum.photos/seed/sustainability-art/800/600',
-      author: t('stories.mock.author4'),
-      publishedAt: '2026-01-10',
-      readTimeMinutes: 10,
-      category: 'education',
-    },
-    {
-      id: '5',
-      title: t('stories.mock.title5'),
-      excerpt: t('stories.mock.excerpt5'),
-      pullQuote: t('stories.mock.pull5'),
-      coverImage: 'https://picsum.photos/seed/numbers-mission/800/600',
-      author: t('stories.mock.author5'),
-      publishedAt: '2025-12-28',
-      readTimeMinutes: 15,
-      category: 'impact',
-    },
   ];
 }
 
@@ -287,33 +228,50 @@ export default function Stories() {
 
   const categories: Category[] = ['all', 'impact', 'fashion', 'community', 'education'];
 
-  // Fetch artworks from API and convert to story format
-  const { data: artworksData } = useQuery({
-    queryKey: ['artworks-stories'],
+  // Fetch editorial feed + artworks/campaign enrichments from API.
+  const { data: storiesFeed } = useQuery({
+    queryKey: ['stories-feed'],
     queryFn: async () => {
-      try { return await artworksApi.getAll({ page_size: 10 }); }
-      catch { return null; }
+      const [editorialFeed, artworks, activeCampaign] = await Promise.all([
+        editorialApi.getFeed(10),
+        artworksApi.getAll({ page_size: 10 }),
+        campaignsApi.getActive().catch(() => null),
+      ]);
+      return { editorialFeed, artworks, activeCampaign };
     },
     staleTime: 5 * 60 * 1000,
   });
 
-  // Convert API artworks to StoryItem format; fall back to MOCK_STORIES
+  // Convert API feed/artworks to StoryItem format.
   const stories: StoryItem[] = useMemo(() => {
-    if (artworksData?.items?.length) {
-      return artworksData.items.map((artwork, i) => ({
+    if (storiesFeed?.editorialFeed?.length) {
+      return storiesFeed.editorialFeed.map((item, i) => ({
+        id: String(item.id),
+        title: item.title,
+        excerpt: item.excerpt,
+        pullQuote: item.pull_quote || t('stories.mock.pull3'),
+        coverImage: item.cover_image || `https://picsum.photos/seed/editorial-${item.id}/800/600`,
+        author: item.author || t('stories.anonymousArtist'),
+        publishedAt: item.published_at || '2026-01-01',
+        readTimeMinutes: item.read_time_minutes || (5 + (i % 4) * 3),
+        category: (item.category || ['impact', 'community', 'education', 'fashion'][i % 4]) as StoryItem['category'],
+      }));
+    }
+    if (storiesFeed?.artworks?.items?.length) {
+      return storiesFeed.artworks.items.map((artwork, i) => ({
         id: String(artwork.id),
         title: artwork.title,
         excerpt: artwork.description || t('stories.artworkFallback'),
         pullQuote: artwork.vote_count > 0 ? t('stories.supporters', { count: artwork.vote_count }) : t('stories.mock.pull3'),
         coverImage: artwork.image_url || `https://picsum.photos/seed/artwork-${artwork.id}/800/600`,
-        author: artwork.childParticipant?.firstName || t('stories.anonymousArtist'),
+        author: artwork.childParticipant?.firstName || storiesFeed.activeCampaign?.featuredChild?.name || t('stories.anonymousArtist'),
         publishedAt: artwork.created_at ? artwork.created_at.split('T')[0] : '2026-01-01',
         readTimeMinutes: 5 + (i % 4) * 3,
         category: ['impact', 'community', 'education', 'fashion'][i % 4] as StoryItem['category'],
       }));
     }
-    return getMockStories(t);
-  }, [artworksData, t]);
+    return [];
+  }, [storiesFeed, t]);
 
   // Compute category counts
   const categoryCounts = useMemo(() => {

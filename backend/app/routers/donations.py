@@ -44,20 +44,6 @@ def _redact_name(name: str | None, is_anonymous: bool | None = None) -> str:
         return "*"
     return name[0] + "*" * (len(name) - 1)
 
-# ── MOCK DATA (served when database is unavailable) ──────────────
-_mock_donations = [
-    {"id": 1, "donor_name": "张先生", "donor_user_id": 3, "amount": "500.00", "currency": "CNY", "payment_method": "wechat", "payment_id": "wx20250301123456", "campaign_id": 1, "status": "completed", "is_anonymous": False, "message": "支持孩子们的艺术梦想！", "created_at": "2025-03-01T10:30:00"},
-    {"id": 2, "donor_name": "李女士", "donor_user_id": 4, "amount": "1000.00", "currency": "CNY", "payment_method": "alipay", "payment_id": "ali20250302654321", "campaign_id": 1, "status": "completed", "is_anonymous": False, "message": "为乡村美育尽一份力", "created_at": "2025-03-02T14:20:00"},
-    {"id": 3, "donor_name": "匿名好心人", "donor_user_id": None, "amount": "2000.00", "currency": "CNY", "payment_method": "wechat", "payment_id": "wx20250303789012", "campaign_id": 2, "status": "completed", "is_anonymous": True, "message": None, "created_at": "2025-03-03T09:00:00"},
-    {"id": 4, "donor_name": "John Smith", "donor_user_id": None, "amount": "100.00", "currency": "USD", "payment_method": "stripe", "payment_id": "pi_stripe_001", "campaign_id": 1, "status": "completed", "is_anonymous": False, "message": "Happy to support!", "created_at": "2025-03-05T16:45:00"},
-    {"id": 5, "donor_name": "王先生", "donor_user_id": 5, "amount": "300.00", "currency": "CNY", "payment_method": "wechat", "payment_id": "wx20250306345678", "campaign_id": 2, "status": "completed", "is_anonymous": False, "message": "保护我们的乡村记忆", "created_at": "2025-03-06T11:15:00"},
-    {"id": 6, "donor_name": "赵女士", "donor_user_id": None, "amount": "5000.00", "currency": "CNY", "payment_method": "alipay", "payment_id": "ali20250310901234", "campaign_id": 3, "status": "completed", "is_anonymous": False, "message": "科技改变未来，希望改变孩子", "created_at": "2025-03-10T08:30:00"},
-    {"id": 7, "donor_name": "陈先生", "donor_user_id": None, "amount": "200.00", "currency": "CNY", "payment_method": "wechat", "payment_id": "wx20250315567890", "campaign_id": None, "status": "completed", "is_anonymous": True, "message": "支持公益", "created_at": "2025-03-15T17:00:00"},
-    {"id": 8, "donor_name": "Emily Wang", "donor_user_id": None, "amount": "50.00", "currency": "USD", "payment_method": "paypal", "payment_id": "pp_20250316", "campaign_id": 1, "status": "completed", "is_anonymous": False, "message": "Beautiful cause!", "created_at": "2025-03-16T12:00:00"},
-    {"id": 9, "donor_name": "刘先生", "donor_user_id": None, "amount": "1500.00", "currency": "CNY", "payment_method": "wechat", "payment_id": "wx20250320123789", "campaign_id": 2, "status": "pending", "is_anonymous": False, "message": "家乡永远在心中", "created_at": "2025-03-20T10:00:00"},
-    {"id": 10, "donor_name": "孙女士", "donor_user_id": None, "amount": "800.00", "currency": "CNY", "payment_method": "alipay", "payment_id": "ali20250325456789", "campaign_id": 1, "status": "completed", "is_anonymous": False, "message": "愿每个孩子都能画画", "created_at": "2025-03-25T15:30:00"},
-]
-
 
 from app.services.donation.service import DonationService
 from app.utils.masking import mask_name
@@ -106,6 +92,37 @@ async def donation_stats(db: AsyncSession = Depends(get_db)):
         raise
     except Exception:
         return ApiResponse(data={"total_amount": "0.00", "total_donors": 0, "currency": "CNY"})
+
+@router.get("/tiers", response_model=ApiResponse)
+async def donation_tiers():
+    """Get available donation tiers."""
+    return ApiResponse(data=[
+        {"id": 1, "amount": 50, "label": "Bronze", "description": "Fund one art supply kit"},
+        {"id": 2, "amount": 200, "label": "Silver", "description": "Fund a child's art course for one semester"},
+        {"id": 3, "amount": 500, "label": "Gold", "description": "Fund a village art exhibition"},
+        {"id": 4, "amount": 2000, "label": "Platinum", "description": "Fund art supplies for an entire school"},
+    ])
+
+
+@router.get("/mine", response_model=PaginatedResponse)
+async def my_donations(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    """Get current user's donations."""
+    stmt = select(Donation).where(Donation.donor_user_id == current_user["id"])
+    count_stmt = select(func.count(Donation.id)).where(Donation.donor_user_id == current_user["id"])
+    total = (await db.execute(count_stmt)).scalar() or 0
+    stmt = stmt.order_by(Donation.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
+    result = await db.execute(stmt)
+    donations = result.scalars().all()
+    return PaginatedResponse(
+        data=[_serialize_donation(d) for d in donations],
+        total=total, page=page, page_size=page_size,
+    )
+
 
 @router.get("/{donation_id}", response_model=ApiResponse)
 async def get_donation(donation_id: int, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
