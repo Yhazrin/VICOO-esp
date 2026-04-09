@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useUIStore, THEMES, type ThemeId } from '@/stores/uiStore';
 import { useAuthStore } from '@/stores/authStore';
+import { useCartStore, selectTotalItems } from '@/stores/cartStore';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { useRef, useEffect, useState, useCallback } from 'react';
@@ -153,6 +154,8 @@ export default function Header() {
 
   const { user, isAuthenticated } = useAuthStore();
   const { logout } = useAuth();
+  const toggleCart = useCartStore((s) => s.toggleCart);
+  const totalCartItems = useCartStore(selectTotalItems);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [activeSubmenu, setActiveSubmenu] = useState<'main' | 'theme' | null>(null);
 
@@ -254,6 +257,24 @@ export default function Header() {
               </button>
             </nav>
           )}
+
+          {/* Cart icon — white disc */}
+          <button
+            onClick={toggleCart}
+            className="relative flex items-center justify-center w-9 h-9 rounded-full bg-white shadow-sm hover:shadow-md transition-all cursor-pointer"
+            aria-label={t('cart.title')}
+          >
+            <svg className="w-4 h-4 text-ink-faded" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <path d="M16 10a4 4 0 01-8 0" />
+            </svg>
+            {totalCartItems > 0 && (
+              <span className="absolute -top-1 -right-1 w-4.5 h-4.5 min-w-[18px] min-h-[18px] flex items-center justify-center bg-rust text-paper font-mono text-[10px] rounded-full leading-none">
+                {totalCartItems > 99 ? '99+' : totalCartItems}
+              </span>
+            )}
+          </button>
 
           {/* Language toggle — white disc */}
           <button
