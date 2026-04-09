@@ -3,10 +3,9 @@ import { useTranslation } from 'react-i18next';
 import i18n from 'i18next';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
-import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeading';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
 import GrainOverlay from '@/components/editorial/GrainOverlay';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
@@ -36,6 +35,7 @@ export default function Profile() {
   const prefersReducedMotion = useReducedMotion();
   const { user, isAuthenticated } = useAuthStore();
   const { logout } = useAuth();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'orders' | 'donations' | 'clothing' | 'support'>('orders');
 
   const tabs: Array<'orders' | 'donations' | 'clothing' | 'support'> = ['orders', 'donations', 'clothing', 'support'];
@@ -139,7 +139,9 @@ export default function Profile() {
         <GrainOverlay />
         <SectionContainer>
           <h1 className="sr-only">{t('profile.title')}</h1>
-          <NumberedSectionHeading number="10" title={t('profile.title')} />
+          <h2 className="font-display text-h3 font-bold text-ink mb-8">
+            {t('profile.title')}
+          </h2>
 
           <motion.div
             initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
@@ -305,7 +307,9 @@ export default function Profile() {
           {/* Orders tab */}
           {activeTab === 'orders' && (
             <div role="tabpanel" id="panel-orders" aria-labelledby="tab-orders">
-              <NumberedSectionHeading number="01" title={t('profile.orderHistory')} />
+              <h2 className="font-display text-h3 font-bold text-ink mb-8">
+                {t('profile.orderHistory')}
+              </h2>
               {loadingOrders ? (
                 <p className="font-body text-body-sm text-ink-faded">{t('common.loading', 'Loading...')}</p>
               ) : errorOrders ? (
@@ -325,52 +329,93 @@ export default function Profile() {
                   </Link>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-6">
                   {orders.map((order: OrderDetail, index: number) => (
-                    <Link key={order.id} to={`/orders/${order.id}`} className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-rust/40">
-                      <EditorialCard
-                        title={`${t('profile.orderNo')} ${order.order_no}`}
-                        subtitle={new Date(order.created_at).toLocaleDateString(i18n.language, {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                        })}
-                        index={index}
-                        hoverEffect="border"
-                      >
-                        <div className="flex justify-between items-center mb-3">
-                          <span className={`font-body text-overline tracking-[0.1em] uppercase ${STATUS_COLORS[order.status] ?? 'text-sepia-mid'}`}>
-                            {order.status}
-                          </span>
-                          {order.tracking_number && (
-                            <span className="font-body text-caption text-ink-faded truncate max-w-[50%]" title={order.tracking_number}>
-                              {order.carrier ?? t('profile.logistics')} · {order.tracking_number}
-                            </span>
-                          )}
+                    <motion.div
+                      key={order.id}
+                      initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 15 }}
+                      animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: index * 0.06 }}
+                      className="border border-warm-gray/25 bg-paper p-6 hover:border-rust/25 transition-colors"
+                    >
+                      {/* Header */}
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <p className="font-mono text-xs text-sepia-mid">{order.order_no}</p>
+                          <p className="font-body text-caption text-ink-faded mt-0.5">
+                            {new Date(order.created_at).toLocaleDateString(i18n.language, { year: 'numeric', month: 'short', day: 'numeric' })}
+                          </p>
                         </div>
+                        <span className={`font-body text-overline tracking-[0.1em] uppercase px-3 py-1 border ${
+                          order.status === 'completed' ? 'text-sage border-sage/30 bg-sage/5' :
+                          order.status === 'cancelled' ? 'text-rust border-rust/30 bg-rust/5' :
+                          order.status === 'shipped' ? 'text-archive-brown border-archive-brown/30 bg-archive-brown/5' :
+                          'text-sepia-mid border-warm-gray/30 bg-warm-gray/5'
+                        }`}>
+                          {order.status}
+                        </span>
+                      </div>
+
+                      {/* Items with images */}
+                      <div className="space-y-3 mb-4">
                         {order.items?.map((item, i) => (
-                          <div key={i} className="flex justify-between py-1.5 border-t border-warm-gray/10">
-                            <span className="font-body text-caption text-ink-faded">
-                              {t('profile.productFallback', '商品')} #{item.product_id} × {item.quantity}
-                            </span>
-                            <span className="font-body text-caption text-ink">
-                              CNY {(Number(item.price) * item.quantity).toFixed(2)}
+                          <div key={i} className="flex items-center gap-3">
+                            <div className="w-12 h-14 flex-shrink-0 overflow-hidden border border-warm-gray/15 bg-aged-stock">
+                              {item.product_image ? (
+                                <img src={item.product_image} alt={item.product_name || ''} className="w-full h-full object-cover" loading="lazy" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <span className="font-mono text-[8px] text-warm-gray/40">VICOO</span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-body text-body-sm text-ink truncate">
+                                {item.product_name || `#${item.product_id}`}
+                              </p>
+                              <p className="font-mono text-[11px] text-sepia-mid">
+                                ×{item.quantity}
+                              </p>
+                            </div>
+                            <span className="font-mono text-sm text-ink flex-shrink-0">
+                              ¥{(Number(item.price) * item.quantity).toFixed(2)}
                             </span>
                           </div>
                         ))}
-                        <div className="flex justify-between pt-2 border-t border-warm-gray/20 mt-1">
-                          <span className="font-body text-caption tracking-wider uppercase text-sepia-mid">
-                            {t('profile.total')}
-                          </span>
-                          <span className="font-display text-base text-ink">
-                            CNY {Number(order.total_amount).toFixed(2)}
+                      </div>
+
+                      {/* Footer */}
+                      <div className="flex items-center justify-between pt-3 border-t border-warm-gray/15">
+                        <div className="flex items-center gap-3">
+                          <span className="font-body text-caption text-sepia-mid">{t('profile.total')}</span>
+                          <span className="font-display text-base font-bold text-ink">
+                            ¥{Number(order.total_amount).toFixed(2)}
                           </span>
                         </div>
-                        <p className="font-body text-overline text-rust/80 mt-3 tracking-[0.12em]">
-                          {t('profile.viewLogistics', '查看物流与详情')} →
-                        </p>
-                      </EditorialCard>
-                    </Link>
+                        <div className="flex items-center gap-3">
+                          {order.status === 'pending' && (
+                            <button
+                              onClick={async (e) => {
+                                e.preventDefault();
+                                try {
+                                  await ordersApi.cancel(String(order.id));
+                                  queryClient.invalidateQueries({ queryKey: ['my-orders'] });
+                                } catch { /* silent */ }
+                              }}
+                              className="font-body text-caption text-rust hover:text-rust-light transition-colors cursor-pointer"
+                            >
+                              {t('profile.cancelOrder', '取消订单')}
+                            </button>
+                          )}
+                          <Link
+                            to={`/orders/${order.id}`}
+                            className="font-body text-overline tracking-[0.1em] uppercase text-rust hover:text-rust-light transition-colors"
+                          >
+                            {t('profile.viewLogistics', '查看物流与详情')} →
+                          </Link>
+                        </div>
+                      </div>
+                    </motion.div>
                   ))}
                 </div>
               )}
@@ -380,7 +425,9 @@ export default function Profile() {
           {/* Donations tab */}
           {activeTab === 'donations' && (
             <div role="tabpanel" id="panel-donations" aria-labelledby="tab-donations">
-              <NumberedSectionHeading number="02" title={t('profile.donationHistory')} />
+              <h2 className="font-display text-h3 font-bold text-ink mb-8">
+                {t('profile.donationHistory')}
+              </h2>
               {loadingDonations ? (
                 <p className="font-body text-body-sm text-ink-faded">{t('common.loading', 'Loading...')}</p>
               ) : errorDonations ? (
@@ -437,7 +484,9 @@ export default function Profile() {
 
           {activeTab === 'clothing' && (
             <div role="tabpanel" id="panel-clothing" aria-labelledby="tab-clothing">
-              <NumberedSectionHeading number="03" title={t('profile.clothingIntakes')} />
+              <h2 className="font-display text-h3 font-bold text-ink mb-8">
+                {t('profile.clothingIntakes')}
+              </h2>
               <p className="font-body text-body-sm text-ink-faded mb-6">
                 <Link to="/donate-clothing" className="text-rust hover:text-ink underline-offset-4">
                   {t('profile.newClothingIntake')}
@@ -474,7 +523,9 @@ export default function Profile() {
 
           {activeTab === 'support' && (
             <div role="tabpanel" id="panel-support" aria-labelledby="tab-support">
-              <NumberedSectionHeading number="04" title={t('profile.afterSales')} />
+              <h2 className="font-display text-h3 font-bold text-ink mb-8">
+                {t('profile.afterSales')}
+              </h2>
               <p className="font-body text-body-sm text-ink-faded mb-6">
                 <Link to="/support" className="text-rust hover:text-ink underline-offset-4">
                   {t('profile.newTicket')}

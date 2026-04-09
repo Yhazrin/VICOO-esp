@@ -11,7 +11,6 @@ import PaperTextureBackground from '@/components/editorial/PaperTextureBackgroun
 import TraceabilityTimeline from '@/components/editorial/TraceabilityTimeline';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import { useCartStore } from '@/stores/cartStore';
-import { useWishlistStore } from '@/stores/wishlistStore';
 import { productsApi } from '@/services/products';
 import { reviewsApi } from '@/services/reviewsApi';
 import { useAuthStore } from '@/stores/authStore';
@@ -98,9 +97,6 @@ export default function ProductDetail() {
   const [selectedColor, setSelectedColor] = useState<string>('');
   const addItem = useCartStore((s) => s.addItem);
   const setCartOpen = useCartStore((s) => s.setCartOpen);
-  const toggleWishlist = useWishlistStore((s) => s.toggleItem);
-  const wishlistItems = useWishlistStore((s) => s.items);
-  const isWishlisted = product ? wishlistItems.some((p) => p.id === product.id) : false;
   const addedTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
@@ -335,27 +331,6 @@ export default function ProductDetail() {
                       ? t('shop.detail.added') + ' \u2713'
                       : t('shop.detail.addToCart')}
                 </motion.button>
-                <button
-                  onClick={() => product && toggleWishlist(product)}
-                  className="w-14 flex-shrink-0 border border-warm-gray/30 hover:border-rust/40 flex items-center justify-center transition-colors cursor-pointer"
-                  aria-label="Toggle wishlist"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    viewBox="0 0 24 24"
-                    fill={isWishlisted ? 'currentColor' : 'none'}
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"
-                      className={isWishlisted ? 'text-rust' : 'text-ink-faded/50'}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
               </div>
             </div>
           </div>
