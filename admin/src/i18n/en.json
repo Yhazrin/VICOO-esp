@@ -349,8 +349,14 @@
         "statusPending": "Pending", 
         "statusApproved": "Approved", 
         "statusRejected": "Rejected", 
-        "statusCompleted": "Completed"
-    }, 
+        "statusCompleted": "Completed",
+        "colActions": "Actions",
+        "btnApprove": "Approve",
+        "btnReject": "Reject",
+        "btnComplete": "Complete",
+        "toastUpdated": "Status updated",
+        "toastError": "Update failed"
+    },
     "childAudit": {
         "title": "Child Participant Audit", 
         "description": "Review child participant data (protected by strict access control)", 

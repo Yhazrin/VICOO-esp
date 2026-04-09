@@ -481,14 +481,18 @@ export async function fetchAfterSales(params: FilterParams = {}): Promise<Pagina
       id: String(item.id),
       userId: String(item.user_id ?? ''),
       orderId: String(item.order_id ?? ''),
-      category: item.category ?? '',
-      subject: item.subject ?? '',
+      category: item.category ?? item.type ?? '',
+      subject: item.subject ?? item.reason ?? '',
       description: item.description ?? '',
       status: item.status ?? 'open',
       createdAt: item.created_at ?? '',
       updatedAt: item.updated_at ?? '',
     })),
   };
+}
+
+export async function updateAfterSalesStatus(id: string, status: string): Promise<void> {
+  await api.patch(`/after-sales/${id}`, { status });
 }
 
 // ---------------------------------------------------------------------------

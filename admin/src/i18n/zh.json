@@ -349,7 +349,13 @@
         "statusPending": "待处理",
         "statusApproved": "已通过",
         "statusRejected": "已拒绝",
-        "statusCompleted": "已完成"
+        "statusCompleted": "已完成",
+        "colActions": "操作",
+        "btnApprove": "通过",
+        "btnReject": "拒绝",
+        "btnComplete": "标记完成",
+        "toastUpdated": "状态已更新",
+        "toastError": "更新失败"
     },
     "childAudit": {
         "title": "儿童参与者审计",
