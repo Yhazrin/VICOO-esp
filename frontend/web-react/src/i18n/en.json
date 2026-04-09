@@ -27,30 +27,41 @@
     "logoutSuccess": "Logged out successfully"
   },
   "login": {
-    "title": "Login",
+    "title": "Welcome Back",
+    "subtitle": "Sign in to continue your journey with us.",
     "email": "Email",
     "password": "Password",
     "rememberMe": "Remember me",
-    "forgotPassword": "Forgot password",
-    "submit": "Login",
-    "submitting": "Logging in...",
-    "register": "Register a new account",
-    "orContinueWith": "or continue with",
+    "forgotPassword": "Forgot Password?",
+    "submit": "Sign In",
+    "submitting": "Signing In...",
+    "register": "Create an Account",
+    "orContinueWith": "Or continue with",
+    "wechat": "WeChat",
     "error": {
       "invalidCredentials": "Invalid email or password",
       "userNotFound": "User not found"
     }
   },
   "register": {
-    "title": "Register",
+    "title": "Join Our Community",
+    "subtitle": "Create an account to start your journey with us.",
+    "nickname": "Nickname",
     "email": "Email",
     "password": "Password",
-    "nickname": "Nickname",
+    "confirmPassword": "Confirm Password",
     "submit": "Create Account",
-    "submitting": "Creating...",
-    "login": "Already have an account? Login",
+    "submitting": "Creating Account...",
+    "login": "Sign In",
+    "orContinueWith": "Or continue with",
+    "wechat": "WeChat",
+    "alreadyHaveAccount": "Already have an account?",
     "error": {
       "userExists": "User already exists"
+    },
+    "errors": {
+      "passwordMismatch": "Passwords do not match",
+      "passwordTooShort": "Password must be at least 8 characters"
     }
   },
   "profile": {
@@ -59,7 +70,66 @@
     "accountDetails": "Account Details",
     "userId": "User ID",
     "role": "Role",
-    "productFallback": "Product"
+    "productFallback": "Product",
+    "clothingIntakes": "Clothing Donations",
+    "afterSales": "After-Sales",
+    "orderNo": "Order No.",
+    "viewLogistics": "View Logistics & Details",
+    "clothingIntakeProgress": "Clothing Donation Progress",
+    "newClothingIntake": "Register New Clothing Donation",
+    "intakesError": "Unable to load clothing donations at this time.",
+    "noIntakes": "No donations yet",
+    "viewLinkedProduct": "View Linked Product",
+    "afterSalesService": "After-Sales Service",
+    "newTicket": "Submit After-Sales Ticket",
+    "ticketsError": "Unable to load tickets at this time.",
+    "noTickets": "No tickets yet",
+    "orderId": "Order",
+    "orderHistory": "Order History",
+    "donationHistory": "Donation History",
+    "ordersError": "Unable to load orders at this time.",
+    "noOrders": "No orders yet",
+    "browseShop": "Browse Shop",
+    "donationsError": "Unable to load donations at this time.",
+    "noDonations": "No donations yet",
+    "makeDonation": "Make a Donation",
+    "anonymous": "Anonymous",
+    "total": "Total",
+    "cancelOrder": "Cancel Order",
+    "tabs": {
+      "orders": "My Orders",
+      "donations": "My Donations",
+      "clothing": "Clothing",
+      "support": "Support",
+      "addresses": "Addresses"
+    },
+    "orders": {
+      "filterAll": "All",
+      "filterPending": "Pending",
+      "filterPaid": "Paid",
+      "filterShipped": "Shipped",
+      "filterCompleted": "Completed",
+      "filterCancelled": "Cancelled",
+      "searchPlaceholder": "Search order number..."
+    },
+    "addresses": {
+      "title": "Saved Addresses",
+      "addAddress": "Add Address",
+      "editAddress": "Edit Address",
+      "deleteAddress": "Delete Address",
+      "setDefault": "Set as Default",
+      "label": "Label",
+      "labelPlaceholder": "Home / Office",
+      "recipient": "Recipient",
+      "phone": "Phone",
+      "province": "Province",
+      "city": "City",
+      "district": "District",
+      "detailAddress": "Detailed Address",
+      "postalCode": "Postal Code",
+      "noAddresses": "No saved addresses yet",
+      "defaultBadge": "Default"
+    }
   },
   "authCallback": {
     "authenticating": "Authenticating...",
@@ -68,6 +138,7 @@
     "noTokenReceived": "No authentication token received"
   },
   "home": {
+    "est": "Est. 2026",
     "hero": {
       "title": "Where Little Hands Shape the Future of Fashion",
       "subtitle": "Every child's imagination, woven into sustainable threads. Every purchase, a step toward a fairer world.",
@@ -802,37 +873,6 @@
       }
     }
   },
-  "login": {
-    "title": "Welcome Back",
-    "subtitle": "Sign in to continue your journey with us.",
-    "email": "Email",
-    "password": "Password",
-    "submit": "Sign In",
-    "register": "Create an Account",
-    "forgotPassword": "Forgot Password?",
-    "orContinueWith": "Or continue with",
-    "wechat": "WeChat",
-    "rememberMe": "Remember me",
-    "submitting": "Signing In..."
-  },
-  "register": {
-    "title": "Join Our Community",
-    "subtitle": "Create an account to start your journey with us.",
-    "nickname": "Nickname",
-    "email": "Email",
-    "password": "Password",
-    "confirmPassword": "Confirm Password",
-    "submit": "Create Account",
-    "submitting": "Creating Account...",
-    "login": "Sign In",
-    "orContinueWith": "Or continue with",
-    "wechat": "WeChat",
-    "alreadyHaveAccount": "Already have an account?",
-    "errors": {
-      "passwordMismatch": "Passwords do not match",
-      "passwordTooShort": "Password must be at least 8 characters"
-    }
-  },
   "notFound": {
     "title": "Page Not Found",
     "subtitle": "This chapter seems to be missing from our publication.",
@@ -902,7 +942,12 @@
     },
     "emailAriaLabel": "Email address",
     "emailPlaceholder": "your@email.com",
-    "allRightsReserved": "All rights reserved."
+    "allRightsReserved": "All rights reserved.",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "scroll": "Scroll"
   },
   "error": {
     "somethingWentWrong": "Something went wrong",
@@ -967,72 +1012,6 @@
     "sustainability": "Sustainability & Traceability",
     "userLabel": "You",
     "assistantLabel": "Assistant"
-  },
-  "profile": {
-    "clothingIntakes": "Clothing Donations",
-    "afterSales": "After-Sales",
-    "orderNo": "Order No.",
-    "viewLogistics": "View Logistics & Details",
-    "clothingIntakeProgress": "Clothing Donation Progress",
-    "newClothingIntake": "Register New Clothing Donation",
-    "intakesError": "Unable to load clothing donations at this time.",
-    "noIntakes": "No donations yet",
-    "viewLinkedProduct": "View Linked Product",
-    "afterSalesService": "After-Sales Service",
-    "newTicket": "Submit After-Sales Ticket",
-    "ticketsError": "Unable to load tickets at this time.",
-    "noTickets": "No tickets yet",
-    "orderId": "Order",
-    "title": "My Profile",
-    "notLoggedIn": "Please log in to view your profile.",
-    "accountDetails": "Account Details",
-    "userId": "User ID",
-    "role": "Role",
-    "orderHistory": "Order History",
-    "donationHistory": "Donation History",
-    "ordersError": "Unable to load orders at this time.",
-    "noOrders": "No orders yet",
-    "browseShop": "Browse Shop",
-    "donationsError": "Unable to load donations at this time.",
-    "noDonations": "No donations yet",
-    "makeDonation": "Make a Donation",
-    "anonymous": "Anonymous",
-    "total": "Total",
-    "cancelOrder": "Cancel Order",
-    "tabs": {
-      "orders": "My Orders",
-      "donations": "My Donations",
-      "clothing": "Clothing",
-      "support": "Support",
-      "addresses": "Addresses"
-    },
-    "orders": {
-      "filterAll": "All",
-      "filterPending": "Pending",
-      "filterPaid": "Paid",
-      "filterShipped": "Shipped",
-      "filterCompleted": "Completed",
-      "filterCancelled": "Cancelled",
-      "searchPlaceholder": "Search order number..."
-    },
-    "addresses": {
-      "title": "Saved Addresses",
-      "addAddress": "Add Address",
-      "editAddress": "Edit Address",
-      "deleteAddress": "Delete Address",
-      "setDefault": "Set as Default",
-      "label": "Label",
-      "labelPlaceholder": "Home / Office",
-      "recipient": "Recipient",
-      "phone": "Phone",
-      "province": "Province",
-      "city": "City",
-      "district": "District",
-      "detailAddress": "Detailed Address",
-      "postalCode": "Postal Code",
-      "noAddresses": "No saved addresses yet",
-      "defaultBadge": "Default"
-    }
   },
   "orderDetail": {
     "error": "Unable to load order",
@@ -1111,13 +1090,5 @@
     "savedAddresses": "Saved Addresses",
     "enterNewAddress": "Enter a new address",
     "saveAddress": "Save to address book"
-  },
-  "common": {
-    "loading": "Loading...",
-    "save": "Save",
-    "cancel": "Cancel",
-    "edit": "Edit",
-    "delete": "Delete",
-    "close": "Close"
   }
 }
