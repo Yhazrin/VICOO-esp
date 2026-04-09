@@ -213,7 +213,7 @@ export default function DashboardPage() {
                     overflow: 'hidden',
                     flexShrink: 0
                   }}>
-                    <img src={artwork.imageUrl || '/placeholder.png'} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={artwork.imageUrl || `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none"><rect width="48" height="48" fill="#EDE6D6"/><text x="24" y="28" text-anchor="middle" fill="#8B7355" font-size="10">No Image</text></svg>')}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
