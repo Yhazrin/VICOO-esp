@@ -118,11 +118,29 @@ export default function ProductCard({
             </p>
           )}
 
+          {/* Impact: donation badge */}
+          {product.isImpactProduct && product.donationPercentage != null && (
+            <div className="flex items-center gap-1.5 mb-2">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-sage" />
+              <span className="font-body text-overline text-sage tracking-wider">
+                {t('impactShop.donationBadge', { percentage: product.donationPercentage })}
+              </span>
+            </div>
+          )}
+
           <div className="flex items-center justify-between">
-            <span className="font-body text-body-sm text-ink font-medium">
-              {product.currency === 'CNY' ? '¥' : '$'}
-              {product.price.toLocaleString()}
-            </span>
+            <div className="flex flex-col">
+              <span className="font-body text-body-sm text-ink font-medium">
+                {product.currency === 'CNY' ? '¥' : '$'}
+                {product.price.toLocaleString()}
+              </span>
+              {/* Impact: campaign link */}
+              {product.isImpactProduct && product.campaignId && (
+                <span className="font-body text-overline text-rust tracking-wider mt-0.5">
+                  {t('impactShop.supportsCampaign', { campaign: `#${product.campaignId}` })}
+                </span>
+              )}
+            </div>
 
             {/* Sustainability score with tier */}
             <div className="flex flex-col items-end">
