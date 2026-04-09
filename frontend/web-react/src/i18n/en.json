@@ -61,6 +61,12 @@
     "role": "Role",
     "productFallback": "Product"
   },
+  "authCallback": {
+    "authenticating": "Authenticating...",
+    "authenticationFailed": "Authentication Failed",
+    "backToLogin": "Back to Login",
+    "noTokenReceived": "No authentication token received"
+  },
   "home": {
     "hero": {
       "title": "Where Little Hands Shape the Future of Fashion",
@@ -397,6 +403,8 @@
     },
     "anonymousName": "Anonymous",
     "guestName": "Guest",
+    "success": "Thank you for your donation! Your generosity helps children explore their creativity.",
+    "error": "Something went wrong, please try again.",
     "faq": {
       "title": "Frequently Asked Questions",
       "q1": "How is my donation used?",
@@ -458,6 +466,7 @@
       "artwork": "Based on artwork by",
       "size": "Size",
       "quantity": "Quantity",
+      "loading": "Loading...",
       "reviews": "Reviews",
       "noReviews": "No reviews yet",
       "rating": "Rating",
@@ -955,7 +964,9 @@
     "donation": "Donations & Clothing",
     "shopCategory": "Shop & Payment",
     "logisticsCategory": "Order Logistics",
-    "sustainability": "Sustainability & Traceability"
+    "sustainability": "Sustainability & Traceability",
+    "userLabel": "You",
+    "assistantLabel": "Assistant"
   },
   "profile": {
     "clothingIntakes": "Clothing Donations",
@@ -977,6 +988,8 @@
     "accountDetails": "Account Details",
     "userId": "User ID",
     "role": "Role",
+    "orderHistory": "Order History",
+    "donationHistory": "Donation History",
     "ordersError": "Unable to load orders at this time.",
     "noOrders": "No orders yet",
     "browseShop": "Browse Shop",

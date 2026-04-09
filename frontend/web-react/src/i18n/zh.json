@@ -1075,6 +1075,7 @@
     "remove": "移除",
     "quantity": "数量",
     "items": "{{count}} 件商品",
+    "items_plural": "{{count}} 件商品",
     "addedToBag": "已加入购物袋",
     "viewBag": "查看购物袋"
   },
