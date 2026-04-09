@@ -317,19 +317,6 @@ export default function Header() {
             </div>
           )}
 
-          {/* Wishlist icon — white disc (desktop only) */}
-          {!isMobile && (
-            <Link
-              to="/wishlist"
-              className="flex items-center justify-center w-9 h-9 rounded-full bg-white shadow-sm hover:shadow-md transition-all cursor-pointer"
-              aria-label="Wishlist"
-            >
-              <svg className="w-4 h-4 text-ink-faded" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
-                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </Link>
-          )}
-
           {/* Cart icon — white disc */}
           <button
             onClick={toggleCart}

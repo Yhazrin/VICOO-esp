@@ -36,7 +36,7 @@ def _parse_logistics_events(raw: str | None) -> list:
         return []
 
 
-def order_to_out_dict(order: Order, items: list) -> dict:
+def order_to_out_dict(order: Order, items: list, product_map: dict | None = None) -> dict:
     """Build OrderOut-compatible dict (logistics_events 为列表)."""
     base = {
         "id": order.id,
@@ -51,13 +51,30 @@ def order_to_out_dict(order: Order, items: list) -> dict:
         "tracking_number": getattr(order, "tracking_number", None),
         "logistics_events": _parse_logistics_events(getattr(order, "logistics_events", None)),
         "items": [
-            {"id": i.id, "product_id": i.product_id, "quantity": i.quantity, "price": str(i.price)}
+            {
+                "id": i.id,
+                "product_id": i.product_id,
+                "product_name": (product_map or {}).get(i.product_id, {}).get("name"),
+                "product_image": (product_map or {}).get(i.product_id, {}).get("image_url"),
+                "quantity": i.quantity,
+                "price": str(i.price),
+            }
             for i in items
         ],
         "created_at": order.created_at,
         "updated_at": order.updated_at,
     }
     return OrderOut.model_validate(base).model_dump()
+
+
+async def _build_product_map(db: AsyncSession, items: list) -> dict:
+    """Fetch product names/images for order items."""
+    product_ids = list({i.product_id for i in items if i.product_id})
+    if not product_ids:
+        return {}
+    stmt = select(Product.id, Product.name, Product.image_url).where(Product.id.in_(product_ids))
+    result = await db.execute(stmt)
+    return {row.id: {"name": row.name, "image_url": row.image_url} for row in result.all()}
 
 _mock_orders = [
     {
@@ -69,7 +86,7 @@ _mock_orders = [
         "shipping_address": "北京市朝阳区建国路88号",
         "payment_method": "wechat",
         "payment_id": "wx_order_001",
-        "items": [{"id": 1, "product_id": 1, "quantity": 1, "price": "168.00"}, {"id": 2, "product_id": 4, "quantity": 2, "price": "39.00"}],
+        "items": [{"id": 1, "product_id": 1, "product_name": "彩虹鱼棉质 T 恤", "product_image": "/static/products/tshirt1.jpg", "quantity": 1, "price": "168.00"}, {"id": 2, "product_id": 4, "product_name": "妈妈的手环保笔记本", "product_image": "/static/products/notebook1.jpg", "quantity": 2, "price": "39.00"}],
         "created_at": "2025-04-01T10:00:00",
         "updated_at": "2025-04-03T15:00:00",
     },
@@ -82,7 +99,7 @@ _mock_orders = [
         "shipping_address": "上海市浦东新区陆家嘴环路1000号",
         "payment_method": "alipay",
         "payment_id": "ali_order_002",
-        "items": [{"id": 3, "product_id": 3, "quantity": 1, "price": "258.00"}],
+        "items": [{"id": 3, "product_id": 3, "product_name": "春天的花园丝巾", "product_image": "/static/products/scarf1.jpg", "quantity": 1, "price": "258.00"}],
         "created_at": "2025-04-05T14:00:00",
         "updated_at": "2025-04-06T09:00:00",
     },
@@ -95,7 +112,7 @@ _mock_orders = [
         "shipping_address": "广州市天河区体育西路103号",
         "payment_method": "wechat",
         "payment_id": "wx_order_003",
-        "items": [{"id": 4, "product_id": 8, "quantity": 1, "price": "368.00"}],
+        "items": [{"id": 4, "product_id": 8, "product_name": "过年了限定礼盒", "product_image": "/static/products/giftbox1.jpg", "quantity": 1, "price": "368.00"}],
         "created_at": "2025-04-10T16:00:00",
         "updated_at": "2025-04-10T16:05:00",
     },
@@ -108,7 +125,7 @@ _mock_orders = [
         "shipping_address": "北京市朝阳区建国路88号",
         "payment_method": None,
         "payment_id": None,
-        "items": [{"id": 5, "product_id": 2, "quantity": 1, "price": "89.00"}, {"id": 6, "product_id": 5, "quantity": 1, "price": "68.00"}],
+        "items": [{"id": 5, "product_id": 2, "product_name": "星星之夜帆布袋", "product_image": "/static/products/bag1.jpg", "quantity": 1, "price": "89.00"}, {"id": 6, "product_id": 5, "product_name": "太空旅行马克杯", "product_image": "/static/products/cup1.jpg", "quantity": 1, "price": "68.00"}],
         "created_at": "2025-04-15T11:00:00",
         "updated_at": "2025-04-15T11:00:00",
     },
@@ -121,7 +138,7 @@ _mock_orders = [
         "shipping_address": "上海市浦东新区陆家嘴环路1000号",
         "payment_method": "alipay",
         "payment_id": "ali_order_005",
-        "items": [{"id": 7, "product_id": 1, "quantity": 1, "price": "168.00"}, {"id": 8, "product_id": 7, "quantity": 1, "price": "128.00"}],
+        "items": [{"id": 7, "product_id": 1, "product_name": "彩虹鱼棉质 T 恤", "product_image": "/static/products/tshirt1.jpg", "quantity": 1, "price": "168.00"}, {"id": 8, "product_id": 7, "product_name": "画出未来环保抱枕", "product_image": "/static/products/pillow1.jpg", "quantity": 1, "price": "128.00"}],
         "created_at": "2025-04-20T09:00:00",
         "updated_at": "2025-04-22T14:00:00",
     },
@@ -134,7 +151,7 @@ _mock_orders = [
         "shipping_address": "Test Address",
         "payment_method": "wechat",
         "payment_id": None,
-        "items": [{"id": 9, "product_id": 1, "quantity": 1, "price": "128.00"}],
+        "items": [{"id": 9, "product_id": 1, "product_name": "彩虹鱼棉质 T 恤", "product_image": "/static/products/tshirt1.jpg", "quantity": 1, "price": "128.00"}],
         "created_at": "2025-04-25T12:00:00",
         "updated_at": "2025-04-25T12:00:00",
     },
@@ -181,8 +198,9 @@ async def list_orders(
         for order in orders:
             item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
             items = (await db.execute(item_stmt)).scalars().all()
-            data.append(order_to_out_dict(order, list(items)))
-            
+            product_map = await _build_product_map(db, items)
+            data.append(order_to_out_dict(order, list(items), product_map))
+
         return PaginatedResponse(data=data, total=total, page=page, page_size=page_size)
     except HTTPException:
         raise
@@ -205,7 +223,8 @@ async def my_orders(
         for order in orders:
             item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
             items = (await db.execute(item_stmt)).scalars().all()
-            data.append(order_to_out_dict(order, list(items)))
+            product_map = await _build_product_map(db, items)
+            data.append(order_to_out_dict(order, list(items), product_map))
         return PaginatedResponse(data=data, total=total, page=page, page_size=page_size)
     except HTTPException:
         raise
@@ -230,7 +249,8 @@ async def create_order(
         # Re-fetch with items for full detail
         item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
         items = (await db.execute(item_stmt)).scalars().all()
-        response_data = order_to_out_dict(order, list(items))
+        product_map = await _build_product_map(db, items)
+        response_data = order_to_out_dict(order, list(items), product_map)
 
         # Add WeChat payment parameters
         if body.payment_method == "wechat":
@@ -264,7 +284,8 @@ async def get_order(
             
         item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
         items = (await db.execute(item_stmt)).scalars().all()
-        return ApiResponse(data=order_to_out_dict(order, list(items)))
+        product_map = await _build_product_map(db, items)
+        return ApiResponse(data=order_to_out_dict(order, list(items), product_map))
     except HTTPException:
         raise
     except Exception:
@@ -288,7 +309,8 @@ async def cancel_order(
         
         item_stmt = select(OrderItem).where(OrderItem.order_id == order_id)
         items = (await db.execute(item_stmt)).scalars().all()
-        return ApiResponse(data=order_to_out_dict(cancelled_order, list(items)))
+        product_map = await _build_product_map(db, items)
+        return ApiResponse(data=order_to_out_dict(cancelled_order, list(items), product_map))
     except HTTPException:
         raise
     except Exception as e:
@@ -319,7 +341,8 @@ async def update_order_status(
         await db.flush()
         item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
         items = (await db.execute(item_stmt)).scalars().all()
-        return ApiResponse(data=order_to_out_dict(order, list(items)))
+        product_map = await _build_product_map(db, items)
+        return ApiResponse(data=order_to_out_dict(order, list(items), product_map))
     except HTTPException:
         raise
     except Exception as e:
@@ -354,4 +377,5 @@ async def update_order_logistics(
     await db.flush()
     item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
     items = (await db.execute(item_stmt)).scalars().all()
-    return ApiResponse(data=order_to_out_dict(order, list(items)))
+    product_map = await _build_product_map(db, items)
+    return ApiResponse(data=order_to_out_dict(order, list(items), product_map))

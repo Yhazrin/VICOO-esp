@@ -5,6 +5,8 @@ import type { CreateOrderRequest } from '@/types';
 export interface OrderLineItem {
   id: number;
   product_id: number;
+  product_name?: string | null;
+  product_image?: string | null;
   quantity: number;
   price: string;
 }
