@@ -512,6 +512,10 @@ export async function fetchSystemSettings(): Promise<SystemSettings> {
       stripe: { enabled: d.payment_methods?.stripe?.enabled ?? false, publicKey: d.payment_methods?.stripe?.publicKey },
       paypal: { enabled: d.payment_methods?.paypal?.enabled ?? false, clientId: d.payment_methods?.paypal?.clientId },
     },
+    accessTokenTtlMinutes: d.access_token_ttl_minutes ?? 15,
+    refreshTokenTtlDays: d.refresh_token_ttl_days ?? 7,
+    globalRateLimit: d.global_rate_limit ?? 1000,
+    perUserRateLimit: d.per_user_rate_limit ?? 60,
   };
 }
 
@@ -530,6 +534,10 @@ export async function updateSystemSettings(data: Partial<SystemSettings>): Promi
       body.payment_methods[k] = { enabled: v.enabled, appId: v.appId, merchantId: (v as any).merchantId, publicKey: (v as any).publicKey, clientId: (v as any).clientId };
     }
   }
+  if (data.accessTokenTtlMinutes !== undefined) body.access_token_ttl_minutes = data.accessTokenTtlMinutes;
+  if (data.refreshTokenTtlDays !== undefined) body.refresh_token_ttl_days = data.refreshTokenTtlDays;
+  if (data.globalRateLimit !== undefined) body.global_rate_limit = data.globalRateLimit;
+  if (data.perUserRateLimit !== undefined) body.per_user_rate_limit = data.perUserRateLimit;
   const { data: envelope } = await api.put('/admin/settings', body);
   const d = envelope.data;
   return {
@@ -546,6 +554,10 @@ export async function updateSystemSettings(data: Partial<SystemSettings>): Promi
       stripe: { enabled: d.payment_methods?.stripe?.enabled ?? false, publicKey: d.payment_methods?.stripe?.publicKey },
       paypal: { enabled: d.payment_methods?.paypal?.enabled ?? false, clientId: d.payment_methods?.paypal?.clientId },
     },
+    accessTokenTtlMinutes: d.access_token_ttl_minutes ?? 15,
+    refreshTokenTtlDays: d.refresh_token_ttl_days ?? 7,
+    globalRateLimit: d.global_rate_limit ?? 1000,
+    perUserRateLimit: d.per_user_rate_limit ?? 60,
   };
 }
 

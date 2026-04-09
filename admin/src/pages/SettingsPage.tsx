@@ -5,7 +5,7 @@
  * - 展示和编辑系统全局配置参数
  * - 支持三个配置标签页：全局参数、支付网关、安全设置
  * - 提供各支付渠道的集成配置（微信、支付宝、Stripe、PayPal）
- * - 显示只读的安全配置信息（令牌有效期、频率限制等）
+ * - 安全配置可编辑（令牌有效期、频率限制等）
  * - 实时保存配置更新
  *
  * 使用场景：
@@ -401,42 +401,58 @@ export default function SettingsPage() {
         {/* 安全设置标签页内容 */}
         {activeTab === 'security' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 48 }}>
-            {/* 系统锁定提示框 */}
+            {/* 安全提示框 */}
             <div style={{
               padding: '20px',
-              background: 'var(--color-ink)',
-              color: 'var(--color-paper)',
+              background: 'var(--color-aged-stock)',
               fontFamily: 'var(--font-mono)',
               fontSize: '12px',
               lineHeight: 1.6,
-              borderLeft: '4px solid var(--color-rust)'
+              borderLeft: '4px solid var(--color-rust)',
+              color: 'var(--color-ink)'
             }}>
               <span style={{
                 color: 'var(--color-rust)',
                 fontWeight: 'bold',
                 marginRight: '8px'
               }}>
-                {t('settings.securityLockLabel')}
+                {t('settings.securityNoticeLabel', 'NOTE')}
               </span>
-              {t('settings.securityLockDesc')}
+              {t('settings.securityNoticeDesc', 'Changes take effect immediately. Invalid values may lock out users or degrade service performance.')}
             </div>
 
             {/* 认证生命周期配置区块 */}
             <Section title={t('settings.sectionAuthLifecycles')}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
                 <Field label={t('settings.labelAccessTokenValidity')}>
-                  <input
-                    value={t('settings.token15Min')}
-                    disabled
-                    style={readonlyInputStyle}
-                  />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <input
+                      type="number"
+                      min={1}
+                      max={1440}
+                      value={form.accessTokenTtlMinutes}
+                      onChange={(e) => setForm({ ...form, accessTokenTtlMinutes: Math.max(1, parseInt(e.target.value) || 1) })}
+                      style={inputStyle}
+                    />
+                    <span style={{ fontSize: 11, color: 'var(--color-sepia-mid)', whiteSpace: 'nowrap', fontFamily: 'var(--font-mono)' }}>
+                      {t('settings.unitMinutes', 'minutes')}
+                    </span>
+                  </div>
                 </Field>
                 <Field label={t('settings.labelRefreshTokenValidity')}>
-                  <input
-                    value={t('settings.token7Days')}
-                    disabled
-                    style={readonlyInputStyle}
-                  />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <input
+                      type="number"
+                      min={1}
+                      max={365}
+                      value={form.refreshTokenTtlDays}
+                      onChange={(e) => setForm({ ...form, refreshTokenTtlDays: Math.max(1, parseInt(e.target.value) || 1) })}
+                      style={inputStyle}
+                    />
+                    <span style={{ fontSize: 11, color: 'var(--color-sepia-mid)', whiteSpace: 'nowrap', fontFamily: 'var(--font-mono)' }}>
+                      {t('settings.unitDays', 'days')}
+                    </span>
+                  </div>
                 </Field>
               </div>
             </Section>
@@ -445,18 +461,34 @@ export default function SettingsPage() {
             <Section title={t('settings.sectionRateLimiting')}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
                 <Field label={t('settings.labelGlobalThreshold')}>
-                  <input
-                    value={t('settings.thresholdGlobal')}
-                    disabled
-                    style={readonlyInputStyle}
-                  />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <input
+                      type="number"
+                      min={1}
+                      max={100000}
+                      value={form.globalRateLimit}
+                      onChange={(e) => setForm({ ...form, globalRateLimit: Math.max(1, parseInt(e.target.value) || 1) })}
+                      style={inputStyle}
+                    />
+                    <span style={{ fontSize: 11, color: 'var(--color-sepia-mid)', whiteSpace: 'nowrap', fontFamily: 'var(--font-mono)' }}>
+                      {t('settings.unitReqPerSec', 'req/s')}
+                    </span>
+                  </div>
                 </Field>
                 <Field label={t('settings.labelPerUserThreshold')}>
-                  <input
-                    value={t('settings.thresholdPerUser')}
-                    disabled
-                    style={readonlyInputStyle}
-                  />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <input
+                      type="number"
+                      min={1}
+                      max={10000}
+                      value={form.perUserRateLimit}
+                      onChange={(e) => setForm({ ...form, perUserRateLimit: Math.max(1, parseInt(e.target.value) || 1) })}
+                      style={inputStyle}
+                    />
+                    <span style={{ fontSize: 11, color: 'var(--color-sepia-mid)', whiteSpace: 'nowrap', fontFamily: 'var(--font-mono)' }}>
+                      {t('settings.unitReqPerMin', 'req/min')}
+                    </span>
+                  </div>
                 </Field>
               </div>
             </Section>
@@ -607,15 +639,4 @@ const inputStyle: React.CSSProperties = {
   boxSizing: 'border-box',
   fontFamily: 'var(--font-mono)',
   transition: 'all 0.2s',
-};
-
-/**
- * 只读输入框样式（用于安全设置中的只读字段）
- */
-const readonlyInputStyle: React.CSSProperties = {
-  ...inputStyle,
-  backgroundColor: 'var(--color-aged-stock)',
-  color: 'var(--color-sepia-mid)',
-  border: '1px solid var(--color-warm-gray)',
-  cursor: 'not-allowed',
 };
