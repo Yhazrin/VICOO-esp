@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
-import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeading';
+
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
 import GrainOverlay from '@/components/editorial/GrainOverlay';
 import { aiAssistantApi, type AIChatMessage } from '@/services/aiAssistant';
@@ -52,11 +52,12 @@ export default function AiAssistant() {
       <PaperTextureBackground variant="paper" className="py-16 md:py-24 relative min-h-[80dvh]">
         <GrainOverlay />
         <SectionContainer>
-          <NumberedSectionHeading
-            number="AI"
-            title={t('aiAssistant.title', '智能助手')}
-            subtitle={t('aiAssistant.subtitle', '捐赠、购物、物流与可持续实践')}
-          />
+          <h2 className="font-display text-h3 font-bold text-ink mb-8">
+            {t('aiAssistant.title', '智能助手')}
+          </h2>
+          <p className="font-body text-body-sm text-ink-faded mt-2 mb-8">
+            {t('aiAssistant.subtitle', '捐赠、购物、物流与可持续实践')}
+          </p>
           <div className="mb-6 flex flex-wrap gap-3 items-center">
             <label htmlFor="ai-ctx" className="font-body text-overline text-sepia-mid">
               {t('aiAssistant.context', '上下文')}

@@ -5,8 +5,6 @@ import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
-import EditorialHero from '@/components/editorial/EditorialHero';
-import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeading';
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import { VintageInput } from '@/components/editorial/VintageInput';
 import { campaignsApi } from '@/services/campaigns';
@@ -67,19 +65,13 @@ export default function Campaigns() {
 
   return (
     <PageWrapper>
-      <h1 className="sr-only">{t('campaigns.hero.title')}</h1>
-      <EditorialHero
-        title={t('campaigns.hero.title')}
-        subtitle={t('campaigns.hero.subtitle')}
-        hideHero={true}
-      />
-
       <SectionContainer noTopSpacing>
-        <NumberedSectionHeading
-          number="01"
-          title={t('campaigns.listing.sectionTitle')}
-          subtitle={t('campaigns.listing.sectionSubtitle')}
-        />
+        <h2 className="font-display text-h3 font-bold text-ink mb-8">
+          {t('campaigns.listing.sectionTitle')}
+        </h2>
+        <p className="font-body text-body-sm text-ink-faded mb-8">
+          {t('campaigns.listing.sectionSubtitle')}
+        </p>
 
         {/* Search bar */}
         <div className="mb-8 max-w-md">

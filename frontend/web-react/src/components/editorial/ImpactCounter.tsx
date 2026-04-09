@@ -70,7 +70,7 @@ export default function ImpactCounter({
       transition={{ duration: 0.6, ease: [0, 0, 0.2, 1] }}
       className={`text-center ${className}`}
     >
-      <div className="font-display text-h2 md:text-h1 font-bold text-ink leading-none tracking-tight">
+      <div className="font-display text-h2 md:text-h1 font-medium text-ink leading-none tracking-wide">
         {prefix}
         <AnimatedNumber value={value} duration={duration} />
         {suffix}

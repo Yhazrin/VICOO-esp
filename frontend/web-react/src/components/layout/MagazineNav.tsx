@@ -74,7 +74,7 @@ export default function MagazineNav() {
         {/* Logo */}
         <Link
           to="/"
-          className="relative font-display text-ink text-xl md:text-2xl font-bold tracking-tight group cursor-pointer"
+          className="relative font-display text-ink text-xl md:text-2xl font-medium tracking-wide group cursor-pointer"
           onClick={() => setMobileNavOpen(false)}
         >
           <span className="relative z-10">TONGHUA</span>

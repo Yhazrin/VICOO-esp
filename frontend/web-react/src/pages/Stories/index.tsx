@@ -8,8 +8,6 @@ import { campaignsApi } from '@/services/campaigns';
 import { editorialApi } from '@/services/editorial';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
-import EditorialHero from '@/components/editorial/EditorialHero';
-import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeading';
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import { VintageInput } from '@/components/editorial/VintageInput';
@@ -300,13 +298,6 @@ export default function Stories() {
 
   return (
     <PageWrapper>
-      <h1 className="sr-only">{t('stories.hero.title')}</h1>
-      <EditorialHero
-        title={t('stories.hero.title')}
-        subtitle={t('stories.hero.subtitle')}
-        hideHero={true}
-      />
-
       {/* Kinetic marquee with attributed quotes */}
       <KineticTextMarquee
         items={getStoryQuotes(t).map((q) => `${q.text} — ${q.attribution}`)}
@@ -478,11 +469,12 @@ export default function Stories() {
       <section className="bg-aged-stock section-spacing">
         <SectionContainer narrow>
           <div className="text-center">
-            <NumberedSectionHeading
-              number="05"
-              title={t('stories.newsletter.title')}
-              subtitle={t('stories.newsletter.subtitle')}
-            />
+            <h2 className="font-display text-h3 font-bold text-ink mb-8">
+              {t('stories.newsletter.title')}
+            </h2>
+            <p className="font-body text-body-sm text-ink-faded mb-8">
+              {t('stories.newsletter.subtitle')}
+            </p>
 
             {/* Emotional hook */}
             <p className="font-display text-lg md:text-xl italic text-ink-faded mt-4 mb-6">

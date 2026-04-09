@@ -18,9 +18,6 @@ export default function Footer() {
             <p className="font-body text-body-sm text-warm-gray leading-relaxed max-w-xs">
               {t('footer.tagline')}
             </p>
-            <p className="font-body text-caption text-sepia-mid mt-6 tracking-widest uppercase">
-              {t('footer.issueNo')}
-            </p>
           </div>
 
           {/* Publication */}

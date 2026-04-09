@@ -92,8 +92,8 @@ export default {
         'theme-border': 'var(--theme-border)',
       },
       fontFamily: {
-        'display': ['"Playfair Display"', 'Georgia', 'serif'],
-        'body': ['"IBM Plex Mono"', '"Courier New"', 'monospace'],
+        'display': ['"Smiley Sans"', '"Helvetica Neue"', 'Arial', 'sans-serif'],
+        'body': ['Inter', '"Source Sans Pro"', 'sans-serif'],
         'ui': ['Inter', '"Source Sans Pro"', 'sans-serif'],
       },
       fontSize: {

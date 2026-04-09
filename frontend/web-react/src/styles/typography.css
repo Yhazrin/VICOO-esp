@@ -10,8 +10,8 @@ h1, h2, h3, h4, h5, h6,
   font-family: var(--font-display);
   color: var(--color-ink);
   line-height: 1.05;
-  letter-spacing: -0.025em;
-  font-weight: 700;
+  letter-spacing: 0.12em;
+  font-weight: 500;
 }
 
 h1, .text-hero {
@@ -85,6 +85,7 @@ input,
 textarea,
 select {
   font-family: var(--font-ui);
+  letter-spacing: normal !important;
 }
 
 /* ── Editorial Utilities ── */

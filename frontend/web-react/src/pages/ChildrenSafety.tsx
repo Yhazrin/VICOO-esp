@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
-import NumberedSectionHeading from '@/components/editorial/NumberedSectionHeading';
+
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
 import GrainOverlay from '@/components/editorial/GrainOverlay';
 import { MagazineDivider } from '@/components/editorial/MagazineDivider';
@@ -94,10 +94,9 @@ export default function ChildrenSafety() {
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: i * 0.04 }}
                 >
-                  <NumberedSectionHeading
-                    number={String(i + 1).padStart(2, '0')}
-                    title={t(`legal.children.sections.${section.key}.title`, { defaultValue: section.title })}
-                  />
+                  <h2 className="font-display text-h3 font-bold text-ink mb-8">
+                    {t(`legal.children.sections.${section.key}.title`, { defaultValue: section.title })}
+                  </h2>
                   <p className="font-body text-sm text-ink-faded leading-[1.8] max-w-[65ch]">
                     {t(`legal.children.sections.${section.key}.body`, { defaultValue: section.body })}
                   </p>
