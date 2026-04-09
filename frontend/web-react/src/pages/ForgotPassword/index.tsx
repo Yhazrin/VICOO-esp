@@ -2,14 +2,10 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
-import PageWrapper from '@/components/layout/PageWrapper';
-import { VintageInput } from '@/components/editorial/VintageInput';
-import GrainOverlay from '@/components/editorial/GrainOverlay';
-import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
 import api from '@/services/api';
 
 export default function ForgotPassword() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
@@ -37,50 +33,55 @@ export default function ForgotPassword() {
   };
 
   return (
-    <PageWrapper>
-      <PaperTextureBackground variant="paper" className="min-h-[100dvh] flex items-center justify-center relative">
-        <GrainOverlay />
+    <div className="h-[100dvh] overflow-hidden bg-paper flex items-center justify-center relative">
+      {/* Subtle background grain */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+        }}
+      />
 
-        <div className="w-full max-w-md relative mx-auto py-12 px-6">
-          {/* Header */}
-          <div className="text-center mb-10">
-            <motion.h1
-              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-              animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6, ease: [0, 0, 0.2, 1] }}
-              className="font-display text-3xl md:text-4xl font-bold text-ink mb-4"
+      {/* Decorative gradient orb */}
+      <div className="absolute top-[-15%] left-[20%] w-[500px] h-[500px] rounded-full bg-rust/[0.03] blur-3xl pointer-events-none" />
+
+      {/* Card */}
+      <motion.div
+        initial={prefersReducedMotion ? false : { opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0, 0, 0.2, 1] }}
+        className="relative w-full max-w-[420px] mx-6"
+      >
+        <div className="bg-white/80 backdrop-blur-xl rounded-[24px] shadow-lg shadow-ink/[0.06] border border-warm-gray/30 px-8 py-10 md:px-10 md:py-12">
+          {/* Logo & header */}
+          <div className="text-center mb-8">
+            <Link
+              to="/"
+              className="inline-block font-display text-ink text-2xl font-medium tracking-[0.12em] mb-6 hover:text-rust transition-colors"
             >
+              VICOO
+            </Link>
+            <h1 className="font-display text-2xl text-ink mb-2 tracking-tight">
               {t('forgotPassword.title', 'Reset Password')}
-            </motion.h1>
-            <motion.p
-              initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
-              animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6, ease: [0, 0, 0.2, 1], delay: 0.1 }}
-              className="font-body text-body-sm text-ink-faded"
-            >
-              {recoveryData?.is_mock 
+            </h1>
+            <p className="font-body text-body-sm text-ink-faded/70">
+              {recoveryData?.is_mock
                 ? t('forgotPassword.mockTitle', 'Account Found (Mock Mode)')
                 : t('forgotPassword.subtitle', 'Enter your email and we\'ll send you a reset link')}
-            </motion.p>
-            <motion.div
-              {...(prefersReducedMotion ? {} : { initial: { scaleX: 0 }, animate: { scaleX: 1 }, transition: { duration: 0.8, delay: 0.3 } })}
-              className="h-px w-[60px] bg-rust/40 mx-auto mt-6 origin-center"
-              aria-hidden="true"
-            />
+            </p>
           </div>
 
           {submitted ? (
             <motion.div
               initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-              animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+              animate={{ opacity: 1, y: 0 }}
               className="text-center space-y-6"
             >
-              <div className="w-16 h-16 mx-auto border-2 border-rust/30 flex items-center justify-center">
+              <div className="w-14 h-14 mx-auto rounded-full bg-rust/[0.08] flex items-center justify-center">
                 {recoveryData?.is_mock ? (
-                  <span className="text-2xl font-bold text-rust">!</span>
+                  <span className="text-xl font-bold text-rust">!</span>
                 ) : (
-                  <svg className="w-8 h-8 text-rust" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  <svg className="w-6 h-6 text-rust" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                 )}
               </div>
@@ -90,7 +91,7 @@ export default function ForgotPassword() {
                   <p className="font-body text-body-sm text-ink">
                     {t('forgotPassword.mockInstruction', 'Since this is a test account, your password is shown below:')}
                   </p>
-                  <div className="bg-[#EDE6D6] p-4 border border-dashed border-rust font-mono text-lg font-bold text-ink">
+                  <div className="bg-aged-stock/60 rounded-full px-6 py-3 border border-warm-gray/30 font-mono text-lg font-bold text-ink text-center">
                     {recoveryData.password_hint}
                   </div>
                 </div>
@@ -99,16 +100,16 @@ export default function ForgotPassword() {
                   <p className="font-body text-body-sm text-ink">
                     {t('forgotPassword.sent', 'If an account exists with that email, we\'ve sent a password reset link.')}
                   </p>
-                  <p className="font-body text-caption text-ink-faded">
+                  <p className="font-body text-caption text-ink-faded/60">
                     {t('forgotPassword.checkSpam', 'Check your spam folder if you don\'t see it within a few minutes.')}
                   </p>
                 </>
               )}
-              
-              <div className="pt-4">
+
+              <div className="pt-2">
                 <Link
                   to="/login"
-                  className="inline-block font-body text-body-sm tracking-[0.15em] uppercase text-rust hover:text-ink transition-colors cursor-pointer"
+                  className="inline-block bg-ink text-paper py-3 px-8 rounded-full font-body text-body-sm tracking-[0.1em] uppercase hover:bg-rust transition-colors duration-300 cursor-pointer"
                 >
                   &larr; {t('forgotPassword.backToLogin', 'Back to login')}
                 </Link>
@@ -117,44 +118,51 @@ export default function ForgotPassword() {
           ) : (
             <motion.form
               initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-              animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6, ease: [0, 0, 0.2, 1], delay: 0.2 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={prefersReducedMotion ? {} : { duration: 0.6, ease: [0, 0, 0.2, 1], delay: 0.15 }}
               onSubmit={handleSubmit}
-              className="space-y-6 relative"
+              className="space-y-5"
             >
-              <div className="absolute -top-4 -left-4 w-6 h-6 border-t-2 border-l-2 border-rust/30 pointer-events-none" aria-hidden="true" />
-              <div className="absolute -bottom-4 -right-4 w-6 h-6 border-b-2 border-r-2 border-rust/30 pointer-events-none" aria-hidden="true" />
+              {/* Email */}
+              <div>
+                <label className="block font-body text-label tracking-[0.15em] uppercase text-sepia-mid mb-2">
+                  {t('forgotPassword.email', 'Email')}
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  placeholder="name@email.com"
+                  className="w-full px-4 py-3 rounded-full bg-aged-stock/60 border border-warm-gray/30 font-body text-body-sm text-ink placeholder:text-ink-faded/40 focus:outline-none focus:ring-2 focus:ring-rust/30 focus:border-rust/50 transition-all"
+                />
+              </div>
 
-              <VintageInput
-                label={t('forgotPassword.email', 'Email')}
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-
+              {/* Error */}
               {error && (
-                <div role="alert" className="font-body text-body-sm text-rust text-center border border-rust/20 px-4 py-3">
+                <div role="alert" className="font-body text-caption text-rust bg-rust/[0.06] rounded-full px-4 py-2 text-center">
                   {error}
                 </div>
               )}
 
+              {/* Submit */}
               <motion.button
                 type="submit"
                 disabled={loading}
-                whileHover={prefersReducedMotion ? undefined : { scale: 1.01 }}
-                whileTap={prefersReducedMotion ? undefined : { scale: 0.99 }}
-                className="w-full font-body text-body-sm tracking-[0.15em] uppercase bg-ink text-paper px-10 py-4 hover:bg-rust transition-colors duration-300 disabled:opacity-50 cursor-pointer"
+                whileHover={prefersReducedMotion ? undefined : { scale: 1.015 }}
+                whileTap={prefersReducedMotion ? undefined : { scale: 0.985 }}
+                className="w-full bg-ink text-paper py-3.5 rounded-full font-body text-body-sm tracking-[0.15em] uppercase font-medium hover:bg-rust transition-colors duration-300 disabled:opacity-50 cursor-pointer"
               >
                 {loading
                   ? t('forgotPassword.sending', 'Sending...')
                   : t('forgotPassword.submit', 'Send Reset Link')}
               </motion.button>
 
-              <p className="text-center pt-4">
+              {/* Back to login */}
+              <p className="text-center pt-2">
                 <Link
                   to="/login"
-                  className="font-body text-caption text-rust hover:text-ink transition-colors tracking-[0.1em] uppercase cursor-pointer"
+                  className="font-body text-caption text-rust hover:text-ink transition-colors font-medium"
                 >
                   &larr; {t('forgotPassword.backToLogin', 'Back to login')}
                 </Link>
@@ -162,7 +170,20 @@ export default function ForgotPassword() {
             </motion.form>
           )}
         </div>
-      </PaperTextureBackground>
-    </PageWrapper>
+
+        {/* Language toggle */}
+        <div className="flex justify-center mt-6">
+          <button
+            onClick={() => {
+              const next = i18n.language === 'en' ? 'zh' : 'en';
+              i18n.changeLanguage(next);
+            }}
+            className="font-body text-caption text-sepia-mid/50 hover:text-ink-faded transition-colors px-4 py-2 cursor-pointer"
+          >
+            {i18n.language === 'zh' ? 'English' : '中文'}
+          </button>
+        </div>
+      </motion.div>
+    </div>
   );
 }
