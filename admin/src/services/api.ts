@@ -496,6 +496,38 @@ export async function updateAfterSalesStatus(id: string, status: string): Promis
 }
 
 // ---------------------------------------------------------------------------
+// Clothing Intakes
+// ---------------------------------------------------------------------------
+
+export async function fetchClothingIntakes(params: FilterParams = {}): Promise<PaginatedResponse<any>> {
+  const { data: envelope } = await api.get('/clothing-intakes', {
+    params: {
+      page: params.page ?? 1,
+      page_size: params.pageSize ?? 10,
+      status: params.status || undefined,
+    },
+  });
+  const paginated = adaptPaginated<any>(envelope);
+  return {
+    ...paginated,
+    data: paginated.data.map((item: any) => ({
+      id: String(item.id),
+      garmentTypes: item.garment_types ?? '',
+      quantityEstimate: item.quantity_estimate ?? null,
+      pickupAddress: item.pickup_address ?? '',
+      contactPhone: item.contact_phone ?? '',
+      conditionNotes: item.condition_notes ?? '',
+      status: item.status ?? 'pending',
+      createdAt: item.created_at ?? '',
+    })),
+  };
+}
+
+export async function updateClothingIntakeStatus(id: string, status: string): Promise<void> {
+  await api.patch(`/clothing-intakes/${id}`, { status });
+}
+
+// ---------------------------------------------------------------------------
 // System Settings
 // ---------------------------------------------------------------------------
 

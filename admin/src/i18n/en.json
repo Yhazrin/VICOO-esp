@@ -427,9 +427,17 @@
         "statusRejected": "Rejected", 
         "typeClothing": "Clothing", 
         "typeAccessory": "Accessory", 
-        "typeShoes": "Shoes", 
-        "typeOther": "Other"
-    }, 
+        "typeShoes": "Shoes",
+        "typeOther": "Other",
+        "colActions": "Actions",
+        "btnReceive": "Receive",
+        "btnReject": "Reject",
+        "btnProcess": "Process",
+        "btnConvert": "Convert",
+        "toastUpdated": "Status updated",
+        "toastError": "Update failed",
+        "colAddress": "Pickup Address"
+    },
     "settings": {
         "loading": "Loading System Configuration...",
         "title": "System Configuration", 
