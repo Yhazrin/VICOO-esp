@@ -280,7 +280,8 @@
     "empty.title": "该类别下暂无活动",
     "empty.subtitle": "请稍后再来",
     "goalReached": "目标达成",
-    "funded": "已筹{{percent}}%"
+    "funded": "已筹{{percent}}%",
+    "loadError": "加载活动失败，请稍后再试。"
   },
   "stories": {
     "hero": {

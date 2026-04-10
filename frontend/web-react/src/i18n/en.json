@@ -286,7 +286,8 @@
     "empty.title": "No campaigns found in this category.",
     "empty.subtitle": "Check back soon.",
     "goalReached": "Goal Reached",
-    "funded": "{{percent}}% funded"
+    "funded": "{{percent}}% funded",
+    "loadError": "Failed to load campaigns. Please try again later."
   },
   "stories": {
     "hero": {

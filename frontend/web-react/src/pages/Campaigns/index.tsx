@@ -21,7 +21,7 @@ export default function Campaigns() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['campaigns', { status: filter, page, search }],
     queryFn: async () => {
       const result = await campaignsApi.getAll({
@@ -168,6 +168,15 @@ export default function Campaigns() {
                 </div>
               </div>
             ))}
+          </div>
+        ) : isError ? (
+          <div className="text-center py-24">
+            <span className="font-display text-7xl text-rust/30 leading-none block mb-6 select-none">
+              !
+            </span>
+            <p className="font-display text-lg text-ink-faded mb-2">
+              {t('campaigns.loadError')}
+            </p>
           </div>
         ) : paginated.length > 0 ? (
           <AnimatePresence mode="wait">
