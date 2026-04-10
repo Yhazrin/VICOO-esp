@@ -428,7 +428,15 @@
         "typeClothing": "衣物",
         "typeAccessory": "配饰",
         "typeShoes": "鞋履",
-        "typeOther": "其他"
+        "typeOther": "其他",
+        "colActions": "操作",
+        "btnReceive": "确认收到",
+        "btnReject": "拒绝",
+        "btnProcess": "开始处理",
+        "btnConvert": "标记转化",
+        "toastUpdated": "状态已更新",
+        "toastError": "更新失败",
+        "colAddress": "取件地址"
     },
     "settings": {
         "loading": "正在加载系统配置...",
