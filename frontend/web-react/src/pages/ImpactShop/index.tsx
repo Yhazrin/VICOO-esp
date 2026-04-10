@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
@@ -10,88 +10,10 @@ import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { productsApi } from '@/services/products';
-import { artworksApi } from '@/services/artworks';
 import { campaignsApi } from '@/services/campaigns';
-import type { Artwork, Campaign } from '@/types';
+import type { Campaign } from '@/types';
 
 type Category = 'all' | 'apparel' | 'accessories' | 'stationery' | 'prints' | 'lifestyle' | 'footwear' | 'home' | 'gift_box';
-
-/* ─── Artwork Voting Card ─── */
-
-function ArtworkVoteCard({
-  artwork,
-  index,
-  onVote,
-}: {
-  artwork: Artwork;
-  index: number;
-  onVote: (id: number) => void;
-}) {
-  const { t } = useTranslation();
-  const prefersReducedMotion = useReducedMotion();
-  const [ref, isVisible] = useScrollReveal<HTMLDivElement>();
-  const [voted, setVoted] = useState(false);
-  const [voteCount, setVoteCount] = useState(artwork.vote_count);
-
-  const handleVote = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!voted) {
-      setVoted(true);
-      setVoteCount((c) => c + 1);
-      onVote(artwork.id);
-    }
-  };
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 30 }}
-      animate={prefersReducedMotion ? (isVisible ? { opacity: 1 } : {}) : (isVisible ? { opacity: 1, y: 0 } : {})}
-      transition={{ duration: 0.6, ease: [0, 0, 0.2, 1], delay: index * 0.08 }}
-      className="group"
-    >
-      <div className="relative aspect-square overflow-hidden border-2 border-warm-gray/20 bg-aged-stock mb-3 group-hover:border-rust/30 transition-colors duration-300">
-        <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/3 via-transparent to-archive-brown/5" />
-        <img
-          src={artwork.image_url}
-          alt={artwork.title}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-          loading="lazy"
-        />
-        {/* Vote button overlay */}
-        <div className="absolute inset-0 z-20 flex items-end justify-center pb-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <motion.button
-            whileHover={prefersReducedMotion ? undefined : { scale: 1.05 }}
-            whileTap={prefersReducedMotion ? undefined : { scale: 0.95 }}
-            onClick={handleVote}
-            className={`
-              font-body text-label tracking-wide px-5 py-2 border transition-all cursor-pointer
-              ${voted
-                ? 'bg-sage text-paper border-sage'
-                : 'bg-paper/90 backdrop-blur-sm text-ink border-warm-gray/30 hover:bg-rust hover:text-paper hover:border-rust'
-              }
-            `}
-          >
-            {voted ? t('impactShop.artworkVoting.votes', { count: voteCount }) : t('impactShop.artworkVoting.vote')}
-          </motion.button>
-        </div>
-      </div>
-      <h4 className="font-display text-sm font-semibold text-ink leading-tight">{artwork.title}</h4>
-      {artwork.artist_name && (
-        <p className="font-body text-overline text-sepia-mid tracking-wide mt-0.5">
-          {artwork.artist_name}
-        </p>
-      )}
-      <div className="flex items-center gap-2 mt-1">
-        <span className="font-mono text-[10px] text-sepia-mid">{voteCount}</span>
-        <span className="font-body text-[10px] text-sepia-mid tracking-wider uppercase">
-          {t('impactShop.artworkVoting.votes', { count: 0 }).replace('0', '').trim()}
-        </span>
-      </div>
-    </motion.div>
-  );
-}
 
 /* ─── Empty State ─── */
 
@@ -168,16 +90,6 @@ export default function ImpactShop() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Fetch featured artworks for voting
-  const { data: artworksData } = useQuery({
-    queryKey: ['artworks-featured'],
-    queryFn: async () => {
-      const result = await artworksApi.getAll({ page_size: 8 });
-      return result;
-    },
-    staleTime: 5 * 60 * 1000,
-  });
-
   // Fetch campaigns for filter
   const { data: campaignsData } = useQuery({
     queryKey: ['campaigns-list'],
@@ -199,18 +111,6 @@ export default function ImpactShop() {
     }
     return list;
   }, [data, activeCampaignId]);
-
-  const artworks = useMemo(() => {
-    return (artworksData?.items ?? []).slice(0, 8);
-  }, [artworksData]);
-
-  const handleVote = useCallback(async (artworkId: number) => {
-    try {
-      await artworksApi.vote(String(artworkId));
-    } catch {
-      // Silent fail — optimistic update already applied
-    }
-  }, []);
 
   const categories: Category[] = useMemo(() => {
     const items = data?.items ?? [];
@@ -241,35 +141,6 @@ export default function ImpactShop() {
           </p>
         </div>
       </SectionContainer>
-
-      {/* ═══ Artwork Voting Section ═══ */}
-      {artworks.length > 0 && (
-        <SectionContainer>
-          <div className="border-t border-warm-gray/20 pt-12 pb-8">
-            <div className="flex items-end justify-between mb-8">
-              <div>
-                <span className="font-body text-overline tracking-[0.3em] uppercase text-sepia-mid block mb-2">
-                  {t('impactShop.artworkVoting.title')}
-                </span>
-                <h2 className="font-display text-h3 md:text-h2 font-bold text-ink leading-[1.0]">
-                  {t('impactShop.artworkVoting.subtitle')}
-                </h2>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-              {artworks.map((artwork, i) => (
-                <ArtworkVoteCard
-                  key={artwork.id}
-                  artwork={artwork}
-                  index={i}
-                  onVote={handleVote}
-                />
-              ))}
-            </div>
-          </div>
-        </SectionContainer>
-      )}
 
       {/* ═══ Product Grid Section ═══ */}
       <SectionContainer>

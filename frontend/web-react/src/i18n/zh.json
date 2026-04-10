@@ -8,6 +8,7 @@
     "donateClothing": "捐衣",
     "shop": "商城",
     "traceability": "溯源",
+    "vote": "投票",
     "assistant": "助手",
     "support": "售后",
     "contact": "联系我们",
@@ -653,6 +654,14 @@
       "subtitle": "查看产品的完整来源——从有机棉田到成衣。",
       "button": "探索溯源"
     }
+  },
+  "vote": {
+    "overline": "社区投票",
+    "title": "为下一个设计投票",
+    "subtitle": "帮助选择哪些孩子的画作成为我们的下一个系列。每一票都在塑造我们的创作方向。",
+    "vote": "投票",
+    "votes": "{{count}} 票",
+    "empty": "暂无可投票的作品。"
   },
   "traceability": {
     "hero": {

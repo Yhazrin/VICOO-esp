@@ -8,6 +8,7 @@
     "donateClothing": "Clothing",
     "shop": "Shop",
     "traceability": "Traceability",
+    "vote": "Vote",
     "assistant": "Assistant",
     "support": "Support",
     "contact": "Contact",
@@ -657,6 +658,14 @@
       "subtitle": "See exactly where your product comes from — from organic cotton field to finished garment.",
       "button": "Explore Traceability"
     }
+  },
+  "vote": {
+    "overline": "Community Vote",
+    "title": "Vote for the Next Design",
+    "subtitle": "Help choose which children's artwork becomes our next collection. Every vote shapes what we create.",
+    "vote": "Vote",
+    "votes": "{{count}} votes",
+    "empty": "No artworks available for voting right now."
   },
   "traceability": {
     "hero": {
