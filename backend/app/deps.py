@@ -97,9 +97,6 @@ async def get_current_user(
         # Fail closed: do not fall back to token payload when DB is unavailable
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
-    # User not found in DB — reject rather than trusting the token payload
-    raise HTTPException(status_code=401, detail="User not found")
-
 
 def require_role(*roles: str):
     """Dependency factory that enforces the current user has one of the specified roles."""

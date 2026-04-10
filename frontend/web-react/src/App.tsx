@@ -1,38 +1,40 @@
+import { lazy, Suspense } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Layout, { FullHeightLayout } from '@/components/layout/Layout';
 import SmoothTransition from '@/components/transitions/SmoothTransition';
 import ErrorBoundary from '@/components/editorial/ErrorBoundary';
-import Home from '@/pages/Home';
-import About from '@/pages/About';
-import Campaigns from '@/pages/Campaigns';
-import CampaignDetail from '@/pages/CampaignDetail';
-import Stories from '@/pages/Stories';
-import ArtworkDetail from '@/pages/ArtworkDetail';
-import Donate from '@/pages/Donate';
-import Shop from '@/pages/Shop';
-import ProductDetail from '@/pages/ProductDetail';
-import Traceability from '@/pages/Traceability';
-import Contact from '@/pages/Contact';
-import Login from '@/pages/Login';
-import Register from '@/pages/Register';
-import AuthCallback from '@/pages/AuthCallback';
-import ForgotPassword from '@/pages/ForgotPassword';
-import Profile from '@/pages/Profile';
-import Privacy from '@/pages/Privacy';
-import Terms from '@/pages/Terms';
-import ChildrenSafety from '@/pages/ChildrenSafety';
-import NotFound from '@/pages/NotFound';
-import OrderDetail from '@/pages/OrderDetail';
-import DonateClothing from '@/pages/DonateClothing';
-import Support from '@/pages/Support';
-import AiAssistant from '@/pages/AiAssistant';
-import Checkout from '@/pages/Checkout';
 import CartDrawer from '@/components/cart/CartDrawer';
 import { useSessionRestore } from '@/hooks/useSessionRestore';
 import { Toaster } from 'react-hot-toast';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useUIStore } from '@/stores/uiStore';
+
+const Home = lazy(() => import('@/pages/Home'));
+const About = lazy(() => import('@/pages/About'));
+const Campaigns = lazy(() => import('@/pages/Campaigns'));
+const CampaignDetail = lazy(() => import('@/pages/CampaignDetail'));
+const Stories = lazy(() => import('@/pages/Stories'));
+const ArtworkDetail = lazy(() => import('@/pages/ArtworkDetail'));
+const Donate = lazy(() => import('@/pages/Donate'));
+const Shop = lazy(() => import('@/pages/Shop'));
+const ProductDetail = lazy(() => import('@/pages/ProductDetail'));
+const Traceability = lazy(() => import('@/pages/Traceability'));
+const Contact = lazy(() => import('@/pages/Contact'));
+const Login = lazy(() => import('@/pages/Login'));
+const Register = lazy(() => import('@/pages/Register'));
+const AuthCallback = lazy(() => import('@/pages/AuthCallback'));
+const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
+const Profile = lazy(() => import('@/pages/Profile'));
+const Privacy = lazy(() => import('@/pages/Privacy'));
+const Terms = lazy(() => import('@/pages/Terms'));
+const ChildrenSafety = lazy(() => import('@/pages/ChildrenSafety'));
+const NotFound = lazy(() => import('@/pages/NotFound'));
+const OrderDetail = lazy(() => import('@/pages/OrderDetail'));
+const DonateClothing = lazy(() => import('@/pages/DonateClothing'));
+const Support = lazy(() => import('@/pages/Support'));
+const AiAssistant = lazy(() => import('@/pages/AiAssistant'));
+const Checkout = lazy(() => import('@/pages/Checkout'));
 
 function AppLocaleSync() {
   const { i18n } = useTranslation();
@@ -54,6 +56,7 @@ function AnimatedRoutes() {
 
   return (
     <ErrorBoundary>
+      <Suspense fallback={<div style={{ minHeight: '60vh' }} />}>
       <SmoothTransition>
         <Routes location={location} key={location.pathname}>
           {/* Home uses FullHeightLayout for scroll narrative - no overflow:hidden */}
@@ -92,6 +95,7 @@ function AnimatedRoutes() {
           </Route>
         </Routes>
       </SmoothTransition>
+      </Suspense>
     </ErrorBoundary>
   );
 }

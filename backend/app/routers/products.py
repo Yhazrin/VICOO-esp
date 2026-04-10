@@ -15,6 +15,18 @@ router = APIRouter(prefix="/products", tags=["Products"])
 
 logger = logging.getLogger(__name__)
 
+
+def _apply_product_filters(stmt, category: str | None, status: str | None, is_impact_product: bool | None):
+    """Apply common product filter conditions to a query statement."""
+    if category:
+        stmt = stmt.where(Product.category == category)
+    if status:
+        stmt = stmt.where(Product.status == status)
+    if is_impact_product is not None:
+        stmt = stmt.where(Product.is_impact_product == is_impact_product)
+    return stmt
+
+
 _mock_products = [
     {"id": 1, "name": "彩虹鱼棉质 T 恤", "description": "采用有机棉面料，印有获奖作品《彩虹鱼》。每件 T 恤的收益 30% 用于乡村美育基金。", "price": "168.00", "currency": "CNY", "image_url": "/static/products/tshirt1.jpg", "category": "apparel", "stock": 200, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "30.00", "sizes": ["S", "M", "L", "XL"], "colors": [{"name": "White", "hex": "#F5F0E8"}, {"name": "Navy", "hex": "#1C2841"}, {"name": "Rust", "hex": "#8B3A2A"}], "created_at": "2025-04-01T10:00:00"},
     {"id": 2, "name": "星星之夜帆布袋", "description": "再生帆布材质，印有梵高风格星空画作。环保材质，可持续时尚。", "price": "89.00", "currency": "CNY", "image_url": "/static/products/bag1.jpg", "category": "accessories", "stock": 150, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "25.00", "created_at": "2025-04-05T10:00:00"},
@@ -51,20 +63,8 @@ async def list_products(
 ):
     """List products with optional filtering."""
     try:
-        stmt = select(Product)
-        if category:
-            stmt = stmt.where(Product.category == category)
-        if status:
-            stmt = stmt.where(Product.status == status)
-        if is_impact_product is not None:
-            stmt = stmt.where(Product.is_impact_product == is_impact_product)
-        count_stmt = select(func.count(Product.id))
-        if category:
-            count_stmt = count_stmt.where(Product.category == category)
-        if status:
-            count_stmt = count_stmt.where(Product.status == status)
-        if is_impact_product is not None:
-            count_stmt = count_stmt.where(Product.is_impact_product == is_impact_product)
+        stmt = _apply_product_filters(select(Product), category, status, is_impact_product)
+        count_stmt = _apply_product_filters(select(func.count(Product.id)), category, status, is_impact_product)
         total = (await db.execute(count_stmt)).scalar() or 0
         stmt = stmt.offset((page - 1) * page_size).limit(page_size)
         result = await db.execute(stmt)
