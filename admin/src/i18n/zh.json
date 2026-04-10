@@ -349,7 +349,13 @@
         "statusPending": "待处理",
         "statusApproved": "已通过",
         "statusRejected": "已拒绝",
-        "statusCompleted": "已完成"
+        "statusCompleted": "已完成",
+        "colActions": "操作",
+        "btnApprove": "通过",
+        "btnReject": "拒绝",
+        "btnComplete": "标记完成",
+        "toastUpdated": "状态已更新",
+        "toastError": "更新失败"
     },
     "childAudit": {
         "title": "儿童参与者审计",
@@ -422,7 +428,15 @@
         "typeClothing": "衣物",
         "typeAccessory": "配饰",
         "typeShoes": "鞋履",
-        "typeOther": "其他"
+        "typeOther": "其他",
+        "colActions": "操作",
+        "btnReceive": "确认收到",
+        "btnReject": "拒绝",
+        "btnProcess": "开始处理",
+        "btnConvert": "标记转化",
+        "toastUpdated": "状态已更新",
+        "toastError": "更新失败",
+        "colAddress": "取件地址"
     },
     "settings": {
         "loading": "正在加载系统配置...",
@@ -466,7 +480,13 @@
         "thresholdGlobal": "1000 次 / 秒",
         "thresholdPerUser": "60 次 / 分钟",
         "placeholderRequired": "必填",
-        "placeholderPk": "pk_..."
+        "placeholderPk": "pk_...",
+        "securityNoticeLabel": "注意",
+        "securityNoticeDesc": "更改将立即生效。无效值可能导致用户被锁定或服务性能下降。",
+        "unitMinutes": "分钟",
+        "unitDays": "天",
+        "unitReqPerSec": "次/秒",
+        "unitReqPerMin": "次/分钟"
     },
     "statusBadge": {
         "artwork": {

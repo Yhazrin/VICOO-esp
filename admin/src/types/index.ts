@@ -161,4 +161,8 @@ export interface SystemSettings {
     stripe: { enabled: boolean; publicKey?: string };
     paypal: { enabled: boolean; clientId?: string };
   };
+  accessTokenTtlMinutes: number;
+  refreshTokenTtlDays: number;
+  globalRateLimit: number;
+  perUserRateLimit: number;
 }

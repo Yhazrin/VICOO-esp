@@ -19,7 +19,7 @@ const COMPANY_NAV = [
 // ── Impact nav tabs ──
 const IMPACT_TABS = [
   { key: 'campaigns' },
-  { key: 'stories' },
+  { key: 'vote' },
   { key: 'traceability' },
   { key: 'donate' },
   { key: 'shop' },

@@ -34,6 +34,7 @@ export default function OrderDetail() {
   const [returnReason, setReturnReason] = useState('');
   const [isSubmittingReturn, setIsSubmittingReturn] = useState(false);
   const [returnSuccess, setReturnSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const { data: order, isLoading, isError } = useQuery({
     queryKey: ['order', id],
@@ -60,9 +61,12 @@ export default function OrderDetail() {
   const handleCancel = async () => {
     if (!order) return;
     try {
+      setErrorMessage('');
       await ordersApi.cancel(String(order.id));
       queryClient.invalidateQueries({ queryKey: ['order', id] });
-    } catch { /* silent */ }
+    } catch {
+      setErrorMessage(t('orderDetail.cancelError', '取消订单失败，请重试'));
+    }
   };
 
   const toggleItemSelection = (itemId: number, _maxQty: number) => {
@@ -96,7 +100,9 @@ export default function OrderDetail() {
       await ordersApi.requestReturn(String(order.id), data);
       setReturnSuccess(true);
       queryClient.invalidateQueries({ queryKey: ['my-after-sales'] });
-    } catch { /* silent */ }
+    } catch {
+      setErrorMessage(t('orderDetail.returnError', '提交退换货申请失败，请重试'));
+    }
     finally {
       setIsSubmittingReturn(false);
     }
@@ -139,6 +145,20 @@ export default function OrderDetail() {
 
   return (
     <PageWrapper>
+      {errorMessage && (
+        <div className="max-w-[1400px] mx-auto px-6 md:px-10 w-full">
+          <div className="flex items-center gap-3 bg-rust/10 border border-rust/20 px-4 py-3 mt-4 mb-2">
+            <p className="font-body text-body-sm text-rust flex-1">{errorMessage}</p>
+            <button
+              onClick={() => setErrorMessage('')}
+              className="text-rust hover:text-rust-light cursor-pointer"
+              aria-label="Dismiss"
+            >
+              &times;
+            </button>
+          </div>
+        </div>
+      )}
       <PaperTextureBackground variant="paper" className="py-16 md:py-24 relative">
         <GrainOverlay />
         <SectionContainer>

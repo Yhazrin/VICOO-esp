@@ -20,6 +20,7 @@ export default function Support() {
   const [category, setCategory] = useState('quality');
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
+  const [fieldError, setFieldError] = useState('');
 
   const categories = [
     { value: 'return', label: t('support.return') },
@@ -74,13 +75,21 @@ export default function Support() {
             className="max-w-xl space-y-6 border border-warm-gray/30 p-6 md:p-8"
             onSubmit={(e) => {
               e.preventDefault();
+              if (!/^\d+$/.test(orderId.trim())) {
+                setFieldError(t('support.invalidOrderId', '订单 ID 必须为数字'));
+                return;
+              }
+              setFieldError('');
               mutation.mutate();
             }}
           >
             <VintageInput
               label={t('support.orderId', '订单 ID *')}
               value={orderId}
-              onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setOrderId(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+                setOrderId(e.target.value);
+                setFieldError('');
+              }}
               required
               inputMode="numeric"
             />
@@ -101,6 +110,11 @@ export default function Support() {
               value={description}
               onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setDescription(e.target.value)}
             />
+            {fieldError && (
+              <p className="font-body text-caption text-rust" role="alert">
+                {fieldError}
+              </p>
+            )}
             {mutation.isSuccess && (
               <p className="font-body text-caption text-archive-brown" role="status">
                 {t('support.success', '已提交，请在个人中心查看进度')}

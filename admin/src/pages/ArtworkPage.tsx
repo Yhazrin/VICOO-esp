@@ -38,7 +38,7 @@ export default function ArtworkPage() {
   });
 
   const aiMutation = useMutation({
-    mutationFn: (artwork: Artwork) => analyzeArtwork(artwork.imageUrl || 'mock-url', artwork.description),
+    mutationFn: (artwork: Artwork) => analyzeArtwork(artwork.imageUrl!, artwork.description),
     onSuccess: (result) => {
       setAiResult(result);
       toast.success(t('artwork.toastAiSuccess'));
@@ -150,7 +150,7 @@ export default function ArtworkPage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
             <div style={{ display: 'flex', gap: 12 }}>
               {!aiResult && selectedArtwork && (
-                <Button variant="secondary" onClick={() => aiMutation.mutate(selectedArtwork)} loading={aiMutation.isPending}>
+                <Button variant="secondary" onClick={() => aiMutation.mutate(selectedArtwork)} loading={aiMutation.isPending} disabled={!selectedArtwork?.imageUrl}>
                   {t('artwork.btnAiAnalysis')}
                 </Button>
               )}

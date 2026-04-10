@@ -15,7 +15,7 @@ const COMPANY_NAV = [
 ];
 
 // ── Impact tabs ──
-const IMPACT_TABS = ['campaigns', 'stories', 'traceability', 'donate', 'shop'];
+const IMPACT_TABS = ['campaigns', 'vote', 'traceability', 'donate', 'shop'];
 
 export default function MobileNav() {
   const { t } = useTranslation();

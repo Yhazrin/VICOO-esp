@@ -7,7 +7,7 @@ import GrainOverlay from '../animations/GrainOverlay';
 import { AIAssistantBall } from './AIAssistantBall';
 import { useUIStore } from '@/stores/uiStore';
 import Campaigns from '@/pages/Campaigns';
-import Stories from '@/pages/Stories';
+import Vote from '@/pages/Vote';
 import Traceability from '@/pages/Traceability';
 import Donate from '@/pages/Donate';
 import ImpactShop from '@/pages/ImpactShop';
@@ -17,7 +17,7 @@ function ImpactContent() {
 
   switch (activeImpactTab) {
     case 'campaigns': return <Campaigns />;
-    case 'stories': return <Stories />;
+    case 'vote': return <Vote />;
     case 'traceability': return <Traceability />;
     case 'donate': return <Donate />;
     case 'shop': return <ImpactShop />;

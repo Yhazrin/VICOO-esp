@@ -349,8 +349,14 @@
         "statusPending": "Pending", 
         "statusApproved": "Approved", 
         "statusRejected": "Rejected", 
-        "statusCompleted": "Completed"
-    }, 
+        "statusCompleted": "Completed",
+        "colActions": "Actions",
+        "btnApprove": "Approve",
+        "btnReject": "Reject",
+        "btnComplete": "Complete",
+        "toastUpdated": "Status updated",
+        "toastError": "Update failed"
+    },
     "childAudit": {
         "title": "Child Participant Audit", 
         "description": "Review child participant data (protected by strict access control)", 
@@ -421,9 +427,17 @@
         "statusRejected": "Rejected", 
         "typeClothing": "Clothing", 
         "typeAccessory": "Accessory", 
-        "typeShoes": "Shoes", 
-        "typeOther": "Other"
-    }, 
+        "typeShoes": "Shoes",
+        "typeOther": "Other",
+        "colActions": "Actions",
+        "btnReceive": "Receive",
+        "btnReject": "Reject",
+        "btnProcess": "Process",
+        "btnConvert": "Convert",
+        "toastUpdated": "Status updated",
+        "toastError": "Update failed",
+        "colAddress": "Pickup Address"
+    },
     "settings": {
         "loading": "Loading System Configuration...",
         "title": "System Configuration", 
@@ -465,9 +479,15 @@
         "token7Days": "7 Days", 
         "thresholdGlobal": "1000 Queries / Second", 
         "thresholdPerUser": "60 Queries / Minute", 
-        "placeholderRequired": "Required", 
-        "placeholderPk": "pk_..."
-    }, 
+        "placeholderRequired": "Required",
+        "placeholderPk": "pk_...",
+        "securityNoticeLabel": "NOTE",
+        "securityNoticeDesc": "Changes take effect immediately. Invalid values may lock out users or degrade service performance.",
+        "unitMinutes": "minutes",
+        "unitDays": "days",
+        "unitReqPerSec": "req/s",
+        "unitReqPerMin": "req/min"
+    },
     "statusBadge": {
         "artwork": {
             "pending": "Pending Review", 
