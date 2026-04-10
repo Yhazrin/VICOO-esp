@@ -557,6 +557,7 @@
     },
     "results": "{{count}} 件商品",
     "empty": "此分类下没有商品。",
+    "loadError": "加载商品失败，请重试",
     "collection": "全部商品",
     "sustainability": {
       "certifiedMaterials": "认证材料",

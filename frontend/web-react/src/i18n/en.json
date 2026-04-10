@@ -561,6 +561,7 @@
     },
     "results": "{{count}} products",
     "empty": "No products found in this category.",
+    "loadError": "Failed to load products. Please try again.",
     "collection": "Collection",
     "sustainability": {
       "certifiedMaterials": "Certified Materials",
