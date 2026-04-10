@@ -481,14 +481,50 @@ export async function fetchAfterSales(params: FilterParams = {}): Promise<Pagina
       id: String(item.id),
       userId: String(item.user_id ?? ''),
       orderId: String(item.order_id ?? ''),
-      category: item.category ?? '',
-      subject: item.subject ?? '',
+      category: item.category ?? item.type ?? '',
+      subject: item.subject ?? item.reason ?? '',
       description: item.description ?? '',
       status: item.status ?? 'open',
       createdAt: item.created_at ?? '',
       updatedAt: item.updated_at ?? '',
     })),
   };
+}
+
+export async function updateAfterSalesStatus(id: string, status: string): Promise<void> {
+  await api.patch(`/after-sales/${id}`, { status });
+}
+
+// ---------------------------------------------------------------------------
+// Clothing Intakes
+// ---------------------------------------------------------------------------
+
+export async function fetchClothingIntakes(params: FilterParams = {}): Promise<PaginatedResponse<any>> {
+  const { data: envelope } = await api.get('/clothing-intakes', {
+    params: {
+      page: params.page ?? 1,
+      page_size: params.pageSize ?? 10,
+      status: params.status || undefined,
+    },
+  });
+  const paginated = adaptPaginated<any>(envelope);
+  return {
+    ...paginated,
+    data: paginated.data.map((item: any) => ({
+      id: String(item.id),
+      garmentTypes: item.garment_types ?? '',
+      quantityEstimate: item.quantity_estimate ?? null,
+      pickupAddress: item.pickup_address ?? '',
+      contactPhone: item.contact_phone ?? '',
+      conditionNotes: item.condition_notes ?? '',
+      status: item.status ?? 'pending',
+      createdAt: item.created_at ?? '',
+    })),
+  };
+}
+
+export async function updateClothingIntakeStatus(id: string, status: string): Promise<void> {
+  await api.patch(`/clothing-intakes/${id}`, { status });
 }
 
 // ---------------------------------------------------------------------------
@@ -512,6 +548,10 @@ export async function fetchSystemSettings(): Promise<SystemSettings> {
       stripe: { enabled: d.payment_methods?.stripe?.enabled ?? false, publicKey: d.payment_methods?.stripe?.publicKey },
       paypal: { enabled: d.payment_methods?.paypal?.enabled ?? false, clientId: d.payment_methods?.paypal?.clientId },
     },
+    accessTokenTtlMinutes: d.access_token_ttl_minutes ?? 15,
+    refreshTokenTtlDays: d.refresh_token_ttl_days ?? 7,
+    globalRateLimit: d.global_rate_limit ?? 1000,
+    perUserRateLimit: d.per_user_rate_limit ?? 60,
   };
 }
 
@@ -530,6 +570,10 @@ export async function updateSystemSettings(data: Partial<SystemSettings>): Promi
       body.payment_methods[k] = { enabled: v.enabled, appId: v.appId, merchantId: (v as any).merchantId, publicKey: (v as any).publicKey, clientId: (v as any).clientId };
     }
   }
+  if (data.accessTokenTtlMinutes !== undefined) body.access_token_ttl_minutes = data.accessTokenTtlMinutes;
+  if (data.refreshTokenTtlDays !== undefined) body.refresh_token_ttl_days = data.refreshTokenTtlDays;
+  if (data.globalRateLimit !== undefined) body.global_rate_limit = data.globalRateLimit;
+  if (data.perUserRateLimit !== undefined) body.per_user_rate_limit = data.perUserRateLimit;
   const { data: envelope } = await api.put('/admin/settings', body);
   const d = envelope.data;
   return {
@@ -546,6 +590,10 @@ export async function updateSystemSettings(data: Partial<SystemSettings>): Promi
       stripe: { enabled: d.payment_methods?.stripe?.enabled ?? false, publicKey: d.payment_methods?.stripe?.publicKey },
       paypal: { enabled: d.payment_methods?.paypal?.enabled ?? false, clientId: d.payment_methods?.paypal?.clientId },
     },
+    accessTokenTtlMinutes: d.access_token_ttl_minutes ?? 15,
+    refreshTokenTtlDays: d.refresh_token_ttl_days ?? 7,
+    globalRateLimit: d.global_rate_limit ?? 1000,
+    perUserRateLimit: d.per_user_rate_limit ?? 60,
   };
 }
 

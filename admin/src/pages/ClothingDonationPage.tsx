@@ -4,133 +4,145 @@
  * 功能说明：
  * - 展示用户提交的衣物捐献申请列表
  * - 支持按状态筛选（待处理、已收到、处理中、已转化、未通过）
+ * - 支持状态流转操作：标记已收到、开始处理、标记转化、拒绝
  * - 提供分页浏览功能
- * - 显示捐献详细信息（类型、数量、描述、联系方式等）
- * - 支持查看关联的商品信息
- *
- * 使用场景：
- * 管理员审核和处理用户的衣物捐献请求，跟踪捐献物品的处理进度
  */
 
-// 导入 React 状态管理钩子
 import { useState } from 'react';
-
-// 导入 React Query 数据请求钩子
-import { useQuery } from '@tanstack/react-query';
-
-// 导入国际化翻译钩子
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-
-// 导入数据表格组件
+import toast from 'react-hot-toast';
 import DataTable from '../components/ui/DataTable';
-
-// 导入表格列定义类型
 import type { Column } from '../components/ui/DataTable';
-
-// 导入分页组件
 import Pagination from '../components/ui/Pagination';
-
-// 导入状态标签组件
 import StatusBadge from '../components/ui/StatusBadge';
-
-// 导入 API 请求实例（Axios 封装）
-import { api } from '../services/api';
-
-// 导入日期处理库
+import Button from '../components/ui/Button';
+import { fetchClothingIntakes, updateClothingIntakeStatus } from '../services/api';
 import dayjs from 'dayjs';
 
-/**
- * 衣物捐献数据接口定义（对应后端 ClothingIntake 模型）
- */
-interface ClothingDonation {
-  id: number;                // 捐献记录唯一标识符
-  garment_types?: string;    // 衣物类型
-  quantity_estimate?: number; // 预估数量
-  pickup_address?: string;   // 取件地址
-  contact_phone?: string;    // 联系电话
-  condition_notes?: string;  // 衣物状况说明
-  status: string;            // 当前处理状态
-  created_at: string;        // 提交时间（ISO 格式字符串）
+interface ClothingDonationItem {
+  id: string;
+  garmentTypes: string;
+  quantityEstimate: number | null;
+  pickupAddress: string;
+  contactPhone: string;
+  conditionNotes: string;
+  status: string;
+  createdAt: string;
 }
 
 export default function ClothingDonationPage() {
-  // 获取翻译函数
   const { t } = useTranslation();
-
-  // 当前页码状态，默认第 1 页
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
-
-  // 当前筛选的状态值，空字符串表示显示全部
   const [statusFilter, setStatusFilter] = useState('');
 
-  /**
-   * 使用 React Query 获取衣物捐献数据
-   * 通过 API 实例发送 GET 请求到 /clothing-intakes 端点
-   * queryKey 包含页码和状态筛选条件，任一变化都会触发重新请求
-   */
   const { data, isLoading } = useQuery({
     queryKey: ['clothing-intakes', page, statusFilter],
-    queryFn: async () => {
-      // 发送 GET 请求获取数据，包含分页和筛选参数
-      const res = await api.get('/clothing-intakes', {
-        params: { page, page_size: 10, status: statusFilter || undefined },
-        baseURL: '/api/v1',  // 使用 v1 版本的 API 基础路径
-      });
-      return res.data;
+    queryFn: () => fetchClothingIntakes({ page, pageSize: 10, status: statusFilter || undefined }),
+  });
+
+  const items: ClothingDonationItem[] = data?.data ?? [];
+  const total = data?.total ?? 0;
+
+  const statusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) => updateClothingIntakeStatus(id, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clothing-intakes'] });
+      toast.success(t('clothingDonation.toastUpdated', 'Status updated'));
+    },
+    onError: () => {
+      toast.error(t('clothingDonation.toastError', 'Update failed'));
     },
   });
 
-  // 从响应数据中提取捐献列表，若无数据则返回空数组
-  const items: ClothingDonation[] = data?.data ?? [];
-
-  // 提取总记录数用于分页计算
-  const total = data?.total ?? 0;
-
-  /**
-   * 表格列定义配置
-   * 定义每列的字段名、标题、宽度及自定义渲染逻辑
-   * 所有列标题使用国际化翻译
-   */
-  const columns: Column<ClothingDonation>[] = [
+  const columns: Column<ClothingDonationItem>[] = [
     { key: 'id', title: t('clothingDonation.colId'), width: 80 },
-    { key: 'garment_types', title: t('clothingDonation.colType'), width: 90, render: (v) => v || '-' },
-    { key: 'quantity_estimate', title: t('clothingDonation.colItemCount'), width: 80, render: (v) => v ?? '-' },
-    { key: 'condition_notes', title: t('clothingDonation.colDescription'), width: 200, render: (v) => (v ? String(v).slice(0, 50) + (String(v).length > 50 ? '…' : '') : '-') },
-    { key: 'contact_phone', title: t('clothingDonation.colPhone'), width: 120, render: (v) => v || '-' },
-    { key: 'pickup_address', title: t('clothingDonation.colAddress', 'Pickup Address'), width: 160, render: (v) => (v ? String(v).slice(0, 40) + (String(v).length > 40 ? '…' : '') : '-') },
+    { key: 'garmentTypes', title: t('clothingDonation.colType'), width: 90, render: (v) => v || '-' },
+    { key: 'quantityEstimate', title: t('clothingDonation.colItemCount'), width: 80, render: (v) => v ?? '-' },
+    { key: 'conditionNotes', title: t('clothingDonation.colDescription'), width: 200, render: (v) => (v ? String(v).slice(0, 50) + (String(v).length > 50 ? '…' : '') : '-') },
+    { key: 'contactPhone', title: t('clothingDonation.colPhone'), width: 120, render: (v) => v || '-' },
+    { key: 'pickupAddress', title: t('clothingDonation.colAddress', 'Pickup Address'), width: 160, render: (v) => (v ? String(v).slice(0, 40) + (String(v).length > 40 ? '…' : '') : '-') },
     { key: 'status', title: t('clothingDonation.colStatus'), width: 100, render: (v) => <StatusBadge status={v} /> },
-    { key: 'created_at', title: t('clothingDonation.colSubmittedAt'), width: 160, render: (v) => dayjs(v).format('YYYY-MM-DD HH:mm') },
+    { key: 'createdAt', title: t('clothingDonation.colSubmittedAt'), width: 160, render: (v) => dayjs(v).format('YYYY-MM-DD HH:mm') },
+    {
+      key: '_actions',
+      title: t('clothingDonation.colActions', 'Actions'),
+      width: 220,
+      render: (_v, record) => {
+        if (record.status === 'pending') {
+          return (
+            <div style={{ display: 'flex', gap: 6 }}>
+              <Button
+                variant="primary"
+                size="sm"
+                loading={statusMutation.isPending}
+                onClick={() => statusMutation.mutate({ id: record.id, status: 'received' })}
+              >
+                {t('clothingDonation.btnReceive', 'Receive')}
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                loading={statusMutation.isPending}
+                onClick={() => statusMutation.mutate({ id: record.id, status: 'rejected' })}
+              >
+                {t('clothingDonation.btnReject', 'Reject')}
+              </Button>
+            </div>
+          );
+        }
+        if (record.status === 'received') {
+          return (
+            <Button
+              variant="secondary"
+              size="sm"
+              loading={statusMutation.isPending}
+              onClick={() => statusMutation.mutate({ id: record.id, status: 'processing' })}
+            >
+              {t('clothingDonation.btnProcess', 'Process')}
+            </Button>
+          );
+        }
+        if (record.status === 'processing') {
+          return (
+            <Button
+              variant="primary"
+              size="sm"
+              loading={statusMutation.isPending}
+              onClick={() => statusMutation.mutate({ id: record.id, status: 'converted' })}
+            >
+              {t('clothingDonation.btnConvert', 'Convert')}
+            </Button>
+          );
+        }
+        return <span style={{ color: 'var(--color-sepia-mid)', fontSize: 12 }}>—</span>;
+      },
+    },
   ];
 
   return (
     <div>
-      {/* 页面标题区域 */}
       <div style={{ marginBottom: 20 }}>
-        {/* 主标题：衣物捐献管理 */}
-        <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>
+        <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4, fontFamily: 'var(--font-serif)' }}>
           {t('clothingDonation.title')}
         </h1>
-        {/* 副标题说明文字 */}
-        <p style={{ fontSize: 14, color: 'var(--color-sepia-mid)' }}>
+        <p style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
           {t('clothingDonation.description')}
         </p>
       </div>
 
-      {/* 状态筛选器 */}
-      <div style={{ marginBottom: 16 }}>
+      <div style={{ marginBottom: 16, display: 'flex', gap: 8 }}>
         <select
           value={statusFilter}
-          onChange={(e) => {
-            setStatusFilter(e.target.value);
-            setPage(1);
-          }}
+          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
           style={{
             padding: '8px 12px',
+            borderRadius: 'var(--radius-sm)',
             border: '1px solid var(--color-ink)',
             background: 'var(--color-paper)',
             fontSize: '13px',
             fontFamily: 'var(--font-mono)',
-            cursor: 'pointer',
           }}
         >
           <option value="">{t('clothingDonation.filterAllStatuses')}</option>
@@ -142,22 +154,17 @@ export default function ClothingDonationPage() {
         </select>
       </div>
 
-      {/* 数据表格组件 */}
-      <DataTable
-        columns={columns}
-        data={items}
-        loading={isLoading}
-        rowKey="id"
-      />
+      <DataTable columns={columns} data={items} loading={isLoading} rowKey="id" />
 
-      {/* 分页组件 */}
-      <Pagination
-        page={page}
-        totalPages={Math.ceil(total / 10)}
-        total={total}
-        pageSize={10}
-        onPageChange={setPage}
-      />
+      <div style={{ marginTop: 24 }}>
+        <Pagination
+          page={page}
+          totalPages={Math.ceil(total / 10)}
+          pageSize={10}
+          total={total}
+          onPageChange={setPage}
+        />
+      </div>
     </div>
   );
 }

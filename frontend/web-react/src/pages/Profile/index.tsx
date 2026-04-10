@@ -55,6 +55,9 @@ export default function Profile() {
     district: '', detail_address: '', postal_code: '', is_default: false,
   });
 
+  // Inline error message for user feedback
+  const [errorMessage, setErrorMessage] = useState('');
+
   const tabs: TabKey[] = ['orders', 'donations', 'clothing', 'support', 'addresses'];
 
   const handleTabKeyDown = useCallback(
@@ -121,6 +124,7 @@ export default function Profile() {
 
   const handleSaveAddress = async () => {
     try {
+      setErrorMessage('');
       if (editingAddress) {
         await addressesApi.update(editingAddress.id, addressForm);
       } else {
@@ -128,21 +132,29 @@ export default function Profile() {
       }
       queryClient.invalidateQueries({ queryKey: ['my-addresses'] });
       resetAddressForm();
-    } catch { /* silent */ }
+    } catch {
+      setErrorMessage(t('profile.addressSaveError', '保存地址失败，请重试'));
+    }
   };
 
   const handleDeleteAddress = async (id: number) => {
     try {
+      setErrorMessage('');
       await addressesApi.remove(id);
       queryClient.invalidateQueries({ queryKey: ['my-addresses'] });
-    } catch { /* silent */ }
+    } catch {
+      setErrorMessage(t('profile.addressDeleteError', '删除地址失败，请重试'));
+    }
   };
 
   const handleSetDefault = async (id: number) => {
     try {
+      setErrorMessage('');
       await addressesApi.setDefault(id);
       queryClient.invalidateQueries({ queryKey: ['my-addresses'] });
-    } catch { /* silent */ }
+    } catch {
+      setErrorMessage(t('profile.setDefaultError', '设置默认地址失败，请重试'));
+    }
   };
 
   const startEditAddress = (addr: Address) => {
@@ -207,6 +219,20 @@ export default function Profile() {
 
   return (
     <PageWrapper>
+      {errorMessage && (
+        <div className="max-w-[1400px] mx-auto px-6 md:px-10 w-full">
+          <div className="flex items-center gap-3 bg-rust/10 border border-rust/20 px-4 py-3 mt-4 mb-2">
+            <p className="font-body text-body-sm text-rust flex-1">{errorMessage}</p>
+            <button
+              onClick={() => setErrorMessage('')}
+              className="text-rust hover:text-rust-light cursor-pointer"
+              aria-label="Dismiss"
+            >
+              &times;
+            </button>
+          </div>
+        </div>
+      )}
       <h1 className="sr-only">{t('profile.title')}</h1>
       {/* Profile Header */}
       <PaperTextureBackground variant="paper" className="py-16 md:py-24 relative">
@@ -459,9 +485,12 @@ export default function Profile() {
                               onClick={async (e) => {
                                 e.preventDefault();
                                 try {
+                                  setErrorMessage('');
                                   await ordersApi.cancel(String(order.id));
                                   queryClient.invalidateQueries({ queryKey: ['my-orders'] });
-                                } catch { /* silent */ }
+                                } catch {
+                                  setErrorMessage(t('profile.cancelOrderError', '取消订单失败，请重试'));
+                                }
                               }}
                               className="font-body text-caption text-rust hover:text-rust-light transition-colors cursor-pointer"
                             >
