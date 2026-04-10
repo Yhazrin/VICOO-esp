@@ -23,9 +23,9 @@ export default function ForgotPassword() {
       setSubmitted(true);
     } catch (err: any) {
       if (err.response?.status === 404) {
-        setError(t('forgotPassword.errorNotFound', 'Email address not found in our records.'));
+        setError(t('forgotPassword.errorNotFound'));
       } else {
-        setError(t('forgotPassword.errorGeneric', 'An error occurred. Please try again later.'));
+        setError(t('forgotPassword.errorGeneric'));
       }
     } finally {
       setLoading(false);
@@ -61,12 +61,12 @@ export default function ForgotPassword() {
               VICOO
             </Link>
             <h1 className="font-display text-2xl text-ink mb-2 tracking-tight">
-              {t('forgotPassword.title', 'Reset Password')}
+              {t('forgotPassword.title')}
             </h1>
             <p className="font-body text-body-sm text-ink-faded/70">
               {recoveryData?.is_mock
-                ? t('forgotPassword.mockTitle', 'Account Found (Mock Mode)')
-                : t('forgotPassword.subtitle', 'Enter your email and we\'ll send you a reset link')}
+                ? t('forgotPassword.mockTitle')
+                : t('forgotPassword.subtitle')}
             </p>
           </div>
 
@@ -89,7 +89,7 @@ export default function ForgotPassword() {
               {recoveryData?.is_mock ? (
                 <div className="space-y-4">
                   <p className="font-body text-body-sm text-ink">
-                    {t('forgotPassword.mockInstruction', 'Since this is a test account, your password is shown below:')}
+                    {t('forgotPassword.mockInstruction')}
                   </p>
                   <div className="bg-aged-stock/60 rounded-full px-6 py-3 border border-warm-gray/30 font-mono text-lg font-bold text-ink text-center">
                     {recoveryData.password_hint}
@@ -98,10 +98,10 @@ export default function ForgotPassword() {
               ) : (
                 <>
                   <p className="font-body text-body-sm text-ink">
-                    {t('forgotPassword.sent', 'If an account exists with that email, we\'ve sent a password reset link.')}
+                    {t('forgotPassword.sent')}
                   </p>
                   <p className="font-body text-caption text-ink-faded/60">
-                    {t('forgotPassword.checkSpam', 'Check your spam folder if you don\'t see it within a few minutes.')}
+                    {t('forgotPassword.checkSpam')}
                   </p>
                 </>
               )}
@@ -111,7 +111,7 @@ export default function ForgotPassword() {
                   to="/login"
                   className="inline-block bg-ink text-paper py-3 px-8 rounded-full font-body text-body-sm tracking-[0.1em] uppercase hover:bg-rust transition-colors duration-300 cursor-pointer"
                 >
-                  &larr; {t('forgotPassword.backToLogin', 'Back to login')}
+                  &larr; {t('forgotPassword.backToLogin')}
                 </Link>
               </div>
             </motion.div>
@@ -126,7 +126,7 @@ export default function ForgotPassword() {
               {/* Email */}
               <div>
                 <label className="block font-body text-label tracking-[0.15em] uppercase text-sepia-mid mb-2">
-                  {t('forgotPassword.email', 'Email')}
+                  {t('forgotPassword.email')}
                 </label>
                 <input
                   type="email"
@@ -154,8 +154,8 @@ export default function ForgotPassword() {
                 className="w-full bg-ink text-paper py-3.5 rounded-full font-body text-body-sm tracking-[0.15em] uppercase font-medium hover:bg-rust transition-colors duration-300 disabled:opacity-50 cursor-pointer"
               >
                 {loading
-                  ? t('forgotPassword.sending', 'Sending...')
-                  : t('forgotPassword.submit', 'Send Reset Link')}
+                  ? t('forgotPassword.sending')
+                  : t('forgotPassword.submit')}
               </motion.button>
 
               {/* Back to login */}
@@ -164,7 +164,7 @@ export default function ForgotPassword() {
                   to="/login"
                   className="font-body text-caption text-rust hover:text-ink transition-colors font-medium"
                 >
-                  &larr; {t('forgotPassword.backToLogin', 'Back to login')}
+                  &larr; {t('forgotPassword.backToLogin')}
                 </Link>
               </p>
             </motion.form>
