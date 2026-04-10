@@ -184,7 +184,7 @@ export default function ChildAuditPage() {
             <Row label={t('childAudit.detailRegion')} value={selected.region} />
             <Row label={t('childAudit.detailSchool')} value={selected.school || '-'} />
             <Row label={t('childAudit.detailConsent')} value={selected.consentGiven ? `${t('childAudit.consentSigned')} (${dayjs(selected.consentDate).format('YYYY-MM-DD')})` : t('childAudit.consentUnsigned')} />
-            <Row label={t('childAudit.detailArtworkCount')} value={selected.artworkCount.toString()} />
+            <Row label={t('childAudit.detailArtworks')} value={selected.artworkCount.toString()} />
             <Row label={t('childAudit.detailStatus')} value={<StatusBadge status={selected.status} />} />
             <Row label={t('childAudit.detailJoinDate')} value={dayjs(selected.createdAt).format('YYYY-MM-DD')} />
             {selected.lastActivity && <Row label={t('childAudit.detailLastActivity')} value={dayjs(selected.lastActivity).format('YYYY-MM-DD HH:mm')} />}

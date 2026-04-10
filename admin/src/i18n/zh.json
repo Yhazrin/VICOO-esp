@@ -472,7 +472,13 @@
         "thresholdGlobal": "1000 次 / 秒",
         "thresholdPerUser": "60 次 / 分钟",
         "placeholderRequired": "必填",
-        "placeholderPk": "pk_..."
+        "placeholderPk": "pk_...",
+        "securityNoticeLabel": "注意",
+        "securityNoticeDesc": "更改将立即生效。无效值可能导致用户被锁定或服务性能下降。",
+        "unitMinutes": "分钟",
+        "unitDays": "天",
+        "unitReqPerSec": "次/秒",
+        "unitReqPerMin": "次/分钟"
     },
     "statusBadge": {
         "artwork": {
