@@ -1005,6 +1005,7 @@
     "success": "已提交，请在个人中心查看进度",
     "error": "提交失败，请检查订单号是否属于您的账号",
     "submit": "提交工单",
+    "invalidOrderId": "订单 ID 必须为数字",
     "return": "退货",
     "exchange": "换货",
     "quality": "质量问题",
