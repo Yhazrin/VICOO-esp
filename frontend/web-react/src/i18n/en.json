@@ -928,6 +928,20 @@
     },
     "builtWith": "Built with care"
   },
+  "forgotPassword": {
+    "title": "Reset Password",
+    "subtitle": "Enter your email and we'll send you a reset link",
+    "email": "Email",
+    "submit": "Send Reset Link",
+    "sending": "Sending...",
+    "sent": "If an account exists with that email, we've sent a password reset link.",
+    "checkSpam": "Check your spam folder if you don't see it within a few minutes.",
+    "backToLogin": "Back to login",
+    "errorNotFound": "Email address not found in our records.",
+    "errorGeneric": "An error occurred. Please try again later.",
+    "mockTitle": "Account Found (Mock Mode)",
+    "mockInstruction": "Since this is a test account, your password is shown below:"
+  },
   "artwork": {
     "detail": {
       "heading": "Artwork",
