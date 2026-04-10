@@ -98,7 +98,7 @@ export default function Shop() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [filtersExpanded, setFiltersExpanded] = useState(false);
 
-  const { data } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['products', { category: activeCategory, isImpactProduct: false }],
     queryFn: async () => {
       const result = await productsApi.getAll({
@@ -258,6 +258,24 @@ export default function Shop() {
           </span>
         </div>
 
+        {/* Loading state */}
+        {isLoading && (
+          <div className="flex items-center justify-center py-24">
+            <div className="w-8 h-8 border-2 border-warm-gray/30 border-t-rust rounded-full animate-spin" />
+          </div>
+        )}
+
+        {/* Error state */}
+        {isError && !isLoading && (
+          <div className="text-center py-24">
+            <p className="font-display text-lg text-ink-faded mb-2">
+              {t('shop.loadError', 'Failed to load products. Please try again.')}
+            </p>
+          </div>
+        )}
+
+        {!isLoading && !isError && (
+        <>
         {/* ═══ Category pills — top level ═══ */}
         <div className="mb-8">
           <div
@@ -604,9 +622,9 @@ export default function Shop() {
             </AnimatePresence>
           )}
         </div>
+        </>
+        )}
       </SectionContainer>
-
-      {/* ═══ Sustainability pillars ═══ */}
       <SectionContainer>
         <div className="border-t border-warm-gray/20 pt-16 mt-16 relative">
           <div className="absolute top-0 left-0 w-8 h-8 border-t border-l border-rust/20 pointer-events-none" aria-hidden="true" />
