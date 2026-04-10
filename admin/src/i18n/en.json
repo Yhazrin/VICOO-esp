@@ -471,9 +471,15 @@
         "token7Days": "7 Days", 
         "thresholdGlobal": "1000 Queries / Second", 
         "thresholdPerUser": "60 Queries / Minute", 
-        "placeholderRequired": "Required", 
-        "placeholderPk": "pk_..."
-    }, 
+        "placeholderRequired": "Required",
+        "placeholderPk": "pk_...",
+        "securityNoticeLabel": "NOTE",
+        "securityNoticeDesc": "Changes take effect immediately. Invalid values may lock out users or degrade service performance.",
+        "unitMinutes": "minutes",
+        "unitDays": "days",
+        "unitReqPerSec": "req/s",
+        "unitReqPerMin": "req/min"
+    },
     "statusBadge": {
         "artwork": {
             "pending": "Pending Review", 
