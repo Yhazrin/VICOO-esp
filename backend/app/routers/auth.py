@@ -12,10 +12,10 @@ from app.config import settings
 from app.database import get_db
 from app.models.user import User
 from app.schemas import (
-    ApiResponse, 
-    LoginRequest, 
-    RegisterRequest, 
-    RefreshRequest, 
+    ApiResponse,
+    LoginRequest,
+    RegisterRequest,
+    RefreshRequest,
     TokenResponse,
     ForgotPasswordRequest
 )
@@ -26,6 +26,7 @@ from app.security import (
 )
 from app.services.auth.service import AuthService
 from app.services.mailer import send_welcome_email, send_password_recovery_email
+from app.core.errors import ServiceUnavailableException
 
 logger = logging.getLogger("tonghua.auth")
 
@@ -206,7 +207,7 @@ async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depend
         )
     except Exception as e:
         logger.error(f"Recovery mail failed: {e}")
-        raise HTTPException(status_code=500, detail="Failed to send recovery email")
+        raise ServiceUnavailableException(message="Failed to send recovery email")
 
 
 @router.post("/logout")
