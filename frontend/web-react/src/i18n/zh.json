@@ -106,6 +106,10 @@
       "addresses": "地址管理"
     },
     "cancelOrder": "取消订单",
+    "cancelOrderError": "取消订单失败，请重试",
+    "addressSaveError": "保存地址失败，请重试",
+    "addressDeleteError": "删除地址失败，请重试",
+    "setDefaultError": "设置默认地址失败，请重试",
     "orders": {
       "filterAll": "全部",
       "filterPending": "待付款",
@@ -661,7 +665,8 @@
     "subtitle": "帮助选择哪些孩子的画作成为我们的下一个系列。每一票都在塑造我们的创作方向。",
     "vote": "投票",
     "votes": "{{count}} 票",
-    "empty": "暂无可投票的作品。"
+    "empty": "暂无可投票的作品。",
+    "error": "投票失败，请重试"
   },
   "traceability": {
     "hero": {
@@ -1050,7 +1055,9 @@
       "submit": "提交申请",
       "success": "申请已提交",
       "successDesc": "我们将在1-3个工作日内处理您的申请"
-    }
+    },
+    "cancelError": "取消订单失败，请重试",
+    "returnError": "提交退换货申请失败，请重试"
   },
   "cart": {
     "title": "购物袋",

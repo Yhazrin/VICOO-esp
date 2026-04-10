@@ -89,6 +89,7 @@ function ArtworkVoteCard({
 
 export default function Vote() {
   const { t } = useTranslation();
+  const [voteError, setVoteError] = useState('');
 
   // Fetch featured artworks for voting
   const { data: artworksData } = useQuery({
@@ -108,12 +109,26 @@ export default function Vote() {
     try {
       await artworksApi.vote(String(artworkId));
     } catch {
-      // Silent fail — optimistic update already applied
+      setVoteError(t('vote.error', '投票失败，请重试'));
     }
-  }, []);
+  }, [t]);
 
   return (
     <PageWrapper>
+      {voteError && (
+        <div className="max-w-[1400px] mx-auto px-6 md:px-10 w-full">
+          <div className="flex items-center gap-3 bg-rust/10 border border-rust/20 px-4 py-3 mt-4 mb-2">
+            <p className="font-body text-body-sm text-rust flex-1">{voteError}</p>
+            <button
+              onClick={() => setVoteError('')}
+              className="text-rust hover:text-rust-light cursor-pointer"
+              aria-label="Dismiss"
+            >
+              &times;
+            </button>
+          </div>
+        </div>
+      )}
       {/* ═══ Hero Section ═══ */}
       <SectionContainer noTopSpacing>
         <div className="pt-6 pb-10">
