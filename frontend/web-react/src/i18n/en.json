@@ -108,7 +108,8 @@
       "donations": "My Donations",
       "clothing": "Clothing",
       "support": "Support",
-      "addresses": "Addresses"
+      "addresses": "Addresses",
+      "artworks": "My Artworks"
     },
     "orders": {
       "filterAll": "All",
@@ -1007,7 +1008,14 @@
     "submit": "Submit Registration",
     "disclaimer": "You can check progress in your profile after submission; personal information is used only for logistics coordination.",
     "clothingHint": "Idle clothing can also be donated, processed into sustainable fashion products, with proceeds supporting rural arts education.",
-    "donateLink": "Donate Clothing →"
+    "donateLink": "Donate Clothing →",
+    "statusLabels": {
+      "submitted": "Submitted",
+      "received": "Received",
+      "processing": "Processing",
+      "listed": "Listed",
+      "rejected": "Rejected"
+    }
   },
   "support": {
     "loginRequired": "Log in to submit after-sales ticket",
@@ -1127,5 +1135,48 @@
     "savedAddresses": "Saved Addresses",
     "enterNewAddress": "Enter a new address",
     "saveAddress": "Save to address book"
+  },
+  "submitArtwork": {
+    "loginRequired": "Please log in to submit artwork",
+    "title": "Submit Artwork",
+    "subtitle": "Upload a child's artwork for charity campaigns and voting",
+    "titleLabel": "Artwork Title *",
+    "descriptionLabel": "Description",
+    "imageLabel": "Upload Artwork Image *",
+    "childNameLabel": "Artist Name (optional)",
+    "consentLabel": "I confirm that I have obtained consent from the minor's guardian",
+    "error": "Submission failed, please try again",
+    "submit": "Submit Artwork"
+  },
+  "aiDesign": {
+    "title": "AI Design Studio",
+    "subtitle": "Transform children's artworks into commercial product designs",
+    "adminOnly": "Only admins can access the AI Design Studio",
+    "createNew": "Create New Draft",
+    "artworkId": "Artwork ID",
+    "draftTitle": "Draft Title",
+    "selectCategory": "Select Category",
+    "create": "Create",
+    "createError": "Failed to create draft",
+    "generateError": "AI generation failed",
+    "publishError": "Failed to publish product",
+    "all": "All",
+    "noDrafts": "No design drafts yet",
+    "artworkRef": "Artwork",
+    "prompt": "AI Prompt",
+    "reviewNote": "Review Note",
+    "reviewNotePlaceholder": "Review note (optional)",
+    "generate": "AI Generate",
+    "approve": "Approve",
+    "reject": "Reject",
+    "publish": "Publish as Product",
+    "statuses": {
+      "draft": "Draft",
+      "ai_generated": "AI Generated",
+      "review": "In Review",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "published": "Published"
+    }
   }
 }

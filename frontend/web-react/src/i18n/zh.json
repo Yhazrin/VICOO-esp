@@ -103,7 +103,8 @@
       "donations": "我的捐赠",
       "clothing": "衣物捐献",
       "support": "售后服务",
-      "addresses": "地址管理"
+      "addresses": "地址管理",
+      "artworks": "我的画作"
     },
     "cancelOrder": "取消订单",
     "cancelOrderError": "取消订单失败，请重试",
@@ -1007,7 +1008,14 @@
     "submit": "提交登记",
     "disclaimer": "提交后可在个人中心查看进度；涉及个人隐私仅用于物流联络。",
     "clothingHint": "闲置衣物也可捐献，经处理后转为可持续时尚商品，收益支持乡村美育。",
-    "donateLink": "捐献衣物 →"
+    "donateLink": "捐献衣物 →",
+    "statusLabels": {
+      "submitted": "已提交",
+      "received": "已收货",
+      "processing": "处理中",
+      "listed": "已上架",
+      "rejected": "已拒绝"
+    }
   },
   "support": {
     "loginRequired": "登录后提交售后工单",
@@ -1127,5 +1135,48 @@
     "savedAddresses": "已保存的地址",
     "enterNewAddress": "输入新地址",
     "saveAddress": "保存到地址簿"
+  },
+  "submitArtwork": {
+    "loginRequired": "请先登录以提交画作",
+    "title": "提交画作",
+    "subtitle": "上传孩子的画作，参与公益活动与投票",
+    "titleLabel": "画作标题 *",
+    "descriptionLabel": "画作描述",
+    "imageLabel": "上传画作图片 *",
+    "childNameLabel": "小画家姓名（可选）",
+    "consentLabel": "我确认已获得该未成年人监护人的同意",
+    "error": "提交失败，请稍后再试",
+    "submit": "提交画作"
+  },
+  "aiDesign": {
+    "title": "AI 设计工作台",
+    "subtitle": "将儿童画作转化为商业产品设计",
+    "adminOnly": "仅管理员可访问 AI 设计工作台",
+    "createNew": "创建新设计稿",
+    "artworkId": "画作 ID",
+    "draftTitle": "设计稿标题",
+    "selectCategory": "选择品类",
+    "create": "创建",
+    "createError": "创建设计稿失败",
+    "generateError": "AI 生成失败",
+    "publishError": "发布商品失败",
+    "all": "全部",
+    "noDrafts": "暂无设计稿",
+    "artworkRef": "画作",
+    "prompt": "AI 提示词",
+    "reviewNote": "审核备注",
+    "reviewNotePlaceholder": "审核备注（可选）",
+    "generate": "AI 生成",
+    "approve": "通过",
+    "reject": "驳回",
+    "publish": "发布为商品",
+    "statuses": {
+      "draft": "草稿",
+      "ai_generated": "AI 已生成",
+      "review": "审核中",
+      "approved": "已通过",
+      "rejected": "已驳回",
+      "published": "已发布"
+    }
   }
 }

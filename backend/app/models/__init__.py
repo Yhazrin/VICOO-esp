@@ -12,6 +12,8 @@ from app.models.settings import SiteSettings
 from app.models.contact import ContactMessage
 from app.models.editorial import EditorialArticle
 from app.models.address import Address
+from app.models.impact_fund import ImpactFundEntry
+from app.models.design_draft import DesignDraft
 
 __all__ = [
     "User",
@@ -32,4 +34,6 @@ __all__ = [
     "ContactMessage",
     "EditorialArticle",
     "Address",
+    "ImpactFundEntry",
+    "DesignDraft",
 ]
