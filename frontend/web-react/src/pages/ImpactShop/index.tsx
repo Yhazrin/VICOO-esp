@@ -11,6 +11,8 @@ import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { productsApi } from '@/services/products';
 import { campaignsApi } from '@/services/campaigns';
+import { donationsApi } from '@/services/donations';
+import { artworksApi } from '@/services/artworks';
 import type { Campaign } from '@/types';
 
 type Category = 'all' | 'apparel' | 'accessories' | 'stationery' | 'prints' | 'lifestyle' | 'footwear' | 'home' | 'gift_box';
@@ -98,6 +100,24 @@ export default function ImpactShop() {
       return result;
     },
     staleTime: 10 * 60 * 1000,
+  });
+
+  // Fetch live impact stats
+  const { data: impactStats } = useQuery({
+    queryKey: ['impact-shop-stats'],
+    queryFn: async () => {
+      const [stats, artworks] = await Promise.all([
+        donationsApi.getImpactStats(),
+        artworksApi.getAll({ page_size: 1 }),
+      ]);
+      return {
+        totalDonations: Number(stats.total_amount ?? 0),
+        totalDonors: stats.total_donors ?? 0,
+        totalArtworks: artworks.total ?? 0,
+      };
+    },
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
   });
 
   const campaigns: Campaign[] = useMemo(() => {
@@ -239,9 +259,9 @@ export default function ImpactShop() {
             {t('impactShop.impactSummary.title')}
           </span>
           <div className="grid grid-cols-3 gap-8 max-w-lg mx-auto">
-            <ImpactPill label={t('impactShop.impactSummary.childrenHelped')} value="120+" />
-            <ImpactPill label={t('impactShop.impactSummary.fundsRaised')} value="¥86K" />
-            <ImpactPill label={t('impactShop.impactSummary.artworksTransformed')} value="200+" />
+            <ImpactPill label={t('impactShop.impactSummary.childrenHelped')} value={impactStats ? `${impactStats.totalDonors}+` : '--'} />
+            <ImpactPill label={t('impactShop.impactSummary.fundsRaised')} value={impactStats ? `¥${Math.round(impactStats.totalDonations / 1000)}K` : '--'} />
+            <ImpactPill label={t('impactShop.impactSummary.artworksTransformed')} value={impactStats ? `${impactStats.totalArtworks}+` : '--'} />
           </div>
         </div>
       </SectionContainer>
