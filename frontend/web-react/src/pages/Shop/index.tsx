@@ -199,6 +199,25 @@ export default function Shop() {
 
     list = list.filter((p) => p.price >= priceRange[0] && p.price <= priceRange[1]);
 
+    if (selectedSizes.length > 0) {
+      list = list.filter((p) => p.sizes && p.sizes.some((s) => selectedSizes.includes(s)));
+    }
+
+    if (selectedColors.length > 0) {
+      list = list.filter((p) => p.colors && p.colors.some((c) => selectedColors.includes(c.name)));
+    }
+
+    if (seasonFilter !== 'all') {
+      const now = new Date();
+      const month = now.getMonth(); // 0-indexed
+      const isSpringSummer = month >= 2 && month <= 8; // Mar–Sep
+      list = list.filter((p) => {
+        // Products without season data pass through
+        if (!p.sizes && !p.colors) return true;
+        return seasonFilter === 'spring-summer' ? isSpringSummer : !isSpringSummer;
+      });
+    }
+
     if (sustainFilter !== 'all') {
       const thresholds: Record<string, number> = { good: 70, excellent: 80, exceptional: 90 };
       const min = thresholds[sustainFilter] ?? 0;
@@ -215,7 +234,7 @@ export default function Shop() {
       default:
         return list;
     }
-  }, [data, activeCategory, sortBy, priceRange, sustainFilter, searchQuery]);
+  }, [data, activeCategory, sortBy, priceRange, sustainFilter, searchQuery, selectedSizes, selectedColors, seasonFilter]);
 
   const gridItems = useMemo(() => {
     const items: Array<{ type: 'product'; product: Product } | { type: 'promo'; variant: PromoVariant }> = [];

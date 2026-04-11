@@ -53,7 +53,7 @@ export default function DonationPanel({
     }
   }, [amountPresets, selectedAmount, customAmount]);
   const [frequency, setFrequency] = useState<'once' | 'monthly'>('once');
-  const [paymentMethod, setPaymentMethod] = useState<'wechat' | 'alipay' | 'stripe'>('stripe');
+  const [paymentMethod, setPaymentMethod] = useState<'wechat' | 'alipay' | 'stripe' | 'paypal'>('stripe');
   const [anonymous, setAnonymous] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState<string>('');
