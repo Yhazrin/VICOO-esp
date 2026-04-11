@@ -62,7 +62,7 @@ export default function ArtworkCard({
               {artwork.title}
             </h3>
             <p className="font-body text-caption text-sepia-mid mt-1">
-              Age {artwork.childParticipant.age} &middot;{' '}
+              {artwork.childParticipant ? `Age ${artwork.childParticipant.age} · ` : ''}
               {new Date(artwork.created_at).getFullYear()}
             </p>
           </div>
