@@ -37,6 +37,7 @@ const AiAssistant = lazy(() => import('@/pages/AiAssistant'));
 const Checkout = lazy(() => import('@/pages/Checkout'));
 const SubmitArtwork = lazy(() => import('@/pages/SubmitArtwork'));
 const AiDesign = lazy(() => import('@/pages/AiDesign'));
+const Vote = lazy(() => import('@/pages/Vote'));
 
 function AppLocaleSync() {
   const { i18n } = useTranslation();
@@ -76,6 +77,7 @@ function AnimatedRoutes() {
             <Route path="about" element={<ErrorBoundary><About /></ErrorBoundary>} />
             <Route path="campaigns" element={<ErrorBoundary><Campaigns /></ErrorBoundary>} />
             <Route path="campaigns/:id" element={<ErrorBoundary><CampaignDetail /></ErrorBoundary>} />
+            <Route path="vote" element={<ErrorBoundary><Vote /></ErrorBoundary>} />
             <Route path="stories" element={<ErrorBoundary><Stories /></ErrorBoundary>} />
             <Route path="artworks/:id" element={<ErrorBoundary><ArtworkDetail /></ErrorBoundary>} />
             <Route path="donate" element={<ErrorBoundary><Donate /></ErrorBoundary>} />

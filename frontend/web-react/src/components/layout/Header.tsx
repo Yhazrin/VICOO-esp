@@ -19,11 +19,11 @@ const COMPANY_NAV = [
 
 // ── Impact nav tabs ──
 const IMPACT_TABS = [
-  { key: 'campaigns' },
-  { key: 'vote' },
-  { key: 'traceability' },
-  { key: 'donate' },
-  { key: 'shop' },
+  { key: 'campaigns', path: '/campaigns' },
+  { key: 'vote', path: '/vote' },
+  { key: 'traceability', path: '/traceability' },
+  { key: 'donate', path: '/donate' },
+  { key: 'shop', path: '/shop' },
 ];
 
 // ── PillWindow: capsule "window" with a horizontal sliding rail ──
@@ -38,11 +38,13 @@ function PillWindow({
   activeImpactTab,
   setActiveImpactTab,
   locationPathname,
+  navigate,
 }: {
   impactMode: boolean;
   activeImpactTab: string;
   setActiveImpactTab: (tab: string) => void;
   locationPathname: string;
+  navigate: (path: string) => void;
 }) {
   const { t } = useTranslation();
 
@@ -113,7 +115,7 @@ function PillWindow({
             return (
               <button
                 key={tab.key}
-                onClick={() => setActiveImpactTab(tab.key)}
+                onClick={() => { setActiveImpactTab(tab.key); navigate(tab.path); }}
                 className={`
                   font-body text-label tracking-wide px-3 py-1 rounded-full transition-all duration-200 cursor-pointer whitespace-nowrap
                   ${isActive ? 'text-ink font-medium bg-rust/15' : 'text-ink-faded hover:text-ink'}
@@ -169,6 +171,15 @@ export default function Header() {
   useEffect(() => {
     setMenuTriggerRef(menuTriggerRef);
   }, [setMenuTriggerRef]);
+
+  // Auto-activate impact mode when on an impact route
+  useEffect(() => {
+    const impactTab = IMPACT_TABS.find((tab) => location.pathname === tab.path || location.pathname.startsWith(tab.path + '/'));
+    if (impactTab) {
+      setImpactMode(true);
+      setActiveImpactTab(impactTab.key);
+    }
+  }, [location.pathname, setImpactMode, setActiveImpactTab]);
 
   // Close user menu when clicking outside
   useEffect(() => {
@@ -260,6 +271,7 @@ export default function Header() {
                 activeImpactTab={activeImpactTab}
                 setActiveImpactTab={setActiveImpactTab}
                 locationPathname={location.pathname}
+                navigate={navigate}
               />
 
               {/* Impact toggle button */}
