@@ -16,7 +16,13 @@ const COMPANY_NAV = [
 ];
 
 // ── Impact tabs ──
-const IMPACT_TABS = ['campaigns', 'vote', 'traceability', 'donate', 'shop'];
+const IMPACT_TABS = [
+  { key: 'campaigns', path: '/campaigns' },
+  { key: 'vote', path: '/vote' },
+  { key: 'traceability', path: '/traceability' },
+  { key: 'donate', path: '/donate' },
+  { key: 'shop', path: '/shop' },
+];
 
 export default function MobileNav() {
   const { t } = useTranslation();
@@ -151,8 +157,8 @@ export default function MobileNav() {
                   {impactMode ? t('nav.group.impact', 'Impact') : t('nav.group.company', 'Company')}
                 </p>
                 {impactMode
-                  ? IMPACT_TABS.map((tabKey, index) =>
-                      renderNavItem(tabKey, t(`nav.${tabKey}`), index, activeImpactTab === tabKey, () => { setActiveImpactTab(tabKey); setMobileNavOpen(false); })
+                  ? IMPACT_TABS.map((tab, index) =>
+                      renderNavItem(tab.key, t(`nav.${tab.key}`), index, activeImpactTab === tab.key, () => { setActiveImpactTab(tab.key); navigate(tab.path); setMobileNavOpen(false); })
                     )
                   : COMPANY_NAV.map((item, index) =>
                       renderNavItem(item.key, t(`nav.${item.key}`), index, location.pathname === item.path, () => setMobileNavOpen(false), item.path)
