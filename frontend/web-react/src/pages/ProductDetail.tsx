@@ -360,7 +360,7 @@ export default function ProductDetail() {
             {t('shop.detail.supplyChain')}
           </h2>
           <p className="font-body text-body-sm text-ink-faded mt-2 mb-8">
-            {`Total carbon footprint: ${totalCarbon.toFixed(1)} kg CO\u2082e \u00b7 Offset via verified programs`}
+            {t('shop.detail.carbonTotal', { total: totalCarbon.toFixed(1), defaultValue: 'Total carbon footprint: {{total}} kg CO\u2082e \u00b7 Offset via verified programs' })}
           </p>
           <TraceabilityTimeline records={supplyChainRecords} />
         </SectionContainer>
