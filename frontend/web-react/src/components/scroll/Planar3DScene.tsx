@@ -114,13 +114,11 @@ export default function Planar3DScene() {
     const handleScroll = () => {
       if (!container || !sceneRef.current) return;
 
-      const rect = container.getBoundingClientRect();
       const viewportHeight = window.innerHeight;
-      const containerHeight = container.offsetHeight;
+      const docHeight = document.documentElement.scrollHeight;
 
-      const scrolled = viewportHeight - rect.top;
-      const totalScrollable = containerHeight - viewportHeight;
-      const progress = Math.max(0, Math.min(1, scrolled / totalScrollable));
+      // Use window.scrollY since the container is position:fixed (rect.top is always 0)
+      const progress = Math.max(0, Math.min(1, window.scrollY / (docHeight - viewportHeight)));
 
       const s = sceneRef.current;
 
