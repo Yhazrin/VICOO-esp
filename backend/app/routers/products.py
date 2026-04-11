@@ -8,6 +8,7 @@ from app.config import settings
 from app.database import get_db
 from app.models.product import Product
 from app.models.supply_chain import SupplyChainRecord
+from app.models.artwork import Artwork
 from app.schemas import ApiResponse, PaginatedResponse, ProductCreate, ProductOut, ProductUpdate, SupplyChainRecordOut
 from app.deps import require_role, get_current_user
 
@@ -28,14 +29,14 @@ def _apply_product_filters(stmt, category: str | None, status: str | None, is_im
 
 
 _mock_products = [
-    {"id": 1, "name": "彩虹鱼棉质 T 恤", "description": "采用有机棉面料，印有获奖作品《彩虹鱼》。每件 T 恤的收益 30% 用于乡村美育基金。", "price": "168.00", "currency": "CNY", "image_url": "/static/products/tshirt1.jpg", "category": "apparel", "stock": 200, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "30.00", "sizes": ["S", "M", "L", "XL"], "colors": [{"name": "White", "hex": "#F5F0E8"}, {"name": "Navy", "hex": "#1C2841"}, {"name": "Rust", "hex": "#8B3A2A"}], "created_at": "2025-04-01T10:00:00"},
-    {"id": 2, "name": "星星之夜帆布袋", "description": "再生帆布材质，印有梵高风格星空画作。环保材质，可持续时尚。", "price": "89.00", "currency": "CNY", "image_url": "/static/products/bag1.jpg", "category": "accessories", "stock": 150, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "25.00", "created_at": "2025-04-05T10:00:00"},
-    {"id": 3, "name": "春天的花园丝巾", "description": "100% 真丝面料，孩子们的画作化为丝巾图案，每一条都是独一无二的艺术品。", "price": "258.00", "currency": "CNY", "image_url": "/static/products/scarf1.jpg", "category": "accessories", "stock": 80, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "30.00", "created_at": "2025-04-10T10:00:00"},
-    {"id": 4, "name": "妈妈的手环保笔记本", "description": "再生纸制作，封面印有《妈妈的手》。可用于记录生活中的美好瞬间。", "price": "39.00", "currency": "CNY", "image_url": "/static/products/notebook1.jpg", "category": "stationery", "stock": 500, "status": "active", "is_impact_product": True, "campaign_id": 2, "donation_percentage": "20.00", "created_at": "2025-04-15T10:00:00"},
-    {"id": 5, "name": "太空旅行马克杯", "description": "陶瓷马克杯，印有《太空旅行》画作。送给每个梦想家。", "price": "68.00", "currency": "CNY", "image_url": "/static/products/cup1.jpg", "category": "lifestyle", "stock": 120, "status": "active", "is_impact_product": True, "campaign_id": 3, "donation_percentage": "25.00", "created_at": "2025-04-20T10:00:00"},
-    {"id": 6, "name": "我的家帆布鞋", "description": "有机棉帆布鞋面，可降解鞋底。鞋侧印有《我的家》画作。", "price": "198.00", "currency": "CNY", "image_url": "/static/products/shoes1.jpg", "category": "footwear", "stock": 0, "status": "sold_out", "is_impact_product": True, "campaign_id": 2, "donation_percentage": "30.00", "sizes": ["36", "37", "38", "39", "40", "41", "42", "43"], "colors": [{"name": "White", "hex": "#F5F0E8"}, {"name": "Black", "hex": "#1A1A16"}], "created_at": "2025-04-25T10:00:00"},
-    {"id": 7, "name": "画出未来环保抱枕", "description": "再生棉填充，有机棉外套。科幻画作成为你客厅的亮点。", "price": "128.00", "currency": "CNY", "image_url": "/static/products/pillow1.jpg", "category": "home", "stock": 90, "status": "active", "is_impact_product": True, "campaign_id": 3, "donation_percentage": "25.00", "created_at": "2025-05-01T10:00:00"},
-    {"id": 8, "name": "过年了限定礼盒", "description": "包含 T 恤、帆布袋、笔记本三件套，精美包装。限量 100 套。", "price": "368.00", "currency": "CNY", "image_url": "/static/products/giftbox1.jpg", "category": "gift_box", "stock": 35, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "30.00", "sizes": ["S", "M", "L", "XL"], "created_at": "2025-05-05T10:00:00"},
+    {"id": 1, "name": "彩虹鱼棉质 T 恤", "description": "采用有机棉面料，印有获奖作品《彩虹鱼》。每件 T 恤的收益 30% 用于乡村美育基金。", "price": "168.00", "currency": "CNY", "image_url": "/static/products/tshirt1.jpg", "category": "apparel", "stock": 200, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "30.00", "artwork_id": 2, "sizes": ["S", "M", "L", "XL"], "colors": [{"name": "White", "hex": "#F5F0E8"}, {"name": "Navy", "hex": "#1C2841"}, {"name": "Rust", "hex": "#8B3A2A"}], "created_at": "2025-04-01T10:00:00"},
+    {"id": 2, "name": "星星之夜帆布袋", "description": "再生帆布材质，印有梵高风格星空画作。环保材质，可持续时尚。", "price": "89.00", "currency": "CNY", "image_url": "/static/products/bag1.jpg", "category": "accessories", "stock": 150, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "25.00", "artwork_id": 4, "created_at": "2025-04-05T10:00:00"},
+    {"id": 3, "name": "春天的花园丝巾", "description": "100% 真丝面料，孩子们的画作化为丝巾图案，每一条都是独一无二的艺术品。", "price": "258.00", "currency": "CNY", "image_url": "/static/products/scarf1.jpg", "category": "accessories", "stock": 80, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "30.00", "artwork_id": 1, "created_at": "2025-04-10T10:00:00"},
+    {"id": 4, "name": "妈妈的手环保笔记本", "description": "再生纸制作，封面印有《妈妈的手》。可用于记录生活中的美好瞬间。", "price": "39.00", "currency": "CNY", "image_url": "/static/products/notebook1.jpg", "category": "stationery", "stock": 500, "status": "active", "is_impact_product": True, "campaign_id": 2, "donation_percentage": "20.00", "artwork_id": 11, "created_at": "2025-04-15T10:00:00"},
+    {"id": 5, "name": "太空旅行马克杯", "description": "陶瓷马克杯，印有《太空旅行》画作。送给每个梦想家。", "price": "68.00", "currency": "CNY", "image_url": "/static/products/cup1.jpg", "category": "lifestyle", "stock": 120, "status": "active", "is_impact_product": True, "campaign_id": 3, "donation_percentage": "25.00", "artwork_id": 15, "created_at": "2025-04-20T10:00:00"},
+    {"id": 6, "name": "我的家帆布鞋", "description": "有机棉帆布鞋面，可降解鞋底。鞋侧印有《我的家》画作。", "price": "198.00", "currency": "CNY", "image_url": "/static/products/shoes1.jpg", "category": "footwear", "stock": 0, "status": "sold_out", "is_impact_product": True, "campaign_id": 2, "donation_percentage": "30.00", "artwork_id": 3, "sizes": ["36", "37", "38", "39", "40", "41", "42", "43"], "colors": [{"name": "White", "hex": "#F5F0E8"}, {"name": "Black", "hex": "#1A1A16"}], "created_at": "2025-04-25T10:00:00"},
+    {"id": 7, "name": "画出未来环保抱枕", "description": "再生棉填充，有机棉外套。科幻画作成为你客厅的亮点。", "price": "128.00", "currency": "CNY", "image_url": "/static/products/pillow1.jpg", "category": "home", "stock": 90, "status": "active", "is_impact_product": True, "campaign_id": 3, "donation_percentage": "25.00", "artwork_id": 19, "created_at": "2025-05-01T10:00:00"},
+    {"id": 8, "name": "过年了限定礼盒", "description": "包含 T 恤、帆布袋、笔记本三件套，精美包装。限量 100 套。", "price": "368.00", "currency": "CNY", "image_url": "/static/products/giftbox1.jpg", "category": "gift_box", "stock": 35, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "30.00", "artwork_id": 18, "sizes": ["S", "M", "L", "XL"], "created_at": "2025-05-05T10:00:00"},
     # Regular fashion products (no charity attributes)
     {"id": 9, "name": "Organic Linen Oversized Shirt", "description": "Relaxed-fit shirt in GOTS-certified organic linen. Pre-washed for a lived-in softness.", "price": "328.00", "currency": "CNY", "image_url": "/static/products/shirt_regular1.jpg", "category": "apparel", "stock": 150, "status": "active", "is_impact_product": False, "campaign_id": None, "donation_percentage": None, "sizes": ["XS", "S", "M", "L", "XL", "XXL"], "colors": [{"name": "White", "hex": "#F5F0E8"}, {"name": "Sand", "hex": "#C4A45A"}, {"name": "Sage", "hex": "#3F4F45"}], "created_at": "2025-06-01T10:00:00"},
     {"id": 10, "name": "Recycled Cashmere Crewneck", "description": "100% recycled Italian cashmere. Circular knit technology, zero waste pattern cutting.", "price": "598.00", "currency": "CNY", "image_url": "/static/products/sweater_regular1.jpg", "category": "apparel", "stock": 80, "status": "active", "is_impact_product": False, "campaign_id": None, "donation_percentage": None, "sizes": ["S", "M", "L", "XL"], "colors": [{"name": "Black", "hex": "#1A1A16"}, {"name": "Navy", "hex": "#1C2841"}, {"name": "Rust", "hex": "#8B3A2A"}], "created_at": "2025-06-05T10:00:00"},
@@ -153,6 +154,43 @@ async def get_product_supply_chain(product_id: int, db: AsyncSession = Depends(g
             raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         records = [r for r in _mock_supply_chain if r["product_id"] == product_id]
         return ApiResponse(data=records)
+
+
+@router.get("/{product_id}/artwork", response_model=ApiResponse)
+async def get_product_artwork(product_id: int, db: AsyncSession = Depends(get_db)):
+    """Get the artwork linked to a product."""
+    try:
+        stmt = select(Product).where(Product.id == product_id)
+        result = await db.execute(stmt)
+        product = result.scalar_one_or_none()
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+        if not product.artwork_id:
+            raise HTTPException(status_code=404, detail="No artwork linked to this product")
+        artwork_stmt = select(Artwork).where(Artwork.id == product.artwork_id)
+        artwork_result = await db.execute(artwork_stmt)
+        artwork = artwork_result.scalar_one_or_none()
+        if not artwork:
+            raise HTTPException(status_code=404, detail="Linked artwork not found")
+        from app.schemas.artwork import ArtworkOut
+        return ApiResponse(data=ArtworkOut.model_validate(artwork).model_dump())
+    except HTTPException:
+        raise
+    except Exception:
+        if not settings.DEMO_MODE:
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+        # DEMO_MODE fallback
+        mock_artworks = {
+            1: {"id": 1, "title": "彩虹鱼", "artist_name": "小红", "image_url": "/static/artworks/artwork_2.jpg", "status": "approved"},
+            2: {"id": 2, "title": "星星之夜", "artist_name": "小刚", "image_url": "/static/artworks/artwork_4.jpg", "status": "featured"},
+            3: {"id": 3, "title": "妈妈的手", "artist_name": "小花", "image_url": "/static/artworks/artwork_11.jpg", "status": "featured"},
+        }
+        for p in _mock_products:
+            if p["id"] == product_id and p.get("artwork_id"):
+                aw = mock_artworks.get(p["artwork_id"])
+                if aw:
+                    return ApiResponse(data=aw)
+        raise HTTPException(status_code=404, detail="No artwork linked to this product")
 
 
 @router.get("/{product_id}", response_model=ApiResponse)

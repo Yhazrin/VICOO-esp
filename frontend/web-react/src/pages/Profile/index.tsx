@@ -18,6 +18,7 @@ import { donationsApi } from '@/services/donations';
 import { clothingIntakesApi, type ClothingIntake } from '@/services/clothingIntakes';
 import { afterSalesApi, type AfterSaleTicket } from '@/services/afterSales';
 import { addressesApi, type Address, type AddressCreateData } from '@/services/addresses';
+import { artworksApi } from '@/services/artworks';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'text-sepia-mid',
@@ -28,9 +29,18 @@ const STATUS_COLORS: Record<string, string> = {
   completed: 'text-archive-brown',
   failed: 'text-rust',
   refunded: 'text-sepia-mid',
+  submitted: 'text-sepia-mid',
+  received: 'text-archive-brown',
+  processing: 'text-archive-brown',
+  listed: 'text-sage',
+  rejected: 'text-rust',
+  open: 'text-sepia-mid',
+  in_progress: 'text-archive-brown',
+  resolved: 'text-sage',
+  closed: 'text-archive-brown',
 };
 
-type TabKey = 'orders' | 'donations' | 'clothing' | 'support' | 'addresses';
+type TabKey = 'orders' | 'donations' | 'clothing' | 'support' | 'addresses' | 'artworks';
 
 const ORDER_STATUSES = ['', 'pending', 'paid', 'shipped', 'completed', 'cancelled'] as const;
 
@@ -58,7 +68,7 @@ export default function Profile() {
   // Inline error message for user feedback
   const [errorMessage, setErrorMessage] = useState('');
 
-  const tabs: TabKey[] = ['orders', 'donations', 'clothing', 'support', 'addresses'];
+  const tabs: TabKey[] = ['orders', 'donations', 'clothing', 'support', 'addresses', 'artworks'];
 
   const handleTabKeyDown = useCallback(
     (e: React.KeyboardEvent, tab: TabKey) => {
@@ -108,6 +118,12 @@ export default function Profile() {
   const { data: addresses = [], isLoading: loadingAddresses } = useQuery({
     queryKey: ['my-addresses'],
     queryFn: () => addressesApi.getAll(),
+    enabled: isAuthenticated,
+  });
+
+  const { data: myArtworks = [], isLoading: loadingArtworks } = useQuery({
+    queryKey: ['my-artworks'],
+    queryFn: () => artworksApi.mine(),
     enabled: isAuthenticated,
   });
 
@@ -322,7 +338,7 @@ export default function Profile() {
             className="flex items-center mb-12 rounded-full bg-white/80 backdrop-blur-xl shadow-sm px-2 py-1 overflow-x-auto"
             role="tablist"
             onKeyDown={(e) => {
-              const tabIds = ['orders', 'donations', 'clothing', 'support', 'addresses'] as const;
+              const tabIds: TabKey[] = ['orders', 'donations', 'clothing', 'support', 'addresses', 'artworks'];
               const currentIndex = tabIds.indexOf(activeTab);
               if (e.key === 'ArrowRight') {
                 e.preventDefault();
@@ -358,7 +374,8 @@ export default function Profile() {
                   tab === 'donations' ? donations.length :
                   tab === 'clothing' ? intakes.length :
                   tab === 'support' ? tickets.length :
-                  addresses.length
+                  tab === 'addresses' ? addresses.length :
+                  myArtworks.length
                 })
               </button>
             ))}
@@ -598,7 +615,7 @@ export default function Profile() {
                       index={index}
                       hoverEffect="border"
                     >
-                      <p className={`font-body text-overline uppercase ${STATUS_COLORS[row.status] ?? 'text-sepia-mid'}`}>{row.status}</p>
+                      <p className={`font-body text-overline uppercase ${STATUS_COLORS[row.status] ?? 'text-sepia-mid'}`}>{t(`donateClothing.statusLabels.${row.status}`, row.status)}</p>
                       {row.product_id && (
                         <Link to={`/shop/${row.product_id}`} className="font-body text-caption text-rust mt-2 inline-block">
                           {t('profile.viewLinkedProduct', '查看关联商品')} →
@@ -774,6 +791,50 @@ export default function Profile() {
                           {t('profile.addresses.setDefault', '设为默认')}
                         </button>
                       )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Artworks tab */}
+          {activeTab === 'artworks' && (
+            <div role="tabpanel" id="panel-artworks" aria-labelledby="tab-artworks">
+              <h2 className="font-display text-h3 font-bold text-ink mb-6">
+                {t('profile.myArtworks', '我的画作')}
+              </h2>
+              {loadingArtworks ? (
+                <p className="font-body text-body-sm text-ink-faded">{t('common.loading', 'Loading...')}</p>
+              ) : myArtworks.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="font-body text-body-sm text-ink-faded mb-4">
+                    {t('profile.noArtworks', '暂无提交的画作')}
+                  </p>
+                  <Link
+                    to="/submit-artwork"
+                    className="inline-block font-body text-overline tracking-[0.15em] uppercase text-rust hover:text-ink transition-colors"
+                  >
+                    {t('profile.submitArtwork', '提交画作')} &rarr;
+                  </Link>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {myArtworks.map((artwork) => (
+                    <div key={artwork.id} className="border border-warm-gray/25 bg-paper p-5 hover:border-rust/25 transition-colors">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-display text-lg text-ink">{artwork.title}</h3>
+                        <span className={`font-body text-overline tracking-wider uppercase ${STATUS_COLORS[artwork.status] ?? 'text-sepia-mid'}`}>
+                          {artwork.status}
+                        </span>
+                      </div>
+                      {artwork.description && (
+                        <p className="font-body text-caption text-ink-faded">{artwork.description}</p>
+                      )}
+                      <div className="flex items-center gap-4 mt-3 font-body text-caption text-sepia-mid">
+                        <span>{t('profile.artworkVotes', '票数')}: {artwork.vote_count ?? 0}</span>
+                        <span>{t('profile.artworkDate', '提交时间')}: {artwork.created_at?.slice(0, 10)}</span>
+                      </div>
                     </div>
                   ))}
                 </div>

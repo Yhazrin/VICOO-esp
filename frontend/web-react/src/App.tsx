@@ -35,6 +35,8 @@ const DonateClothing = lazy(() => import('@/pages/DonateClothing'));
 const Support = lazy(() => import('@/pages/Support'));
 const AiAssistant = lazy(() => import('@/pages/AiAssistant'));
 const Checkout = lazy(() => import('@/pages/Checkout'));
+const SubmitArtwork = lazy(() => import('@/pages/SubmitArtwork'));
+const AiDesign = lazy(() => import('@/pages/AiDesign'));
 
 function AppLocaleSync() {
   const { i18n } = useTranslation();
@@ -87,6 +89,8 @@ function AnimatedRoutes() {
             <Route path="orders/:id" element={<ErrorBoundary><OrderDetail /></ErrorBoundary>} />
             <Route path="checkout" element={<ErrorBoundary><Checkout /></ErrorBoundary>} />
             <Route path="support" element={<ErrorBoundary><Support /></ErrorBoundary>} />
+            <Route path="submit-artwork" element={<ErrorBoundary><SubmitArtwork /></ErrorBoundary>} />
+            <Route path="ai-design" element={<ErrorBoundary><AiDesign /></ErrorBoundary>} />
             <Route path="assistant" element={<ErrorBoundary><AiAssistant /></ErrorBoundary>} />
             <Route path="privacy" element={<ErrorBoundary><Privacy /></ErrorBoundary>} />
             <Route path="terms" element={<ErrorBoundary><Terms /></ErrorBoundary>} />

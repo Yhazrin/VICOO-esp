@@ -14,7 +14,6 @@ import { useCartStore } from '@/stores/cartStore';
 import { productsApi } from '@/services/products';
 import { reviewsApi } from '@/services/reviewsApi';
 import { useAuthStore } from '@/stores/authStore';
-import type { Product } from '@/types';
 
 function ThumbnailButton({
   url,
@@ -65,6 +64,13 @@ export default function ProductDetail() {
     queryKey: ['product', id],
     queryFn: () => productsApi.getById(id!),
     enabled: !!id,
+    retry: false,
+  });
+
+  const { data: linkedArtwork } = useQuery({
+    queryKey: ['product-artwork', id],
+    queryFn: () => productsApi.getArtwork(id!),
+    enabled: !!id && !!product?.artworkId,
     retry: false,
   });
 
@@ -198,14 +204,16 @@ export default function ProductDetail() {
               </p>
 
               {/* Artwork source */}
-              <div className="border border-warm-gray/30 p-4 mb-8">
-                <p className="font-body text-caption text-sepia-mid tracking-wider uppercase mb-1">
-                  {t('shop.detail.artwork')} Mei, age 8
-                </p>
-                <p className="font-body text-caption text-ink-faded">
-                  Guizhou Province, November 2025
-                </p>
-              </div>
+              {linkedArtwork && (
+                <div className="border border-warm-gray/30 p-4 mb-8">
+                  <p className="font-body text-caption text-sepia-mid tracking-wider uppercase mb-1">
+                    {t('shop.detail.artwork')} {linkedArtwork.artist_name || linkedArtwork.title}
+                  </p>
+                  <p className="font-body text-caption text-ink-faded">
+                    {linkedArtwork.title}
+                  </p>
+                </div>
+              )}
 
               {/* Size selector */}
               {safeProduct.sizes && safeProduct.sizes.length > 0 && (
