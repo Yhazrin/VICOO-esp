@@ -30,6 +30,8 @@ export default function AiDesign() {
   const [createArtworkId, setCreateArtworkId] = useState('');
   const [createTitle, setCreateTitle] = useState('');
   const [createCategory, setCreateCategory] = useState('');
+  const [publishPrice, setPublishPrice] = useState('99');
+  const [publishStock, setPublishStock] = useState('100');
   const [errorMessage, setErrorMessage] = useState('');
 
   const { data: drafts = [], isLoading } = useQuery({
@@ -85,7 +87,7 @@ export default function AiDesign() {
   });
 
   const publishMutation = useMutation({
-    mutationFn: (id: number) => aiDesignApi.publish(id, { price: 99, stock: 100 }),
+    mutationFn: (id: number) => aiDesignApi.publish(id, { price: Number(publishPrice) || 99, stock: Number(publishStock) || 100 }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['design-drafts'] });
       setSelectedDraft(null);
@@ -312,13 +314,31 @@ export default function AiDesign() {
                 </>
               )}
               {selectedDraft.status === 'approved' && (
-                <button
-                  onClick={() => publishMutation.mutate(selectedDraft.id)}
-                  disabled={publishMutation.isPending}
-                  className="font-body text-label tracking-wide bg-archive-brown text-paper px-6 py-2.5 hover:opacity-90 disabled:opacity-40 cursor-pointer"
-                >
-                  {t('aiDesign.publish', '发布为商品')}
-                </button>
+                <>
+                  <input
+                    type="number"
+                    placeholder={t('aiDesign.price', '价格')}
+                    value={publishPrice}
+                    onChange={(e) => setPublishPrice(e.target.value)}
+                    className="w-24 border border-warm-gray/30 bg-transparent px-3 py-2 font-body text-body-sm text-ink"
+                    min="1"
+                  />
+                  <input
+                    type="number"
+                    placeholder={t('aiDesign.stock', '库存')}
+                    value={publishStock}
+                    onChange={(e) => setPublishStock(e.target.value)}
+                    className="w-24 border border-warm-gray/30 bg-transparent px-3 py-2 font-body text-body-sm text-ink"
+                    min="0"
+                  />
+                  <button
+                    onClick={() => publishMutation.mutate(selectedDraft.id)}
+                    disabled={publishMutation.isPending}
+                    className="font-body text-label tracking-wide bg-archive-brown text-paper px-6 py-2.5 hover:opacity-90 disabled:opacity-40 cursor-pointer"
+                  >
+                    {t('aiDesign.publish', '发布为商品')}
+                  </button>
+                </>
               )}
             </div>
           </div>
