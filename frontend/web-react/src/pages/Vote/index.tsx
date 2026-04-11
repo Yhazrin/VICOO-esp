@@ -17,7 +17,7 @@ function ArtworkVoteCard({
 }: {
   artwork: Artwork;
   index: number;
-  onVote: (id: number) => void;
+  onVote: (id: number) => Promise<void>;
 }) {
   const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
@@ -31,7 +31,10 @@ function ArtworkVoteCard({
     if (!voted) {
       setVoted(true);
       setVoteCount((c) => c + 1);
-      onVote(artwork.id);
+      onVote(artwork.id).catch(() => {
+        setVoted(false);
+        setVoteCount((c) => c - 1);
+      });
     }
   };
 
@@ -108,8 +111,9 @@ export default function Vote() {
   const handleVote = useCallback(async (artworkId: number) => {
     try {
       await artworksApi.vote(String(artworkId));
-    } catch {
+    } catch (err) {
       setVoteError(t('vote.error', '投票失败，请重试'));
+      throw err; // Re-throw so ArtworkVoteCard can rollback optimistic state
     }
   }, [t]);
 
