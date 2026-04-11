@@ -41,6 +41,8 @@
     "register": "创建账户",
     "orContinueWith": "或使用以下方式继续",
     "wechat": "微信",
+    "showPassword": "显示密码",
+    "hidePassword": "隐藏密码",
     "error": {
       "invalidCredentials": "邮箱或密码错误",
       "userNotFound": "用户不存在"
@@ -673,6 +675,9 @@
       "subtitle": "查看产品的完整来源——从有机棉田到成衣。",
       "button": "探索溯源"
     }
+  },
+  "artworkCard": {
+    "age": "{{age}}岁"
   },
   "vote": {
     "overline": "社区投票",

@@ -241,7 +241,7 @@ export default function EditorialHero({
           transition={{ duration: 0.6, ease: [0, 0, 0.2, 1] }}
           className="block font-body text-caption text-sepia-mid tracking-[0.3em] mb-6 md:mb-8"
         >
-          Vision In Creative Opportunity
+          {t('footer.brand.description')}
         </motion.span>
 
         <motion.h1

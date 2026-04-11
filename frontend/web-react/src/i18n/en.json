@@ -41,6 +41,8 @@
     "register": "Create an Account",
     "orContinueWith": "Or continue with",
     "wechat": "WeChat",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "error": {
       "invalidCredentials": "Invalid email or password",
       "userNotFound": "User not found"
@@ -679,6 +681,9 @@
       "subtitle": "See exactly where your product comes from — from organic cotton field to finished garment.",
       "button": "Explore Traceability"
     }
+  },
+  "artworkCard": {
+    "age": "Age {{age}}"
   },
   "vote": {
     "overline": "Community Vote",
