@@ -78,7 +78,7 @@ export default function ImpactShop() {
   const [activeCampaignId, setActiveCampaignId] = useState<number | 'all'>('all');
 
   // Fetch impact products
-  const { data } = useQuery({
+  const { data, isLoading, error: productsError } = useQuery({
     queryKey: ['products', { category: activeCategory, isImpactProduct: true }],
     queryFn: async () => {
       const result = await productsApi.getAll({
@@ -145,6 +145,16 @@ export default function ImpactShop() {
       {/* ═══ Product Grid Section ═══ */}
       <SectionContainer>
         <div className="border-t border-warm-gray/20 pt-12">
+          {productsError && (
+            <div className="flex items-center gap-3 bg-rust/10 border border-rust/20 px-4 py-3 mb-4">
+              <p className="font-body text-body-sm text-rust flex-1">{t('impactShop.loadError', '加载商品失败，请刷新重试')}</p>
+            </div>
+          )}
+          {isLoading && (
+            <div className="py-24 text-center">
+              <p className="font-body text-sepia-mid">{t('impactShop.loading', '加载中...')}</p>
+            </div>
+          )}
           {/* Filters */}
           <div className="flex items-center gap-3 mb-8 flex-wrap">
             {/* Category pills */}

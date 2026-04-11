@@ -102,6 +102,7 @@ export default function ProductDetail() {
       setReviewTitle('');
       setReviewBody('');
     },
+    onError: () => {}, // error state handled by reviewMutation.isError below
   });
 
   const [selectedImage, setSelectedImage] = useState(0);

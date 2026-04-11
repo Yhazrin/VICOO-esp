@@ -320,6 +320,8 @@
       "browseAll": "Browse All Stories"
     },
     "minuteRead": "minute read",
+    "loading": "Loading...",
+    "loadError": "Failed to load stories. Please refresh.",
     "artworkFallback": "A child's artwork, created with imagination and heart.",
     "supporters": "{{count}} supporters",
     "anonymousArtist": "Anonymous Artist",
@@ -644,6 +646,8 @@
       "title": "Impact Shop",
       "subtitle": "Every product carries a child's artwork. Every purchase funds their future."
     },
+    "loading": "Loading...",
+    "loadError": "Failed to load products. Please refresh.",
     "artworkVoting": {
       "title": "Vote for the Next Design",
       "subtitle": "Help choose which children's artwork becomes our next collection.",
@@ -677,7 +681,9 @@
     "vote": "Vote",
     "votes": "{{count}} votes",
     "empty": "No artworks available for voting right now.",
-    "error": "Failed to submit vote. Please try again."
+    "error": "Failed to submit vote. Please try again.",
+    "loading": "Loading...",
+    "loadError": "Failed to load artworks. Please refresh."
   },
   "traceability": {
     "hero": {
@@ -1161,6 +1167,8 @@
     "create": "Create",
     "createError": "Failed to create draft",
     "generateError": "AI generation failed",
+    "approveError": "Failed to approve draft",
+    "rejectError": "Failed to reject draft",
     "publishError": "Failed to publish product",
     "all": "All",
     "noDrafts": "No design drafts yet",

@@ -81,7 +81,6 @@ async def create_campaign(
     service = CampaignService(db)
     try:
         campaign = await service.create_campaign(body.model_dump())
-        await db.commit()
         return ApiResponse(data=CampaignOut.model_validate(campaign).model_dump())
     except Exception as e:
         logger.error(f"Create failed: {e}")
@@ -98,7 +97,6 @@ async def update_campaign(
     service = CampaignService(db)
     try:
         campaign = await service.update_campaign(campaign_id, body.model_dump(exclude_unset=True))
-        await db.commit()
         return ApiResponse(data=CampaignOut.model_validate(campaign).model_dump())
     except Exception as e:
         logger.error(f"Update failed: {e}")
@@ -114,7 +112,6 @@ async def delete_campaign(
     service = CampaignService(db)
     try:
         await service.delete_campaign(campaign_id)
-        await db.commit()
         return ApiResponse(data={"deleted": campaign_id})
     except Exception as e:
         logger.error(f"Delete failed: {e}")

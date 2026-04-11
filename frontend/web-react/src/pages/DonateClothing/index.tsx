@@ -22,6 +22,8 @@ export default function DonateClothing() {
   const [pickupAddress, setPickupAddress] = useState('');
   const [contactPhone, setContactPhone] = useState('');
 
+  const [submitError, setSubmitError] = useState('');
+
   const mutation = useMutation({
     mutationFn: () =>
       clothingIntakesApi.create({
@@ -33,6 +35,7 @@ export default function DonateClothing() {
         contact_phone: contactPhone || undefined,
       }),
     onSuccess: () => navigate('/profile'),
+    onError: () => setSubmitError(t('donateClothing.submitError', '提交失败，请重试')),
   });
 
   if (!isAuthenticated) {
@@ -113,6 +116,9 @@ export default function DonateClothing() {
               <p className="font-body text-caption text-rust" role="alert">
                 {t('donateClothing.error', '提交失败，请稍后再试')}
               </p>
+            )}
+            {submitError && (
+              <p className="font-body text-body-sm text-rust mb-4">{submitError}</p>
             )}
             <button
               type="submit"

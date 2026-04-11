@@ -71,6 +71,7 @@ export default function AiDesign() {
       setSelectedDraft(updated);
       setReviewNote('');
     },
+    onError: () => setErrorMessage(t('aiDesign.approveError', '审批失败')),
   });
 
   const rejectMutation = useMutation({
@@ -80,6 +81,7 @@ export default function AiDesign() {
       setSelectedDraft(updated);
       setReviewNote('');
     },
+    onError: () => setErrorMessage(t('aiDesign.rejectError', '拒绝失败')),
   });
 
   const publishMutation = useMutation({
