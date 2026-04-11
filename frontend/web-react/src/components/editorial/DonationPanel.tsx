@@ -12,7 +12,7 @@ interface DonationPanelProps {
     frequency: 'once' | 'monthly';
     anonymous: boolean;
     message: string;
-    paymentMethod: 'wechat' | 'alipay' | 'stripe' | 'paypal';
+    paymentMethod: 'wechat' | 'alipay' | 'stripe';
   }) => void;
   isSubmitting?: boolean;
   className?: string;
@@ -53,7 +53,7 @@ export default function DonationPanel({
     }
   }, [amountPresets, selectedAmount, customAmount]);
   const [frequency, setFrequency] = useState<'once' | 'monthly'>('once');
-  const [paymentMethod, setPaymentMethod] = useState<'wechat' | 'alipay' | 'stripe' | 'paypal'>('stripe');
+  const [paymentMethod, setPaymentMethod] = useState<'wechat' | 'alipay' | 'stripe'>('stripe');
   const [anonymous, setAnonymous] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState<string>('');

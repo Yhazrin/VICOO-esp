@@ -56,9 +56,9 @@ export default function Terms() {
             {SECTIONS.map((section, i) => (
               <div key={section.key}>
                 <motion.section
-                  {...(prefersReducedMotion ? {} : { initial: { opacity: 0, y: 16 }, whileInView: { opacity: 1, y: 0 } })}
+                  {...(prefersReducedMotion ? { initial: { opacity: 1 } } : { initial: { opacity: 0, y: 16 }, whileInView: { opacity: 1, y: 0 } })}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: i * 0.04 }}
+                  transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5, delay: i * 0.04 }}
                 >
                   <h2 className="font-display text-h3 font-bold text-ink mb-8">
                     {t(`legal.terms.sections.${section.key}.title`, { defaultValue: section.key.charAt(0).toUpperCase() + section.key.slice(1) })}

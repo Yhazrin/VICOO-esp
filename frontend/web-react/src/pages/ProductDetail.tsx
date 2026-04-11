@@ -441,7 +441,7 @@ export default function ProductDetail() {
           to="/shop"
           className="font-body text-caption tracking-[0.15em] uppercase text-ink-faded hover:text-rust transition-colors cursor-pointer"
         >
-          &larr; {t('common.back')} to shop
+          &larr; {t('shop.detail.backToShop', 'Back to shop')}
         </Link>
       </SectionContainer>
     </PageWrapper>
