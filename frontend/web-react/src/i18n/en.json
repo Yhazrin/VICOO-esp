@@ -189,6 +189,12 @@
       "donated": "Funds Raised",
       "products": "Products Sold"
     },
+    "marquee": {
+      "sustainableFashion": "Sustainable Fashion",
+      "childrenArt": "Children's Art",
+      "traceableImpact": "Traceable Impact",
+      "community": "Community"
+    },
     "cta": {
       "title": "Join the Movement",
       "description": "Whether you donate, shop, or share our story — every action counts.",
@@ -999,6 +1005,9 @@
   },
   "campaigns.detail.about": "About This Campaign",
   "campaigns.detail.backToAll": "to all campaigns",
+  "campaigns.detail.quote": "I drew a dress that makes rain sounds when you walk. That way, everyone knows you're coming.",
+  "campaigns.detail.quoteAuthor": "Mei, age 8",
+  "campaigns.detail.quoteRole": "Guizhou",
   "traceability.location": "Location",
   "traceability.partner": "Partner",
   "traceability.date": "Date",

@@ -183,6 +183,12 @@
       "donated": "筹集善款",
       "products": "售出商品"
     },
+    "marquee": {
+      "sustainableFashion": "可持续时尚",
+      "childrenArt": "儿童艺术",
+      "traceableImpact": "可追溯影响力",
+      "community": "社区"
+    },
     "cta": {
       "title": "加入这场运动",
       "description": "无论是捐赠、购物还是分享我们的故事——每一个行动都很重要。",
@@ -999,6 +1005,9 @@
   },
   "campaigns.detail.about": "关于此活动",
   "campaigns.detail.backToAll": "返回全部活动",
+  "campaigns.detail.quote": "我画了一条走路会发出雨声的裙子，这样大家都知道你来了。",
+  "campaigns.detail.quoteAuthor": "小美，8岁",
+  "campaigns.detail.quoteRole": "贵州",
   "traceability.location": "地点",
   "traceability.partner": "合作方",
   "traceability.date": "日期",
