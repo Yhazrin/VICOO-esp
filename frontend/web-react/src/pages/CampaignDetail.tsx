@@ -147,9 +147,9 @@ export default function CampaignDetail() {
               </p>
 
               <StoryQuoteBlock
-                quote="I drew a dress that makes rain sounds when you walk. That way, everyone knows you're coming."
-                author="Mei, age 8"
-                role="Guizhou"
+                quote={t('campaigns.detail.quote', 'I drew a dress that makes rain sounds when you walk. That way, everyone knows you\'re coming.')}
+                author={t('campaigns.detail.quoteAuthor', 'Mei, age 8')}
+                role={t('campaigns.detail.quoteRole', 'Guizhou')}
               />
             </div>
 
