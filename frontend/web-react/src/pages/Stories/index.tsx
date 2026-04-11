@@ -318,8 +318,25 @@ export default function Stories() {
           </div>
         )}
         {/* Category filter — capsule style */}
-        <div className="flex items-center mb-12 rounded-full bg-white/80 backdrop-blur-xl shadow-sm px-2 py-1 overflow-x-auto" role="tablist">
-          {categories.map((cat, catIndex) => (
+        <div
+          className="flex items-center mb-12 rounded-full bg-white/80 backdrop-blur-xl shadow-sm px-2 py-1 overflow-x-auto"
+          role="tablist"
+          onKeyDown={(e) => {
+            const currentIndex = categories.indexOf(activeCategory);
+            if (e.key === 'ArrowRight') {
+              e.preventDefault();
+              const next = categories[(currentIndex + 1) % categories.length];
+              setActiveCategory(next);
+              document.getElementById(`tab-story-${next}`)?.focus();
+            } else if (e.key === 'ArrowLeft') {
+              e.preventDefault();
+              const prev = categories[(currentIndex - 1 + categories.length) % categories.length];
+              setActiveCategory(prev);
+              document.getElementById(`tab-story-${prev}`)?.focus();
+            }
+          }}
+        >
+          {categories.map((cat) => (
             <button
               key={cat}
               role="tab"
@@ -328,17 +345,6 @@ export default function Stories() {
               aria-controls="panel-stories"
               tabIndex={activeCategory === cat ? 0 : -1}
               onClick={() => setActiveCategory(cat)}
-              onKeyDown={(e) => {
-                if (e.key === 'ArrowRight') {
-                  const next = categories[(catIndex + 1) % categories.length];
-                  setActiveCategory(next);
-                  document.getElementById(`tab-story-${next}`)?.focus();
-                } else if (e.key === 'ArrowLeft') {
-                  const prev = categories[(catIndex - 1 + categories.length) % categories.length];
-                  setActiveCategory(prev);
-                  document.getElementById(`tab-story-${prev}`)?.focus();
-                }
-              }}
               className={`
                 font-body text-label tracking-wide px-3 py-1 rounded-full transition-all duration-200 cursor-pointer whitespace-nowrap
                 ${activeCategory === cat
