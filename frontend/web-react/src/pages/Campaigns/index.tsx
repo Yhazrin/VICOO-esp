@@ -8,7 +8,6 @@ import SectionContainer from '@/components/layout/SectionContainer';
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import { VintageInput } from '@/components/editorial/VintageInput';
 import { campaignsApi } from '@/services/campaigns';
-import type { Campaign } from '@/types';
 
 const PAGE_SIZE = 6;
 

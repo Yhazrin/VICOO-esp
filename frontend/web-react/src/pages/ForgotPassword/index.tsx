@@ -21,8 +21,9 @@ export default function ForgotPassword() {
       const response = await api.post('/auth/forgot-password', { email });
       setRecoveryData(response.data?.data || null);
       setSubmitted(true);
-    } catch (err: any) {
-      if (err.response?.status === 404) {
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 404) {
         setError(t('forgotPassword.errorNotFound'));
       } else {
         setError(t('forgotPassword.errorGeneric'));
