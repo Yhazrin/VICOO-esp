@@ -33,7 +33,7 @@ export default function MobileNav() {
 
   useEffect(() => {
     if (mobileNavOpen) {
-      setTimeout(() => {
+      const focusTimer = setTimeout(() => {
         firstLinkRef.current?.focus();
       }, 100);
 
@@ -44,7 +44,10 @@ export default function MobileNav() {
       };
 
       document.addEventListener('keydown', handleKeyDown);
-      return () => document.removeEventListener('keydown', handleKeyDown);
+      return () => {
+        clearTimeout(focusTimer);
+        document.removeEventListener('keydown', handleKeyDown);
+      };
     } else {
       if (menuTriggerRef?.current) {
         menuTriggerRef.current.focus();
