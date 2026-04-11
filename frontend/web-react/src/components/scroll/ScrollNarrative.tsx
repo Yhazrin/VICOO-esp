@@ -126,7 +126,7 @@ function Scene01({ p, rm, mapRange }: SceneProps) {
   return (
     <div
       className="absolute inset-0 flex items-center"
-      style={{ opacity, transform: `translateY(${y}px)` }}
+      style={{ opacity, transform: `translateY(${y}px)`, zIndex: 1 }}
     >
       {/* Scene number */}
       <div className="absolute top-16 left-8 md:left-16 z-10">
@@ -181,6 +181,7 @@ function Scene01({ p, rm, mapRange }: SceneProps) {
       <div
         className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
         style={{ opacity: scrollHint }}
+        aria-hidden="true"
       >
         <span className="font-body text-[10px] text-sepia-mid tracking-[0.25em] uppercase">Scroll</span>
         <div className="w-px h-6 bg-gradient-to-b from-sepia-mid/40 to-transparent" />
@@ -195,7 +196,7 @@ function Scene01({ p, rm, mapRange }: SceneProps) {
 
 function Scene02({ p, rm, mapRange, images }: Scene02Props) {
   // Layer: visible 18–52%
-  const opacity = rm ? 0
+  const opacity = rm ? 1
     : mapRange(p, 0.18, 0.24, 0, 1) * (1 - mapRange(p, 0.46, 0.52, 0, 1));
 
   const layerY = rm ? 0 : mapRange(p, 0.18, 0.28, 50, 0);
@@ -208,20 +209,20 @@ function Scene02({ p, rm, mapRange, images }: Scene02Props) {
     { x: '42%', y: '30%', w: 'w-36 md:w-52', rot: 0.5 },
   ];
 
-  // Fallback images when API returns nothing
-  const fallbacks = [
-    'https://picsum.photos/seed/vicoo-1/400/500',
-    'https://picsum.photos/seed/vicoo-2/400/400',
-    'https://picsum.photos/seed/vicoo-3/400/500',
-    'https://picsum.photos/seed/vicoo-4/400/400',
-    'https://picsum.photos/seed/vicoo-5/400/500',
+  // Merge API images with fallback gradients — use API images first, fill remaining slots
+  const fallbackGradients = [
+    'linear-gradient(135deg, #C4A45A 0%, #8B7355 100%)',
+    'linear-gradient(135deg, #8B3A2A 0%, #C4A45A 100%)',
+    'linear-gradient(135deg, #5A7A5A 0%, #8B7355 100%)',
+    'linear-gradient(135deg, #D4C5A9 0%, #8B3A2A 100%)',
+    'linear-gradient(135deg, #7D8471 0%, #C4A45A 100%)',
   ];
-  const srcs = images.length >= 3 ? images : fallbacks;
+  const srcs = images.length > 0 ? images.concat([]).slice(0, 5) : [];
 
   return (
     <div
       className="absolute inset-0 pointer-events-none"
-      style={{ opacity, transform: `translateY(${layerY}px)` }}
+      style={{ opacity, transform: `translateY(${layerY}px)`, zIndex: 2 }}
     >
       {/* Scene number */}
       <div className="absolute top-16 left-8 md:left-16 z-20">
@@ -258,13 +259,20 @@ function Scene02({ p, rm, mapRange, images }: Scene02Props) {
               opacity: cardOp,
             }}
           >
-            <img
-              src={srcs[i] ?? fallbacks[i]}
-              alt=""
-              className="w-full h-full object-cover"
-              style={{ filter: 'sepia(0.15) contrast(1.05) brightness(0.97)' }}
-              loading="lazy"
-            />
+            {srcs[i] ? (
+              <img
+                src={srcs[i]}
+                alt={`Children's artwork ${i + 1}`}
+                className="w-full h-full object-cover"
+                style={{ filter: 'sepia(0.15) contrast(1.05) brightness(0.97)' }}
+                loading="lazy"
+              />
+            ) : (
+              <div
+                className="w-full h-full"
+                style={{ background: fallbackGradients[i] }}
+              />
+            )}
             {/* Corner accents */}
             <div className="absolute top-1.5 left-1.5 w-5 h-5 border-t border-l border-rust/25" />
             <div className="absolute bottom-1.5 right-1.5 w-5 h-5 border-b border-r border-rust/25" />
@@ -281,7 +289,7 @@ function Scene02({ p, rm, mapRange, images }: Scene02Props) {
 
 function Scene03({ p, rm, mapRange }: SceneProps) {
   // Layer: visible 40–72%
-  const opacity = rm ? 0
+  const opacity = rm ? 1
     : mapRange(p, 0.40, 0.48, 0, 1) * (1 - mapRange(p, 0.66, 0.72, 0, 1));
   const layerY = rm ? 0 : mapRange(p, 0.40, 0.52, 60, 0);
 
@@ -295,7 +303,7 @@ function Scene03({ p, rm, mapRange }: SceneProps) {
   return (
     <div
       className="absolute inset-0 flex flex-col items-center justify-center"
-      style={{ opacity, transform: `translateY(${layerY}px)` }}
+      style={{ opacity, transform: `translateY(${layerY}px)`, zIndex: 3 }}
     >
       {/* Scene number */}
       <div className="absolute top-16 left-8 md:left-16 z-20">
@@ -369,8 +377,8 @@ function Scene04({ p, rm, mapRange }: SceneProps) {
 
   return (
     <div
-      className="absolute inset-0 flex flex-col items-center justify-center bg-ink/[0.96]"
-      style={{ opacity, transform: `translateY(${layerY}px)` }}
+      className="absolute inset-0 flex flex-col items-center justify-center bg-ink"
+      style={{ opacity, transform: `translateY(${layerY}px)`, zIndex: 4 }}
     >
       {/* Scene number */}
       <div className="absolute top-16 left-8 md:left-16 z-20">
