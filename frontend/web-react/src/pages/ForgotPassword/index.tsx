@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
 import api from '@/services/api';
+import { useUIStore } from '@/stores/uiStore';
 
 export default function ForgotPassword() {
   const { t, i18n } = useTranslation();
@@ -12,6 +13,7 @@ export default function ForgotPassword() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [recoveryData, setRecoveryData] = useState<{ password_hint?: string; is_mock?: boolean } | null>(null);
+  const setLocale = useUIStore((s) => s.setLocale);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -178,6 +180,7 @@ export default function ForgotPassword() {
             onClick={() => {
               const next = i18n.language === 'en' ? 'zh' : 'en';
               i18n.changeLanguage(next);
+              setLocale(next);
             }}
             className="font-body text-caption text-sepia-mid/50 hover:text-ink-faded transition-colors px-4 py-2 cursor-pointer"
           >

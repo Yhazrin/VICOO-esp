@@ -319,6 +319,12 @@ export default function Header() {
                       onBlur={() => {
                         if (!searchQuery) setSearchOpen(false);
                       }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Escape') {
+                          setSearchOpen(false);
+                          setSearchQuery('');
+                        }
+                      }}
                     />
                   </motion.form>
                 )}
