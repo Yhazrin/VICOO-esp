@@ -4,7 +4,7 @@ import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
-import GrainOverlay from '@/components/editorial/GrainOverlay';
+
 import { MagazineDivider } from '@/components/editorial/MagazineDivider';
 
 const SECTIONS = [
@@ -26,7 +26,7 @@ export default function Terms() {
   return (
     <PageWrapper>
       <PaperTextureBackground variant="paper" className="section-spacing relative">
-        <GrainOverlay />
+
 
         {/* Decorative vertical line */}
         <div className="absolute left-6 top-1/4 bottom-1/4 w-px bg-rust/15 hidden md:block" aria-hidden="true" />

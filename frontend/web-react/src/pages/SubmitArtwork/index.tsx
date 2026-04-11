@@ -5,7 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
-import GrainOverlay from '@/components/editorial/GrainOverlay';
+
 import { VintageInput } from '@/components/editorial/VintageInput';
 import { artworksApi } from '@/services/artworks';
 import { useAuthStore } from '@/stores/authStore';
@@ -39,7 +39,7 @@ export default function SubmitArtwork() {
     return (
       <PageWrapper>
         <PaperTextureBackground variant="paper" className="py-24 text-center">
-          <GrainOverlay />
+
           <p className="font-body text-ink-faded mb-6">
             {t('submitArtwork.loginRequired', '请先登录以提交画作')}
           </p>
@@ -56,7 +56,7 @@ export default function SubmitArtwork() {
   return (
     <PageWrapper>
       <PaperTextureBackground variant="paper" className="py-16 md:py-24 relative">
-        <GrainOverlay />
+
         <SectionContainer>
           <h2 className="font-display text-h3 font-bold text-ink mb-8">
             {t('submitArtwork.title', '提交画作')}

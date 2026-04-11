@@ -7,7 +7,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
-import GrainOverlay from '@/components/editorial/GrainOverlay';
+
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 import { MagazineDivider } from '@/components/editorial/MagazineDivider';
 import { EditorialCard } from '@/components/editorial/EditorialCard';
@@ -193,7 +193,7 @@ export default function Profile() {
     return (
       <PageWrapper>
         <PaperTextureBackground variant="paper" className="min-h-[100dvh] flex items-center justify-center relative">
-          <GrainOverlay />
+
           <div className="absolute left-6 top-1/4 bottom-1/4 w-px bg-rust/15 hidden md:block" aria-hidden="true" />
           <div className="text-center relative">
             <motion.span
@@ -252,7 +252,7 @@ export default function Profile() {
       <h1 className="sr-only">{t('profile.title')}</h1>
       {/* Profile Header */}
       <PaperTextureBackground variant="paper" className="py-16 md:py-24 relative">
-        <GrainOverlay />
+
         <SectionContainer>
           <h1 className="sr-only">{t('profile.title')}</h1>
           <h2 className="font-display text-h3 font-bold text-ink mb-8">
@@ -330,7 +330,7 @@ export default function Profile() {
 
       {/* Orders & Donations & Addresses */}
       <PaperTextureBackground variant="aged" className="py-16 md:py-24 relative">
-        <GrainOverlay />
+
         <SectionContainer>
           {/* Tab switcher — capsule style */}
           {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}

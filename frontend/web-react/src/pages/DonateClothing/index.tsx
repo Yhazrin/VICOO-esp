@@ -6,7 +6,7 @@ import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
-import GrainOverlay from '@/components/editorial/GrainOverlay';
+
 import { VintageInput } from '@/components/editorial/VintageInput';
 import { clothingIntakesApi } from '@/services/clothingIntakes';
 import { useAuthStore } from '@/stores/authStore';
@@ -42,7 +42,7 @@ export default function DonateClothing() {
     return (
       <PageWrapper>
         <PaperTextureBackground variant="paper" className="py-24 text-center">
-          <GrainOverlay />
+
           <p className="font-body text-ink-faded mb-6">{t('donateClothing.loginRequired', '请先登录以登记衣物捐献')}</p>
           <Link to="/login" className="font-body text-rust uppercase tracking-widest text-sm">
             {t('nav.login')} →
@@ -55,7 +55,7 @@ export default function DonateClothing() {
   return (
     <PageWrapper>
       <PaperTextureBackground variant="paper" className="py-16 md:py-24 relative">
-        <GrainOverlay />
+
         <SectionContainer>
           <h2 className="font-display text-h3 font-bold text-ink mb-8">
             {t('donateClothing.title', '衣物捐献登记')}

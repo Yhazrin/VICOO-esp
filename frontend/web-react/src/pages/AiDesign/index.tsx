@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
-import GrainOverlay from '@/components/editorial/GrainOverlay';
+
 import { aiDesignApi, type DesignDraft } from '@/services/aiDesign';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -97,7 +97,7 @@ export default function AiDesign() {
     return (
       <PageWrapper>
         <PaperTextureBackground variant="paper" className="py-24 text-center">
-          <GrainOverlay />
+
           <p className="font-body text-ink-faded mb-6">
             {t('aiDesign.adminOnly', '仅管理员可访问 AI 设计工作台')}
           </p>
@@ -114,7 +114,7 @@ export default function AiDesign() {
   return (
     <PageWrapper>
       <PaperTextureBackground variant="paper" className="py-16 md:py-24 relative">
-        <GrainOverlay />
+
         <SectionContainer>
           <h2 className="font-display text-h3 font-bold text-ink mb-2">
             {t('aiDesign.title', 'AI 设计工作台')}
