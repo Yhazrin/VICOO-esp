@@ -143,7 +143,7 @@ export default function ProductDetail() {
 
   const productImages = product.image_url ? [product.image_url] : [];
   const totalCarbon = supplyChainRecords.reduce(
-    (sum, r) => sum + (Number((r as Record<string, unknown>).carbonFootprint) || 0),
+    (sum, r) => sum + (Number((r as unknown as Record<string, unknown>).carbonFootprint) || 0),
     0
   );
 
