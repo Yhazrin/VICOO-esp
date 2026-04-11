@@ -6,7 +6,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
-import GrainOverlay from '@/components/editorial/GrainOverlay';
+
 import { ordersApi, type ReturnRequestData } from '@/services/orders';
 import { impactFundApi } from '@/services/impactFund';
 import TraceabilityTimeline from '@/components/editorial/TraceabilityTimeline';
@@ -168,7 +168,7 @@ export default function OrderDetail() {
         </div>
       )}
       <PaperTextureBackground variant="paper" className="py-16 md:py-24 relative">
-        <GrainOverlay />
+
         <SectionContainer>
           {/* Back link */}
           <Link to="/profile" className="font-body text-overline tracking-[0.15em] uppercase text-sepia-mid hover:text-ink transition-colors mb-8 inline-block">

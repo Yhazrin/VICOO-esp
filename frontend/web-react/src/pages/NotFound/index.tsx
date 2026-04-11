@@ -4,7 +4,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
-import GrainOverlay from '@/components/editorial/GrainOverlay';
+
 
 export default function NotFound() {
   const { t } = useTranslation();
@@ -13,7 +13,7 @@ export default function NotFound() {
   return (
     <PageWrapper>
       <PaperTextureBackground variant="paper" className="min-h-[80dvh] flex items-center relative">
-        <GrainOverlay />
+
 
         <SectionContainer>
           <motion.div
