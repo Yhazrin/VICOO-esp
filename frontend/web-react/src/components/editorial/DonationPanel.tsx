@@ -12,7 +12,7 @@ interface DonationPanelProps {
     frequency: 'once' | 'monthly';
     anonymous: boolean;
     message: string;
-    paymentMethod: 'wechat' | 'alipay' | 'stripe';
+    paymentMethod: 'wechat' | 'alipay' | 'stripe' | 'paypal';
   }) => void;
   isSubmitting?: boolean;
   className?: string;
