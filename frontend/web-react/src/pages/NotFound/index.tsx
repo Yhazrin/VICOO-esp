@@ -47,7 +47,7 @@ export default function NotFound() {
 
             <Link
               to="/"
-              className="inline-block font-body text-caption text-rust tracking-[0.15em] uppercase hover:text-ink transition-colors cursor-pointer border border-rust/30 px-8 py-3 hover:bg-rust hover:text-paper transition-all duration-300"
+              className="inline-block font-body text-caption text-rust tracking-[0.15em] uppercase cursor-pointer border border-rust/30 px-8 py-3 hover:bg-rust hover:text-paper transition-all duration-300"
             >
               {t('notFound.cta')}
             </Link>

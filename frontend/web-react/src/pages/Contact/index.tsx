@@ -228,10 +228,8 @@ export default function Contact() {
   const pullQuoteRef = useRef<HTMLDivElement>(null);
 
   // FAQ items from translations
-  const faqItems = t('contact.faq.items', { returnObjects: true }) as Array<{
-    question: string;
-    answer: string;
-  }>;
+  const rawFaqItems = t('contact.faq.items', { returnObjects: true });
+  const faqItems = Array.isArray(rawFaqItems) ? rawFaqItems as Array<{ question: string; answer: string }> : [];
 
   // Subject options
   const subjectOptions = [
@@ -328,7 +326,7 @@ export default function Contact() {
         </h2>
 
         <div className="max-w-3xl">
-          {Array.isArray(faqItems) && <FAQAccordion items={faqItems} />}
+          {faqItems.length > 0 && <FAQAccordion items={faqItems} />}
         </div>
       </SectionContainer>
 
