@@ -95,9 +95,9 @@ export default function Privacy() {
             {SECTIONS.map((section, i) => (
               <div key={section.key}>
                 <motion.section
-                  {...(prefersReducedMotion ? {} : { initial: { opacity: 0, y: 16 }, whileInView: { opacity: 1, y: 0 } })}
+                  {...(prefersReducedMotion ? { initial: { opacity: 1 } } : { initial: { opacity: 0, y: 16 }, whileInView: { opacity: 1, y: 0 } })}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: i * 0.04 }}
+                  transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5, delay: i * 0.04 }}
                 >
                   <h2 className="font-display text-h3 font-bold text-ink mb-8">
                     {t(`legal.privacy.sections.${section.key}.title`, { defaultValue: section.title })}

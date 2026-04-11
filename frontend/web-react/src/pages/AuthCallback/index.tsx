@@ -19,7 +19,7 @@ export default function AuthCallback() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { restoreSession, setAccessToken } = useAuthStore();
+  const { restoreSession } = useAuthStore();
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export default function AuthCallback() {
       email: email || '',
       nickname: nickname || t('authCallback.user', 'User'),
       role: 'user' as const,
-      avatar: avatar || undefined,
+      avatarUrl: avatar || undefined,
       createdAt: new Date().toISOString(),
     };
 
@@ -54,7 +54,7 @@ export default function AuthCallback() {
     // Redirect to home after a brief moment
     const timer = setTimeout(() => navigate('/', { replace: true }), 500);
     return () => clearTimeout(timer);
-  }, [searchParams, navigate, restoreSession, setAccessToken]);
+  }, [searchParams, navigate, restoreSession]);
 
   return (
     <PageWrapper>

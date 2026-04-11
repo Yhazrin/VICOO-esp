@@ -64,8 +64,8 @@ export const AIAssistantBall: React.FC = () => {
             {/* Masthead Header */}
             <div className="bg-[#1A1A16] text-[#F5F0E8] p-4 flex justify-between items-center border-b border-[#1A1A16]">
               <div>
-                <h3 className="text-xs uppercase tracking-[0.2em] font-bold">VICOO Assistant</h3>
-                <p className="text-[10px] opacity-60">Vol. 1 — Issue 01 — AI Edition</p>
+                <h3 className="text-xs uppercase tracking-[0.2em] font-bold">{t('aiAssistant.ballTitle', 'VICOO Assistant')}</h3>
+                <p className="text-[10px] opacity-60">{t('aiAssistant.ballSubtitle', 'Vol. 1 — Issue 01 — AI Edition')}</p>
               </div>
               <button onClick={() => setIsOpen(false)} className="text-xl hover:opacity-70">×</button>
             </div>
@@ -94,7 +94,7 @@ export const AIAssistantBall: React.FC = () => {
               ))}
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="p-3 text-xs animate-pulse">... Typing ...</div>
+                  <div className="p-3 text-xs animate-pulse">{t('aiAssistant.typing', '... Typing ...')}</div>
                 </div>
               )}
             </div>
@@ -107,7 +107,7 @@ export const AIAssistantBall: React.FC = () => {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-                  placeholder="Type your message..."
+                  placeholder={t('aiAssistant.placeholder', 'Type your message...')}
                   className="flex-1 bg-white border border-[#1A1A16] px-3 py-2 text-xs focus:outline-none placeholder:opacity-40"
                 />
                 <button 
@@ -115,7 +115,7 @@ export const AIAssistantBall: React.FC = () => {
                   disabled={isLoading}
                   className="bg-[#1A1A16] text-[#F5F0E8] px-4 py-2 text-[10px] uppercase tracking-widest hover:opacity-90 transition-opacity"
                 >
-                  Send
+                  {t('aiAssistant.send', 'Send')}
                 </button>
               </div>
             </div>
