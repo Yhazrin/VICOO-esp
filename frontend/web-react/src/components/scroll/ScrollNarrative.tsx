@@ -69,9 +69,7 @@ export default function ScrollNarrative() {
   const rm = prefersReducedMotion;
 
   return (
-    <div ref={containerRef} className="relative w-full -mt-16 md:-mt-20" style={{ height: '500vh' }}>
-      {/* Spacer compensates for the negative margin so sibling content stays in place */}
-      <div className="h-16 md:h-20" />
+    <div ref={containerRef} className="relative w-full" style={{ height: '500vh' }}>
       <div
         className="sticky overflow-hidden"
         style={{ position: 'sticky', top: 0, height: '100vh', width: '100%', zIndex: 10 }}
