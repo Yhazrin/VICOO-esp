@@ -198,7 +198,7 @@ export default function Header() {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [userMenuOpen]);
+  }, [userMenuOpen, setSettingsMenuOpen]);
 
   const toggleLocale = () => {
     const next = currentLocale === 'en' ? 'zh' : 'en';
