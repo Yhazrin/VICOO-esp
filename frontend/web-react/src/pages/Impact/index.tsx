@@ -15,10 +15,11 @@ export default function Impact() {
   const activeTab = VALID_TABS.includes(tab) ? tab : 'campaigns';
 
   switch (activeTab) {
-    case 'campaigns': return <Campaigns />;
     case 'stories': return <Stories />;
     case 'traceability': return <Traceability />;
     case 'donate': return <Donate />;
     case 'shop': return <ImpactShop />;
+    case 'campaigns':
+    default: return <Campaigns />;
   }
 }
