@@ -4,9 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { aiAssistantApi, type AIChatMessage } from '@/services/aiAssistant';
 
 interface Message {
+  id: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
 }
+
+let _msgId = 0;
+const nextMsgId = () => `msg-${++_msgId}`;
 
 export const AIAssistantBall: React.FC = () => {
   const { t } = useTranslation();
@@ -25,7 +29,7 @@ export const AIAssistantBall: React.FC = () => {
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
-    const userMsg: Message = { role: 'user', content: input };
+    const userMsg: Message = { id: nextMsgId(), role: 'user', content: input };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setIsLoading(true);
@@ -37,9 +41,9 @@ export const AIAssistantBall: React.FC = () => {
       }));
       const result = await aiAssistantApi.chat(chatMessages, 'general');
       const reply = result.reply || t('aiAssistant.replyError');
-      setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
+      setMessages(prev => [...prev, { id: nextMsgId(), role: 'assistant', content: reply }]);
     } catch {
-      setMessages(prev => [...prev, { role: 'system', content: t('aiAssistant.connectionError') }]);
+      setMessages(prev => [...prev, { id: nextMsgId(), role: 'system', content: t('aiAssistant.connectionError') }]);
     } finally {
       setIsLoading(false);
     }
@@ -77,8 +81,8 @@ export const AIAssistantBall: React.FC = () => {
                   <p className="mt-4 text-xs">{t('aiAssistant.greeting')}</p>
                 </div>
               )}
-              {messages.map((m, i) => (
-                <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              {messages.map((m) => (
+                <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                   <div className={`max-w-[85%] p-3 text-xs leading-relaxed ${
                     m.role === 'user' 
                       ? 'bg-[#EDE6D6] border border-[#1A1A16] text-[#1A1A16]' 
