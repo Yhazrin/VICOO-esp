@@ -413,6 +413,13 @@ export default function Traceability() {
     return () => { cancelled = true; };
   }, [t]);
 
+  // Cleanup search debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    };
+  }, []);
+
   // Handle product lookup — try API trace (debounced)
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
