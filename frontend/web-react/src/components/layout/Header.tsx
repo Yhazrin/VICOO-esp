@@ -359,7 +359,7 @@ export default function Header() {
           <button
             onClick={toggleLocale}
             className="font-body text-caption text-ink-faded hover:text-ink transition-colors w-9 h-9 rounded-full bg-white shadow-sm flex items-center justify-center cursor-pointer"
-            aria-label="Toggle language"
+            aria-label={t('nav.toggleLanguage', 'Toggle language')}
           >
             {currentLocale === 'zh' ? 'EN' : '中'}
           </button>
@@ -372,7 +372,7 @@ export default function Header() {
                 setActiveSubmenu(null);
               }}
               className="flex items-center justify-center w-9 h-9 rounded-full bg-white shadow-sm hover:shadow-md transition-all cursor-pointer"
-              aria-label="User menu"
+              aria-label={t('nav.userMenu', 'User menu')}
               aria-expanded={userMenuOpen}
               aria-haspopup="menu"
             >
@@ -398,7 +398,7 @@ export default function Header() {
                   exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.15 }}
                   role="menu"
-                  aria-label="User menu"
+                  aria-label={t('nav.userMenu', 'User menu')}
                   className="absolute right-0 top-full mt-2 w-56 bg-paper border border-warm-gray/40 shadow-lg z-50 rounded-lg"
                 >
                   {activeSubmenu === 'theme' ? (
@@ -578,7 +578,7 @@ export default function Header() {
               ref={menuTriggerRef}
               onClick={toggleMobileNav}
               className="flex flex-col gap-1.5 p-2 cursor-pointer"
-              aria-label="Toggle menu"
+              aria-label={t('nav.toggleMenu', 'Toggle menu')}
               aria-expanded={mobileNavOpen}
               aria-controls="mobile-navigation"
             >

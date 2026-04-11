@@ -311,7 +311,7 @@ export default function ProductDetail() {
                 <div className="flex items-center border border-warm-gray/50">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    aria-label="Decrease quantity"
+                    aria-label={t('cart.decreaseQuantity', 'Decrease quantity')}
                     className="min-w-[44px] min-h-[44px] px-3 py-2 text-ink hover:bg-warm-gray/20 transition-colors cursor-pointer"
                   >
                     -
@@ -319,7 +319,7 @@ export default function ProductDetail() {
                   <span className="font-body text-body-sm px-4 py-2 text-ink" aria-live="polite">{quantity}</span>
                   <button
                     onClick={() => setQuantity(quantity + 1)}
-                    aria-label="Increase quantity"
+                    aria-label={t('cart.increaseQuantity', 'Increase quantity')}
                     className="min-w-[44px] min-h-[44px] px-3 py-2 text-ink hover:bg-warm-gray/20 transition-colors cursor-pointer"
                   >
                     +

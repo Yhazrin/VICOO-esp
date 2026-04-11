@@ -67,6 +67,7 @@ export function FullHeightLayout() {
       </main>
       <EditorialFooter />
       {/* No GrainOverlay here - scroll narrative handles its own grain effect */}
+      <AIAssistantBall />
     </div>
   );
 }

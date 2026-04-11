@@ -31,7 +31,7 @@ export default function TraceabilityTimeline({
     return (
       <div className={`text-center py-16 ${className}`}>
         <p className="font-body text-body-sm text-sepia-mid">
-          No supply chain records available.
+          {t('traceability.noRecords', 'No supply chain records available.')}
         </p>
       </div>
     );

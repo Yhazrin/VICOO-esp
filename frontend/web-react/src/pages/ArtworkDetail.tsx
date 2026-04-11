@@ -73,7 +73,7 @@ export default function ArtworkDetail() {
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 w-full">
           <div className="flex items-center gap-3 bg-rust/10 border border-rust/20 px-4 py-3 mt-4 mb-2">
             <p className="font-body text-body-sm text-rust flex-1">{voteError}</p>
-            <button onClick={() => setVoteError('')} className="text-rust hover:text-rust-light cursor-pointer" aria-label="Dismiss">&times;</button>
+            <button onClick={() => setVoteError('')} className="text-rust hover:text-rust-light cursor-pointer" aria-label={t('common.dismiss', 'Dismiss')}>&times;</button>
           </div>
         </div>
       )}
