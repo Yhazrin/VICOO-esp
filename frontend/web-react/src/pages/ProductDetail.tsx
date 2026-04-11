@@ -12,6 +12,7 @@ import TraceabilityTimeline from '@/components/editorial/TraceabilityTimeline';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import { useCartStore } from '@/stores/cartStore';
 import { productsApi } from '@/services/products';
+import { supplyChainApi } from '@/services/supply-chain';
 import { reviewsApi } from '@/services/reviewsApi';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -74,6 +75,13 @@ export default function ProductDetail() {
     retry: false,
   });
 
+  const { data: supplyChainRecords = [] } = useQuery({
+    queryKey: ['product-supply-chain', id],
+    queryFn: () => supplyChainApi.getProductJourney(id!),
+    enabled: !!id,
+    retry: false,
+  });
+
   const { data: reviewsResult } = useQuery({
     queryKey: ['reviews', id],
     queryFn: () => reviewsApi.listByProduct(Number(id)),
@@ -133,9 +141,8 @@ export default function ProductDetail() {
   }
 
   const productImages = product.image_url ? [product.image_url] : [];
-  const supplyChain = product.supplyChain ?? [];
-  const totalCarbon = supplyChain.reduce(
-    (sum, r) => sum + (r.carbonFootprint ?? 0),
+  const totalCarbon = supplyChainRecords.reduce(
+    (sum, r) => sum + (Number((r as Record<string, unknown>).carbonFootprint) || 0),
     0
   );
 
@@ -354,7 +361,7 @@ export default function ProductDetail() {
           <p className="font-body text-body-sm text-ink-faded mt-2 mb-8">
             {`Total carbon footprint: ${totalCarbon.toFixed(1)} kg CO\u2082e \u00b7 Offset via verified programs`}
           </p>
-          <TraceabilityTimeline records={supplyChain} />
+          <TraceabilityTimeline records={supplyChainRecords} />
         </SectionContainer>
       </PaperTextureBackground>
 

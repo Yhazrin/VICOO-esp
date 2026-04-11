@@ -232,7 +232,7 @@ export default function Stories() {
     queryFn: async () => {
       const [editorialFeed, artworks, activeCampaign] = await Promise.all([
         editorialApi.getFeed(10),
-        artworksApi.getAll({ page_size: 10 }),
+        artworksApi.getAll({ page_size: 10, status: 'approved' }),
         campaignsApi.getActive().catch(() => null),
       ]);
       return { editorialFeed, artworks, activeCampaign };

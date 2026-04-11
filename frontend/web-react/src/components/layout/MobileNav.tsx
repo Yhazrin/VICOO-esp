@@ -10,6 +10,7 @@ import { useRef, useEffect, useState } from 'react';
 const COMPANY_NAV = [
   { key: 'home', path: '/' },
   { key: 'shop', path: '/shop' },
+  { key: 'stories', path: '/stories' },
   { key: 'about', path: '/about' },
   { key: 'contact', path: '/contact' },
 ];
@@ -194,6 +195,22 @@ export default function MobileNav() {
                 >
                   {t('nav.profile')}
                 </Link>
+                <Link
+                  to="/submit-artwork"
+                  onClick={() => setMobileNavOpen(false)}
+                  className="inline-block font-body text-body-sm text-ink-faded border border-warm-gray/40 px-6 py-3 rounded-full hover:text-ink transition-colors cursor-pointer"
+                >
+                  {t('nav.submitArtwork', 'Submit Artwork')}
+                </Link>
+                {(user.role === 'admin' || user.role === 'editor') && (
+                  <Link
+                    to="/ai-design"
+                    onClick={() => setMobileNavOpen(false)}
+                    className="inline-block font-body text-body-sm text-ink-faded border border-warm-gray/40 px-6 py-3 rounded-full hover:text-ink transition-colors cursor-pointer"
+                  >
+                    {t('nav.aiDesign', 'AI Design')}
+                  </Link>
+                )}
                 <button
                   onClick={handleLogout}
                   className="inline-block font-body text-body-sm bg-ink text-paper border border-ink px-6 py-3 rounded-full hover:bg-rust transition-colors text-left cursor-pointer"
