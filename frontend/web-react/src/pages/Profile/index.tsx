@@ -801,9 +801,17 @@ export default function Profile() {
           {/* Artworks tab */}
           {activeTab === 'artworks' && (
             <div role="tabpanel" id="panel-artworks" aria-labelledby="tab-artworks">
-              <h2 className="font-display text-h3 font-bold text-ink mb-6">
-                {t('profile.myArtworks', '我的画作')}
-              </h2>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="font-display text-h3 font-bold text-ink">
+                  {t('profile.myArtworks', '我的画作')}
+                </h2>
+                <Link
+                  to="/submit-artwork"
+                  className="font-body text-overline tracking-[0.15em] uppercase text-rust hover:text-ink transition-colors"
+                >
+                  + {t('profile.submitArtwork', '提交画作')}
+                </Link>
+              </div>
               {loadingArtworks ? (
                 <p className="font-body text-body-sm text-ink-faded">{t('common.loading', 'Loading...')}</p>
               ) : myArtworks.length === 0 ? (

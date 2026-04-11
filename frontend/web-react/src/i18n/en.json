@@ -16,6 +16,8 @@
     "register": "Register",
     "profile": "Profile",
     "logout": "Logout",
+    "submitArtwork": "Submit Artwork",
+    "aiDesign": "AI Design",
     "impact": "Impact",
     "group": {
       "company": "Company",
