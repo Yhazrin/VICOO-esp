@@ -31,7 +31,7 @@ export default function Pagination({ page, totalPages, total, pageSize, onPageCh
 
   if (totalPages <= 1) {
     return (
-      <div style={{ padding: '12px 0', fontSize: 13, color: 'var(--color-text-secondary)' }}>
+      <div style={{ padding: '12px 0', fontSize: 13, color: 'var(--color-ink-faded)' }}>
         {t('pagination.total', { count: total })}
       </div>
     );
@@ -42,7 +42,7 @@ export default function Pagination({ page, totalPages, total, pageSize, onPageCh
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       padding: '12px 0', flexWrap: 'wrap', gap: 12,
     }}>
-      <span style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
+      <span style={{ fontSize: 13, color: 'var(--color-ink-faded)' }}>
         {t('pagination.page', { current: page, total: totalPages })}
       </span>
       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -51,7 +51,7 @@ export default function Pagination({ page, totalPages, total, pageSize, onPageCh
         </PageBtn>
         {getPageNumbers().map((p, i) =>
           typeof p === 'string' ? (
-            <span key={`ellipsis-${i}`} style={{ padding: '0 8px', color: 'var(--color-text-light)' }}>...</span>
+            <span key={`ellipsis-${i}`} style={{ padding: '0 8px', color: 'var(--color-ink-light)' }}>...</span>
           ) : (
             <PageBtn key={p} active={p === page} onClick={() => onPageChange(p)}>
               {p}
@@ -80,7 +80,7 @@ function PageBtn({ children, active, disabled, onClick }: {
         borderColor: active ? 'var(--color-accent)' : 'var(--color-border)',
         borderRadius: 'var(--radius-sm)',
         background: active ? 'var(--color-accent)' : 'var(--color-bg-card)',
-        color: active ? '#fff' : disabled ? 'var(--color-text-light)' : 'var(--color-text)',
+        color: active ? '#fff' : disabled ? 'var(--color-ink-light)' : 'var(--color-ink)',
         fontSize: 13,
         fontWeight: active ? 600 : 400,
         cursor: disabled ? 'not-allowed' : 'pointer',

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface Column<T> {
   key: string;
@@ -23,6 +24,7 @@ interface DataTableProps<T> {
 export default function DataTable<T extends Record<string, any>>({
   columns, data, rowKey, loading, sortBy, sortOrder, onSort, onRowClick,
 }: DataTableProps<T>) {
+  const { t } = useTranslation();
   const renderSortIcon = (key: string) => {
     if (sortBy !== key) return <span style={{ color: 'var(--color-warm-gray)', marginLeft: 6 }}>&#8693;</span>;
     return (
@@ -98,14 +100,14 @@ export default function DataTable<T extends Record<string, any>>({
                       borderRadius: '50%',
                       animation: 'spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite',
                     }} />
-                    <span style={{ fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Synchronizing Archive...</span>
+                    <span style={{ fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{t('dataTable.loading', '加载中...')}</span>
                   </div>
                 </td>
               </tr>
             ) : data.length === 0 ? (
               <tr>
                 <td colSpan={columns.length} style={{ padding: 60, textAlign: 'center', color: 'var(--color-sepia-mid)', fontStyle: 'italic' }}>
-                  No records found in the current selection.
+                  {t('dataTable.empty', '暂无数据')}
                 </td>
               </tr>
             ) : (

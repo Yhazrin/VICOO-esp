@@ -46,7 +46,7 @@ export default function Breadcrumb() {
     }}>
       <Link
         to="/"
-        style={{ color: 'var(--color-text-secondary)', textDecoration: 'none' }}
+        style={{ color: 'var(--color-ink-faded)', textDecoration: 'none' }}
       >
         {t('breadcrumb.home')}
       </Link>
@@ -57,11 +57,11 @@ export default function Breadcrumb() {
 
         return (
           <span key={path} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ color: 'var(--color-text-light)' }}>/</span>
+            <span style={{ color: 'var(--color-ink-light)' }}>/</span>
             {isLast ? (
-              <span style={{ color: 'var(--color-text)', fontWeight: 500 }}>{label}</span>
+              <span style={{ color: 'var(--color-ink)', fontWeight: 500 }}>{label}</span>
             ) : (
-              <Link to={path} style={{ color: 'var(--color-text-secondary)', textDecoration: 'none' }}>
+              <Link to={path} style={{ color: 'var(--color-ink-faded)', textDecoration: 'none' }}>
                 {label}
               </Link>
             )}
