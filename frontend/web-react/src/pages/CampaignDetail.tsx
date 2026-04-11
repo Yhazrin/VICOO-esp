@@ -17,7 +17,7 @@ import { campaignsApi } from '@/services/campaigns';
 import { artworksApi } from '@/services/artworks';
 import { donationsApi } from '@/services/donations';
 import { useAuthStore } from '@/stores/authStore';
-import type { Campaign, Artwork } from '@/types';
+import type { Campaign } from '@/types';
 
 export default function CampaignDetail() {
   const { id } = useParams<{ id: string }>();

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -15,6 +15,7 @@ import { productsApi } from '@/services/products';
 import { supplyChainApi } from '@/services/supply-chain';
 import { reviewsApi } from '@/services/reviewsApi';
 import { useAuthStore } from '@/stores/authStore';
+import type { SupplyChainTimelineRecord } from '@/types';
 
 function ThumbnailButton({
   url,
@@ -82,6 +83,22 @@ export default function ProductDetail() {
     retry: false,
   });
 
+  // Map API SupplyChainRecord to SupplyChainTimelineRecord for TraceabilityTimeline
+  const timelineRecords: SupplyChainTimelineRecord[] = useMemo(
+    () =>
+      supplyChainRecords.map((r, i) => ({
+        id: Number(r.id) || i + 1,
+        stage: r.stage,
+        description: r.description,
+        location: r.location,
+        date: r.timestamp ? r.timestamp.split('T')[0] : '',
+        verified: r.certified ?? false,
+        partnerName: r.artisan?.name ?? r.productName ?? '',
+        carbonFootprint: r.carbon_kg,
+      })),
+    [supplyChainRecords]
+  );
+
   const { data: reviewsResult } = useQuery({
     queryKey: ['reviews', id],
     queryFn: () => reviewsApi.listByProduct(Number(id)),
@@ -142,8 +159,8 @@ export default function ProductDetail() {
   }
 
   const productImages = product.image_url ? [product.image_url] : [];
-  const totalCarbon = supplyChainRecords.reduce(
-    (sum, r) => sum + (Number((r as unknown as Record<string, unknown>).carbonFootprint) || 0),
+  const totalCarbon = timelineRecords.reduce(
+    (sum, r) => sum + (r.carbonFootprint || 0),
     0
   );
 
@@ -362,7 +379,7 @@ export default function ProductDetail() {
           <p className="font-body text-body-sm text-ink-faded mt-2 mb-8">
             {t('shop.detail.carbonTotal', { total: totalCarbon.toFixed(1), defaultValue: 'Total carbon footprint: {{total}} kg CO\u2082e \u00b7 Offset via verified programs' })}
           </p>
-          <TraceabilityTimeline records={supplyChainRecords} />
+          <TraceabilityTimeline records={timelineRecords} />
         </SectionContainer>
       </PaperTextureBackground>
 

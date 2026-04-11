@@ -147,7 +147,6 @@ export default function Header() {
     setMenuTriggerRef,
     currentTheme,
     setTheme,
-    settingsMenuOpen,
     setSettingsMenuOpen,
     impactMode,
     setImpactMode,
