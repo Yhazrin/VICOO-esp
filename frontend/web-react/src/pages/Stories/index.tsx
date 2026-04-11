@@ -227,7 +227,7 @@ export default function Stories() {
   const categories: Category[] = ['all', 'impact', 'fashion', 'community', 'education'];
 
   // Fetch editorial feed + artworks/campaign enrichments from API.
-  const { data: storiesFeed } = useQuery({
+  const { data: storiesFeed, isLoading, error: feedError } = useQuery({
     queryKey: ['stories-feed'],
     queryFn: async () => {
       const [editorialFeed, artworks, activeCampaign] = await Promise.all([
@@ -307,6 +307,16 @@ export default function Stories() {
       />
 
       <SectionContainer noTopSpacing>
+        {feedError && (
+          <div className="flex items-center gap-3 bg-rust/10 border border-rust/20 px-4 py-3 mt-4 mb-2">
+            <p className="font-body text-body-sm text-rust flex-1">{t('stories.loadError', '加载故事失败，请刷新重试')}</p>
+          </div>
+        )}
+        {isLoading && (
+          <div className="py-24 text-center">
+            <p className="font-body text-sepia-mid">{t('stories.loading', '加载中...')}</p>
+          </div>
+        )}
         {/* Category filter — capsule style */}
         <div className="flex items-center mb-12 rounded-full bg-white/80 backdrop-blur-xl shadow-sm px-2 py-1 overflow-x-auto" role="tablist">
           {categories.map((cat, catIndex) => (

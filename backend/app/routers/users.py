@@ -72,7 +72,6 @@ async def update_me(
     user_service = UserService(db)
     try:
         user = await user_service.update_user_profile(current_user["id"], body.model_dump())
-        await db.commit()
         return ApiResponse(data=UserOut.model_validate(user).model_dump())
     except HTTPException:
         raise
@@ -112,7 +111,6 @@ async def update_user_role(
     user_service = UserService(db)
     try:
         user = await user_service.update_user_role(user_id, body.role)
-        await db.commit()
         return ApiResponse(data=UserOut.model_validate(user).model_dump())
     except HTTPException:
         raise
@@ -134,7 +132,6 @@ async def update_user_status(
     user_service = UserService(db)
     try:
         user = await user_service.update_user_status(user_id, body.status)
-        await db.commit()
         return ApiResponse(data=UserOut.model_validate(user).model_dump())
     except HTTPException:
         raise

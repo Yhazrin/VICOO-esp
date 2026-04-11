@@ -42,11 +42,27 @@ class ImpactFundService(BaseService):
         items_stmt = select(OrderItem).where(OrderItem.order_id == order_id)
         items = (await self.db.execute(items_stmt)).scalars().all()
 
+        if not items:
+            return []
+
+        # Batch load products
+        product_ids = list({item.product_id for item in items})
+        products_stmt = select(Product).where(Product.id.in_(product_ids))
+        products_result = (await self.db.execute(products_stmt)).scalars().all()
+        product_map = {p.id: p for p in products_result}
+
+        # Batch load artworks for products that have artwork_id
+        artwork_ids = list({p.artwork_id for p in product_map.values() if p.artwork_id})
+        artwork_map = {}
+        if artwork_ids:
+            artworks_stmt = select(Artwork).where(Artwork.id.in_(artwork_ids))
+            artworks_result = (await self.db.execute(artworks_stmt)).scalars().all()
+            artwork_map = {a.id: a for a in artworks_result}
+
         entries: list[ImpactFundEntry] = []
 
         for item in items:
-            product_stmt = select(Product).where(Product.id == item.product_id)
-            product = (await self.db.execute(product_stmt)).scalar_one_or_none()
+            product = product_map.get(item.product_id)
 
             if not product or not product.donation_percentage or product.donation_percentage <= 0:
                 continue
@@ -62,8 +78,7 @@ class ImpactFundService(BaseService):
             child_participant_id = None
 
             if artwork_id:
-                artwork_stmt = select(Artwork).where(Artwork.id == artwork_id)
-                artwork = (await self.db.execute(artwork_stmt)).scalar_one_or_none()
+                artwork = artwork_map.get(artwork_id)
                 if artwork:
                     artist_name = artwork.artist_name
                     child_participant_id = artwork.child_participant_id

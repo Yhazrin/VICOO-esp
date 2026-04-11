@@ -30,6 +30,8 @@ export default function Support() {
     { value: 'other', label: t('support.other') },
   ];
 
+  const [submitError, setSubmitError] = useState('');
+
   const mutation = useMutation({
     mutationFn: () =>
       afterSalesApi.create({
@@ -39,11 +41,13 @@ export default function Support() {
         description: description || undefined,
       }),
     onSuccess: () => {
+      setSubmitError('');
       qc.invalidateQueries({ queryKey: ['my-after-sales'] });
       setSubject('');
       setDescription('');
       setOrderId('');
     },
+    onError: () => setSubmitError(t('support.submitError', '提交失败，请重试')),
   });
 
   if (!isAuthenticated) {
@@ -124,6 +128,9 @@ export default function Support() {
               <p className="font-body text-caption text-rust" role="alert">
                 {t('support.error', '提交失败，请检查订单号是否属于您的账号')}
               </p>
+            )}
+            {submitError && (
+              <p className="font-body text-body-sm text-rust mb-4">{submitError}</p>
             )}
             <button
               type="submit"

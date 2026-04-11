@@ -92,7 +92,7 @@ export default function Vote() {
   const [voteError, setVoteError] = useState('');
 
   // Fetch featured artworks for voting
-  const { data: artworksData } = useQuery({
+  const { data: artworksData, isLoading, error: queryError } = useQuery({
     queryKey: ['artworks-featured'],
     queryFn: async () => {
       const result = await artworksApi.getAll({ page_size: 12 });
@@ -115,6 +115,20 @@ export default function Vote() {
 
   return (
     <PageWrapper>
+      {queryError && (
+        <div className="max-w-[1400px] mx-auto px-6 md:px-10 w-full">
+          <div className="flex items-center gap-3 bg-rust/10 border border-rust/20 px-4 py-3 mt-4 mb-2">
+            <p className="font-body text-body-sm text-rust flex-1">{t('vote.loadError', '加载作品失败，请刷新重试')}</p>
+          </div>
+        </div>
+      )}
+      {isLoading && (
+        <SectionContainer noTopSpacing>
+          <div className="py-24 text-center">
+            <p className="font-body text-sepia-mid">{t('vote.loading', '加载中...')}</p>
+          </div>
+        </SectionContainer>
+      )}
       {voteError && (
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 w-full">
           <div className="flex items-center gap-3 bg-rust/10 border border-rust/20 px-4 py-3 mt-4 mb-2">
