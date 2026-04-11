@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { useReducedMotion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
@@ -394,20 +395,20 @@ function Scene04({ p, rm, mapRange }: SceneProps) {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <a
-            href="/campaigns"
+          <Link
+            to="/campaigns"
             className="inline-block font-body text-body-sm tracking-[0.15em] uppercase bg-rust text-paper px-8 py-4 hover:bg-rust-light transition-colors duration-300"
             style={{ transform: `scale(${scale1})` }}
           >
             Join Campaign
-          </a>
-          <a
-            href="/donate"
+          </Link>
+          <Link
+            to="/donate"
             className="inline-block font-body text-body-sm tracking-[0.15em] uppercase border border-sage/40 text-sage-pale px-8 py-4 hover:border-sage hover:text-paper transition-colors duration-300"
             style={{ transform: `scale(${scale2})` }}
           >
             Make Donation
-          </a>
+          </Link>
         </div>
       </div>
 

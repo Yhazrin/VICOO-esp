@@ -109,7 +109,7 @@ function getStoredUISettings(): { currentTheme: ThemeId; currentLocale: Locale }
   }
 
   return {
-    currentTheme: 'monochrome',
+    currentTheme: 'editorial',
     currentLocale: 'en',
   };
 }
