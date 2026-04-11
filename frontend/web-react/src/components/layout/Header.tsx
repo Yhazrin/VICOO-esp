@@ -172,12 +172,19 @@ export default function Header() {
     setMenuTriggerRef(menuTriggerRef);
   }, [setMenuTriggerRef]);
 
-  // Auto-activate impact mode when on an impact route
+  // Auto-activate impact mode on exact impact routes; disable for detail sub-routes
   useEffect(() => {
-    const impactTab = IMPACT_TABS.find((tab) => location.pathname === tab.path || location.pathname.startsWith(tab.path + '/'));
-    if (impactTab) {
+    const exactTab = IMPACT_TABS.find((tab) => location.pathname === tab.path);
+    if (exactTab) {
       setImpactMode(true);
-      setActiveImpactTab(impactTab.key);
+      setActiveImpactTab(exactTab.key);
+    } else {
+      // On detail sub-routes (e.g. /campaigns/:id), disable impact mode
+      // so the Outlet renders the detail page instead of the impact list view
+      const prefixTab = IMPACT_TABS.find((tab) => location.pathname.startsWith(tab.path + '/'));
+      if (prefixTab) {
+        setImpactMode(false);
+      }
     }
   }, [location.pathname, setImpactMode, setActiveImpactTab]);
 
