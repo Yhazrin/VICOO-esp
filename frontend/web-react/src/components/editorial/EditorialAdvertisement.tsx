@@ -1,5 +1,6 @@
 import { type ReactNode } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 interface EditorialAdvertisementProps {
   children: ReactNode;
@@ -10,11 +11,13 @@ interface EditorialAdvertisementProps {
 
 export default function EditorialAdvertisement({
   children,
-  label = 'Advertisement',
+  label,
   className = '',
   variant = 'default',
 }: EditorialAdvertisementProps) {
+  const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
+  const resolvedLabel = label ?? t('editorial.advertisement', 'Advertisement');
   const variantStyles = {
     default: 'p-8',
     sidebar: 'p-4',
@@ -37,7 +40,7 @@ export default function EditorialAdvertisement({
     >
       {/* Advertisement label */}
       <span className="absolute top-3 left-1/2 -translate-x-1/2 font-mono text-[10px] tracking-[0.2em] uppercase text-ink-light">
-        {label}
+        {resolvedLabel}
       </span>
 
       {/* Decorative corners */}

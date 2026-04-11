@@ -55,7 +55,7 @@ export default function CartDrawer() {
               <button
                 onClick={() => setCartOpen(false)}
                 className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-warm-gray/10 transition-colors cursor-pointer"
-                aria-label="Close cart"
+                aria-label={t('cart.close', 'Close cart')}
               >
                 <svg className="w-5 h-5 text-ink-faded" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
                   <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
@@ -134,7 +134,7 @@ export default function CartDrawer() {
                             <button
                               onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.selectedSize, item.selectedColor)}
                               className="w-7 h-7 flex items-center justify-center text-ink-faded hover:text-ink transition-colors cursor-pointer"
-                              aria-label="Decrease quantity"
+                              aria-label={t('cart.decreaseQuantity', 'Decrease quantity')}
                             >
                               <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
                                 <line x1="2" y1="6" x2="10" y2="6" />
@@ -144,7 +144,7 @@ export default function CartDrawer() {
                             <button
                               onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.selectedSize, item.selectedColor)}
                               className="w-7 h-7 flex items-center justify-center text-ink-faded hover:text-ink transition-colors cursor-pointer"
-                              aria-label="Increase quantity"
+                              aria-label={t('cart.increaseQuantity', 'Increase quantity')}
                             >
                               <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
                                 <line x1="6" y1="2" x2="6" y2="10" />

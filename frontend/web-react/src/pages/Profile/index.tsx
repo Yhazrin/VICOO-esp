@@ -242,7 +242,7 @@ export default function Profile() {
             <button
               onClick={() => setErrorMessage('')}
               className="text-rust hover:text-rust-light cursor-pointer"
-              aria-label="Dismiss"
+              aria-label={t('common.dismiss', 'Dismiss')}
             >
               &times;
             </button>

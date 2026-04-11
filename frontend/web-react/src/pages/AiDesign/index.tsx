@@ -228,10 +228,17 @@ export default function AiDesign() {
         <>
           {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
           <div className="fixed inset-0 bg-ink/40 z-40" onClick={() => setSelectedDraft(null)} />
-          <div className="fixed inset-x-4 top-[5%] md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-2xl bg-paper border border-warm-gray/25 z-50 p-6 max-h-[90vh] overflow-y-auto">
+          {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={selectedDraft.title}
+            onKeyDown={(e) => { if (e.key === 'Escape') setSelectedDraft(null); }}
+            className="fixed inset-x-4 top-[5%] md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-2xl bg-paper border border-warm-gray/25 z-50 p-6 max-h-[90vh] overflow-y-auto"
+          >
             <div className="flex items-center justify-between mb-6">
               <h3 className="font-display text-xl font-bold text-ink">{selectedDraft.title}</h3>
-              <button onClick={() => setSelectedDraft(null)} className="text-sepia-mid hover:text-ink cursor-pointer">
+              <button onClick={() => setSelectedDraft(null)} aria-label={t('common.close', 'Close')} className="text-sepia-mid hover:text-ink cursor-pointer">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" /></svg>
               </button>
             </div>
