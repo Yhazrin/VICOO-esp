@@ -225,7 +225,7 @@ export default function Header() {
     setActiveSubmenu(null);
   };
 
-  const currentThemeConfig = THEMES.find((t) => t.id === currentTheme);
+  const currentThemeConfig = THEMES.find((theme) => theme.id === currentTheme);
 
   useEffect(() => {
     if (searchOpen) {
