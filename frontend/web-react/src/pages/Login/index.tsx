@@ -3,17 +3,19 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
+import { useUIStore } from '@/stores/uiStore';
 
 export default function Login() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const prefersReducedMotion = useReducedMotion();
   const { login, isLoggingIn, loginError } = useAuth();
+  const setLocale = useUIStore((s) => s.setLocale);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     login(
       { email, password },
@@ -215,6 +217,7 @@ export default function Login() {
             onClick={() => {
               const next = i18n.language === 'en' ? 'zh' : 'en';
               i18n.changeLanguage(next);
+              setLocale(next);
             }}
             className="font-body text-caption text-sepia-mid/50 hover:text-ink-faded transition-colors px-4 py-2 cursor-pointer"
           >
