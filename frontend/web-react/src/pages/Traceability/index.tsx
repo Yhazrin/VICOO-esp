@@ -371,6 +371,7 @@ export default function Traceability() {
   const [highlightedId, setHighlightedId] = useState<number | null>(null);
   const [searchResult, setSearchResult] = useState<EnhancedSupplyChainRecord | null>(null);
   const [records, setRecords] = useState<EnhancedSupplyChainRecord[]>([]);
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Fetch supply chain records from API on mount
   useEffect(() => {
@@ -412,49 +413,56 @@ export default function Traceability() {
     return () => { cancelled = true; };
   }, [t]);
 
-  // Handle product lookup — try API trace
+  // Handle product lookup — try API trace (debounced)
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
     setHighlightedId(null);
     setSearchResult(null);
 
-    if (!query.trim()) return;
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
 
-    setIsSearching(true);
+    if (!query.trim()) {
+      setIsSearching(false);
+      return;
+    }
 
-    supplyChainApi
-      .getProductJourney(query.trim())
-      .then((journey) => {
-        if (journey.length > 0) {
-          const first = journey[0];
-          const stage = normalizeStageKey(first.stage || 'unknown');
-          const verified = first.certified ?? (first.certifications?.length ?? 0) > 0;
-          const enhanced: EnhancedSupplyChainRecord = {
-            id: Number(first.id) || 1,
-            stage,
-            stageLabel: stageLabelFromBackend(first.stage || stage, t),
-            description: first.description,
-            location: first.location,
-            date: first.timestamp ? first.timestamp.split('T')[0] : '',
-            verified,
-            certified: first.certified,
-            partnerName: first.artisan?.name ?? first.productName ?? '',
-            carbonFootprint: first.carbon_kg ?? undefined,
-            story: first.description,
-            imageUrl: first.artisan?.imageUrl ?? `https://picsum.photos/seed/${stage}/200/200`,
-            status: (verified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
-            cert_image_url: first.cert_image_url ?? null,
-            timestamp: first.timestamp,
-            created_at: first.created_at,
-          };
-          setHighlightedId(enhanced.id);
-          setSearchResult(enhanced);
-        }
-        setIsSearching(false);
-      })
-      .catch(() => {
-        setIsSearching(false);
-      });
+    searchTimerRef.current = setTimeout(() => {
+      setIsSearching(true);
+
+      supplyChainApi
+        .getProductJourney(query.trim())
+        .then((journey) => {
+          if (journey.length > 0) {
+            const first = journey[0];
+            const stage = normalizeStageKey(first.stage || 'unknown');
+            const verified = first.certified ?? (first.certifications?.length ?? 0) > 0;
+            const enhanced: EnhancedSupplyChainRecord = {
+              id: Number(first.id) || 1,
+              stage,
+              stageLabel: stageLabelFromBackend(first.stage || stage, t),
+              description: first.description,
+              location: first.location,
+              date: first.timestamp ? first.timestamp.split('T')[0] : '',
+              verified,
+              certified: first.certified,
+              partnerName: first.artisan?.name ?? first.productName ?? '',
+              carbonFootprint: first.carbon_kg ?? undefined,
+              story: first.description,
+              imageUrl: first.artisan?.imageUrl ?? `https://picsum.photos/seed/${stage}/200/200`,
+              status: (verified ? 'verified' : 'pending') as 'verified' | 'in-progress' | 'pending',
+              cert_image_url: first.cert_image_url ?? null,
+              timestamp: first.timestamp,
+              created_at: first.created_at,
+            };
+            setHighlightedId(enhanced.id);
+            setSearchResult(enhanced);
+          }
+          setIsSearching(false);
+        })
+        .catch(() => {
+          setIsSearching(false);
+        });
+    }, 400);
   }, [t]);
 
   const reductionPercent = Math.round(
