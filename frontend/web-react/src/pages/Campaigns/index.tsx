@@ -147,14 +147,12 @@ export default function Campaigns() {
           ))}
         </div>
 
-        <div role="tabpanel" id="panel-campaigns" aria-labelledby={`tab-campaign-${filter}`}>
         {/* Results count */}
         <p className="font-body text-caption text-sepia-mid mb-8 tracking-wider">
           {t('campaigns.results', { count: campaigns.length })}
         </p>
 
         {/* Campaign list */}
-        <div role="tabpanel" id="panel-campaigns" aria-labelledby={`tab-campaign-${filter}`}>
         {isLoading ? (
           <div className="space-y-16">
             {[1, 2, 3].map((i) => (
@@ -326,7 +324,6 @@ export default function Campaigns() {
             </p>
           </motion.div>
         )}
-        </div>
 
         {/* Pagination — capsule style */}
         {totalPages > 1 && (
@@ -394,7 +391,6 @@ export default function Campaigns() {
             </Link>
           </motion.div>
         </div>
-        </div>{/* end tabpanel */}
       </SectionContainer>
 
       <div className="editorial-divider" />
