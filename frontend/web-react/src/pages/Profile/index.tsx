@@ -462,8 +462,8 @@ export default function Profile() {
 
                       {/* Items with images */}
                       <div className="space-y-3 mb-4">
-                        {order.items?.map((item, i) => (
-                          <div key={i} className="flex items-center gap-3">
+                        {order.items?.map((item) => (
+                          <div key={item.id} className="flex items-center gap-3">
                             <div className="w-12 h-14 flex-shrink-0 overflow-hidden border border-warm-gray/15 bg-aged-stock">
                               {item.product_image ? (
                                 <img src={item.product_image} alt={item.product_name || ''} className="w-full h-full object-cover" loading="lazy" />

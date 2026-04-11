@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import axios from 'axios';
 import { useTranslation } from 'react-i18next';
-
-const API_BASE = '/api/v1';
+import { aiAssistantApi, type AIChatMessage } from '@/services/aiAssistant';
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
@@ -33,14 +31,14 @@ export const AIAssistantBall: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(`${API_BASE}/ai/chat`, {
-        messages: [...messages, userMsg],
-        context: 'general'
-      });
-      
-      const reply = response.data?.data?.reply || t('aiAssistant.replyError');
+      const chatMessages: AIChatMessage[] = [...messages, userMsg].map((m) => ({
+        role: m.role as AIChatMessage['role'],
+        content: m.content,
+      }));
+      const result = await aiAssistantApi.chat(chatMessages, 'general');
+      const reply = result.reply || t('aiAssistant.replyError');
       setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
-    } catch (error) {
+    } catch {
       setMessages(prev => [...prev, { role: 'system', content: t('aiAssistant.connectionError') }]);
     } finally {
       setIsLoading(false);
