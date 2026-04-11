@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 interface ModalProps {
   open: boolean;
@@ -11,6 +12,7 @@ interface ModalProps {
 }
 
 export default function Modal({ open, onClose, title, children, footer, width = 500 }: ModalProps) {
+  const { t } = useTranslation();
   return (
     <AnimatePresence>
       {open && (
@@ -74,7 +76,7 @@ export default function Modal({ open, onClose, title, children, footer, width = 
                   color: 'var(--color-sepia-mid)',
                   marginBottom: '4px'
                 }}>
-                  Document Archive / Detail View
+                  {t('modal.subtitle', '详情查看')}
                 </span>
                 <h2 style={{ 
                   margin: 0, 
