@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import i18n from 'i18next';
+import i18n from '@/i18n';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -70,23 +70,20 @@ export default function Profile() {
 
   const tabs: TabKey[] = ['orders', 'donations', 'clothing', 'support', 'addresses', 'artworks'];
 
-  const handleTabKeyDown = useCallback(
-    (e: React.KeyboardEvent, tab: TabKey) => {
-      const idx = tabs.indexOf(tab);
-      if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        const next = tabs[(idx + 1) % tabs.length];
-        setActiveTab(next);
-        document.getElementById(`tab-${next}`)?.focus();
-      } else if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        const prev = tabs[(idx - 1 + tabs.length) % tabs.length];
-        setActiveTab(prev);
-        document.getElementById(`tab-${prev}`)?.focus();
-      }
-    },
-    [],
-  );
+  const handleTabKeyDown = (e: React.KeyboardEvent, tab: TabKey) => {
+    const idx = tabs.indexOf(tab);
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      const next = tabs[(idx + 1) % tabs.length];
+      setActiveTab(next);
+      document.getElementById(`tab-${next}`)?.focus();
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      const prev = tabs[(idx - 1 + tabs.length) % tabs.length];
+      setActiveTab(prev);
+      document.getElementById(`tab-${prev}`)?.focus();
+    }
+  };
 
   const { data: orders = [], isLoading: loadingOrders, isError: errorOrders } = useQuery({
     queryKey: ['my-orders', orderStatus, orderKeyword],
@@ -333,25 +330,9 @@ export default function Profile() {
 
         <SectionContainer>
           {/* Tab switcher — capsule style */}
-          {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
           <div
             className="flex items-center mb-12 rounded-full bg-white/80 backdrop-blur-xl shadow-sm px-2 py-1 overflow-x-auto"
             role="tablist"
-            onKeyDown={(e) => {
-              const tabIds: TabKey[] = ['orders', 'donations', 'clothing', 'support', 'addresses', 'artworks'];
-              const currentIndex = tabIds.indexOf(activeTab);
-              if (e.key === 'ArrowRight') {
-                e.preventDefault();
-                const next = tabIds[(currentIndex + 1) % tabIds.length];
-                setActiveTab(next);
-                (e.currentTarget.querySelectorAll('[role="tab"]')[(currentIndex + 1) % tabIds.length] as HTMLElement)?.focus();
-              } else if (e.key === 'ArrowLeft') {
-                e.preventDefault();
-                const prev = tabIds[(currentIndex - 1 + tabIds.length) % tabIds.length];
-                setActiveTab(prev);
-                (e.currentTarget.querySelectorAll('[role="tab"]')[(currentIndex - 1 + tabIds.length) % tabIds.length] as HTMLElement)?.focus();
-              }
-            }}
           >
             {tabs.map((tab) => (
               <button
