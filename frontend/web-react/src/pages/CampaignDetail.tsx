@@ -64,7 +64,9 @@ export default function CampaignDetail() {
     );
   }
 
-  const progress = Math.round((campaign.raisedAmount / campaign.goalAmount) * 100);
+  const progress = campaign.goalAmount > 0
+    ? Math.round((campaign.raisedAmount / campaign.goalAmount) * 100)
+    : 0;
 
   return (
     <PageWrapper>
