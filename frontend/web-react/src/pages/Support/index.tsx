@@ -124,13 +124,10 @@ export default function Support() {
                 {t('support.success', '已提交，请在个人中心查看进度')}
               </p>
             )}
-            {mutation.isError && (
-              <p className="font-body text-caption text-rust" role="alert">
-                {t('support.error', '提交失败，请检查订单号是否属于您的账号')}
+            {(mutation.isError || submitError) && (
+              <p className="font-body text-body-sm text-rust" role="alert">
+                {submitError || t('support.error', '提交失败，请检查订单号是否属于您的账号')}
               </p>
-            )}
-            {submitError && (
-              <p className="font-body text-body-sm text-rust mb-4">{submitError}</p>
             )}
             <button
               type="submit"

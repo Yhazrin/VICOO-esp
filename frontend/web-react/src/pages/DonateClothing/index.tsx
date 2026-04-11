@@ -112,13 +112,10 @@ export default function DonateClothing() {
               value={contactPhone}
               onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setContactPhone(e.target.value)}
             />
-            {mutation.isError && (
-              <p className="font-body text-caption text-rust" role="alert">
-                {t('donateClothing.error', '提交失败，请稍后再试')}
+            {(mutation.isError || submitError) && (
+              <p className="font-body text-body-sm text-rust" role="alert">
+                {submitError || t('donateClothing.error', '提交失败，请稍后再试')}
               </p>
-            )}
-            {submitError && (
-              <p className="font-body text-body-sm text-rust mb-4">{submitError}</p>
             )}
             <button
               type="submit"
