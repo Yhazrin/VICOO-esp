@@ -35,265 +35,393 @@ interface ProductDataset {
   certifications: string[];
 }
 
-const PRODUCT_DATASETS: ProductDataset[] = [
-  {
-    product: { id: 'TH-2026-001', name: '\u7ae5\u8da3\u82b1\u56edT\u6064', batch: 'BAT-2026-A12', image: placeholderImage('\u7ae5\u8da3\u82b1\u56edT\u6064', { hue: 30 }) },
-    timeline: [
-      {
-        id: 'raw',
-        stage: '\u539f\u6599\u6765\u6e90',
-        stageEn: 'Raw Material Source',
-        status: 'verified',
-        statusLabel: '\u5df2\u9a8c\u8bc1 Verified',
-        date: '2025-12-15',
-        details: {
-          '\u6765\u6e90\u5730': '\u65b0\u7586\u963f\u514b\u82cf\u6709\u673a\u68c9\u82b1\u57fa\u5730',
-          '\u54c1\u79cd': '\u957f\u7ed2\u68c9 (Long-staple cotton)',
-          '\u8ba4\u8bc1': 'GOTS\u6709\u673a\u8ba4\u8bc1',
-          '\u91c7\u8d2d\u65e5\u671f': '2025-12-15',
-          'GPS\u5750\u6807': '41.1684\u00b0N, 80.2636\u00b0E',
-        },
-      },
-      {
-        id: 'fabric',
-        stage: '\u9762\u6599\u52a0\u5de5',
-        stageEn: 'Fabric Processing',
-        status: 'verified',
-        statusLabel: '\u5df2\u9a8c\u8bc1 Verified',
-        date: '2026-01-08',
-        details: {
-          '\u5de5\u5382': '\u5c71\u4e1c\u5fb7\u5dde\u7eba\u7ec7\u6709\u9650\u516c\u53f8',
-          '\u5de5\u5e8f': '\u7eba\u7eb1 \u2192 \u7ec7\u5e03 \u2192 \u67d3\u6574',
-          '\u5b8c\u6210\u65e5\u671f': '2026-01-08',
-        },
-      },
-      {
-        id: 'garment',
-        stage: '\u6210\u8863\u5236\u9020',
-        stageEn: 'Garment Manufacturing',
-        status: 'verified',
-        statusLabel: '\u5df2\u9a8c\u8bc1 Verified',
-        date: '2026-01-22',
-        details: {
-          '\u5de5\u5382': '\u5e7f\u5dde\u82b1\u90fd\u670d\u88c5\u5236\u9020\u6709\u9650\u516c\u53f8',
-          '\u6279\u6b21\u53f7': 'MFG-2026-0142',
-          '\u5de5\u4eba\u4fdd\u969c': 'SA8000\u8ba4\u8bc1',
-          '\u5b8c\u6210\u65e5\u671f': '2026-01-22',
-        },
-      },
-      {
-        id: 'inspection',
-        stage: '\u8d28\u91cf\u68c0\u6d4b',
-        stageEn: 'Quality Inspection',
-        status: 'verified',
-        statusLabel: '\u5df2\u9a8c\u8bc1 Verified',
-        date: '2026-01-28',
-        details: {
-          '\u673a\u6784': 'SGS\u901a\u6807\u6807\u51c6\u6280\u672f\u670d\u52a1',
-          '\u62a5\u544a\u7f16\u53f7': 'SGS-2026-TH-0089',
-          '\u68c0\u6d4b\u7ed3\u679c': '\u5168\u9879\u5408\u683c',
-          '\u68c0\u6d4b\u65e5\u671f': '2026-01-28',
-        },
-      },
-      {
-        id: 'logistics',
-        stage: '\u7269\u6d41\u914d\u9001',
-        stageEn: 'Logistics & Delivery',
-        status: 'verified',
-        statusLabel: '\u5df2\u9a8c\u8bc1 Verified',
-        date: '2026-02-03',
-        details: {
-          '\u7269\u6d41': '\u987a\u4e30\u901f\u8fd0',
-          '\u5355\u53f7': 'SF1234567890',
-          '\u7eff\u8272\u7269\u6d41': '\u662f \u2713',
-          '\u9001\u8fbe\u65e5\u671f': '2026-02-03',
-        },
-      },
-    ],
-    carbonData: [
-      { stage: '\u539f\u6599\u91c7\u8d2d', co2: 2.1, color: 'bg-sage' },
-      { stage: '\u52a0\u5de5\u5904\u7406', co2: 3.4, color: 'bg-rust' },
-      { stage: '\u6210\u8863\u5236\u9020', co2: 1.8, color: 'bg-sepia-mid' },
-      { stage: '\u8d28\u68c0\u8fd0\u8f93', co2: 0.5, color: 'bg-ink/60' },
-      { stage: '\u7269\u6d41\u914d\u9001', co2: 0.4, color: 'bg-sage/70' },
-    ],
-    carbonTotal: 8.2,
-    carbonTraditional: 33.4,
-    certifications: ['GOTS', 'Fair Trade', 'SA8000', 'BSCI'],
-  },
-  {
-    product: { id: 'TH-2026-002', name: '\u661f\u7a7a\u68a6\u60f3\u536b\u8863', batch: 'BAT-2026-B05', image: placeholderImage('\u661f\u7a7a\u68a6\u60f3\u536b\u8863', { hue: 220 }) },
-    timeline: [
-      {
-        id: 'raw',
-        stage: '\u539f\u6599\u6765\u6e90',
-        stageEn: 'Raw Material Source',
-        status: 'verified',
-        statusLabel: '\u5df2\u9a8c\u8bc1 Verified',
-        date: '2025-11-20',
-        details: {
-          '\u6765\u6e90\u5730': '\u5c71\u4e1c\u6ee8\u5dde\u6709\u673a\u68c9\u82b1\u5408\u4f5c\u793e',
-          '\u54c1\u79cd': '\u7ec6\u7ed2\u68c9 (Upland cotton)',
-          '\u8ba4\u8bc1': 'OCS\u6709\u673a\u542b\u91cf\u6807\u51c6',
-          '\u91c7\u8d2d\u65e5\u671f': '2025-11-20',
-          'GPS\u5750\u6807': '37.3826\u00b0N, 117.9711\u00b0E',
-        },
-      },
-      {
-        id: 'fabric',
-        stage: '\u9762\u6599\u52a0\u5de5',
-        stageEn: 'Fabric Processing',
-        status: 'verified',
-        statusLabel: '\u5df2\u9a8c\u8bc1 Verified',
-        date: '2025-12-18',
-        details: {
-          '\u5de5\u5382': '\u6c5f\u82cf\u5357\u901a\u534e\u7eba\u7ec7\u4e1a\u96c6\u56e2',
-          '\u5de5\u5e8f': '\u7eba\u7eb1 \u2192 \u9488\u7ec7 \u2192 \u8d77\u7ed2 \u2192 \u67d3\u8272',
-          '\u5b8c\u6210\u65e5\u671f': '2025-12-18',
-        },
-      },
-      {
-        id: 'garment',
-        stage: '\u6210\u8863\u5236\u9020',
-        stageEn: 'Garment Manufacturing',
-        status: 'verified',
-        statusLabel: '\u5df2\u9a8c\u8bc1 Verified',
-        date: '2026-01-10',
-        details: {
-          '\u5de5\u5382': '\u6d59\u6c5f\u5609\u5174\u7ae5\u88c5\u5236\u9020\u6709\u9650\u516c\u53f8',
-          '\u6279\u6b21\u53f7': 'MFG-2026-0078',
-          '\u5de5\u4eba\u4fdd\u969c': 'BSCI\u8ba4\u8bc1',
-          '\u5b8c\u6210\u65e5\u671f': '2026-01-10',
-        },
-      },
-      {
-        id: 'inspection',
-        stage: '\u8d28\u91cf\u68c0\u6d4b',
-        stageEn: 'Quality Inspection',
-        status: 'verified',
-        statusLabel: '\u5df2\u9a8c\u8bc1 Verified',
-        date: '2026-01-18',
-        details: {
-          '\u673a\u6784': 'Intertek\u5929\u7965\u96c6\u56e2',
-          '\u62a5\u544a\u7f16\u53f7': 'ITK-2026-TH-0034',
-          '\u68c0\u6d4b\u7ed3\u679c': '\u5168\u9879\u5408\u683c',
-          '\u68c0\u6d4b\u65e5\u671f': '2026-01-18',
-        },
-      },
-      {
-        id: 'logistics',
-        stage: '\u7269\u6d41\u914d\u9001',
-        stageEn: 'Logistics & Delivery',
-        status: 'in-progress',
-        statusLabel: '\u8fdb\u884c\u4e2d In Progress',
-        date: '2026-02-08',
-        details: {
-          '\u7269\u6d41': '\u4eac\u4e1c\u7269\u6d41',
-          '\u5355\u53f7': 'JD9876543210',
-          '\u7eff\u8272\u7269\u6d41': '\u662f \u2713',
-          '\u9884\u8ba1\u5230\u8fbe': '2026-02-08',
-        },
-      },
-    ],
-    carbonData: [
-      { stage: '\u539f\u6599\u91c7\u8d2d', co2: 2.8, color: 'bg-sage' },
-      { stage: '\u52a0\u5de5\u5904\u7406', co2: 4.1, color: 'bg-rust' },
-      { stage: '\u6210\u8863\u5236\u9020', co2: 2.3, color: 'bg-sepia-mid' },
-      { stage: '\u8d28\u68c0\u8fd0\u8f93', co2: 0.6, color: 'bg-ink/60' },
-      { stage: '\u7269\u6d41\u914d\u9001', co2: 0.7, color: 'bg-sage/70' },
-    ],
-    carbonTotal: 10.5,
-    carbonTraditional: 38.6,
-    certifications: ['OCS', 'BSCI', 'Oeko-Tex'],
-  },
-  {
-    product: { id: 'TH-2026-003', name: '\u5f69\u8679\u6d82\u9e26\u88d9', batch: 'BAT-2026-C03', image: placeholderImage('\u5f69\u8679\u6d82\u9e26\u88d9', { hue: 340 }) },
-    timeline: [
-      {
-        id: 'raw',
-        stage: '\u539f\u6599\u6765\u6e90',
-        stageEn: 'Raw Material Source',
-        status: 'verified',
-        statusLabel: '\u5df2\u9a8c\u8bc1 Verified',
-        date: '2026-01-05',
-        details: {
-          '\u6765\u6e90\u5730': '\u4e91\u5357\u5927\u7406\u9ebb\u7eba\u5408\u4f5c\u793e',
-          '\u54c1\u79cd': '\u6c49\u9ebb\u6df7\u7eba (Hemp blend)',
-          '\u8ba4\u8bc1': 'OEKO-TEX Standard 100',
-          '\u91c7\u8d2d\u65e5\u671f': '2026-01-05',
-          'GPS\u5750\u6807': '25.6065\u00b0N, 100.2679\u00b0E',
-        },
-      },
-      {
-        id: 'fabric',
-        stage: '\u9762\u6599\u52a0\u5de5',
-        stageEn: 'Fabric Processing',
-        status: 'verified',
-        statusLabel: '\u5df2\u9a8c\u8bc1 Verified',
-        date: '2026-01-25',
-        details: {
-          '\u5de5\u5382': '\u4e91\u5357\u6606\u660e\u7eff\u7ec7\u7eba\u7ec7\u5382',
-          '\u5de5\u5e8f': '\u8131\u80f6 \u2192 \u7eba\u7eb1 \u2192 \u7ec7\u5e03 \u2192 \u690d\u7269\u67d3',
-          '\u5b8c\u6210\u65e5\u671f': '2026-01-25',
-        },
-      },
-      {
-        id: 'garment',
-        stage: '\u6210\u8863\u5236\u9020',
-        stageEn: 'Garment Manufacturing',
-        status: 'verified',
-        statusLabel: '\u5df2\u9a8c\u8bc1 Verified',
-        date: '2026-02-10',
-        details: {
-          '\u5de5\u5382': '\u6210\u90fd\u8700\u7ee3\u7ae5\u88c5\u5de5\u574a',
-          '\u6279\u6b21\u53f7': 'MFG-2026-0201',
-          '\u5de5\u4eba\u4fdd\u969c': 'Fair Trade\u8ba4\u8bc1',
-          '\u5b8c\u6210\u65e5\u671f': '2026-02-10',
-        },
-      },
-      {
-        id: 'inspection',
-        stage: '\u8d28\u91cf\u68c0\u6d4b',
-        stageEn: 'Quality Inspection',
-        status: 'pending',
-        statusLabel: '\u5f85\u68c0\u6d4b Pending',
-        date: '\u9884\u8ba1 2026-02-20',
-        details: {
-          '\u673a\u6784': 'BV\u5fc5\u7ef4\u56fd\u9645\u68c0\u9a8c\u96c6\u56e2',
-          '\u62a5\u544a\u7f16\u53f7': '\u5f85\u5206\u914d',
-          '\u68c0\u6d4b\u7ed3\u679c': '\u5f85\u68c0\u6d4b',
-          '\u9884\u8ba1\u65e5\u671f': '2026-02-20',
-        },
-      },
-      {
-        id: 'logistics',
-        stage: '\u7269\u6d41\u914d\u9001',
-        stageEn: 'Logistics & Delivery',
-        status: 'pending',
-        statusLabel: '\u5f85\u53d1\u8d27 Pending',
-        date: '\u9884\u8ba1 2026-03-01',
-        details: {
-          '\u7269\u6d41': '\u5f85\u5b89\u6392',
-          '\u5355\u53f7': '\u5f85\u5206\u914d',
-          '\u7eff\u8272\u7269\u6d41': '\u8ba1\u5212\u4f7f\u7528',
-          '\u9884\u8ba1\u5230\u8fbe': '2026-03-01',
-        },
-      },
-    ],
-    carbonData: [
-      { stage: '\u539f\u6599\u91c7\u8d2d', co2: 1.5, color: 'bg-sage' },
-      { stage: '\u52a0\u5de5\u5904\u7406', co2: 2.6, color: 'bg-rust' },
-      { stage: '\u6210\u8863\u5236\u9020', co2: 1.9, color: 'bg-sepia-mid' },
-      { stage: '\u8d28\u68c0\u8fd0\u8f93', co2: 0.4, color: 'bg-ink/60' },
-      { stage: '\u7269\u6d41\u914d\u9001', co2: 0.4, color: 'bg-sage/70' },
-    ],
-    carbonTotal: 6.8,
-    carbonTraditional: 28.2,
-    certifications: ['Oeko-Tex', 'Fair Trade', 'GOTS'],
-  },
-];
+function createProductDatasets(isEnglish: boolean): ProductDataset[] {
+  const verifiedLabel = isEnglish ? 'Verified' : '已验证 Verified';
+  const inProgressLabel = isEnglish ? 'In Progress' : '进行中 In Progress';
+  const pendingInspectionLabel = isEnglish ? 'Pending Inspection' : '待检测 Pending';
+  const pendingShipmentLabel = isEnglish ? 'Pending Shipment' : '待发货 Pending';
+  const yesLabel = isEnglish ? 'Yes ✓' : '是 ✓';
+  const plannedLabel = isEnglish ? 'Planned' : '计划使用';
+  const unassignedLabel = isEnglish ? 'Unassigned' : '待分配';
 
-const MOCK_PRODUCTS = PRODUCT_DATASETS.map((d) => d.product);
+  return [
+    {
+      product: {
+        id: 'TH-2026-001',
+        name: isEnglish ? 'Playful Garden Tee' : '童趣花园T恤',
+        batch: 'BAT-2026-A12',
+        image: placeholderImage(isEnglish ? 'Playful Garden Tee' : '童趣花园T恤', { hue: 30 }),
+      },
+      timeline: [
+        {
+          id: 'raw',
+          stage: isEnglish ? 'Raw Material Source' : '原料来源',
+          stageEn: isEnglish ? '' : 'Raw Material Source',
+          status: 'verified',
+          statusLabel: verifiedLabel,
+          date: '2025-12-15',
+          details: isEnglish
+            ? {
+                Origin: 'Aksu Organic Cotton Base, Xinjiang',
+                Fiber: 'Long-staple cotton',
+                Certification: 'GOTS Organic',
+                'Procurement Date': '2025-12-15',
+                GPS: '41.1684°N, 80.2636°E',
+              }
+            : {
+                来源地: '新疆阿克苏有机棉花基地',
+                品种: '长绒棉 (Long-staple cotton)',
+                认证: 'GOTS有机认证',
+                采购日期: '2025-12-15',
+                GPS坐标: '41.1684°N, 80.2636°E',
+              },
+        },
+        {
+          id: 'fabric',
+          stage: isEnglish ? 'Fabric Processing' : '面料加工',
+          stageEn: isEnglish ? '' : 'Fabric Processing',
+          status: 'verified',
+          statusLabel: verifiedLabel,
+          date: '2026-01-08',
+          details: isEnglish
+            ? {
+                Factory: 'Dezhou Textile Co., Shandong',
+                Process: 'Spinning → Weaving → Dyeing',
+                Completed: '2026-01-08',
+              }
+            : {
+                工厂: '山东德州纺织有限公司',
+                工序: '纺纱 → 织布 → 染整',
+                完成日期: '2026-01-08',
+              },
+        },
+        {
+          id: 'garment',
+          stage: isEnglish ? 'Garment Manufacturing' : '成衣制造',
+          stageEn: isEnglish ? '' : 'Garment Manufacturing',
+          status: 'verified',
+          statusLabel: verifiedLabel,
+          date: '2026-01-22',
+          details: isEnglish
+            ? {
+                Factory: 'Huadu Garment Manufacturing Co., Guangzhou',
+                'Batch ID': 'MFG-2026-0142',
+                'Worker Welfare': 'SA8000 certified',
+                Completed: '2026-01-22',
+              }
+            : {
+                工厂: '广州花都服装制造有限公司',
+                批次号: 'MFG-2026-0142',
+                工人保障: 'SA8000认证',
+                完成日期: '2026-01-22',
+              },
+        },
+        {
+          id: 'inspection',
+          stage: isEnglish ? 'Quality Inspection' : '质量检测',
+          stageEn: isEnglish ? '' : 'Quality Inspection',
+          status: 'verified',
+          statusLabel: verifiedLabel,
+          date: '2026-01-28',
+          details: isEnglish
+            ? {
+                Agency: 'SGS Standard Technical Services',
+                'Report ID': 'SGS-2026-TH-0089',
+                Result: 'All items passed',
+                'Inspection Date': '2026-01-28',
+              }
+            : {
+                机构: 'SGS通标标准技术服务',
+                报告编号: 'SGS-2026-TH-0089',
+                检测结果: '全项合格',
+                检测日期: '2026-01-28',
+              },
+        },
+        {
+          id: 'logistics',
+          stage: isEnglish ? 'Logistics & Delivery' : '物流配送',
+          stageEn: isEnglish ? '' : 'Logistics & Delivery',
+          status: 'verified',
+          statusLabel: verifiedLabel,
+          date: '2026-02-03',
+          details: isEnglish
+            ? {
+                Logistics: 'SF Express',
+                'Tracking No.': 'SF1234567890',
+                'Green Logistics': yesLabel,
+                Delivered: '2026-02-03',
+              }
+            : {
+                物流: '顺丰速运',
+                单号: 'SF1234567890',
+                绿色物流: yesLabel,
+                送达日期: '2026-02-03',
+              },
+        },
+      ],
+      carbonData: [
+        { stage: isEnglish ? 'Raw Material Sourcing' : '原料采购', co2: 2.1, color: 'bg-sage' },
+        { stage: isEnglish ? 'Fabric Processing' : '加工处理', co2: 3.4, color: 'bg-rust' },
+        { stage: isEnglish ? 'Garment Manufacturing' : '成衣制造', co2: 1.8, color: 'bg-sepia-mid' },
+        { stage: isEnglish ? 'Inspection & Transport' : '质检运输', co2: 0.5, color: 'bg-ink/60' },
+        { stage: isEnglish ? 'Logistics Delivery' : '物流配送', co2: 0.4, color: 'bg-sage/70' },
+      ],
+      carbonTotal: 8.2,
+      carbonTraditional: 33.4,
+      certifications: ['GOTS', 'Fair Trade', 'SA8000', 'BSCI'],
+    },
+    {
+      product: {
+        id: 'TH-2026-002',
+        name: isEnglish ? 'Starlit Dream Hoodie' : '星空梦想卫衣',
+        batch: 'BAT-2026-B05',
+        image: placeholderImage(isEnglish ? 'Starlit Dream Hoodie' : '星空梦想卫衣', { hue: 220 }),
+      },
+      timeline: [
+        {
+          id: 'raw',
+          stage: isEnglish ? 'Raw Material Source' : '原料来源',
+          stageEn: isEnglish ? '' : 'Raw Material Source',
+          status: 'verified',
+          statusLabel: verifiedLabel,
+          date: '2025-11-20',
+          details: isEnglish
+            ? {
+                Origin: 'Binzhou Organic Cotton Co-op, Shandong',
+                Fiber: 'Upland cotton',
+                Certification: 'OCS Organic Content Standard',
+                'Procurement Date': '2025-11-20',
+                GPS: '37.3826°N, 117.9711°E',
+              }
+            : {
+                来源地: '山东滨州有机棉花合作社',
+                品种: '细绒棉 (Upland cotton)',
+                认证: 'OCS有机含量标准',
+                采购日期: '2025-11-20',
+                GPS坐标: '37.3826°N, 117.9711°E',
+              },
+        },
+        {
+          id: 'fabric',
+          stage: isEnglish ? 'Fabric Processing' : '面料加工',
+          stageEn: isEnglish ? '' : 'Fabric Processing',
+          status: 'verified',
+          statusLabel: verifiedLabel,
+          date: '2025-12-18',
+          details: isEnglish
+            ? {
+                Factory: 'Nantong Huafang Textile Group, Jiangsu',
+                Process: 'Spinning → Knitting → Brushing → Dyeing',
+                Completed: '2025-12-18',
+              }
+            : {
+                工厂: '江苏南通华纺织业集团',
+                工序: '纺纱 → 针织 → 起绒 → 染色',
+                完成日期: '2025-12-18',
+              },
+        },
+        {
+          id: 'garment',
+          stage: isEnglish ? 'Garment Manufacturing' : '成衣制造',
+          stageEn: isEnglish ? '' : 'Garment Manufacturing',
+          status: 'verified',
+          statusLabel: verifiedLabel,
+          date: '2026-01-10',
+          details: isEnglish
+            ? {
+                Factory: 'Jiaxing Kidswear Manufacturing Co., Zhejiang',
+                'Batch ID': 'MFG-2026-0078',
+                'Worker Welfare': 'BSCI certified',
+                Completed: '2026-01-10',
+              }
+            : {
+                工厂: '浙江嘉兴童装制造有限公司',
+                批次号: 'MFG-2026-0078',
+                工人保障: 'BSCI认证',
+                完成日期: '2026-01-10',
+              },
+        },
+        {
+          id: 'inspection',
+          stage: isEnglish ? 'Quality Inspection' : '质量检测',
+          stageEn: isEnglish ? '' : 'Quality Inspection',
+          status: 'verified',
+          statusLabel: verifiedLabel,
+          date: '2026-01-18',
+          details: isEnglish
+            ? {
+                Agency: 'Intertek',
+                'Report ID': 'ITK-2026-TH-0034',
+                Result: 'All items passed',
+                'Inspection Date': '2026-01-18',
+              }
+            : {
+                机构: 'Intertek天祥集团',
+                报告编号: 'ITK-2026-TH-0034',
+                检测结果: '全项合格',
+                检测日期: '2026-01-18',
+              },
+        },
+        {
+          id: 'logistics',
+          stage: isEnglish ? 'Logistics & Delivery' : '物流配送',
+          stageEn: isEnglish ? '' : 'Logistics & Delivery',
+          status: 'in-progress',
+          statusLabel: inProgressLabel,
+          date: '2026-02-08',
+          details: isEnglish
+            ? {
+                Logistics: 'JD Logistics',
+                'Tracking No.': 'JD9876543210',
+                'Green Logistics': yesLabel,
+                'Estimated Arrival': '2026-02-08',
+              }
+            : {
+                物流: '京东物流',
+                单号: 'JD9876543210',
+                绿色物流: yesLabel,
+                预计到达: '2026-02-08',
+              },
+        },
+      ],
+      carbonData: [
+        { stage: isEnglish ? 'Raw Material Sourcing' : '原料采购', co2: 2.8, color: 'bg-sage' },
+        { stage: isEnglish ? 'Fabric Processing' : '加工处理', co2: 4.1, color: 'bg-rust' },
+        { stage: isEnglish ? 'Garment Manufacturing' : '成衣制造', co2: 2.3, color: 'bg-sepia-mid' },
+        { stage: isEnglish ? 'Inspection & Transport' : '质检运输', co2: 0.6, color: 'bg-ink/60' },
+        { stage: isEnglish ? 'Logistics Delivery' : '物流配送', co2: 0.7, color: 'bg-sage/70' },
+      ],
+      carbonTotal: 10.5,
+      carbonTraditional: 38.6,
+      certifications: ['OCS', 'BSCI', 'Oeko-Tex'],
+    },
+    {
+      product: {
+        id: 'TH-2026-003',
+        name: isEnglish ? 'Rainbow Doodle Dress' : '彩虹涂鸦裙',
+        batch: 'BAT-2026-C03',
+        image: placeholderImage(isEnglish ? 'Rainbow Doodle Dress' : '彩虹涂鸦裙', { hue: 340 }),
+      },
+      timeline: [
+        {
+          id: 'raw',
+          stage: isEnglish ? 'Raw Material Source' : '原料来源',
+          stageEn: isEnglish ? '' : 'Raw Material Source',
+          status: 'verified',
+          statusLabel: verifiedLabel,
+          date: '2026-01-05',
+          details: isEnglish
+            ? {
+                Origin: 'Dali Hemp Cooperative, Yunnan',
+                Fiber: 'Hemp blend',
+                Certification: 'OEKO-TEX Standard 100',
+                'Procurement Date': '2026-01-05',
+                GPS: '25.6065°N, 100.2679°E',
+              }
+            : {
+                来源地: '云南大理麻纺合作社',
+                品种: '汉麻混纺 (Hemp blend)',
+                认证: 'OEKO-TEX Standard 100',
+                采购日期: '2026-01-05',
+                GPS坐标: '25.6065°N, 100.2679°E',
+              },
+        },
+        {
+          id: 'fabric',
+          stage: isEnglish ? 'Fabric Processing' : '面料加工',
+          stageEn: isEnglish ? '' : 'Fabric Processing',
+          status: 'verified',
+          statusLabel: verifiedLabel,
+          date: '2026-01-25',
+          details: isEnglish
+            ? {
+                Factory: 'Kunming Green Weave Mill, Yunnan',
+                Process: 'Degumming → Spinning → Weaving → Plant Dyeing',
+                Completed: '2026-01-25',
+              }
+            : {
+                工厂: '云南昆明绿织纺织厂',
+                工序: '脱胶 → 纺纱 → 织布 → 植物染',
+                完成日期: '2026-01-25',
+              },
+        },
+        {
+          id: 'garment',
+          stage: isEnglish ? 'Garment Manufacturing' : '成衣制造',
+          stageEn: isEnglish ? '' : 'Garment Manufacturing',
+          status: 'verified',
+          statusLabel: verifiedLabel,
+          date: '2026-02-10',
+          details: isEnglish
+            ? {
+                Factory: 'Shuxiu Kidswear Studio, Chengdu',
+                'Batch ID': 'MFG-2026-0201',
+                'Worker Welfare': 'Fair Trade certified',
+                Completed: '2026-02-10',
+              }
+            : {
+                工厂: '成都蜀绣童装工坊',
+                批次号: 'MFG-2026-0201',
+                工人保障: 'Fair Trade认证',
+                完成日期: '2026-02-10',
+              },
+        },
+        {
+          id: 'inspection',
+          stage: isEnglish ? 'Quality Inspection' : '质量检测',
+          stageEn: isEnglish ? '' : 'Quality Inspection',
+          status: 'pending',
+          statusLabel: pendingInspectionLabel,
+          date: isEnglish ? 'Expected 2026-02-20' : '预计 2026-02-20',
+          details: isEnglish
+            ? {
+                Agency: 'Bureau Veritas',
+                'Report ID': unassignedLabel,
+                Result: pendingInspectionLabel,
+                'Expected Date': '2026-02-20',
+              }
+            : {
+                机构: 'BV必维国际检验集团',
+                报告编号: unassignedLabel,
+                检测结果: '待检测',
+                预计日期: '2026-02-20',
+              },
+        },
+        {
+          id: 'logistics',
+          stage: isEnglish ? 'Logistics & Delivery' : '物流配送',
+          stageEn: isEnglish ? '' : 'Logistics & Delivery',
+          status: 'pending',
+          statusLabel: pendingShipmentLabel,
+          date: isEnglish ? 'Expected 2026-03-01' : '预计 2026-03-01',
+          details: isEnglish
+            ? {
+                Logistics: 'To Be Arranged',
+                'Tracking No.': unassignedLabel,
+                'Green Logistics': plannedLabel,
+                'Estimated Arrival': '2026-03-01',
+              }
+            : {
+                物流: '待安排',
+                单号: unassignedLabel,
+                绿色物流: plannedLabel,
+                预计到达: '2026-03-01',
+              },
+        },
+      ],
+      carbonData: [
+        { stage: isEnglish ? 'Raw Material Sourcing' : '原料采购', co2: 1.5, color: 'bg-sage' },
+        { stage: isEnglish ? 'Fabric Processing' : '加工处理', co2: 2.6, color: 'bg-rust' },
+        { stage: isEnglish ? 'Garment Manufacturing' : '成衣制造', co2: 1.9, color: 'bg-sepia-mid' },
+        { stage: isEnglish ? 'Inspection & Transport' : '质检运输', co2: 0.4, color: 'bg-ink/60' },
+        { stage: isEnglish ? 'Logistics Delivery' : '物流配送', co2: 0.4, color: 'bg-sage/70' },
+      ],
+      carbonTotal: 6.8,
+      carbonTraditional: 28.2,
+      certifications: ['Oeko-Tex', 'Fair Trade', 'GOTS'],
+    },
+  ];
+}
 
 /* ------------------------------------------------------------------ */
 /*  Status styling maps                                                */
@@ -316,7 +444,6 @@ const BADGE_COLORS: Record<TimelineNode['status'], string> = {
 /* ------------------------------------------------------------------ */
 
 function TimelineNodeCard({ node, index }: { node: TimelineNode; index: number }) {
-  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(index === 0);
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: '-60px' });
@@ -349,9 +476,11 @@ function TimelineNodeCard({ node, index }: { node: TimelineNode; index: number }
         <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
           <div className="flex items-center gap-3">
             <h3 className="font-display text-lg md:text-xl font-semibold text-ink">
-              {t(`materialTrace.timeline.${node.id}`, node.stage)}
+              {node.stage}
             </h3>
-            <span className="font-body text-overline text-sepia-mid">{node.stageEn}</span>
+            {node.stageEn && (
+              <span className="font-body text-overline text-sepia-mid">{node.stageEn}</span>
+            )}
           </div>
           <span className={`inline-flex items-center px-3 py-1 text-xs font-body tracking-wider border rounded-sm ${badgeColor}`}>
             {node.statusLabel}
@@ -421,37 +550,69 @@ function TrustIcon({ type }: { type: 'lock' | 'shield' | 'refresh' }) {
 /* ------------------------------------------------------------------ */
 
 export default function MaterialTracePage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
+  const isEnglish = (i18n.resolvedLanguage || i18n.language || 'en').startsWith('en');
+  const productDatasets = useMemo(() => createProductDatasets(isEnglish), [isEnglish]);
+  const mockProducts = useMemo(() => productDatasets.map((dataset) => dataset.product), [productDatasets]);
   const [searchId, setSearchId] = useState('');
-  const [activeProduct, setActiveProduct] = useState<string>(MOCK_PRODUCTS[0].id);
+  const [activeProduct, setActiveProduct] = useState<string>('TH-2026-001');
   const [searchError, setSearchError] = useState<string | null>(null);
 
   const carbonRef = useRef<HTMLDivElement>(null);
   const carbonInView = useInView(carbonRef, { once: true, margin: '-40px' });
 
   // Derive current dataset from activeProduct
-  const activeDataset = PRODUCT_DATASETS.find((d) => d.product.id === activeProduct) ?? PRODUCT_DATASETS[0];
+  const activeDataset = productDatasets.find((d) => d.product.id === activeProduct) ?? productDatasets[0];
   const { timeline, carbonData, carbonTotal, carbonTraditional, certifications } = activeDataset;
 
   const { maxCo2, reductionPercent } = useMemo(() => ({
     maxCo2: Math.max(...carbonData.map((d) => d.co2)),
     reductionPercent: (((carbonTraditional - carbonTotal) / carbonTraditional) * 100).toFixed(1),
-  }), [activeProduct]);
+  }), [carbonData, carbonTotal, carbonTraditional]);
+
+  const integrityHeading = isEnglish ? 'Append-only Timeline Architecture' : 'Append-only 仅追加时间线架构';
+  const integrityExplanation = isEnglish
+    ? 'Every supply-chain record is appended chronologically and cannot be edited or deleted after publication. Each entry carries timestamps and verification signatures so the full journey remains auditable.'
+    : '所有供应链记录采用追加写入模式，一旦写入即不可修改或删除。每条记录都包含时间戳与验证签名，确保数据的完整性与可追溯性。';
+  const integrityVerifiedLabel = isEnglish ? 'Only Verified Records Displayed' : '仅展示已验证记录';
+  const integrityItems = useMemo(
+    () => [
+      {
+        icon: 'lock' as const,
+        title: isEnglish ? 'Immutable' : '不可篡改',
+        secondary: isEnglish ? '' : 'Immutable',
+        desc: isEnglish ? 'Once published, records cannot be edited.' : '数据一旦写入即无法修改',
+      },
+      {
+        icon: 'shield' as const,
+        title: isEnglish ? 'Third-party Verified' : '第三方验证',
+        secondary: isEnglish ? '' : 'Third-party Verified',
+        desc: isEnglish ? 'Independently verified by partners such as SGS.' : '由 SGS 等国际机构独立验证',
+      },
+      {
+        icon: 'refresh' as const,
+        title: isEnglish ? 'Real-time Updates' : '实时更新',
+        secondary: isEnglish ? '' : 'Real-time Updates',
+        desc: isEnglish ? 'Status changes are synchronized across the supply chain.' : '供应链状态同步更新',
+      },
+    ],
+    [isEnglish],
+  );
 
   const handleSearch = useCallback(() => {
     const trimmed = searchId.trim();
     if (!trimmed) return;
-    const found = PRODUCT_DATASETS.find(
+    const found = productDatasets.find(
       (d) => d.product.id.toLowerCase() === trimmed.toLowerCase()
     );
     if (found) {
       setActiveProduct(found.product.id);
       setSearchError(null);
     } else {
-      setSearchError('\u672a\u627e\u5230\u8be5\u5546\u54c1');
+      setSearchError(isEnglish ? 'Product not found' : '未找到该商品');
     }
-  }, [searchId]);
+  }, [isEnglish, productDatasets, searchId]);
 
   const handleProductClick = useCallback((id: string) => {
     setActiveProduct(id);
@@ -532,7 +693,7 @@ export default function MaterialTracePage() {
 
         {/* Quick-access product cards */}
         <div className="grid grid-cols-12 gap-5">
-          {MOCK_PRODUCTS.map((product, idx) => (
+          {mockProducts.map((product, idx) => (
             <div key={product.id} className="col-span-12 sm:col-span-6 lg:col-span-4">
               <EditorialCard
                 title={product.name}
@@ -571,10 +732,10 @@ export default function MaterialTracePage() {
             <div className="sticky top-32 space-y-6">
               <SepiaImageFrame
                 src={activeDataset.product.image}
-                alt={t('materialTrace.timeline.cottonAlt', '\u6709\u673a\u68c9\u82b1\u57fa\u5730')}
+                alt={activeDataset.product.name}
                 aspectRatio="portrait"
                 size="full"
-                caption={t('materialTrace.timeline.cottonCaption', '\u65b0\u7586\u963f\u514b\u82cf -- \u6709\u673a\u68c9\u82b1\u57fa\u5730')}
+                caption={activeDataset.product.batch}
               />
               <div className="bg-sage/10 border border-sage/20 p-4">
                 <p className="font-display text-sm font-semibold text-sage mb-1">
@@ -621,30 +782,23 @@ export default function MaterialTracePage() {
               <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-rust/30" aria-hidden="true" />
 
               <h3 className="font-display text-lg font-semibold text-ink mb-3">
-                Append-only {t('materialTrace.integrity.timelineArch', '\u65f6\u95f4\u7ebf\u67b6\u6784')}
+                {integrityHeading}
               </h3>
               <p className="font-body text-body-sm text-ink/80 leading-relaxed mb-4">
-                {t(
-                  'materialTrace.integrity.explanation',
-                  '\u6240\u6709\u4f9b\u5e94\u94fe\u8bb0\u5f55\u91c7\u7528\u8ffd\u52a0\u5199\u5165\u6a21\u5f0f\uff0c\u4e00\u65e6\u5199\u5165\u5373\u4e0d\u53ef\u4fee\u6539\u6216\u5220\u9664\u3002\u6bcf\u6761\u8bb0\u5f55\u90fd\u5305\u542b\u65f6\u95f4\u6233\u4e0e\u9a8c\u8bc1\u7b7e\u540d\uff0c\u786e\u4fdd\u6570\u636e\u7684\u5b8c\u6574\u6027\u4e0e\u53ef\u8ffd\u6eaf\u6027\u3002'
-                )}
+                {integrityExplanation}
               </p>
               <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-sage/10 border border-sage/30 rounded-sm text-sage font-body text-xs tracking-wider">
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
-                {t('materialTrace.integrity.verifiedOnly', '\u4ec5\u516c\u5f00 Verified \u8bb0\u5f55')}
+                {integrityVerifiedLabel}
               </span>
             </div>
           </div>
 
           {/* Trust indicators */}
           <div className="col-span-12 lg:col-span-5 space-y-4">
-            {([
-              { icon: 'lock' as const, title: '\u4e0d\u53ef\u7be1\u6539', titleEn: 'Immutable', desc: '\u6570\u636e\u4e00\u65e6\u4e0a\u94fe\u5373\u65e0\u6cd5\u4fee\u6539' },
-              { icon: 'shield' as const, title: '\u7b2c\u4e09\u65b9\u9a8c\u8bc1', titleEn: 'Third-party Verified', desc: '\u7531SGS\u7b49\u56fd\u9645\u673a\u6784\u72ec\u7acb\u9a8c\u8bc1' },
-              { icon: 'refresh' as const, title: '\u5b9e\u65f6\u66f4\u65b0', titleEn: 'Real-time Updates', desc: '\u4f9b\u5e94\u94fe\u72b6\u6001\u540c\u6b65\u66f4\u65b0' },
-            ]).map((item, idx) => (
+            {integrityItems.map((item, idx) => (
               <motion.div
                 key={item.icon}
                 initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
@@ -658,8 +812,8 @@ export default function MaterialTracePage() {
                 </div>
                 <div>
                   <p className="font-display text-sm font-semibold text-ink">
-                    {t(`materialTrace.integrity.${item.icon}`, item.title)}{' '}
-                    <span className="font-body text-sepia-mid font-normal">{item.titleEn}</span>
+                    {item.title}{' '}
+                    {item.secondary && <span className="font-body text-sepia-mid font-normal">{item.secondary}</span>}
                   </p>
                   <p className="font-body text-caption text-ink/70 mt-0.5">{item.desc}</p>
                 </div>
