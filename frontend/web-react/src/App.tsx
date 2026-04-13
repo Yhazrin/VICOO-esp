@@ -24,6 +24,10 @@ import OrderDetail from '@/pages/OrderDetail';
 import DonateClothing from '@/pages/DonateClothing';
 import Support from '@/pages/Support';
 import AiAssistant from '@/pages/AiAssistant';
+import ArtworkSubmit from '@/pages/ArtworkSubmit';
+import SupplyChain from '@/pages/SupplyChain';
+import MaterialTrace from '@/pages/MaterialTrace';
+import ClothingRecycle from '@/pages/ClothingRecycle';
 import { useSessionRestore } from '@/hooks/useSessionRestore';
 
 function AnimatedRoutes() {
@@ -58,6 +62,10 @@ function AnimatedRoutes() {
             <Route path="orders/:id" element={<ErrorBoundary><OrderDetail /></ErrorBoundary>} />
             <Route path="support" element={<ErrorBoundary><Support /></ErrorBoundary>} />
             <Route path="assistant" element={<ErrorBoundary><AiAssistant /></ErrorBoundary>} />
+            <Route path="artwork-submit" element={<ErrorBoundary><ArtworkSubmit /></ErrorBoundary>} />
+            <Route path="supply-chain" element={<ErrorBoundary><SupplyChain /></ErrorBoundary>} />
+            <Route path="material-trace" element={<ErrorBoundary><MaterialTrace /></ErrorBoundary>} />
+            <Route path="clothing-recycle" element={<ErrorBoundary><ClothingRecycle /></ErrorBoundary>} />
             <Route path="privacy" element={<ErrorBoundary><Privacy /></ErrorBoundary>} />
             <Route path="terms" element={<ErrorBoundary><Terms /></ErrorBoundary>} />
             <Route path="children-safety" element={<ErrorBoundary><ChildrenSafety /></ErrorBoundary>} />
