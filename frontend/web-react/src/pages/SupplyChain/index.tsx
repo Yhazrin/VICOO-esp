@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
@@ -281,8 +281,10 @@ export default function SupplyChainPage() {
 
   const [overviewRef, overviewVisible] = useScrollReveal<HTMLDivElement>();
   const [carbonRef, carbonVisible] = useScrollReveal<HTMLDivElement>();
+  const [activeStage, setActiveStage] = useState<string>('material');
 
   const scrollToStage = (key: string) => {
+    setActiveStage(key);
     const ref = stageRefs[key as keyof typeof stageRefs];
     ref?.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
@@ -352,7 +354,7 @@ export default function SupplyChainPage() {
                     label={stageLabels[idx].label}
                     sublabel={stageLabels[idx].sub}
                     onClick={() => scrollToStage(stage.key)}
-                    isActive={false}
+                    isActive={activeStage === stage.key}
                   />
                   {idx < STAGES.length - 1 && (
                     <div className="hidden md:flex items-center mx-2" aria-hidden="true">
@@ -421,7 +423,7 @@ export default function SupplyChainPage() {
               {/* Left: Image + Info */}
               <div className="col-span-12 md:col-span-5">
                 <SepiaImageFrame
-                  src="https://picsum.photos/seed/cotton-field-organic/600/400"
+                  src={`data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400"><rect fill="hsl(45,25%,88%)" width="600" height="400"/><text x="300" y="200" text-anchor="middle" dominant-baseline="central" font-family="serif" font-size="20" fill="hsl(45,20%,45%)">有机棉花基地</text></svg>')}`}
                   alt={t('supplyChain.materialImageAlt', '新疆有机棉花田')}
                   caption={t('supplyChain.materialCaption', '新疆阿克苏有机棉种植基地')}
                   aspectRatio="landscape"
@@ -508,7 +510,7 @@ export default function SupplyChainPage() {
               </div>
               <div className="col-span-12 md:col-span-5">
                 <SepiaImageFrame
-                  src="https://picsum.photos/seed/textile-processing/600/400"
+                  src={`data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400"><rect fill="hsl(30,25%,88%)" width="600" height="400"/><text x="300" y="200" text-anchor="middle" dominant-baseline="central" font-family="serif" font-size="20" fill="hsl(30,20%,45%)">纺纱染整车间</text></svg>')}`}
                   alt={t('supplyChain.processingImageAlt', '纺织加工车间')}
                   caption={t('supplyChain.processingCaption', '苏州恒通纺织加工车间')}
                   aspectRatio="landscape"
@@ -524,7 +526,7 @@ export default function SupplyChainPage() {
             <div className={`grid grid-cols-12 gap-6 md:gap-8 p-6 md:p-8 rounded-sm ${STAGE_COLORS.manufacturing}`}>
               <div className="col-span-12 md:col-span-5">
                 <SepiaImageFrame
-                  src="https://picsum.photos/seed/garment-factory/600/400"
+                  src={`data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400"><rect fill="hsl(140,20%,88%)" width="600" height="400"/><text x="300" y="200" text-anchor="middle" dominant-baseline="central" font-family="serif" font-size="20" fill="hsl(140,20%,40%)">成衣制造工厂</text></svg>')}`}
                   alt={t('supplyChain.manufacturingImageAlt', '广州成衣工厂')}
                   caption={t('supplyChain.manufacturingCaption', '广州锦华成衣生产线')}
                   aspectRatio="landscape"

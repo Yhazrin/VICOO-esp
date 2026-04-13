@@ -39,7 +39,7 @@ const MOCK_ORDERS: RecycleOrder[] = [
     quantity: 2,
     status: 'listed',
     statusLabel: '已上架',
-    productLink: '/shop/recycled-jacket-001',
+    productLink: '/shop/1',
   },
   {
     id: 'RC-20260405-002',
@@ -74,25 +74,25 @@ const placeholder = (label: string, hue = 30) =>
 
 const MOCK_PRODUCTS = [
   {
-    id: 'p1',
+    id: '1',
     name: '复古格纹外套',
     price: '¥89',
     image: placeholder('复古格纹外套', 25),
   },
   {
-    id: 'p2',
+    id: '2',
     name: '扎染棉质T恤',
     price: '¥45',
     image: placeholder('扎染棉质T恤', 200),
   },
   {
-    id: 'p3',
+    id: '3',
     name: '手绘牛仔裤',
     price: '¥120',
     image: placeholder('手绘牛仔裤', 220),
   },
   {
-    id: 'p4',
+    id: '4',
     name: '拼布碎花裙',
     price: '¥68',
     image: placeholder('拼布碎花裙', 330),

@@ -17,6 +17,7 @@ const NAV_ITEMS = [
   { key: 'shop', path: '/shop' },
   { key: 'supplyChain', path: '/supply-chain' },
   { key: 'traceability', path: '/traceability' },
+  { key: 'materialTrace', path: '/material-trace' },
   { key: 'clothingRecycle', path: '/clothing-recycle' },
   { key: 'contact', path: '/contact' },
 ];

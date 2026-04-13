@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import Layout, { FullHeightLayout } from '@/components/layout/Layout';
 import SmoothTransition from '@/components/transitions/SmoothTransition';
 import ErrorBoundary from '@/components/editorial/ErrorBoundary';
@@ -11,6 +11,7 @@ import ArtworkDetail from '@/pages/ArtworkDetail';
 import Donate from '@/pages/Donate';
 import Shop from '@/pages/Shop';
 import ProductDetail from '@/pages/ProductDetail';
+import Traceability from '@/pages/Traceability';
 import Contact from '@/pages/Contact';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
@@ -53,7 +54,7 @@ function AnimatedRoutes() {
             <Route path="donate-clothing" element={<ErrorBoundary><DonateClothing /></ErrorBoundary>} />
             <Route path="shop" element={<ErrorBoundary><Shop /></ErrorBoundary>} />
             <Route path="shop/:id" element={<ErrorBoundary><ProductDetail /></ErrorBoundary>} />
-            <Route path="traceability" element={<ErrorBoundary><MaterialTrace /></ErrorBoundary>} />
+            <Route path="traceability" element={<ErrorBoundary><Traceability /></ErrorBoundary>} />
             <Route path="contact" element={<ErrorBoundary><Contact /></ErrorBoundary>} />
             <Route path="login" element={<ErrorBoundary><Login /></ErrorBoundary>} />
             <Route path="register" element={<ErrorBoundary><Register /></ErrorBoundary>} />
@@ -63,7 +64,7 @@ function AnimatedRoutes() {
             <Route path="assistant" element={<ErrorBoundary><AiAssistant /></ErrorBoundary>} />
             <Route path="artwork-submit" element={<ErrorBoundary><ArtworkSubmit /></ErrorBoundary>} />
             <Route path="supply-chain" element={<ErrorBoundary><SupplyChain /></ErrorBoundary>} />
-            <Route path="material-trace" element={<Navigate to="/traceability" replace />} />
+            <Route path="material-trace" element={<ErrorBoundary><MaterialTrace /></ErrorBoundary>} />
             <Route path="clothing-recycle" element={<ErrorBoundary><ClothingRecycle /></ErrorBoundary>} />
             <Route path="privacy" element={<ErrorBoundary><Privacy /></ErrorBoundary>} />
             <Route path="terms" element={<ErrorBoundary><Terms /></ErrorBoundary>} />

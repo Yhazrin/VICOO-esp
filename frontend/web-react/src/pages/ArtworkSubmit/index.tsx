@@ -94,7 +94,9 @@ export default function ArtworkSubmitPage() {
   const prefersReducedMotion = useReducedMotion();
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [showErrors, setShowErrors] = useState(false);
-  const [currentStep] = useState(1); // 0-indexed: step 1 = "pending review"
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  // Before submission: -1 (no steps active). After submission: 1 (submitted=done, pending review=current)
+  const currentStep = isSubmitted ? 1 : -1;
 
   const isFormValid =
     !!form.campaignId &&
@@ -145,10 +147,9 @@ export default function ArtworkSubmitPage() {
       e.preventDefault();
       setShowErrors(true);
       if (!isFormValid) return;
-      // eslint-disable-next-line no-console
-      console.log('Submitting artwork:', form);
+      setIsSubmitted(true);
     },
-    [form, isFormValid],
+    [isFormValid],
   );
 
   /* ─── Animation Variants ─── */
@@ -408,17 +409,14 @@ export default function ArtworkSubmitPage() {
                 type="submit"
                 whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
                 whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
-                disabled={!isFormValid}
-                className="
+                className={`
                   w-full py-4 px-8
                   font-body text-overline tracking-[0.2em] uppercase
-                  bg-ink text-paper
-                  border-2 border-ink
-                  transition-all duration-300
-                  hover:bg-rust hover:border-rust
-                  disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-ink
-                  relative
-                "
+                  border-2 transition-all duration-300 relative
+                  ${isFormValid
+                    ? 'bg-ink text-paper border-ink hover:bg-rust hover:border-rust cursor-pointer'
+                    : 'bg-ink/60 text-paper/70 border-ink/40 cursor-pointer'}
+                `}
               >
                 <span className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-paper/20 pointer-events-none" aria-hidden="true" />
                 <span className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-paper/20 pointer-events-none" aria-hidden="true" />
@@ -454,7 +452,15 @@ export default function ArtworkSubmitPage() {
             subtitle={t('artworkSubmit.section03Subtitle', '提交后，你可以在此实时追踪画作的审核进度与状态变更。')}
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
+          {!isSubmitted && (
+            <div className="mb-8 p-4 border border-warm-gray/30 bg-aged-stock/30 text-center">
+              <p className="font-body text-body-sm text-sepia-mid">
+                {t('artworkSubmit.timelineHint', '提交画作后，审核进度将在此处实时更新')}
+              </p>
+            </div>
+          )}
+
+          <div className={`grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 ${!isSubmitted ? 'opacity-40' : ''}`}>
             <motion.div
               initial={prefersReducedMotion ? false : { opacity: 0 }}
               whileInView={{ opacity: 1 }}
