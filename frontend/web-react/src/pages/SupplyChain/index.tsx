@@ -34,7 +34,7 @@ const OVERVIEW_STATS = {
   totalBatches: 186,
   partnerFactories: 12,
   qcPassRate: 98.5,
-  carbonSaved: 4200,
+  carbonSaved: 7300,
 };
 
 const STAGES = [
@@ -59,7 +59,7 @@ const PROCESSING_DATA = {
   steps: [
     { name: '纺纱', progress: 100 },
     { name: '染整', progress: 100 },
-    { name: '面料加工', progress: 85 },
+    { name: '面料加工', progress: 100 },
   ],
   transportDistance: '320 km',
   carbonEstimate: '860 kg CO₂e',
@@ -77,27 +77,28 @@ const MANUFACTURING_DATA = {
 const QUALITY_DATA = {
   institution: 'SGS通标标准技术服务',
   items: [
-    { name: '色牢度', rate: 99.2 },
-    { name: '缩水率', rate: 98.8 },
-    { name: '甲醛含量', rate: 100 },
-    { name: '偶氮染料', rate: 100 },
-    { name: 'pH值', rate: 97.5 },
+    { name: '色牢度', rate: 99.2, status: 'completed' as const },
+    { name: '缩水率', rate: 98.8, status: 'completed' as const },
+    { name: '甲醛含量', rate: 100, status: 'completed' as const },
+    { name: '偶氮染料', rate: null, status: 'pending' as const },
+    { name: 'pH值', rate: null, status: 'pending' as const },
   ],
-  overallRate: 98.5,
+  overallRate: null,
   reportId: 'SGS-QC-2026-04518',
+  statusLabel: '检测进行中',
 };
 
 const SHIPPING_DATA = {
   company: '顺丰速运',
   method: '陆运 + 同城配送',
-  estimatedArrival: '2026-04-18',
-  trackingId: 'SF1398204857623',
+  estimatedArrival: '待定',
+  trackingId: '待发货',
   greenLogistics: true,
   nodes: [
-    { location: '广州仓库', date: '04-10', status: 'completed' as const },
-    { location: '长沙中转', date: '04-12', status: 'completed' as const },
-    { location: '上海分拨中心', date: '04-14', status: 'current' as const },
-    { location: '目的地门店', date: '04-18', status: 'pending' as const },
+    { location: '广州仓库', date: '--', status: 'pending' as const },
+    { location: '长沙中转', date: '--', status: 'pending' as const },
+    { location: '上海分拨中心', date: '--', status: 'pending' as const },
+    { location: '目的地门店', date: '--', status: 'pending' as const },
   ],
 };
 
@@ -183,8 +184,21 @@ function ProgressBar({ label, progress }: { label: string; progress: number }) {
   );
 }
 
-function QualityBar({ name, rate }: { name: string; rate: number }) {
-  const barColor = rate >= 99 ? 'bg-[#6BAF6B]' : rate >= 98 ? 'bg-[#8BC34A]' : 'bg-[#FFC107]';
+function QualityBar({ name, rate, status }: { name: string; rate: number | null; status: 'completed' | 'pending' }) {
+  if (status === 'pending') {
+    return (
+      <div className="mb-3 last:mb-0">
+        <div className="flex justify-between items-center mb-1">
+          <span className="font-body text-caption text-ink/40">{name}</span>
+          <span className="font-body text-caption text-sepia-mid/50">待检测</span>
+        </div>
+        <div className="w-full h-2 bg-aged-stock rounded-full overflow-hidden">
+          <div className="h-full w-0 rounded-full" />
+        </div>
+      </div>
+    );
+  }
+  const barColor = rate! >= 99 ? 'bg-[#6BAF6B]' : rate! >= 98 ? 'bg-[#8BC34A]' : 'bg-[#FFC107]';
   return (
     <div className="mb-3 last:mb-0">
       <div className="flex justify-between items-center mb-1">
@@ -200,33 +214,6 @@ function QualityBar({ name, rate }: { name: string; rate: number }) {
           className={`h-full ${barColor} rounded-full`}
         />
       </div>
-    </div>
-  );
-}
-
-function TrackingTimeline({ nodes }: { nodes: typeof SHIPPING_DATA.nodes }) {
-  return (
-    <div className="relative pl-6 mt-4">
-      {/* Vertical line */}
-      <div className="absolute left-[9px] top-2 bottom-2 w-px bg-rust/20" aria-hidden="true" />
-      {nodes.map((node, i) => (
-        <div key={i} className="relative flex items-start mb-5 last:mb-0">
-          {/* Dot */}
-          <div
-            className={`
-              absolute left-[-15px] top-1 w-[10px] h-[10px] rounded-full border-2
-              ${node.status === 'completed' ? 'bg-rust border-rust' : ''}
-              ${node.status === 'current' ? 'bg-paper border-rust animate-pulse' : ''}
-              ${node.status === 'pending' ? 'bg-aged-stock border-rust/30' : ''}
-            `}
-            aria-hidden="true"
-          />
-          <div className="ml-2">
-            <span className="font-body text-sm text-ink block">{node.location}</span>
-            <span className="font-body text-caption text-sepia-mid">{node.date}</span>
-          </div>
-        </div>
-      ))}
     </div>
   );
 }
@@ -312,6 +299,18 @@ export default function SupplyChainPage() {
     <PageWrapper>
       <PaperTextureBackground variant="paper">
         <GrainOverlay />
+
+        {/* ── 示例数据 disclaimer ── */}
+        <div className="mx-auto max-w-5xl px-4 pt-6">
+          <div className="flex items-center gap-2 rounded-sm border border-rust/20 bg-aged-stock/60 px-4 py-2">
+            <svg className="h-4 w-4 shrink-0 text-sepia-mid" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            </svg>
+            <span className="text-sepia-mid text-xs">
+              示例数据 — 当前展示为示例数据，正式环境将对接真实供应链管理系统
+            </span>
+          </div>
+        </div>
 
         {/* ════════════════════════════════════════════════════════════════
             Section 01 — 供应链总览 Supply Chain Overview
@@ -582,7 +581,7 @@ export default function SupplyChainPage() {
               <div className="col-span-12 md:col-span-7">
                 <EditorialCard
                   title={t('supplyChain.qualityTitle', '质检 Quality Check')}
-                  subtitle={`SGS · ${t('supplyChain.qualityPassRate', '通过率')} ${QUALITY_DATA.overallRate}%`}
+                  subtitle={`SGS · ${QUALITY_DATA.statusLabel}`}
                   className="h-full"
                 >
                   <div className="space-y-0 mb-6">
@@ -596,8 +595,12 @@ export default function SupplyChainPage() {
                     />
                     <DataField
                       label={t('supplyChain.fieldQcRate', '综合合格率')}
-                      value={`${QUALITY_DATA.overallRate}%`}
+                      value={QUALITY_DATA.statusLabel}
                       accent
+                    />
+                    <DataField
+                      label={t('supplyChain.fieldQcProgress', '检测进度')}
+                      value={`3 / 5 项已完成`}
                     />
                   </div>
                   <div>
@@ -605,33 +608,37 @@ export default function SupplyChainPage() {
                       {t('supplyChain.qualityItems', '检测项目明细')}
                     </span>
                     {QUALITY_DATA.items.map((item) => (
-                      <QualityBar key={item.name} name={item.name} rate={item.rate} />
+                      <QualityBar key={item.name} name={item.name} rate={item.rate} status={item.status} />
                     ))}
                   </div>
                 </EditorialCard>
               </div>
               <div className="col-span-12 md:col-span-5 flex items-center">
-                {/* Large pass rate display */}
+                {/* Quality status display */}
                 <motion.div
                   initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.9 }}
                   whileInView={prefersReducedMotion ? {} : { opacity: 1, scale: 1 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.6 }}
-                  className="w-full text-center p-8 bg-paper border-2 border-[#6BAF6B]/30 rounded-sm"
+                  className="w-full text-center p-8 bg-paper border-2 border-[#FFC107]/30 rounded-sm"
                 >
-                  <div className="font-display text-6xl md:text-7xl font-bold text-[#4A8B4A] leading-none">
-                    {QUALITY_DATA.overallRate}%
+                  <div className="font-display text-4xl md:text-5xl font-bold text-[#E6A817] leading-none">
+                    检测中
                   </div>
                   <div className="font-body text-caption text-sepia-mid mt-3 tracking-wide">
-                    {t('supplyChain.overallPassRate', '综合质检通过率')}
+                    {t('supplyChain.qcInProgress', '质检进行中 · 3/5 项完成')}
                   </div>
                   <div className="mt-4 flex flex-wrap justify-center gap-2">
                     {QUALITY_DATA.items.map((item) => (
                       <span
                         key={item.name}
-                        className="inline-block px-2 py-0.5 text-[10px] font-body text-[#4A8B4A] bg-[#D4E8D4]/30 rounded-sm"
+                        className={`inline-block px-2 py-0.5 text-[10px] font-body rounded-sm ${
+                          item.status === 'completed'
+                            ? 'text-[#4A8B4A] bg-[#D4E8D4]/30'
+                            : 'text-sepia-mid/50 bg-aged-stock/50'
+                        }`}
                       >
-                        {item.name} {item.rate}%
+                        {item.name} {item.status === 'completed' ? `${item.rate}%` : '待检测'}
                       </span>
                     ))}
                   </div>
@@ -643,11 +650,11 @@ export default function SupplyChainPage() {
           {/* ── Stage 5: 物流发货 ── */}
           <div ref={stageRefs.shipping} className="scroll-mt-24 mb-16 md:mb-24">
             <MagazineDivider variant="numbered" number="STAGE 05" className="mb-8" />
-            <div className={`grid grid-cols-12 gap-6 md:gap-8 p-6 md:p-8 rounded-sm ${STAGE_COLORS.shipping}`}>
+            <div className={`grid grid-cols-12 gap-6 md:gap-8 p-6 md:p-8 rounded-sm ${STAGE_COLORS.shipping} opacity-60`}>
               <div className="col-span-12 md:col-span-5">
                 <EditorialCard
                   title={t('supplyChain.shippingTitle', '物流发货 Shipping')}
-                  subtitle={`${SHIPPING_DATA.company} · ${t('supplyChain.greenShipping', '绿色物流')}`}
+                  subtitle={t('supplyChain.awaitingShipment', '待发货')}
                   className="h-full"
                 >
                   <div className="space-y-0 mb-4">
@@ -668,14 +675,6 @@ export default function SupplyChainPage() {
                       value={SHIPPING_DATA.trackingId}
                     />
                   </div>
-                  {SHIPPING_DATA.greenLogistics && (
-                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-[#D4E8D4]/40 border border-[#6BAF6B]/30 rounded-sm">
-                      <span className="w-2 h-2 bg-[#6BAF6B] rounded-full" aria-hidden="true" />
-                      <span className="font-body text-[10px] text-[#4A8B4A]">
-                        {t('supplyChain.greenLogisticsLabel', '绿色物流认证')}
-                      </span>
-                    </span>
-                  )}
                 </EditorialCard>
               </div>
               <div className="col-span-12 md:col-span-7">
@@ -684,12 +683,32 @@ export default function SupplyChainPage() {
                   whileInView={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.6 }}
-                  className="bg-paper border-2 border-rust/20 rounded-sm p-6"
+                  className="bg-paper border-2 border-rust/10 rounded-sm p-6"
                 >
-                  <h4 className="font-display text-base font-semibold text-ink mb-4">
+                  <h4 className="font-display text-base font-semibold text-ink/40 mb-4">
                     {t('supplyChain.trackingTitle', '物流追踪')}
                   </h4>
-                  <TrackingTimeline nodes={SHIPPING_DATA.nodes} />
+                  {/* Grayed-out placeholder timeline */}
+                  <div className="relative pl-6 mt-4">
+                    <div className="absolute left-[9px] top-2 bottom-2 w-px bg-rust/10" aria-hidden="true" />
+                    {SHIPPING_DATA.nodes.map((node, i) => (
+                      <div key={i} className="relative flex items-start mb-5 last:mb-0">
+                        <div
+                          className="absolute left-[-15px] top-1 w-[10px] h-[10px] rounded-full border-2 bg-aged-stock border-rust/15"
+                          aria-hidden="true"
+                        />
+                        <div className="ml-2">
+                          <span className="font-body text-sm text-ink/30 block">{node.location}</span>
+                          <span className="font-body text-caption text-sepia-mid/30">{node.date}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-6 text-center py-4 bg-aged-stock/40 rounded-sm">
+                    <span className="font-body text-sm text-sepia-mid">
+                      物流信息将在发货后更新
+                    </span>
+                  </div>
                 </motion.div>
               </div>
             </div>
@@ -797,10 +816,11 @@ export default function SupplyChainPage() {
                 className="bg-aged-stock border-2 border-rust/30 rounded-sm p-6 text-center"
               >
                 <ImpactCounter
-                  value={Math.round(
-                    ((CARBON_COMPARISON.conventional.total - CARBON_COMPARISON.sustainable.total) /
+                  value={parseFloat(
+                    (((CARBON_COMPARISON.conventional.total - CARBON_COMPARISON.sustainable.total) /
                       CARBON_COMPARISON.conventional.total) *
                       100
+                    ).toFixed(1)
                   )}
                   label={t('supplyChain.carbonReduction', '碳排放减少')}
                   suffix="%"

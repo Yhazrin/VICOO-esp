@@ -1,5 +1,6 @@
-import { useState, type ChangeEvent } from 'react';
+import { useState, useRef, type ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
@@ -67,30 +68,34 @@ const MOCK_ORDERS: RecycleOrder[] = [
   },
 ];
 
+/* ─── Placeholder image generator ─── */
+const placeholder = (label: string, hue = 30) =>
+  `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><rect fill="hsl(${hue},25%,88%)" width="400" height="400"/><text x="200" y="190" text-anchor="middle" font-family="serif" font-size="18" fill="hsl(${hue},20%,45%)">${label}</text><text x="200" y="220" text-anchor="middle" font-family="sans-serif" font-size="12" fill="hsl(${hue},15%,60%)">♻ 循环再生</text></svg>`)}`;
+
 const MOCK_PRODUCTS = [
   {
     id: 'p1',
     name: '复古格纹外套',
     price: '¥89',
-    image: '/images/recycled/jacket.jpg',
+    image: placeholder('复古格纹外套', 25),
   },
   {
     id: 'p2',
     name: '扎染棉质T恤',
     price: '¥45',
-    image: '/images/recycled/tshirt.jpg',
+    image: placeholder('扎染棉质T恤', 200),
   },
   {
     id: 'p3',
     name: '手绘牛仔裤',
     price: '¥120',
-    image: '/images/recycled/jeans.jpg',
+    image: placeholder('手绘牛仔裤', 220),
   },
   {
     id: 'p4',
     name: '拼布碎花裙',
     price: '¥68',
-    image: '/images/recycled/skirt.jpg',
+    image: placeholder('拼布碎花裙', 330),
   },
 ];
 
@@ -188,7 +193,9 @@ function CircularFlowDiagram() {
 
 export default function ClothingRecycle() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const prefersReducedMotion = useReducedMotion();
+  const ordersSectionRef = useRef<HTMLDivElement>(null);
 
   /* --- Form state --- */
   const [description, setDescription] = useState('');
@@ -201,13 +208,17 @@ export default function ClothingRecycle() {
   const [phone, setPhone] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
+  /* --- Order state --- */
+  const [userOrders, setUserOrders] = useState<RecycleOrder[]>(MOCK_ORDERS);
+  const [nextOrderId, setNextOrderId] = useState(5);
+
   /* --- Order tab state --- */
   const [activeTab, setActiveTab] = useState<OrderStatus>('all');
 
   const filteredOrders =
     activeTab === 'all'
-      ? MOCK_ORDERS
-      : MOCK_ORDERS.filter((o) => o.status === activeTab);
+      ? userOrders
+      : userOrders.filter((o) => o.status === activeTab);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -215,10 +226,49 @@ export default function ClothingRecycle() {
     }
   };
 
+  const TYPE_LABEL_MAP: Record<string, string> = {
+    tshirt: 'T恤',
+    pants: '裤子',
+    jacket: '外套',
+    skirt: '裙子',
+    other: '其他',
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    const today = new Date();
+    const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+    const newOrder: RecycleOrder = {
+      id: `RCL-2026-${String(nextOrderId).padStart(4, '0')}`,
+      date: dateStr,
+      type: TYPE_LABEL_MAP[clothingType] || clothingType,
+      quantity,
+      status: 'pending',
+      statusLabel: '审核中',
+    };
+
+    setUserOrders((prev) => [newOrder, ...prev]);
+    setNextOrderId((prev) => prev + 1);
+
     setSubmitted(true);
     setTimeout(() => setSubmitted(false), 3000);
+
+    // Reset form
+    setDescription('');
+    setClothingType('tshirt');
+    setQuantity(1);
+    setCondition('like-new');
+    setNotes('');
+    setPhotos([]);
+    setAddress('');
+    setPhone('');
+
+    // Auto-scroll to orders section
+    setTimeout(() => {
+      ordersSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 300);
   };
 
   /* --- Animation helpers --- */
@@ -257,6 +307,14 @@ export default function ClothingRecycle() {
 
   return (
     <PageWrapper>
+      {/* Disclaimer banner */}
+      <div className="bg-aged-stock/40 border-b border-rust/20 px-4 py-2 flex items-center justify-center gap-2">
+        <svg className="w-4 h-4 text-sepia-mid flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+        </svg>
+        <span className="text-sepia-mid text-xs">当前展示为示例数据，正式环境将对接真实回收系统</span>
+      </div>
+
       {/* ============================================================ */}
       {/*  Section 01 - 循环时尚理念                                      */}
       {/* ============================================================ */}
@@ -446,6 +504,7 @@ export default function ClothingRecycle() {
       {/* ============================================================ */}
       {/*  Section 03 - 我的回收订单                                      */}
       {/* ============================================================ */}
+      <div ref={ordersSectionRef}>
       <PaperTextureBackground variant="paper" className="py-16 md:py-24 relative">
         <GrainOverlay />
         <SectionContainer>
@@ -548,6 +607,7 @@ export default function ClothingRecycle() {
           </div>
         </SectionContainer>
       </PaperTextureBackground>
+      </div>
 
       <MagazineDivider variant="decorative" />
 
@@ -590,7 +650,10 @@ export default function ClothingRecycle() {
                       <span className="font-display text-body-sm font-bold text-ink">
                         {product.price}
                       </span>
-                      <button className="font-body text-caption text-rust tracking-[0.1em] uppercase hover:underline">
+                      <button
+                        onClick={() => navigate(`/shop/${product.id}`)}
+                        className="font-body text-caption text-rust tracking-[0.1em] uppercase hover:underline"
+                      >
                         {t('clothingRecycle.viewDetail', '查看详情')}
                       </button>
                     </div>
@@ -603,7 +666,7 @@ export default function ClothingRecycle() {
           {/* Link to full shop */}
           <motion.div {...fadeUp(0.3)} className="text-center mt-12">
             <a
-              href="/shop?filter=recycled"
+              href="/shop"
               className="font-body text-body-sm text-rust tracking-[0.15em] uppercase hover:underline transition-colors"
             >
               {t('clothingRecycle.browseMore', '浏览更多循环商品')} →

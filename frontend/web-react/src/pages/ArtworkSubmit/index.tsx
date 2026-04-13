@@ -12,6 +12,10 @@ import PaperTextureBackground from '@/components/editorial/PaperTextureBackgroun
 import MagazineDivider from '@/components/editorial/MagazineDivider';
 import { VintageSelect } from '@/components/editorial/VintageSelect';
 
+/* ─── Placeholder image generator ─── */
+const placeholder = (label: string, hue = 30) =>
+  `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400"><rect fill="hsl(${hue},25%,88%)" width="600" height="400"/><text x="300" y="200" text-anchor="middle" dominant-baseline="central" font-family="serif" font-size="20" fill="hsl(${hue},20%,45%)">${label}</text></svg>`)}`;
+
 /* ─── Mock Campaign Data ─── */
 
 const MOCK_CAMPAIGNS = [
@@ -19,7 +23,7 @@ const MOCK_CAMPAIGNS = [
     id: 'campaign-001',
     title: '春日花语 — 儿童花卉主题画展',
     description: '以春天的花朵为灵感，邀请小画家们用画笔描绘心中的花园世界。优秀作品将印制于限量环保丝巾上。',
-    image: '/images/campaigns/spring-flowers.jpg',
+    image: placeholder('春日花语', 45),
     deadline: '2026-05-15',
     submissions: 128,
   },
@@ -27,7 +31,7 @@ const MOCK_CAMPAIGNS = [
     id: 'campaign-002',
     title: '海洋守护者 — 可持续时尚插画征集',
     description: '关注海洋环保主题，用色彩表达对海洋生态的关爱。入选画作将应用于再生面料服饰系列。',
-    image: '/images/campaigns/ocean-guardian.jpg',
+    image: placeholder('海洋守护者', 200),
     deadline: '2026-06-01',
     submissions: 86,
   },
@@ -35,7 +39,7 @@ const MOCK_CAMPAIGNS = [
     id: 'campaign-003',
     title: '城市森林 — 绿色生活艺术创作',
     description: '描绘你理想中的绿色城市，想象人与自然和谐共处的未来。作品将用于环保手提袋系列设计。',
-    image: '/images/campaigns/urban-forest.jpg',
+    image: placeholder('城市森林', 120),
     deadline: '2026-06-20',
     submissions: 52,
   },
@@ -70,7 +74,6 @@ interface FormState {
   artworkFile: File | null;
   authorName: string;
   ageGroup: string;
-  involvesChild: boolean;
   consentFile: File | null;
 }
 
@@ -81,7 +84,6 @@ const INITIAL_FORM: FormState = {
   artworkFile: null,
   authorName: '',
   ageGroup: '',
-  involvesChild: false,
   consentFile: null,
 };
 
@@ -91,7 +93,24 @@ export default function ArtworkSubmitPage() {
   const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
+  const [showErrors, setShowErrors] = useState(false);
   const [currentStep] = useState(1); // 0-indexed: step 1 = "pending review"
+
+  const isFormValid =
+    !!form.campaignId &&
+    !!form.title.trim() &&
+    !!form.artworkFile &&
+    !!form.authorName.trim() &&
+    !!form.ageGroup &&
+    !!form.consentFile;
+
+  const missingFields: string[] = [];
+  if (!form.campaignId) missingFields.push('征集活动');
+  if (!form.title.trim()) missingFields.push('画作标题');
+  if (!form.artworkFile) missingFields.push('画作图片');
+  if (!form.authorName.trim()) missingFields.push('作者名');
+  if (!form.ageGroup) missingFields.push('年龄段');
+  if (!form.consentFile) missingFields.push('监护人同意书');
 
   const updateField = useCallback(
     <K extends keyof FormState>(key: K, value: FormState[K]) => {
@@ -124,10 +143,12 @@ export default function ArtworkSubmitPage() {
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
+      setShowErrors(true);
+      if (!isFormValid) return;
       // eslint-disable-next-line no-console
       console.log('Submitting artwork:', form);
     },
-    [form],
+    [form, isFormValid],
   );
 
   /* ─── Animation Variants ─── */
@@ -285,78 +306,43 @@ export default function ArtworkSubmitPage() {
                 onChange={(e) => updateField('ageGroup', e.target.value)}
               />
 
-              {/* Child Involvement Checkbox */}
+              {/* Guardian Consent Upload (mandatory for all minor age groups) */}
               <motion.div
                 variants={fadeUp}
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true }}
-                className="space-y-4"
+                className="space-y-3"
               >
-                <label className="flex items-start gap-3 cursor-pointer group">
-                  <div className="relative mt-0.5">
-                    <input
-                      type="checkbox"
-                      checked={form.involvesChild}
-                      onChange={(e) => updateField('involvesChild', e.target.checked)}
-                      className="peer sr-only"
-                    />
-                    <div className="w-5 h-5 border-2 border-warm-gray/60 bg-transparent transition-colors peer-checked:border-rust peer-checked:bg-rust/10 peer-focus-visible:ring-2 peer-focus-visible:ring-rust/50" />
-                    <svg
-                      className="absolute inset-0 w-5 h-5 text-rust opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2.5}
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <span className="font-body text-body-sm text-ink leading-relaxed">
-                    {t('artworkSubmit.involvesChild', '是否涉及儿童参与')}
-                    <span className="block text-caption text-sepia-mid mt-1">
-                      {t(
-                        'artworkSubmit.involvesChildHint',
-                        '如作者为未成年人，需上传监护人同意书方可参与征集活动',
-                      )}
-                    </span>
-                  </span>
+                <label className="font-body text-overline text-sepia-mid tracking-[0.2em] uppercase block">
+                  {t('artworkSubmit.consentForm', '监护人同意书（必填）')}
                 </label>
-
-                {/* Guardian Consent Upload (conditional) */}
-                {form.involvesChild && (
-                  <motion.div
-                    initial={prefersReducedMotion ? false : { opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.4, ease: [0, 0, 0.2, 1] }}
-                    className="ml-8"
-                  >
-                    <label className="font-body text-overline text-sepia-mid tracking-[0.2em] uppercase block mb-3">
-                      {t('artworkSubmit.consentForm', '监护人同意书')}
-                    </label>
-                    <div className="relative border-2 border-dashed border-rust/30 bg-aged-stock/50 p-6 text-center transition-colors hover:border-rust/50 hover:bg-aged-stock/80">
-                      <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-rust/30 pointer-events-none" aria-hidden="true" />
-                      <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-rust/30 pointer-events-none" aria-hidden="true" />
-                      <input
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        onChange={handleConsentFile}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      />
-                      <svg className="w-8 h-8 mx-auto text-sepia-mid mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      {form.consentFile ? (
-                        <p className="font-body text-body-sm text-rust">{form.consentFile.name}</p>
-                      ) : (
-                        <p className="font-body text-caption text-sepia-mid">
-                          {t('artworkSubmit.consentUploadHint', '点击上传 PDF 或图片格式的监护人同意书')}
-                        </p>
-                      )}
-                    </div>
-                  </motion.div>
-                )}
+                <p className="font-body text-caption text-sepia-mid">
+                  {t(
+                    'artworkSubmit.consentFormHint',
+                    '所有参赛作者均为未成年人（3-15岁），提交画作时必须上传监护人同意书。',
+                  )}
+                </p>
+                <div className="relative border-2 border-dashed border-rust/30 bg-aged-stock/50 p-6 text-center transition-colors hover:border-rust/50 hover:bg-aged-stock/80">
+                  <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-rust/30 pointer-events-none" aria-hidden="true" />
+                  <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-rust/30 pointer-events-none" aria-hidden="true" />
+                  <input
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={handleConsentFile}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <svg className="w-8 h-8 mx-auto text-sepia-mid mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  {form.consentFile ? (
+                    <p className="font-body text-body-sm text-rust">{form.consentFile.name}</p>
+                  ) : (
+                    <p className="font-body text-caption text-sepia-mid">
+                      {t('artworkSubmit.consentUploadHint', '点击上传 PDF 或图片格式的监护人同意书')}
+                    </p>
+                  )}
+                </div>
               </motion.div>
             </motion.div>
 
@@ -422,7 +408,7 @@ export default function ArtworkSubmitPage() {
                 type="submit"
                 whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
                 whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
-                disabled={!form.campaignId || !form.title || !form.artworkFile}
+                disabled={!isFormValid}
                 className="
                   w-full py-4 px-8
                   font-body text-overline tracking-[0.2em] uppercase
@@ -438,6 +424,22 @@ export default function ArtworkSubmitPage() {
                 <span className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-paper/20 pointer-events-none" aria-hidden="true" />
                 {t('artworkSubmit.submitButton', '提交画作')}
               </motion.button>
+
+              {/* Validation Error Messages */}
+              {showErrors && missingFields.length > 0 && (
+                <div className="mt-4 p-4 border border-rust/30 bg-rust/5">
+                  <p className="font-body text-body-sm text-rust font-semibold mb-2">
+                    {t('artworkSubmit.validationError', '请完善以下必填项：')}
+                  </p>
+                  <ul className="list-disc list-inside space-y-1">
+                    {missingFields.map((field) => (
+                      <li key={field} className="font-body text-caption text-rust">
+                        {field}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </motion.div>
           </form>
         </SectionContainer>
