@@ -47,59 +47,59 @@ const STAGES = [
 ] as const;
 
 const MATERIAL_DATA = {
-  origin: '新疆阿克苏地区',
-  volume: '200吨',
-  unitPrice: '¥18,500/吨',
+  origin: 'Aksu, Xinjiang Region',
+  volume: '200 tons',
+  unitPrice: '¥18,500/ton',
   certifications: ['SA8000', 'BSCI', 'GOTS'],
   carbonEstimate: '1,200 kg CO₂e',
-  supplier: '绿源有机棉合作社',
+  supplier: 'Lvyuan Organic Cotton Co-op',
 };
 
 const PROCESSING_DATA = {
-  factory: '苏州恒通纺织有限公司',
+  factory: 'Suzhou Hengtong Textile Co.',
   steps: [
-    { name: '纺纱', progress: 100 },
-    { name: '染整', progress: 100 },
-    { name: '面料加工', progress: 100 },
+    { name: 'Spinning', progress: 100 },
+    { name: 'Dyeing', progress: 100 },
+    { name: 'Fabric Processing', progress: 100 },
   ],
   transportDistance: '320 km',
   carbonEstimate: '860 kg CO₂e',
 };
 
 const MANUFACTURING_DATA = {
-  factory: '广州锦华成衣工厂',
+  factory: 'Guangzhou Jinhua Garment Factory',
   batchId: 'MFG-2026-0312',
   workerCount: 156,
   greenLogistics: true,
   productionDate: '2026-03-01',
-  capacity: '5,000件/月',
+  capacity: '5,000 pcs/month',
 };
 
 const QUALITY_DATA = {
-  institution: 'SGS通标标准技术服务',
+  institution: 'SGS Standard Technical Services',
   items: [
-    { name: '色牢度', rate: 99.2, status: 'completed' as const },
-    { name: '缩水率', rate: 98.8, status: 'completed' as const },
-    { name: '甲醛含量', rate: 100, status: 'completed' as const },
-    { name: '偶氮染料', rate: null, status: 'pending' as const },
-    { name: 'pH值', rate: null, status: 'pending' as const },
+    { name: 'Color Fastness', rate: 99.2, status: 'completed' as const },
+    { name: 'Shrinkage', rate: 98.8, status: 'completed' as const },
+    { name: 'Formaldehyde', rate: 100, status: 'completed' as const },
+    { name: 'Azo Dyes', rate: null, status: 'pending' as const },
+    { name: 'pH Level', rate: null, status: 'pending' as const },
   ],
   overallRate: null,
   reportId: 'SGS-QC-2026-04518',
-  statusLabel: '检测进行中',
+  statusLabel: 'Testing in Progress',
 };
 
 const SHIPPING_DATA = {
-  company: '顺丰速运',
-  method: '陆运 + 同城配送',
-  estimatedArrival: '待定',
-  trackingId: '待发货',
+  company: 'SF Express',
+  method: 'Road + Local Delivery',
+  estimatedArrival: 'TBD',
+  trackingId: 'Awaiting Shipment',
   greenLogistics: true,
   nodes: [
-    { location: '广州仓库', date: '--', status: 'pending' as const },
-    { location: '长沙中转', date: '--', status: 'pending' as const },
-    { location: '上海分拨中心', date: '--', status: 'pending' as const },
-    { location: '目的地门店', date: '--', status: 'pending' as const },
+    { location: 'Guangzhou Warehouse', date: '--', status: 'pending' as const },
+    { location: 'Changsha Transit', date: '--', status: 'pending' as const },
+    { location: 'Shanghai Distribution Center', date: '--', status: 'pending' as const },
+    { location: 'Destination Store', date: '--', status: 'pending' as const },
   ],
 };
 
@@ -190,13 +190,23 @@ function ProgressBar({ label, progress }: { label: string; progress: number }) {
   );
 }
 
-function QualityBar({ name, rate, status }: { name: string; rate: number | null; status: 'completed' | 'pending' }) {
+function QualityBar({
+  name,
+  rate,
+  status,
+  pendingLabel,
+}: {
+  name: string;
+  rate: number | null;
+  status: 'completed' | 'pending';
+  pendingLabel: string;
+}) {
   if (status === 'pending') {
     return (
       <div className="mb-3 last:mb-0">
         <div className="flex justify-between items-center mb-1">
           <span className="font-body text-caption text-ink/40">{name}</span>
-          <span className="font-body text-caption text-sepia-mid/50">待检测</span>
+          <span className="font-body text-caption text-sepia-mid/50">{pendingLabel}</span>
         </div>
         <div className="w-full h-2 bg-aged-stock rounded-full overflow-hidden">
           <div className="h-full w-0 rounded-full" />
@@ -229,18 +239,22 @@ function CarbonComparisonBar({
   conventional,
   sustainable,
   maxValue,
+  conventionalShortLabel,
+  sustainableShortLabel,
 }: {
   label: string;
   conventional: number;
   sustainable: number;
   maxValue: number;
+  conventionalShortLabel: string;
+  sustainableShortLabel: string;
 }) {
   return (
     <div className="mb-4 last:mb-0">
       <span className="font-body text-caption text-ink mb-2 block">{label}</span>
       <div className="space-y-1">
         <div className="flex items-center gap-2">
-          <span className="font-body text-[10px] text-sepia-mid w-12 shrink-0">传统</span>
+          <span className="font-body text-[10px] text-sepia-mid w-12 shrink-0">{conventionalShortLabel}</span>
           <div className="flex-1 h-3 bg-aged-stock rounded-full overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
@@ -253,7 +267,7 @@ function CarbonComparisonBar({
           <span className="font-body text-[10px] text-sepia-mid w-16 text-right">{conventional} kg</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="font-body text-[10px] text-rust w-12 shrink-0">可持续</span>
+          <span className="font-body text-[10px] text-rust w-12 shrink-0">{sustainableShortLabel}</span>
           <div className="flex-1 h-3 bg-aged-stock rounded-full overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
@@ -296,11 +310,11 @@ export default function SupplyChainPage() {
   };
 
   const stageLabels = [
-    { label: t('supplyChain.stage1', '原料采购'), sub: 'Material Sourcing' },
-    { label: t('supplyChain.stage2', '加工处理'), sub: 'Processing' },
-    { label: t('supplyChain.stage3', '成衣制造'), sub: 'Manufacturing' },
-    { label: t('supplyChain.stage4', '质检'), sub: 'Quality Check' },
-    { label: t('supplyChain.stage5', '物流发货'), sub: 'Shipping' },
+    { label: t('supplyChain.stage1', 'Material Sourcing'), sub: t('supplyChain.stage1', 'Material Sourcing') },
+    { label: t('supplyChain.stage2', 'Processing'), sub: t('supplyChain.stage2', 'Processing') },
+    { label: t('supplyChain.stage3', 'Manufacturing'), sub: t('supplyChain.stage3', 'Manufacturing') },
+    { label: t('supplyChain.stage4', 'Quality Check'), sub: t('supplyChain.stage4', 'Quality Check') },
+    { label: t('supplyChain.stage5', 'Shipping'), sub: t('supplyChain.stage5', 'Shipping') },
   ];
 
   return (
@@ -308,26 +322,26 @@ export default function SupplyChainPage() {
       <PaperTextureBackground variant="paper">
         <GrainOverlay />
 
-        {/* ── 示例数据 disclaimer ── */}
+        {/* -- Sample data disclaimer -- */}
         <div className="mx-auto max-w-5xl px-4 pt-6">
           <div className="flex items-center gap-2 rounded-sm border border-rust/20 bg-aged-stock/60 px-4 py-2">
             <svg className="h-4 w-4 shrink-0 text-sepia-mid" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
             </svg>
             <span className="text-sepia-mid text-xs">
-              示例数据 — 当前展示为示例数据，正式环境将对接真实供应链管理系统
+              Sample Data — Currently showing sample data; production will connect to the real supply chain management system
             </span>
           </div>
         </div>
 
         {/* ════════════════════════════════════════════════════════════════
-            Section 01 — 供应链总览 Supply Chain Overview
+            Section 01 — Supply Chain Overview
         ════════════════════════════════════════════════════════════════ */}
         <SectionContainer className="pt-20 md:pt-28">
           <NumberedSectionHeading
             number="01"
-            title={t('supplyChain.overviewTitle', '供应链总览')}
-            subtitle={t('supplyChain.overviewSubtitle', '从棉花田到商品上架，每一步皆可追溯')}
+            title={t('supplyChain.overviewTitle', 'Supply Chain Overview')}
+            subtitle={t('supplyChain.overviewSubtitle', 'From cotton fields to store shelves, every step is traceable')}
           />
 
           {/* Pipeline Stepper */}
@@ -342,7 +356,7 @@ export default function SupplyChainPage() {
             <div className="flex items-center justify-center mb-8">
               <div className="px-4 py-2 bg-aged-stock border border-rust/20 rounded-sm">
                 <span className="font-body text-caption text-sepia-mid tracking-wide">
-                  {t('supplyChain.designDraft', '商品化设计稿')}
+                  {t('supplyChain.designDraft', 'Product Design Draft')}
                 </span>
               </div>
               <div className="w-8 h-px bg-rust/30 mx-2" aria-hidden="true" />
@@ -378,7 +392,7 @@ export default function SupplyChainPage() {
               <div className="w-8 h-px bg-rust/30 mx-2" aria-hidden="true" />
               <div className="px-4 py-2 bg-aged-stock border border-rust/20 rounded-sm">
                 <span className="font-body text-caption text-sepia-mid tracking-wide">
-                  {t('supplyChain.productCatalog', '商品上架')}
+                  {t('supplyChain.productCatalog', 'Product Launch')}
                 </span>
               </div>
             </div>
@@ -388,22 +402,22 @@ export default function SupplyChainPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
             <ImpactCounter
               value={OVERVIEW_STATS.totalBatches}
-              label={t('supplyChain.totalBatches', '总原料批次')}
+              label={t('supplyChain.totalBatches', 'Total Material Batches')}
               suffix="+"
             />
             <ImpactCounter
               value={OVERVIEW_STATS.partnerFactories}
-              label={t('supplyChain.partnerFactories', '合作工厂')}
-              suffix={t('supplyChain.factorySuffix', '家')}
+              label={t('supplyChain.partnerFactories', 'Partner Factories')}
+              suffix={t('supplyChain.factorySuffix', '')}
             />
             <ImpactCounter
               value={OVERVIEW_STATS.qcPassRate}
-              label={t('supplyChain.qcPassRate', '质检通过率')}
+              label={t('supplyChain.qcPassRate', 'QC Pass Rate')}
               suffix="%"
             />
             <ImpactCounter
               value={OVERVIEW_STATS.carbonSaved}
-              label={t('supplyChain.carbonSaved', '碳排放节约')}
+              label={t('supplyChain.carbonSaved', 'Carbon Saved')}
               suffix=" kg"
               prefix="−"
             />
@@ -413,25 +427,25 @@ export default function SupplyChainPage() {
         <MagazineDivider variant="decorative" className="my-12 md:my-20" />
 
         {/* ════════════════════════════════════════════════════════════════
-            Section 02 — 五阶段详情 5-Stage Details
+            Section 02 — 5-Stage Details
         ════════════════════════════════════════════════════════════════ */}
         <SectionContainer>
           <NumberedSectionHeading
             number="02"
-            title={t('supplyChain.stageDetailsTitle', '五阶段详情')}
-            subtitle={t('supplyChain.stageDetailsSubtitle', '供应链每个环节的详细记录与数据')}
+            title={t('supplyChain.stageDetailsTitle', '5-Stage Details')}
+            subtitle={t('supplyChain.stageDetailsSubtitle', 'Detailed records and data for each supply chain stage')}
           />
 
-          {/* ── Stage 1: 原料采购 ── */}
+          {/* -- Stage 1: Material Sourcing -- */}
           <div ref={stageRefs.material} className="scroll-mt-24 mb-16 md:mb-24">
             <MagazineDivider variant="numbered" number="STAGE 01" className="mb-8" />
             <div className={`grid grid-cols-12 gap-6 md:gap-8 p-6 md:p-8 rounded-sm ${STAGE_COLORS.material}`}>
               {/* Left: Image + Info */}
               <div className="col-span-12 md:col-span-5">
                 <SepiaImageFrame
-                  src={placeholderImage('有机棉花基地', { hue: 45, width: 600, height: 400 })}
-                  alt={t('supplyChain.materialImageAlt', '新疆有机棉花田')}
-                  caption={t('supplyChain.materialCaption', '新疆阿克苏有机棉种植基地')}
+                  src={placeholderImage('Organic Cotton Field', { hue: 45, width: 600, height: 400 })}
+                  alt={t('supplyChain.materialImageAlt', 'Xinjiang Organic Cotton Field')}
+                  caption={t('supplyChain.materialCaption', 'Aksu, Xinjiang Organic Cotton Base')}
                   aspectRatio="landscape"
                   size="full"
                 />
@@ -439,35 +453,35 @@ export default function SupplyChainPage() {
               {/* Right: Data */}
               <div className="col-span-12 md:col-span-7">
                 <EditorialCard
-                  title={t('supplyChain.materialTitle', '原料采购 Material Sourcing')}
-                  subtitle={t('supplyChain.materialSubtitle', '新疆有机棉 · 200吨采购量')}
+                  title={t('supplyChain.materialTitle', 'Material Sourcing')}
+                  subtitle={t('supplyChain.materialSubtitle', 'Xinjiang Organic Cotton - 200 tons')}
                   className="h-full"
                 >
                   <div className="space-y-0">
                     <DataField
-                      label={t('supplyChain.fieldOrigin', '来源地')}
+                      label={t('supplyChain.fieldOrigin', 'Origin')}
                       value={MATERIAL_DATA.origin}
                     />
                     <DataField
-                      label={t('supplyChain.fieldVolume', '采购量(吨)')}
+                      label={t('supplyChain.fieldVolume', 'Volume (tons)')}
                       value={MATERIAL_DATA.volume}
                     />
                     <DataField
-                      label={t('supplyChain.fieldUnitPrice', '采购单价')}
+                      label={t('supplyChain.fieldUnitPrice', 'Unit Price')}
                       value={MATERIAL_DATA.unitPrice}
                     />
                     <DataField
-                      label={t('supplyChain.fieldSupplier', '供应商')}
+                      label={t('supplyChain.fieldSupplier', 'Supplier')}
                       value={MATERIAL_DATA.supplier}
                     />
                     <DataField
-                      label={t('supplyChain.fieldCarbon', '碳估算')}
+                      label={t('supplyChain.fieldCarbon', 'Carbon Estimate')}
                       value={MATERIAL_DATA.carbonEstimate}
                       accent
                     />
                     <div className="pt-3">
                       <span className="font-body text-caption text-sepia-mid block mb-2">
-                        {t('supplyChain.fieldCerts', '供应商认证')}
+                        {t('supplyChain.fieldCerts', 'Supplier Certifications')}
                       </span>
                       {MATERIAL_DATA.certifications.map((cert) => (
                         <CertBadge key={cert} name={cert} />
@@ -479,34 +493,34 @@ export default function SupplyChainPage() {
             </div>
           </div>
 
-          {/* ── Stage 2: 加工处理 ── */}
+          {/* -- Stage 2: Processing -- */}
           <div ref={stageRefs.processing} className="scroll-mt-24 mb-16 md:mb-24">
             <MagazineDivider variant="numbered" number="STAGE 02" className="mb-8" />
             <div className={`grid grid-cols-12 gap-6 md:gap-8 p-6 md:p-8 rounded-sm ${STAGE_COLORS.processing}`}>
               <div className="col-span-12 md:col-span-7">
                 <EditorialCard
-                  title={t('supplyChain.processingTitle', '加工处理 Processing')}
-                  subtitle={t('supplyChain.processingSubtitle', '纺纱 → 染整 → 面料加工')}
+                  title={t('supplyChain.processingTitle', 'Processing')}
+                  subtitle={t('supplyChain.processingSubtitle', 'Spinning -> Dyeing -> Fabric Processing')}
                   className="h-full"
                 >
                   <div className="space-y-0 mb-6">
                     <DataField
-                      label={t('supplyChain.fieldFactory', '加工厂名称')}
+                      label={t('supplyChain.fieldFactory', 'Factory')}
                       value={PROCESSING_DATA.factory}
                     />
                     <DataField
-                      label={t('supplyChain.fieldTransport', '运输距离')}
+                      label={t('supplyChain.fieldTransport', 'Transport Distance')}
                       value={PROCESSING_DATA.transportDistance}
                     />
                     <DataField
-                      label={t('supplyChain.fieldCarbon', '碳排放估算')}
+                      label={t('supplyChain.fieldCarbon', 'Carbon Estimate')}
                       value={PROCESSING_DATA.carbonEstimate}
                       accent
                     />
                   </div>
                   <div>
                     <span className="font-body text-caption text-sepia-mid block mb-3">
-                      {t('supplyChain.processingSteps', '加工工序进度')}
+                      {t('supplyChain.processingSteps', 'Processing Progress')}
                     </span>
                     {PROCESSING_DATA.steps.map((step) => (
                       <ProgressBar key={step.name} label={step.name} progress={step.progress} />
@@ -516,9 +530,9 @@ export default function SupplyChainPage() {
               </div>
               <div className="col-span-12 md:col-span-5">
                 <SepiaImageFrame
-                  src={placeholderImage('纺纱染整车间', { hue: 30, width: 600, height: 400 })}
-                  alt={t('supplyChain.processingImageAlt', '纺织加工车间')}
-                  caption={t('supplyChain.processingCaption', '苏州恒通纺织加工车间')}
+                  src={placeholderImage('Textile Workshop', { hue: 30, width: 600, height: 400 })}
+                  alt={t('supplyChain.processingImageAlt', 'Textile Processing Workshop')}
+                  caption={t('supplyChain.processingCaption', 'Suzhou Hengtong Textile Workshop')}
                   aspectRatio="landscape"
                   size="full"
                 />
@@ -526,44 +540,44 @@ export default function SupplyChainPage() {
             </div>
           </div>
 
-          {/* ── Stage 3: 成衣制造 ── */}
+          {/* -- Stage 3: Manufacturing -- */}
           <div ref={stageRefs.manufacturing} className="scroll-mt-24 mb-16 md:mb-24">
             <MagazineDivider variant="numbered" number="STAGE 03" className="mb-8" />
             <div className={`grid grid-cols-12 gap-6 md:gap-8 p-6 md:p-8 rounded-sm ${STAGE_COLORS.manufacturing}`}>
               <div className="col-span-12 md:col-span-5">
                 <SepiaImageFrame
-                  src={placeholderImage('成衣制造工厂', { hue: 140, width: 600, height: 400 })}
-                  alt={t('supplyChain.manufacturingImageAlt', '广州成衣工厂')}
-                  caption={t('supplyChain.manufacturingCaption', '广州锦华成衣生产线')}
+                  src={placeholderImage('Garment Factory', { hue: 140, width: 600, height: 400 })}
+                  alt={t('supplyChain.manufacturingImageAlt', 'Guangzhou Garment Factory')}
+                  caption={t('supplyChain.manufacturingCaption', 'Guangzhou Jinhua Production Line')}
                   aspectRatio="landscape"
                   size="full"
                 />
               </div>
               <div className="col-span-12 md:col-span-7">
                 <EditorialCard
-                  title={t('supplyChain.manufacturingTitle', '成衣制造 Manufacturing')}
-                  subtitle={t('supplyChain.manufacturingSubtitle', '广州锦华成衣工厂')}
+                  title={t('supplyChain.manufacturingTitle', 'Manufacturing')}
+                  subtitle={t('supplyChain.manufacturingSubtitle', 'Guangzhou Jinhua Garment Factory')}
                   className="h-full"
                 >
                   <div className="space-y-0">
                     <DataField
-                      label={t('supplyChain.fieldFactory', '工厂名称')}
+                      label={t('supplyChain.fieldFactory', 'Factory')}
                       value={MANUFACTURING_DATA.factory}
                     />
                     <DataField
-                      label={t('supplyChain.fieldBatchId', '生产批次')}
+                      label={t('supplyChain.fieldBatchId', 'Batch ID')}
                       value={MANUFACTURING_DATA.batchId}
                     />
                     <DataField
-                      label={t('supplyChain.fieldWorkers', '工人数量')}
-                      value={`${MANUFACTURING_DATA.workerCount} 人`}
+                      label={t('supplyChain.fieldWorkers', 'Workers')}
+                      value={`${MANUFACTURING_DATA.workerCount} workers`}
                     />
                     <DataField
-                      label={t('supplyChain.fieldCapacity', '月产能')}
+                      label={t('supplyChain.fieldCapacity', 'Monthly Capacity')}
                       value={MANUFACTURING_DATA.capacity}
                     />
                     <DataField
-                      label={t('supplyChain.fieldProductionDate', '生产日期')}
+                      label={t('supplyChain.fieldProductionDate', 'Production Date')}
                       value={MANUFACTURING_DATA.productionDate}
                     />
                     <div className="pt-3 flex items-center gap-2">
@@ -571,7 +585,7 @@ export default function SupplyChainPage() {
                         <span className="inline-flex items-center gap-1 px-2 py-1 bg-[#D4E8D4]/40 border border-[#6BAF6B]/30 rounded-sm">
                           <span className="w-2 h-2 bg-[#6BAF6B] rounded-full" aria-hidden="true" />
                           <span className="font-body text-[10px] text-[#4A8B4A]">
-                            {t('supplyChain.greenLogistics', '绿色物流标识')}
+                            {t('supplyChain.greenLogistics', 'Green Logistics')}
                           </span>
                         </span>
                       )}
@@ -582,41 +596,47 @@ export default function SupplyChainPage() {
             </div>
           </div>
 
-          {/* ── Stage 4: 质检 ── */}
+          {/* -- Stage 4: Quality Check -- */}
           <div ref={stageRefs.quality} className="scroll-mt-24 mb-16 md:mb-24">
             <MagazineDivider variant="numbered" number="STAGE 04" className="mb-8" />
             <div className={`grid grid-cols-12 gap-6 md:gap-8 p-6 md:p-8 rounded-sm ${STAGE_COLORS.quality}`}>
               <div className="col-span-12 md:col-span-7">
                 <EditorialCard
-                  title={t('supplyChain.qualityTitle', '质检 Quality Check')}
-                  subtitle={`SGS · ${QUALITY_DATA.statusLabel}`}
+                  title={t('supplyChain.qualityTitle', 'Quality Check')}
+                  subtitle={`SGS · ${t('supplyChain.qualityStatusLabel', 'Testing in Progress')}`}
                   className="h-full"
                 >
                   <div className="space-y-0 mb-6">
                     <DataField
-                      label={t('supplyChain.fieldQcInstitution', '质检机构')}
+                      label={t('supplyChain.fieldQcInstitution', 'QC Institution')}
                       value={QUALITY_DATA.institution}
                     />
                     <DataField
-                      label={t('supplyChain.fieldQcReport', '质检报告编号')}
+                      label={t('supplyChain.fieldQcReport', 'QC Report ID')}
                       value={QUALITY_DATA.reportId}
                     />
                     <DataField
-                      label={t('supplyChain.fieldQcRate', '综合合格率')}
-                      value={QUALITY_DATA.statusLabel}
+                      label={t('supplyChain.fieldQcRate', 'Overall Pass Rate')}
+                      value={t('supplyChain.qualityStatusLabel', 'Testing in Progress')}
                       accent
                     />
                     <DataField
-                      label={t('supplyChain.fieldQcProgress', '检测进度')}
-                      value={`3 / 5 项已完成`}
+                      label={t('supplyChain.fieldQcProgress', 'Test Progress')}
+                      value={`3 / 5 completed`}
                     />
                   </div>
                   <div>
                     <span className="font-body text-caption text-sepia-mid block mb-3">
-                      {t('supplyChain.qualityItems', '检测项目明细')}
+                      {t('supplyChain.qualityItems', 'Test Item Details')}
                     </span>
                     {QUALITY_DATA.items.map((item) => (
-                      <QualityBar key={item.name} name={item.name} rate={item.rate} status={item.status} />
+                      <QualityBar
+                        key={item.name}
+                        name={item.name}
+                        rate={item.rate}
+                        status={item.status}
+                        pendingLabel={t('supplyChain.pendingLabel', 'Pending')}
+                      />
                     ))}
                   </div>
                 </EditorialCard>
@@ -631,10 +651,10 @@ export default function SupplyChainPage() {
                   className="w-full text-center p-8 bg-paper border-2 border-[#FFC107]/30 rounded-sm"
                 >
                   <div className="font-display text-4xl md:text-5xl font-bold text-[#E6A817] leading-none">
-                    检测中
+                    Testing
                   </div>
                   <div className="font-body text-caption text-sepia-mid mt-3 tracking-wide">
-                    {t('supplyChain.qcInProgress', '质检进行中 · 3/5 项完成')}
+                    {t('supplyChain.qcInProgress', 'Quality check in progress - 3/5 completed')}
                   </div>
                   <div className="mt-4 flex flex-wrap justify-center gap-2">
                     {QUALITY_DATA.items.map((item) => (
@@ -646,7 +666,7 @@ export default function SupplyChainPage() {
                             : 'text-sepia-mid/50 bg-aged-stock/50'
                         }`}
                       >
-                        {item.name} {item.status === 'completed' ? `${item.rate}%` : '待检测'}
+                        {item.name} {item.status === 'completed' ? `${item.rate}%` : t('supplyChain.pendingLabel', 'Pending')}
                       </span>
                     ))}
                   </div>
@@ -655,31 +675,31 @@ export default function SupplyChainPage() {
             </div>
           </div>
 
-          {/* ── Stage 5: 物流发货 ── */}
+          {/* -- Stage 5: Shipping -- */}
           <div ref={stageRefs.shipping} className="scroll-mt-24 mb-16 md:mb-24">
             <MagazineDivider variant="numbered" number="STAGE 05" className="mb-8" />
             <div className={`grid grid-cols-12 gap-6 md:gap-8 p-6 md:p-8 rounded-sm ${STAGE_COLORS.shipping} opacity-60`}>
               <div className="col-span-12 md:col-span-5">
                 <EditorialCard
-                  title={t('supplyChain.shippingTitle', '物流发货 Shipping')}
-                  subtitle={t('supplyChain.awaitingShipment', '待发货')}
+                  title={t('supplyChain.shippingTitle', 'Shipping')}
+                  subtitle={t('supplyChain.awaitingShipment', 'Awaiting Shipment')}
                   className="h-full"
                 >
                   <div className="space-y-0 mb-4">
                     <DataField
-                      label={t('supplyChain.fieldLogisticsCompany', '物流公司')}
+                      label={t('supplyChain.fieldLogisticsCompany', 'Logistics Company')}
                       value={SHIPPING_DATA.company}
                     />
                     <DataField
-                      label={t('supplyChain.fieldShippingMethod', '运输方式')}
+                      label={t('supplyChain.fieldShippingMethod', 'Shipping Method')}
                       value={SHIPPING_DATA.method}
                     />
                     <DataField
-                      label={t('supplyChain.fieldEstimatedArrival', '预计到达')}
+                      label={t('supplyChain.fieldEstimatedArrival', 'Est. Arrival')}
                       value={SHIPPING_DATA.estimatedArrival}
                     />
                     <DataField
-                      label={t('supplyChain.fieldTrackingId', '物流追踪号')}
+                      label={t('supplyChain.fieldTrackingId', 'Tracking ID')}
                       value={SHIPPING_DATA.trackingId}
                     />
                   </div>
@@ -694,7 +714,7 @@ export default function SupplyChainPage() {
                   className="bg-paper border-2 border-rust/10 rounded-sm p-6"
                 >
                   <h4 className="font-display text-base font-semibold text-ink/40 mb-4">
-                    {t('supplyChain.trackingTitle', '物流追踪')}
+                    {t('supplyChain.trackingTitle', 'Logistics Tracking')}
                   </h4>
                   {/* Grayed-out placeholder timeline */}
                   <div className="relative pl-6 mt-4">
@@ -714,7 +734,7 @@ export default function SupplyChainPage() {
                   </div>
                   <div className="mt-6 text-center py-4 bg-aged-stock/40 rounded-sm">
                     <span className="font-body text-sm text-sepia-mid">
-                      物流信息将在发货后更新
+                      {t('supplyChain.shippingPendingNotice', 'Tracking details will appear once the order ships')}
                     </span>
                   </div>
                 </motion.div>
@@ -726,13 +746,13 @@ export default function SupplyChainPage() {
         <MagazineDivider variant="decorative" className="my-12 md:my-20" />
 
         {/* ════════════════════════════════════════════════════════════════
-            Section 03 — 碳足迹汇总 Carbon Footprint Summary
+            Section 03 — Carbon Footprint Summary
         ════════════════════════════════════════════════════════════════ */}
         <SectionContainer className="pb-20 md:pb-28">
           <NumberedSectionHeading
             number="03"
-            title={t('supplyChain.carbonTitle', '碳足迹汇总')}
-            subtitle={t('supplyChain.carbonSubtitle', '全链路碳排放对比：传统供应链 vs 可持续供应链')}
+            title={t('supplyChain.carbonTitle', 'Carbon Footprint Summary')}
+            subtitle={t('supplyChain.carbonSubtitle', 'Lifecycle emissions comparison: conventional vs sustainable supply chain')}
           />
 
           <motion.div
@@ -746,50 +766,60 @@ export default function SupplyChainPage() {
             <div className="col-span-12 md:col-span-8">
               <div className="bg-paper border-2 border-rust/20 rounded-sm p-6 md:p-8">
                 <h3 className="font-display text-lg font-semibold text-ink mb-6">
-                  {t('supplyChain.carbonByStage', '各阶段碳排放对比')}
+                  {t('supplyChain.carbonByStage', 'Per-stage emissions comparison')}
                 </h3>
                 <CarbonComparisonBar
-                  label={t('supplyChain.stage1', '原料采购')}
+                  label={t('supplyChain.stage1', 'Material Sourcing')}
                   conventional={CARBON_COMPARISON.conventional.material}
                   sustainable={CARBON_COMPARISON.sustainable.material}
                   maxValue={5000}
+                  conventionalShortLabel={t('supplyChain.conventionalShortLabel', 'Conv.')}
+                  sustainableShortLabel={t('supplyChain.sustainableShortLabel', 'Sust.')}
                 />
                 <CarbonComparisonBar
-                  label={t('supplyChain.stage2', '加工处理')}
+                  label={t('supplyChain.stage2', 'Processing')}
                   conventional={CARBON_COMPARISON.conventional.processing}
                   sustainable={CARBON_COMPARISON.sustainable.processing}
                   maxValue={5000}
+                  conventionalShortLabel={t('supplyChain.conventionalShortLabel', 'Conv.')}
+                  sustainableShortLabel={t('supplyChain.sustainableShortLabel', 'Sust.')}
                 />
                 <CarbonComparisonBar
-                  label={t('supplyChain.stage3', '成衣制造')}
+                  label={t('supplyChain.stage3', 'Manufacturing')}
                   conventional={CARBON_COMPARISON.conventional.manufacturing}
                   sustainable={CARBON_COMPARISON.sustainable.manufacturing}
                   maxValue={5000}
+                  conventionalShortLabel={t('supplyChain.conventionalShortLabel', 'Conv.')}
+                  sustainableShortLabel={t('supplyChain.sustainableShortLabel', 'Sust.')}
                 />
                 <CarbonComparisonBar
-                  label={t('supplyChain.stage4', '质检')}
+                  label={t('supplyChain.stage4', 'Quality Check')}
                   conventional={CARBON_COMPARISON.conventional.quality}
                   sustainable={CARBON_COMPARISON.sustainable.quality}
                   maxValue={5000}
+                  conventionalShortLabel={t('supplyChain.conventionalShortLabel', 'Conv.')}
+                  sustainableShortLabel={t('supplyChain.sustainableShortLabel', 'Sust.')}
                 />
                 <CarbonComparisonBar
-                  label={t('supplyChain.stage5', '物流发货')}
+                  label={t('supplyChain.stage5', 'Shipping')}
                   conventional={CARBON_COMPARISON.conventional.shipping}
                   sustainable={CARBON_COMPARISON.sustainable.shipping}
                   maxValue={5000}
+                  conventionalShortLabel={t('supplyChain.conventionalShortLabel', 'Conv.')}
+                  sustainableShortLabel={t('supplyChain.sustainableShortLabel', 'Sust.')}
                 />
                 {/* Legend */}
                 <div className="flex items-center gap-6 mt-6 pt-4 border-t border-rust/10">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 bg-ink/40 rounded-full" />
                     <span className="font-body text-caption text-sepia-mid">
-                      {t('supplyChain.conventionalLabel', '传统供应链')}
+                      {t('supplyChain.conventionalLabel', 'Conventional Supply Chain')}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 bg-rust/70 rounded-full" />
                     <span className="font-body text-caption text-rust">
-                      {t('supplyChain.sustainableLabel', '可持续供应链')}
+                      {t('supplyChain.sustainableLabel', 'Sustainable Supply Chain')}
                     </span>
                   </div>
                 </div>
@@ -801,14 +831,14 @@ export default function SupplyChainPage() {
               {/* Total comparison */}
               <div className="bg-paper border-2 border-rust/20 rounded-sm p-6 text-center flex-1 flex flex-col justify-center">
                 <span className="font-body text-caption text-sepia-mid tracking-wide block mb-2">
-                  {t('supplyChain.totalConventional', '传统供应链总排放')}
+                  {t('supplyChain.totalConventional', 'Total Emissions, Conventional')}
                 </span>
                 <span className="font-display text-2xl text-ink/50 line-through block">
                   {CARBON_COMPARISON.conventional.total.toLocaleString()} kg
                 </span>
                 <div className="w-8 h-px bg-rust/30 mx-auto my-4" aria-hidden="true" />
                 <span className="font-body text-caption text-sepia-mid tracking-wide block mb-2">
-                  {t('supplyChain.totalSustainable', '可持续供应链总排放')}
+                  {t('supplyChain.totalSustainable', 'Total Emissions, Sustainable')}
                 </span>
                 <span className="font-display text-3xl font-bold text-rust block">
                   {CARBON_COMPARISON.sustainable.total.toLocaleString()} kg
@@ -825,14 +855,14 @@ export default function SupplyChainPage() {
               >
                 <ImpactCounter
                   value={CARBON_REDUCTION_PERCENT}
-                  label={t('supplyChain.carbonReduction', '碳排放减少')}
+                  label={t('supplyChain.carbonReduction', 'Carbon Reduction')}
                   suffix="%"
                   prefix="−"
                 />
                 <p className="font-body text-caption text-sepia-mid mt-4 leading-relaxed">
                   {t(
                     'supplyChain.carbonNote',
-                    '通过可持续供应链管理，我们在每个生产环节实现了显著的碳减排'
+                    'Sustainable operations reduce emissions meaningfully at every production stage'
                   )}
                 </p>
               </motion.div>

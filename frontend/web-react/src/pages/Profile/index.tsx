@@ -436,7 +436,7 @@ export default function Profile() {
             <div role="tabpanel" id="panel-clothing" aria-labelledby="tab-clothing">
               <NumberedSectionHeading number="03" title={t('profile.clothingIntakes', '衣物捐献进度')} />
               <p className="font-body text-body-sm text-ink-faded mb-6">
-                <Link to="/donate-clothing" className="text-rust hover:text-ink underline-offset-4">
+                <Link to="/clothing-recycle" className="text-rust hover:text-ink underline-offset-4">
                   {t('profile.newClothingIntake', '登记新的衣物捐献')}
                 </Link>
               </p>

@@ -17,7 +17,6 @@ const NAV_ITEMS = [
   { key: 'shop', path: '/shop' },
   { key: 'supplyChain', path: '/supply-chain' },
   { key: 'traceability', path: '/traceability' },
-  { key: 'materialTrace', path: '/material-trace' },
   { key: 'clothingRecycle', path: '/clothing-recycle' },
   { key: 'contact', path: '/contact' },
 ];
@@ -91,6 +90,7 @@ export default function Header() {
   };
 
   const currentThemeConfig = THEMES.find((t) => t.id === currentTheme);
+  const userDisplayName = user?.nickname || user?.email || 'User';
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-paper/90 backdrop-blur-sm">
@@ -155,10 +155,10 @@ export default function Header() {
                 <>
                   <div className="w-5 h-5 rounded-full bg-sepia-mid flex items-center justify-center">
                     <span className="text-caption text-paper font-medium">
-                      {user.name?.charAt(0).toUpperCase() || 'U'}
+                      {userDisplayName.charAt(0).toUpperCase()}
                     </span>
                   </div>
-                  <span className="max-w-20 truncate">{user.name}</span>
+                  <span className="max-w-20 truncate">{userDisplayName}</span>
                 </>
               ) : (
                 <span>{t('nav.login')}</span>
@@ -233,7 +233,7 @@ export default function Header() {
                       {isAuthenticated && user ? (
                         <>
                           <div className="px-4 py-2 border-b border-warm-gray/20">
-                            <p className="font-body text-body-sm text-ink font-medium">{user.name}</p>
+                            <p className="font-body text-body-sm text-ink font-medium">{userDisplayName}</p>
                             <p className="font-body text-caption text-sepia-mid truncate">{user.email}</p>
                           </div>
 

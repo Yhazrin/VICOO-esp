@@ -13,7 +13,7 @@ const NAV_ITEMS = [
   { key: 'campaigns', path: '/campaigns' },
   { key: 'stories', path: '/stories' },
   { key: 'donate', path: '/donate' },
-  { key: 'donateClothing', path: '/donate-clothing' },
+  { key: 'clothingRecycle', path: '/clothing-recycle' },
   { key: 'shop', path: '/shop' },
   { key: 'traceability', path: '/traceability' },
   { key: 'assistant', path: '/assistant' },

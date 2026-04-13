@@ -35,37 +35,37 @@ interface RecycleOrder {
   productLink?: string;
 }
 
-const ORDER_STATUS_LABELS: Record<Exclude<OrderStatus, 'all'>, string> = {
-  listed: '已上架',
-  pending: '审核中',
-  approved: '已通过·整理中',
-  rejected: '已驳回',
+const ORDER_STATUS_KEYS: Record<Exclude<OrderStatus, 'all'>, string> = {
+  listed: 'clothingRecycle.status.listed',
+  pending: 'clothingRecycle.status.pending',
+  approved: 'clothingRecycle.status.approved',
+  rejected: 'clothingRecycle.status.rejected',
 };
 
 const MOCK_PRODUCTS = [
   {
     id: '1',
-    name: '复古格纹外套',
+    nameKey: 'clothingRecycle.products.plaidJacket',
     price: '¥89',
-    image: placeholderImage('复古格纹外套', { hue: 25, subtitle: '♻ 循环再生' }),
+    hue: 25,
   },
   {
     id: '2',
-    name: '扎染棉质T恤',
+    nameKey: 'clothingRecycle.products.tieDyeTee',
     price: '¥45',
-    image: placeholderImage('扎染棉质T恤', { hue: 200, subtitle: '♻ 循环再生' }),
+    hue: 200,
   },
   {
     id: '3',
-    name: '手绘牛仔裤',
+    nameKey: 'clothingRecycle.products.handPaintedJeans',
     price: '¥120',
-    image: placeholderImage('手绘牛仔裤', { hue: 220, subtitle: '♻ 循环再生' }),
+    hue: 220,
   },
   {
     id: '4',
-    name: '拼布碎花裙',
+    nameKey: 'clothingRecycle.products.patchworkDress',
     price: '¥68',
-    image: placeholderImage('拼布碎花裙', { hue: 330, subtitle: '♻ 循环再生' }),
+    hue: 330,
   },
 ];
 
@@ -76,52 +76,41 @@ const STATUS_BADGE: Record<RecycleOrder['status'], string> = {
   rejected: 'bg-red-50 text-red-700 border border-red-300',
 };
 
-const TYPE_LABEL_MAP: Record<string, string> = {
-  tshirt: 'T恤',
-  pants: '裤子',
-  jacket: '外套',
-  skirt: '裙子',
-  other: '其他',
+const TYPE_LABEL_KEYS: Record<string, string> = {
+  tshirt: 'clothingRecycle.types.tshirt',
+  pants: 'clothingRecycle.types.pants',
+  jacket: 'clothingRecycle.types.jacket',
+  skirt: 'clothingRecycle.types.skirt',
+  other: 'clothingRecycle.types.other',
 };
 
-const CONDITION_LABEL_MAP: Record<string, string> = {
-  new: '全新',
-  'like-new': '八成新',
-  good: '七成新',
-  fair: '有瑕疵',
+const CONDITION_LABEL_KEYS: Record<string, string> = {
+  new: 'clothingRecycle.conditions.new',
+  'like-new': 'clothingRecycle.conditions.likeNew',
+  good: 'clothingRecycle.conditions.good',
+  fair: 'clothingRecycle.conditions.fair',
 };
 
-const typeOptions = [
-  { value: 'tshirt', label: 'T恤' },
-  { value: 'pants', label: '裤子' },
-  { value: 'jacket', label: '外套' },
-  { value: 'skirt', label: '裙子' },
-  { value: 'other', label: '其他' },
-];
+const TYPE_OPTION_VALUES = ['tshirt', 'pants', 'jacket', 'skirt', 'other'] as const;
 
-const conditionOptions = [
-  { value: 'new', label: '全新' },
-  { value: 'like-new', label: '八成新' },
-  { value: 'good', label: '七成新' },
-  { value: 'fair', label: '有瑕疵' },
-];
+const CONDITION_OPTION_VALUES = ['new', 'like-new', 'good', 'fair'] as const;
 
-const tabs: { key: OrderStatus; label: string }[] = [
-  { key: 'all', label: '全部' },
-  { key: 'pending', label: '待审核' },
-  { key: 'approved', label: '已通过' },
-  { key: 'rejected', label: '已驳回' },
-  { key: 'listed', label: '已上架' },
-];
+const TAB_KEYS: Record<OrderStatus, string> = {
+  all: 'clothingRecycle.tabs.all',
+  pending: 'clothingRecycle.tabs.pending',
+  approved: 'clothingRecycle.tabs.approved',
+  rejected: 'clothingRecycle.tabs.rejected',
+  listed: 'clothingRecycle.tabs.listed',
+};
 
-const FLOW_STEPS = [
-  '提交旧衣',
-  '审核',
-  '整理',
-  '上架',
-  '购买',
-  '闭环',
-];
+const FLOW_STEP_KEYS = [
+  'clothingRecycle.flowSteps.submit',
+  'clothingRecycle.flowSteps.review',
+  'clothingRecycle.flowSteps.sort',
+  'clothingRecycle.flowSteps.list',
+  'clothingRecycle.flowSteps.purchase',
+  'clothingRecycle.flowSteps.closeLoop',
+] as const;
 
 function mapIntakeStatus(status: string): RecycleOrder['status'] {
   if (status === 'approved' || status === 'rejected' || status === 'listed') {
@@ -135,7 +124,10 @@ function formatOrderId(intake: ClothingIntake): string {
   return `RC-${intake.created_at.slice(0, 10).replace(/-/g, '')}-${String(intake.id).padStart(3, '0')}`;
 }
 
-function mapIntakeToOrder(intake: ClothingIntake): RecycleOrder {
+function mapIntakeToOrder(
+  intake: ClothingIntake,
+  orderStatusLabels: Record<Exclude<OrderStatus, 'all'>, string>,
+): RecycleOrder {
   const status = mapIntakeStatus(intake.status);
 
   return {
@@ -144,7 +136,7 @@ function mapIntakeToOrder(intake: ClothingIntake): RecycleOrder {
     type: intake.garment_types || intake.summary,
     quantity: intake.quantity_estimate || 1,
     status,
-    statusLabel: ORDER_STATUS_LABELS[status],
+    statusLabel: orderStatusLabels[status],
     reason: intake.admin_note || undefined,
     productLink: intake.product_id ? `/shop/${intake.product_id}` : undefined,
   };
@@ -154,11 +146,11 @@ function mapIntakeToOrder(intake: ClothingIntake): RecycleOrder {
 /*  Circular Flow Diagram                                              */
 /* ------------------------------------------------------------------ */
 
-function CircularFlowDiagram() {
+function CircularFlowDiagram({ steps, ariaLabel }: { steps: string[]; ariaLabel: string }) {
   const prefersReducedMotion = useReducedMotion();
   const radius = 130;
   const center = 170;
-  const total = FLOW_STEPS.length;
+  const total = steps.length;
 
   return (
     <motion.div
@@ -168,7 +160,7 @@ function CircularFlowDiagram() {
       transition={{ duration: 0.8, ease: [0, 0, 0.2, 1] }}
       className="flex justify-center py-8"
     >
-      <svg viewBox="0 0 340 340" className="w-64 h-64 md:w-80 md:h-80" aria-label="循环流程图">
+      <svg viewBox="0 0 340 340" className="w-64 h-64 md:w-80 md:h-80" aria-label={ariaLabel}>
         {/* Connecting arc */}
         <circle
           cx={center}
@@ -181,7 +173,7 @@ function CircularFlowDiagram() {
           strokeDasharray="6 4"
         />
         {/* Arrow arcs between nodes */}
-        {FLOW_STEPS.map((_, i) => {
+        {steps.map((_, i) => {
           const angle1 = (i / total) * Math.PI * 2 - Math.PI / 2;
           const angle2 = ((i + 1) / total) * Math.PI * 2 - Math.PI / 2;
           const midAngle = (angle1 + angle2) / 2;
@@ -197,7 +189,7 @@ function CircularFlowDiagram() {
           );
         })}
         {/* Step nodes */}
-        {FLOW_STEPS.map((step, i) => {
+        {steps.map((step, i) => {
           const angle = (i / total) * Math.PI * 2 - Math.PI / 2;
           const x = center + Math.cos(angle) * radius;
           const y = center + Math.sin(angle) * radius;
@@ -254,7 +246,62 @@ export default function ClothingRecycle() {
     enabled: isAuthenticated,
   });
 
-  const userOrders = useMemo(() => intakeOrders.map(mapIntakeToOrder), [intakeOrders]);
+  const orderStatusLabels = useMemo(
+    () => ({
+      listed: t(ORDER_STATUS_KEYS.listed, 'Listed'),
+      pending: t(ORDER_STATUS_KEYS.pending, 'Under Review'),
+      approved: t(ORDER_STATUS_KEYS.approved, 'Approved · Processing'),
+      rejected: t(ORDER_STATUS_KEYS.rejected, 'Rejected'),
+    }),
+    [t],
+  );
+
+  const recycleProducts = useMemo(
+    () => MOCK_PRODUCTS.map((product) => {
+      const name = t(product.nameKey, product.nameKey);
+      return {
+        ...product,
+        name,
+        image: placeholderImage(name, { hue: product.hue, subtitle: t('clothingRecycle.recycleBadge', '♻ Recrafted') }),
+      };
+    }),
+    [t],
+  );
+
+  const typeLabelMap = useMemo(
+    () => Object.fromEntries(Object.entries(TYPE_LABEL_KEYS).map(([value, key]) => [value, t(key, value)])),
+    [t],
+  ) as Record<string, string>;
+
+  const conditionLabelMap = useMemo(
+    () => Object.fromEntries(Object.entries(CONDITION_LABEL_KEYS).map(([value, key]) => [value, t(key, value)])),
+    [t],
+  ) as Record<string, string>;
+
+  const typeOptions = useMemo(
+    () => TYPE_OPTION_VALUES.map((value) => ({ value, label: t(TYPE_LABEL_KEYS[value], value) })),
+    [t],
+  );
+
+  const conditionOptions = useMemo(
+    () => CONDITION_OPTION_VALUES.map((value) => ({ value, label: t(CONDITION_LABEL_KEYS[value], value) })),
+    [t],
+  );
+
+  const tabs = useMemo(
+    () => (Object.keys(TAB_KEYS) as OrderStatus[]).map((key) => ({ key, label: t(TAB_KEYS[key], key) })),
+    [t],
+  );
+
+  const flowSteps = useMemo(
+    () => FLOW_STEP_KEYS.map((key) => t(key, key)),
+    [t],
+  );
+
+  const userOrders = useMemo(
+    () => intakeOrders.map((intake) => mapIntakeToOrder(intake, orderStatusLabels)),
+    [intakeOrders, orderStatusLabels],
+  );
 
   const filteredOrders = useMemo(
     () => activeTab === 'all' ? userOrders : userOrders.filter((o) => o.status === activeTab),
@@ -272,9 +319,13 @@ export default function ClothingRecycle() {
     mutationFn: () =>
       clothingIntakesApi.create({
         summary: description.trim(),
-        garment_types: TYPE_LABEL_MAP[clothingType] || clothingType,
+        garment_types: typeLabelMap[clothingType] || clothingType,
         quantity_estimate: quantity,
-        condition_notes: [CONDITION_LABEL_MAP[condition], notes.trim(), photos.length > 0 ? `附 ${photos.length} 张照片` : null]
+        condition_notes: [
+          conditionLabelMap[condition],
+          notes.trim(),
+          photos.length > 0 ? t('clothingRecycle.photosAttached', '{{count}} photos attached', { count: photos.length }) : null,
+        ]
           .filter(Boolean)
           .join(' · '),
         pickup_address: address.trim(),
@@ -330,7 +381,9 @@ export default function ClothingRecycle() {
         <svg className="w-4 h-4 text-sepia-mid flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
         </svg>
-        <span className="text-sepia-mid text-xs">商品展示为示例内容，登录后的回收申请与进度会接入真实用户数据</span>
+        <span className="text-sepia-mid text-xs">
+          {t('clothingRecycle.disclaimer', 'Product cards are sample content. Signed-in users will see real recycling requests and synced progress.')}
+        </span>
       </div>
 
       {/* ============================================================ */}
@@ -341,10 +394,10 @@ export default function ClothingRecycle() {
         <SectionContainer>
           <NumberedSectionHeading
             number="01"
-            title={t('clothingRecycle.heroTitle', '循环时尚理念')}
+            title={t('clothingRecycle.heroTitle', 'Circular Fashion')}
             subtitle={t(
               'clothingRecycle.heroSubtitle',
-              '让旧衣焕发新生 -- 从提交、审核到重新上架，每一件旧衣都在循环中找到新的归宿。',
+              'Give old garments a second life, from submission and review to relisting and reuse.',
             )}
           />
 
@@ -353,26 +406,29 @@ export default function ClothingRecycle() {
             <ImpactCounter
               value={12000}
               suffix="+"
-              label={t('clothingRecycle.statRecycled', '已回收旧衣 (件)')}
+              label={t('clothingRecycle.statRecycled', 'Garments Recovered')}
             />
             <ImpactCounter
               value={8500}
               suffix=" kg"
-              label={t('clothingRecycle.statCarbon', '减少碳排放 CO₂')}
+              label={t('clothingRecycle.statCarbon', 'CO₂ Reduced')}
             />
             <ImpactCounter
               value={87}
               suffix="%"
-              label={t('clothingRecycle.statRate', '循环利用率')}
+              label={t('clothingRecycle.statRate', 'Reuse Rate')}
             />
           </div>
 
           {/* Circular Flow Diagram */}
           <motion.div {...fadeUp(0.2)} className="mt-16">
             <p className="font-body text-caption text-sepia-mid tracking-[0.15em] uppercase text-center mb-4">
-              {t('clothingRecycle.flowTitle', '循环闭环流程')}
+              {t('clothingRecycle.flowTitle', 'Circular Workflow')}
             </p>
-            <CircularFlowDiagram />
+            <CircularFlowDiagram
+              steps={flowSteps}
+              ariaLabel={t('clothingRecycle.flowDiagramAria', 'Circular recycling workflow')}
+            />
           </motion.div>
         </SectionContainer>
       </PaperTextureBackground>
@@ -387,10 +443,10 @@ export default function ClothingRecycle() {
         <SectionContainer>
           <NumberedSectionHeading
             number="02"
-            title={t('clothingRecycle.submitTitle', '提交旧衣')}
+            title={t('clothingRecycle.submitTitle', 'Submit Old Clothes')}
             subtitle={t(
               'clothingRecycle.submitSubtitle',
-              '填写以下表单，提交您的旧衣回收申请。运营团队将在 1-3 个工作日内完成审核。',
+              'Fill in the form below to start a recycling request. Our operations team reviews submissions within 1-3 business days.',
             )}
           />
 
@@ -402,44 +458,44 @@ export default function ClothingRecycle() {
             {!isAuthenticated && (
               <div className="border border-rust/30 bg-rust/5 p-4">
                 <p className="font-body text-body-sm text-ink mb-3">
-                  登录后可提交回收申请，并在个人中心查看同一条回收记录。
+                  {t('clothingRecycle.loginPrompt', 'Sign in to submit a recycling request and track the same record in your profile.')}
                 </p>
                 <div className="flex gap-3">
                   <Link
                     to="/login"
                     className="font-body text-caption text-paper bg-ink px-4 py-2 tracking-[0.1em] uppercase"
                   >
-                    立即登录
+                    {t('clothingRecycle.loginNow', 'Log In')}
                   </Link>
                   <Link
                     to="/register"
                     className="font-body text-caption text-rust border border-rust/30 px-4 py-2 tracking-[0.1em] uppercase"
                   >
-                    注册账号
+                    {t('clothingRecycle.registerNow', 'Create Account')}
                   </Link>
                 </div>
               </div>
             )}
 
             <VintageInput
-              label={t('clothingRecycle.fieldDescription', '衣物描述 *')}
+              label={t('clothingRecycle.fieldDescription', 'Garment Description *')}
               value={description}
               onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
                 setDescription(e.target.value)
               }
-              placeholder="简要描述您要回收的衣物"
+              placeholder={t('clothingRecycle.descriptionPlaceholder', 'Briefly describe the garments you want to recycle')}
               required
             />
 
             <VintageSelect
-              label={t('clothingRecycle.fieldType', '衣物类型')}
+              label={t('clothingRecycle.fieldType', 'Garment Type')}
               options={typeOptions}
               value={clothingType}
               onChange={(e) => setClothingType(e.target.value)}
             />
 
             <VintageInput
-              label={t('clothingRecycle.fieldQuantity', '数量')}
+              label={t('clothingRecycle.fieldQuantity', 'Quantity')}
               type="number"
               value={String(quantity)}
               onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -449,7 +505,7 @@ export default function ClothingRecycle() {
             />
 
             <VintageSelect
-              label={t('clothingRecycle.fieldCondition', '衣物状况')}
+              label={t('clothingRecycle.fieldCondition', 'Condition')}
               options={conditionOptions}
               value={condition}
               onChange={(e) => setCondition(e.target.value)}
@@ -457,19 +513,19 @@ export default function ClothingRecycle() {
 
             {/* Notes textarea */}
             <VintageInput
-              label={t('clothingRecycle.fieldNotes', '备注说明')}
+              label={t('clothingRecycle.fieldNotes', 'Notes')}
               type="textarea"
               value={notes}
               onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
                 setNotes(e.target.value)
               }
-              placeholder="如有特殊情况请在此说明"
+              placeholder={t('clothingRecycle.notesPlaceholder', 'Add any handling notes or garment details here')}
             />
 
             {/* Photo upload area */}
             <div className="space-y-2">
               <span className="font-body text-overline tracking-[0.2em] uppercase text-sepia-mid block">
-                {t('clothingRecycle.fieldPhotos', '上传旧衣照片')}
+                {t('clothingRecycle.fieldPhotos', 'Upload Garment Photos')}
               </span>
               <label
                 htmlFor="photo-upload"
@@ -490,8 +546,8 @@ export default function ClothingRecycle() {
                 </svg>
                 <span className="font-body text-caption text-sepia-mid">
                   {photos.length > 0
-                    ? `${photos.length} 个文件已选择`
-                    : '点击上传照片'}
+                    ? t('clothingRecycle.photoCount', '{{count}} file(s) selected', { count: photos.length })
+                    : t('clothingRecycle.photoUploadPrompt', 'Click to upload photos')}
                 </span>
                 <input
                   id="photo-upload"
@@ -505,22 +561,22 @@ export default function ClothingRecycle() {
             </div>
 
             <VintageInput
-              label={t('clothingRecycle.fieldAddress', '取件地址 *')}
+              label={t('clothingRecycle.fieldAddress', 'Pickup Address *')}
               value={address}
               onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
                 setAddress(e.target.value)
               }
-              placeholder="请填写详细取件地址"
+              placeholder={t('clothingRecycle.addressPlaceholder', 'Enter the full pickup address')}
               required
             />
 
             <VintageInput
-              label={t('clothingRecycle.fieldPhone', '联系电话 *')}
+              label={t('clothingRecycle.fieldPhone', 'Contact Phone *')}
               value={phone}
               onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
                 setPhone(e.target.value)
               }
-              placeholder="11位手机号码"
+              placeholder={t('clothingRecycle.phonePlaceholder', '11-digit mobile number')}
               required
             />
 
@@ -533,14 +589,14 @@ export default function ClothingRecycle() {
               className="w-full py-3 font-body text-body-sm tracking-[0.15em] uppercase bg-rust text-paper border border-rust hover:bg-rust/90 transition-colors disabled:opacity-60"
             >
               {submitted
-                ? t('clothingRecycle.submitSuccess', '提交成功!')
+                ? t('clothingRecycle.submitSuccess', 'Submitted Successfully!')
                 : createIntakeMutation.isPending
-                  ? t('common.loading', '提交中…')
-                  : t('clothingRecycle.submitBtn', '提交回收申请')}
+                  ? t('common.loading', 'Submitting...')
+                  : t('clothingRecycle.submitBtn', 'Submit Recycling Request')}
             </motion.button>
             {createIntakeMutation.isError && (
               <p className="font-body text-caption text-rust" role="alert">
-                提交失败，请稍后重试。
+                {t('clothingRecycle.submitError', 'Submission failed. Please try again later.')}
               </p>
             )}
           </motion.form>
@@ -558,23 +614,23 @@ export default function ClothingRecycle() {
         <SectionContainer>
           <NumberedSectionHeading
             number="03"
-            title={t('clothingRecycle.ordersTitle', '我的回收订单')}
+            title={t('clothingRecycle.ordersTitle', 'My Recycling Orders')}
             subtitle={t(
               'clothingRecycle.ordersSubtitle',
-              '追踪您的旧衣回收进度，查看审核状态与处理结果。',
+              'Track recycling progress, review outcomes, and linked resale items here.',
             )}
           />
 
           {!isAuthenticated ? (
             <motion.div {...fadeUp()} className="border border-rust/20 bg-aged-stock/30 p-6 text-center">
               <p className="font-body text-body-sm text-ink mb-4">
-                登录后即可在这里查看与你个人中心同步的回收进度。
+                {t('clothingRecycle.loginToTrack', 'Log in to view recycling progress synced with your profile.')}
               </p>
               <Link
                 to="/login"
                 className="font-body text-caption text-rust tracking-[0.1em] uppercase hover:underline"
               >
-                前往登录 →
+                {t('clothingRecycle.goToLogin', 'Go to Login')} →
               </Link>
             </motion.div>
           ) : (
@@ -599,7 +655,7 @@ export default function ClothingRecycle() {
               <div className="space-y-4">
                 {loadingOrders ? (
                   <p className="font-body text-body-sm text-sepia-mid text-center py-12">
-                    {t('common.loading', '加载中…')}
+                    {t('common.loading', 'Loading...')}
                   </p>
                 ) : filteredOrders.map((order, i) => (
                   <motion.div
@@ -610,27 +666,27 @@ export default function ClothingRecycle() {
                     <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-3">
                       <div>
                         <span className="font-body text-overline text-sepia-mid tracking-[0.1em] uppercase block mb-1">
-                          订单号
+                          {t('clothingRecycle.orderId', 'Order ID')}
                         </span>
                         <span className="font-body text-body-sm text-ink">{order.id}</span>
                       </div>
                       <div>
                         <span className="font-body text-overline text-sepia-mid tracking-[0.1em] uppercase block mb-1">
-                          提交日期
+                          {t('clothingRecycle.orderDate', 'Submitted')}
                         </span>
                         <span className="font-body text-body-sm text-ink">{order.date}</span>
                       </div>
                       <div>
                         <span className="font-body text-overline text-sepia-mid tracking-[0.1em] uppercase block mb-1">
-                          衣物类型
+                          {t('clothingRecycle.orderType', 'Garment Type')}
                         </span>
                         <span className="font-body text-body-sm text-ink">{order.type}</span>
                       </div>
                       <div>
                         <span className="font-body text-overline text-sepia-mid tracking-[0.1em] uppercase block mb-1">
-                          数量
+                          {t('clothingRecycle.orderQuantity', 'Quantity')}
                         </span>
-                        <span className="font-body text-body-sm text-ink">{order.quantity} 件</span>
+                        <span className="font-body text-body-sm text-ink">{order.quantity} {t('clothingRecycle.quantityUnit', 'pcs')}</span>
                       </div>
                     </div>
 
@@ -645,7 +701,7 @@ export default function ClothingRecycle() {
                           to={order.productLink}
                           className="font-body text-caption text-rust tracking-[0.1em] uppercase hover:underline"
                         >
-                          查看商品 →
+                          {t('clothingRecycle.viewProduct', 'View Product')} →
                         </Link>
                       )}
                       {order.status === 'rejected' && order.reason && (
@@ -655,7 +711,7 @@ export default function ClothingRecycle() {
                       )}
                       {order.status === 'pending' && (
                         <span className="font-body text-caption text-sepia-mid">
-                          预计 1-3 个工作日
+                          {t('clothingRecycle.pendingEta', 'Estimated review: 1-3 business days')}
                         </span>
                       )}
                     </div>
@@ -664,7 +720,7 @@ export default function ClothingRecycle() {
 
                 {!loadingOrders && filteredOrders.length === 0 && (
                   <p className="font-body text-body-sm text-sepia-mid text-center py-12">
-                    {t('clothingRecycle.noOrders', '暂无该状态的订单')}
+                    {t('clothingRecycle.noOrders', 'No orders in this status')}
                   </p>
                 )}
               </div>
@@ -684,15 +740,15 @@ export default function ClothingRecycle() {
         <SectionContainer>
           <NumberedSectionHeading
             number="04"
-            title={t('clothingRecycle.showcaseTitle', '循环商品橱窗')}
+            title={t('clothingRecycle.showcaseTitle', 'Recrafted Product Showcase')}
             subtitle={t(
               'clothingRecycle.showcaseSubtitle',
-              '来自回收的精选商品 -- 每一件都经过专业整理，焕然一新。',
+              'Selected pieces revived from recycled garments, refreshed and ready for their next story.',
             )}
           />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-            {MOCK_PRODUCTS.map((product, i) => (
+            {recycleProducts.map((product, i) => (
               <motion.div key={product.id} {...fadeUp(i * 0.1)}>
                 <EditorialCard
                   title={product.name}
@@ -709,7 +765,7 @@ export default function ClothingRecycle() {
                       size="full"
                     />
                     <span className="inline-block font-body text-overline tracking-[0.1em] px-2 py-0.5 bg-sage/10 text-sage border border-sage/30 rounded-sm">
-                      ♻️ 循环再生
+                      {t('clothingRecycle.recycleBadge', '♻ Recrafted')}
                     </span>
                     <div className="flex items-center justify-between">
                       <span className="font-display text-body-sm font-bold text-ink">
@@ -719,7 +775,7 @@ export default function ClothingRecycle() {
                         onClick={() => navigate(`/shop/${product.id}`)}
                         className="font-body text-caption text-rust tracking-[0.1em] uppercase hover:underline"
                       >
-                        {t('clothingRecycle.viewDetail', '查看详情')}
+                        {t('clothingRecycle.viewDetail', 'View Details')}
                       </button>
                     </div>
                   </div>
@@ -734,7 +790,7 @@ export default function ClothingRecycle() {
               href="/shop"
               className="font-body text-body-sm text-rust tracking-[0.15em] uppercase hover:underline transition-colors"
             >
-              {t('clothingRecycle.browseMore', '浏览更多循环商品')} →
+              {t('clothingRecycle.browseMore', 'Browse More Recrafted Items')} →
             </a>
           </motion.div>
         </SectionContainer>

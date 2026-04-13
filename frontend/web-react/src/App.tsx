@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import Layout, { FullHeightLayout } from '@/components/layout/Layout';
 import SmoothTransition from '@/components/transitions/SmoothTransition';
 import ErrorBoundary from '@/components/editorial/ErrorBoundary';
@@ -21,7 +21,6 @@ import Terms from '@/pages/Terms';
 import ChildrenSafety from '@/pages/ChildrenSafety';
 import NotFound from '@/pages/NotFound';
 import OrderDetail from '@/pages/OrderDetail';
-import DonateClothing from '@/pages/DonateClothing';
 import Support from '@/pages/Support';
 import AiAssistant from '@/pages/AiAssistant';
 import ArtworkSubmit from '@/pages/ArtworkSubmit';
@@ -51,7 +50,7 @@ function AnimatedRoutes() {
             <Route path="stories" element={<ErrorBoundary><Stories /></ErrorBoundary>} />
             <Route path="artworks/:id" element={<ErrorBoundary><ArtworkDetail /></ErrorBoundary>} />
             <Route path="donate" element={<ErrorBoundary><Donate /></ErrorBoundary>} />
-            <Route path="donate-clothing" element={<ErrorBoundary><DonateClothing /></ErrorBoundary>} />
+            <Route path="donate-clothing" element={<Navigate to="/clothing-recycle" replace />} />
             <Route path="shop" element={<ErrorBoundary><Shop /></ErrorBoundary>} />
             <Route path="shop/:id" element={<ErrorBoundary><ProductDetail /></ErrorBoundary>} />
             <Route path="traceability" element={<ErrorBoundary><Traceability /></ErrorBoundary>} />

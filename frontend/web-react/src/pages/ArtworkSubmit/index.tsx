@@ -18,25 +18,25 @@ import { placeholderImage } from '@/utils/placeholderImage';
 const MOCK_CAMPAIGNS = [
   {
     id: 'campaign-001',
-    title: '春日花语 — 儿童花卉主题画展',
-    description: '以春天的花朵为灵感，邀请小画家们用画笔描绘心中的花园世界。优秀作品将印制于限量环保丝巾上。',
-    image: placeholderImage('春日花语', { hue: 45, width: 600, height: 400 }),
+    title: 'Spring Blossoms — Children\'s Floral Art Exhibition',
+    description: 'Inspired by spring flowers, young artists are invited to paint their dream gardens. Outstanding works will be printed on limited-edition eco-friendly scarves.',
+    image: placeholderImage('Spring Blossoms', { hue: 45, width: 600, height: 400 }),
     deadline: '2026-05-15',
     submissions: 128,
   },
   {
     id: 'campaign-002',
-    title: '海洋守护者 — 可持续时尚插画征集',
-    description: '关注海洋环保主题，用色彩表达对海洋生态的关爱。入选画作将应用于再生面料服饰系列。',
-    image: placeholderImage('海洋守护者', { hue: 200, width: 600, height: 400 }),
+    title: 'Ocean Guardian — Sustainable Fashion Illustration',
+    description: 'Focus on ocean conservation themes and express your care for marine ecosystems through color. Selected artworks will be applied to a recycled-fabric clothing line.',
+    image: placeholderImage('Ocean Guardian', { hue: 200, width: 600, height: 400 }),
     deadline: '2026-06-01',
     submissions: 86,
   },
   {
     id: 'campaign-003',
-    title: '城市森林 — 绿色生活艺术创作',
-    description: '描绘你理想中的绿色城市，想象人与自然和谐共处的未来。作品将用于环保手提袋系列设计。',
-    image: placeholderImage('城市森林', { hue: 120, width: 600, height: 400 }),
+    title: 'Urban Forest — Green Living Art Creation',
+    description: 'Depict your ideal green city and imagine a future where humans and nature coexist in harmony. Artworks will be used in an eco-friendly tote bag design series.',
+    image: placeholderImage('Urban Forest', { hue: 120, width: 600, height: 400 }),
     deadline: '2026-06-20',
     submissions: 52,
   },
@@ -45,21 +45,21 @@ const MOCK_CAMPAIGNS = [
 /* ─── Review Timeline Steps ─── */
 
 const REVIEW_STEPS = [
-  { key: 'submitted', label: '已提交', description: '画作已成功上传至平台' },
-  { key: 'pending', label: '待审核', description: '运营团队正在审核您的作品' },
-  { key: 'result', label: '审核通过 / 驳回', description: '审核结果将通过站内信通知' },
-  { key: 'voting', label: '公开投票', description: '通过审核的作品将参与公众投票' },
-  { key: 'commercialize', label: '入选商品化', description: '优秀画作将被应用于可持续时尚产品' },
+  { key: 'submitted', label: 'Submitted', description: 'Your artwork has been successfully uploaded' },
+  { key: 'pending', label: 'Pending Review', description: 'Our team is reviewing your submission' },
+  { key: 'result', label: 'Approved / Rejected', description: 'You will be notified of the review result via message' },
+  { key: 'voting', label: 'Public Voting', description: 'Approved artworks will enter public voting' },
+  { key: 'commercialize', label: 'Commercialized', description: 'Outstanding artworks will be applied to sustainable fashion products' },
 ];
 
 /* ─── Age Group Options ─── */
 
 const AGE_GROUP_OPTIONS = [
-  { value: '', label: '请选择年龄段' },
-  { value: '3-6', label: '3-6岁' },
-  { value: '7-9', label: '7-9岁' },
-  { value: '10-12', label: '10-12岁' },
-  { value: '13-15', label: '13-15岁' },
+  { value: '', label: 'Select age group' },
+  { value: '3-6', label: 'Ages 3-6' },
+  { value: '7-9', label: 'Ages 7-9' },
+  { value: '10-12', label: 'Ages 10-12' },
+  { value: '13-15', label: 'Ages 13-15' },
 ];
 
 /* ─── Form State ─── */
@@ -96,12 +96,12 @@ export default function ArtworkSubmitPage() {
   const currentStep = isSubmitted ? 1 : -1;
 
   const missingFields: string[] = [];
-  if (!form.campaignId) missingFields.push('征集活动');
-  if (!form.title.trim()) missingFields.push('画作标题');
-  if (!form.artworkFile) missingFields.push('画作图片');
-  if (!form.authorName.trim()) missingFields.push('作者名');
-  if (!form.ageGroup) missingFields.push('年龄段');
-  if (!form.consentFile) missingFields.push('监护人同意书');
+  if (!form.campaignId) missingFields.push('Campaign');
+  if (!form.title.trim()) missingFields.push('Artwork title');
+  if (!form.artworkFile) missingFields.push('Artwork image');
+  if (!form.authorName.trim()) missingFields.push('Author name');
+  if (!form.ageGroup) missingFields.push('Age group');
+  if (!form.consentFile) missingFields.push('Guardian consent');
 
   const isFormValid = missingFields.length === 0;
 
@@ -183,15 +183,15 @@ export default function ArtworkSubmitPage() {
             className="max-w-2xl"
           >
             <span className="font-body text-overline text-rust tracking-[0.25em] uppercase block mb-4">
-              {t('artworkSubmit.badge', '画作提交与审核')}
+              {t('artworkSubmit.badge', 'Artwork Submission & Review')}
             </span>
             <h1 className="font-display text-h1 md:text-[3.5rem] font-bold leading-[0.95] tracking-[-0.025em] text-ink mb-6">
-              {t('artworkSubmit.heroTitle', '用画笔改变时尚')}
+              {t('artworkSubmit.heroTitle', 'Change Fashion with Your Brush')}
             </h1>
             <p className="font-body text-body-sm md:text-base text-ink-faded leading-relaxed max-w-lg">
               {t(
                 'artworkSubmit.heroDescription',
-                '选择一个征集活动，提交你的原创画作。通过审核后，你的艺术创作将有机会被应用于可持续时尚产品。',
+                'Choose a campaign and submit your original artwork. Once approved, your art may be featured on sustainable fashion products.',
               )}
             </p>
           </motion.div>
@@ -203,8 +203,8 @@ export default function ArtworkSubmitPage() {
         <SectionContainer className="section-spacing">
           <NumberedSectionHeading
             number="01"
-            title={t('artworkSubmit.section01Title', '选择征集活动')}
-            subtitle={t('artworkSubmit.section01Subtitle', '选择你想要参与的征集活动，每个活动有不同的主题和截止日期。')}
+            title={t('artworkSubmit.section01Title', 'Select a Campaign')}
+            subtitle={t('artworkSubmit.section01Subtitle', 'Choose the campaign you want to participate in. Each campaign has a different theme and deadline.')}
           />
 
           <motion.div
@@ -222,7 +222,7 @@ export default function ArtworkSubmitPage() {
               >
                 <EditorialCard
                   title={campaign.title}
-                  subtitle={`${t('artworkSubmit.deadline', '截止日期')}: ${campaign.deadline}`}
+                  subtitle={`${t('artworkSubmit.deadline', 'Deadline')}: ${campaign.deadline}`}
                   description={campaign.description}
                   image={campaign.image}
                   imageAlt={campaign.title}
@@ -237,7 +237,7 @@ export default function ArtworkSubmitPage() {
                 >
                   <div className="flex items-center justify-between mt-2">
                     <span className="font-body text-caption text-sepia-mid">
-                      {campaign.submissions} {t('artworkSubmit.submissions', '件作品')}
+                      {campaign.submissions} {t('artworkSubmit.submissions', 'submissions')}
                     </span>
                     {form.campaignId === campaign.id && (
                       <motion.span
@@ -248,7 +248,7 @@ export default function ArtworkSubmitPage() {
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                         </svg>
-                        {t('artworkSubmit.selected', '已选择')}
+                        {t('artworkSubmit.selected', 'Selected')}
                       </motion.span>
                     )}
                   </div>
@@ -264,8 +264,8 @@ export default function ArtworkSubmitPage() {
         <SectionContainer className="section-spacing">
           <NumberedSectionHeading
             number="02"
-            title={t('artworkSubmit.section02Title', '提交画作')}
-            subtitle={t('artworkSubmit.section02Subtitle', '填写画作信息并上传你的作品，请确保图片清晰、信息完整。')}
+            title={t('artworkSubmit.section02Title', 'Submit Artwork')}
+            subtitle={t('artworkSubmit.section02Subtitle', 'Fill in artwork details and upload your work. Please ensure the image is clear and all information is complete.')}
           />
 
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
@@ -278,30 +278,30 @@ export default function ArtworkSubmitPage() {
               className="md:col-span-7 space-y-8"
             >
               <VintageInput
-                label={t('artworkSubmit.artworkTitle', '画作标题')}
-                placeholder={t('artworkSubmit.artworkTitlePlaceholder', '为你的画作起一个名字')}
+                label={t('artworkSubmit.artworkTitle', 'Artwork Title')}
+                placeholder={t('artworkSubmit.artworkTitlePlaceholder', 'Give your artwork a name')}
                 value={form.title}
                 onChange={(e) => updateField('title', (e.target as HTMLInputElement).value)}
               />
 
               <VintageInput
-                label={t('artworkSubmit.artworkDescription', '画作描述')}
+                label={t('artworkSubmit.artworkDescription', 'Artwork Description')}
                 type="textarea"
-                placeholder={t('artworkSubmit.artworkDescriptionPlaceholder', '描述你的创作灵感与画面内容...')}
+                placeholder={t('artworkSubmit.artworkDescriptionPlaceholder', 'Describe your creative inspiration and artwork content...')}
                 value={form.description}
                 onChange={(e) => updateField('description', (e.target as HTMLTextAreaElement).value)}
               />
 
               <VintageInput
-                label={t('artworkSubmit.authorName', '作者名 / 笔名')}
-                placeholder={t('artworkSubmit.authorNamePlaceholder', '小画家的名字或笔名')}
+                label={t('artworkSubmit.authorName', 'Author Name / Pen Name')}
+                placeholder={t('artworkSubmit.authorNamePlaceholder', 'Young artist\'s name or pen name')}
                 icon="user"
                 value={form.authorName}
                 onChange={(e) => updateField('authorName', (e.target as HTMLInputElement).value)}
               />
 
               <VintageSelect
-                label={t('artworkSubmit.ageGroup', '年龄段')}
+                label={t('artworkSubmit.ageGroup', 'Age Group')}
                 options={AGE_GROUP_OPTIONS}
                 value={form.ageGroup}
                 onChange={(e) => updateField('ageGroup', e.target.value)}
@@ -316,12 +316,12 @@ export default function ArtworkSubmitPage() {
                 className="space-y-3"
               >
                 <label className="font-body text-overline text-sepia-mid tracking-[0.2em] uppercase block">
-                  {t('artworkSubmit.consentForm', '监护人同意书（必填）')}
+                  {t('artworkSubmit.consentForm', 'Guardian Consent Form (Required)')}
                 </label>
                 <p className="font-body text-caption text-sepia-mid">
                   {t(
                     'artworkSubmit.consentFormHint',
-                    '所有参赛作者均为未成年人（3-15岁），提交画作时必须上传监护人同意书。',
+                    'All participants are minors (ages 3-15). A guardian consent form must be uploaded when submitting artwork.',
                   )}
                 </p>
                 <div className="relative border-2 border-dashed border-rust/30 bg-aged-stock/50 p-6 text-center transition-colors hover:border-rust/50 hover:bg-aged-stock/80">
@@ -340,7 +340,7 @@ export default function ArtworkSubmitPage() {
                     <p className="font-body text-body-sm text-rust">{form.consentFile.name}</p>
                   ) : (
                     <p className="font-body text-caption text-sepia-mid">
-                      {t('artworkSubmit.consentUploadHint', '点击上传 PDF 或图片格式的监护人同意书')}
+                      {t('artworkSubmit.consentUploadHint', 'Click to upload guardian consent form (PDF or image)')}
                     </p>
                   )}
                 </div>
@@ -356,7 +356,7 @@ export default function ArtworkSubmitPage() {
               className="md:col-span-5 space-y-6"
             >
               <label className="font-body text-overline text-sepia-mid tracking-[0.2em] uppercase block">
-                {t('artworkSubmit.uploadArtwork', '上传画作图片')}
+                {t('artworkSubmit.uploadArtwork', 'Upload Artwork Image')}
               </label>
 
               <div className="relative border-2 border-dashed border-rust/30 bg-aged-stock/40 aspect-[3/4] flex flex-col items-center justify-center text-center transition-colors hover:border-rust/50 hover:bg-aged-stock/70 group">
@@ -377,7 +377,7 @@ export default function ArtworkSubmitPage() {
                   <div className="p-4 w-full h-full">
                     <SepiaImageFrame
                       src={artworkPreviewUrl}
-                      alt={form.title || t('artworkSubmit.artworkPreview', '画作预览')}
+                      alt={form.title || t('artworkSubmit.artworkPreview', 'Artwork Preview')}
                       aspectRatio="portrait"
                       size="full"
                       showCornerAccents={false}
@@ -395,10 +395,10 @@ export default function ArtworkSubmitPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     <p className="font-body text-body-sm text-ink-faded mb-1">
-                      {t('artworkSubmit.uploadPrompt', '点击上传画作')}
+                      {t('artworkSubmit.uploadPrompt', 'Click to upload artwork')}
                     </p>
                     <p className="font-body text-caption text-sepia-mid">
-                      {t('artworkSubmit.uploadFormats', '支持 JPG、PNG、TIFF 格式，最大 20MB')}
+                      {t('artworkSubmit.uploadFormats', 'Supports JPG, PNG, TIFF formats, max 20MB')}
                     </p>
                   </>
                 )}
@@ -420,14 +420,14 @@ export default function ArtworkSubmitPage() {
               >
                 <span className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-paper/20 pointer-events-none" aria-hidden="true" />
                 <span className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-paper/20 pointer-events-none" aria-hidden="true" />
-                {t('artworkSubmit.submitButton', '提交画作')}
+                {t('artworkSubmit.submitButton', 'Submit Artwork')}
               </motion.button>
 
               {/* Validation Error Messages */}
               {showErrors && missingFields.length > 0 && (
                 <div className="mt-4 p-4 border border-rust/30 bg-rust/5">
                   <p className="font-body text-body-sm text-rust font-semibold mb-2">
-                    {t('artworkSubmit.validationError', '请完善以下必填项：')}
+                    {t('artworkSubmit.validationError', 'Please complete the following required fields:')}
                   </p>
                   <ul className="list-disc list-inside space-y-1">
                     {missingFields.map((field) => (
@@ -448,14 +448,14 @@ export default function ArtworkSubmitPage() {
         <SectionContainer className="section-spacing">
           <NumberedSectionHeading
             number="03"
-            title={t('artworkSubmit.section03Title', '审核状态追踪')}
-            subtitle={t('artworkSubmit.section03Subtitle', '提交后，你可以在此实时追踪画作的审核进度与状态变更。')}
+            title={t('artworkSubmit.section03Title', 'Review Status Tracking')}
+            subtitle={t('artworkSubmit.section03Subtitle', 'After submission, you can track the review progress and status updates here in real time.')}
           />
 
           {!isSubmitted && (
             <div className="mb-8 p-4 border border-warm-gray/30 bg-aged-stock/30 text-center">
               <p className="font-body text-body-sm text-sepia-mid">
-                {t('artworkSubmit.timelineHint', '提交画作后，审核进度将在此处实时更新')}
+                {t('artworkSubmit.timelineHint', 'Once you submit your artwork, the review progress will be updated here in real time')}
               </p>
             </div>
           )}
@@ -540,7 +540,7 @@ export default function ArtworkSubmitPage() {
                             animate={{ opacity: 1 }}
                             className="inline-block mt-2 font-body text-overline text-rust tracking-[0.15em] uppercase"
                           >
-                            {t('artworkSubmit.currentStatus', '当前状态')}
+                            {t('artworkSubmit.currentStatus', 'Current Status')}
                           </motion.span>
                         )}
                       </div>

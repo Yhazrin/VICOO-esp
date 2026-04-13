@@ -346,7 +346,7 @@ export default function Donate() {
                 闲置衣物也可捐献，经处理后转为可持续时尚商品，收益支持乡村美育。
               </p>
               <Link
-                to="/donate-clothing"
+                to="/clothing-recycle"
                 className="font-body text-overline tracking-[0.1em] uppercase text-rust hover:text-ink transition-colors"
               >
                 捐献衣物 →
