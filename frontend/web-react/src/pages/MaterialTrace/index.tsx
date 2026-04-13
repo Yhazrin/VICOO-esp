@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence, useInView, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
@@ -10,6 +10,7 @@ import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import GrainOverlay from '@/components/editorial/GrainOverlay';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
 import MagazineDivider from '@/components/editorial/MagazineDivider';
+import { placeholderImage } from '@/utils/placeholderImage';
 
 /* ------------------------------------------------------------------ */
 /*  Mock Data                                                          */
@@ -34,13 +35,9 @@ interface ProductDataset {
   certifications: string[];
 }
 
-/* ─── Placeholder image generator ─── */
-const placeholder = (label: string, hue = 30) =>
-  `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><rect fill="hsl(${hue},25%,88%)" width="400" height="400"/><text x="200" y="200" text-anchor="middle" dominant-baseline="central" font-family="serif" font-size="18" fill="hsl(${hue},20%,45%)">${label}</text></svg>`)}`;
-
 const PRODUCT_DATASETS: ProductDataset[] = [
   {
-    product: { id: 'TH-2026-001', name: '\u7ae5\u8da3\u82b1\u56edT\u6064', batch: 'BAT-2026-A12', image: placeholder('\u7ae5\u8da3\u82b1\u56edT\u6064', 30) },
+    product: { id: 'TH-2026-001', name: '\u7ae5\u8da3\u82b1\u56edT\u6064', batch: 'BAT-2026-A12', image: placeholderImage('\u7ae5\u8da3\u82b1\u56edT\u6064', { hue: 30 }) },
     timeline: [
       {
         id: 'raw',
@@ -125,7 +122,7 @@ const PRODUCT_DATASETS: ProductDataset[] = [
     certifications: ['GOTS', 'Fair Trade', 'SA8000', 'BSCI'],
   },
   {
-    product: { id: 'TH-2026-002', name: '\u661f\u7a7a\u68a6\u60f3\u536b\u8863', batch: 'BAT-2026-B05', image: placeholder('\u661f\u7a7a\u68a6\u60f3\u536b\u8863', 220) },
+    product: { id: 'TH-2026-002', name: '\u661f\u7a7a\u68a6\u60f3\u536b\u8863', batch: 'BAT-2026-B05', image: placeholderImage('\u661f\u7a7a\u68a6\u60f3\u536b\u8863', { hue: 220 }) },
     timeline: [
       {
         id: 'raw',
@@ -210,7 +207,7 @@ const PRODUCT_DATASETS: ProductDataset[] = [
     certifications: ['OCS', 'BSCI', 'Oeko-Tex'],
   },
   {
-    product: { id: 'TH-2026-003', name: '\u5f69\u8679\u6d82\u9e26\u88d9', batch: 'BAT-2026-C03', image: placeholder('\u5f69\u8679\u6d82\u9e26\u88d9', 340) },
+    product: { id: 'TH-2026-003', name: '\u5f69\u8679\u6d82\u9e26\u88d9', batch: 'BAT-2026-C03', image: placeholderImage('\u5f69\u8679\u6d82\u9e26\u88d9', { hue: 340 }) },
     timeline: [
       {
         id: 'raw',
@@ -299,6 +296,22 @@ const PRODUCT_DATASETS: ProductDataset[] = [
 const MOCK_PRODUCTS = PRODUCT_DATASETS.map((d) => d.product);
 
 /* ------------------------------------------------------------------ */
+/*  Status styling maps                                                */
+/* ------------------------------------------------------------------ */
+
+const DOT_COLORS: Record<TimelineNode['status'], string> = {
+  verified: 'bg-sage border-sage/40',
+  'in-progress': 'bg-amber-500 border-amber-400/40',
+  pending: 'bg-warm-gray border-warm-gray/40',
+};
+
+const BADGE_COLORS: Record<TimelineNode['status'], string> = {
+  verified: 'bg-sage/10 text-sage border-sage/30',
+  'in-progress': 'bg-amber-50 text-amber-700 border-amber-300/40',
+  pending: 'bg-gray-50 text-gray-500 border-gray-200',
+};
+
+/* ------------------------------------------------------------------ */
 /*  Timeline Node Component                                            */
 /* ------------------------------------------------------------------ */
 
@@ -309,19 +322,8 @@ function TimelineNodeCard({ node, index }: { node: TimelineNode; index: number }
   const isInView = useInView(ref, { once: true, margin: '-60px' });
   const prefersReducedMotion = useReducedMotion();
 
-  const dotColor =
-    node.status === 'verified'
-      ? 'bg-sage border-sage/40'
-      : node.status === 'in-progress'
-        ? 'bg-amber-500 border-amber-400/40'
-        : 'bg-warm-gray border-warm-gray/40';
-
-  const badgeColor =
-    node.status === 'verified'
-      ? 'bg-sage/10 text-sage border-sage/30'
-      : node.status === 'in-progress'
-        ? 'bg-amber-50 text-amber-700 border-amber-300/40'
-        : 'bg-gray-50 text-gray-500 border-gray-200';
+  const dotColor = DOT_COLORS[node.status];
+  const badgeColor = BADGE_COLORS[node.status];
 
   return (
     <motion.div
@@ -430,14 +432,12 @@ export default function MaterialTracePage() {
 
   // Derive current dataset from activeProduct
   const activeDataset = PRODUCT_DATASETS.find((d) => d.product.id === activeProduct) ?? PRODUCT_DATASETS[0];
-  const currentTimeline = activeDataset.timeline;
-  const currentCarbonData = activeDataset.carbonData;
-  const currentCarbonTotal = activeDataset.carbonTotal;
-  const currentCarbonTraditional = activeDataset.carbonTraditional;
-  const currentCertifications = activeDataset.certifications;
+  const { timeline, carbonData, carbonTotal, carbonTraditional, certifications } = activeDataset;
 
-  const maxCo2 = Math.max(...currentCarbonData.map((d) => d.co2));
-  const reductionPercent = (((currentCarbonTraditional - currentCarbonTotal) / currentCarbonTraditional) * 100).toFixed(1);
+  const { maxCo2, reductionPercent } = useMemo(() => ({
+    maxCo2: Math.max(...carbonData.map((d) => d.co2)),
+    reductionPercent: (((carbonTraditional - carbonTotal) / carbonTraditional) * 100).toFixed(1),
+  }), [activeProduct]);
 
   const handleSearch = useCallback(() => {
     const trimmed = searchId.trim();
@@ -494,7 +494,7 @@ export default function MaterialTracePage() {
         <NumberedSectionHeading
           number="01"
           title={t('materialTrace.lookup.title', '\u5546\u54c1\u6eaf\u6e90\u67e5\u8be2')}
-          subtitle={t('materialTrace.lookup.subtitle', '\u8f93\u5165\u5546\u54c1\u7f16\u53f7\u6216\u626b\u63cf\u4e8c\u7ef4\u7801\uff0c\u67e5\u770b\u5b8c\u6574\u7684\u4f9b\u5e94\u94fe\u6eaf\u6e90\u4fe1\u606f')}
+          subtitle={t('materialTrace.lookup.subtitle', '\u8f93\u5165\u5546\u54c1\u7f16\u53f7\uff0c\u67e5\u770b\u5b8c\u6574\u7684\u4f9b\u5e94\u94fe\u6eaf\u6e90\u4fe1\u606f')}
         />
 
         {/* Search Row */}
@@ -510,7 +510,7 @@ export default function MaterialTracePage() {
                     setSearchId((e.target as HTMLInputElement).value);
                     setSearchError(null);
                   }}
-                  label={t('materialTrace.lookup.inputLabel', '\u5546\u54c1\u7f16\u53f7 / QR Code')}
+                  label={t('materialTrace.lookup.inputLabel', '\u5546\u54c1\u7f16\u53f7')}
                 />
               </div>
               <button
@@ -594,7 +594,7 @@ export default function MaterialTracePage() {
               aria-hidden="true"
             />
 
-            {currentTimeline.map((node, idx) => (
+            {timeline.map((node, idx) => (
               <TimelineNodeCard key={`${activeProduct}-${node.id}`} node={node} index={idx} />
             ))}
           </div>
@@ -673,7 +673,7 @@ export default function MaterialTracePage() {
           <span className="font-body text-overline text-sepia-mid tracking-[0.2em] uppercase mr-2">
             {t('materialTrace.integrity.certifications', '\u8ba4\u8bc1\u4f53\u7cfb')}
           </span>
-          {currentCertifications.map((cert) => (
+          {certifications.map((cert) => (
             <span
               key={cert}
               className="inline-flex items-center px-4 py-2 bg-paper border border-rust/30 font-display text-sm font-semibold text-ink tracking-wider"
@@ -699,7 +699,7 @@ export default function MaterialTracePage() {
         <div ref={carbonRef} className="grid grid-cols-12 gap-8">
           {/* Bar chart */}
           <div className="col-span-12 lg:col-span-8 space-y-5">
-            {currentCarbonData.map((item, idx) => (
+            {carbonData.map((item, idx) => (
               <motion.div
                 key={`${activeProduct}-${item.stage}`}
                 initial={prefersReducedMotion ? false : { opacity: 0, x: -20 }}
@@ -729,7 +729,7 @@ export default function MaterialTracePage() {
                   {t('materialTrace.carbon.total', '\u603b\u8ba1')}
                 </span>
                 <span className="font-display text-lg font-bold text-rust">
-                  {currentCarbonTotal} kg CO\u2082
+                  {carbonTotal} kg CO\u2082
                 </span>
               </div>
               <div className="flex justify-between items-baseline">
@@ -737,7 +737,7 @@ export default function MaterialTracePage() {
                   {t('materialTrace.carbon.traditional', '\u4f20\u7edf\u6a21\u5f0f')}
                 </span>
                 <span className="font-body text-caption text-sepia-mid line-through">
-                  {currentCarbonTraditional} kg CO\u2082
+                  {carbonTraditional} kg CO\u2082
                 </span>
               </div>
             </div>
@@ -765,15 +765,15 @@ export default function MaterialTracePage() {
               <div className="mt-6 pt-4 border-t border-sage/20 space-y-2">
                 <div className="flex justify-between font-body text-xs text-ink/70">
                   <span>{t('materialTrace.carbon.sustainable', '\u53ef\u6301\u7eed')}</span>
-                  <span className="font-semibold text-sage">{currentCarbonTotal} kg</span>
+                  <span className="font-semibold text-sage">{carbonTotal} kg</span>
                 </div>
                 <div className="flex justify-between font-body text-xs text-ink/70">
                   <span>{t('materialTrace.carbon.traditional', '\u4f20\u7edf\u6a21\u5f0f')}</span>
-                  <span className="line-through">{currentCarbonTraditional} kg</span>
+                  <span className="line-through">{carbonTraditional} kg</span>
                 </div>
                 <div className="flex justify-between font-body text-xs text-ink/70">
                   <span>{t('materialTrace.carbon.saved', '\u8282\u7701')}</span>
-                  <span className="font-semibold text-sage">{(currentCarbonTraditional - currentCarbonTotal).toFixed(1)} kg</span>
+                  <span className="font-semibold text-sage">{(carbonTraditional - carbonTotal).toFixed(1)} kg</span>
                 </div>
               </div>
             </motion.div>

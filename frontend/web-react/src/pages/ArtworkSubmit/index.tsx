@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
@@ -11,10 +11,7 @@ import GrainOverlay from '@/components/editorial/GrainOverlay';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
 import MagazineDivider from '@/components/editorial/MagazineDivider';
 import { VintageSelect } from '@/components/editorial/VintageSelect';
-
-/* ─── Placeholder image generator ─── */
-const placeholder = (label: string, hue = 30) =>
-  `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400"><rect fill="hsl(${hue},25%,88%)" width="600" height="400"/><text x="300" y="200" text-anchor="middle" dominant-baseline="central" font-family="serif" font-size="20" fill="hsl(${hue},20%,45%)">${label}</text></svg>`)}`;
+import { placeholderImage } from '@/utils/placeholderImage';
 
 /* ─── Mock Campaign Data ─── */
 
@@ -23,7 +20,7 @@ const MOCK_CAMPAIGNS = [
     id: 'campaign-001',
     title: '春日花语 — 儿童花卉主题画展',
     description: '以春天的花朵为灵感，邀请小画家们用画笔描绘心中的花园世界。优秀作品将印制于限量环保丝巾上。',
-    image: placeholder('春日花语', 45),
+    image: placeholderImage('春日花语', { hue: 45, width: 600, height: 400 }),
     deadline: '2026-05-15',
     submissions: 128,
   },
@@ -31,7 +28,7 @@ const MOCK_CAMPAIGNS = [
     id: 'campaign-002',
     title: '海洋守护者 — 可持续时尚插画征集',
     description: '关注海洋环保主题，用色彩表达对海洋生态的关爱。入选画作将应用于再生面料服饰系列。',
-    image: placeholder('海洋守护者', 200),
+    image: placeholderImage('海洋守护者', { hue: 200, width: 600, height: 400 }),
     deadline: '2026-06-01',
     submissions: 86,
   },
@@ -39,7 +36,7 @@ const MOCK_CAMPAIGNS = [
     id: 'campaign-003',
     title: '城市森林 — 绿色生活艺术创作',
     description: '描绘你理想中的绿色城市，想象人与自然和谐共处的未来。作品将用于环保手提袋系列设计。',
-    image: placeholder('城市森林', 120),
+    image: placeholderImage('城市森林', { hue: 120, width: 600, height: 400 }),
     deadline: '2026-06-20',
     submissions: 52,
   },
@@ -98,14 +95,6 @@ export default function ArtworkSubmitPage() {
   // Before submission: -1 (no steps active). After submission: 1 (submitted=done, pending review=current)
   const currentStep = isSubmitted ? 1 : -1;
 
-  const isFormValid =
-    !!form.campaignId &&
-    !!form.title.trim() &&
-    !!form.artworkFile &&
-    !!form.authorName.trim() &&
-    !!form.ageGroup &&
-    !!form.consentFile;
-
   const missingFields: string[] = [];
   if (!form.campaignId) missingFields.push('征集活动');
   if (!form.title.trim()) missingFields.push('画作标题');
@@ -113,6 +102,17 @@ export default function ArtworkSubmitPage() {
   if (!form.authorName.trim()) missingFields.push('作者名');
   if (!form.ageGroup) missingFields.push('年龄段');
   if (!form.consentFile) missingFields.push('监护人同意书');
+
+  const isFormValid = missingFields.length === 0;
+
+  const artworkPreviewUrl = useMemo(() => {
+    if (!form.artworkFile) return null;
+    return URL.createObjectURL(form.artworkFile);
+  }, [form.artworkFile]);
+
+  useEffect(() => {
+    return () => { if (artworkPreviewUrl) URL.revokeObjectURL(artworkPreviewUrl); };
+  }, [artworkPreviewUrl]);
 
   const updateField = useCallback(
     <K extends keyof FormState>(key: K, value: FormState[K]) => {
@@ -373,10 +373,10 @@ export default function ArtworkSubmitPage() {
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                 />
 
-                {form.artworkFile ? (
+                {artworkPreviewUrl ? (
                   <div className="p-4 w-full h-full">
                     <SepiaImageFrame
-                      src={URL.createObjectURL(form.artworkFile)}
+                      src={artworkPreviewUrl}
                       alt={form.title || t('artworkSubmit.artworkPreview', '画作预览')}
                       aspectRatio="portrait"
                       size="full"
@@ -395,7 +395,7 @@ export default function ArtworkSubmitPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     <p className="font-body text-body-sm text-ink-faded mb-1">
-                      {t('artworkSubmit.uploadPrompt', '点击或拖拽上传画作')}
+                      {t('artworkSubmit.uploadPrompt', '点击上传画作')}
                     </p>
                     <p className="font-body text-caption text-sepia-mid">
                       {t('artworkSubmit.uploadFormats', '支持 JPG、PNG、TIFF 格式，最大 20MB')}
