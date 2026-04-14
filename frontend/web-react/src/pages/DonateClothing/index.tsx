@@ -6,7 +6,7 @@ import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
-import GrainOverlay from '@/components/editorial/GrainOverlay';
+
 import { VintageInput } from '@/components/editorial/VintageInput';
 import { clothingIntakesApi } from '@/services/clothingIntakes';
 import { useAuthStore } from '@/stores/authStore';
@@ -22,6 +22,8 @@ export default function DonateClothing() {
   const [pickupAddress, setPickupAddress] = useState('');
   const [contactPhone, setContactPhone] = useState('');
 
+  const [submitError, setSubmitError] = useState('');
+
   const mutation = useMutation({
     mutationFn: () =>
       clothingIntakesApi.create({
@@ -33,13 +35,14 @@ export default function DonateClothing() {
         contact_phone: contactPhone || undefined,
       }),
     onSuccess: () => navigate('/profile'),
+    onError: () => setSubmitError(t('donateClothing.submitError', '提交失败，请重试')),
   });
 
   if (!isAuthenticated) {
     return (
       <PageWrapper>
         <PaperTextureBackground variant="paper" className="py-24 text-center">
-          <GrainOverlay />
+
           <p className="font-body text-ink-faded mb-6">{t('donateClothing.loginRequired', '请先登录以登记衣物捐献')}</p>
           <Link to="/login" className="font-body text-rust uppercase tracking-widest text-sm">
             {t('nav.login')} →
@@ -52,7 +55,7 @@ export default function DonateClothing() {
   return (
     <PageWrapper>
       <PaperTextureBackground variant="paper" className="py-16 md:py-24 relative">
-        <GrainOverlay />
+
         <SectionContainer>
           <h2 className="font-display text-h3 font-bold text-ink mb-8">
             {t('donateClothing.title', '衣物捐献登记')}
@@ -109,9 +112,9 @@ export default function DonateClothing() {
               value={contactPhone}
               onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setContactPhone(e.target.value)}
             />
-            {mutation.isError && (
-              <p className="font-body text-caption text-rust" role="alert">
-                {t('donateClothing.error', '提交失败，请稍后再试')}
+            {(mutation.isError || submitError) && (
+              <p className="font-body text-body-sm text-rust" role="alert">
+                {submitError || t('donateClothing.error', '提交失败，请稍后再试')}
               </p>
             )}
             <button

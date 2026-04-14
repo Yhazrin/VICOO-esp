@@ -1,47 +1,58 @@
 /**
  * 顶部导航栏组件 (TopBar)
- * 
+ *
  * 功能说明：
  * - 显示系统运行状态指示器
  * - 提供中英文语言切换功能
+ * - 提供主题切换功能（与门户主题同步）
  * - 展示当前登录用户信息（用户名和角色）
  * - 提供退出登录按钮
- * 
+ *
  * 使用场景：
  * 作为管理后台顶部的全局导航栏，固定在页面顶部显示
  */
 
-// 导入国际化翻译钩子，用于支持多语言切换
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-
-// 导入认证状态管理 Store，用于获取当前用户信息和登出方法
 import { useAuthStore } from '../../stores/authStore';
 import { useUIStore } from '../../stores/uiStore';
 
+const THEMES = [
+  { value: '', label: 'Editorial Paper' },
+  { value: 'morandi', label: 'Morandi' },
+  { value: 'sepia', label: 'Sepia' },
+  { value: 'ink', label: 'Ink Wash' },
+  { value: 'forest', label: 'Forest' },
+  { value: 'autumn', label: 'Autumn' },
+  { value: 'mist-blue', label: 'Mist Blue' },
+  { value: 'deep-sea', label: 'Deep Sea' },
+  { value: 'dopamine', label: 'Dopamine' },
+];
+
 export default function TopBar() {
-  // 解构获取翻译函数 t 和 i18n 实例（用于语言切换）
   const { t, i18n } = useTranslation();
-  
-  // 从 Zustand 全局状态中获取当前登录用户信息
-  // 参数 s 为 store 状态对象，使用 any 类型避免 TypeScript 类型推断问题
   const user = useAuthStore((s: any) => s.user);
-  
-  // 获取登出方法，用于处理用户退出登录操作
   const logout = useAuthStore((s: any) => s.logout);
-
   const setLocale = useUIStore((s) => s.setLocale);
+  const [themeOpen, setThemeOpen] = useState(false);
 
-  /**
-   * 语言切换处理函数
-   * 在中文(zh)和英文(en)之间切换界面语言
-   */
   const toggleLanguage = () => {
-    // 判断当前语言，切换到另一种语言
     const newLang = i18n.language === 'zh' ? 'en' : 'zh';
-    // 调用 i18n 的 changeLanguage 方法更新全局语言设置
     i18n.changeLanguage(newLang);
-    // 将新语言保存到持久化存储中
     setLocale(newLang);
+  };
+
+  const currentTheme = typeof document !== 'undefined'
+    ? (document.documentElement.getAttribute('data-theme') || '')
+    : '';
+
+  const handleThemeChange = (value: string) => {
+    if (value) {
+      document.documentElement.setAttribute('data-theme', value);
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+    setThemeOpen(false);
   };
 
   return (
@@ -77,21 +88,87 @@ export default function TopBar() {
           {t('topbar.systemOnline')}
         </div>
 
+        {/* 主题切换器 */}
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => setThemeOpen(!themeOpen)}
+            style={{
+              padding: '4px 12px',
+              border: '1px solid var(--color-warm-gray)',
+              fontSize: '11px',
+              fontFamily: 'var(--font-body)',
+              cursor: 'pointer',
+              background: 'transparent',
+              color: 'var(--color-ink)',
+              letterSpacing: '0.05em',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <span style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              background: currentTheme
+                ? `var(--color-rust)`
+                : 'var(--color-sepia-mid)',
+              display: 'inline-block',
+            }} />
+            {t('topbar.theme', '主题')}
+          </button>
+          {themeOpen && (
+            <div style={{
+              position: 'absolute',
+              top: '100%',
+              right: 0,
+              marginTop: '4px',
+              background: 'var(--color-paper)',
+              border: '1px solid var(--color-ink)',
+              zIndex: 200,
+              minWidth: '160px',
+              boxShadow: 'var(--shadow-md)',
+            }}>
+              {THEMES.map((theme) => (
+                <button
+                  key={theme.value}
+                  onClick={() => handleThemeChange(theme.value)}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    padding: '8px 16px',
+                    textAlign: 'left',
+                    fontSize: '12px',
+                    fontFamily: 'var(--font-body)',
+                    background: currentTheme === theme.value ? 'var(--color-aged-stock)' : 'transparent',
+                    border: 'none',
+                    borderBottom: '1px solid var(--color-warm-gray)',
+                    cursor: 'pointer',
+                    color: 'var(--color-ink)',
+                    letterSpacing: '0.03em',
+                  }}
+                >
+                  {theme.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* 中英文语言切换按钮 */}
         <button
-          onClick={toggleLanguage}                 // 点击触发语言切换
+          onClick={toggleLanguage}
           style={{
             padding: '4px 12px',
-            border: '1px solid var(--color-warm-gray)', // 暖灰色边框
+            border: '1px solid var(--color-warm-gray)',
             fontSize: '11px',
-            fontFamily: 'var(--font-mono)',        // 等宽字体（技术感）
+            fontFamily: 'var(--font-mono)',
             cursor: 'pointer',
-            background: 'transparent',             // 透明背景
+            background: 'transparent',
             color: 'var(--color-ink)',
             letterSpacing: '0.05em',
           }}
         >
-          {/* 根据当前语言显示切换目标语言：中文模式下显示"EN"，英文模式下显示"中文" */}
           {i18n.language === 'zh' ? t('topbar.switchToEn') : t('topbar.switchToZh')}
         </button>
 

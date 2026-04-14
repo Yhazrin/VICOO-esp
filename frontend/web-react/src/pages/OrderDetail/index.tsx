@@ -6,8 +6,9 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
-import GrainOverlay from '@/components/editorial/GrainOverlay';
+
 import { ordersApi, type ReturnRequestData } from '@/services/orders';
+import { impactFundApi } from '@/services/impactFund';
 import TraceabilityTimeline from '@/components/editorial/TraceabilityTimeline';
 import type { SupplyChainTimelineRecord } from '@/types';
 
@@ -40,6 +41,13 @@ export default function OrderDetail() {
     queryKey: ['order', id],
     queryFn: () => ordersApi.getById(id!),
     enabled: !!id,
+  });
+
+  const { data: impactEntries = [] } = useQuery({
+    queryKey: ['impact-fund', id],
+    queryFn: () => impactFundApi.getOrderEntries(id!),
+    enabled: !!id && (order?.status === 'paid' || order?.status === 'completed' || order?.status === 'shipped'),
+    retry: false,
   });
 
   const logisticsAsTimeline: SupplyChainTimelineRecord[] =
@@ -152,7 +160,7 @@ export default function OrderDetail() {
             <button
               onClick={() => setErrorMessage('')}
               className="text-rust hover:text-rust-light cursor-pointer"
-              aria-label="Dismiss"
+              aria-label={t('common.dismiss', 'Dismiss')}
             >
               &times;
             </button>
@@ -160,7 +168,7 @@ export default function OrderDetail() {
         </div>
       )}
       <PaperTextureBackground variant="paper" className="py-16 md:py-24 relative">
-        <GrainOverlay />
+
         <SectionContainer>
           {/* Back link */}
           <Link to="/profile" className="font-body text-overline tracking-[0.15em] uppercase text-sepia-mid hover:text-ink transition-colors mb-8 inline-block">
@@ -341,6 +349,37 @@ export default function OrderDetail() {
               {t('orderDetail.logistics', '物流轨迹')}
             </h2>
             <TraceabilityTimeline records={logisticsAsTimeline} />
+          </SectionContainer>
+        </PaperTextureBackground>
+      )}
+
+      {/* Impact fund allocation */}
+      {impactEntries.length > 0 && (
+        <PaperTextureBackground variant="paper" className="py-16 md:py-24">
+          <SectionContainer>
+            <h2 className="font-display text-h3 font-bold text-ink mb-2">
+              {t('orderDetail.impactFund', '公益回馈')}
+            </h2>
+            <p className="font-body text-body-sm text-ink-faded mb-8">
+              {t('orderDetail.impactFundDesc', '本订单中公益商品的部分收益将按以下比例分配')}
+            </p>
+            <div className="space-y-3">
+              {impactEntries.map((entry) => (
+                <div key={entry.id} className="flex items-center justify-between border-b border-warm-gray/10 pb-3 last:border-b-0">
+                  <div>
+                    <span className="font-body text-body-sm text-ink">
+                      {entry.beneficiary_type === 'artist' && t('orderDetail.fund.artist', '小画家')}
+                      {entry.beneficiary_type === 'school' && t('orderDetail.fund.school', '学校')}
+                      {entry.beneficiary_type === 'charity_pool' && t('orderDetail.fund.charity', '公益池')}
+                    </span>
+                    {entry.beneficiary_name && (
+                      <span className="font-body text-caption text-ink-faded ml-2">({entry.beneficiary_name})</span>
+                    )}
+                  </div>
+                  <span className="font-mono text-sm text-archive-brown">¥{Number(entry.allocated_amount).toFixed(2)}</span>
+                </div>
+              ))}
+            </div>
           </SectionContainer>
         </PaperTextureBackground>
       )}

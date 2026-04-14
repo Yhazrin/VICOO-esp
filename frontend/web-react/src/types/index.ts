@@ -87,6 +87,8 @@ export interface Product {
   stockCount: number;
   artworkSource?: Artwork;
   artworkBy?: ProductArtworkAttribution;
+  /** Backend artwork_id linking to the original children's artwork */
+  artworkId?: number;
   supplyChain: SupplyChainTimelineRecord[];
   /** Sustainability score (0-100) based on GOTS/SA8000/LCA audits. See /sustainability-methodology for scoring details. */
   sustainabilityScore: number;

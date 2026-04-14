@@ -4,15 +4,22 @@ import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
-import GrainOverlay from '@/components/editorial/GrainOverlay';
+
 import { aiAssistantApi, type AIChatMessage } from '@/services/aiAssistant';
+
+interface ChatMessage extends AIChatMessage {
+  id: string;
+}
+
+let _chatMsgId = 0;
+const nextChatMsgId = () => `chat-${++_chatMsgId}`;
 
 export default function AiAssistant() {
   const { t } = useTranslation();
   const [context, setContext] = useState('general');
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [messages, setMessages] = useState<AIChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const contextOptions = [
@@ -30,17 +37,18 @@ export default function AiAssistant() {
   const send = async () => {
     const text = input.trim();
     if (!text || loading) return;
-    const next: AIChatMessage[] = [...messages, { role: 'user', content: text }];
+    const userMsg: ChatMessage = { id: nextChatMsgId(), role: 'user', content: text };
+    const next: ChatMessage[] = [...messages, userMsg];
     setMessages(next);
     setInput('');
     setLoading(true);
     try {
-      const res = await aiAssistantApi.chat(next, context);
-      setMessages([...next, { role: 'assistant', content: res.reply }]);
+      const res = await aiAssistantApi.chat(next.map(({ id: _id, ...m }) => m) as AIChatMessage[], context);
+      setMessages([...next, { id: nextChatMsgId(), role: 'assistant', content: res.reply }]);
     } catch {
       setMessages([
         ...next,
-        { role: 'assistant', content: t('aiAssistant.error', '请求失败，请稍后再试。') },
+        { id: nextChatMsgId(), role: 'assistant', content: t('aiAssistant.error', '请求失败，请稍后再试。') },
       ]);
     } finally {
       setLoading(false);
@@ -50,7 +58,7 @@ export default function AiAssistant() {
   return (
     <PageWrapper>
       <PaperTextureBackground variant="paper" className="py-16 md:py-24 relative min-h-[80dvh]">
-        <GrainOverlay />
+
         <SectionContainer>
           <h2 className="font-display text-h3 font-bold text-ink mb-8">
             {t('aiAssistant.title', '智能助手')}
@@ -83,9 +91,9 @@ export default function AiAssistant() {
             {messages.length === 0 && (
               <p className="font-body text-caption text-ink-faded">{t('aiAssistant.empty', '输入问题开始对话。未配置 API 时返回演示回复。')}</p>
             )}
-            {messages.map((m, i) => (
+            {messages.map((m) => (
               <div
-                key={i}
+                key={m.id}
                 className={`font-body text-body-sm leading-relaxed ${m.role === 'user' ? 'text-ink pl-4 border-l-2 border-rust/40' : 'text-ink-faded'}`}
               >
                 <span className="text-overline text-sepia-mid block mb-1">{m.role === 'user' ? t('aiAssistant.userLabel') : t('aiAssistant.assistantLabel')}</span>

@@ -150,7 +150,6 @@ async def create_donation(body: DonationCreate, db: AsyncSession = Depends(get_d
             donation_data["donor_user_id"] = current_user["id"]
 
         donation = await donation_service.create_donation(donation_data)
-        await db.commit()
         await db.refresh(donation)
 
         response_data = _serialize_donation(donation)

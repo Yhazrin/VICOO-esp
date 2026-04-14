@@ -16,6 +16,8 @@
     "register": "注册",
     "profile": "个人中心",
     "logout": "退出",
+    "submitArtwork": "提交画作",
+    "aiDesign": "AI 设计",
     "impact": "公益",
     "group": {
       "company": "品牌服务",
@@ -39,6 +41,8 @@
     "register": "创建账户",
     "orContinueWith": "或使用以下方式继续",
     "wechat": "微信",
+    "showPassword": "显示密码",
+    "hidePassword": "隐藏密码",
     "error": {
       "invalidCredentials": "邮箱或密码错误",
       "userNotFound": "用户不存在"
@@ -103,7 +107,8 @@
       "donations": "我的捐赠",
       "clothing": "衣物捐献",
       "support": "售后服务",
-      "addresses": "地址管理"
+      "addresses": "地址管理",
+      "artworks": "我的画作"
     },
     "cancelOrder": "取消订单",
     "cancelOrderError": "取消订单失败，请重试",
@@ -179,6 +184,12 @@
       "artworks": "创作作品",
       "donated": "筹集善款",
       "products": "售出商品"
+    },
+    "marquee": {
+      "sustainableFashion": "可持续时尚",
+      "childrenArt": "儿童艺术",
+      "traceableImpact": "可追溯影响力",
+      "community": "社区"
     },
     "cta": {
       "title": "加入这场运动",
@@ -280,7 +291,8 @@
     "empty.title": "该类别下暂无活动",
     "empty.subtitle": "请稍后再来",
     "goalReached": "目标达成",
-    "funded": "已筹{{percent}}%"
+    "funded": "已筹{{percent}}%",
+    "loadError": "加载活动失败，请稍后再试。"
   },
   "stories": {
     "hero": {
@@ -310,6 +322,8 @@
       "browseAll": "浏览全部故事"
     },
     "minuteRead": "分钟阅读",
+    "loading": "加载中...",
+    "loadError": "加载故事失败，请刷新重试",
     "artworkFallback": "一幅儿童画作，用想象力和真心创作而成。",
     "supporters": "{{count}} 位支持者",
     "anonymousArtist": "匿名艺术家",
@@ -634,6 +648,8 @@
       "title": "公益商城",
       "subtitle": "每件商品承载一个孩子的画作，每笔消费点亮他们的未来。"
     },
+    "loading": "加载中...",
+    "loadError": "加载商品失败，请刷新重试",
     "artworkVoting": {
       "title": "为下一个设计投票",
       "subtitle": "帮助选择哪些孩子的画作成为我们的下一个系列。",
@@ -660,6 +676,9 @@
       "button": "探索溯源"
     }
   },
+  "artworkCard": {
+    "age": "{{age}}岁"
+  },
   "vote": {
     "overline": "社区投票",
     "title": "为下一个设计投票",
@@ -667,7 +686,9 @@
     "vote": "投票",
     "votes": "{{count}} 票",
     "empty": "暂无可投票的作品。",
-    "error": "投票失败，请重试"
+    "error": "投票失败，请重试",
+    "loading": "加载中...",
+    "loadError": "加载作品失败，请刷新重试"
   },
   "traceability": {
     "hero": {
@@ -989,6 +1010,9 @@
   },
   "campaigns.detail.about": "关于此活动",
   "campaigns.detail.backToAll": "返回全部活动",
+  "campaigns.detail.quote": "我画了一条走路会发出雨声的裙子，这样大家都知道你来了。",
+  "campaigns.detail.quoteAuthor": "小美，8岁",
+  "campaigns.detail.quoteRole": "贵州",
   "traceability.location": "地点",
   "traceability.partner": "合作方",
   "traceability.date": "日期",
@@ -1006,7 +1030,14 @@
     "submit": "提交登记",
     "disclaimer": "提交后可在个人中心查看进度；涉及个人隐私仅用于物流联络。",
     "clothingHint": "闲置衣物也可捐献，经处理后转为可持续时尚商品，收益支持乡村美育。",
-    "donateLink": "捐献衣物 →"
+    "donateLink": "捐献衣物 →",
+    "statusLabels": {
+      "submitted": "已提交",
+      "received": "已收货",
+      "processing": "处理中",
+      "listed": "已上架",
+      "rejected": "已拒绝"
+    }
   },
   "support": {
     "loginRequired": "登录后提交售后工单",
@@ -1126,5 +1157,50 @@
     "savedAddresses": "已保存的地址",
     "enterNewAddress": "输入新地址",
     "saveAddress": "保存到地址簿"
+  },
+  "submitArtwork": {
+    "loginRequired": "请先登录以提交画作",
+    "title": "提交画作",
+    "subtitle": "上传孩子的画作，参与公益活动与投票",
+    "titleLabel": "画作标题 *",
+    "descriptionLabel": "画作描述",
+    "imageLabel": "上传画作图片 *",
+    "childNameLabel": "小画家姓名（可选）",
+    "consentLabel": "我确认已获得该未成年人监护人的同意",
+    "error": "提交失败，请稍后再试",
+    "submit": "提交画作"
+  },
+  "aiDesign": {
+    "title": "AI 设计工作台",
+    "subtitle": "将儿童画作转化为商业产品设计",
+    "adminOnly": "仅管理员可访问 AI 设计工作台",
+    "createNew": "创建新设计稿",
+    "artworkId": "画作 ID",
+    "draftTitle": "设计稿标题",
+    "selectCategory": "选择品类",
+    "create": "创建",
+    "createError": "创建设计稿失败",
+    "generateError": "AI 生成失败",
+    "approveError": "审批失败",
+    "rejectError": "拒绝失败",
+    "publishError": "发布商品失败",
+    "all": "全部",
+    "noDrafts": "暂无设计稿",
+    "artworkRef": "画作",
+    "prompt": "AI 提示词",
+    "reviewNote": "审核备注",
+    "reviewNotePlaceholder": "审核备注（可选）",
+    "generate": "AI 生成",
+    "approve": "通过",
+    "reject": "驳回",
+    "publish": "发布为商品",
+    "statuses": {
+      "draft": "草稿",
+      "ai_generated": "AI 已生成",
+      "review": "审核中",
+      "approved": "已通过",
+      "rejected": "已驳回",
+      "published": "已发布"
+    }
   }
 }

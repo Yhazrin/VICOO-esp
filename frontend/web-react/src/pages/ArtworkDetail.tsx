@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
@@ -21,9 +22,15 @@ export default function ArtworkDetail() {
     enabled: !!id,
   });
 
+  const [voteError, setVoteError] = useState('');
+
   const voteMutation = useMutation({
     mutationFn: () => artworksApi.vote(id!),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['artwork', id] }),
+    onSuccess: () => {
+      setVoteError('');
+      queryClient.invalidateQueries({ queryKey: ['artwork', id] });
+    },
+    onError: () => setVoteError(t('vote.error', '投票失败，请重试')),
   });
 
   if (loading) {
@@ -62,6 +69,14 @@ export default function ArtworkDetail() {
 
   return (
     <PageWrapper>
+      {voteError && (
+        <div className="max-w-[1400px] mx-auto px-6 md:px-10 w-full">
+          <div className="flex items-center gap-3 bg-rust/10 border border-rust/20 px-4 py-3 mt-4 mb-2">
+            <p className="font-body text-body-sm text-rust flex-1">{voteError}</p>
+            <button onClick={() => setVoteError('')} className="text-rust hover:text-rust-light cursor-pointer" aria-label={t('common.dismiss', 'Dismiss')}>&times;</button>
+          </div>
+        </div>
+      )}
       {/* Artwork section */}
       <PaperTextureBackground variant="paper" className="relative py-16 md:py-24">
         <SectionGrainOverlay opacity={0.03} />
