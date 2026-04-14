@@ -47,21 +47,13 @@ export default function PagePeel({
   const containerRef = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useReducedMotion();
 
-  // Skip all scroll-linked motion for reduced-motion users
-  if (prefersReducedMotion) {
-    return (
-      <div ref={containerRef} className={`relative ${className}`}>
-        <div className="bg-paper">{children}</div>
-      </div>
-    );
-  }
-
+  // All hooks must be called unconditionally (Rules of Hooks)
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ['start end', 'end start'],
   });
 
-  // Pre-compute transforms for ALL corners unconditionally (Rules of Hooks)
+  // Pre-compute transforms for ALL corners unconditionally
   const brRotateX = useTransform(scrollYProgress, [0, 0.5], [maxRotation, 0]);
   const brRotateY = useTransform(scrollYProgress, [0, 0.5], [-maxRotation, 0]);
   const brTranslateX = useTransform(scrollYProgress, [0, 0.5], [20, 0]);
@@ -82,6 +74,25 @@ export default function PagePeel({
   const tlTranslateX = useTransform(scrollYProgress, [0, 0.5], [-20, 0]);
   const tlTranslateY = useTransform(scrollYProgress, [0, 0.5], [-10, 0]);
 
+  // Shadow opacity follows inverse of rotation
+  const shadowOpacity = useTransform(
+    scrollYProgress,
+    [0, 0.3, 0.5],
+    [shadowIntensity, shadowIntensity * 0.5, 0]
+  );
+
+  // Peek amount - how much content is visible under the peel
+  const peekOpacity = useTransform(scrollYProgress, [0, 0.4, 0.5], [0, 0.3, 0]);
+
+  // Skip scroll-linked motion rendering for reduced-motion users
+  if (prefersReducedMotion) {
+    return (
+      <div ref={containerRef} className={`relative ${className}`}>
+        <div className="bg-paper">{children}</div>
+      </div>
+    );
+  }
+
   // Select the right transforms based on corner prop
   const transforms = (() => {
     switch (corner) {
@@ -95,16 +106,6 @@ export default function PagePeel({
         return { rotateX: tlRotateX, rotateY: tlRotateY, translateX: tlTranslateX, translateY: tlTranslateY, transformOrigin: 'left top' as const, shadowX: -15, shadowY: -15, shadowBlur: 25 };
     }
   })();
-
-  // Shadow opacity follows inverse of rotation
-  const shadowOpacity = useTransform(
-    scrollYProgress,
-    [0, 0.3, 0.5],
-    [shadowIntensity, shadowIntensity * 0.5, 0]
-  );
-
-  // Peek amount - how much content is visible under the peel
-  const peekOpacity = useTransform(scrollYProgress, [0, 0.4, 0.5], [0, 0.3, 0]);
 
   return (
     <div

@@ -65,7 +65,7 @@ export default function KineticMarquee({
     // Re-measure on resize
     window.addEventListener('resize', measureWidth);
     return () => window.removeEventListener('resize', measureWidth);
-  }, [children]);
+  }, []);
 
   // Calculate translation distance (negative for left, positive for right)
   const translateDistance = direction === 'left' ? -contentWidth : contentWidth;

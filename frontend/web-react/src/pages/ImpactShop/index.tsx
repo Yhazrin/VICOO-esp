@@ -11,6 +11,8 @@ import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { productsApi } from '@/services/products';
 import { campaignsApi } from '@/services/campaigns';
+import { donationsApi } from '@/services/donations';
+import { artworksApi } from '@/services/artworks';
 import type { Campaign } from '@/types';
 
 type Category = 'all' | 'apparel' | 'accessories' | 'stationery' | 'prints' | 'lifestyle' | 'footwear' | 'home' | 'gift_box';
@@ -78,7 +80,7 @@ export default function ImpactShop() {
   const [activeCampaignId, setActiveCampaignId] = useState<number | 'all'>('all');
 
   // Fetch impact products
-  const { data } = useQuery({
+  const { data, isLoading, error: productsError } = useQuery({
     queryKey: ['products', { category: activeCategory, isImpactProduct: true }],
     queryFn: async () => {
       const result = await productsApi.getAll({
@@ -98,6 +100,24 @@ export default function ImpactShop() {
       return result;
     },
     staleTime: 10 * 60 * 1000,
+  });
+
+  // Fetch live impact stats
+  const { data: impactStats } = useQuery({
+    queryKey: ['impact-shop-stats'],
+    queryFn: async () => {
+      const [stats, artworks] = await Promise.all([
+        donationsApi.getImpactStats(),
+        artworksApi.getAll({ page_size: 1 }),
+      ]);
+      return {
+        totalDonations: Number(stats.total_amount ?? 0),
+        totalDonors: stats.total_donors ?? 0,
+        totalArtworks: artworks.total ?? 0,
+      };
+    },
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
   });
 
   const campaigns: Campaign[] = useMemo(() => {
@@ -145,6 +165,16 @@ export default function ImpactShop() {
       {/* ═══ Product Grid Section ═══ */}
       <SectionContainer>
         <div className="border-t border-warm-gray/20 pt-12">
+          {productsError && (
+            <div className="flex items-center gap-3 bg-rust/10 border border-rust/20 px-4 py-3 mb-4">
+              <p className="font-body text-body-sm text-rust flex-1">{t('impactShop.loadError', '加载商品失败，请刷新重试')}</p>
+            </div>
+          )}
+          {isLoading && (
+            <div className="py-24 text-center">
+              <p className="font-body text-sepia-mid">{t('impactShop.loading', '加载中...')}</p>
+            </div>
+          )}
           {/* Filters */}
           <div className="flex items-center gap-3 mb-8 flex-wrap">
             {/* Category pills */}
@@ -229,9 +259,9 @@ export default function ImpactShop() {
             {t('impactShop.impactSummary.title')}
           </span>
           <div className="grid grid-cols-3 gap-8 max-w-lg mx-auto">
-            <ImpactPill label={t('impactShop.impactSummary.childrenHelped')} value="120+" />
-            <ImpactPill label={t('impactShop.impactSummary.fundsRaised')} value="¥86K" />
-            <ImpactPill label={t('impactShop.impactSummary.artworksTransformed')} value="200+" />
+            <ImpactPill label={t('impactShop.impactSummary.childrenHelped')} value={impactStats ? `${impactStats.totalDonors}+` : '--'} />
+            <ImpactPill label={t('impactShop.impactSummary.fundsRaised')} value={impactStats ? `¥${Math.round(impactStats.totalDonations / 1000)}K` : '--'} />
+            <ImpactPill label={t('impactShop.impactSummary.artworksTransformed')} value={impactStats ? `${impactStats.totalArtworks}+` : '--'} />
           </div>
         </div>
       </SectionContainer>

@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import BleedTitleBlock from '@/components/editorial/BleedTitleBlock';
@@ -14,7 +15,9 @@ import ArtworkCard from '@/components/editorial/ArtworkCard';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import { campaignsApi } from '@/services/campaigns';
 import { artworksApi } from '@/services/artworks';
-import type { Campaign, Artwork } from '@/types';
+import { donationsApi } from '@/services/donations';
+import { useAuthStore } from '@/stores/authStore';
+import type { Campaign } from '@/types';
 
 export default function CampaignDetail() {
   const { id } = useParams<{ id: string }>();
@@ -52,6 +55,37 @@ export default function CampaignDetail() {
     staleTime: 5 * 60 * 1000,
   });
 
+  const queryClient = useQueryClient();
+  const donateMutation = useMutation({
+    mutationFn: async (data: {
+      amount: number;
+      frequency: 'once' | 'monthly';
+      anonymous: boolean;
+      message: string;
+      paymentMethod: 'wechat' | 'alipay' | 'stripe' | 'paypal';
+    }) => {
+      const { user } = useAuthStore.getState();
+      return donationsApi.create({
+        donor_name: data.anonymous
+          ? t('donate.anonymousName', 'Anonymous')
+          : (user?.nickname || user?.email || t('donate.guestName', 'Guest')),
+        amount: data.amount,
+        currency: 'CNY',
+        payment_method: data.paymentMethod,
+        campaign_id: Number(id),
+        is_anonymous: data.anonymous,
+        message: data.message || undefined,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['campaign', id] });
+      toast.success(t('donate.success', 'Thank you for your donation!'));
+    },
+    onError: () => {
+      toast.error(t('donate.error', 'Donation failed. Please try again.'));
+    },
+  });
+
   if (loading || !campaign) {
     return (
       <PageWrapper>
@@ -64,7 +98,9 @@ export default function CampaignDetail() {
     );
   }
 
-  const progress = Math.round((campaign.raisedAmount / campaign.goalAmount) * 100);
+  const progress = campaign.goalAmount > 0
+    ? Math.round((campaign.raisedAmount / campaign.goalAmount) * 100)
+    : 0;
 
   return (
     <PageWrapper>
@@ -111,9 +147,9 @@ export default function CampaignDetail() {
               </p>
 
               <StoryQuoteBlock
-                quote="I drew a dress that makes rain sounds when you walk. That way, everyone knows you're coming."
-                author="Mei, age 8"
-                role="Guizhou"
+                quote={t('campaigns.detail.quote', 'I drew a dress that makes rain sounds when you walk. That way, everyone knows you\'re coming.')}
+                author={t('campaigns.detail.quoteAuthor', 'Mei, age 8')}
+                role={t('campaigns.detail.quoteRole', 'Guizhou')}
               />
             </div>
 
@@ -166,7 +202,10 @@ export default function CampaignDetail() {
                   <h3 className="font-body text-caption tracking-[0.15em] uppercase text-sepia-mid mb-4">
                     {t('campaigns.detail.donate')}
                   </h3>
-                  <DonationPanel />
+                  <DonationPanel
+                    onSubmit={donateMutation.mutate}
+                    isSubmitting={donateMutation.isPending}
+                  />
                 </div>
               </div>
             </div>

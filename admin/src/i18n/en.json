@@ -63,7 +63,8 @@
         "authorizedUser": "authorized_user",
         "logout": "Logout",
         "switchToZh": "CN",
-        "switchToEn": "英文"
+        "switchToEn": "英文",
+        "theme": "Theme"
     }, 
     "login": {
         "title": "Identify Yourself.", 
@@ -521,9 +522,16 @@
         }
     }, 
     "pagination": {
-        "prev": "Prev", 
-        "next": "Next", 
-        "page": "Page {{current}} of {{total}}", 
+        "prev": "Prev",
+        "next": "Next",
+        "page": "Page {{current}} of {{total}}",
         "total": "Total: {{count}} items"
+    },
+    "dataTable": {
+        "loading": "Loading...",
+        "empty": "No records found."
+    },
+    "modal": {
+        "subtitle": "Detail View"
     }
 }

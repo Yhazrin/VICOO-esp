@@ -17,7 +17,7 @@ const getInitialLanguage = () => {
         return parsed.state.currentLocale;
       }
     }
-  } catch (e) {
+  } catch {
     // localStorage not available
   }
   return 'en';

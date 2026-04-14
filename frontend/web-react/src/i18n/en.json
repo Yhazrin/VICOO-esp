@@ -16,6 +16,8 @@
     "register": "Register",
     "profile": "Profile",
     "logout": "Logout",
+    "submitArtwork": "Submit Artwork",
+    "aiDesign": "AI Design",
     "impact": "Impact",
     "group": {
       "company": "Company",
@@ -39,6 +41,8 @@
     "register": "Create an Account",
     "orContinueWith": "Or continue with",
     "wechat": "WeChat",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "error": {
       "invalidCredentials": "Invalid email or password",
       "userNotFound": "User not found"
@@ -108,7 +112,8 @@
       "donations": "My Donations",
       "clothing": "Clothing",
       "support": "Support",
-      "addresses": "Addresses"
+      "addresses": "Addresses",
+      "artworks": "My Artworks"
     },
     "orders": {
       "filterAll": "All",
@@ -185,6 +190,12 @@
       "artworks": "Artworks Created",
       "donated": "Funds Raised",
       "products": "Products Sold"
+    },
+    "marquee": {
+      "sustainableFashion": "Sustainable Fashion",
+      "childrenArt": "Children's Art",
+      "traceableImpact": "Traceable Impact",
+      "community": "Community"
     },
     "cta": {
       "title": "Join the Movement",
@@ -286,7 +297,8 @@
     "empty.title": "No campaigns found in this category.",
     "empty.subtitle": "Check back soon.",
     "goalReached": "Goal Reached",
-    "funded": "{{percent}}% funded"
+    "funded": "{{percent}}% funded",
+    "loadError": "Failed to load campaigns. Please try again later."
   },
   "stories": {
     "hero": {
@@ -316,6 +328,8 @@
       "browseAll": "Browse All Stories"
     },
     "minuteRead": "minute read",
+    "loading": "Loading...",
+    "loadError": "Failed to load stories. Please refresh.",
     "artworkFallback": "A child's artwork, created with imagination and heart.",
     "supporters": "{{count}} supporters",
     "anonymousArtist": "Anonymous Artist",
@@ -640,6 +654,8 @@
       "title": "Impact Shop",
       "subtitle": "Every product carries a child's artwork. Every purchase funds their future."
     },
+    "loading": "Loading...",
+    "loadError": "Failed to load products. Please refresh.",
     "artworkVoting": {
       "title": "Vote for the Next Design",
       "subtitle": "Help choose which children's artwork becomes our next collection.",
@@ -666,6 +682,9 @@
       "button": "Explore Traceability"
     }
   },
+  "artworkCard": {
+    "age": "Age {{age}}"
+  },
   "vote": {
     "overline": "Community Vote",
     "title": "Vote for the Next Design",
@@ -673,7 +692,9 @@
     "vote": "Vote",
     "votes": "{{count}} votes",
     "empty": "No artworks available for voting right now.",
-    "error": "Failed to submit vote. Please try again."
+    "error": "Failed to submit vote. Please try again.",
+    "loading": "Loading...",
+    "loadError": "Failed to load artworks. Please refresh."
   },
   "traceability": {
     "hero": {
@@ -989,6 +1010,9 @@
   },
   "campaigns.detail.about": "About This Campaign",
   "campaigns.detail.backToAll": "to all campaigns",
+  "campaigns.detail.quote": "I drew a dress that makes rain sounds when you walk. That way, everyone knows you're coming.",
+  "campaigns.detail.quoteAuthor": "Mei, age 8",
+  "campaigns.detail.quoteRole": "Guizhou",
   "traceability.location": "Location",
   "traceability.partner": "Partner",
   "traceability.date": "Date",
@@ -1006,7 +1030,14 @@
     "submit": "Submit Registration",
     "disclaimer": "You can check progress in your profile after submission; personal information is used only for logistics coordination.",
     "clothingHint": "Idle clothing can also be donated, processed into sustainable fashion products, with proceeds supporting rural arts education.",
-    "donateLink": "Donate Clothing →"
+    "donateLink": "Donate Clothing →",
+    "statusLabels": {
+      "submitted": "Submitted",
+      "received": "Received",
+      "processing": "Processing",
+      "listed": "Listed",
+      "rejected": "Rejected"
+    }
   },
   "support": {
     "loginRequired": "Log in to submit after-sales ticket",
@@ -1126,5 +1157,50 @@
     "savedAddresses": "Saved Addresses",
     "enterNewAddress": "Enter a new address",
     "saveAddress": "Save to address book"
+  },
+  "submitArtwork": {
+    "loginRequired": "Please log in to submit artwork",
+    "title": "Submit Artwork",
+    "subtitle": "Upload a child's artwork for charity campaigns and voting",
+    "titleLabel": "Artwork Title *",
+    "descriptionLabel": "Description",
+    "imageLabel": "Upload Artwork Image *",
+    "childNameLabel": "Artist Name (optional)",
+    "consentLabel": "I confirm that I have obtained consent from the minor's guardian",
+    "error": "Submission failed, please try again",
+    "submit": "Submit Artwork"
+  },
+  "aiDesign": {
+    "title": "AI Design Studio",
+    "subtitle": "Transform children's artworks into commercial product designs",
+    "adminOnly": "Only admins can access the AI Design Studio",
+    "createNew": "Create New Draft",
+    "artworkId": "Artwork ID",
+    "draftTitle": "Draft Title",
+    "selectCategory": "Select Category",
+    "create": "Create",
+    "createError": "Failed to create draft",
+    "generateError": "AI generation failed",
+    "approveError": "Failed to approve draft",
+    "rejectError": "Failed to reject draft",
+    "publishError": "Failed to publish product",
+    "all": "All",
+    "noDrafts": "No design drafts yet",
+    "artworkRef": "Artwork",
+    "prompt": "AI Prompt",
+    "reviewNote": "Review Note",
+    "reviewNotePlaceholder": "Review note (optional)",
+    "generate": "AI Generate",
+    "approve": "Approve",
+    "reject": "Reject",
+    "publish": "Publish as Product",
+    "statuses": {
+      "draft": "Draft",
+      "ai_generated": "AI Generated",
+      "review": "In Review",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "published": "Published"
+    }
   }
 }

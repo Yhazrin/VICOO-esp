@@ -1,378 +1,282 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { useReducedMotion } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
+import { artworksApi } from '@/services/artworks';
 
 /**
  * ScrollNarrative — Apple-style scroll-driven animation
  *
- * Architecture:
- * - 500vh container creates scroll space
- * - Sticky viewport (100vh) stays fixed during scroll
- * - Scroll progress (0→1) drives all animations via useTransform
- * - Each layer is absolutely positioned and animated based on scroll progress
- *
- * Key: position: sticky works because parent (500vh div) has no overflow constraint
+ * 500vh container + sticky 100vh viewport.
+ * scrollProgress (0→1) drives 4 scene transitions.
  */
 export default function ScrollNarrative() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const prefersReducedMotion = useReducedMotion() ?? false;
 
-  // Reliable scroll tracking using native events
+  // Fetch real artworks for the gallery scene
+  const { data: artworksData } = useQuery({
+    queryKey: ['scroll-narrative-artworks'],
+    queryFn: () => artworksApi.getAll({ page_size: 5 }),
+    staleTime: 10 * 60 * 1000,
+    retry: 1,
+  });
+
+  const artworkImages = (artworksData?.items ?? [])
+    .slice(0, 5)
+    .map((a) => a.image_url)
+    .filter(Boolean) as string[];
+
+  // Scroll tracking
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
     const handleScroll = () => {
       const rect = container.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-      const containerHeight = container.offsetHeight;
-
-      // Calculate progress: 0 when container top hits viewport top, 1 when container bottom hits viewport bottom
-      const scrolled = viewportHeight - rect.top;
-      const totalScrollable = containerHeight - viewportHeight;
-      const progress = Math.max(0, Math.min(1, scrolled / totalScrollable));
-
-      setScrollProgress(progress);
+      const vh = window.innerHeight;
+      const ch = container.offsetHeight;
+      // rect.top is 0 when the sticky container is pinned at viewport top.
+      // As user scrolls down, rect.top goes negative (container scrolls up).
+      // scrollProgress = how far through the 500vh container we've scrolled.
+      const scrolled = -rect.top;
+      const total = ch - vh;
+      setScrollProgress(Math.max(0, Math.min(1, scrolled / total)));
     };
 
-    // Initial calculation
     handleScroll();
-
-    // Throttled scroll listener
     let ticking = false;
     const onScroll = () => {
       if (!ticking) {
-        requestAnimationFrame(() => {
-          handleScroll();
-          ticking = false;
-        });
+        requestAnimationFrame(() => { handleScroll(); ticking = false; });
         ticking = true;
       }
     };
-
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', handleScroll, { passive: true });
-
     return () => {
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', handleScroll);
     };
   }, []);
 
-  // Helper to create scroll-based interpolation
-  const lerp = useCallback((start: number, end: number, t: number) => {
-    return start + (end - start) * t;
-  }, []);
-
-  const clamp = useCallback((value: number, min: number, max: number) => {
-    return Math.max(min, Math.min(max, value));
-  }, []);
-
-  const mapRange = useCallback((value: number, inMin: number, inMax: number, outMin: number, outMax: number) => {
-    const t = clamp((value - inMin) / (inMax - inMin), 0, 1);
-    return lerp(outMin, outMax, t);
+  const clamp = useCallback((v: number, min: number, max: number) => Math.max(min, Math.min(max, v)), []);
+  const lerp = useCallback((a: number, b: number, t: number) => a + (b - a) * t, []);
+  const mapRange = useCallback((v: number, i0: number, i1: number, o0: number, o1: number) => {
+    const t = clamp((v - i0) / (i1 - i0), 0, 1);
+    return lerp(o0, o1, t);
   }, [clamp, lerp]);
+
+  const p = scrollProgress;
+  const rm = prefersReducedMotion;
 
   return (
     <div ref={containerRef} className="relative w-full" style={{ height: '500vh' }}>
-      {/* Sticky viewport - stays fixed while user scrolls */}
       <div
         className="sticky overflow-hidden"
-        style={{
-          position: 'sticky',
-          top: 0,
-          height: '100vh',
-          width: '100%',
-          zIndex: 10,
-        }}
+        style={{ position: 'sticky', top: 0, height: '100vh', width: '100%', zIndex: 10 }}
       >
         {/* Background */}
         <div className="absolute inset-0 bg-aged-stock" />
 
-        {/* Layer 1: Geometric lines — continuous horizontal flow */}
-        <GeometricLines
-          scrollProgress={scrollProgress}
-          prefersReducedMotion={prefersReducedMotion}
-          mapRange={mapRange}
-        />
+        {/* Scene 01 — Brand Manifesto */}
+        <Scene01 p={p} rm={rm} mapRange={mapRange} />
 
-        {/* Layer 2: Title emergence — fades out as scroll progresses */}
-        <TitleLayer
-          scrollProgress={scrollProgress}
-          prefersReducedMotion={prefersReducedMotion}
-          mapRange={mapRange}
-        />
+        {/* Scene 02 — Artwork Gallery */}
+        <Scene02 p={p} rm={rm} mapRange={mapRange} images={artworkImages} />
 
-        {/* Layer 3: Artwork grid — converges then disperses */}
-        <ArtworkLayer
-          scrollProgress={scrollProgress}
-          prefersReducedMotion={prefersReducedMotion}
-          mapRange={mapRange}
-        />
+        {/* Scene 03 — Impact Numbers */}
+        <Scene03 p={p} rm={rm} mapRange={mapRange} />
 
-        {/* Layer 4: Flow ribbons — continuous horizontal movement */}
-        <RibbonLayer
-          scrollProgress={scrollProgress}
-          prefersReducedMotion={prefersReducedMotion}
-          mapRange={mapRange}
-        />
+        {/* Scene 04 — Call to Action */}
+        <Scene04 p={p} rm={rm} mapRange={mapRange} />
 
-        {/* Layer 5: Impact stats — numbers animate, then layer fades */}
-        <ImpactLayer
-          scrollProgress={scrollProgress}
-          prefersReducedMotion={prefersReducedMotion}
-          mapRange={mapRange}
-        />
-
-        {/* Layer 6: CTA — fades in at the end */}
-        <CTALayer
-          scrollProgress={scrollProgress}
-          prefersReducedMotion={prefersReducedMotion}
-          mapRange={mapRange}
-        />
-
-        {/* Grain overlay for texture */}
-        <SectionGrainOverlay opacity={0.035} />
+        <SectionGrainOverlay opacity={0.03} />
       </div>
     </div>
   );
 }
 
-/* ─── Layer Components ─── */
+/* ═══════════════════════════════════════════════════════════════
+   Scene 01 — Brand Manifesto (0 → 28%)
+   ═══════════════════════════════════════════════════════════════ */
 
-function GeometricLines({
-  scrollProgress,
-  prefersReducedMotion,
-  mapRange,
-}: {
-  scrollProgress: number;
-  prefersReducedMotion: boolean;
-  mapRange: (v: number, iMin: number, iMax: number, oMin: number, oMax: number) => number;
-}) {
-  if (prefersReducedMotion) return null;
-
-  const line1X = mapRange(scrollProgress, 0, 1, -100, 100);
-  const line2X = mapRange(scrollProgress, 0, 1, 50, -50);
-  const line3X = mapRange(scrollProgress, 0, 1, -50, 150);
-  const lineOpacity = mapRange(scrollProgress, 0, 0.1, 0, 0.6) * (1 - mapRange(scrollProgress, 0.9, 1, 0, 1));
-
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ opacity: lineOpacity }}>
-      {/* Line 1 */}
-      <div
-        className="absolute h-px bg-rust/30"
-        style={{
-          top: '20%',
-          left: 0,
-          width: '40vw',
-          transform: `translateX(${line1X}px)`,
-        }}
-      />
-      {/* Line 2 */}
-      <div
-        className="absolute h-px bg-sage/25"
-        style={{
-          top: '40%',
-          left: 0,
-          width: '60vw',
-          transform: `translateX(${line2X}px)`,
-        }}
-      />
-      {/* Line 3 */}
-      <div
-        className="absolute h-px bg-sepia-mid/20"
-        style={{
-          top: '60%',
-          left: 0,
-          width: '50vw',
-          transform: `translateX(${line3X}px)`,
-        }}
-      />
-      {/* Line 4 */}
-      <div
-        className="absolute h-px bg-warm-gray/25"
-        style={{
-          top: '75%',
-          left: 0,
-          width: '35vw',
-          transform: `translateX(${mapRange(scrollProgress, 0, 1, 100, -100)}px)`,
-        }}
-      />
-    </div>
-  );
-}
-
-function TitleLayer({
-  scrollProgress,
-  prefersReducedMotion,
-  mapRange,
-}: {
-  scrollProgress: number;
-  prefersReducedMotion: boolean;
-  mapRange: (v: number, iMin: number, iMax: number, oMin: number, oMax: number) => number;
-}) {
-  // Title visible 0-35%, fades out after
-  const opacity = prefersReducedMotion
-    ? 1
-    : 1 - mapRange(scrollProgress, 0.2, 0.4, 0, 1);
-
-  const y = prefersReducedMotion ? 0 : mapRange(scrollProgress, 0, 0.35, 0, -80);
-  const scale = prefersReducedMotion ? 1 : mapRange(scrollProgress, 0, 0.35, 1, 0.85);
-
-  // Subtitle
-  const subtitleOpacity = prefersReducedMotion
-    ? 1
-    : (1 - mapRange(scrollProgress, 0.25, 0.45, 0, 1));
-  const subtitleY = prefersReducedMotion ? 0 : mapRange(scrollProgress, 0.08, 0.35, 30, -50);
+function Scene01({ p, rm, mapRange }: SceneProps) {
+  // Layer opacity: visible 0–30%, fades out by 38%
+  const opacity = rm ? 1 : (1 - mapRange(p, 0.25, 0.38, 0, 1));
+  const y = rm ? 0 : mapRange(p, 0, 0.28, 0, -60);
 
   // Letter reveal
-  const line1Y = prefersReducedMotion ? 0 : mapRange(scrollProgress, 0, 0.15, 100, 0);
-  const line2Y = prefersReducedMotion ? 0 : mapRange(scrollProgress, 0.02, 0.17, 100, 0);
+  const line1 = rm ? 0 : mapRange(p, 0, 0.12, 100, 0);
+  const line2 = rm ? 0 : mapRange(p, 0.03, 0.15, 100, 0);
+  const line3 = rm ? 0 : mapRange(p, 0.06, 0.18, 100, 0);
+
+  // Right column
+  const rightOp = rm ? 1 : mapRange(p, 0.08, 0.18, 0, 1);
+  const rightY = rm ? 0 : mapRange(p, 0.08, 0.18, 30, 0);
+
+  // Accent line
+  const lineScale = rm ? 1 : mapRange(p, 0, 0.12, 0, 1);
+
+  // Scroll indicator
+  const scrollHint = rm ? 1
+    : mapRange(p, 0.04, 0.1, 0, 1) * (1 - mapRange(p, 0.18, 0.26, 0, 1));
 
   return (
     <div
-      className="absolute inset-0 flex items-center justify-center"
-      style={{ opacity }}
+      className="absolute inset-0 flex items-center"
+      style={{ opacity, transform: `translateY(${y}px)`, zIndex: 1 }}
     >
       {/* Scene number */}
       <div className="absolute top-16 left-8 md:left-16 z-10">
         <span className="font-body text-caption text-sepia-mid tracking-[0.3em]">01</span>
       </div>
 
-      {/* Main content */}
-      <div
-        className="relative z-10 text-center px-8"
-        style={{ transform: `translateY(${y}px) scale(${scale})` }}
-      >
-        {/* Accent line */}
+      {/* Two-column layout */}
+      <div className="w-full max-w-6xl mx-auto px-8 md:px-16 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16 items-center">
+        {/* Left — Title */}
+        <div className="md:col-span-7">
+          <div
+            className="w-12 h-px bg-rust mb-8 origin-left"
+            style={{ transform: `scaleX(${lineScale})` }}
+          />
+          <h1 className="font-display text-h1 md:text-[clamp(40px,6vw,72px)] font-bold text-ink leading-[1.05] tracking-[-0.03em]">
+            <div className="overflow-hidden">
+              <span className="inline-block" style={{ transform: `translateY(${line1}%)` }}>
+                Every Child's Creativity
+              </span>
+            </div>
+            <div className="overflow-hidden mt-1">
+              <span className="inline-block" style={{ transform: `translateY(${line2}%)` }}>
+                Deserves a{' '}
+              </span>
+            </div>
+            <div className="overflow-hidden mt-1">
+              <span className="inline-block text-rust" style={{ transform: `translateY(${line3}%)` }}>
+                Stage
+              </span>
+            </div>
+          </h1>
+        </div>
+
+        {/* Right — Description */}
         <div
-          className="w-16 h-px bg-rust mx-auto mb-8 origin-center"
-          style={{
-            transform: `scaleX(${prefersReducedMotion ? 1 : mapRange(scrollProgress, 0, 0.15, 0, 1)})`,
-          }}
-        />
-
-        <h1 className="font-display text-h1 md:text-display font-bold text-ink leading-[1.05] tracking-[-0.03em]">
-          <div className="overflow-hidden">
-            <span
-              className="inline-block"
-              style={{ transform: `translateY(${line1Y}%)` }}
-            >
-              Every Child's Creativity
-            </span>
-          </div>
-          <div className="overflow-hidden mt-1">
-            <span
-              className="inline-block"
-              style={{ transform: `translateY(${line2Y}%)` }}
-            >
-              Deserves a Stage
-            </span>
-          </div>
-        </h1>
-
-        <p
-          className="font-body text-body-sm text-ink-faded mt-6 tracking-wide"
-          style={{ opacity: subtitleOpacity, transform: `translateY(${subtitleY}px)` }}
+          className="md:col-span-4 md:col-start-9"
+          style={{ opacity: rightOp, transform: `translateY(${rightY}px)` }}
         >
-          Where Imagination Meets Impact
-        </p>
-
-        {/* Decorative dots */}
-        <div className="flex justify-center gap-2 mt-8">
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="w-1 h-1 rounded-full bg-warm-gray"
-              style={{
-                opacity: prefersReducedMotion ? 1 : mapRange(scrollProgress, 0.1 + i * 0.02, 0.2 + i * 0.02, 0, 1),
-              }}
-            />
-          ))}
+          <div className="border-l-2 border-rust/30 pl-6">
+            <p className="font-body text-body-sm text-ink-faded leading-[1.8]">
+              VICOO connects children's original artwork with sustainable fashion,
+              creating a transparent chain of creativity, commerce, and social impact.
+            </p>
+            <p className="font-body text-caption text-sepia-mid tracking-[0.1em] uppercase mt-6">
+              Where Imagination Meets Impact
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Scroll indicator — fades out early */}
+      {/* Scroll indicator */}
       <div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2"
-        style={{
-          opacity: prefersReducedMotion ? 1 : mapRange(scrollProgress, 0, 0.1, 0, 1) * (1 - mapRange(scrollProgress, 0.2, 0.3, 0, 1)),
-        }}
+        className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+        style={{ opacity: scrollHint }}
+        aria-hidden="true"
       >
-        <div className="flex flex-col items-center gap-2">
-          <span className="font-body text-caption text-sepia-mid tracking-[0.2em]">SCROLL</span>
-          <div className="w-px h-8 bg-gradient-to-b from-warm-gray to-transparent" />
-        </div>
+        <span className="font-body text-[10px] text-sepia-mid tracking-[0.25em] uppercase">Scroll</span>
+        <div className="w-px h-6 bg-gradient-to-b from-sepia-mid/40 to-transparent" />
       </div>
     </div>
   );
 }
 
-function ArtworkLayer({
-  scrollProgress,
-  prefersReducedMotion,
-  mapRange,
-}: {
-  scrollProgress: number;
-  prefersReducedMotion: boolean;
-  mapRange: (v: number, iMin: number, iMax: number, oMin: number, oMax: number) => number;
-}) {
-  // Layer visible 12-55%
-  const layerOpacity = prefersReducedMotion
-    ? 0
-    : mapRange(scrollProgress, 0.12, 0.18, 0, 1) * (1 - mapRange(scrollProgress, 0.45, 0.55, 0, 1));
+/* ═══════════════════════════════════════════════════════════════
+   Scene 02 — Artwork Gallery (18% → 52%)
+   ═══════════════════════════════════════════════════════════════ */
 
-  const layerY = prefersReducedMotion ? 0 : mapRange(scrollProgress, 0.12, 0.25, 60, 0);
+function Scene02({ p, rm, mapRange, images }: Scene02Props) {
+  // Layer: visible 18–52%
+  const opacity = rm ? 1
+    : mapRange(p, 0.18, 0.24, 0, 1) * (1 - mapRange(p, 0.46, 0.52, 0, 1));
 
-  const imageOpacity = prefersReducedMotion
-    ? 1
-    : mapRange(scrollProgress, 0.15, 0.25, 0, 1) * (1 - mapRange(scrollProgress, 0.48, 0.55, 0, 1));
+  const layerY = rm ? 0 : mapRange(p, 0.18, 0.28, 50, 0);
 
-  const imagePositions = [
-    { x: 10, y: 25, rotate: -3 },
-    { x: 55, y: 20, rotate: 2 },
-    { x: 25, y: 55, rotate: -1 },
-    { x: 65, y: 60, rotate: 4 },
-    { x: 40, y: 40, rotate: 0 },
-    { x: 75, y: 35, rotate: -2 },
+  const positions = [
+    { x: '8%', y: '18%', w: 'w-40 md:w-56', rot: -2.5 },
+    { x: '55%', y: '12%', w: 'w-36 md:w-48', rot: 1.8 },
+    { x: '28%', y: '52%', w: 'w-44 md:w-60', rot: -1 },
+    { x: '68%', y: '48%', w: 'w-32 md:w-44', rot: 3 },
+    { x: '42%', y: '30%', w: 'w-36 md:w-52', rot: 0.5 },
   ];
+
+  // Merge API images with fallback gradients — use API images first, fill remaining slots
+  const fallbackGradients = [
+    'linear-gradient(135deg, #C4A45A 0%, #8B7355 100%)',
+    'linear-gradient(135deg, #8B3A2A 0%, #C4A45A 100%)',
+    'linear-gradient(135deg, #5A7A5A 0%, #8B7355 100%)',
+    'linear-gradient(135deg, #D4C5A9 0%, #8B3A2A 100%)',
+    'linear-gradient(135deg, #7D8471 0%, #C4A45A 100%)',
+  ];
+  const srcs = images.length > 0 ? images.concat([]).slice(0, 5) : [];
 
   return (
     <div
       className="absolute inset-0 pointer-events-none"
-      style={{ opacity: layerOpacity, transform: `translateY(${layerY}px)` }}
+      style={{ opacity, transform: `translateY(${layerY}px)`, zIndex: 2 }}
     >
       {/* Scene number */}
       <div className="absolute top-16 left-8 md:left-16 z-20">
         <span className="font-body text-caption text-sepia-mid tracking-[0.3em]">02</span>
       </div>
 
-      {/* Images */}
-      {imagePositions.map((pos, i) => {
-        const entranceX = prefersReducedMotion ? 0 : mapRange(scrollProgress, 0.15 + i * 0.02, 0.3 + i * 0.02, i % 2 === 0 ? -80 : 80, 0);
-        const entranceY = prefersReducedMotion ? 0 : mapRange(scrollProgress, 0.15 + i * 0.02, 0.3 + i * 0.02, i * 20, 0);
-        const scale = prefersReducedMotion ? 1 : mapRange(scrollProgress, 0.15, 0.28, 0.7, 1);
+      {/* Editorial quote overlay */}
+      <div
+        className="absolute top-12 right-8 md:right-16 z-20 max-w-xs text-right"
+        style={{
+          opacity: rm ? 1 : mapRange(p, 0.24, 0.32, 0, 1) * (1 - mapRange(p, 0.44, 0.50, 0, 1)),
+        }}
+      >
+        <p className="font-display text-body-sm md:text-h4 italic text-ink/70 leading-snug">
+          "Where imagination meets fabric, stories are worn."
+        </p>
+      </div>
+
+      {/* Artwork cards */}
+      {positions.map((pos, i) => {
+        const delay = i * 0.03;
+        const enterX = rm ? 0 : mapRange(p, 0.19 + delay, 0.30 + delay, i % 2 === 0 ? -70 : 70, 0);
+        const enterSc = rm ? 1 : mapRange(p, 0.19 + delay, 0.30 + delay, 0.75, 1);
+        const cardOp = rm ? 1 : mapRange(p, 0.19 + delay, 0.28 + delay, 0, 1);
 
         return (
           <div
             key={i}
-            className="absolute w-32 h-32 md:w-44 md:h-44 border-2 border-warm-gray/40 bg-aged-stock overflow-hidden"
+            className={`absolute ${pos.w} aspect-[4/5] border-2 border-warm-gray/30 bg-aged-stock overflow-hidden shadow-lg`}
             style={{
-              top: `${pos.y}%`,
-              left: `${pos.x}%`,
-              transform: `rotate(${pos.rotate}deg) translate(${entranceX}px, ${entranceY}px) scale(${scale})`,
-              opacity: imageOpacity,
+              left: pos.x,
+              top: pos.y,
+              transform: `rotate(${pos.rot}deg) translateX(${enterX}px) scale(${enterSc})`,
+              opacity: cardOp,
             }}
           >
-            <img
-              src={`https://picsum.photos/seed/artwork-scroll-${i}/300/300`}
-              alt=""
-              className="w-full h-full object-cover sepia-[0.15]"
-            />
+            {srcs[i] ? (
+              <img
+                src={srcs[i]}
+                alt={`Children's artwork ${i + 1}`}
+                className="w-full h-full object-cover"
+                style={{ filter: 'sepia(0.15) contrast(1.05) brightness(0.97)' }}
+                loading="lazy"
+              />
+            ) : (
+              <div
+                className="w-full h-full"
+                style={{ background: fallbackGradients[i] }}
+              />
+            )}
             {/* Corner accents */}
-            <div className="absolute top-1 left-1 w-4 h-4 border-t border-l border-rust/30" />
-            <div className="absolute bottom-1 right-1 w-4 h-4 border-b border-r border-rust/30" />
+            <div className="absolute top-1.5 left-1.5 w-5 h-5 border-t border-l border-rust/25" />
+            <div className="absolute bottom-1.5 right-1.5 w-5 h-5 border-b border-r border-rust/25" />
           </div>
         );
       })}
@@ -380,100 +284,15 @@ function ArtworkLayer({
   );
 }
 
-function RibbonLayer({
-  scrollProgress,
-  prefersReducedMotion,
-  mapRange,
-}: {
-  scrollProgress: number;
-  prefersReducedMotion: boolean;
-  mapRange: (v: number, iMin: number, iMax: number, oMin: number, oMax: number) => number;
-}) {
-  if (prefersReducedMotion) return null;
+/* ═══════════════════════════════════════════════════════════════
+   Scene 03 — Impact Numbers (40% → 72%)
+   ═══════════════════════════════════════════════════════════════ */
 
-  // Visible 28-72%
-  const ribbonOpacity = mapRange(scrollProgress, 0.28, 0.35, 0, 0.8) * (1 - mapRange(scrollProgress, 0.65, 0.72, 0, 1));
-
-  const ribbon1X = mapRange(scrollProgress, 0.3, 0.7, -10, 110);
-  const ribbon2X = mapRange(scrollProgress, 0.3, 0.7, 5, 105);
-  const ribbon3X = mapRange(scrollProgress, 0.3, 0.7, -5, 115);
-
-  const shapes = [
-    { type: 'circle', x: 15, y: 35, size: 12, color: 'bg-rust/20' },
-    { type: 'rect', x: 75, y: 25, size: 16, color: 'bg-sage/15', rotate: 45 },
-    { type: 'circle', x: 85, y: 65, size: 8, color: 'bg-warm-gray/20' },
-    { type: 'rect', x: 25, y: 70, size: 10, color: 'bg-sepia-mid/15', rotate: 30 },
-  ];
-
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ opacity: ribbonOpacity }}>
-      {/* Scene number */}
-      <div className="absolute top-16 left-8 md:left-16 z-20">
-        <span className="font-body text-caption text-sepia-mid tracking-[0.3em]">03</span>
-      </div>
-
-      {/* SVG Ribbons */}
-      <svg
-        className="absolute w-[120%] h-32"
-        style={{ top: '30%', transform: `translateX(${ribbon1X}%)` }}
-        viewBox="0 0 400 60"
-        preserveAspectRatio="none"
-      >
-        <path d="M0,30 Q100,10 200,30 T400,30" fill="none" stroke="var(--color-rust)" strokeWidth="1" strokeOpacity="0.3" />
-      </svg>
-
-      <svg
-        className="absolute w-[120%] h-24"
-        style={{ top: '45%', transform: `translateX(${ribbon2X}%)` }}
-        viewBox="0 0 400 50"
-        preserveAspectRatio="none"
-      >
-        <path d="M0,25 Q100,5 200,25 T400,25" fill="none" stroke="var(--color-sage)" strokeWidth="1.5" strokeOpacity="0.25" />
-      </svg>
-
-      <svg
-        className="absolute w-[120%] h-20"
-        style={{ top: '60%', transform: `translateX(${ribbon3X}%)` }}
-        viewBox="0 0 400 40"
-        preserveAspectRatio="none"
-      >
-        <path d="M0,20 Q100,35 200,20 T400,20" fill="none" stroke="var(--color-sepia-mid)" strokeWidth="1" strokeOpacity="0.2" />
-      </svg>
-
-      {/* Floating shapes */}
-      {shapes.map((shape, i) => (
-        <div
-          key={i}
-          className={`absolute ${shape.color}`}
-          style={{
-            top: `${shape.y}%`,
-            left: `${shape.x}%`,
-            width: shape.size,
-            height: shape.size,
-            borderRadius: shape.type === 'circle' ? '50%' : '2px',
-            transform: `rotate(${shape.rotate}deg) translateX(${mapRange(scrollProgress, 0.35 + i * 0.05, 0.65 - i * 0.03, 0, i % 2 === 0 ? 60 : -40)}px) translateY(${mapRange(scrollProgress, 0.35, 0.65, 0, i % 2 === 0 ? -30 : 20)}px)`,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
-function ImpactLayer({
-  scrollProgress,
-  prefersReducedMotion,
-  mapRange,
-}: {
-  scrollProgress: number;
-  prefersReducedMotion: boolean;
-  mapRange: (v: number, iMin: number, iMax: number, oMin: number, oMax: number) => number;
-}) {
-  // Layer visible 50-85%
-  const layerOpacity = prefersReducedMotion
-    ? 0
-    : mapRange(scrollProgress, 0.5, 0.58, 0, 1) * (1 - mapRange(scrollProgress, 0.78, 0.85, 0, 1));
-
-  const layerY = prefersReducedMotion ? 0 : mapRange(scrollProgress, 0.5, 0.62, 80, 0);
+function Scene03({ p, rm, mapRange }: SceneProps) {
+  // Layer: visible 40–72%
+  const opacity = rm ? 1
+    : mapRange(p, 0.40, 0.48, 0, 1) * (1 - mapRange(p, 0.66, 0.72, 0, 1));
+  const layerY = rm ? 0 : mapRange(p, 0.40, 0.52, 60, 0);
 
   const stats = [
     { value: 2847, label: 'Children Empowered', prefix: '' },
@@ -485,38 +304,56 @@ function ImpactLayer({
   return (
     <div
       className="absolute inset-0 flex flex-col items-center justify-center"
-      style={{ opacity: layerOpacity, transform: `translateY(${layerY}px)` }}
+      style={{ opacity, transform: `translateY(${layerY}px)`, zIndex: 3 }}
     >
       {/* Scene number */}
       <div className="absolute top-16 left-8 md:left-16 z-20">
-        <span className="font-body text-caption text-sepia-mid tracking-[0.3em]">04</span>
+        <span className="font-body text-caption text-sepia-mid tracking-[0.3em]">03</span>
       </div>
 
-      {/* Title */}
       <div
-        className="text-center mb-12"
-        style={{ transform: `translateY(${prefersReducedMotion ? 0 : mapRange(scrollProgress, 0.52, 0.62, 40, 0)}px)` }}
+        className="text-center mb-14"
+        style={{ transform: `translateY(${rm ? 0 : mapRange(p, 0.42, 0.52, 30, 0)}px)` }}
       >
         <h2 className="font-display text-h2 md:text-h1 font-bold text-ink leading-[1.05] tracking-[-0.03em]">
           Impact in Numbers
         </h2>
       </div>
 
-      {/* Stats grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 px-8 max-w-5xl w-full">
-        {stats.map((stat, i) => (
-          <StatCard
-            key={stat.label}
-            stat={stat}
-            index={i}
-            scrollProgress={scrollProgress}
-            prefersReducedMotion={prefersReducedMotion}
-            mapRange={mapRange}
-          />
-        ))}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10 px-8 max-w-5xl w-full">
+        {stats.map((stat, i) => {
+          const numT = rm ? 1 : mapRange(p, 0.46, 0.60, 0, 1);
+          const display = Math.round(numT * stat.value);
+          const itemOp = rm ? 1 : mapRange(p, 0.46 + i * 0.02, 0.56 + i * 0.02, 0, 1);
+          const itemY = rm ? 0 : mapRange(p, 0.46 + i * 0.02, 0.56 + i * 0.02, 35, 0);
+
+          return (
+            <div
+              key={stat.label}
+              className="relative text-center px-4 py-8"
+              style={{ opacity: itemOp, transform: `translateY(${itemY}px)` }}
+            >
+              {/* Decorative frame */}
+              <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-px bg-rust/30" />
+                <div className="absolute top-0 left-0 w-5 h-5 border-t border-l border-warm-gray/20" />
+                <div className="absolute top-0 right-0 w-5 h-5 border-t border-r border-warm-gray/20" />
+                <div className="absolute bottom-0 left-0 w-5 h-5 border-b border-l border-warm-gray/20" />
+                <div className="absolute bottom-0 right-0 w-5 h-5 border-b border-r border-warm-gray/20" />
+              </div>
+
+              <div className="font-display text-h2 md:text-h1 font-medium text-ink leading-none tracking-wide mb-3">
+                {stat.prefix}{display.toLocaleString()}
+              </div>
+              <div className="font-body text-caption text-sepia-mid tracking-[0.12em] uppercase">
+                {stat.label}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Editorial divider */}
+      {/* Bottom divider */}
       <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex items-center gap-4">
         <div className="w-12 h-px bg-warm-gray/40" />
         <span className="font-body text-caption text-sepia-mid tracking-[0.2em]">EST. 2024</span>
@@ -526,124 +363,74 @@ function ImpactLayer({
   );
 }
 
-function StatCard({
-  stat,
-  index,
-  scrollProgress,
-  prefersReducedMotion,
-  mapRange,
-}: {
-  stat: { value: number; label: string; prefix: string };
-  index: number;
-  scrollProgress: number;
-  prefersReducedMotion: boolean;
-  mapRange: (v: number, iMin: number, iMax: number, oMin: number, oMax: number) => number;
-}) {
-  // Number animates from 0 to target during 55%-70% of scroll
-  const numberProgress = prefersReducedMotion
-    ? 1
-    : mapRange(scrollProgress, 0.55, 0.7, 0, 1);
+/* ═══════════════════════════════════════════════════════════════
+   Scene 04 — Call to Action (65% → 100%)
+   ═══════════════════════════════════════════════════════════════ */
 
-  const displayValue = Math.round(numberProgress * stat.value);
+function Scene04({ p, rm, mapRange }: SceneProps) {
+  // Layer: visible 65–100%
+  const opacity = rm ? 1 : mapRange(p, 0.65, 0.75, 0, 1);
+  const layerY = rm ? 0 : mapRange(p, 0.68, 0.78, 50, 0);
 
-  const itemOpacity = prefersReducedMotion
-    ? 1
-    : mapRange(scrollProgress, 0.55 + index * 0.02, 0.65 + index * 0.02, 0, 1);
-
-  const itemY = prefersReducedMotion
-    ? 0
-    : mapRange(scrollProgress, 0.55 + index * 0.02, 0.65 + index * 0.02, 40, 0);
+  const scale1 = rm ? 1 : mapRange(p, 0.76, 0.86, 0.92, 1);
+  const scale2 = rm ? 1 : mapRange(p, 0.79, 0.89, 0.92, 1);
+  const lineWidth = rm ? 120 : mapRange(p, 0.82, 0.92, 0, 120);
 
   return (
     <div
-      className="relative text-center px-4 py-6"
-      style={{ opacity: itemOpacity, transform: `translateY(${itemY}px)` }}
-    >
-      {/* Decorative frame */}
-      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-px bg-rust/30" />
-        <div className="absolute top-0 left-0 w-6 h-6 border-t border-l border-warm-gray/20" />
-        <div className="absolute top-0 right-0 w-6 h-6 border-t border-r border-warm-gray/20" />
-        <div className="absolute bottom-0 left-0 w-6 h-6 border-b border-l border-warm-gray/20" />
-        <div className="absolute bottom-0 right-0 w-6 h-6 border-b border-r border-warm-gray/20" />
-      </div>
-
-      {/* Number */}
-      <div className="font-display text-h2 md:text-h1 font-medium text-ink leading-none tracking-wide mb-3">
-        {stat.prefix}{displayValue.toLocaleString()}
-      </div>
-
-      {/* Label */}
-      <div className="font-body text-caption text-sepia-mid tracking-[0.12em] uppercase">
-        {stat.label}
-      </div>
-    </div>
-  );
-}
-
-function CTALayer({
-  scrollProgress,
-  prefersReducedMotion,
-  mapRange,
-}: {
-  scrollProgress: number;
-  prefersReducedMotion: boolean;
-  mapRange: (v: number, iMin: number, iMax: number, oMin: number, oMax: number) => number;
-}) {
-  // Layer visible 75-100%
-  const layerOpacity = prefersReducedMotion
-    ? 1
-    : mapRange(scrollProgress, 0.75, 0.85, 0, 1);
-
-  const layerY = prefersReducedMotion ? 0 : mapRange(scrollProgress, 0.78, 0.88, 60, 0);
-
-  const scale1 = prefersReducedMotion ? 1 : mapRange(scrollProgress, 0.85, 0.95, 0.9, 1);
-  const scale2 = prefersReducedMotion ? 1 : mapRange(scrollProgress, 0.87, 0.97, 0.9, 1);
-
-  const bottomLineWidth = prefersReducedMotion ? 120 : mapRange(scrollProgress, 0.88, 0.95, 0, 120);
-
-  return (
-    <div
-      className="absolute inset-0 flex flex-col items-center justify-center bg-ink/95"
-      style={{ opacity: layerOpacity, transform: `translateY(${layerY}px)` }}
+      className="absolute inset-0 flex flex-col items-center justify-center bg-ink"
+      style={{ opacity, transform: `translateY(${layerY}px)`, zIndex: 4 }}
     >
       {/* Scene number */}
       <div className="absolute top-16 left-8 md:left-16 z-20">
-        <span className="font-body text-caption text-warm-gray/60 tracking-[0.3em]">05</span>
+        <span className="font-body text-caption text-warm-gray/50 tracking-[0.3em]">04</span>
       </div>
 
       <div className="text-center px-8 max-w-2xl">
         <h2 className="font-display text-h2 md:text-h1 font-bold text-paper leading-[1.05] tracking-[-0.03em] mb-4">
           Be Part of the Story
         </h2>
-        <p className="font-body text-body-sm text-warm-gray/80 mb-10 max-w-md mx-auto">
+        <p className="font-body text-body-sm text-warm-gray/70 mb-12 max-w-md mx-auto leading-relaxed">
           Every purchase supports a child's creative journey. Join our community of impact.
         </p>
 
-        {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <a
-            href="/campaigns"
-            className="inline-block font-body text-body-sm tracking-[0.15em] uppercase bg-rust text-paper px-8 py-4"
+          <Link
+            to="/campaigns"
+            className="inline-block font-body text-body-sm tracking-[0.15em] uppercase bg-rust text-paper px-8 py-4 hover:bg-rust-light transition-colors duration-300"
             style={{ transform: `scale(${scale1})` }}
           >
             Join Campaign
-          </a>
-          <a
-            href="/donate"
-            className="inline-block font-body text-body-sm tracking-[0.15em] uppercase border border-sage/50 text-sage px-8 py-4"
+          </Link>
+          <Link
+            to="/donate"
+            className="inline-block font-body text-body-sm tracking-[0.15em] uppercase border border-sage/40 text-sage-pale px-8 py-4 hover:border-sage hover:text-paper transition-colors duration-300"
             style={{ transform: `scale(${scale2})` }}
           >
             Make Donation
-          </a>
+          </Link>
         </div>
       </div>
 
       {/* Bottom decorative line */}
       <div
-        className="absolute bottom-20 h-px bg-gradient-to-r from-transparent via-sage/40 to-transparent"
-        style={{ width: bottomLineWidth }}
+        className="absolute bottom-20 h-px bg-gradient-to-r from-transparent via-sage/30 to-transparent"
+        style={{ width: `${lineWidth}%` }}
       />
     </div>
   );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Shared types
+   ═══════════════════════════════════════════════════════════════ */
+
+interface SceneProps {
+  p: number;
+  rm: boolean;
+  mapRange: (v: number, i0: number, i1: number, o0: number, o1: number) => number;
+}
+
+interface Scene02Props extends SceneProps {
+  images: string[];
 }

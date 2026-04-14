@@ -24,7 +24,7 @@ export default function StatCard({ title, value, subtitle, icon, trend, color = 
     <div style={{
       background: 'var(--color-bg-card)',
       border: '1px solid var(--color-border)',
-      borderRadius: 'var(--radius-lg)',
+      borderRadius: 'var(--radius-md)',
       padding: '24px',
       display: 'flex',
       flexDirection: 'column',
@@ -51,14 +51,14 @@ export default function StatCard({ title, value, subtitle, icon, trend, color = 
         )}
       </div>
       <div>
-        <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.2 }}>
+        <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--color-ink)', lineHeight: 1.2 }}>
           {typeof value === 'number' ? value.toLocaleString() : value}
         </div>
-        <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 4 }}>
+        <div style={{ fontSize: 13, color: 'var(--color-ink-faded)', marginTop: 4 }}>
           {title}
         </div>
         {subtitle && (
-          <div style={{ fontSize: 12, color: 'var(--color-text-light)', marginTop: 2 }}>
+          <div style={{ fontSize: 12, color: 'var(--color-ink-light)', marginTop: 2 }}>
             {subtitle}
           </div>
         )}

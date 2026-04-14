@@ -31,7 +31,7 @@ export default function TraceabilityTimeline({
     return (
       <div className={`text-center py-16 ${className}`}>
         <p className="font-body text-body-sm text-sepia-mid">
-          No supply chain records available.
+          {t('traceability.noRecords', 'No supply chain records available.')}
         </p>
       </div>
     );
@@ -165,7 +165,7 @@ export default function TraceabilityTimeline({
                   <div className="font-body text-label text-sepia-mid">
                     <span className="uppercase tracking-[0.1em]">{t('traceability.date')}:</span>{' '}
                     <span className="text-ink-faded font-medium">
-                      {new Date(record.date).toLocaleDateString('en-US', {
+                      {new Date(record.date).toLocaleDateString(undefined, {
                         year: 'numeric',
                         month: 'short',
                         day: 'numeric',

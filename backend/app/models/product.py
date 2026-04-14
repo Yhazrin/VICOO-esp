@@ -39,4 +39,6 @@ class Product(Base):
     is_impact_product = Column(Boolean, default=False, nullable=False, index=True)
     campaign_id = Column(Integer, ForeignKey("campaigns.id"), nullable=True, index=True)
     donation_percentage = Column(DECIMAL(5, 2), nullable=True)
+    # Artwork linkage — connects product to the original children's artwork
+    artwork_id = Column(Integer, ForeignKey("artworks.id"), nullable=True, index=True)
     created_at = Column(DateTime, server_default=func.now(), nullable=False)

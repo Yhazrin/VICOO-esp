@@ -62,11 +62,12 @@ export function FullHeightLayout() {
       </a>
       <Header />
       <MobileNav />
-      <main id="main-content" className="flex-1 pt-16 md:pt-20 overflow-visible">
+      <main id="main-content" className="flex-1 overflow-visible">
         <Outlet />
       </main>
       <EditorialFooter />
       {/* No GrainOverlay here - scroll narrative handles its own grain effect */}
+      <AIAssistantBall />
     </div>
   );
 }

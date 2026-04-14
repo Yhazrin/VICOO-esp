@@ -18,6 +18,7 @@ class ProductCreate(BaseModel):
     is_impact_product: bool = Field(False, description="Whether this product belongs to the impact/charity shop")
     campaign_id: Optional[int] = Field(None, description="Linked campaign ID for impact products")
     donation_percentage: Optional[Decimal] = Field(None, ge=0, le=100, description="Percentage of sale price donated")
+    artwork_id: Optional[int] = Field(None, description="Linked original artwork ID")
 
 
 class ProductUpdate(BaseModel):
@@ -31,6 +32,7 @@ class ProductUpdate(BaseModel):
     is_impact_product: Optional[bool] = None
     campaign_id: Optional[int] = None
     donation_percentage: Optional[Decimal] = Field(None, ge=0, le=100)
+    artwork_id: Optional[int] = None
 
 
 class ProductListItem(BaseModel):
@@ -64,6 +66,7 @@ class ProductOut(BaseModel):
     is_impact_product: bool = False
     campaign_id: Optional[int] = None
     donation_percentage: Optional[float] = None
+    artwork_id: Optional[int] = None
     created_at: datetime
 
     model_config = {"from_attributes": True}

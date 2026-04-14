@@ -12,17 +12,18 @@ import { useRef, useEffect, useState, useCallback } from 'react';
 const COMPANY_NAV = [
   { key: 'home', path: '/' },
   { key: 'shop', path: '/shop' },
+  { key: 'stories', path: '/stories' },
   { key: 'about', path: '/about' },
   { key: 'contact', path: '/contact' },
 ];
 
 // ── Impact nav tabs ──
 const IMPACT_TABS = [
-  { key: 'campaigns' },
-  { key: 'vote' },
-  { key: 'traceability' },
-  { key: 'donate' },
-  { key: 'shop' },
+  { key: 'campaigns', path: '/campaigns' },
+  { key: 'vote', path: '/vote' },
+  { key: 'traceability', path: '/traceability' },
+  { key: 'donate', path: '/donate' },
+  { key: 'shop', path: '/shop' },
 ];
 
 // ── PillWindow: capsule "window" with a horizontal sliding rail ──
@@ -37,11 +38,13 @@ function PillWindow({
   activeImpactTab,
   setActiveImpactTab,
   locationPathname,
+  navigate,
 }: {
   impactMode: boolean;
   activeImpactTab: string;
   setActiveImpactTab: (tab: string) => void;
   locationPathname: string;
+  navigate: (path: string) => void;
 }) {
   const { t } = useTranslation();
 
@@ -112,7 +115,7 @@ function PillWindow({
             return (
               <button
                 key={tab.key}
-                onClick={() => setActiveImpactTab(tab.key)}
+                onClick={() => { setActiveImpactTab(tab.key); navigate(tab.path); }}
                 className={`
                   font-body text-label tracking-wide px-3 py-1 rounded-full transition-all duration-200 cursor-pointer whitespace-nowrap
                   ${isActive ? 'text-ink font-medium bg-rust/15' : 'text-ink-faded hover:text-ink'}
@@ -144,7 +147,6 @@ export default function Header() {
     setMenuTriggerRef,
     currentTheme,
     setTheme,
-    settingsMenuOpen,
     setSettingsMenuOpen,
     impactMode,
     setImpactMode,
@@ -169,6 +171,22 @@ export default function Header() {
     setMenuTriggerRef(menuTriggerRef);
   }, [setMenuTriggerRef]);
 
+  // Auto-activate impact mode on exact impact routes; disable for detail sub-routes
+  useEffect(() => {
+    const exactTab = IMPACT_TABS.find((tab) => location.pathname === tab.path);
+    if (exactTab) {
+      setImpactMode(true);
+      setActiveImpactTab(exactTab.key);
+    } else {
+      // On detail sub-routes (e.g. /campaigns/:id), disable impact mode
+      // so the Outlet renders the detail page instead of the impact list view
+      const prefixTab = IMPACT_TABS.find((tab) => location.pathname.startsWith(tab.path + '/'));
+      if (prefixTab) {
+        setImpactMode(false);
+      }
+    }
+  }, [location.pathname, setImpactMode, setActiveImpactTab]);
+
   // Close user menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -186,7 +204,7 @@ export default function Header() {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [userMenuOpen, settingsMenuOpen]);
+  }, [userMenuOpen, setSettingsMenuOpen]);
 
   const toggleLocale = () => {
     const next = currentLocale === 'en' ? 'zh' : 'en';
@@ -206,7 +224,7 @@ export default function Header() {
     setActiveSubmenu(null);
   };
 
-  const currentThemeConfig = THEMES.find((t) => t.id === currentTheme);
+  const currentThemeConfig = THEMES.find((theme) => theme.id === currentTheme);
 
   useEffect(() => {
     if (searchOpen) {
@@ -259,6 +277,7 @@ export default function Header() {
                 activeImpactTab={activeImpactTab}
                 setActiveImpactTab={setActiveImpactTab}
                 locationPathname={location.pathname}
+                navigate={navigate}
               />
 
               {/* Impact toggle button */}
@@ -300,6 +319,12 @@ export default function Header() {
                       onBlur={() => {
                         if (!searchQuery) setSearchOpen(false);
                       }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Escape') {
+                          setSearchOpen(false);
+                          setSearchQuery('');
+                        }
+                      }}
                     />
                   </motion.form>
                 )}
@@ -339,7 +364,7 @@ export default function Header() {
           <button
             onClick={toggleLocale}
             className="font-body text-caption text-ink-faded hover:text-ink transition-colors w-9 h-9 rounded-full bg-white shadow-sm flex items-center justify-center cursor-pointer"
-            aria-label="Toggle language"
+            aria-label={t('nav.toggleLanguage', 'Toggle language')}
           >
             {currentLocale === 'zh' ? 'EN' : '中'}
           </button>
@@ -352,7 +377,7 @@ export default function Header() {
                 setActiveSubmenu(null);
               }}
               className="flex items-center justify-center w-9 h-9 rounded-full bg-white shadow-sm hover:shadow-md transition-all cursor-pointer"
-              aria-label="User menu"
+              aria-label={t('nav.userMenu', 'User menu')}
               aria-expanded={userMenuOpen}
               aria-haspopup="menu"
             >
@@ -378,7 +403,7 @@ export default function Header() {
                   exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.15 }}
                   role="menu"
-                  aria-label="User menu"
+                  aria-label={t('nav.userMenu', 'User menu')}
                   className="absolute right-0 top-full mt-2 w-56 bg-paper border border-warm-gray/40 shadow-lg z-50 rounded-lg"
                 >
                   {activeSubmenu === 'theme' ? (
@@ -469,6 +494,32 @@ export default function Header() {
                             <span className="font-body text-body-sm text-ink">{t('nav.profile')}</span>
                           </Link>
 
+                          <Link
+                            to="/submit-artwork"
+                            role="menuitem"
+                            className="flex items-center gap-2 px-4 py-2.5 hover:bg-warm-gray/10 transition-colors cursor-pointer"
+                            onClick={() => setUserMenuOpen(false)}
+                          >
+                            <svg className="w-4 h-4 text-sepia-mid" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            </svg>
+                            <span className="font-body text-body-sm text-ink">{t('nav.submitArtwork', 'Submit Artwork')}</span>
+                          </Link>
+
+                          {(user.role === 'admin' || user.role === 'editor') && (
+                            <Link
+                              to="/ai-design"
+                              role="menuitem"
+                              className="flex items-center gap-2 px-4 py-2.5 hover:bg-warm-gray/10 transition-colors cursor-pointer"
+                              onClick={() => setUserMenuOpen(false)}
+                            >
+                              <svg className="w-4 h-4 text-sepia-mid" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                              </svg>
+                              <span className="font-body text-body-sm text-ink">{t('nav.aiDesign', 'AI Design')}</span>
+                            </Link>
+                          )}
+
                           <button
                             onClick={handleLogout}
                             className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-warm-gray/10 transition-colors cursor-pointer"
@@ -532,7 +583,7 @@ export default function Header() {
               ref={menuTriggerRef}
               onClick={toggleMobileNav}
               className="flex flex-col gap-1.5 p-2 cursor-pointer"
-              aria-label="Toggle menu"
+              aria-label={t('nav.toggleMenu', 'Toggle menu')}
               aria-expanded={mobileNavOpen}
               aria-controls="mobile-navigation"
             >

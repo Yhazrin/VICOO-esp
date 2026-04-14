@@ -10,12 +10,19 @@ import { useRef, useEffect, useState } from 'react';
 const COMPANY_NAV = [
   { key: 'home', path: '/' },
   { key: 'shop', path: '/shop' },
+  { key: 'stories', path: '/stories' },
   { key: 'about', path: '/about' },
   { key: 'contact', path: '/contact' },
 ];
 
 // ── Impact tabs ──
-const IMPACT_TABS = ['campaigns', 'vote', 'traceability', 'donate', 'shop'];
+const IMPACT_TABS = [
+  { key: 'campaigns', path: '/campaigns' },
+  { key: 'vote', path: '/vote' },
+  { key: 'traceability', path: '/traceability' },
+  { key: 'donate', path: '/donate' },
+  { key: 'shop', path: '/shop' },
+];
 
 export default function MobileNav() {
   const { t } = useTranslation();
@@ -32,7 +39,7 @@ export default function MobileNav() {
 
   useEffect(() => {
     if (mobileNavOpen) {
-      setTimeout(() => {
+      const focusTimer = setTimeout(() => {
         firstLinkRef.current?.focus();
       }, 100);
 
@@ -43,7 +50,10 @@ export default function MobileNav() {
       };
 
       document.addEventListener('keydown', handleKeyDown);
-      return () => document.removeEventListener('keydown', handleKeyDown);
+      return () => {
+        clearTimeout(focusTimer);
+        document.removeEventListener('keydown', handleKeyDown);
+      };
     } else {
       if (menuTriggerRef?.current) {
         menuTriggerRef.current.focus();
@@ -147,8 +157,8 @@ export default function MobileNav() {
                   {impactMode ? t('nav.group.impact', 'Impact') : t('nav.group.company', 'Company')}
                 </p>
                 {impactMode
-                  ? IMPACT_TABS.map((tabKey, index) =>
-                      renderNavItem(tabKey, t(`nav.${tabKey}`), index, activeImpactTab === tabKey, () => { setActiveImpactTab(tabKey); setMobileNavOpen(false); })
+                  ? IMPACT_TABS.map((tab, index) =>
+                      renderNavItem(tab.key, t(`nav.${tab.key}`), index, activeImpactTab === tab.key, () => { setActiveImpactTab(tab.key); navigate(tab.path); setMobileNavOpen(false); })
                     )
                   : COMPANY_NAV.map((item, index) =>
                       renderNavItem(item.key, t(`nav.${item.key}`), index, location.pathname === item.path, () => setMobileNavOpen(false), item.path)
@@ -194,6 +204,22 @@ export default function MobileNav() {
                 >
                   {t('nav.profile')}
                 </Link>
+                <Link
+                  to="/submit-artwork"
+                  onClick={() => setMobileNavOpen(false)}
+                  className="inline-block font-body text-body-sm text-ink-faded border border-warm-gray/40 px-6 py-3 rounded-full hover:text-ink transition-colors cursor-pointer"
+                >
+                  {t('nav.submitArtwork', 'Submit Artwork')}
+                </Link>
+                {(user.role === 'admin' || user.role === 'editor') && (
+                  <Link
+                    to="/ai-design"
+                    onClick={() => setMobileNavOpen(false)}
+                    className="inline-block font-body text-body-sm text-ink-faded border border-warm-gray/40 px-6 py-3 rounded-full hover:text-ink transition-colors cursor-pointer"
+                  >
+                    {t('nav.aiDesign', 'AI Design')}
+                  </Link>
+                )}
                 <button
                   onClick={handleLogout}
                   className="inline-block font-body text-body-sm bg-ink text-paper border border-ink px-6 py-3 rounded-full hover:bg-rust transition-colors text-left cursor-pointer"

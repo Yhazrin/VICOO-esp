@@ -1,13 +1,13 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import i18n from 'i18next';
+import i18n from '@/i18n';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
-import GrainOverlay from '@/components/editorial/GrainOverlay';
+
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 import { MagazineDivider } from '@/components/editorial/MagazineDivider';
 import { EditorialCard } from '@/components/editorial/EditorialCard';
@@ -18,6 +18,7 @@ import { donationsApi } from '@/services/donations';
 import { clothingIntakesApi, type ClothingIntake } from '@/services/clothingIntakes';
 import { afterSalesApi, type AfterSaleTicket } from '@/services/afterSales';
 import { addressesApi, type Address, type AddressCreateData } from '@/services/addresses';
+import { artworksApi } from '@/services/artworks';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'text-sepia-mid',
@@ -28,9 +29,18 @@ const STATUS_COLORS: Record<string, string> = {
   completed: 'text-archive-brown',
   failed: 'text-rust',
   refunded: 'text-sepia-mid',
+  submitted: 'text-sepia-mid',
+  received: 'text-archive-brown',
+  processing: 'text-archive-brown',
+  listed: 'text-sage',
+  rejected: 'text-rust',
+  open: 'text-sepia-mid',
+  in_progress: 'text-archive-brown',
+  resolved: 'text-sage',
+  closed: 'text-archive-brown',
 };
 
-type TabKey = 'orders' | 'donations' | 'clothing' | 'support' | 'addresses';
+type TabKey = 'orders' | 'donations' | 'clothing' | 'support' | 'addresses' | 'artworks';
 
 const ORDER_STATUSES = ['', 'pending', 'paid', 'shipped', 'completed', 'cancelled'] as const;
 
@@ -58,25 +68,22 @@ export default function Profile() {
   // Inline error message for user feedback
   const [errorMessage, setErrorMessage] = useState('');
 
-  const tabs: TabKey[] = ['orders', 'donations', 'clothing', 'support', 'addresses'];
+  const tabs: TabKey[] = ['orders', 'donations', 'clothing', 'support', 'addresses', 'artworks'];
 
-  const handleTabKeyDown = useCallback(
-    (e: React.KeyboardEvent, tab: TabKey) => {
-      const idx = tabs.indexOf(tab);
-      if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        const next = tabs[(idx + 1) % tabs.length];
-        setActiveTab(next);
-        document.getElementById(`tab-${next}`)?.focus();
-      } else if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        const prev = tabs[(idx - 1 + tabs.length) % tabs.length];
-        setActiveTab(prev);
-        document.getElementById(`tab-${prev}`)?.focus();
-      }
-    },
-    [],
-  );
+  const handleTabKeyDown = (e: React.KeyboardEvent, tab: TabKey) => {
+    const idx = tabs.indexOf(tab);
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      const next = tabs[(idx + 1) % tabs.length];
+      setActiveTab(next);
+      document.getElementById(`tab-${next}`)?.focus();
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      const prev = tabs[(idx - 1 + tabs.length) % tabs.length];
+      setActiveTab(prev);
+      document.getElementById(`tab-${prev}`)?.focus();
+    }
+  };
 
   const { data: orders = [], isLoading: loadingOrders, isError: errorOrders } = useQuery({
     queryKey: ['my-orders', orderStatus, orderKeyword],
@@ -108,6 +115,12 @@ export default function Profile() {
   const { data: addresses = [], isLoading: loadingAddresses } = useQuery({
     queryKey: ['my-addresses'],
     queryFn: () => addressesApi.getAll(),
+    enabled: isAuthenticated,
+  });
+
+  const { data: myArtworks = [], isLoading: loadingArtworks } = useQuery({
+    queryKey: ['my-artworks'],
+    queryFn: () => artworksApi.mine(),
     enabled: isAuthenticated,
   });
 
@@ -177,7 +190,7 @@ export default function Profile() {
     return (
       <PageWrapper>
         <PaperTextureBackground variant="paper" className="min-h-[100dvh] flex items-center justify-center relative">
-          <GrainOverlay />
+
           <div className="absolute left-6 top-1/4 bottom-1/4 w-px bg-rust/15 hidden md:block" aria-hidden="true" />
           <div className="text-center relative">
             <motion.span
@@ -226,7 +239,7 @@ export default function Profile() {
             <button
               onClick={() => setErrorMessage('')}
               className="text-rust hover:text-rust-light cursor-pointer"
-              aria-label="Dismiss"
+              aria-label={t('common.dismiss', 'Dismiss')}
             >
               &times;
             </button>
@@ -236,7 +249,7 @@ export default function Profile() {
       <h1 className="sr-only">{t('profile.title')}</h1>
       {/* Profile Header */}
       <PaperTextureBackground variant="paper" className="py-16 md:py-24 relative">
-        <GrainOverlay />
+
         <SectionContainer>
           <h1 className="sr-only">{t('profile.title')}</h1>
           <h2 className="font-display text-h3 font-bold text-ink mb-8">
@@ -314,28 +327,12 @@ export default function Profile() {
 
       {/* Orders & Donations & Addresses */}
       <PaperTextureBackground variant="aged" className="py-16 md:py-24 relative">
-        <GrainOverlay />
+
         <SectionContainer>
           {/* Tab switcher — capsule style */}
-          {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
           <div
             className="flex items-center mb-12 rounded-full bg-white/80 backdrop-blur-xl shadow-sm px-2 py-1 overflow-x-auto"
             role="tablist"
-            onKeyDown={(e) => {
-              const tabIds = ['orders', 'donations', 'clothing', 'support', 'addresses'] as const;
-              const currentIndex = tabIds.indexOf(activeTab);
-              if (e.key === 'ArrowRight') {
-                e.preventDefault();
-                const next = tabIds[(currentIndex + 1) % tabIds.length];
-                setActiveTab(next);
-                (e.currentTarget.querySelectorAll('[role="tab"]')[(currentIndex + 1) % tabIds.length] as HTMLElement)?.focus();
-              } else if (e.key === 'ArrowLeft') {
-                e.preventDefault();
-                const prev = tabIds[(currentIndex - 1 + tabIds.length) % tabIds.length];
-                setActiveTab(prev);
-                (e.currentTarget.querySelectorAll('[role="tab"]')[(currentIndex - 1 + tabIds.length) % tabIds.length] as HTMLElement)?.focus();
-              }
-            }}
           >
             {tabs.map((tab) => (
               <button
@@ -358,7 +355,8 @@ export default function Profile() {
                   tab === 'donations' ? donations.length :
                   tab === 'clothing' ? intakes.length :
                   tab === 'support' ? tickets.length :
-                  addresses.length
+                  tab === 'addresses' ? addresses.length :
+                  myArtworks.length
                 })
               </button>
             ))}
@@ -445,8 +443,8 @@ export default function Profile() {
 
                       {/* Items with images */}
                       <div className="space-y-3 mb-4">
-                        {order.items?.map((item, i) => (
-                          <div key={i} className="flex items-center gap-3">
+                        {order.items?.map((item) => (
+                          <div key={item.id} className="flex items-center gap-3">
                             <div className="w-12 h-14 flex-shrink-0 overflow-hidden border border-warm-gray/15 bg-aged-stock">
                               {item.product_image ? (
                                 <img src={item.product_image} alt={item.product_name || ''} className="w-full h-full object-cover" loading="lazy" />
@@ -598,7 +596,7 @@ export default function Profile() {
                       index={index}
                       hoverEffect="border"
                     >
-                      <p className={`font-body text-overline uppercase ${STATUS_COLORS[row.status] ?? 'text-sepia-mid'}`}>{row.status}</p>
+                      <p className={`font-body text-overline uppercase ${STATUS_COLORS[row.status] ?? 'text-sepia-mid'}`}>{t(`donateClothing.statusLabels.${row.status}`, row.status)}</p>
                       {row.product_id && (
                         <Link to={`/shop/${row.product_id}`} className="font-body text-caption text-rust mt-2 inline-block">
                           {t('profile.viewLinkedProduct', '查看关联商品')} →
@@ -774,6 +772,58 @@ export default function Profile() {
                           {t('profile.addresses.setDefault', '设为默认')}
                         </button>
                       )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Artworks tab */}
+          {activeTab === 'artworks' && (
+            <div role="tabpanel" id="panel-artworks" aria-labelledby="tab-artworks">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="font-display text-h3 font-bold text-ink">
+                  {t('profile.myArtworks', '我的画作')}
+                </h2>
+                <Link
+                  to="/submit-artwork"
+                  className="font-body text-overline tracking-[0.15em] uppercase text-rust hover:text-ink transition-colors"
+                >
+                  + {t('profile.submitArtwork', '提交画作')}
+                </Link>
+              </div>
+              {loadingArtworks ? (
+                <p className="font-body text-body-sm text-ink-faded">{t('common.loading', 'Loading...')}</p>
+              ) : myArtworks.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="font-body text-body-sm text-ink-faded mb-4">
+                    {t('profile.noArtworks', '暂无提交的画作')}
+                  </p>
+                  <Link
+                    to="/submit-artwork"
+                    className="inline-block font-body text-overline tracking-[0.15em] uppercase text-rust hover:text-ink transition-colors"
+                  >
+                    {t('profile.submitArtwork', '提交画作')} &rarr;
+                  </Link>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {myArtworks.map((artwork) => (
+                    <div key={artwork.id} className="border border-warm-gray/25 bg-paper p-5 hover:border-rust/25 transition-colors">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-display text-lg text-ink">{artwork.title}</h3>
+                        <span className={`font-body text-overline tracking-wider uppercase ${STATUS_COLORS[artwork.status] ?? 'text-sepia-mid'}`}>
+                          {artwork.status}
+                        </span>
+                      </div>
+                      {artwork.description && (
+                        <p className="font-body text-caption text-ink-faded">{artwork.description}</p>
+                      )}
+                      <div className="flex items-center gap-4 mt-3 font-body text-caption text-sepia-mid">
+                        <span>{t('profile.artworkVotes', '票数')}: {artwork.vote_count ?? 0}</span>
+                        <span>{t('profile.artworkDate', '提交时间')}: {artwork.created_at?.slice(0, 10)}</span>
+                      </div>
                     </div>
                   ))}
                 </div>

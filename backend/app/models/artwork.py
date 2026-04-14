@@ -7,6 +7,7 @@ class Artwork(Base):
     __tablename__ = "artworks"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
     title = Column(String(300), nullable=False)
     description = Column(Text, nullable=True)
     image_url = Column(String(500), nullable=False)

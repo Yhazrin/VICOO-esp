@@ -40,8 +40,6 @@ export default function HeroInteractiveOrb() {
         transformStyle: 'preserve-3d',
         perspective: 1000,
       }}
-      animate={{ rotateX: 0, rotateY: 0 }}
-      transition={{ type: 'spring', stiffness: 120, damping: 20 }}
       className="absolute right-0 top-1/2 -translate-y-1/2 w-[40vw] h-[40vw] max-w-[500px] max-h-[500px] hidden lg:block cursor-pointer"
       aria-hidden="true"
     >
