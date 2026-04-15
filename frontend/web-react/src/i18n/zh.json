@@ -765,7 +765,8 @@
       "ariaLabel": "产品溯源查询",
       "hint": "试试：VICOO-2026-SP-001",
       "found": "找到供应链记录",
-      "highlighted": "高亮记录"
+      "highlighted": "高亮记录",
+      "viewProduct": "查看商品"
     },
     "status": {
       "verified": "已验证",

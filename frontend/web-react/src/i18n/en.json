@@ -771,7 +771,8 @@
       "ariaLabel": "Product traceability lookup",
       "hint": "Try: VICOO-2026-SP-001",
       "found": "Supply Chain Record Found",
-      "highlighted": "Highlighted Record"
+      "highlighted": "Highlighted Record",
+      "viewProduct": "View Product"
     },
     "status": {
       "verified": "Verified",

@@ -371,6 +371,7 @@ export default function Traceability() {
   const [isSearching, setIsSearching] = useState(false);
   const [highlightedId, setHighlightedId] = useState<number | null>(null);
   const [searchResult, setSearchResult] = useState<EnhancedSupplyChainRecord | null>(null);
+  const [tracedProductId, setTracedProductId] = useState<number | null>(null);
   const [records, setRecords] = useState<EnhancedSupplyChainRecord[]>([]);
   const searchTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
@@ -438,10 +439,11 @@ export default function Traceability() {
       setIsSearching(true);
 
       supplyChainApi
-        .getProductJourney(query.trim())
-        .then((journey) => {
-          if (journey.length > 0) {
-            const first = journey[0];
+        .trace(query.trim())
+        .then((traceData) => {
+          if (traceData.records.length > 0) {
+            setTracedProductId(traceData.product_id ?? null);
+            const first = traceData.records[0];
             const stage = normalizeStageKey(first.stage || 'unknown');
             const verified = first.certified ?? (first.certifications?.length ?? 0) > 0;
             const enhanced: EnhancedSupplyChainRecord = {
@@ -453,7 +455,7 @@ export default function Traceability() {
               date: first.timestamp ? first.timestamp.split('T')[0] : '',
               verified,
               certified: first.certified,
-              partnerName: first.artisan?.name ?? first.productName ?? '',
+              partnerName: first.artisan?.name ?? traceData.product_name ?? first.productName ?? '',
               carbonFootprint: first.carbon_kg ?? undefined,
               story: first.description,
               imageUrl: first.artisan?.imageUrl ?? `https://picsum.photos/seed/${stage}/200/200`,
@@ -558,7 +560,7 @@ export default function Traceability() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <h4 className="font-display text-body-sm font-bold text-ink mb-1">
                       {t('traceability.lookup.found')}
                     </h4>
@@ -569,6 +571,14 @@ export default function Traceability() {
                         month: 'short',
                       })}
                     </p>
+                    {tracedProductId && (
+                      <Link
+                        to={`/shop/${tracedProductId}`}
+                        className="inline-block mt-3 font-body text-caption text-paper bg-rust px-4 py-1.5 tracking-[0.1em] uppercase hover:bg-rust/90 transition-colors"
+                      >
+                        {t('traceability.lookup.viewProduct', 'View Product')} →
+                      </Link>
+                    )}
                   </div>
                 </div>
               </motion.div>
