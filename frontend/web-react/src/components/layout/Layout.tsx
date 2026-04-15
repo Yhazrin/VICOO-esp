@@ -11,6 +11,7 @@ import Vote from '@/pages/Vote';
 import Traceability from '@/pages/Traceability';
 import Donate from '@/pages/Donate';
 import ImpactShop from '@/pages/ImpactShop';
+import ClothingRecycle from '@/pages/ClothingRecycle';
 
 function ImpactContent() {
   const { activeImpactTab } = useUIStore();
@@ -21,12 +22,13 @@ function ImpactContent() {
     case 'traceability': return <Traceability />;
     case 'donate': return <Donate />;
     case 'shop': return <ImpactShop />;
+    case 'clothing-recycle': return <ClothingRecycle />;
     default: return <Campaigns />;
   }
 }
 
 export default function Layout() {
-  const { impactMode } = useUIStore();
+  const { impactMode, activeImpactTab } = useUIStore();
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-paper text-ink">
@@ -39,7 +41,7 @@ export default function Layout() {
       <Header />
       <MobileNav />
       <main id="main-content" className="flex-1 pt-16 md:pt-20">
-        <KeyedRouteContent>
+        <KeyedRouteContent mountKey={impactMode ? `impact-${activeImpactTab}` : undefined}>
           {impactMode ? <ImpactContent /> : <Outlet />}
         </KeyedRouteContent>
       </main>
