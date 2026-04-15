@@ -203,6 +203,28 @@
       "description": "Whether you donate, shop, or share our story — every action counts.",
       "donate": "Make a Donation",
       "shop": "Shop Sustainably"
+    },
+    "globe": {
+      "label": "Model A — Traceability",
+      "title": "Every Thread, Traced",
+      "subtitle": "From organic cotton fields to finished garments — every step verified, transparent, sustainable.",
+      "scrollHint": "Scroll to explore",
+      "co2Saved": "{{value}} kg CO₂ saved"
+    },
+    "narrative": {
+      "scene01": {
+        "line1": "Every Thread,",
+        "line2": "Traced from",
+        "line3": "Source to Stitch",
+        "subtitle": "From organic cotton fields to finished garments — verified at every step."
+      },
+      "scene04": {
+        "title": "Be Part of the Story",
+        "subtitle": "Every purchase supports a child's creative journey. Join our community of impact.",
+        "campaign": "Join Campaign",
+        "donate": "Make Donation",
+        "traceability": "Explore Traceability"
+      }
     }
   },
   "about": {
