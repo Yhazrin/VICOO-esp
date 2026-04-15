@@ -56,7 +56,7 @@ export default function EditorialFooter() {
               "
               style={{ fontSize: 'clamp(80px, 14vw, 180px)' }}
             >
-              VICOO
+              {t('footer.brandName', 'VICOO')}
             </Link>
           </div>
 
@@ -98,7 +98,7 @@ export default function EditorialFooter() {
               border-t border-[var(--color-warm-gray)]/15
             ">
               <span className="font-body text-[9px] tracking-[0.06em] text-[var(--color-muted-gray)]">
-                &copy; {year} VICOO
+                &copy; {year} {t('footer.brandName', 'VICOO')}
               </span>
               <span className="w-0.5 h-0.5 rounded-full bg-[var(--color-warm-gray)]" aria-hidden="true" />
               <Link

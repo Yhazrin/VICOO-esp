@@ -22,6 +22,7 @@ const IMPACT_TABS = [
   { key: 'campaigns', path: '/campaigns' },
   { key: 'vote', path: '/vote' },
   { key: 'traceability', path: '/traceability' },
+  { key: 'clothing-recycle', path: '/clothing-recycle' },
   { key: 'donate', path: '/donate' },
   { key: 'shop', path: '/shop' },
 ];

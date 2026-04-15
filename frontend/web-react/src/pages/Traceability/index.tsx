@@ -9,6 +9,7 @@ import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
 import { supplyChainApi } from '@/services/supply-chain';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
+import { MagazineDivider } from '@/components/editorial/MagazineDivider';
 
 // Extended record with story, image, and status for enhanced timeline
 interface EnhancedSupplyChainRecord {
@@ -819,6 +820,95 @@ export default function Traceability() {
                 delay={index * 0.1}
               />
             ))}
+          </div>
+        </SectionContainer>
+      </section>
+
+      {/* Section 06: Data Integrity */}
+      <MagazineDivider variant="decorative" className="my-0" />
+
+      <section className="section-spacing">
+        <SectionContainer>
+          <h2 className="font-display text-h3 font-bold text-ink mb-3">
+            {t('traceability.integrity.title')}
+          </h2>
+          <p className="font-body text-body-sm text-ink-faded mb-10 max-w-2xl">
+            {t('traceability.integrity.subtitle')}
+          </p>
+
+          <div className="grid grid-cols-12 gap-6 mb-10">
+            {/* Explanation card */}
+            <div className="col-span-12 lg:col-span-7">
+              <div className="bg-paper border-2 border-rust/30 p-6 md:p-8 relative">
+                <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-rust/30" aria-hidden="true" />
+                <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-rust/30" aria-hidden="true" />
+
+                <h3 className="font-display text-h3 text-ink mb-3">
+                  {t('traceability.integrity.heading')}
+                </h3>
+                <p className="font-body text-body-sm text-ink/80 leading-relaxed mb-4">
+                  {t('traceability.integrity.explanation')}
+                </p>
+                <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-sage/10 border border-sage/30 rounded-sm text-sage font-body text-overline tracking-wider">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                  {t('traceability.integrity.verifiedLabel')}
+                </span>
+              </div>
+            </div>
+
+            {/* Trust indicators */}
+            <div className="col-span-12 lg:col-span-5 space-y-4">
+              {[
+                {
+                  icon: (
+                    <svg className="w-6 h-6 text-rust" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  ),
+                  titleKey: 'traceability.integrity.immutable.title',
+                  descKey: 'traceability.integrity.immutable.desc',
+                },
+                {
+                  icon: (
+                    <svg className="w-6 h-6 text-rust" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                  ),
+                  titleKey: 'traceability.integrity.verified.title',
+                  descKey: 'traceability.integrity.verified.desc',
+                },
+                {
+                  icon: (
+                    <svg className="w-6 h-6 text-rust" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  ),
+                  titleKey: 'traceability.integrity.realtime.title',
+                  descKey: 'traceability.integrity.realtime.desc',
+                },
+              ].map((item, idx) => (
+                <motion.div
+                  key={item.titleKey}
+                  initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5, delay: idx * 0.1 }}
+                  className="flex items-start gap-4 bg-aged-stock border border-rust/20 p-4"
+                >
+                  <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-paper border border-rust/30 rounded-sm">
+                    {item.icon}
+                  </div>
+                  <div>
+                    <p className="font-display text-label font-semibold text-ink">
+                      {t(item.titleKey)}
+                    </p>
+                    <p className="font-body text-caption text-ink/70 mt-0.5">{t(item.descKey)}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </SectionContainer>
       </section>

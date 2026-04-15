@@ -35,9 +35,10 @@ const DonateClothing = lazy(() => import('@/pages/DonateClothing'));
 const Support = lazy(() => import('@/pages/Support'));
 const AiAssistant = lazy(() => import('@/pages/AiAssistant'));
 const Checkout = lazy(() => import('@/pages/Checkout'));
-const SubmitArtwork = lazy(() => import('@/pages/SubmitArtwork'));
 const AiDesign = lazy(() => import('@/pages/AiDesign'));
 const Vote = lazy(() => import('@/pages/Vote'));
+const ArtworkSubmit = lazy(() => import('@/pages/ArtworkSubmit'));
+const ClothingRecycle = lazy(() => import('@/pages/ClothingRecycle'));
 
 function AppLocaleSync() {
   const { i18n } = useTranslation();
@@ -85,13 +86,14 @@ function AnimatedRoutes() {
             <Route path="shop" element={<ErrorBoundary><Shop /></ErrorBoundary>} />
             <Route path="shop/:id" element={<ErrorBoundary><ProductDetail /></ErrorBoundary>} />
             <Route path="traceability" element={<ErrorBoundary><Traceability /></ErrorBoundary>} />
+            <Route path="clothing-recycle" element={<ErrorBoundary><ClothingRecycle /></ErrorBoundary>} />
             <Route path="contact" element={<ErrorBoundary><Contact /></ErrorBoundary>} />
             <Route path="auth/callback" element={<ErrorBoundary><AuthCallback /></ErrorBoundary>} />
             <Route path="profile" element={<ErrorBoundary><Profile /></ErrorBoundary>} />
             <Route path="orders/:id" element={<ErrorBoundary><OrderDetail /></ErrorBoundary>} />
             <Route path="checkout" element={<ErrorBoundary><Checkout /></ErrorBoundary>} />
             <Route path="support" element={<ErrorBoundary><Support /></ErrorBoundary>} />
-            <Route path="submit-artwork" element={<ErrorBoundary><SubmitArtwork /></ErrorBoundary>} />
+            <Route path="submit-artwork" element={<ErrorBoundary><ArtworkSubmit /></ErrorBoundary>} />
             <Route path="ai-design" element={<ErrorBoundary><AiDesign /></ErrorBoundary>} />
             <Route path="assistant" element={<ErrorBoundary><AiAssistant /></ErrorBoundary>} />
             <Route path="privacy" element={<ErrorBoundary><Privacy /></ErrorBoundary>} />
