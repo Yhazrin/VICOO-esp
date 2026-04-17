@@ -340,7 +340,7 @@ jobs:
 
       - name: 执行数据库迁移
         run: |
-          ssh vm "cd /home/student/vicoo/deploy/easy && docker-compose run --rm backend python -m alembic upgrade head || echo '迁移完成或无需迁移'"
+          ssh vm "cd /home/student/vicoo/deploy/easy && docker-compose run --rm --entrypoint 'python -m alembic upgrade head' backend || echo '迁移完成或无需迁移'"
 
       - name: 启动服务
         run: |
