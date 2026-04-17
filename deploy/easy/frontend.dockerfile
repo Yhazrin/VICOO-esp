@@ -7,10 +7,12 @@ FROM node:18-alpine AS builder
 
 WORKDIR /build
 
-COPY package.json package-lock.json* ./
+# ✅ 修复路径：从项目根目录寻找 frontend 代码
+COPY frontend/web-react/package.json frontend/web-react/package-lock.json* ./
 RUN npm install --legacy-peer-deps
 
-COPY . .
+# ✅ 修复路径
+COPY frontend/web-react/ .
 
 # Build without API URL restriction (nginx proxies locally)
 # Set VITE_API_BASE_URL to /api/v1 to match backend router prefix
@@ -27,7 +29,8 @@ FROM nginx:alpine AS production
 RUN rm /etc/nginx/conf.d/default.conf
 
 # Copy nginx configuration (same dir as dockerfile build context)
-COPY nginx.conf /etc/nginx/conf.d/vicoo.conf
+# ✅ 修复路径：从项目根目录寻找 nginx 配置
+COPY deploy/easy/nginx.conf /etc/nginx/conf.d/vicoo.conf
 
 # Copy built React app
 COPY --from=builder /build/dist /usr/share/nginx/html
