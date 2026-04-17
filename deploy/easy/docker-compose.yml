@@ -114,8 +114,8 @@ services:
   # ---- Frontend (React + Nginx) ----
   frontend:
     build:
-      context: ../../frontend/web-react
-      dockerfile: ../../deploy/easy/frontend.dockerfile
+      context: ../..
+      dockerfile: deploy/easy/frontend.dockerfile
     container_name: vicoo-frontend
     restart: unless-stopped
     environment:
