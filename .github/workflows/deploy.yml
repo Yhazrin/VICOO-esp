@@ -336,11 +336,11 @@ jobs:
 
       - name: 执行数据库迁移
         run: |
-          ssh vm "cd /home/student/vicoo && docker-compose run --rm backend python -m alembic upgrade head || echo '迁移完成或无需迁移'"
+          ssh vm "cd /home/student/vicoo/deploy/easy && docker-compose run --rm backend python -m alembic upgrade head || echo '迁移完成或无需迁移'"
 
       - name: 启动服务
         run: |
-          ssh vm "cd /home/student/vicoo && \
+          ssh vm "cd /home/student/vicoo/deploy/easy && \
             docker-compose pull && \
             docker-compose build && \
             docker-compose down && \
@@ -361,7 +361,7 @@ jobs:
       - name: 显示服务日志
         if: failure()
         run: |
-          ssh vm "cd /home/student/vicoo && docker-compose logs --tail=50"
+          ssh vm "cd /home/student/vicoo/deploy/easy && docker-compose logs --tail=50"
 
   # ==================== 开发分支快速部署 ====================
   deploy-develop:
@@ -400,7 +400,7 @@ jobs:
 
       - name: 部署到开发服务器
         run: |
-          ssh vm "cd /home/student/vicoo && git fetch origin && git checkout develop && git pull origin develop && docker-compose up -d --build"
+          ssh vm "cd /home/student/vicoo && git fetch origin && git checkout develop && git pull origin develop && cd deploy/easy && docker-compose up -d --build"
           echo "开发环境部署完成!"
 
   # ==================== 构建通知 ====================
