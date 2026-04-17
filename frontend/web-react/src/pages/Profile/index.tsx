@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import i18n from '@/i18n';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -18,7 +17,6 @@ import { donationsApi } from '@/services/donations';
 import { clothingIntakesApi, type ClothingIntake } from '@/services/clothingIntakes';
 import { afterSalesApi, type AfterSaleTicket } from '@/services/afterSales';
 import { addressesApi, type Address, type AddressCreateData } from '@/services/addresses';
-import { artworksApi } from '@/services/artworks';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'text-sepia-mid',
@@ -40,12 +38,12 @@ const STATUS_COLORS: Record<string, string> = {
   closed: 'text-archive-brown',
 };
 
-type TabKey = 'orders' | 'donations' | 'clothing' | 'support' | 'addresses' | 'artworks';
+type TabKey = 'orders' | 'donations' | 'clothing' | 'support' | 'addresses';
 
 const ORDER_STATUSES = ['', 'pending', 'paid', 'shipped', 'completed', 'cancelled'] as const;
 
 export default function Profile() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const prefersReducedMotion = useReducedMotion();
   const { user, isAuthenticated } = useAuthStore();
@@ -68,7 +66,7 @@ export default function Profile() {
   // Inline error message for user feedback
   const [errorMessage, setErrorMessage] = useState('');
 
-  const tabs: TabKey[] = ['orders', 'donations', 'clothing', 'support', 'addresses', 'artworks'];
+  const tabs: TabKey[] = ['orders', 'donations', 'clothing', 'support', 'addresses'];
 
   const handleTabKeyDown = (e: React.KeyboardEvent, tab: TabKey) => {
     const idx = tabs.indexOf(tab);
@@ -115,12 +113,6 @@ export default function Profile() {
   const { data: addresses = [], isLoading: loadingAddresses } = useQuery({
     queryKey: ['my-addresses'],
     queryFn: () => addressesApi.getAll(),
-    enabled: isAuthenticated,
-  });
-
-  const { data: myArtworks = [], isLoading: loadingArtworks } = useQuery({
-    queryKey: ['my-artworks'],
-    queryFn: () => artworksApi.mine(),
     enabled: isAuthenticated,
   });
 
@@ -355,8 +347,7 @@ export default function Profile() {
                   tab === 'donations' ? donations.length :
                   tab === 'clothing' ? intakes.length :
                   tab === 'support' ? tickets.length :
-                  tab === 'addresses' ? addresses.length :
-                  myArtworks.length
+                  addresses.length
                 })
               </button>
             ))}
@@ -772,58 +763,6 @@ export default function Profile() {
                           {t('profile.addresses.setDefault', '设为默认')}
                         </button>
                       )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Artworks tab */}
-          {activeTab === 'artworks' && (
-            <div role="tabpanel" id="panel-artworks" aria-labelledby="tab-artworks">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="font-display text-h3 font-bold text-ink">
-                  {t('profile.myArtworks', '我的画作')}
-                </h2>
-                <Link
-                  to="/submit-artwork"
-                  className="font-body text-overline tracking-[0.15em] uppercase text-rust hover:text-ink transition-colors"
-                >
-                  + {t('profile.submitArtwork', '提交画作')}
-                </Link>
-              </div>
-              {loadingArtworks ? (
-                <p className="font-body text-body-sm text-ink-faded">{t('common.loading', 'Loading...')}</p>
-              ) : myArtworks.length === 0 ? (
-                <div className="text-center py-12">
-                  <p className="font-body text-body-sm text-ink-faded mb-4">
-                    {t('profile.noArtworks', '暂无提交的画作')}
-                  </p>
-                  <Link
-                    to="/submit-artwork"
-                    className="inline-block font-body text-overline tracking-[0.15em] uppercase text-rust hover:text-ink transition-colors"
-                  >
-                    {t('profile.submitArtwork', '提交画作')} &rarr;
-                  </Link>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {myArtworks.map((artwork) => (
-                    <div key={artwork.id} className="border border-warm-gray/25 bg-paper p-5 hover:border-rust/25 transition-colors">
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-display text-lg text-ink">{artwork.title}</h3>
-                        <span className={`font-body text-overline tracking-wider uppercase ${STATUS_COLORS[artwork.status] ?? 'text-sepia-mid'}`}>
-                          {artwork.status}
-                        </span>
-                      </div>
-                      {artwork.description && (
-                        <p className="font-body text-caption text-ink-faded">{artwork.description}</p>
-                      )}
-                      <div className="flex items-center gap-4 mt-3 font-body text-caption text-sepia-mid">
-                        <span>{t('profile.artworkVotes', '票数')}: {artwork.vote_count ?? 0}</span>
-                        <span>{t('profile.artworkDate', '提交时间')}: {artwork.created_at?.slice(0, 10)}</span>
-                      </div>
                     </div>
                   ))}
                 </div>

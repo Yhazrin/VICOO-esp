@@ -36,16 +36,15 @@ export default function DashboardPage() {
       }}>
         <div>
           <h1 style={{
-            fontFamily: 'var(--font-display)',
+            fontFamily: 'var(--font-body)',
             fontSize: '42px',
-            fontStyle: 'italic',
-            fontWeight: 700,
+            fontWeight: 600,
             margin: 0,
-            color: 'var(--color-ink)',
+            color: 'var(--color-text)',
             letterSpacing: '-0.02em'
           }}>
             {t('dashboard.title')}
-            <span style={{ color: 'var(--color-sepia-mid)', fontStyle: 'normal', fontSize: '24px' }}>
+            <span style={{ color: 'var(--color-text-2)', fontStyle: 'normal', fontSize: '24px' }}>
               {' / '}
               {t('dashboard.titleItalic')}
             </span>
@@ -54,7 +53,7 @@ export default function DashboardPage() {
             fontFamily: 'var(--font-body)',
             fontSize: '14px',
             marginTop: '8px',
-            color: 'var(--color-sepia-mid)'
+            color: 'var(--color-text-2)'
           }}>
             {t('dashboard.issueLabel')}
           </p>
@@ -98,7 +97,7 @@ export default function DashboardPage() {
         ].map((metric, i) => (
           <div key={i} style={{
             padding: '28px 24px',
-            backgroundColor: 'var(--color-bg-card)',
+            backgroundColor: 'var(--color-surface)',
             border: '1px solid var(--color-border)',
             position: 'relative'
           }}>
@@ -113,16 +112,16 @@ export default function DashboardPage() {
               fontSize: '11px',
               textTransform: 'uppercase',
               letterSpacing: '0.15em',
-              color: 'var(--color-sepia-mid)',
+              color: 'var(--color-text-2)',
               marginBottom: '10px'
             }}>
               {metric.label}
             </div>
             <div style={{
-              fontFamily: 'var(--font-display)',
+              fontFamily: 'var(--font-body)',
               fontSize: '32px',
               fontWeight: 700,
-              color: 'var(--color-ink)',
+              color: 'var(--color-text)',
               lineHeight: 1
             }}>
               {metric.value}
@@ -139,7 +138,8 @@ export default function DashboardPage() {
       }}>
         <div style={{
           border: '1px solid var(--color-border)',
-          background: 'var(--color-bg-card)'
+          borderRadius: '8px',
+          background: 'var(--color-surface)'
         }}>
           <div style={{
             padding: '20px 30px',
@@ -150,18 +150,18 @@ export default function DashboardPage() {
           }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
               <span style={{
-                fontFamily: 'var(--font-display)',
+                fontFamily: 'var(--font-body)',
                 fontSize: '18px',
                 fontStyle: 'italic',
-                color: 'var(--color-sepia-mid)'
+                color: 'var(--color-text-2)'
               }}>
                 {t('dashboard.sectionArtworksLabel')}
               </span>
               <span style={{
-                fontFamily: 'var(--font-display)',
+                fontFamily: 'var(--font-body)',
                 fontSize: '18px',
                 fontWeight: 700,
-                color: 'var(--color-ink)'
+                color: 'var(--color-text)'
               }}>
                 {t('dashboard.sectionArtworksTitle')}
               </span>
@@ -169,7 +169,7 @@ export default function DashboardPage() {
             <a href="/artworks" style={{
               fontFamily: 'var(--font-mono)',
               fontSize: '12px',
-              color: 'var(--color-archive-brown)',
+              color: 'var(--color-text-2)',
               textDecoration: 'none',
               transition: 'opacity 0.2s'
             }}>
@@ -181,16 +181,16 @@ export default function DashboardPage() {
               <div style={{
                 padding: '40px',
                 textAlign: 'center',
-                color: 'var(--color-rust)',
+                color: 'var(--color-accent-2)',
                 fontFamily: 'var(--font-body)',
                 fontSize: '14px'
               }}>
                 {t('dashboard.fetchError')}
               </div>
             ) : loading ? (
-              <div style={{ padding: '60px', textAlign: 'center', color: 'var(--color-sepia-mid)' }}>...</div>
+              <div style={{ padding: '60px', textAlign: 'center', color: 'var(--color-text-2)' }}>...</div>
             ) : artworks.length === 0 ? (
-              <div style={{ padding: '40px', textAlign: 'center', color: 'var(--color-sepia-mid)' }}>
+              <div style={{ padding: '40px', textAlign: 'center', color: 'var(--color-text-2)' }}>
                 {t('common.noData')}
               </div>
             ) : (
@@ -203,17 +203,17 @@ export default function DashboardPage() {
                   gap: '16px',
                   transition: 'background 0.15s'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-warm-gray)'}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-elevated)'}
                 onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                 >
                   <div style={{
                     width: '48px',
                     height: '48px',
-                    borderRadius: '2px',
+                    borderRadius: '8px',
                     overflow: 'hidden',
                     flexShrink: 0
                   }}>
-                    <img src={artwork.imageUrl || `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none"><rect width="48" height="48" fill="#EDE6D6"/><text x="24" y="28" text-anchor="middle" fill="#8B7355" font-size="10">No Image</text></svg>')}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={artwork.imageUrl || `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none"><rect width="48" height="48" fill="#1A1A1A"/><text x="24" y="28" text-anchor="middle" fill="#666666" font-size="10">No Image</text></svg>')}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
@@ -229,7 +229,7 @@ export default function DashboardPage() {
                     <div style={{
                       fontFamily: 'var(--font-mono)',
                       fontSize: '11px',
-                      color: 'var(--color-sepia-mid)',
+                      color: 'var(--color-text-2)',
                       marginTop: '3px'
                     }}>
                       {artwork.childName} · {artwork.category}
@@ -244,23 +244,24 @@ export default function DashboardPage() {
 
         <div style={{
           border: '1px solid var(--color-border)',
-          background: 'var(--color-bg-card)',
+          borderRadius: '8px',
+          background: 'var(--color-surface)',
           padding: '30px'
         }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', marginBottom: '25px' }}>
             <span style={{
-              fontFamily: 'var(--font-display)',
+              fontFamily: 'var(--font-body)',
               fontSize: '18px',
               fontStyle: 'italic',
-              color: 'var(--color-sepia-mid)'
+              color: 'var(--color-text-2)'
             }}>
               {t('dashboard.sectionFinancialsLabel')}
             </span>
             <span style={{
-              fontFamily: 'var(--font-display)',
+              fontFamily: 'var(--font-body)',
               fontSize: '18px',
               fontWeight: 700,
-              color: 'var(--color-ink)'
+              color: 'var(--color-text)'
             }}>
               {t('dashboard.sectionFinancialsTitle')}
             </span>
@@ -270,7 +271,7 @@ export default function DashboardPage() {
             fontFamily: 'var(--font-body)',
             fontSize: '14px',
             lineHeight: 1.9,
-            color: 'var(--color-archive-brown)',
+            color: 'var(--color-text-2)',
             fontStyle: 'italic'
           }}>
             &ldquo;{t('dashboard.transparencyQuote')}&rdquo;
@@ -280,7 +281,7 @@ export default function DashboardPage() {
             <div style={{
               fontFamily: 'var(--font-mono)',
               fontSize: '11px',
-              color: 'var(--color-sepia-mid)',
+              color: 'var(--color-text-2)',
               textTransform: 'uppercase',
               letterSpacing: '0.1em',
               marginBottom: '8px'
@@ -290,7 +291,7 @@ export default function DashboardPage() {
             <div style={{
               fontFamily: 'var(--font-body)',
               fontSize: '13px',
-              color: 'var(--color-text-secondary)'
+              color: 'var(--color-text-2)'
             }}>
               {t('donation.summaryVerifiedSuccess')}
             </div>

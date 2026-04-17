@@ -6,27 +6,27 @@ import KeyedRouteContent from '../transitions/KeyedRouteContent';
 import GrainOverlay from '../animations/GrainOverlay';
 import { AIAssistantBall } from './AIAssistantBall';
 import { useUIStore } from '@/stores/uiStore';
+import Home from '@/pages/Home';
 import Campaigns from '@/pages/Campaigns';
-import Vote from '@/pages/Vote';
-import Traceability from '@/pages/Traceability';
 import Donate from '@/pages/Donate';
 import ImpactShop from '@/pages/ImpactShop';
+import ClothingRecycle from '@/pages/ClothingRecycle';
 
 function ImpactContent() {
   const { activeImpactTab } = useUIStore();
 
   switch (activeImpactTab) {
+    case 'home': return <Home />;
     case 'campaigns': return <Campaigns />;
-    case 'vote': return <Vote />;
-    case 'traceability': return <Traceability />;
     case 'donate': return <Donate />;
     case 'shop': return <ImpactShop />;
-    default: return <Campaigns />;
+    case 'clothing-recycle': return <ClothingRecycle />;
+    default: return <Home />;
   }
 }
 
 export default function Layout() {
-  const { impactMode } = useUIStore();
+  const { impactMode, activeImpactTab } = useUIStore();
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-paper text-ink">
@@ -39,7 +39,7 @@ export default function Layout() {
       <Header />
       <MobileNav />
       <main id="main-content" className="flex-1 pt-16 md:pt-20">
-        <KeyedRouteContent>
+        <KeyedRouteContent mountKey={impactMode ? `impact-${activeImpactTab}` : undefined}>
           {impactMode ? <ImpactContent /> : <Outlet />}
         </KeyedRouteContent>
       </main>

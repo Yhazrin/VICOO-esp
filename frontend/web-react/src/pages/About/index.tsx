@@ -1,227 +1,180 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
-import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
-import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
-import ImageSkeleton from '@/components/editorial/ImageSkeleton';
-import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
-import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 
-const VALUES = ['transparency', 'childFirst', 'sustainability', 'community'] as const;
-
-const TEAM_MEMBERS = [
-  { name: 'Chen Wei', roleKey: 'founder', initials: 'CW' },
-  { name: 'Li Mei', roleKey: 'operations', initials: 'LM' },
-  { name: 'Zhang Hua', roleKey: 'design', initials: 'ZH' },
-  { name: 'Wang Jun', roleKey: 'supplyChain', initials: 'WJ' },
+const TIMELINE = [
+  { year: '1949', text: 'Founded as Ogori Shoji in Ube, Yamaguchi, Japan.' },
+  { year: '1984', text: 'First UNIQLO store opens in Hiroshima. "Unique Clothing Warehouse" is born.' },
+  { year: '1998', text: 'Fleece boom — 26 million pieces sold in one year.' },
+  { year: '2001', text: 'First overseas store in London. Global expansion begins.' },
+  { year: '2009', text: 'Launch of +J with Jil Sander — high fashion meets everyday wear.' },
+  { year: '2013', text: 'UNIQLO opens its 1,000th store globally.' },
+  { year: '2020', text: 'RE.UNIQLO recycling initiative launched worldwide.' },
+  { year: '2024', text: 'LifeWear sustainability commitment — 50% recycled materials by 2030.' },
 ];
 
-/* ─── Team Member Card (extracted to fix hooks-in-loops) ─── */
-
-interface TeamMemberCardProps {
-  name: string;
-  roleKey: string;
-  initials: string;
-  imageIndex: number;
-}
-
-function TeamMemberCard({ name, roleKey, initials, imageIndex }: TeamMemberCardProps) {
-  const { t } = useTranslation();
-  const prefersReducedMotion = useReducedMotion();
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [imgError, setImgError] = useState(false);
-
-  return (
-    <motion.div
-      {...(prefersReducedMotion ? {} : { initial: { opacity: 0, y: 20 }, whileInView: { opacity: 1, y: 0 } })}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay: imageIndex * 0.1 }}
-      whileHover={prefersReducedMotion ? undefined : { y: -4 }}
-      className="group"
-    >
-      <div className="relative aspect-[3/4] overflow-hidden border-2 border-warm-gray/50 bg-aged-stock mb-4">
-        <SectionGrainOverlay className="z-10" />
-
-        {/* Sepia frame effect */}
-        <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/5 via-transparent to-archive-brown/5" aria-hidden="true" />
-
-        {/* Decorative corner accents */}
-        <div className="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 border-rust/30 z-20 pointer-events-none" aria-hidden="true" />
-        <div className="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-rust/30 z-20 pointer-events-none" aria-hidden="true" />
-        <div className="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 border-rust/30 z-20 pointer-events-none" aria-hidden="true" />
-        <div className="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 border-rust/30 z-20 pointer-events-none" aria-hidden="true" />
-
-        {/* Loading skeleton */}
-        {!imageLoaded && !imgError && <ImageSkeleton className="absolute inset-0" aspectRatio="aspect-[3/4]" />}
-
-        {/* Fallback initials placeholder */}
-        {imgError && (
-          <div className="absolute inset-0 z-[5] flex items-center justify-center bg-aged-stock">
-            <span className="font-display text-4xl font-bold text-rust/40">
-              {initials}
-            </span>
-          </div>
-        )}
-
-        <img
-          src={`https://picsum.photos/seed/vicoo-team-${imageIndex}/400/533`}
-          alt={name}
-          className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 sepia-[0.05] ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-          loading="lazy"
-          onLoad={() => setImageLoaded(true)}
-          onError={() => setImgError(true)}
-        />
-      </div>
-      <h4 className="font-display text-base font-semibold text-ink group-hover:text-rust transition-colors">
-        {name}
-      </h4>
-      <p className="font-body text-caption text-sepia-mid mt-1">{t(`about.team.roles.${roleKey}`)}</p>
-    </motion.div>
-  );
-}
+const COMMITMENTS = [
+  {
+    title: 'RECYCLED MATERIALS',
+    body: 'Using recycled polyester, nylon, and cotton across core product lines to reduce environmental impact.',
+  },
+  {
+    title: 'ZERO WASTE',
+    body: 'Working toward zero waste in production and distribution by 2030 through circular design principles.',
+  },
+  {
+    title: 'FAIR LABOUR',
+    body: 'Regular audits and transparent reporting across all manufacturing partners in Asia.',
+  },
+  {
+    title: 'COMMUNITY',
+    body: 'Clothing donation programs and disaster relief support in communities worldwide.',
+  },
+];
 
 export default function About() {
-  const { t } = useTranslation();
-  const prefersReducedMotion = useReducedMotion();
-
   return (
     <PageWrapper>
-      {/* Mission */}
-      <SectionContainer noTopSpacing>
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16">
-          <div className="md:col-span-5">
-            <h2 className="font-display text-h3 font-bold text-ink mb-8">
-              {t('about.mission.title')}
-            </h2>
-          </div>
-          <div className="md:col-span-7 md:pt-8 relative">
-            {/* Decorative vertical line alongside mission text */}
-            <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-sage/40 via-sage/20 to-transparent" aria-hidden="true" />
-            <p className="font-body text-base md:text-lg text-ink-faded leading-[1.85] editorial-drop-cap pl-6">
-              {t('about.mission.body')}
-            </p>
-          </div>
-        </div>
-      </SectionContainer>
-
-      {/* Decorative scroll-drawn flourish */}
-      <div className="flex justify-center py-6" aria-hidden="true">
-        <ScrollPathDrawInline
-          path="M0,15 Q50,0 100,15 T200,15 T300,15 T400,15"
-          strokeColor="var(--color-rust)"
-          strokeWidth={1}
-          className="w-80 h-8 opacity-60"
-        />
-      </div>
-
-      {/* Image interlude */}
-      <SectionContainer>
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-          <div className="md:col-span-8">
-            <SepiaImageFrame
-              src="https://picsum.photos/seed/vicoo-workshop/1000/563"
-              alt={t('about.images.workshop.alt')}
-              caption={t('about.images.workshop.caption')}
-              aspectRatio="wide"
-              size="full"
-            />
-          </div>
-          <div className="md:col-span-4 flex items-end">
-            <SepiaImageFrame
-              src="https://picsum.photos/seed/vicoo-supplies/500/667"
-              alt={t('about.images.supplies.alt')}
-              aspectRatio="portrait"
-              size="full"
-            />
-          </div>
-        </div>
-      </SectionContainer>
-
-      {/* Values */}
-      <SectionContainer>
-        <h2 className="font-display text-h3 font-bold text-ink mb-8">
-          {t('about.values.title')}
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
-          {VALUES.map((key, i) => (
-            <motion.article
-              key={key}
-              {...(prefersReducedMotion ? {} : { initial: { opacity: 0, y: 20 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, margin: '-50px' }, transition: { duration: 0.5, delay: i * 0.12 } })}
-              whileHover={prefersReducedMotion ? undefined : { y: -3 }}
-              className="border-t border-sage/20 pt-6 cursor-default"
+      {/* ── Hero ── */}
+      <section className="bg-white">
+        <SectionContainer>
+          <div className="max-w-3xl mx-auto text-center py-16 md:py-24">
+            <motion.h1
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="font-sans text-3xl md:text-5xl font-bold tracking-tight"
+              style={{ color: '#1A1A1A' }}
             >
-              <h3 className="font-display text-h3 font-bold text-ink mb-3">
-                {t(`about.values.${key}.title`)}
-              </h3>
-              <p className="font-body text-body-sm text-ink-faded leading-relaxed">
-                {t(`about.values.${key}.body`)}
+              ABOUT UNIQLO
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="mt-6 font-sans text-sm md:text-base leading-relaxed"
+              style={{ color: '#666' }}
+            >
+              We create clothing with a simple philosophy: make high-quality, functional, and affordable
+              basics that everyone can wear. LifeWear is clothing designed to make your life better —
+              simple in appearance, but rich in detail, thought, and craftsmanship.
+            </motion.p>
+          </div>
+        </SectionContainer>
+      </section>
+
+      {/* ── Brand Story ── */}
+      <section className="bg-gray-50 py-16 md:py-24">
+        <SectionContainer>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center">
+            <div>
+              <h2 className="font-sans text-2xl md:text-3xl font-bold tracking-tight mb-6" style={{ color: '#1A1A1A' }}>
+                THE MAKING OF LIFEWEAR
+              </h2>
+              <p className="font-sans text-sm leading-[1.9]" style={{ color: '#555' }}>
+                LifeWear is based on the Japanese values of simplicity, quality, and longevity.
+                We continuously innovate to bring more warmth, more lightness, better design,
+                and greater comfort to people&apos;s lives. Our clothing is made for everyone —
+                every body, every age, every style.
               </p>
-            </motion.article>
-          ))}
-        </div>
-      </SectionContainer>
+              <p className="font-sans text-sm leading-[1.9] mt-4" style={{ color: '#555' }}>
+                We believe that truly great clothes are not about luxury — they are about
+                making everyday life better. Each piece is thoughtfully designed, rigorously tested,
+                and refined season after season.
+              </p>
+            </div>
+            <div className="aspect-[4/3] bg-gray-200 flex items-center justify-center">
+              <span className="font-sans text-xs" style={{ color: '#aaa' }}>Brand Image</span>
+            </div>
+          </div>
+        </SectionContainer>
+      </section>
 
-      {/* Quote */}
-      <SectionContainer narrow>
-        <StoryQuoteBlock
-          quote={t('about.quote.body')}
-          author={t('about.quote.author')}
-          role={t('about.quote.role')}
-        />
-      </SectionContainer>
-
-      {/* Team */}
-      <SectionContainer>
-        <h2 className="font-display text-h3 font-bold text-ink mb-8">
-          {t('about.team.title')}
-        </h2>
-        <p className="font-body text-body-sm text-ink-faded mb-8">
-          {t('about.team.subtitle')}
-        </p>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-          {TEAM_MEMBERS.map((member, i) => (
-            <TeamMemberCard
-              key={member.roleKey}
-              name={member.name}
-              roleKey={member.roleKey}
-              initials={member.initials}
-              imageIndex={i}
-            />
-          ))}
-        </div>
-      </SectionContainer>
-
-      {/* CTA — Get Involved */}
-      <SectionContainer narrow>
-        <motion.div
-          {...(prefersReducedMotion ? {} : { initial: { opacity: 0, y: 20 }, whileInView: { opacity: 1, y: 0 } })}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center"
-        >
-          <h2 className="font-display text-h3 font-bold text-ink mb-8">
-            {t('about.cta.title', 'Get Involved')}
+      {/* ── Timeline ── */}
+      <section className="bg-white py-16 md:py-24">
+        <SectionContainer>
+          <h2 className="font-sans text-2xl md:text-3xl font-bold tracking-tight mb-12 text-center" style={{ color: '#1A1A1A' }}>
+            OUR HISTORY
           </h2>
-          <p className="font-body text-body-sm text-ink-faded leading-relaxed max-w-[540px] mx-auto mb-8">
-            {t('about.cta.body', 'Whether you donate, volunteer, or simply share our stories — every action helps a child\'s imagination reach the world.')}
+          <div className="max-w-2xl mx-auto">
+            {TIMELINE.map((item, i) => (
+              <motion.div
+                key={item.year}
+                initial={{ opacity: 0, x: -16 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: i * 0.06 }}
+                className="flex gap-6 md:gap-10 pb-8 border-l border-gray-200 pl-6 md:pl-10 relative last:border-l-0"
+              >
+                <div className="absolute left-0 top-1 w-2 h-2 rounded-full bg-gray-300 -translate-x-[5px]" />
+                <span className="font-sans text-xs font-bold tracking-widest shrink-0 w-12" style={{ color: '#999' }}>
+                  {item.year}
+                </span>
+                <p className="font-sans text-sm" style={{ color: '#444' }}>{item.text}</p>
+              </motion.div>
+            ))}
+          </div>
+        </SectionContainer>
+      </section>
+
+      {/* ── Sustainability ── */}
+      <section className="bg-gray-50 py-16 md:py-24">
+        <SectionContainer>
+          <h2 className="font-sans text-2xl md:text-3xl font-bold tracking-tight mb-4 text-center" style={{ color: '#1A1A1A' }}>
+            SUSTAINABILITY
+          </h2>
+          <p className="font-sans text-sm text-center mb-12" style={{ color: '#888' }}>
+            Making good clothes for a better world.
           </p>
-          <div className="flex items-center justify-center gap-6">
-            <Link to="/donate" className="font-body text-body-sm tracking-[0.15em] uppercase bg-ink text-paper px-8 py-4 hover:bg-rust transition-colors duration-300">
-              {t('about.cta.donate', 'Donate')}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {COMMITMENTS.map((item, i) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: i * 0.1 }}
+              >
+                <h3 className="font-sans text-xs font-bold tracking-widest mb-3" style={{ color: '#1A1A1A' }}>
+                  {item.title}
+                </h3>
+                <p className="font-sans text-sm leading-relaxed" style={{ color: '#666' }}>
+                  {item.body}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </SectionContainer>
+      </section>
+
+      {/* ── CTA ── */}
+      <section className="py-16 md:py-24 bg-white text-center">
+        <SectionContainer>
+          <h2 className="font-sans text-2xl md:text-3xl font-bold tracking-tight mb-6" style={{ color: '#1A1A1A' }}>
+            JOIN US
+          </h2>
+          <p className="font-sans text-sm mb-8" style={{ color: '#666' }}>
+            Discover our latest collections and learn how we&apos;re building a more sustainable future.
+          </p>
+          <div className="flex items-center justify-center gap-4">
+            <Link
+              to="/shop"
+              className="inline-block px-10 py-3 font-sans text-xs font-semibold tracking-widest uppercase text-white"
+              style={{ background: '#FF0000' }}
+            >
+              Shop Now
             </Link>
-            <Link to="/campaigns" className="font-body text-body-sm tracking-[0.15em] uppercase text-rust hover:text-ink transition-colors border-b border-rust/40 pb-1 cursor-pointer">
-              {t('about.cta.explore', 'Explore Campaigns')} &rarr;
+            <Link
+              to="/contact"
+              className="inline-block px-10 py-3 font-sans text-xs font-semibold tracking-widest uppercase border"
+              style={{ borderColor: '#1A1A1A', color: '#1A1A1A' }}
+            >
+              Contact
             </Link>
           </div>
-        </motion.div>
-      </SectionContainer>
-
-      <div className="editorial-divider" aria-hidden="true" />
+        </SectionContainer>
+      </section>
     </PageWrapper>
   );
 }

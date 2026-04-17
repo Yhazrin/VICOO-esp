@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useReducedMotion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 import { artworksApi } from '@/services/artworks';
@@ -15,6 +16,7 @@ export default function ScrollNarrative() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const prefersReducedMotion = useReducedMotion() ?? false;
+  const { t } = useTranslation();
 
   // Fetch real artworks for the gallery scene
   const { data: artworksData } = useQuery({
@@ -82,7 +84,7 @@ export default function ScrollNarrative() {
         <div className="absolute inset-0 bg-aged-stock" />
 
         {/* Scene 01 — Brand Manifesto */}
-        <Scene01 p={p} rm={rm} mapRange={mapRange} />
+        <Scene01 p={p} rm={rm} mapRange={mapRange} t={t} />
 
         {/* Scene 02 — Artwork Gallery */}
         <Scene02 p={p} rm={rm} mapRange={mapRange} images={artworkImages} />
@@ -91,7 +93,7 @@ export default function ScrollNarrative() {
         <Scene03 p={p} rm={rm} mapRange={mapRange} />
 
         {/* Scene 04 — Call to Action */}
-        <Scene04 p={p} rm={rm} mapRange={mapRange} />
+        <Scene04 p={p} rm={rm} mapRange={mapRange} t={t} />
 
         <SectionGrainOverlay opacity={0.03} />
       </div>
@@ -103,7 +105,7 @@ export default function ScrollNarrative() {
    Scene 01 — Brand Manifesto (0 → 28%)
    ═══════════════════════════════════════════════════════════════ */
 
-function Scene01({ p, rm, mapRange }: SceneProps) {
+function Scene01({ p, rm, mapRange, t }: SceneProps & { t: (key: string, fallback: string) => string }) {
   // Layer opacity: visible 0–30%, fades out by 38%
   const opacity = rm ? 1 : (1 - mapRange(p, 0.25, 0.38, 0, 1));
   const y = rm ? 0 : mapRange(p, 0, 0.28, 0, -60);
@@ -145,17 +147,17 @@ function Scene01({ p, rm, mapRange }: SceneProps) {
           <h1 className="font-display text-h1 md:text-[clamp(40px,6vw,72px)] font-bold text-ink leading-[1.05] tracking-[-0.03em]">
             <div className="overflow-hidden">
               <span className="inline-block" style={{ transform: `translateY(${line1}%)` }}>
-                Every Child's Creativity
+                {t('home.narrative.scene01.line1', 'Every Thread,')}
               </span>
             </div>
             <div className="overflow-hidden mt-1">
               <span className="inline-block" style={{ transform: `translateY(${line2}%)` }}>
-                Deserves a{' '}
+                {t('home.narrative.scene01.line2', 'Traced from')}{' '}
               </span>
             </div>
             <div className="overflow-hidden mt-1">
               <span className="inline-block text-rust" style={{ transform: `translateY(${line3}%)` }}>
-                Stage
+                {t('home.narrative.scene01.line3', 'Source to Stitch')}
               </span>
             </div>
           </h1>
@@ -168,11 +170,10 @@ function Scene01({ p, rm, mapRange }: SceneProps) {
         >
           <div className="border-l-2 border-rust/30 pl-6">
             <p className="font-body text-body-sm text-ink-faded leading-[1.8]">
-              VICOO connects children's original artwork with sustainable fashion,
-              creating a transparent chain of creativity, commerce, and social impact.
+              {t('home.narrative.scene01.subtitle', 'From organic cotton fields to finished garments — verified at every step.')}
             </p>
             <p className="font-body text-caption text-sepia-mid tracking-[0.1em] uppercase mt-6">
-              Where Imagination Meets Impact
+              {t('home.globe.label', 'Model A — Traceability')}
             </p>
           </div>
         </div>
@@ -367,7 +368,7 @@ function Scene03({ p, rm, mapRange }: SceneProps) {
    Scene 04 — Call to Action (65% → 100%)
    ═══════════════════════════════════════════════════════════════ */
 
-function Scene04({ p, rm, mapRange }: SceneProps) {
+function Scene04({ p, rm, mapRange, t }: SceneProps & { t: (key: string, fallback: string) => string }) {
   // Layer: visible 65–100%
   const opacity = rm ? 1 : mapRange(p, 0.65, 0.75, 0, 1);
   const layerY = rm ? 0 : mapRange(p, 0.68, 0.78, 50, 0);
@@ -388,26 +389,33 @@ function Scene04({ p, rm, mapRange }: SceneProps) {
 
       <div className="text-center px-8 max-w-2xl">
         <h2 className="font-display text-h2 md:text-h1 font-bold text-paper leading-[1.05] tracking-[-0.03em] mb-4">
-          Be Part of the Story
+          {t('home.narrative.scene04.title', 'Be Part of the Story')}
         </h2>
         <p className="font-body text-body-sm text-warm-gray/70 mb-12 max-w-md mx-auto leading-relaxed">
-          Every purchase supports a child's creative journey. Join our community of impact.
+          {t('home.narrative.scene04.subtitle', "Every purchase supports a child's creative journey. Join our community of impact.")}
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link
-            to="/campaigns"
+            to="/traceability"
             className="inline-block font-body text-body-sm tracking-[0.15em] uppercase bg-rust text-paper px-8 py-4 hover:bg-rust-light transition-colors duration-300"
             style={{ transform: `scale(${scale1})` }}
           >
-            Join Campaign
+            {t('home.narrative.scene04.traceability', 'Explore Traceability')}
           </Link>
           <Link
-            to="/donate"
+            to="/campaigns"
             className="inline-block font-body text-body-sm tracking-[0.15em] uppercase border border-sage/40 text-sage-pale px-8 py-4 hover:border-sage hover:text-paper transition-colors duration-300"
             style={{ transform: `scale(${scale2})` }}
           >
-            Make Donation
+            {t('home.narrative.scene04.campaign', 'Join Campaign')}
+          </Link>
+          <Link
+            to="/donate"
+            className="inline-block font-body text-body-sm tracking-[0.15em] uppercase border border-warm-gray/40 text-warm-gray px-8 py-4 hover:border-warm-gray hover:text-paper transition-colors duration-300"
+            style={{ transform: `scale(${scale1})` }}
+          >
+            {t('home.narrative.scene04.donate', 'Make Donation')}
           </Link>
         </div>
       </div>

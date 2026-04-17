@@ -5,6 +5,7 @@ import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import ScrollNarrative from '@/components/scroll/ScrollNarrative';
+import GlobeSection from '@/components/scroll/GlobeSection';
 import Planar3DScene from '@/components/scroll/Planar3DScene';
 import MagneticButton from '@/components/animations/MagneticButton';
 import { KineticTextMarquee } from '@/components/animations/KineticMarquee';
@@ -133,7 +134,10 @@ export default function Home() {
       {/* 3D Planar Scene - ambient background layer */}
       <Planar3DScene />
 
-      {/* NEW: Scroll-driven narrative replacing static hero */}
+      {/* Globe — supply chain traceability hero */}
+      <GlobeSection />
+
+      {/* Scroll-driven narrative */}
       <ScrollNarrative />
 
       {/* Call to Action — scroll-driven fade in */}

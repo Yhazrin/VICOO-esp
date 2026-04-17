@@ -338,7 +338,7 @@ export default function Donate() {
                 {t('donateClothing.clothingHint')}
               </p>
               <Link
-                to="/donate-clothing"
+                to="/clothing-recycle"
                 className="font-body text-overline tracking-[0.1em] uppercase text-rust hover:text-ink transition-colors"
               >
                 {t('donateClothing.donateLink')}

@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import Layout, { FullHeightLayout } from '@/components/layout/Layout';
+import Layout from '@/components/layout/Layout';
 import SmoothTransition from '@/components/transitions/SmoothTransition';
 import ErrorBoundary from '@/components/editorial/ErrorBoundary';
 import CartDrawer from '@/components/cart/CartDrawer';
@@ -10,16 +10,10 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useUIStore } from '@/stores/uiStore';
 
-const Home = lazy(() => import('@/pages/Home'));
+const UniqloHome = lazy(() => import('@/pages/UniqloHome'));
 const About = lazy(() => import('@/pages/About'));
-const Campaigns = lazy(() => import('@/pages/Campaigns'));
-const CampaignDetail = lazy(() => import('@/pages/CampaignDetail'));
-const Stories = lazy(() => import('@/pages/Stories'));
-const ArtworkDetail = lazy(() => import('@/pages/ArtworkDetail'));
-const Donate = lazy(() => import('@/pages/Donate'));
 const Shop = lazy(() => import('@/pages/Shop'));
 const ProductDetail = lazy(() => import('@/pages/ProductDetail'));
-const Traceability = lazy(() => import('@/pages/Traceability'));
 const Contact = lazy(() => import('@/pages/Contact'));
 const Login = lazy(() => import('@/pages/Login'));
 const Register = lazy(() => import('@/pages/Register'));
@@ -31,13 +25,10 @@ const Terms = lazy(() => import('@/pages/Terms'));
 const ChildrenSafety = lazy(() => import('@/pages/ChildrenSafety'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 const OrderDetail = lazy(() => import('@/pages/OrderDetail'));
-const DonateClothing = lazy(() => import('@/pages/DonateClothing'));
 const Support = lazy(() => import('@/pages/Support'));
 const AiAssistant = lazy(() => import('@/pages/AiAssistant'));
 const Checkout = lazy(() => import('@/pages/Checkout'));
-const SubmitArtwork = lazy(() => import('@/pages/SubmitArtwork'));
 const AiDesign = lazy(() => import('@/pages/AiDesign'));
-const Vote = lazy(() => import('@/pages/Vote'));
 
 function AppLocaleSync() {
   const { i18n } = useTranslation();
@@ -62,36 +53,23 @@ function AnimatedRoutes() {
       <Suspense fallback={<div style={{ minHeight: '60vh' }} />}>
       <SmoothTransition>
         <Routes location={location} key={location.pathname}>
-          {/* Home uses FullHeightLayout for scroll narrative - no overflow:hidden */}
-          <Route element={<FullHeightLayout />}>
-            <Route index element={<ErrorBoundary><Home /></ErrorBoundary>} />
-          </Route>
-
           {/* Auth pages — standalone, no header/footer */}
           <Route path="login" element={<ErrorBoundary><Login /></ErrorBoundary>} />
           <Route path="register" element={<ErrorBoundary><Register /></ErrorBoundary>} />
           <Route path="forgot-password" element={<ErrorBoundary><ForgotPassword /></ErrorBoundary>} />
 
-          {/* Other pages use standard Layout with HorizontalSlideTransition */}
+          {/* Company portal + utility pages use standard Layout */}
           <Route element={<Layout />}>
-            <Route path="about" element={<ErrorBoundary><About /></ErrorBoundary>} />
-            <Route path="campaigns" element={<ErrorBoundary><Campaigns /></ErrorBoundary>} />
-            <Route path="campaigns/:id" element={<ErrorBoundary><CampaignDetail /></ErrorBoundary>} />
-            <Route path="vote" element={<ErrorBoundary><Vote /></ErrorBoundary>} />
-            <Route path="stories" element={<ErrorBoundary><Stories /></ErrorBoundary>} />
-            <Route path="artworks/:id" element={<ErrorBoundary><ArtworkDetail /></ErrorBoundary>} />
-            <Route path="donate" element={<ErrorBoundary><Donate /></ErrorBoundary>} />
-            <Route path="donate-clothing" element={<ErrorBoundary><DonateClothing /></ErrorBoundary>} />
+            <Route index element={<ErrorBoundary><UniqloHome /></ErrorBoundary>} />
             <Route path="shop" element={<ErrorBoundary><Shop /></ErrorBoundary>} />
             <Route path="shop/:id" element={<ErrorBoundary><ProductDetail /></ErrorBoundary>} />
-            <Route path="traceability" element={<ErrorBoundary><Traceability /></ErrorBoundary>} />
+            <Route path="about" element={<ErrorBoundary><About /></ErrorBoundary>} />
             <Route path="contact" element={<ErrorBoundary><Contact /></ErrorBoundary>} />
             <Route path="auth/callback" element={<ErrorBoundary><AuthCallback /></ErrorBoundary>} />
             <Route path="profile" element={<ErrorBoundary><Profile /></ErrorBoundary>} />
             <Route path="orders/:id" element={<ErrorBoundary><OrderDetail /></ErrorBoundary>} />
             <Route path="checkout" element={<ErrorBoundary><Checkout /></ErrorBoundary>} />
             <Route path="support" element={<ErrorBoundary><Support /></ErrorBoundary>} />
-            <Route path="submit-artwork" element={<ErrorBoundary><SubmitArtwork /></ErrorBoundary>} />
             <Route path="ai-design" element={<ErrorBoundary><AiDesign /></ErrorBoundary>} />
             <Route path="assistant" element={<ErrorBoundary><AiAssistant /></ErrorBoundary>} />
             <Route path="privacy" element={<ErrorBoundary><Privacy /></ErrorBoundary>} />
