@@ -363,73 +363,6 @@ jobs:
         run: |
           ssh vm "cd /home/student/vicoo && docker-compose logs --tail=50"
 
-  # ==================== 部署到Production ====================
-  deploy-production:
-    name: 部署到Production环境
-    runs-on: ubuntu-latest
-    needs: deploy-staging
-    if: github.ref == 'refs/heads/main'
-    environment:
-      name: production
-      url: https://vicoo.example.com
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: 等待手动确认
-        run: |
-          echo "=========================================="
-          echo "准备部署到Production环境"
-          echo "Git SHA: ${{ github.sha }}"
-          echo "提交信息: ${{ github.event.head_commit.message }}"
-          echo "=========================================="
-          echo "请在GitHub Actions界面确认部署"
-
-      - name: 配置SSH客户端
-        run: |
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-
-      - name: 添加生产服务器SSH密钥
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        run: |
-          cat << 'EOF' > ~/.ssh/config
-          Host jump
-              HostName ipa-rdp.ucd.ie
-              User CS23219620
-              StrictHostKeyChecking no
-              UserKnownHostsFile /dev/null
-
-          Host vm
-              HostName csi420-02-vm8.ucd.ie
-              User student
-              StrictHostKeyChecking no
-              UserKnownHostsFile /dev/null
-              ProxyJump jump
-          EOF
-          chmod 600 ~/.ssh/config
-
-          echo "${SSH_PRIVATE_KEY}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-
-      - name: 执行生产部署
-        run: |
-          echo "开始Production部署..."
-          ssh vm "cd /home/student/vicoo && \
-            git fetch origin && \
-            git checkout main && \
-            git pull origin main && \
-            docker-compose pull && \
-            docker-compose build && \
-            docker-compose down && \
-            docker-compose up -d"
-
-      - name: 生产环境健康检查
-        run: |
-          sleep 30
-          ssh vm "curl -sf http://localhost:8000/health"
-          echo "Production部署完成!"
-
   # ==================== 开发分支快速部署 ====================
   deploy-develop:
     name: 部署到开发环境
@@ -474,7 +407,7 @@ jobs:
   notify:
     name: 部署通知
     runs-on: ubuntu-latest
-    needs: [deploy-staging, deploy-production]
+    needs: [deploy-staging]
     if: always()
     steps:
       - name: 构建状态通知
