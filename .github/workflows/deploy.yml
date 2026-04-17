@@ -334,6 +334,10 @@ jobs:
         run: |
           ssh vm "cd /home/student/vicoo && git fetch origin && git checkout main && git pull origin main"
 
+      - name: 配置环境变量文件
+        run: |
+          ssh vm "cp /home/student/vicoo/deploy/easy/.env.example /home/student/vicoo/deploy/easy/.env || true"
+
       - name: 执行数据库迁移
         run: |
           ssh vm "cd /home/student/vicoo/deploy/easy && docker-compose run --rm backend python -m alembic upgrade head || echo '迁移完成或无需迁移'"
