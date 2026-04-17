@@ -117,7 +117,7 @@ async def rate_limit_middleware(request: Request, call_next):
             await rate_limit_check(request, current_user)
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         if settings.APP_ENV != "development":
             return JSONResponse(
                 status_code=503,
@@ -246,7 +246,7 @@ async def health():
             from sqlalchemy import text
             await session.execute(text("SELECT 1"))
             health_data["services"]["database"] = "healthy"
-    except Exception as e:
+    except Exception:
         health_data["services"]["database"] = "unhealthy"
         health_data["status"] = "degraded"
     

@@ -27,7 +27,7 @@ async def list_records(
     db: AsyncSession = Depends(get_db),
 ):
     """List supply chain records with optional filters. (Refactored)"""
-    sc_service = SupplyChainService(db)
+    SupplyChainService(db)
     try:
         # For simple listing, we can still use query or add a dedicated method to service
         stmt = select(SupplyChainRecord)
