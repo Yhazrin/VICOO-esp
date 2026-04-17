@@ -1,40 +1,12 @@
-/**
- * 顶部导航栏组件 (TopBar)
- *
- * 功能说明：
- * - 显示系统运行状态指示器
- * - 提供中英文语言切换功能
- * - 提供主题切换功能（与门户主题同步）
- * - 展示当前登录用户信息（用户名和角色）
- * - 提供退出登录按钮
- *
- * 使用场景：
- * 作为管理后台顶部的全局导航栏，固定在页面顶部显示
- */
-
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../stores/authStore';
 import { useUIStore } from '../../stores/uiStore';
-
-const THEMES = [
-  { value: '', label: 'Editorial Paper' },
-  { value: 'morandi', label: 'Morandi' },
-  { value: 'sepia', label: 'Sepia' },
-  { value: 'ink', label: 'Ink Wash' },
-  { value: 'forest', label: 'Forest' },
-  { value: 'autumn', label: 'Autumn' },
-  { value: 'mist-blue', label: 'Mist Blue' },
-  { value: 'deep-sea', label: 'Deep Sea' },
-  { value: 'dopamine', label: 'Dopamine' },
-];
 
 export default function TopBar() {
   const { t, i18n } = useTranslation();
   const user = useAuthStore((s: any) => s.user);
   const logout = useAuthStore((s: any) => s.logout);
   const setLocale = useUIStore((s) => s.setLocale);
-  const [themeOpen, setThemeOpen] = useState(false);
 
   const toggleLanguage = () => {
     const newLang = i18n.language === 'zh' ? 'en' : 'zh';
@@ -46,183 +18,152 @@ export default function TopBar() {
     ? (document.documentElement.getAttribute('data-theme') || '')
     : '';
 
-  const handleThemeChange = (value: string) => {
-    if (value) {
-      document.documentElement.setAttribute('data-theme', value);
+  const toggleTheme = () => {
+    const next = currentTheme === 'dark' ? '' : 'dark';
+    if (next) {
+      document.documentElement.setAttribute('data-theme', next);
     } else {
       document.documentElement.removeAttribute('data-theme');
     }
-    setThemeOpen(false);
   };
 
   return (
     <header style={{
-      height: 'var(--topbar-height)',           // 使用 CSS 变量定义的顶部栏高度
-      backgroundColor: 'var(--color-paper)',     // 米白色背景（纸张质感）
-      borderBottom: '1px solid var(--color-ink)', // 底部墨色边框分隔线
-      display: 'flex',                           // 弹性布局
-      alignItems: 'center',                      // 垂直居中对齐
-      justifyContent: 'flex-end',               // 内容右对齐
-      padding: '0 40px',                         // 左右内边距
-      flexShrink: 0,                             // 不允许收缩
-      position: 'relative',                      // 相对定位
-      zIndex: 10                                 // 层级高于其他元素
+      height: 'var(--topbar-height)',
+      background: 'var(--color-bg)',
+      borderBottom: '1px solid var(--color-border)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'flex-end',
+      padding: '0 24px',
+      flexShrink: 0,
+      position: 'relative',
+      zIndex: 10,
     }}>
-      {/* 右侧功能区域容器 */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
-        
-        {/* 系统运行状态指示器 */}
-        <div style={{
-          fontFamily: 'var(--font-body)',         // 正文字体
-          fontSize: '10px',                       // 小字号
-          textTransform: 'uppercase',             // 大写字母
-          letterSpacing: '0.2em',                 // 字间距加宽
-          color: 'var(--color-sepia-mid)',        // 棕褐色文字（复古风格）
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
-        }}>
-          {/* 绿色圆点指示系统在线状态 */}
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--color-success)' }}></span>
-          {/* 显示"系统运行中"文本 */}
-          {t('topbar.systemOnline')}
-        </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
 
-        {/* 主题切换器 */}
-        <div style={{ position: 'relative' }}>
-          <button
-            onClick={() => setThemeOpen(!themeOpen)}
-            style={{
-              padding: '4px 12px',
-              border: '1px solid var(--color-warm-gray)',
-              fontSize: '11px',
-              fontFamily: 'var(--font-body)',
-              cursor: 'pointer',
-              background: 'transparent',
-              color: 'var(--color-ink)',
-              letterSpacing: '0.05em',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-          >
-            <span style={{
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              background: currentTheme
-                ? `var(--color-rust)`
-                : 'var(--color-sepia-mid)',
-              display: 'inline-block',
-            }} />
-            {t('topbar.theme', '主题')}
-          </button>
-          {themeOpen && (
-            <div style={{
-              position: 'absolute',
-              top: '100%',
-              right: 0,
-              marginTop: '4px',
-              background: 'var(--color-paper)',
-              border: '1px solid var(--color-ink)',
-              zIndex: 200,
-              minWidth: '160px',
-              boxShadow: 'var(--shadow-md)',
-            }}>
-              {THEMES.map((theme) => (
-                <button
-                  key={theme.value}
-                  onClick={() => handleThemeChange(theme.value)}
-                  style={{
-                    display: 'block',
-                    width: '100%',
-                    padding: '8px 16px',
-                    textAlign: 'left',
-                    fontSize: '12px',
-                    fontFamily: 'var(--font-body)',
-                    background: currentTheme === theme.value ? 'var(--color-aged-stock)' : 'transparent',
-                    border: 'none',
-                    borderBottom: '1px solid var(--color-warm-gray)',
-                    cursor: 'pointer',
-                    color: 'var(--color-ink)',
-                    letterSpacing: '0.03em',
-                  }}
-                >
-                  {theme.label}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* 中英文语言切换按钮 */}
+        {/* Theme toggle */}
         <button
-          onClick={toggleLanguage}
+          onClick={toggleTheme}
           style={{
-            padding: '4px 12px',
-            border: '1px solid var(--color-warm-gray)',
+            padding: '5px 10px',
+            border: '1px solid var(--color-border)',
+            borderRadius: '6px',
             fontSize: '11px',
             fontFamily: 'var(--font-mono)',
             cursor: 'pointer',
             background: 'transparent',
-            color: 'var(--color-ink)',
-            letterSpacing: '0.05em',
+            color: 'var(--color-text-3)',
+            transition: 'all 0.15s',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = 'var(--color-border-hi)';
+            e.currentTarget.style.color = 'var(--color-text-2)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = 'var(--color-border)';
+            e.currentTarget.style.color = 'var(--color-text-3)';
           }}
         >
-          {i18n.language === 'zh' ? t('topbar.switchToEn') : t('topbar.switchToZh')}
+          {currentTheme === 'dark' ? (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" />
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+              <line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" />
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+            </svg>
+          ) : (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+          )}
+          {currentTheme === 'dark' ? 'Light' : 'Dark'}
         </button>
 
-        {/* 用户信息与登出区域 */}
+        {/* Language toggle */}
+        <button
+          onClick={toggleLanguage}
+          style={{
+            padding: '5px 10px',
+            border: '1px solid var(--color-border)',
+            borderRadius: '6px',
+            fontSize: '11px',
+            fontFamily: 'var(--font-mono)',
+            cursor: 'pointer',
+            background: 'transparent',
+            color: 'var(--color-text-3)',
+            transition: 'all 0.15s',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = 'var(--color-border-hi)';
+            e.currentTarget.style.color = 'var(--color-text-2)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = 'var(--color-border)';
+            e.currentTarget.style.color = 'var(--color-text-3)';
+          }}
+        >
+          {i18n.language === 'zh' ? 'EN' : '中文'}
+        </button>
+
+        {/* User info */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 20,
-          borderLeft: '1px solid var(--color-warm-gray)', // 左侧分隔线
-          paddingLeft: 32
+          gap: '12px',
+          borderLeft: '1px solid var(--color-border)',
+          paddingLeft: '16px',
+          marginLeft: '4px',
         }}>
-          {/* 用户信息展示区 */}
           <div style={{ textAlign: 'right' }}>
-            {/* 显示用户名，若未登录则显示默认文本"管理员" */}
             <div style={{
               fontSize: '13px',
-              fontFamily: 'var(--font-display)',     // 展示字体（衬线体）
-              fontWeight: 700,                        // 加粗
-              fontStyle: 'italic',                    // 斜体（杂志风格）
-              lineHeight: 1
-            }}>
-              {user?.username || t('topbar.administrator')}
-            </div>
-            {/* 显示用户角色，若未登录则显示默认文本"授权用户" */}
-            <div style={{
-              fontSize: '9px',
-              color: 'var(--color-sepia-mid)',
               fontFamily: 'var(--font-body)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em',
-              marginTop: '4px'
+              fontWeight: 500,
+              color: 'var(--color-text)',
+              lineHeight: 1,
             }}>
-              {user?.role || t('topbar.authorizedUser')}
+              {user?.username || 'admin'}
+            </div>
+            <div style={{
+              fontSize: '10px',
+              color: 'var(--color-text-3)',
+              fontFamily: 'var(--font-mono)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+              marginTop: '3px',
+            }}>
+              {user?.role || 'admin'}
             </div>
           </div>
-          
-          {/* 退出登录按钮 */}
+
+          {/* Logout */}
           <button
-            onClick={logout}                          // 点击触发登出操作
+            onClick={logout}
             style={{
-              padding: '6px 12px',
-              border: '1px solid var(--color-ink)',   // 墨色实线边框
-              fontSize: '10px',
-              fontFamily: 'var(--font-body)',
-              textTransform: 'uppercase',             // 大写字母
-              letterSpacing: '0.1em',
-              transition: 'all 0.2s',                  // 平滑过渡动画
+              padding: '5px 10px',
+              border: '1px solid var(--color-border)',
+              borderRadius: '6px',
+              fontSize: '11px',
+              fontFamily: 'var(--font-mono)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+              transition: 'all 0.15s',
               cursor: 'pointer',
-              background: 'transparent'               // 默认透明背景
+              background: 'transparent',
+              color: 'var(--color-text-3)',
             }}
-            /* 鼠标悬停效果：填充墨色背景并反转文字颜色为白色 */
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-ink)'; e.currentTarget.style.color = 'var(--color-paper)'; }}
-            /* 鼠标离开效果：恢复透明背景和黑色文字 */
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--color-ink)'; }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'var(--color-error)';
+              e.currentTarget.style.color = 'var(--color-error)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'var(--color-border)';
+              e.currentTarget.style.color = 'var(--color-text-3)';
+            }}
           >
             {t('topbar.logout')}
           </button>

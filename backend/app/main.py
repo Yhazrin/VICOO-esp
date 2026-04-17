@@ -67,7 +67,7 @@ def extract_host(url: str) -> str:
     return netloc
 
 allowed_hosts = [extract_host(origin) for origin in settings.CORS_ORIGINS]
-allowed_hosts.extend(["localhost", "localhost:8081", "localhost:8080", "127.0.0.1", "127.0.0.1:8081"])
+allowed_hosts.extend(["localhost", "localhost:8081", "localhost:8080", "localhost:5173", "localhost:9111", "localhost:9112", "127.0.0.1", "127.0.0.1:8081"])
 allowed_hosts = list(set(allowed_hosts))
 if not allowed_hosts:
     allowed_hosts = ["localhost"]

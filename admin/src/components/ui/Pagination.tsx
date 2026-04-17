@@ -10,8 +10,6 @@ interface PaginationProps {
 
 export default function Pagination({ page, totalPages, total, pageSize, onPageChange }: PaginationProps) {
   const { t } = useTranslation();
-  const start = (page - 1) * pageSize + 1;
-  const end = Math.min(page * pageSize, total);
 
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
@@ -31,7 +29,7 @@ export default function Pagination({ page, totalPages, total, pageSize, onPageCh
 
   if (totalPages <= 1) {
     return (
-      <div style={{ padding: '12px 0', fontSize: 13, color: 'var(--color-ink-faded)' }}>
+      <div style={{ padding: '10px 0', fontSize: 12, color: 'var(--color-text-3)', fontFamily: 'var(--font-mono)' }}>
         {t('pagination.total', { count: total })}
       </div>
     );
@@ -40,18 +38,18 @@ export default function Pagination({ page, totalPages, total, pageSize, onPageCh
   return (
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '12px 0', flexWrap: 'wrap', gap: 12,
+      padding: '10px 0', flexWrap: 'wrap', gap: 8,
     }}>
-      <span style={{ fontSize: 13, color: 'var(--color-ink-faded)' }}>
+      <span style={{ fontSize: 12, color: 'var(--color-text-3)', fontFamily: 'var(--font-mono)' }}>
         {t('pagination.page', { current: page, total: totalPages })}
       </span>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <PageBtn onClick={() => onPageChange(page - 1)} disabled={page <= 1}>
           &laquo;
         </PageBtn>
         {getPageNumbers().map((p, i) =>
           typeof p === 'string' ? (
-            <span key={`ellipsis-${i}`} style={{ padding: '0 8px', color: 'var(--color-ink-light)' }}>...</span>
+            <span key={`ellipsis-${i}`} style={{ padding: '0 6px', color: 'var(--color-text-3)', fontSize: 12 }}>...</span>
           ) : (
             <PageBtn key={p} active={p === page} onClick={() => onPageChange(p)}>
               {p}
@@ -74,18 +72,19 @@ function PageBtn({ children, active, disabled, onClick }: {
       onClick={onClick}
       disabled={disabled}
       style={{
-        minWidth: 34, height: 34,
-        padding: '0 8px',
+        minWidth: 30, height: 30,
+        padding: '0 6px',
         border: '1px solid',
-        borderColor: active ? 'var(--color-accent)' : 'var(--color-border)',
-        borderRadius: 'var(--radius-sm)',
-        background: active ? 'var(--color-accent)' : 'var(--color-bg-card)',
-        color: active ? '#fff' : disabled ? 'var(--color-ink-light)' : 'var(--color-ink)',
-        fontSize: 13,
+        borderColor: active ? 'rgba(255,255,255,0.2)' : 'var(--color-border)',
+        borderRadius: '6px',
+        background: active ? 'rgba(255,255,255,0.1)' : 'transparent',
+        color: active ? 'var(--color-text)' : disabled ? 'var(--color-text-3)' : 'var(--color-text-2)',
+        fontSize: 12,
+        fontFamily: 'var(--font-mono)',
         fontWeight: active ? 600 : 400,
         cursor: disabled ? 'not-allowed' : 'pointer',
         transition: 'all 0.15s',
-        opacity: disabled ? 0.5 : 1,
+        opacity: disabled ? 0.4 : 1,
       }}
     >
       {children}

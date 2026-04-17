@@ -26,9 +26,9 @@ export default function DataTable<T extends Record<string, any>>({
 }: DataTableProps<T>) {
   const { t } = useTranslation();
   const renderSortIcon = (key: string) => {
-    if (sortBy !== key) return <span style={{ color: 'var(--color-warm-gray)', marginLeft: 6 }}>&#8693;</span>;
+    if (sortBy !== key) return <span style={{ color: 'var(--color-text-3)', marginLeft: 4 }}>&#8693;</span>;
     return (
-      <span style={{ color: 'var(--color-rust)', marginLeft: 6, fontWeight: 'bold' }}>
+      <span style={{ color: 'var(--color-text)', marginLeft: 4 }}>
         {sortOrder === 'asc' ? '\u2191' : '\u2193'}
       </span>
     );
@@ -36,19 +36,22 @@ export default function DataTable<T extends Record<string, any>>({
 
   return (
     <div className="data-table-container" style={{
-      borderRadius: 'var(--radius-sm)',
+      borderRadius: '8px',
+      background: 'var(--color-surface)',
+      border: '1px solid var(--color-border)',
       position: 'relative',
       width: '100%',
+      overflow: 'hidden',
     }}>
-      <div style={{ 
-        overflowX: 'auto', 
+      <div style={{
+        overflowX: 'auto',
         width: '100%',
         WebkitOverflowScrolling: 'touch',
       }}>
-        <table style={{ 
-          width: '100%', 
-          minWidth: 'max-content', // Crucial: table takes as much space as columns need
-          borderCollapse: 'separate', // Needed for sticky header borders
+        <table style={{
+          width: '100%',
+          minWidth: 'max-content',
+          borderCollapse: 'separate',
           borderSpacing: 0
         }}>
           <thead>
@@ -61,24 +64,25 @@ export default function DataTable<T extends Record<string, any>>({
                     position: 'sticky',
                     top: 0,
                     zIndex: 10,
-                    padding: '16px 24px',
+                    padding: '12px 16px',
                     textAlign: 'left',
                     fontSize: 11,
-                    fontWeight: 700,
-                    color: 'var(--color-ink)',
-                    backgroundColor: 'var(--color-aged-stock)',
+                    fontWeight: 600,
+                    color: 'var(--color-text-3)',
+                    backgroundColor: 'var(--color-surface)',
                     textTransform: 'uppercase',
-                    letterSpacing: '0.12em',
+                    letterSpacing: '0.06em',
                     width: col.width,
-                    minWidth: col.minWidth || 120,
+                    minWidth: col.minWidth || 100,
                     cursor: col.sorter ? 'pointer' : 'default',
                     userSelect: 'none',
                     whiteSpace: 'nowrap',
-                    borderBottom: '1px solid var(--color-ink)',
-                    transition: 'background-color 0.2s',
+                    borderBottom: '1px solid var(--color-border)',
+                    transition: 'background-color 0.15s',
+                    fontFamily: 'var(--font-body)',
                   }}
-                  onMouseEnter={(e) => { if(col.sorter) e.currentTarget.style.backgroundColor = 'var(--color-warm-gray)'; }}
-                  onMouseLeave={(e) => { if(col.sorter) e.currentTarget.style.backgroundColor = 'var(--color-aged-stock)'; }}
+                  onMouseEnter={(e) => { if(col.sorter) e.currentTarget.style.backgroundColor = 'var(--color-elevated)'; }}
+                  onMouseLeave={(e) => { if(col.sorter) e.currentTarget.style.backgroundColor = 'var(--color-surface)'; }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center' }}>
                     {col.title}
@@ -88,26 +92,28 @@ export default function DataTable<T extends Record<string, any>>({
               ))}
             </tr>
           </thead>
-          <tbody style={{ backgroundColor: 'white' }}>
+          <tbody>
             {loading ? (
               <tr>
-                <td colSpan={columns.length} style={{ padding: 60, textAlign: 'center', color: 'var(--color-sepia-mid)' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+                <td colSpan={columns.length} style={{ padding: 48, textAlign: 'center', color: 'var(--color-text-3)' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
                     <div style={{
-                      width: 24, height: 24,
-                      border: '2px solid var(--color-warm-gray)',
-                      borderTopColor: 'var(--color-rust)',
+                      width: 20, height: 20,
+                      border: '2px solid var(--color-border)',
+                      borderTopColor: 'var(--color-text-3)',
                       borderRadius: '50%',
-                      animation: 'spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite',
+                      animation: 'spin 0.8s linear infinite',
                     }} />
-                    <span style={{ fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{t('dataTable.loading', '加载中...')}</span>
+                    <span style={{ fontSize: 12, fontFamily: 'var(--font-mono)', letterSpacing: '0.05em' }}>
+                      {t('dataTable.loading', 'Loading...')}
+                    </span>
                   </div>
                 </td>
               </tr>
             ) : data.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} style={{ padding: 60, textAlign: 'center', color: 'var(--color-sepia-mid)', fontStyle: 'italic' }}>
-                  {t('dataTable.empty', '暂无数据')}
+                <td colSpan={columns.length} style={{ padding: 48, textAlign: 'center', color: 'var(--color-text-3)', fontSize: 13 }}>
+                  {t('dataTable.empty', 'No data')}
                 </td>
               </tr>
             ) : (
@@ -117,19 +123,19 @@ export default function DataTable<T extends Record<string, any>>({
                   onClick={() => onRowClick?.(record)}
                   style={{
                     cursor: onRowClick ? 'pointer' : 'default',
-                    transition: 'background-color 0.1s ease',
+                    transition: 'background-color 0.1s',
                   }}
                   className="table-row-hover"
                 >
                   {columns.map((col) => (
                     <td key={col.key} style={{
-                      padding: '16px 24px',
+                      padding: '12px 16px',
                       fontSize: 13,
                       lineHeight: 1.5,
-                      color: 'var(--color-ink)',
+                      color: 'var(--color-text-2)',
                       width: col.width,
-                      minWidth: col.minWidth || 120,
-                      borderBottom: '1px solid var(--color-warm-gray)',
+                      minWidth: col.minWidth || 100,
+                      borderBottom: '1px solid var(--color-border)',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap',
@@ -146,15 +152,7 @@ export default function DataTable<T extends Record<string, any>>({
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         .table-row-hover:hover td {
-          background-color: rgba(92, 64, 51, 0.04);
-        }
-        .data-table-container::after {
-          content: '';
-          position: absolute;
-          top: 0; right: 0; bottom: 0;
-          width: 20px;
-          pointer-events: none;
-          background: linear-gradient(to right, transparent, rgba(0,0,0,0.02));
+          background-color: var(--color-surface);
         }
       `}</style>
     </div>

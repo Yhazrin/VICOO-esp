@@ -52,28 +52,28 @@ export default function ChildAuditPage() {
     return (
       <div>
         <div style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>{t('childAudit.title')}</h1>
-          <p style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
+          <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 4, fontFamily: 'var(--font-body)' }}>{t('childAudit.title')}</h1>
+          <p style={{ fontSize: 13, color: 'var(--color-text-2)' }}>
             {t('childAudit.description')}
           </p>
         </div>
 
         <div style={{
           maxWidth: 440, margin: '80px auto', padding: 32,
-          background: 'var(--color-bg-card)', border: '1px solid var(--color-border)',
-          borderRadius: 'var(--radius-lg)', textAlign: 'center',
+          background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+          borderRadius: '8px', textAlign: 'center',
         }}>
           <div style={{
             width: 64, height: 64, borderRadius: '50%', margin: '0 auto 20px',
-            background: 'var(--color-danger-light)', display: 'flex',
+            background: 'var(--color-error-bg)', display: 'flex',
             alignItems: 'center', justifyContent: 'center',
           }}>
             <svg width="28" height="28" viewBox="0 0 24 24" fill="var(--color-danger)">
               <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" />
             </svg>
           </div>
-          <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>{t('childAudit.accessGateTitle')}</h3>
-          <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginBottom: 24, lineHeight: 1.6 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8, fontFamily: 'var(--font-body)' }}>{t('childAudit.accessGateTitle')}</h3>
+          <p style={{ fontSize: 13, color: 'var(--color-text-2)', marginBottom: 24, lineHeight: 1.6 }}>
             {t('childAudit.accessGateDesc')}
           </p>
           <div style={{ display: 'flex', gap: 8 }}>
@@ -86,12 +86,14 @@ export default function ChildAuditPage() {
               style={{
                 flex: 1, padding: '10px 14px',
                 border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-sm)', fontSize: 14, outline: 'none',
+                borderRadius: '6px', fontSize: 14, outline: 'none',
+                background: 'var(--color-surface)',
+                color: 'var(--color-text)',
               }}
             />
             <Button variant="primary" onClick={handleAccess}>{t('childAudit.btnVerify')}</Button>
           </div>
-          <p style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 12, fontFamily: 'var(--font-mono)' }}>
+          <p style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 12, fontFamily: 'var(--font-mono)' }}>
             {t('childAudit.contactAdminForCode')}
           </p>
         </div>
@@ -127,23 +129,23 @@ export default function ChildAuditPage() {
     <div>
       <div style={{ marginBottom: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-          <h1 style={{ fontSize: 24, fontWeight: 700 }}>{t('childAudit.title')}</h1>
+          <h1 style={{ fontSize: 24, fontWeight: 600, fontFamily: 'var(--font-body)' }}>{t('childAudit.title')}</h1>
           <span style={{
             padding: '2px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600,
-            background: 'var(--color-danger-light)', color: 'var(--color-danger)',
+            background: 'var(--color-error-bg)', color: 'var(--color-danger)',
           }}>
             {t('childAudit.restrictedLabel')}
           </span>
         </div>
-        <p style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
+        <p style={{ fontSize: 13, color: 'var(--color-text-2)' }}>
           {t('childAudit.auditDesc')}
         </p>
       </div>
 
       <div style={{
-        padding: '12px 16px', background: 'var(--color-warning-light)',
-        borderRadius: 'var(--radius-sm)', marginBottom: 16,
-        fontSize: 13, color: '#92400e', display: 'flex', alignItems: 'center', gap: 8,
+        padding: '12px 16px', background: 'var(--color-warning-bg)',
+        borderRadius: '6px', marginBottom: 16,
+        fontSize: 13, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 8,
       }}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
           <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" />
@@ -173,7 +175,7 @@ export default function ChildAuditPage() {
       <Modal open={!!selected} title={t('childAudit.modalTitle')} onClose={() => setSelected(null)} width={520}>
         {selected && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ padding: '12px', background: 'var(--color-danger-light)', borderRadius: 'var(--radius-sm)', fontSize: 12, color: '#991b1b' }}>
+            <div style={{ padding: '12px', background: 'var(--color-error-bg)', borderRadius: '6px', fontSize: 12, color: 'var(--color-danger)' }}>
               {t('childAudit.privacyWarning')}
             </div>
             <Row label={t('childAudit.detailChildName')} value={selected.childName} />
@@ -198,7 +200,7 @@ export default function ChildAuditPage() {
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-      <span style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>{label}</span>
+      <span style={{ fontSize: 13, color: 'var(--color-text-2)' }}>{label}</span>
       <span style={{ fontSize: 13, fontWeight: 500 }}>{value}</span>
     </div>
   );
@@ -206,8 +208,10 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
 
 const filterStyle: React.CSSProperties = {
   padding: '8px 12px',
-  border: '1px solid var(--color-ink)',
-  background: 'var(--color-paper)',
+  border: '1px solid var(--color-border)',
+  borderRadius: '6px',
+  background: 'var(--color-surface)',
+  color: 'var(--color-text)',
   fontSize: '13px',
   fontFamily: 'var(--font-mono)',
 };
