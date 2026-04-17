@@ -22,10 +22,10 @@ export default function UserPage() {
   const [statusConfirm, setStatusConfirm] = useState<User | null>(null);
 
   const roleColors: Record<string, string> = {
-    admin: 'var(--color-rust)',
-    editor: 'var(--color-archive-brown)',
-    viewer: 'var(--color-sepia-mid)',
-    auditor: 'var(--color-info)',
+    admin: 'var(--color-accent-2)',
+    editor: 'var(--color-text-3)',
+    viewer: 'var(--color-text-3)',
+    auditor: 'var(--color-accent-2)',
   };
 
   const getRoleLabel = (v: string) => {
@@ -62,14 +62,14 @@ export default function UserPage() {
     { key: 'role', title: t('user.colAuthority'), width: 120, render: (v) => (
       <span style={{
         padding: '2px 8px',
-        borderRadius: '2px',
+        borderRadius: '8px',
         fontSize: '10px',
         fontWeight: 700,
         textTransform: 'uppercase',
         letterSpacing: '0.05em',
-        background: 'var(--color-aged-stock)',
-        color: roleColors[v] || 'var(--color-ink)',
-        border: `1px solid ${roleColors[v] || 'var(--color-ink)'}20`
+        background: 'var(--color-elevated)',
+        color: roleColors[v] || 'var(--color-text)',
+        border: `1px solid ${roleColors[v] || 'var(--color-border)'}20`
       }}>
         {getRoleLabel(v)}
       </span>
@@ -102,8 +102,8 @@ export default function UserPage() {
   return (
     <div>
       <div style={{ marginBottom: 40 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8, fontFamily: 'var(--font-serif)' }}>{t('user.title')}</h1>
-        <p style={{ fontSize: 14, color: 'var(--color-sepia-mid)', maxWidth: '600px', lineHeight: 1.6 }}>
+        <h1 style={{ fontSize: 28, fontWeight: 600, marginBottom: 8, fontFamily: 'var(--font-body)' }}>{t('user.title')}</h1>
+        <p style={{ fontSize: 14, color: 'var(--color-text-2)', maxWidth: '600px', lineHeight: 1.6 }}>
           {t('user.description')}
         </p>
       </div>
@@ -142,17 +142,17 @@ export default function UserPage() {
       >
         {selectedUser && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            <div style={{ padding: '20px', background: 'var(--color-paper)', border: '1px solid var(--color-ink)', borderRadius: '2px' }}>
-              <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-sepia-mid)', marginBottom: 4 }}>{t('user.modalSubjectIdentification')}</div>
-              <div style={{ fontSize: 16, fontWeight: 700, fontFamily: 'var(--font-display)' }}>{selectedUser.username}</div>
-              <div style={{ fontSize: 13, color: 'var(--color-archive-brown)', fontFamily: 'var(--font-mono)', marginTop: 4 }}>{selectedUser.email}</div>
+            <div style={{ padding: '20px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px' }}>
+              <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-text-3)', marginBottom: 4 }}>{t('user.modalSubjectIdentification')}</div>
+              <div style={{ fontSize: 16, fontWeight: 700, fontFamily: 'var(--font-body)' }}>{selectedUser.username}</div>
+              <div style={{ fontSize: 13, color: 'var(--color-text-2)', fontFamily: 'var(--font-mono)', marginTop: 4 }}>{selectedUser.email}</div>
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8, color: 'var(--color-ink)' }}>{t('user.modalAssignmentLevel')}</label>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8, color: 'var(--color-text)' }}>{t('user.modalAssignmentLevel')}</label>
               <select
                 value={editRole}
                 onChange={(e) => setEditRole(e.target.value)}
-                style={{ ...filterStyle, width: '100%', borderRadius: '2px', border: '1px solid var(--color-ink)' }}
+                style={{ ...filterStyle, width: '100%', borderRadius: '6px', border: '1px solid var(--color-border)' }}
               >
                 <option value="admin">{t('user.optionAdmin')}</option>
                 <option value="editor">{t('user.optionEditor')}</option>
@@ -160,7 +160,7 @@ export default function UserPage() {
                 <option value="auditor">{t('user.optionAuditor')}</option>
               </select>
             </div>
-            <div style={{ fontSize: 12, lineHeight: 1.6, color: 'var(--color-danger)', padding: '12px 16px', background: 'var(--color-danger-light)', border: '1px solid var(--color-danger)20' }}>
+            <div style={{ fontSize: 12, lineHeight: 1.6, color: 'var(--color-danger)', padding: '12px 16px', background: 'var(--color-error-bg)', border: '1px solid var(--color-danger)20' }}>
               <strong>{t('user.roleNotice')}</strong>
             </div>
           </div>
@@ -199,7 +199,7 @@ export default function UserPage() {
                 ? t('user.suspendConfirm', { username: statusConfirm.username })
                 : t('user.restoreConfirm', { username: statusConfirm.username })}
             </p>
-            <div style={{ fontSize: 12, color: 'var(--color-sepia-mid)', padding: '12px', background: 'var(--color-aged-stock)', fontFamily: 'var(--font-mono)' }}>
+            <div style={{ fontSize: 12, color: 'var(--color-text-3)', padding: '12px', background: 'var(--color-elevated)', fontFamily: 'var(--font-mono)' }}>
               {t('user.identificationLabel')} {statusConfirm.email}
             </div>
           </div>
@@ -211,10 +211,11 @@ export default function UserPage() {
 
 const filterStyle: React.CSSProperties = {
   padding: '10px 16px',
-  border: '1px solid var(--color-ink)',
-  borderRadius: '2px',
+  border: '1px solid var(--color-border)',
+  borderRadius: '6px',
   fontSize: '13px',
-  background: 'var(--color-paper)',
+  background: 'var(--color-surface)',
+  color: 'var(--color-text)',
   outline: 'none',
   fontFamily: 'var(--font-mono)',
   minWidth: '280px'

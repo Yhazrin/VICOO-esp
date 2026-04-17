@@ -76,7 +76,7 @@ export default function OrderPage() {
   return (
     <div>
       <div style={{ marginBottom: 20 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>{t('order.title')}</h1>
+        <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 4, fontFamily: 'var(--font-body)' }}>{t('order.title')}</h1>
         <p style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>{t('order.description')}</p>
       </div>
 
@@ -118,7 +118,7 @@ export default function OrderPage() {
               {selectedOrder.items.map((item, i) => (
                 <div key={i} style={{
                   display: 'flex', justifyContent: 'space-between', padding: '8px 0',
-                  borderBottom: '1px solid var(--color-border-light)',
+                  borderBottom: '1px solid var(--color-border)',
                 }}>
                   <span style={{ fontSize: 13 }}>{item.productName} x{item.quantity}</span>
                   <span style={{ fontSize: 13, fontWeight: 500 }}>\u00a5{item.price * item.quantity}</span>
@@ -143,6 +143,6 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
 
 const filterStyle: React.CSSProperties = {
   padding: '8px 12px', border: '1px solid var(--color-border)',
-  borderRadius: 'var(--radius-sm)', fontSize: 13,
-  background: 'var(--color-bg-card)', outline: 'none',
+  borderRadius: '6px', fontSize: 13,
+  background: 'var(--color-surface)', outline: 'none',
 };

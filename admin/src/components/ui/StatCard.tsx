@@ -10,11 +10,11 @@ interface StatCardProps {
 }
 
 const colorMap = {
-  accent: { bg: 'var(--color-accent-light)', icon: 'var(--color-accent)' },
-  success: { bg: 'var(--color-success-light)', icon: 'var(--color-success)' },
-  warning: { bg: 'var(--color-warning-light)', icon: 'var(--color-warning)' },
-  danger: { bg: 'var(--color-danger-light)', icon: 'var(--color-danger)' },
-  info: { bg: 'var(--color-info-light)', icon: 'var(--color-info)' },
+  accent: { bg: 'rgba(255,255,255,0.06)', icon: 'var(--color-text-2)' },
+  success: { bg: 'var(--color-success-bg)', icon: 'var(--color-success)' },
+  warning: { bg: 'var(--color-warning-bg)', icon: 'var(--color-warning)' },
+  danger: { bg: 'var(--color-error-bg)', icon: 'var(--color-error)' },
+  info: { bg: 'var(--color-info-bg)', icon: 'var(--color-info)' },
 };
 
 export default function StatCard({ title, value, subtitle, icon, trend, color = 'accent' }: StatCardProps) {
@@ -22,18 +22,18 @@ export default function StatCard({ title, value, subtitle, icon, trend, color = 
 
   return (
     <div style={{
-      background: 'var(--color-bg-card)',
+      background: 'var(--color-surface)',
       border: '1px solid var(--color-border)',
-      borderRadius: 'var(--radius-md)',
-      padding: '24px',
+      borderRadius: '8px',
+      padding: '20px',
       display: 'flex',
       flexDirection: 'column',
-      gap: '16px',
+      gap: '14px',
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div style={{
-          width: 48, height: 48,
-          borderRadius: 'var(--radius-md)',
+          width: 40, height: 40,
+          borderRadius: '8px',
           background: c.bg,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           color: c.icon,
@@ -42,23 +42,23 @@ export default function StatCard({ title, value, subtitle, icon, trend, color = 
         </div>
         {trend && (
           <span style={{
-            fontSize: 12, fontWeight: 600,
-            color: trend.isUp ? 'var(--color-success)' : 'var(--color-danger)',
+            fontSize: 11, fontWeight: 500, fontFamily: 'var(--font-mono)',
+            color: trend.isUp ? 'var(--color-success)' : 'var(--color-error)',
             display: 'flex', alignItems: 'center', gap: 2,
           }}>
-            {trend.isUp ? '\u2191' : '\u2193'} {trend.value}%
+            {trend.isUp ? '+' : ''}{trend.value}%
           </span>
         )}
       </div>
       <div>
-        <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--color-ink)', lineHeight: 1.2 }}>
+        <div style={{ fontSize: 26, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.2, fontFamily: 'var(--font-mono)' }}>
           {typeof value === 'number' ? value.toLocaleString() : value}
         </div>
-        <div style={{ fontSize: 13, color: 'var(--color-ink-faded)', marginTop: 4 }}>
+        <div style={{ fontSize: 12, color: 'var(--color-text-3)', marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
           {title}
         </div>
         {subtitle && (
-          <div style={{ fontSize: 12, color: 'var(--color-ink-light)', marginTop: 2 }}>
+          <div style={{ fontSize: 11, color: 'var(--color-text-3)', marginTop: 2, fontFamily: 'var(--font-mono)' }}>
             {subtitle}
           </div>
         )}

@@ -6,9 +6,8 @@ import KeyedRouteContent from '../transitions/KeyedRouteContent';
 import GrainOverlay from '../animations/GrainOverlay';
 import { AIAssistantBall } from './AIAssistantBall';
 import { useUIStore } from '@/stores/uiStore';
+import Home from '@/pages/Home';
 import Campaigns from '@/pages/Campaigns';
-import Vote from '@/pages/Vote';
-import Traceability from '@/pages/Traceability';
 import Donate from '@/pages/Donate';
 import ImpactShop from '@/pages/ImpactShop';
 import ClothingRecycle from '@/pages/ClothingRecycle';
@@ -17,13 +16,12 @@ function ImpactContent() {
   const { activeImpactTab } = useUIStore();
 
   switch (activeImpactTab) {
+    case 'home': return <Home />;
     case 'campaigns': return <Campaigns />;
-    case 'vote': return <Vote />;
-    case 'traceability': return <Traceability />;
     case 'donate': return <Donate />;
     case 'shop': return <ImpactShop />;
     case 'clothing-recycle': return <ClothingRecycle />;
-    default: return <Campaigns />;
+    default: return <Home />;
   }
 }
 

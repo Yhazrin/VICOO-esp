@@ -10,19 +10,17 @@ import { useRef, useEffect, useState } from 'react';
 const COMPANY_NAV = [
   { key: 'home', path: '/' },
   { key: 'shop', path: '/shop' },
-  { key: 'stories', path: '/stories' },
   { key: 'about', path: '/about' },
   { key: 'contact', path: '/contact' },
 ];
 
 // ── Impact tabs ──
 const IMPACT_TABS = [
-  { key: 'campaigns', path: '/campaigns' },
-  { key: 'vote', path: '/vote' },
-  { key: 'traceability', path: '/traceability' },
-  { key: 'clothing-recycle', path: '/clothing-recycle' },
-  { key: 'donate', path: '/donate' },
-  { key: 'shop', path: '/shop' },
+  { key: 'home' },
+  { key: 'campaigns' },
+  { key: 'donate' },
+  { key: 'clothing-recycle' },
+  { key: 'shop' },
 ];
 
 export default function MobileNav() {
@@ -159,7 +157,7 @@ export default function MobileNav() {
                 </p>
                 {impactMode
                   ? IMPACT_TABS.map((tab, index) =>
-                      renderNavItem(tab.key, t(`nav.${tab.key}`), index, activeImpactTab === tab.key, () => { setActiveImpactTab(tab.key); navigate(tab.path); setMobileNavOpen(false); })
+                      renderNavItem(tab.key, t(`nav.${tab.key}`), index, activeImpactTab === tab.key, () => { setActiveImpactTab(tab.key); setMobileNavOpen(false); })
                     )
                   : COMPANY_NAV.map((item, index) =>
                       renderNavItem(item.key, t(`nav.${item.key}`), index, location.pathname === item.path, () => setMobileNavOpen(false), item.path)
@@ -181,7 +179,7 @@ export default function MobileNav() {
                 {String(IMPACT_TABS.length + 1).padStart(2, '0')}
               </span>
               <span className="font-display text-h2 md:text-h1">
-                {impactMode ? t('nav.home') : t('nav.impact', '公益')}
+                {impactMode ? t('nav.home', 'Home') : t('nav.impact', 'Impact')}
               </span>
             </button>
           </nav>

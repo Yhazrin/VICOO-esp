@@ -7,24 +7,25 @@ import { useCartStore, selectTotalItems } from '@/stores/cartStore';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { useRef, useEffect, useState, useCallback } from 'react';
+import UniqloLogo from './UniqloLogo';
 
-// ── Company nav: normal brand services ──
+// ── Company nav: UNIQLO portal ──
 const COMPANY_NAV = [
   { key: 'home', path: '/' },
   { key: 'shop', path: '/shop' },
-  { key: 'stories', path: '/stories' },
   { key: 'about', path: '/about' },
   { key: 'contact', path: '/contact' },
 ];
 
-// ── Impact nav tabs ──
+// ── Impact nav tabs (all public-welfare pages live here) ──
+// Impact tabs don't use routing — they switch inline content via activeImpactTab.
+// path is kept as '/' so URL stays clean.
 const IMPACT_TABS = [
-  { key: 'campaigns', path: '/campaigns' },
-  { key: 'vote', path: '/vote' },
-  { key: 'traceability', path: '/traceability' },
-  { key: 'clothing-recycle', path: '/clothing-recycle' },
-  { key: 'donate', path: '/donate' },
-  { key: 'shop', path: '/shop' },
+  { key: 'home' },
+  { key: 'campaigns' },
+  { key: 'donate' },
+  { key: 'clothing-recycle' },
+  { key: 'shop' },
 ];
 
 // ── PillWindow: capsule "window" with a horizontal sliding rail ──
@@ -39,13 +40,11 @@ function PillWindow({
   activeImpactTab,
   setActiveImpactTab,
   locationPathname,
-  navigate,
 }: {
   impactMode: boolean;
   activeImpactTab: string;
   setActiveImpactTab: (tab: string) => void;
   locationPathname: string;
-  navigate: (path: string) => void;
 }) {
   const { t } = useTranslation();
 
@@ -116,7 +115,7 @@ function PillWindow({
             return (
               <button
                 key={tab.key}
-                onClick={() => { setActiveImpactTab(tab.key); navigate(tab.path); }}
+                onClick={() => { setActiveImpactTab(tab.key); }}
                 className={`
                   font-body text-label tracking-wide px-3 py-1 rounded-full transition-all duration-200 cursor-pointer whitespace-nowrap
                   ${isActive ? 'text-ink font-medium bg-rust/15' : 'text-ink-faded hover:text-ink'}
@@ -172,21 +171,18 @@ export default function Header() {
     setMenuTriggerRef(menuTriggerRef);
   }, [setMenuTriggerRef]);
 
-  // Auto-activate impact mode on exact impact routes; disable for detail sub-routes
+  // When navigating to a company route (other than the root "/"), exit impact mode.
+  // "/" is the shared landing page for both modes — don't auto-deactivate there.
   useEffect(() => {
-    const exactTab = IMPACT_TABS.find((tab) => location.pathname === tab.path);
-    if (exactTab) {
-      setImpactMode(true);
-      setActiveImpactTab(exactTab.key);
-    } else {
-      // On detail sub-routes (e.g. /campaigns/:id), disable impact mode
-      // so the Outlet renders the detail page instead of the impact list view
-      const prefixTab = IMPACT_TABS.find((tab) => location.pathname.startsWith(tab.path + '/'));
-      if (prefixTab) {
-        setImpactMode(false);
-      }
+    if (!impactMode) return;
+    const nonRootCompanyPaths = COMPANY_NAV.filter((n) => n.path !== '/').map((n) => n.path);
+    const isCompanyRoute = nonRootCompanyPaths.some(
+      (p) => location.pathname === p || location.pathname.startsWith(p + '/')
+    );
+    if (isCompanyRoute) {
+      setImpactMode(false);
     }
-  }, [location.pathname, setImpactMode, setActiveImpactTab]);
+  }, [location.pathname]);
 
   // Close user menu when clicking outside
   useEffect(() => {
@@ -246,6 +242,7 @@ export default function Header() {
   const handleImpactToggle = () => {
     if (impactMode) {
       setImpactMode(false);
+      navigate('/');
     } else {
       setImpactMode(true);
       setActiveImpactTab('campaigns');
@@ -258,13 +255,32 @@ export default function Header() {
         {/* Logo */}
         <Link
           to="/"
-          className="font-display text-ink text-lg md:text-xl font-medium tracking-wide cursor-pointer"
+          className="flex items-center cursor-pointer"
           onClick={() => {
             setMobileNavOpen(false);
             setImpactMode(false);
           }}
         >
-          VICOO
+          <motion.div
+            animate={{ x: impactMode ? -6 : 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+          >
+            <UniqloLogo />
+          </motion.div>
+          <AnimatePresence mode="wait">
+            {impactMode && (
+              <motion.span
+                key="vicoo-badge"
+                initial={{ opacity: 0, x: -12, filter: 'blur(4px)' }}
+                animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, x: -12, filter: 'blur(4px)' }}
+                transition={{ type: 'spring', stiffness: 350, damping: 25, delay: 0.05 }}
+                className="font-display text-ink text-sm md:text-base font-medium tracking-wide whitespace-nowrap select-none"
+              >
+                × VICOO
+              </motion.span>
+            )}
+          </AnimatePresence>
         </Link>
 
         {/* Right side: pill groups + controls */}
@@ -278,7 +294,6 @@ export default function Header() {
                 activeImpactTab={activeImpactTab}
                 setActiveImpactTab={setActiveImpactTab}
                 locationPathname={location.pathname}
-                navigate={navigate}
               />
 
               {/* Impact toggle button */}
@@ -292,7 +307,7 @@ export default function Header() {
                   }
                 `}
               >
-                {t('nav.impact', '公益')}
+                {impactMode ? t('nav.home', 'Home') : t('nav.impact', 'Impact')}
               </button>
             </nav>
           )}
@@ -302,32 +317,33 @@ export default function Header() {
             <div className="relative flex items-center">
               <AnimatePresence>
                 {searchOpen && (
-                  <motion.form
+                  <motion.div
                     initial={{ width: 0, opacity: 0 }}
                     animate={{ width: 200, opacity: 1 }}
                     exit={{ width: 0, opacity: 0 }}
                     transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
-                    onSubmit={handleSearch}
                     className="absolute right-full mr-2 overflow-hidden"
                   >
-                    <input
-                      ref={searchInputRef}
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder={t('search.placeholder', 'Search products...')}
-                      className="w-full px-4 py-1.5 rounded-full bg-white/90 backdrop-blur-xl shadow-sm font-body text-sm text-ink placeholder:text-warm-gray/60 focus:outline-none focus:ring-1 focus:ring-rust/30"
-                      onBlur={() => {
-                        if (!searchQuery) setSearchOpen(false);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Escape') {
-                          setSearchOpen(false);
-                          setSearchQuery('');
-                        }
-                      }}
-                    />
-                  </motion.form>
+                    <form onSubmit={handleSearch} className="w-[200px]">
+                      <input
+                        ref={searchInputRef}
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder={t('search.placeholder', 'Search products...')}
+                        className="w-full px-4 py-1.5 rounded-full bg-white/90 backdrop-blur-xl shadow-sm font-body text-sm text-ink placeholder:text-warm-gray/60 focus:outline-none focus:ring-1 focus:ring-rust/30"
+                        onBlur={() => {
+                          if (!searchQuery) setSearchOpen(false);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Escape') {
+                            setSearchOpen(false);
+                            setSearchQuery('');
+                          }
+                        }}
+                      />
+                    </form>
+                  </motion.div>
                 )}
               </AnimatePresence>
               <button
