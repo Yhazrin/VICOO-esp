@@ -184,7 +184,7 @@ async def list_orders(
     order_service = OrderService(db)
     try:
         # Check if user is admin
-        user_id_filter = current_user["id"] if current_user.get("role") != "admin" else None
+        current_user["id"] if current_user.get("role") != "admin" else None
         
         # Note: list_orders in service currently only supports user_id. 
         # For simplicity in this first refactor pass, we use it for owners.

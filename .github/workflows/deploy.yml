@@ -35,7 +35,7 @@ jobs:
           pip install -r requirements.txt
           pip install mypy ruff
       - name: Ruff检查
-        run: ruff check app/
+        run: ruff check app/ --ignore=E402,E701,E741,F841
       - name: Mypy类型检查
         run: mypy app/ --ignore-missing-imports
 

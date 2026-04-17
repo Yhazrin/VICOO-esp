@@ -138,7 +138,7 @@ async def alipay_notify(request: Request, db: AsyncSession = Depends(get_db)):
             return PlainTextResponse("failure")
 
         # Filter out sign and sign_type, sort remaining params
-        sign_type = params.get("sign_type", "RSA2")
+        params.get("sign_type", "RSA2")
         filtered = {k: v for k, v in params.items() if k not in ("sign", "sign_type")}
 
         # Filter out empty values (Alipay spec)
