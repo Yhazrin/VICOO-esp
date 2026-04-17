@@ -202,8 +202,8 @@ jobs:
       - name: 构建并推送Frontend镜像
         uses: docker/build-push-action@v5
         with:
-          context: frontend/web-react
-          file: ../../deploy/easy/frontend.dockerfile
+          context: .
+          dockerfile: deploy/easy/frontend.dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -247,11 +247,13 @@ jobs:
       - name: 构建并推送Admin镜像
         uses: docker/build-push-action@v5
         with:
-          context: admin
-          file: ../deploy/easy/admin.dockerfile
+          context: .
+          dockerfile: deploy/easy/admin.dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VITE_API_BASE_URL=/api/v1
 
   # ==================== 部署到Staging ====================
   deploy-staging:
