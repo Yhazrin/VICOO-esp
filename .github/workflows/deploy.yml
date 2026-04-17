@@ -117,7 +117,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: .deploy/easy/backend.dockerfile
+          file: ./deploy/easy/backend.dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -203,7 +203,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: .deploy/easy/frontend.dockerfile
+          file: ./deploy/easy/frontend.dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -248,7 +248,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: .deploy/easy/admin.dockerfile
+          file: ./deploy/easy/admin.dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
