@@ -1,9 +1,7 @@
 import logging
 import time
-import re
 import math
 from contextlib import asynccontextmanager
-from typing import Optional
 from decimal import Decimal
 
 from fastapi import FastAPI, Request, HTTPException
@@ -13,7 +11,7 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 
 from app.config import settings
-from app.database import engine, Base, AsyncSessionLocal
+from app.database import engine, AsyncSessionLocal
 from app.deps import rate_limit_check, get_current_user_from_request
 
 # Maximum allowed request body size (10 MB)

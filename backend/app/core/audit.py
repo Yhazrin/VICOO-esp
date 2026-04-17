@@ -1,10 +1,9 @@
 import functools
 import logging
 import asyncio
-from typing import Any, Callable, Optional
+from typing import Callable, Optional
 from datetime import datetime, timezone
 
-from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.audit import AuditLog
 

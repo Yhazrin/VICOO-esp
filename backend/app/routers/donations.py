@@ -1,14 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select, func, update
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
-from decimal import Decimal
-from datetime import datetime
 import logging
 
 from app.database import get_db
 from app.config import settings
 from app.models.donation import Donation
-from app.models.campaign import Campaign
 from app.schemas import ApiResponse, DonationCreate, DonationOut, PaginatedResponse
 from app.deps import get_current_user, get_optional_current_user
 from app.services.payment_service import get_payment_service

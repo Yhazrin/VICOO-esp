@@ -6,7 +6,6 @@ from datetime import datetime
 
 from fastapi import HTTPException
 from sqlalchemy import select, func, update
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.order import Order, OrderItem
 from app.models.product import Product

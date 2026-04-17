@@ -3,7 +3,6 @@ from typing import Optional, List, Dict, Any, Tuple
 
 from fastapi import HTTPException
 from sqlalchemy import select, func, update
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.artwork import Artwork
 from app.models.user import ChildParticipant

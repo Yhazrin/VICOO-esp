@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
-from decimal import Decimal
 import logging
 
 from app.config import settings
@@ -9,7 +8,7 @@ from app.database import get_db
 from app.models.product import Product
 from app.models.supply_chain import SupplyChainRecord
 from app.schemas import ApiResponse, PaginatedResponse, ProductCreate, ProductOut, ProductUpdate, SupplyChainRecordOut
-from app.deps import require_role, get_current_user
+from app.deps import require_role
 
 router = APIRouter(prefix="/products", tags=["Products"])
 

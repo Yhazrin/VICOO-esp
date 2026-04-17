@@ -5,7 +5,6 @@ from datetime import datetime
 
 from fastapi import HTTPException
 from sqlalchemy import select, func, update
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.donation import Donation
 from app.models.campaign import Campaign

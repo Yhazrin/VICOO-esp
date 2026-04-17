@@ -5,7 +5,7 @@ from app.schemas.common import (
     ApiResponse,
     AuditLogOut,
     DashboardMetrics,
-    ForgotPasswordRequest,
+    ForgotPasswordRequest,  # noqa: F401
     LoginRequest,
     PaginatedResponse,
     RefreshRequest,

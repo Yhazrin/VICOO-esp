@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 
 class SettingsOut(BaseModel):

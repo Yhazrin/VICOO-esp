@@ -1,15 +1,14 @@
 import logging
-from typing import Optional, List, Dict, Any
+from typing import Dict, Any
 from datetime import datetime, timezone
 
 from fastapi import HTTPException
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import ChildParticipant
 from app.services.base import BaseService
 from app.core.audit import audit_action
-from app.utils.masking import mask_name, mask_phone, mask_email
+from app.utils.masking import mask_name, mask_phone
 
 logger = logging.getLogger("tonghua.child_service")
 

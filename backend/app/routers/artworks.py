@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, 
 from sqlalchemy import select, func, update
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime
 import secrets
 import logging
 
@@ -10,7 +9,7 @@ from app.config import settings
 from app.database import get_db
 from app.models.artwork import Artwork
 from app.models.user import ChildParticipant
-from app.schemas import ApiResponse, ArtworkCreate, ArtworkOut, ArtworkUpdate, ArtworkStatusUpdate, PaginatedResponse
+from app.schemas import ApiResponse, ArtworkOut, ArtworkUpdate, ArtworkStatusUpdate, PaginatedResponse
 from app.schemas.artwork import ChildParticipantForArtwork
 from app.deps import require_role, get_current_user, get_redis_client
 

@@ -1,7 +1,6 @@
 import logging
-from typing import List, Dict, Any, Optional
-from sqlalchemy import select, func
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import List, Dict, Any
+from sqlalchemy import select
 
 from app.models.supply_chain import SupplyChainRecord
 from app.services.base import BaseService

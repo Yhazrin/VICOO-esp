@@ -1,13 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 import logging
 
 from app.database import get_db
-from app.models.user import User
 from app.schemas import ApiResponse, PaginatedResponse, UserOut, UserUpdate, UserRoleUpdate, UserStatusUpdate
 from app.deps import get_current_user, require_role
-from app.security import aes_encrypt, hash_password
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
