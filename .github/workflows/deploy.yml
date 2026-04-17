@@ -121,8 +121,6 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
   # ==================== Frontend ====================
   frontend-lint:
@@ -198,7 +196,7 @@ jobs:
         run: |
           cd frontend/web-react
           npm ci
-          npm run build
+          npx vite build
       - name: 复制Nginx配置
         run: cp deploy/easy/nginx.conf frontend/web-react/nginx.conf
       - name: 构建并推送Frontend镜像
@@ -209,8 +207,6 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
   # ==================== Admin Dashboard ====================
   admin-build:
@@ -247,7 +243,7 @@ jobs:
         run: |
           cd admin
           npm ci
-          npm run build
+          npx vite build
       - name: 构建并推送Admin镜像
         uses: docker/build-push-action@v5
         with:
@@ -256,8 +252,6 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
   # ==================== 部署到Staging ====================
   deploy-staging:
