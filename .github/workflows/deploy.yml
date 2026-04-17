@@ -95,7 +95,7 @@ jobs:
           APP_SECRET_KEY: test-secret-key-for-ci
         run: pytest tests/ -v --tb=short --ignore=tests/security-tests || true
 
-    backend-build:
+  backend-build:
     name: Backend - Docker镜像构建
     runs-on: ubuntu-latest
     needs: backend-lint
@@ -177,7 +177,7 @@ jobs:
       - name: 运行测试
         run: npm test -- --passWithNoTests --watchAll=false || true
 
-    frontend-build:
+  frontend-build:
     name: Frontend - 构建Docker镜像
     runs-on: ubuntu-latest
     needs: frontend-lint
