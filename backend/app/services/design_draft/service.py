@@ -2,7 +2,6 @@ import logging
 from typing import Optional
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 
 from app.models.design_draft import DesignDraft

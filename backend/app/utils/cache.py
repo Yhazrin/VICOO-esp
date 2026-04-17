@@ -1,6 +1,6 @@
 import functools
 import logging
-from typing import Any, Callable, Optional, Union
+from typing import Callable, Optional
 
 from app.config import settings
 

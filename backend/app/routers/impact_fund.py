@@ -7,7 +7,7 @@ from app.models.order import Order
 from app.schemas import ApiResponse
 from app.schemas.impact_fund import ImpactFundEntryOut
 from app.services.impact_fund.service import ImpactFundService
-from app.deps import get_current_user, require_role
+from app.deps import get_current_user
 
 router = APIRouter(prefix="/impact-fund", tags=["Impact Fund"])
 
