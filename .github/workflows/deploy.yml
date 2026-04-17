@@ -190,6 +190,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: 构建Frontend
         run: |
+          cd frontend/web-react
           npm ci
           npm run build
       - name: 复制Nginx配置
@@ -198,7 +199,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: frontend/web-react
-          file: ../../deploy/easy/frontend.dockerfile
+          file: deploy/easy/frontend.dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -232,12 +233,14 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: 构建Admin
         run: |
-          cd admin && npm ci && npm run build
+          cd admin
+          npm ci
+          npm run build
       - name: 构建并推送Admin镜像
         uses: docker/build-push-action@v5
         with:
           context: admin
-          file: ../deploy/easy/admin.dockerfile
+          file: deploy/easy/admin.dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
