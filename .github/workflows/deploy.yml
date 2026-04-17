@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [main]
 
+# 🟢 【关键修复】给 GITHUB_TOKEN 写权限
+permissions:
+  contents: read
+  packages: write
+  attestations: write
+
 env:
   REGISTRY: ghcr.io
   IMAGE_PREFIX: ${{ github.repository_owner }}/vicoo
@@ -37,7 +43,7 @@ jobs:
       - name: Ruff检查
         run: ruff check app/ --fix --ignore=E402,E701,E741,F841,F401,F821
       - name: Mypy类型检查
-        run: mypy app/ --ignore-missing-imports || true  # 类型检查暂不强制
+        run: mypy app/ --ignore-missing-imports || true
 
   backend-test:
     name: Backend - 单元测试
@@ -87,7 +93,7 @@ jobs:
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
           CHILD_DATA_ENCRYPTION_KEY: ${{ secrets.CHILD_DATA_ENCRYPTION_KEY }}
           APP_SECRET_KEY: test-secret-key-for-ci
-        run: pytest tests/ -v --tb=short --ignore=tests/security-tests || true  # 测试暂不强制
+        run: pytest tests/ -v --tb=short --ignore=tests/security-tests || true
 
   backend-build:
     name: Backend - Docker镜像构建
@@ -102,7 +108,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/backend
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/backend
           tags: |
             type=sha,prefix=,suffix=,format=short
             type=ref,event=branch
@@ -160,7 +166,7 @@ jobs:
       - name: 安装依赖
         run: npm ci
       - name: 运行测试
-        run: npm test -- --passWithNoTests --watchAll=false || true  # 测试暂不强制
+        run: npm test -- --passWithNoTests --watchAll=false || true
 
   frontend-build:
     name: Frontend - 构建Docker镜像
@@ -175,7 +181,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/frontend
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/frontend
           tags: |
             type=sha,prefix=,suffix=,format=short
             type=ref,event=branch
@@ -222,7 +228,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/admin
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/admin
           tags: |
             type=sha,prefix=,suffix=,format=short
             type=ref,event=branch
@@ -274,9 +280,6 @@ jobs:
 
       - name: 添加跳板机SSH密钥
         env:
-          JUMP_HOST: ${{ secrets.JUMP_HOST }}
-          JUMP_PORT: ${{ secrets.JUMP_PORT }}
-          VM_HOST: ${{ secrets.VM_HOST }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           cat << 'EOF' > ~/.ssh/config
@@ -295,7 +298,7 @@ jobs:
           EOF
           chmod 600 ~/.ssh/config
 
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          echo "${SSH_PRIVATE_KEY}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
 
       - name: 检查远程服务器状态
@@ -309,7 +312,7 @@ jobs:
         run: |
           ssh vm "
             if [ ! -d /home/student/vicoo/.git ]; then
-              git clone https://github.com/{{ github.repository }}.git /home/student/vicoo
+              git clone https://github.com/${{ github.repository }}.git /home/student/vicoo
             fi
           "
 
@@ -392,7 +395,7 @@ jobs:
           EOF
           chmod 600 ~/.ssh/config
 
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          echo "${SSH_PRIVATE_KEY}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
 
       - name: 执行生产部署
