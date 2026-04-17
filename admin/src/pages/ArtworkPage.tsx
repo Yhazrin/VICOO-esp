@@ -65,7 +65,7 @@ export default function ArtworkPage() {
 
   const columns: Column<Artwork>[] = [
     { key: 'id', title: t('artwork.colArchiveId'), width: 120, render: (v) => <code style={{ fontFamily: 'var(--font-mono)', fontSize: '11px' }}>{v}</code> },
-    { key: 'title', title: t('artwork.colWorkTitle'), minWidth: 180, sorter: true, render: (v) => <span style={{ fontWeight: 600, fontFamily: 'var(--font-display)' }}>{v}</span> },
+    { key: 'title', title: t('artwork.colWorkTitle'), minWidth: 180, sorter: true, render: (v) => <span style={{ fontWeight: 600, fontFamily: 'var(--font-body)' }}>{v}</span> },
     { key: 'childName', title: t('artwork.colArtist'), width: 120 },
     { key: 'category', title: t('artwork.colMedium'), width: 120 },
     { key: 'votes', title: t('artwork.colImpact'), width: 100, sorter: true, render: (v) => <span style={{ fontFamily: 'var(--font-mono)' }}>{v} pts</span> },
@@ -91,8 +91,8 @@ export default function ArtworkPage() {
   return (
     <div>
       <div style={{ marginBottom: 40 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8, fontFamily: 'var(--font-serif)' }}>{t('artwork.title')}</h1>
-        <p style={{ fontSize: 14, color: 'var(--color-sepia-mid)', maxWidth: '600px', lineHeight: 1.6 }}>
+        <h1 style={{ fontSize: 28, fontWeight: 600, marginBottom: 8, fontFamily: 'var(--font-body)' }}>{t('artwork.title')}</h1>
+        <p style={{ fontSize: 14, color: 'var(--color-text-2)', maxWidth: '600px', lineHeight: 1.6 }}>
           {t('artwork.description')}
         </p>
       </div>
@@ -172,47 +172,47 @@ export default function ArtworkPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             <div style={{
               width: '100%', height: 320,
-              background: 'var(--color-aged-stock)',
+              background: 'var(--color-surface)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              overflow: 'hidden', border: '1px solid var(--color-ink)',
-              boxShadow: 'inset 0 0 40px rgba(0,0,0,0.05)'
+              overflow: 'hidden', border: '1px solid var(--color-border)',
+              borderRadius: '8px'
             }}>
               {selectedArtwork.imageUrl ? (
-                <img src={selectedArtwork.imageUrl} alt={selectedArtwork.title} style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'sepia(0.1)' }} />
+                <img src={selectedArtwork.imageUrl} alt={selectedArtwork.title} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               ) : (
-                <div style={{ fontStyle: 'italic', color: 'var(--color-sepia-mid)' }}>{t('artwork.assetNotFound')}</div>
+                <div style={{ fontStyle: 'italic', color: 'var(--color-text-2)' }}>{t('artwork.assetNotFound')}</div>
               )}
             </div>
 
             {aiResult && (
               <div style={{
                 padding: '24px',
-                background: 'var(--color-paper)',
-                border: '1px solid var(--color-rust)',
+                background: 'var(--color-surface)',
+                border: '1px solid var(--color-accent-2)',
                 position: 'relative'
               }}>
                 <div style={{
                   position: 'absolute', top: '-10px', left: '20px',
-                  background: 'var(--color-rust)', color: 'white',
+                  background: 'var(--color-accent-2)', color: 'white',
                   fontSize: '9px', padding: '2px 8px', textTransform: 'uppercase',
                   letterSpacing: '0.1em'
                 }}>
                   {t('artwork.aiEditorialInsights')}
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16, borderBottom: '1px solid var(--color-rust)40', paddingBottom: 8 }}>
-                  <span style={{ fontSize: '11px', color: 'var(--color-sepia-mid)' }}>{t('artwork.aiSafetyRating')} <strong style={{ color: 'var(--color-success)' }}>{aiResult.safety_rating.toUpperCase()}</strong></span>
-                  <span style={{ fontSize: '11px', color: 'var(--color-sepia-mid)' }}>{t('artwork.aiProtocol')} v1.0.4</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16, borderBottom: '1px solid var(--color-accent-2)40', paddingBottom: 8 }}>
+                  <span style={{ fontSize: '11px', color: 'var(--color-text-2)' }}>{t('artwork.aiSafetyRating')} <strong style={{ color: 'var(--color-success)' }}>{aiResult.safety_rating.toUpperCase()}</strong></span>
+                  <span style={{ fontSize: '11px', color: 'var(--color-text-2)' }}>{t('artwork.aiProtocol')} v1.0.4</span>
                 </div>
-                <h3 style={{ fontSize: 20, marginBottom: 12, fontStyle: 'italic', color: 'var(--color-ink)' }}>{aiResult.suggested_title}</h3>
-                <p style={{ fontSize: 14, lineHeight: 1.7, marginBottom: 16, color: 'var(--color-ink-faded)' }}>{aiResult.style_description}</p>
+                <h3 style={{ fontSize: 20, marginBottom: 12, fontStyle: 'italic', color: 'var(--color-text)', fontFamily: 'var(--font-body)', fontWeight: 600 }}>{aiResult.suggested_title}</h3>
+                <p style={{ fontSize: 14, lineHeight: 1.7, marginBottom: 16, color: 'var(--color-text-2)' }}>{aiResult.style_description}</p>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   {aiResult.suggested_tags.map((tag: string) => (
                     <span key={tag} style={{
                       fontSize: '10px',
                       padding: '4px 10px',
-                      background: 'var(--color-aged-stock)',
-                      border: '1px solid var(--color-ink)20',
-                      color: 'var(--color-archive-brown)',
+                      background: 'var(--color-surface)',
+                      border: '1px solid var(--color-border)',
+                      color: 'var(--color-text-2)',
                       fontFamily: 'var(--font-mono)',
                       textTransform: 'uppercase'
                     }}>#{tag}</span>
@@ -230,9 +230,9 @@ export default function ArtworkPage() {
               <DetailRow label={t('artwork.detailSubmissionDate')} value={dayjs(selectedArtwork.createdAt).format('YYYY-MM-DD')} />
             </div>
 
-            <div style={{ borderTop: '1px solid var(--color-warm-gray)', paddingTop: 20 }}>
-              <div style={{ fontSize: 11, textTransform: 'uppercase', color: 'var(--color-sepia-mid)', marginBottom: 8, letterSpacing: '0.05em' }}>{t('artwork.detailNarrativeLabel')}</div>
-              <div style={{ fontSize: 14, lineHeight: 1.8, color: 'var(--color-ink)', fontStyle: 'italic', padding: '16px', background: 'var(--color-aged-stock)40', borderLeft: '3px solid var(--color-sepia-mid)' }}>
+            <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 20 }}>
+              <div style={{ fontSize: 11, textTransform: 'uppercase', color: 'var(--color-text-2)', marginBottom: 8, letterSpacing: '0.05em' }}>{t('artwork.detailNarrativeLabel')}</div>
+              <div style={{ fontSize: 14, lineHeight: 1.8, color: 'var(--color-text)', fontStyle: 'italic', padding: '16px', background: 'var(--color-surface)', borderLeft: '3px solid var(--color-text-2)' }}>
                 "{selectedArtwork.description}"
               </div>
             </div>
@@ -246,18 +246,18 @@ export default function ArtworkPage() {
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <span style={{ fontSize: 11, color: 'var(--color-sepia-mid)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
-      <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-ink)' }}>{value}</span>
+      <span style={{ fontSize: 11, color: 'var(--color-text-2)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
+      <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>{value}</span>
     </div>
   );
 }
 
 const filterStyle: React.CSSProperties = {
   padding: '10px 16px',
-  border: '1px solid var(--color-ink)',
-  borderRadius: '2px',
+  border: '1px solid var(--color-border)',
+  borderRadius: '6px',
   fontSize: '13px',
-  background: 'var(--color-paper)',
+  background: 'var(--color-surface)',
   outline: 'none',
   fontFamily: 'var(--font-mono)',
   minWidth: '240px'

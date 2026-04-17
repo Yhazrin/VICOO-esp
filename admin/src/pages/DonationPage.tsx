@@ -44,7 +44,7 @@ export default function DonationPage() {
     { key: 'id', title: t('donation.colLedgerId'), width: 120, render: (v) => <code style={{ fontFamily: 'var(--font-mono)', fontSize: '11px' }}>{v}</code> },
     { key: 'donorName', title: t('donation.colBenefactor'), minWidth: 150, render: (v) => <span style={{ fontWeight: 600 }}>{v}</span> },
     { key: 'amount', title: t('donation.colGrantAmount'), width: 140, sorter: true, render: (v, r) => (
-      <span style={{ fontWeight: 700, color: 'var(--color-ink)', fontFamily: 'var(--font-display)', fontSize: '15px' }}>
+      <span style={{ fontWeight: 700, color: 'var(--color-text)', fontFamily: 'var(--font-body)', fontSize: '15px' }}>
         {r.currency === 'CNY' ? '\u00a5' : '$'}{v.toLocaleString()}
       </span>
     )},
@@ -73,8 +73,8 @@ export default function DonationPage() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 40 }}>
         <div>
-          <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8, fontFamily: 'var(--font-serif)' }}>{t('donation.title')}</h1>
-          <p style={{ fontSize: 14, color: 'var(--color-sepia-mid)', maxWidth: '600px', lineHeight: 1.6 }}>
+          <h1 style={{ fontSize: 28, fontWeight: 600, marginBottom: 8, fontFamily: 'var(--font-body)' }}>{t('donation.title')}</h1>
+          <p style={{ fontSize: 14, color: 'var(--color-text-2)', maxWidth: '600px', lineHeight: 1.6 }}>
             {t('donation.description')}
           </p>
         </div>
@@ -95,14 +95,13 @@ export default function DonationPage() {
         ].map((s) => (
           <div key={s.label} style={{
             padding: '24px',
-            background: 'var(--color-paper)',
-            border: '1px solid var(--color-ink)',
-            borderRadius: '2px',
-            boxShadow: '4px 4px 0px rgba(26, 26, 22, 0.05)'
+            background: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '8px'
           }}>
-            <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-sepia-mid)', marginBottom: 12 }}>{s.label}</div>
-            <div style={{ fontSize: 24, fontWeight: 700, fontFamily: 'var(--font-display)', color: 'var(--color-ink)' }}>{s.value}</div>
-            <div style={{ fontSize: 10, color: 'var(--color-archive-brown)', marginTop: 4 }}>{s.unit}</div>
+            <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-text-2)', marginBottom: 12 }}>{s.label}</div>
+            <div style={{ fontSize: 24, fontWeight: 700, fontFamily: 'var(--font-body)', color: 'var(--color-text)' }}>{s.value}</div>
+            <div style={{ fontSize: 10, color: 'var(--color-text-2)', marginTop: 4 }}>{s.unit}</div>
           </div>
         ))}
       </div>
@@ -140,10 +139,10 @@ export default function DonationPage() {
 
 const filterStyle: React.CSSProperties = {
   padding: '10px 16px',
-  border: '1px solid var(--color-ink)',
-  borderRadius: '2px',
+  border: '1px solid var(--color-border)',
+  borderRadius: '6px',
   fontSize: '13px',
-  background: 'var(--color-paper)',
+  background: 'var(--color-surface)',
   outline: 'none',
   fontFamily: 'var(--font-mono)',
   minWidth: '240px'

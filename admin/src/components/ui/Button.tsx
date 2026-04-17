@@ -9,39 +9,39 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variants = {
   primary: {
-    background: 'var(--color-ink)',
-    color: 'var(--color-paper)',
-    border: '1px solid var(--color-ink)',
-    hoverBg: 'var(--color-rust)',
-    hoverColor: 'white',
+    background: 'var(--color-accent)',
+    color: 'var(--color-bg)',
+    border: '1px solid var(--color-accent)',
+    hoverBg: 'var(--color-text-2)',
+    hoverColor: 'var(--color-bg)',
   },
   secondary: {
     background: 'transparent',
-    color: 'var(--color-ink)',
-    border: '1px solid var(--color-ink)',
-    hoverBg: 'var(--color-aged-stock)',
-    hoverColor: 'var(--color-ink)',
+    color: 'var(--color-text-2)',
+    border: '1px solid rgba(255,255,255,0.12)',
+    hoverBg: 'rgba(255,255,255,0.06)',
+    hoverColor: 'var(--color-text)',
   },
   danger: {
-    background: 'var(--color-danger)',
-    color: 'white',
-    border: '1px solid var(--color-danger)',
-    hoverBg: '#5a1515',
-    hoverColor: 'white',
+    background: 'rgba(239,68,68,0.15)',
+    color: '#EF4444',
+    border: '1px solid rgba(239,68,68,0.3)',
+    hoverBg: 'rgba(239,68,68,0.25)',
+    hoverColor: '#EF4444',
   },
   ghost: {
     background: 'transparent',
-    color: 'var(--color-sepia-mid)',
+    color: 'var(--color-text-3)',
     border: '1px solid transparent',
-    hoverBg: 'var(--color-aged-stock)',
-    hoverColor: 'var(--color-ink)',
+    hoverBg: 'rgba(255,255,255,0.06)',
+    hoverColor: 'var(--color-text-2)',
   },
 };
 
 const sizes = {
-  sm: { padding: '6px 12px', fontSize: '11px' },
-  md: { padding: '8px 16px', fontSize: '12px' },
-  lg: { padding: '12px 24px', fontSize: '13px' },
+  sm: { padding: '5px 10px', fontSize: '11px' },
+  md: { padding: '7px 14px', fontSize: '12px' },
+  lg: { padding: '9px 18px', fontSize: '13px' },
 };
 
 export default function Button({
@@ -61,28 +61,25 @@ export default function Button({
         background: hover ? v.hoverBg : v.background,
         color: hover ? v.hoverColor : v.color,
         border: v.border,
-        borderRadius: '2px', // Minimalist editorial style
-        fontWeight: 700,
-        textTransform: 'uppercase',
-        letterSpacing: '0.12em',
+        borderRadius: '6px',
+        fontWeight: 500,
+        letterSpacing: '0.02em',
         cursor: disabled || loading ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.4 : 1,
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 8,
-        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+        gap: 6,
+        transition: 'all 0.15s',
         whiteSpace: 'nowrap',
         fontFamily: 'var(--font-body)',
-        boxShadow: hover && !disabled ? '4px 4px 0px rgba(26, 26, 22, 0.1)' : 'none',
-        transform: hover && !disabled ? 'translate(-2px, -2px)' : 'none',
         ...style,
       }}
       {...rest}
     >
       {loading ? (
         <span style={{
-          width: 14, height: 14,
+          width: 12, height: 12,
           border: '2px solid currentColor',
           borderTopColor: 'transparent',
           borderRadius: '50%',
