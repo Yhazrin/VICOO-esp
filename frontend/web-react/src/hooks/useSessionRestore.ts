@@ -49,6 +49,7 @@ export function useSessionRestore() {
       setIsInitialized(true);
     }
     return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, setAccessToken, isAuthPage]);
 
   const { data: user, isLoading, error } = useQuery({

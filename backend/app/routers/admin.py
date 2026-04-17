@@ -53,7 +53,6 @@ async def batch_moderate_artworks(
     admin_service = AdminService(db)
     try:
         result = await admin_service.batch_moderate_artworks(artwork_ids, status)
-        await db.commit()
         return ApiResponse(data=result)
     except HTTPException:
         raise
@@ -72,7 +71,6 @@ async def batch_moderate_children(
     admin_service = AdminService(db)
     try:
         result = await admin_service.batch_moderate_children(child_ids, status)
-        await db.commit()
         return ApiResponse(data=result)
     except HTTPException:
         raise

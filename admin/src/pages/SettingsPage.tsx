@@ -80,7 +80,7 @@ export default function SettingsPage() {
         display: 'flex',
         justifyContent: 'center',
         padding: '100px',
-        color: 'var(--color-sepia-mid)'
+        color: 'var(--color-text-3)'
       }}>
         <div style={{
           fontFamily: 'var(--font-mono)',
@@ -135,16 +135,16 @@ export default function SettingsPage() {
           {/* 主标题：系统配置 */}
           <h1 style={{
             fontSize: 28,
-            fontWeight: 700,
+            fontWeight: 600,
             marginBottom: 8,
-            fontFamily: 'var(--font-serif)'
+            fontFamily: 'var(--font-body)'
           }}>
             {t('settings.title')}
           </h1>
           {/* 副标题描述 */}
           <p style={{
             fontSize: 14,
-            color: 'var(--color-sepia-mid)',
+            color: 'var(--color-text-2)',
             maxWidth: '600px',
             lineHeight: 1.6
           }}>
@@ -167,7 +167,7 @@ export default function SettingsPage() {
         display: 'flex',
         gap: 0,
         marginBottom: 32,
-        borderBottom: '2px solid var(--color-ink)',
+        borderBottom: '1px solid var(--color-border)',
       }}>
         {tabs.map((tab) => (
           <button
@@ -180,12 +180,12 @@ export default function SettingsPage() {
               fontFamily: 'var(--font-body)',
               textTransform: 'uppercase',
               letterSpacing: '0.1em',
-              color: activeTab === tab.key ? 'var(--color-paper)' : 'var(--color-ink)',
-              backgroundColor: activeTab === tab.key ? 'var(--color-ink)' : 'transparent',
+              color: activeTab === tab.key ? 'var(--color-text)' : 'var(--color-text-2)',
+              backgroundColor: activeTab === tab.key ? 'var(--color-surface)' : 'transparent',
               border: 'none',
-              borderTop: activeTab === tab.key ? '2px solid var(--color-ink)' : '2px solid transparent',
-              borderLeft: activeTab === tab.key ? '2px solid var(--color-ink)' : '2px solid transparent',
-              borderRight: activeTab === tab.key ? '2px solid var(--color-ink)' : '2px solid transparent',
+              borderTop: activeTab === tab.key ? '1px solid var(--color-border)' : '1px solid transparent',
+              borderLeft: activeTab === tab.key ? '1px solid var(--color-border)' : '1px solid transparent',
+              borderRight: activeTab === tab.key ? '1px solid var(--color-border)' : '1px solid transparent',
               cursor: 'pointer',
               transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
             }}
@@ -197,17 +197,17 @@ export default function SettingsPage() {
 
       {/* 配置卡片区域 */}
       <div style={{
-        background: 'var(--color-paper)',
-        border: '1px solid var(--color-ink)',
-        boxShadow: '8px 8px 0px rgba(26, 26, 22, 0.05)',
+        background: 'var(--color-surface)',
+        border: '1px solid var(--color-border)',
+        borderRadius: '8px',
         padding: '40px',
         position: 'relative'
       }}>
         {/* 装饰性角标 */}
-        <div style={{ position: 'absolute', top: 4, left: 4, width: 8, height: 8, borderTop: '1px solid var(--color-ink)', borderLeft: '1px solid var(--color-ink)' }} />
-        <div style={{ position: 'absolute', top: 4, right: 4, width: 8, height: 8, borderTop: '1px solid var(--color-ink)', borderRight: '1px solid var(--color-ink)' }} />
-        <div style={{ position: 'absolute', bottom: 4, left: 4, width: 8, height: 8, borderBottom: '1px solid var(--color-ink)', borderLeft: '1px solid var(--color-ink)' }} />
-        <div style={{ position: 'absolute', bottom: 4, right: 4, width: 8, height: 8, borderBottom: '1px solid var(--color-ink)', borderRight: '1px solid var(--color-ink)' }} />
+        <div style={{ position: 'absolute', top: 4, left: 4, width: 8, height: 8, borderTop: '1px solid var(--color-border)', borderLeft: '1px solid var(--color-border)' }} />
+        <div style={{ position: 'absolute', top: 4, right: 4, width: 8, height: 8, borderTop: '1px solid var(--color-border)', borderRight: '1px solid var(--color-border)' }} />
+        <div style={{ position: 'absolute', bottom: 4, left: 4, width: 8, height: 8, borderBottom: '1px solid var(--color-border)', borderLeft: '1px solid var(--color-border)' }} />
+        <div style={{ position: 'absolute', bottom: 4, right: 4, width: 8, height: 8, borderBottom: '1px solid var(--color-border)', borderRight: '1px solid var(--color-border)' }} />
 
         {/* 全局参数标签页内容 */}
         {activeTab === 'general' && (
@@ -279,8 +279,8 @@ export default function SettingsPage() {
                   key={method}
                   style={{
                     padding: '24px',
-                    background: 'var(--color-aged-stock)',
-                    border: '1px dashed var(--color-warm-gray)'
+                    background: 'var(--color-elevated)',
+                    border: '1px dashed var(--color-border)'
                   }}
                 >
                   <div style={{
@@ -292,8 +292,9 @@ export default function SettingsPage() {
                     {/* 支付渠道名称（使用翻译映射表获取本地化名称） */}
                     <h3 style={{
                       fontSize: 18,
-                      fontFamily: 'var(--font-display)',
-                      fontStyle: 'italic',
+                      fontFamily: 'var(--font-body)',
+                      fontWeight: 600,
+                      fontStyle: 'normal',
                       margin: 0
                     }}>
                       {paymentLabels[method]} {t('settings.paymentIntegration')}
@@ -404,15 +405,15 @@ export default function SettingsPage() {
             {/* 安全提示框 */}
             <div style={{
               padding: '20px',
-              background: 'var(--color-aged-stock)',
+              background: 'var(--color-elevated)',
               fontFamily: 'var(--font-mono)',
               fontSize: '12px',
               lineHeight: 1.6,
-              borderLeft: '4px solid var(--color-rust)',
-              color: 'var(--color-ink)'
+              borderLeft: '4px solid var(--color-accent-2)',
+              color: 'var(--color-text)'
             }}>
               <span style={{
-                color: 'var(--color-rust)',
+                color: 'var(--color-accent-2)',
                 fontWeight: 'bold',
                 marginRight: '8px'
               }}>
@@ -434,7 +435,7 @@ export default function SettingsPage() {
                       onChange={(e) => setForm({ ...form, accessTokenTtlMinutes: Math.max(1, parseInt(e.target.value) || 1) })}
                       style={inputStyle}
                     />
-                    <span style={{ fontSize: 11, color: 'var(--color-sepia-mid)', whiteSpace: 'nowrap', fontFamily: 'var(--font-mono)' }}>
+                    <span style={{ fontSize: 11, color: 'var(--color-text-3)', whiteSpace: 'nowrap', fontFamily: 'var(--font-mono)' }}>
                       {t('settings.unitMinutes', 'minutes')}
                     </span>
                   </div>
@@ -449,7 +450,7 @@ export default function SettingsPage() {
                       onChange={(e) => setForm({ ...form, refreshTokenTtlDays: Math.max(1, parseInt(e.target.value) || 1) })}
                       style={inputStyle}
                     />
-                    <span style={{ fontSize: 11, color: 'var(--color-sepia-mid)', whiteSpace: 'nowrap', fontFamily: 'var(--font-mono)' }}>
+                    <span style={{ fontSize: 11, color: 'var(--color-text-3)', whiteSpace: 'nowrap', fontFamily: 'var(--font-mono)' }}>
                       {t('settings.unitDays', 'days')}
                     </span>
                   </div>
@@ -470,7 +471,7 @@ export default function SettingsPage() {
                       onChange={(e) => setForm({ ...form, globalRateLimit: Math.max(1, parseInt(e.target.value) || 1) })}
                       style={inputStyle}
                     />
-                    <span style={{ fontSize: 11, color: 'var(--color-sepia-mid)', whiteSpace: 'nowrap', fontFamily: 'var(--font-mono)' }}>
+                    <span style={{ fontSize: 11, color: 'var(--color-text-3)', whiteSpace: 'nowrap', fontFamily: 'var(--font-mono)' }}>
                       {t('settings.unitReqPerSec', 'req/s')}
                     </span>
                   </div>
@@ -485,7 +486,7 @@ export default function SettingsPage() {
                       onChange={(e) => setForm({ ...form, perUserRateLimit: Math.max(1, parseInt(e.target.value) || 1) })}
                       style={inputStyle}
                     />
-                    <span style={{ fontSize: 11, color: 'var(--color-sepia-mid)', whiteSpace: 'nowrap', fontFamily: 'var(--font-mono)' }}>
+                    <span style={{ fontSize: 11, color: 'var(--color-text-3)', whiteSpace: 'nowrap', fontFamily: 'var(--font-mono)' }}>
                       {t('settings.unitReqPerMin', 'req/min')}
                     </span>
                   </div>
@@ -510,12 +511,12 @@ function Section({ title, children }: { title: string; children: React.ReactNode
         fontSize: 12,
         textTransform: 'uppercase',
         letterSpacing: '0.15em',
-        color: 'var(--color-sepia-mid)',
+        color: 'var(--color-text-3)',
         marginBottom: 20,
         paddingBottom: 8,
-        borderBottom: '1px solid var(--color-warm-gray)',
+        borderBottom: '1px solid var(--color-border)',
         fontFamily: 'var(--font-body)',
-        fontWeight: 700
+        fontWeight: 600
       }}>
         {title}
       </h3>
@@ -540,7 +541,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
         letterSpacing: '0.05em',
         fontWeight: 600,
         marginBottom: 8,
-        color: 'var(--color-ink)'
+        color: 'var(--color-text)'
       }}>
         {label}
       </label>
@@ -572,22 +573,22 @@ function Toggle({
       alignItems: 'flex-start',
       justifyContent: 'space-between',
       padding: '16px',
-      border: '1px solid var(--color-warm-gray)',
-      backgroundColor: dangerous && checked ? 'var(--color-danger-light)' : 'transparent',
+      border: '1px solid var(--color-border)',
+      backgroundColor: dangerous && checked ? 'var(--color-error-bg)' : 'transparent',
       transition: 'background-color 0.3s'
     }}>
       <div>
         <div style={{
           fontSize: 13,
           fontWeight: 600,
-          color: dangerous && checked ? 'var(--color-danger)' : 'var(--color-ink)'
+          color: dangerous && checked ? 'var(--color-danger)' : 'var(--color-text)'
         }}>
           {label}
         </div>
         {description && (
           <div style={{
             fontSize: 11,
-            color: dangerous && checked ? 'var(--color-danger)' : 'var(--color-sepia-mid)',
+            color: dangerous && checked ? 'var(--color-danger)' : 'var(--color-text-3)',
             marginTop: 4
           }}>
             {description}
@@ -599,9 +600,9 @@ function Toggle({
         style={{
           width: 48,
           height: 24,
-          borderRadius: 0,
-          background: checked ? (dangerous ? 'var(--color-danger)' : 'var(--color-ink)') : 'transparent',
-          border: `1px solid ${checked ? (dangerous ? 'var(--color-danger)' : 'var(--color-ink)') : 'var(--color-warm-gray)'}`,
+          borderRadius: '6px',
+          background: checked ? (dangerous ? 'var(--color-danger)' : 'var(--color-text)') : 'transparent',
+          border: `1px solid ${checked ? (dangerous ? 'var(--color-danger)' : 'var(--color-text)') : 'var(--color-border)'}`,
           position: 'relative',
           transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
           cursor: 'pointer',
@@ -613,7 +614,7 @@ function Toggle({
         <span style={{
           width: 16,
           height: 16,
-          background: checked ? 'var(--color-paper)' : 'var(--color-warm-gray)',
+          background: checked ? 'var(--color-bg)' : 'var(--color-text-3)',
           position: 'absolute',
           top: 3,
           left: checked ? 27 : 3,
@@ -630,10 +631,10 @@ function Toggle({
 const inputStyle: React.CSSProperties = {
   width: '100%',
   padding: '12px 16px',
-  border: '1px solid var(--color-ink)',
-  backgroundColor: 'var(--color-paper)',
-  color: 'var(--color-ink)',
-  borderRadius: '0px',
+  border: '1px solid var(--color-border)',
+  backgroundColor: 'var(--color-surface)',
+  color: 'var(--color-text)',
+  borderRadius: '6px',
   fontSize: '13px',
   outline: 'none',
   boxSizing: 'border-box',

@@ -17,10 +17,10 @@ export default function AuditLogPage() {
   const [selected, setSelected] = useState<AuditLogEntry | null>(null);
 
   const actionColors: Record<string, string> = {
-    login: '#7A6A58', review_artwork: '#8B3A2A', modify_user_role: '#5C4033',
-    export_data: '#7A6A58', modify_settings: '#5C4033', create_campaign: '#8B3A2A',
-    process_donation: '#5C4033', update_order_status: '#8B3A2A',
-    view_child_info: '#8B3A2A', delete_data: '#8B3A2A',
+    login: '#A0A0A0', review_artwork: '#2563EB', modify_user_role: '#A0A0A0',
+    export_data: '#A0A0A0', modify_settings: '#A0A0A0', create_campaign: '#2563EB',
+    process_donation: '#A0A0A0', update_order_status: '#2563EB',
+    view_child_info: '#2563EB', delete_data: '#2563EB',
   };
 
   const getActionLabel = (v: string) => {
@@ -49,13 +49,13 @@ export default function AuditLogPage() {
     { key: 'action', title: t('auditLog.detailAction'), width: 150, render: (v) => (
       <span style={{
         padding: '2px 8px',
-        borderRadius: '2px',
+        borderRadius: '8px',
         fontSize: '11px',
         fontWeight: 600,
         textTransform: 'uppercase',
         letterSpacing: '0.05em',
-        border: `1px solid ${actionColors[v] || 'var(--color-ink)'}`,
-        color: actionColors[v] || 'var(--color-ink)',
+        border: `1px solid ${actionColors[v] || 'var(--color-border)'}`,
+        color: actionColors[v] || 'var(--color-text)',
       }}>
         {getActionLabel(v)}
       </span>
@@ -63,7 +63,7 @@ export default function AuditLogPage() {
     { key: 'resource', title: t('auditLog.detailResource'), width: 120 },
     { key: 'details', title: t('common.detail'), render: (v) => (
       <span style={{
-        color: 'var(--color-ink-faded)',
+        color: 'var(--color-text-2)',
         maxWidth: 400,
         overflow: 'hidden',
         textOverflow: 'ellipsis',
@@ -88,8 +88,8 @@ export default function AuditLogPage() {
   return (
     <div>
       <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8, fontFamily: 'var(--font-serif)' }}>{t('auditLog.title')}</h1>
-        <p style={{ fontSize: 14, color: 'var(--color-sepia-mid)', maxWidth: '600px', lineHeight: 1.6 }}>
+        <h1 style={{ fontSize: 28, fontWeight: 600, marginBottom: 8, fontFamily: 'var(--font-body)' }}>{t('auditLog.title')}</h1>
+        <p style={{ fontSize: 14, color: 'var(--color-text-2)', maxWidth: '600px', lineHeight: 1.6 }}>
           {t('auditLog.description')}
         </p>
       </div>
@@ -109,7 +109,7 @@ export default function AuditLogPage() {
           <option value="delete_data">{t('auditLog.actionDeleteData')}</option>
         </select>
 
-        <div style={{ marginLeft: 'auto', fontSize: '12px', color: 'var(--color-sepia-mid)' }}>
+        <div style={{ marginLeft: 'auto', fontSize: '12px', color: 'var(--color-text-3)' }}>
           {t('auditLog.recordCount', { count: data?.total || 0 })}
         </div>
       </div>
@@ -134,16 +134,16 @@ export default function AuditLogPage() {
               <Row label={t('auditLog.detailIpAddress')} value={<code style={{ fontFamily: 'var(--font-mono)' }}>{selected.ipAddress}</code>} />
             </div>
 
-            <div style={{ borderTop: '1px solid var(--color-warm-gray)', paddingTop: 20 }}>
-              <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-sepia-mid)', marginBottom: 8 }}>{t('auditLog.detailOperationDetails')}</div>
-              <div style={{ fontSize: 14, padding: '16px', background: 'var(--color-paper)', border: '1px solid var(--color-warm-gray)', lineHeight: 1.6 }}>
+            <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 20 }}>
+              <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-text-3)', marginBottom: 8 }}>{t('auditLog.detailOperationDetails')}</div>
+              <div style={{ fontSize: 14, padding: '16px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', lineHeight: 1.6 }}>
                 {selected.details}
               </div>
             </div>
 
             <div>
-              <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-sepia-mid)', marginBottom: 8 }}>{t('auditLog.detailUserAgent')}</div>
-              <div style={{ fontSize: 12, padding: '12px', background: 'var(--color-paper)', border: '1px solid var(--color-warm-gray)', fontFamily: 'var(--font-mono)', wordBreak: 'break-all', color: 'var(--color-ink-faded)' }}>
+              <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-text-3)', marginBottom: 8 }}>{t('auditLog.detailUserAgent')}</div>
+              <div style={{ fontSize: 12, padding: '12px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', fontFamily: 'var(--font-mono)', wordBreak: 'break-all', color: 'var(--color-text-2)' }}>
                 {selected.userAgent}
               </div>
             </div>
@@ -157,18 +157,19 @@ export default function AuditLogPage() {
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <span style={{ fontSize: 11, color: 'var(--color-sepia-mid)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
-      <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--color-ink)' }}>{value}</span>
+      <span style={{ fontSize: 11, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
+      <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--color-text)' }}>{value}</span>
     </div>
   );
 }
 
 const filterStyle: React.CSSProperties = {
   padding: '10px 16px',
-  border: '1px solid var(--color-ink)',
-  borderRadius: '2px',
+  border: '1px solid var(--color-border)',
+  borderRadius: '6px',
   fontSize: '13px',
-  background: 'var(--color-paper)',
+  background: 'var(--color-surface)',
+  color: 'var(--color-text)',
   outline: 'none',
   fontFamily: 'var(--font-mono)',
   minWidth: '240px'

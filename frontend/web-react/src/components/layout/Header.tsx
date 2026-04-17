@@ -7,8 +7,9 @@ import { useCartStore, selectTotalItems } from '@/stores/cartStore';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { useRef, useEffect, useState, useCallback } from 'react';
+import UniqloLogo from './UniqloLogo';
 
-// ── Company nav: normal brand services ──
+// ── Company nav: UNIQLO portal ──
 const COMPANY_NAV = [
   { key: 'home', path: '/' },
   { key: 'shop', path: '/shop' },
@@ -16,12 +17,14 @@ const COMPANY_NAV = [
   { key: 'contact', path: '/contact' },
 ];
 
-// ── Impact nav tabs ──
+// ── Impact nav tabs (all public-welfare pages live here) ──
+// Impact tabs don't use routing — they switch inline content via activeImpactTab.
+// path is kept as '/' so URL stays clean.
 const IMPACT_TABS = [
+  { key: 'home' },
   { key: 'campaigns' },
-  { key: 'vote' },
-  { key: 'traceability' },
   { key: 'donate' },
+  { key: 'clothing-recycle' },
   { key: 'shop' },
 ];
 
@@ -112,7 +115,7 @@ function PillWindow({
             return (
               <button
                 key={tab.key}
-                onClick={() => setActiveImpactTab(tab.key)}
+                onClick={() => { setActiveImpactTab(tab.key); }}
                 className={`
                   font-body text-label tracking-wide px-3 py-1 rounded-full transition-all duration-200 cursor-pointer whitespace-nowrap
                   ${isActive ? 'text-ink font-medium bg-rust/15' : 'text-ink-faded hover:text-ink'}
@@ -144,7 +147,6 @@ export default function Header() {
     setMenuTriggerRef,
     currentTheme,
     setTheme,
-    settingsMenuOpen,
     setSettingsMenuOpen,
     impactMode,
     setImpactMode,
@@ -169,6 +171,19 @@ export default function Header() {
     setMenuTriggerRef(menuTriggerRef);
   }, [setMenuTriggerRef]);
 
+  // When navigating to a company route (other than the root "/"), exit impact mode.
+  // "/" is the shared landing page for both modes — don't auto-deactivate there.
+  useEffect(() => {
+    if (!impactMode) return;
+    const nonRootCompanyPaths = COMPANY_NAV.filter((n) => n.path !== '/').map((n) => n.path);
+    const isCompanyRoute = nonRootCompanyPaths.some(
+      (p) => location.pathname === p || location.pathname.startsWith(p + '/')
+    );
+    if (isCompanyRoute) {
+      setImpactMode(false);
+    }
+  }, [location.pathname]);
+
   // Close user menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -186,7 +201,7 @@ export default function Header() {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [userMenuOpen, settingsMenuOpen]);
+  }, [userMenuOpen, setSettingsMenuOpen]);
 
   const toggleLocale = () => {
     const next = currentLocale === 'en' ? 'zh' : 'en';
@@ -206,7 +221,7 @@ export default function Header() {
     setActiveSubmenu(null);
   };
 
-  const currentThemeConfig = THEMES.find((t) => t.id === currentTheme);
+  const currentThemeConfig = THEMES.find((theme) => theme.id === currentTheme);
 
   useEffect(() => {
     if (searchOpen) {
@@ -227,6 +242,7 @@ export default function Header() {
   const handleImpactToggle = () => {
     if (impactMode) {
       setImpactMode(false);
+      navigate('/');
     } else {
       setImpactMode(true);
       setActiveImpactTab('campaigns');
@@ -239,13 +255,32 @@ export default function Header() {
         {/* Logo */}
         <Link
           to="/"
-          className="font-display text-ink text-lg md:text-xl font-medium tracking-wide cursor-pointer"
+          className="flex items-center cursor-pointer"
           onClick={() => {
             setMobileNavOpen(false);
             setImpactMode(false);
           }}
         >
-          VICOO
+          <motion.div
+            animate={{ x: impactMode ? -6 : 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+          >
+            <UniqloLogo />
+          </motion.div>
+          <AnimatePresence mode="wait">
+            {impactMode && (
+              <motion.span
+                key="vicoo-badge"
+                initial={{ opacity: 0, x: -12, filter: 'blur(4px)' }}
+                animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, x: -12, filter: 'blur(4px)' }}
+                transition={{ type: 'spring', stiffness: 350, damping: 25, delay: 0.05 }}
+                className="font-display text-ink text-sm md:text-base font-medium tracking-wide whitespace-nowrap select-none"
+              >
+                × VICOO
+              </motion.span>
+            )}
+          </AnimatePresence>
         </Link>
 
         {/* Right side: pill groups + controls */}
@@ -272,7 +307,7 @@ export default function Header() {
                   }
                 `}
               >
-                {t('nav.impact', '公益')}
+                {impactMode ? t('nav.home', 'Home') : t('nav.impact', 'Impact')}
               </button>
             </nav>
           )}
@@ -282,26 +317,33 @@ export default function Header() {
             <div className="relative flex items-center">
               <AnimatePresence>
                 {searchOpen && (
-                  <motion.form
+                  <motion.div
                     initial={{ width: 0, opacity: 0 }}
                     animate={{ width: 200, opacity: 1 }}
                     exit={{ width: 0, opacity: 0 }}
                     transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
-                    onSubmit={handleSearch}
                     className="absolute right-full mr-2 overflow-hidden"
                   >
-                    <input
-                      ref={searchInputRef}
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder={t('search.placeholder', 'Search products...')}
-                      className="w-full px-4 py-1.5 rounded-full bg-white/90 backdrop-blur-xl shadow-sm font-body text-sm text-ink placeholder:text-warm-gray/60 focus:outline-none focus:ring-1 focus:ring-rust/30"
-                      onBlur={() => {
-                        if (!searchQuery) setSearchOpen(false);
-                      }}
-                    />
-                  </motion.form>
+                    <form onSubmit={handleSearch} className="w-[200px]">
+                      <input
+                        ref={searchInputRef}
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder={t('search.placeholder', 'Search products...')}
+                        className="w-full px-4 py-1.5 rounded-full bg-white/90 backdrop-blur-xl shadow-sm font-body text-sm text-ink placeholder:text-warm-gray/60 focus:outline-none focus:ring-1 focus:ring-rust/30"
+                        onBlur={() => {
+                          if (!searchQuery) setSearchOpen(false);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Escape') {
+                            setSearchOpen(false);
+                            setSearchQuery('');
+                          }
+                        }}
+                      />
+                    </form>
+                  </motion.div>
                 )}
               </AnimatePresence>
               <button
@@ -339,7 +381,7 @@ export default function Header() {
           <button
             onClick={toggleLocale}
             className="font-body text-caption text-ink-faded hover:text-ink transition-colors w-9 h-9 rounded-full bg-white shadow-sm flex items-center justify-center cursor-pointer"
-            aria-label="Toggle language"
+            aria-label={t('nav.toggleLanguage', 'Toggle language')}
           >
             {currentLocale === 'zh' ? 'EN' : '中'}
           </button>
@@ -352,7 +394,7 @@ export default function Header() {
                 setActiveSubmenu(null);
               }}
               className="flex items-center justify-center w-9 h-9 rounded-full bg-white shadow-sm hover:shadow-md transition-all cursor-pointer"
-              aria-label="User menu"
+              aria-label={t('nav.userMenu', 'User menu')}
               aria-expanded={userMenuOpen}
               aria-haspopup="menu"
             >
@@ -378,7 +420,7 @@ export default function Header() {
                   exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.15 }}
                   role="menu"
-                  aria-label="User menu"
+                  aria-label={t('nav.userMenu', 'User menu')}
                   className="absolute right-0 top-full mt-2 w-56 bg-paper border border-warm-gray/40 shadow-lg z-50 rounded-lg"
                 >
                   {activeSubmenu === 'theme' ? (
@@ -469,6 +511,32 @@ export default function Header() {
                             <span className="font-body text-body-sm text-ink">{t('nav.profile')}</span>
                           </Link>
 
+                          <Link
+                            to="/submit-artwork"
+                            role="menuitem"
+                            className="flex items-center gap-2 px-4 py-2.5 hover:bg-warm-gray/10 transition-colors cursor-pointer"
+                            onClick={() => setUserMenuOpen(false)}
+                          >
+                            <svg className="w-4 h-4 text-sepia-mid" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            </svg>
+                            <span className="font-body text-body-sm text-ink">{t('nav.submitArtwork', 'Submit Artwork')}</span>
+                          </Link>
+
+                          {(user.role === 'admin' || user.role === 'editor') && (
+                            <Link
+                              to="/ai-design"
+                              role="menuitem"
+                              className="flex items-center gap-2 px-4 py-2.5 hover:bg-warm-gray/10 transition-colors cursor-pointer"
+                              onClick={() => setUserMenuOpen(false)}
+                            >
+                              <svg className="w-4 h-4 text-sepia-mid" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                              </svg>
+                              <span className="font-body text-body-sm text-ink">{t('nav.aiDesign', 'AI Design')}</span>
+                            </Link>
+                          )}
+
                           <button
                             onClick={handleLogout}
                             className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-warm-gray/10 transition-colors cursor-pointer"
@@ -532,7 +600,7 @@ export default function Header() {
               ref={menuTriggerRef}
               onClick={toggleMobileNav}
               className="flex flex-col gap-1.5 p-2 cursor-pointer"
-              aria-label="Toggle menu"
+              aria-label={t('nav.toggleMenu', 'Toggle menu')}
               aria-expanded={mobileNavOpen}
               aria-controls="mobile-navigation"
             >

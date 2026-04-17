@@ -8,7 +8,7 @@ interface CurtainTransitionProps {
 
 /**
  * Curtain page transition with warm editorial aesthetic.
- * Two sepia/warm-toned panels meet at center, then open outward on route change.
+ * A sepia/warm-toned panel scales from center on route change.
  * Respects prefers-reduced-motion for accessibility.
  */
 export default function CurtainTransition({ children }: CurtainTransitionProps) {
@@ -82,35 +82,18 @@ export default function CurtainTransition({ children }: CurtainTransitionProps) 
       {/* Curtain overlay - only visible during animation */}
       <AnimatePresence>
         {isAnimating && (
-          <>
-            {/* Left curtain panel */}
-            <motion.div
-              variants={curtainVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              className="absolute inset-0 z-50 pointer-events-none"
-              style={{
-                background:
-                  'linear-gradient(90deg, var(--color-sepia-dark, #8B7355) 0%, var(--color-sepia-mid, #A69076) 50%, var(--color-sepia-light, #C4A882) 100%)',
-              }}
-              aria-hidden="true"
-            />
-
-            {/* Right curtain panel */}
-            <motion.div
-              variants={curtainVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              className="absolute inset-0 z-50 pointer-events-none"
-              style={{
-                background:
-                  'linear-gradient(90deg, var(--color-sepia-light, #C4A882) 50%, var(--color-sepia-mid, #A69076) 100%, var(--color-sepia-dark, #8B7355) 100%)',
-              }}
-              aria-hidden="true"
-            />
-          </>
+          <motion.div
+            variants={curtainVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="absolute inset-0 z-50 pointer-events-none"
+            style={{
+              background:
+                'linear-gradient(90deg, var(--color-sepia-dark, #8B7355) 0%, var(--color-sepia-mid, #A69076) 50%, var(--color-sepia-light, #C4A882) 100%)',
+            }}
+            aria-hidden="true"
+          />
         )}
       </AnimatePresence>
     </div>

@@ -1,6 +1,7 @@
 import { type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import HeroBackgroundArt from './HeroBackgroundArt';
 import HeroFloatingCards from './HeroFloatingCards';
@@ -20,16 +21,20 @@ interface EditorialHeroV2Props {
 export default function EditorialHeroV2({
   title,
   subtitle,
-  eyebrowText = 'VISION IN CREATIVE OPPORTUNITY',
+  eyebrowText,
   children,
   stats = [],
-  ctaText = 'EXPLORE OUR WORK',
+  ctaText,
   ctaLink = '/campaigns',
   secondaryLink,
   hideHero = false,
 }: EditorialHeroV2Props) {
+  const { t } = useTranslation();
   const [ref, isVisible] = useScrollReveal<HTMLDivElement>();
   const prefersReducedMotion = useReducedMotion();
+
+  const resolvedEyebrow = eyebrowText ?? t('hero.eyebrow', 'VISION IN CREATIVE OPPORTUNITY');
+  const resolvedCta = ctaText ?? t('hero.cta', 'EXPLORE OUR WORK');
 
   if (hideHero) {
     return null;
@@ -65,7 +70,7 @@ export default function EditorialHeroV2({
         >
           <div className="w-px h-12 bg-gradient-to-b from-transparent via-rust/60 to-transparent" aria-hidden="true" />
           <span className="font-mono text-[9px] tracking-[0.25em] text-rust uppercase">
-            {eyebrowText}
+            {resolvedEyebrow}
           </span>
         </motion.div>
 
@@ -117,7 +122,7 @@ export default function EditorialHeroV2({
             to={ctaLink}
             className="group relative inline-block font-mono text-[10px] tracking-[0.18em] bg-ink text-paper px-8 py-4 hover:bg-rust transition-all duration-300 overflow-hidden"
           >
-            <span className="relative z-10">{ctaText}</span>
+            <span className="relative z-10">{resolvedCta}</span>
             <motion.div
               className="absolute inset-0 bg-rust origin-left"
               initial={prefersReducedMotion ? undefined : { scaleX: 0 }}

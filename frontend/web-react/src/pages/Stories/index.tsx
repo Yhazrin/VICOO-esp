@@ -227,12 +227,12 @@ export default function Stories() {
   const categories: Category[] = ['all', 'impact', 'fashion', 'community', 'education'];
 
   // Fetch editorial feed + artworks/campaign enrichments from API.
-  const { data: storiesFeed } = useQuery({
+  const { data: storiesFeed, isLoading, error: feedError } = useQuery({
     queryKey: ['stories-feed'],
     queryFn: async () => {
       const [editorialFeed, artworks, activeCampaign] = await Promise.all([
         editorialApi.getFeed(10),
-        artworksApi.getAll({ page_size: 10 }),
+        artworksApi.getAll({ page_size: 10, status: 'approved' }),
         campaignsApi.getActive().catch(() => null),
       ]);
       return { editorialFeed, artworks, activeCampaign };
@@ -307,9 +307,36 @@ export default function Stories() {
       />
 
       <SectionContainer noTopSpacing>
+        {feedError && (
+          <div className="flex items-center gap-3 bg-rust/10 border border-rust/20 px-4 py-3 mt-4 mb-2">
+            <p className="font-body text-body-sm text-rust flex-1">{t('stories.loadError', '加载故事失败，请刷新重试')}</p>
+          </div>
+        )}
+        {isLoading && (
+          <div className="py-24 text-center">
+            <p className="font-body text-sepia-mid">{t('stories.loading', '加载中...')}</p>
+          </div>
+        )}
         {/* Category filter — capsule style */}
-        <div className="flex items-center mb-12 rounded-full bg-white/80 backdrop-blur-xl shadow-sm px-2 py-1 overflow-x-auto" role="tablist">
-          {categories.map((cat, catIndex) => (
+        <div
+          className="flex items-center mb-12 rounded-full bg-white/80 backdrop-blur-xl shadow-sm px-2 py-1 overflow-x-auto"
+          role="tablist"
+          onKeyDown={(e) => {
+            const currentIndex = categories.indexOf(activeCategory);
+            if (e.key === 'ArrowRight') {
+              e.preventDefault();
+              const next = categories[(currentIndex + 1) % categories.length];
+              setActiveCategory(next);
+              document.getElementById(`tab-story-${next}`)?.focus();
+            } else if (e.key === 'ArrowLeft') {
+              e.preventDefault();
+              const prev = categories[(currentIndex - 1 + categories.length) % categories.length];
+              setActiveCategory(prev);
+              document.getElementById(`tab-story-${prev}`)?.focus();
+            }
+          }}
+        >
+          {categories.map((cat) => (
             <button
               key={cat}
               role="tab"
@@ -318,17 +345,6 @@ export default function Stories() {
               aria-controls="panel-stories"
               tabIndex={activeCategory === cat ? 0 : -1}
               onClick={() => setActiveCategory(cat)}
-              onKeyDown={(e) => {
-                if (e.key === 'ArrowRight') {
-                  const next = categories[(catIndex + 1) % categories.length];
-                  setActiveCategory(next);
-                  document.getElementById(`tab-story-${next}`)?.focus();
-                } else if (e.key === 'ArrowLeft') {
-                  const prev = categories[(catIndex - 1 + categories.length) % categories.length];
-                  setActiveCategory(prev);
-                  document.getElementById(`tab-story-${prev}`)?.focus();
-                }
-              }}
               className={`
                 font-body text-label tracking-wide px-3 py-1 rounded-full transition-all duration-200 cursor-pointer whitespace-nowrap
                 ${activeCategory === cat

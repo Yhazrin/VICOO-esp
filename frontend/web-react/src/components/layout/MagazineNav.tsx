@@ -134,7 +134,7 @@ export default function MagazineNav() {
           <button
             onClick={toggleLocale}
             className="relative font-body text-overline tracking-[0.1em] uppercase text-ink-faded hover:text-ink transition-colors px-3 py-1.5 border border-warm-gray/40 rounded-sm cursor-pointer overflow-hidden group"
-            aria-label="Toggle language"
+            aria-label={t('nav.toggleLanguage', 'Toggle language')}
           >
             <span className="relative z-10">{currentLocale === 'en' ? '中文' : 'EN'}</span>
             <motion.div
@@ -152,7 +152,7 @@ export default function MagazineNav() {
                 ref={menuTriggerRef}
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                 className="hidden md:flex items-center gap-2 font-body text-label tracking-[0.05em] text-ink-faded hover:text-ink transition-colors px-4 py-2 border border-warm-gray/40 rounded-sm overflow-hidden group cursor-pointer"
-                aria-label="User menu"
+                aria-label={t('nav.userMenu', 'User menu')}
                 aria-expanded={userMenuOpen}
                 aria-haspopup="menu"
                 onKeyDown={(e) => {
@@ -178,7 +178,7 @@ export default function MagazineNav() {
               {userMenuOpen && (
                 <div
                   role="menu"
-                  aria-label="User menu"
+                  aria-label={t('nav.userMenu', 'User menu')}
                   className="absolute right-0 top-full mt-2 w-48 bg-paper border border-warm-gray/40 rounded shadow-lg z-50"
                   onKeyDown={(e) => {
                     const items = Array.from(
@@ -266,7 +266,7 @@ export default function MagazineNav() {
             <button
               onClick={toggleMobileNav}
               className="relative flex flex-col gap-1.5 p-3 cursor-pointer overflow-hidden rounded-sm border border-warm-gray/30"
-              aria-label="Toggle menu"
+              aria-label={t('nav.toggleMenu', 'Toggle menu')}
               aria-expanded={mobileNavOpen}
             >
               <motion.div

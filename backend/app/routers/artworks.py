@@ -133,6 +133,29 @@ async def list_artworks(
         )
 
 
+@router.get("/mine", response_model=ApiResponse)
+async def list_my_artworks(
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """List artworks submitted by the current user."""
+    try:
+        stmt = (
+            select(Artwork)
+            .options(selectinload(Artwork.child_participant))
+            .where(Artwork.user_id == current_user["id"])
+            .order_by(Artwork.created_at.desc())
+        )
+        result = await db.execute(stmt)
+        artworks = result.scalars().all()
+        return ApiResponse(data=[_serialize_artwork(a) for a in artworks])
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to list user artworks: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+
+
 @router.get("/featured", response_model=ApiResponse)
 async def list_featured_artworks(db: AsyncSession = Depends(get_db)):
     """List featured artworks (limit 8)."""
@@ -216,6 +239,7 @@ async def create_artwork(
             "description": description,
             "image_url": image_url,
             "thumbnail_url": image_url,  # Use same for thumbnail in mock
+            "user_id": current_user["id"],
             "artist_name": current_user.get("nickname", "Anonymous"),
             "campaign_id": campaign_id,
             "status": "pending",

@@ -85,10 +85,6 @@ function ImpactProgressBar({
           delay: index * 0.12,
         },
       })}
-      role="progressbar"
-      aria-valuenow={pct}
-      aria-valuemin={0}
-      aria-valuemax={100}
       aria-label={label}
     >
       <div className="flex items-center gap-3 mb-2">
@@ -318,7 +314,7 @@ export default function Donate() {
           </div>
 
           {/* Right: Donation panel */}
-          <div className="md:col-span-7">
+          <div className="md:col-span-7" id="donate-form">
             {donateMutation.isSuccess && (
               <div className="mb-4 p-4 border border-sepia-light bg-paper-warm">
                 <p className="font-body text-body-sm text-ink">
@@ -342,7 +338,7 @@ export default function Donate() {
                 {t('donateClothing.clothingHint')}
               </p>
               <Link
-                to="/donate-clothing"
+                to="/clothing-recycle"
                 className="font-body text-overline tracking-[0.1em] uppercase text-rust hover:text-ink transition-colors"
               >
                 {t('donateClothing.donateLink')}
@@ -534,7 +530,7 @@ export default function Donate() {
             >
               <MagneticButton strength={0.35}>
                 <a
-                  href="#main-content"
+                  href="#donate-form"
                   className="inline-block font-body text-body-sm tracking-[0.15em] uppercase bg-rust text-paper px-10 py-4 hover:bg-pale-gold hover:text-ink transition-all duration-300 cursor-pointer"
                 >
                   {t('donate.cta.donate')}

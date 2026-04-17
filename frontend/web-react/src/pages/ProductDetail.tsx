@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -12,9 +12,10 @@ import TraceabilityTimeline from '@/components/editorial/TraceabilityTimeline';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import { useCartStore } from '@/stores/cartStore';
 import { productsApi } from '@/services/products';
+import { supplyChainApi } from '@/services/supply-chain';
 import { reviewsApi } from '@/services/reviewsApi';
 import { useAuthStore } from '@/stores/authStore';
-import type { Product } from '@/types';
+import type { SupplyChainTimelineRecord } from '@/types';
 
 function ThumbnailButton({
   url,
@@ -68,6 +69,36 @@ export default function ProductDetail() {
     retry: false,
   });
 
+  const { data: linkedArtwork } = useQuery({
+    queryKey: ['product-artwork', id],
+    queryFn: () => productsApi.getArtwork(id!),
+    enabled: !!id && !!product?.artworkId,
+    retry: false,
+  });
+
+  const { data: supplyChainRecords = [] } = useQuery({
+    queryKey: ['product-supply-chain', id],
+    queryFn: () => supplyChainApi.getProductJourney(id!),
+    enabled: !!id,
+    retry: false,
+  });
+
+  // Map API SupplyChainRecord to SupplyChainTimelineRecord for TraceabilityTimeline
+  const timelineRecords: SupplyChainTimelineRecord[] = useMemo(
+    () =>
+      supplyChainRecords.map((r, i) => ({
+        id: Number(r.id) || i + 1,
+        stage: r.stage,
+        description: r.description,
+        location: r.location,
+        date: r.timestamp ? r.timestamp.split('T')[0] : '',
+        verified: r.certified ?? false,
+        partnerName: r.artisan?.name ?? r.productName ?? '',
+        carbonFootprint: r.carbon_kg,
+      })),
+    [supplyChainRecords]
+  );
+
   const { data: reviewsResult } = useQuery({
     queryKey: ['reviews', id],
     queryFn: () => reviewsApi.listByProduct(Number(id)),
@@ -88,6 +119,7 @@ export default function ProductDetail() {
       setReviewTitle('');
       setReviewBody('');
     },
+    onError: () => {}, // error state handled by reviewMutation.isError below
   });
 
   const [selectedImage, setSelectedImage] = useState(0);
@@ -127,9 +159,8 @@ export default function ProductDetail() {
   }
 
   const productImages = product.image_url ? [product.image_url] : [];
-  const supplyChain = product.supplyChain ?? [];
-  const totalCarbon = supplyChain.reduce(
-    (sum, r) => sum + (r.carbonFootprint ?? 0),
+  const totalCarbon = timelineRecords.reduce(
+    (sum, r) => sum + (r.carbonFootprint || 0),
     0
   );
 
@@ -198,14 +229,16 @@ export default function ProductDetail() {
               </p>
 
               {/* Artwork source */}
-              <div className="border border-warm-gray/30 p-4 mb-8">
-                <p className="font-body text-caption text-sepia-mid tracking-wider uppercase mb-1">
-                  {t('shop.detail.artwork')} Mei, age 8
-                </p>
-                <p className="font-body text-caption text-ink-faded">
-                  Guizhou Province, November 2025
-                </p>
-              </div>
+              {linkedArtwork && (
+                <div className="border border-warm-gray/30 p-4 mb-8">
+                  <p className="font-body text-caption text-sepia-mid tracking-wider uppercase mb-1">
+                    {t('shop.detail.artwork')} {linkedArtwork.artist_name || linkedArtwork.title}
+                  </p>
+                  <p className="font-body text-caption text-ink-faded">
+                    {linkedArtwork.title}
+                  </p>
+                </div>
+              )}
 
               {/* Size selector */}
               {safeProduct.sizes && safeProduct.sizes.length > 0 && (
@@ -295,7 +328,7 @@ export default function ProductDetail() {
                 <div className="flex items-center border border-warm-gray/50">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    aria-label="Decrease quantity"
+                    aria-label={t('cart.decreaseQuantity', 'Decrease quantity')}
                     className="min-w-[44px] min-h-[44px] px-3 py-2 text-ink hover:bg-warm-gray/20 transition-colors cursor-pointer"
                   >
                     -
@@ -303,7 +336,7 @@ export default function ProductDetail() {
                   <span className="font-body text-body-sm px-4 py-2 text-ink" aria-live="polite">{quantity}</span>
                   <button
                     onClick={() => setQuantity(quantity + 1)}
-                    aria-label="Increase quantity"
+                    aria-label={t('cart.increaseQuantity', 'Increase quantity')}
                     className="min-w-[44px] min-h-[44px] px-3 py-2 text-ink hover:bg-warm-gray/20 transition-colors cursor-pointer"
                   >
                     +
@@ -344,9 +377,9 @@ export default function ProductDetail() {
             {t('shop.detail.supplyChain')}
           </h2>
           <p className="font-body text-body-sm text-ink-faded mt-2 mb-8">
-            {`Total carbon footprint: ${totalCarbon.toFixed(1)} kg CO\u2082e \u00b7 Offset via verified programs`}
+            {t('shop.detail.carbonTotal', { total: totalCarbon.toFixed(1), defaultValue: 'Total carbon footprint: {{total}} kg CO\u2082e \u00b7 Offset via verified programs' })}
           </p>
-          <TraceabilityTimeline records={supplyChain} />
+          <TraceabilityTimeline records={timelineRecords} />
         </SectionContainer>
       </PaperTextureBackground>
 
@@ -425,7 +458,7 @@ export default function ProductDetail() {
           to="/shop"
           className="font-body text-caption tracking-[0.15em] uppercase text-ink-faded hover:text-rust transition-colors cursor-pointer"
         >
-          &larr; {t('common.back')} to shop
+          &larr; {t('shop.detail.backToShop', 'Back to shop')}
         </Link>
       </SectionContainer>
     </PageWrapper>

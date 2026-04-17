@@ -112,7 +112,7 @@ export default function AfterSalesPage() {
             </Button>
           );
         }
-        return <span style={{ color: 'var(--color-sepia-mid)', fontSize: 12 }}>—</span>;
+        return <span style={{ color: 'var(--color-text-3)', fontSize: 12 }}>—</span>;
       },
     },
   ];
@@ -120,10 +120,10 @@ export default function AfterSalesPage() {
   return (
     <div>
       <div style={{ marginBottom: 20 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4, fontFamily: 'var(--font-serif)' }}>
+        <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 4, fontFamily: 'var(--font-body)' }}>
           {t('afterSales.title')}
         </h1>
-        <p style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
+        <p style={{ fontSize: 13, color: 'var(--color-text-2)' }}>
           {t('afterSales.description')}
         </p>
       </div>
@@ -134,9 +134,10 @@ export default function AfterSalesPage() {
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
           style={{
             padding: '8px 12px',
-            borderRadius: 'var(--radius-sm)',
-            border: '1px solid var(--color-ink)',
-            background: 'var(--color-paper)',
+            borderRadius: '6px',
+            border: '1px solid var(--color-border)',
+            background: 'var(--color-surface)',
+            color: 'var(--color-text)',
             fontSize: '13px',
             fontFamily: 'var(--font-mono)',
           }}
