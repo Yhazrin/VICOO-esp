@@ -8,7 +8,6 @@ import SectionContainer from '@/components/layout/SectionContainer';
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import { VintageInput } from '@/components/editorial/VintageInput';
 import { campaignsApi } from '@/services/campaigns';
-import type { Campaign } from '@/types';
 
 const PAGE_SIZE = 6;
 
@@ -21,7 +20,7 @@ export default function Campaigns() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['campaigns', { status: filter, page, search }],
     queryFn: async () => {
       const result = await campaignsApi.getAll({
@@ -147,14 +146,12 @@ export default function Campaigns() {
           ))}
         </div>
 
-        <div role="tabpanel" id="panel-campaigns" aria-labelledby={`tab-campaign-${filter}`}>
         {/* Results count */}
         <p className="font-body text-caption text-sepia-mid mb-8 tracking-wider">
           {t('campaigns.results', { count: campaigns.length })}
         </p>
 
         {/* Campaign list */}
-        <div role="tabpanel" id="panel-campaigns" aria-labelledby={`tab-campaign-${filter}`}>
         {isLoading ? (
           <div className="space-y-16">
             {[1, 2, 3].map((i) => (
@@ -168,6 +165,15 @@ export default function Campaigns() {
                 </div>
               </div>
             ))}
+          </div>
+        ) : isError ? (
+          <div className="text-center py-24">
+            <span className="font-display text-7xl text-rust/30 leading-none block mb-6 select-none">
+              !
+            </span>
+            <p className="font-display text-lg text-ink-faded mb-2">
+              {t('campaigns.loadError')}
+            </p>
           </div>
         ) : paginated.length > 0 ? (
           <AnimatePresence mode="wait">
@@ -317,7 +323,6 @@ export default function Campaigns() {
             </p>
           </motion.div>
         )}
-        </div>
 
         {/* Pagination — capsule style */}
         {totalPages > 1 && (
@@ -385,7 +390,6 @@ export default function Campaigns() {
             </Link>
           </motion.div>
         </div>
-        </div>{/* end tabpanel */}
       </SectionContainer>
 
       <div className="editorial-divider" />

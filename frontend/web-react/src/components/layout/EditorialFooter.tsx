@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
+import { useUIStore } from '@/stores/uiStore';
+import UniqloLogo from './UniqloLogo';
 
 const CORE_LINKS = [
   { key: 'shop', path: '/shop' },
@@ -14,6 +16,7 @@ export default function EditorialFooter() {
   const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
   const year = new Date().getFullYear();
+  const impactMode = useUIStore((s) => s.impactMode);
 
   return (
     <footer className="mt-auto relative">
@@ -35,28 +38,49 @@ export default function EditorialFooter() {
         >
           <SectionGrainOverlay frequency={0.85} opacity={0.02} />
 
-          {/* ── VICOO: fills the container top to bottom ── */}
+          {/* ── Brand: fills the container top to bottom ── */}
           <div className="relative z-10 px-6 md:px-12 pt-6 md:pt-8 pb-0">
             <Link
               to="/"
               className="
                 block text-center
-                font-display
-                font-bold
-                tracking-[-0.03em]
-                leading-[0.85]
-                text-[var(--color-ink)]
-                hover:text-[var(--color-rust)]
-                transition-colors duration-300
                 cursor-pointer
                 focus-visible:outline-none
                 focus-visible:ring-2
                 focus-visible:ring-[var(--color-rust)]/40
                 focus-visible:rounded-lg
               "
-              style={{ fontSize: 'clamp(80px, 14vw, 180px)' }}
             >
-              VICOO
+              <div className="flex items-center justify-center gap-4 md:gap-6">
+                <motion.div
+                  animate={{ x: impactMode ? -12 : 0 }}
+                  transition={{ type: 'spring', stiffness: 260, damping: 24 }}
+                >
+                  <UniqloLogo className="!h-[clamp(40px,7vw,90px)]" />
+                </motion.div>
+                <AnimatePresence mode="wait">
+                  {impactMode && (
+                    <motion.span
+                      key="footer-vicoo"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ type: 'spring', stiffness: 280, damping: 24, delay: 0.05 }}
+                      className="
+                        font-display font-bold
+                        tracking-[-0.03em] leading-[0.85]
+                        text-[var(--color-ink)]
+                        hover:text-[var(--color-rust)]
+                        transition-colors duration-300
+                        whitespace-nowrap
+                      "
+                      style={{ fontSize: 'clamp(40px, 7vw, 90px)' }}
+                    >
+                      × VICOO
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </div>
             </Link>
           </div>
 

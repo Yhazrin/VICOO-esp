@@ -191,13 +191,20 @@ async def list_orders(
         # Admin view would need a separate service method or param.
         orders, total = await order_service.list_orders(current_user["id"], page, page_size)
         
-        # Load items for formatting
-        data = []
-        for order in orders:
-            item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
-            items = (await db.execute(item_stmt)).scalars().all()
-            product_map = await _build_product_map(db, items)
-            data.append(order_to_out_dict(order, list(items), product_map))
+        # Batch load items for all orders
+        order_ids = [o.id for o in orders]
+        if order_ids:
+            all_items_stmt = select(OrderItem).where(OrderItem.order_id.in_(order_ids))
+            all_items = (await db.execute(all_items_stmt)).scalars().all()
+            product_map = await _build_product_map(db, all_items)
+            items_by_order: dict[int, list] = {}
+            for item in all_items:
+                items_by_order.setdefault(item.order_id, []).append(item)
+        else:
+            items_by_order = {}
+            product_map = {}
+
+        data = [order_to_out_dict(order, items_by_order.get(order.id, []), product_map) for order in orders]
 
         return PaginatedResponse(data=data, total=total, page=page, page_size=page_size)
     except HTTPException:
@@ -224,12 +231,20 @@ async def my_orders(
             current_user["id"], page, page_size,
             status=status, keyword=keyword, date_from=date_from, date_to=date_to,
         )
-        data = []
-        for order in orders:
-            item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
-            items = (await db.execute(item_stmt)).scalars().all()
-            product_map = await _build_product_map(db, items)
-            data.append(order_to_out_dict(order, list(items), product_map))
+        # Batch load items for all orders
+        order_ids = [o.id for o in orders]
+        if order_ids:
+            all_items_stmt = select(OrderItem).where(OrderItem.order_id.in_(order_ids))
+            all_items = (await db.execute(all_items_stmt)).scalars().all()
+            product_map = await _build_product_map(db, all_items)
+            items_by_order: dict[int, list] = {}
+            for item in all_items:
+                items_by_order.setdefault(item.order_id, []).append(item)
+        else:
+            items_by_order = {}
+            product_map = {}
+
+        data = [order_to_out_dict(order, items_by_order.get(order.id, []), product_map) for order in orders]
         return PaginatedResponse(data=data, total=total, page=page, page_size=page_size)
     except HTTPException:
         raise
@@ -261,8 +276,7 @@ async def create_order(
             order_data["shipping_address"] = f"{addr.recipient_name} {addr.phone}, " + " ".join(p for p in parts if p)
 
         order = await order_service.place_order(current_user["id"], order_data)
-        await db.commit()
-        
+
         # Re-fetch with items for full detail
         item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
         items = (await db.execute(item_stmt)).scalars().all()
@@ -322,8 +336,7 @@ async def cancel_order(
             raise HTTPException(status_code=403, detail="Access denied")
             
         cancelled_order = await order_service.cancel_order(order_id)
-        await db.commit()
-        
+
         item_stmt = select(OrderItem).where(OrderItem.order_id == order_id)
         items = (await db.execute(item_stmt)).scalars().all()
         product_map = await _build_product_map(db, items)

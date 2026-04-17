@@ -116,7 +116,7 @@ export default function ClothingDonationPage() {
             </Button>
           );
         }
-        return <span style={{ color: 'var(--color-sepia-mid)', fontSize: 12 }}>—</span>;
+        return <span style={{ color: 'var(--color-text-2)', fontSize: 12 }}>—</span>;
       },
     },
   ];
@@ -124,7 +124,7 @@ export default function ClothingDonationPage() {
   return (
     <div>
       <div style={{ marginBottom: 20 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4, fontFamily: 'var(--font-serif)' }}>
+        <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 4, fontFamily: 'var(--font-body)' }}>
           {t('clothingDonation.title')}
         </h1>
         <p style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
@@ -138,9 +138,9 @@ export default function ClothingDonationPage() {
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
           style={{
             padding: '8px 12px',
-            borderRadius: 'var(--radius-sm)',
-            border: '1px solid var(--color-ink)',
-            background: 'var(--color-paper)',
+            borderRadius: '6px',
+            border: '1px solid var(--color-border)',
+            background: 'var(--color-surface)',
             fontSize: '13px',
             fontFamily: 'var(--font-mono)',
           }}

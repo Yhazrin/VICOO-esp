@@ -67,7 +67,6 @@ async def create_payment(body: PaymentCreate, db: AsyncSession = Depends(get_db)
             order_id=body.order_id,
             donation_id=body.donation_id
         )
-        await db.commit()
         return ApiResponse(data=PaymentOut.model_validate(tx).model_dump())
     except HTTPException:
         raise
@@ -109,7 +108,6 @@ async def wechat_notify(request: Request, db: AsyncSession = Depends(get_db)):
                 donation_id=donation_id,
                 raw_data=params
             )
-            await db.commit()
 
         return Response(content="<xml><return_code>SUCCESS</return_code></xml>", media_type="application/xml")
     except HTTPException:
@@ -228,7 +226,6 @@ async def alipay_notify(request: Request, db: AsyncSession = Depends(get_db)):
             raw_response=params,
         )
         db.add(payment_tx)
-        await db.commit()
         logger.info(f"Alipay payment transaction created: TX={trade_no}")
 
         return PlainTextResponse("success")

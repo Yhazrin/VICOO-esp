@@ -1,38 +1,34 @@
+import { lazy, Suspense } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import Layout, { FullHeightLayout } from '@/components/layout/Layout';
+import Layout from '@/components/layout/Layout';
 import SmoothTransition from '@/components/transitions/SmoothTransition';
 import ErrorBoundary from '@/components/editorial/ErrorBoundary';
-import Home from '@/pages/Home';
-import About from '@/pages/About';
-import Campaigns from '@/pages/Campaigns';
-import CampaignDetail from '@/pages/CampaignDetail';
-import Stories from '@/pages/Stories';
-import ArtworkDetail from '@/pages/ArtworkDetail';
-import Donate from '@/pages/Donate';
-import Shop from '@/pages/Shop';
-import ProductDetail from '@/pages/ProductDetail';
-import Traceability from '@/pages/Traceability';
-import Contact from '@/pages/Contact';
-import Login from '@/pages/Login';
-import Register from '@/pages/Register';
-import AuthCallback from '@/pages/AuthCallback';
-import ForgotPassword from '@/pages/ForgotPassword';
-import Profile from '@/pages/Profile';
-import Privacy from '@/pages/Privacy';
-import Terms from '@/pages/Terms';
-import ChildrenSafety from '@/pages/ChildrenSafety';
-import NotFound from '@/pages/NotFound';
-import OrderDetail from '@/pages/OrderDetail';
-import DonateClothing from '@/pages/DonateClothing';
-import Support from '@/pages/Support';
-import AiAssistant from '@/pages/AiAssistant';
-import Checkout from '@/pages/Checkout';
 import CartDrawer from '@/components/cart/CartDrawer';
 import { useSessionRestore } from '@/hooks/useSessionRestore';
 import { Toaster } from 'react-hot-toast';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useUIStore } from '@/stores/uiStore';
+
+const UniqloHome = lazy(() => import('@/pages/UniqloHome'));
+const About = lazy(() => import('@/pages/About'));
+const Shop = lazy(() => import('@/pages/Shop'));
+const ProductDetail = lazy(() => import('@/pages/ProductDetail'));
+const Contact = lazy(() => import('@/pages/Contact'));
+const Login = lazy(() => import('@/pages/Login'));
+const Register = lazy(() => import('@/pages/Register'));
+const AuthCallback = lazy(() => import('@/pages/AuthCallback'));
+const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
+const Profile = lazy(() => import('@/pages/Profile'));
+const Privacy = lazy(() => import('@/pages/Privacy'));
+const Terms = lazy(() => import('@/pages/Terms'));
+const ChildrenSafety = lazy(() => import('@/pages/ChildrenSafety'));
+const NotFound = lazy(() => import('@/pages/NotFound'));
+const OrderDetail = lazy(() => import('@/pages/OrderDetail'));
+const Support = lazy(() => import('@/pages/Support'));
+const AiAssistant = lazy(() => import('@/pages/AiAssistant'));
+const Checkout = lazy(() => import('@/pages/Checkout'));
+const AiDesign = lazy(() => import('@/pages/AiDesign'));
 
 function AppLocaleSync() {
   const { i18n } = useTranslation();
@@ -54,36 +50,27 @@ function AnimatedRoutes() {
 
   return (
     <ErrorBoundary>
+      <Suspense fallback={<div style={{ minHeight: '60vh' }} />}>
       <SmoothTransition>
         <Routes location={location} key={location.pathname}>
-          {/* Home uses FullHeightLayout for scroll narrative - no overflow:hidden */}
-          <Route element={<FullHeightLayout />}>
-            <Route index element={<ErrorBoundary><Home /></ErrorBoundary>} />
-          </Route>
-
           {/* Auth pages — standalone, no header/footer */}
           <Route path="login" element={<ErrorBoundary><Login /></ErrorBoundary>} />
           <Route path="register" element={<ErrorBoundary><Register /></ErrorBoundary>} />
           <Route path="forgot-password" element={<ErrorBoundary><ForgotPassword /></ErrorBoundary>} />
 
-          {/* Other pages use standard Layout with HorizontalSlideTransition */}
+          {/* Company portal + utility pages use standard Layout */}
           <Route element={<Layout />}>
-            <Route path="about" element={<ErrorBoundary><About /></ErrorBoundary>} />
-            <Route path="campaigns" element={<ErrorBoundary><Campaigns /></ErrorBoundary>} />
-            <Route path="campaigns/:id" element={<ErrorBoundary><CampaignDetail /></ErrorBoundary>} />
-            <Route path="stories" element={<ErrorBoundary><Stories /></ErrorBoundary>} />
-            <Route path="artworks/:id" element={<ErrorBoundary><ArtworkDetail /></ErrorBoundary>} />
-            <Route path="donate" element={<ErrorBoundary><Donate /></ErrorBoundary>} />
-            <Route path="donate-clothing" element={<ErrorBoundary><DonateClothing /></ErrorBoundary>} />
+            <Route index element={<ErrorBoundary><UniqloHome /></ErrorBoundary>} />
             <Route path="shop" element={<ErrorBoundary><Shop /></ErrorBoundary>} />
             <Route path="shop/:id" element={<ErrorBoundary><ProductDetail /></ErrorBoundary>} />
-            <Route path="traceability" element={<ErrorBoundary><Traceability /></ErrorBoundary>} />
+            <Route path="about" element={<ErrorBoundary><About /></ErrorBoundary>} />
             <Route path="contact" element={<ErrorBoundary><Contact /></ErrorBoundary>} />
             <Route path="auth/callback" element={<ErrorBoundary><AuthCallback /></ErrorBoundary>} />
             <Route path="profile" element={<ErrorBoundary><Profile /></ErrorBoundary>} />
             <Route path="orders/:id" element={<ErrorBoundary><OrderDetail /></ErrorBoundary>} />
             <Route path="checkout" element={<ErrorBoundary><Checkout /></ErrorBoundary>} />
             <Route path="support" element={<ErrorBoundary><Support /></ErrorBoundary>} />
+            <Route path="ai-design" element={<ErrorBoundary><AiDesign /></ErrorBoundary>} />
             <Route path="assistant" element={<ErrorBoundary><AiAssistant /></ErrorBoundary>} />
             <Route path="privacy" element={<ErrorBoundary><Privacy /></ErrorBoundary>} />
             <Route path="terms" element={<ErrorBoundary><Terms /></ErrorBoundary>} />
@@ -92,6 +79,7 @@ function AnimatedRoutes() {
           </Route>
         </Routes>
       </SmoothTransition>
+      </Suspense>
     </ErrorBoundary>
   );
 }

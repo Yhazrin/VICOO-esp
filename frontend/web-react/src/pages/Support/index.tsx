@@ -6,7 +6,7 @@ import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
-import GrainOverlay from '@/components/editorial/GrainOverlay';
+
 import { VintageInput } from '@/components/editorial/VintageInput';
 import { VintageSelect } from '@/components/editorial/VintageSelect';
 import { afterSalesApi } from '@/services/afterSales';
@@ -30,6 +30,8 @@ export default function Support() {
     { value: 'other', label: t('support.other') },
   ];
 
+  const [submitError, setSubmitError] = useState('');
+
   const mutation = useMutation({
     mutationFn: () =>
       afterSalesApi.create({
@@ -39,18 +41,20 @@ export default function Support() {
         description: description || undefined,
       }),
     onSuccess: () => {
+      setSubmitError('');
       qc.invalidateQueries({ queryKey: ['my-after-sales'] });
       setSubject('');
       setDescription('');
       setOrderId('');
     },
+    onError: () => setSubmitError(t('support.submitError', '提交失败，请重试')),
   });
 
   if (!isAuthenticated) {
     return (
       <PageWrapper>
         <PaperTextureBackground variant="paper" className="py-24 text-center">
-          <GrainOverlay />
+
           <p className="font-body text-ink-faded mb-6">{t('support.loginRequired', '登录后提交售后工单')}</p>
           <Link to="/login" className="font-body text-rust uppercase tracking-widest text-sm">
             {t('nav.login')} →
@@ -63,7 +67,7 @@ export default function Support() {
   return (
     <PageWrapper>
       <PaperTextureBackground variant="aged" className="py-16 md:py-24 relative">
-        <GrainOverlay />
+
         <SectionContainer>
           <h2 className="font-display text-h3 font-bold text-ink mb-8">
             {t('support.title', '售后服务')}
@@ -120,9 +124,9 @@ export default function Support() {
                 {t('support.success', '已提交，请在个人中心查看进度')}
               </p>
             )}
-            {mutation.isError && (
-              <p className="font-body text-caption text-rust" role="alert">
-                {t('support.error', '提交失败，请检查订单号是否属于您的账号')}
+            {(mutation.isError || submitError) && (
+              <p className="font-body text-body-sm text-rust" role="alert">
+                {submitError || t('support.error', '提交失败，请检查订单号是否属于您的账号')}
               </p>
             )}
             <button

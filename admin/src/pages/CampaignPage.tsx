@@ -114,7 +114,7 @@ export default function CampaignPage() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>{t('campaign.title')}</h1>
+          <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 4, fontFamily: 'var(--font-body)' }}>{t('campaign.title')}</h1>
           <p style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>{t('campaign.description')}</p>
         </div>
         <Button variant="primary" onClick={() => { setShowCreate(true); setForm({ title: '', description: '', startDate: '', endDate: '', targetAmount: '' }); }}>
@@ -128,7 +128,7 @@ export default function CampaignPage() {
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
           style={{
             padding: '8px 12px', border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-sm)', fontSize: 13, background: 'var(--color-bg-card)',
+            borderRadius: '6px', fontSize: 13, background: 'var(--color-surface)',
           }}
         >
           <option value="">{t('campaign.filterAllStatuses')}</option>
@@ -199,7 +199,7 @@ export default function CampaignPage() {
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '8px 12px',
   border: '1px solid var(--color-border)',
-  borderRadius: 'var(--radius-sm)',
+  borderRadius: '6px',
   fontSize: 13, outline: 'none',
   boxSizing: 'border-box',
 };

@@ -1,7 +1,6 @@
 import functools
 import logging
-from typing import Callable, Optional
-import pickle
+from typing import Any, Callable, Optional, Union
 
 from app.config import settings
 
@@ -15,7 +14,7 @@ def get_redis():
     if _redis_client is None and settings.REDIS_URL:
         try:
             import redis.asyncio as redis
-            _redis_client = redis.from_url(settings.REDIS_URL, decode_responses=False)
+            _redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
         except Exception as e:
             logger.error(f"Failed to connect to Redis: {e}")
     return _redis_client
@@ -27,7 +26,8 @@ def cached(
 ):
     """
     Decorator to cache async function results in Redis.
-    Uses pickle for serialization to handle complex Pydantic models / SQLAlchemy objects.
+    Uses JSON for serialization — safer and faster than pickle.
+    Cache values must be JSON-serializable (dicts, lists, strings, numbers).
     """
     def decorator(func: Callable):
         @functools.wraps(func)
@@ -54,7 +54,7 @@ def cached(
                 cached_data = await redis.get(cache_key)
                 if cached_data:
                     logger.debug(f"Cache hit: {cache_key}")
-                    return pickle.loads(cached_data)
+                    return json.loads(cached_data)
             except Exception as e:
                 logger.warning(f"Cache read error for {cache_key}: {e}")
 
@@ -67,7 +67,7 @@ def cached(
                     await redis.setex(
                         cache_key, 
                         ttl, 
-                        pickle.dumps(result)
+                        json.dumps(result, default=str)
                     )
                     logger.debug(f"Cache stored: {cache_key}")
             except Exception as e:

@@ -18,6 +18,14 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+api.interceptors.request.use((config) => {
+  const token = useAuthStore.getState().token;
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 api.interceptors.response.use(
   (res) => res,
   (err) => {
@@ -567,7 +575,7 @@ export async function updateSystemSettings(data: Partial<SystemSettings>): Promi
   if (data.paymentMethods !== undefined) {
     body.payment_methods = {};
     for (const [k, v] of Object.entries(data.paymentMethods)) {
-      body.payment_methods[k] = { enabled: v.enabled, appId: v.appId, merchantId: (v as any).merchantId, publicKey: (v as any).publicKey, clientId: (v as any).clientId };
+      body.payment_methods[k] = { enabled: v.enabled, appId: (v as any).appId, merchantId: (v as any).merchantId, publicKey: (v as any).publicKey, clientId: (v as any).clientId };
     }
   }
   if (data.accessTokenTtlMinutes !== undefined) body.access_token_ttl_minutes = data.accessTokenTtlMinutes;

@@ -10,9 +10,10 @@ from app.config import settings
 from app.database import get_db
 from app.models.user import User
 from app.schemas import (
-    ApiResponse, 
-    LoginRequest, 
-    RegisterRequest, 
+    ApiResponse,
+    LoginRequest,
+    RegisterRequest,
+    RefreshRequest,
     TokenResponse,
     ForgotPasswordRequest
 )
@@ -20,7 +21,8 @@ from app.security import (
     decode_token,
 )
 from app.services.auth.service import AuthService
-from app.services.mailer import send_password_recovery_email
+from app.services.mailer import send_welcome_email, send_password_recovery_email
+from app.core.errors import ServiceUnavailableException
 
 logger = logging.getLogger("tonghua.auth")
 
@@ -94,7 +96,6 @@ async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
     auth_service = AuthService(db)
     try:
         user, token, refresh = await auth_service.register_user(body.email, body.password, body.nickname)
-        await db.commit()
 
         response_data = ApiResponse(
             success=True,
@@ -169,7 +170,11 @@ async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depend
     user = result.scalar_one_or_none()
 
     if not user:
-        raise HTTPException(status_code=404, detail="Email address not found in our records.")
+        # Return success to prevent email enumeration
+        return ApiResponse(
+            message="If an account exists with this email, a recovery email has been sent.",
+            data={"email": body.email, "is_mock": False}
+        )
 
     # 1. Logic for Mock / Test accounts (only in DEMO_MODE)
     is_mock = False
@@ -201,7 +206,7 @@ async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depend
         )
     except Exception as e:
         logger.error(f"Recovery mail failed: {e}")
-        raise HTTPException(status_code=500, detail="Failed to send recovery email")
+        raise ServiceUnavailableException(message="Failed to send recovery email")
 
 
 @router.post("/logout")

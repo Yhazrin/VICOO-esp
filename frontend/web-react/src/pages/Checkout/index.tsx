@@ -455,7 +455,7 @@ export default function Checkout() {
                       <span className="font-body text-overline text-sepia-mid tracking-wider uppercase block mb-4">{t('checkout.orderSummary')}</span>
                       <ul className="space-y-3">
                         {items.map((item) => (
-                          <li key={item.product.id} className="flex items-center gap-3">
+                          <li key={`${item.product.id}-${item.selectedSize || ''}-${item.selectedColor || ''}`} className="flex items-center gap-3">
                             <div className="w-12 h-14 flex-shrink-0 overflow-hidden border border-warm-gray/15 bg-aged-stock">
                               {item.product.image_url && (
                                 <img src={item.product.image_url} alt={item.product.name} className="w-full h-full object-cover" loading="lazy" />
@@ -554,7 +554,7 @@ export default function Checkout() {
 
                 <ul className="space-y-3 mb-6">
                   {items.map((item) => (
-                    <li key={item.product.id} className="flex items-center gap-3">
+                    <li key={`${item.product.id}-${item.selectedSize || ''}-${item.selectedColor || ''}`} className="flex items-center gap-3">
                       <div className="w-10 h-12 flex-shrink-0 overflow-hidden border border-warm-gray/15 bg-aged-stock">
                         {item.product.image_url && (
                           <img src={item.product.image_url} alt={item.product.name} className="w-full h-full object-cover" loading="lazy" />

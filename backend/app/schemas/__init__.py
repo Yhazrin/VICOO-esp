@@ -137,6 +137,8 @@ from app.schemas.address import (
     AddressOut,
     AddressUpdate,
 )
+from app.schemas.impact_fund import ImpactFundEntryOut
+from app.schemas.design_draft import DesignDraftCreate, DesignDraftUpdate, DesignDraftOut
 
 __all__ = [
     # Common
@@ -230,4 +232,10 @@ __all__ = [
     "AddressCreate",
     "AddressOut",
     "AddressUpdate",
+    # Impact fund
+    "ImpactFundEntryOut",
+    # Design draft
+    "DesignDraftCreate",
+    "DesignDraftUpdate",
+    "DesignDraftOut",
 ]
