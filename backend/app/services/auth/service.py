@@ -1,11 +1,9 @@
 import hmac
-import time
 import logging
-from typing import Optional, Tuple, Dict, Any
+from typing import Tuple
 
 from fastapi import HTTPException
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
 from app.security import (

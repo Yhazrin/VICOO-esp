@@ -1,12 +1,10 @@
 import logging
 from typing import List, Dict, Any, Optional
 from sqlalchemy import select, func, update
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User, ChildParticipant
 from app.models.artwork import Artwork
 from app.models.donation import Donation
-from app.models.order import Order
 from app.models.campaign import Campaign
 from app.services.base import BaseService
 from app.core.audit import audit_action

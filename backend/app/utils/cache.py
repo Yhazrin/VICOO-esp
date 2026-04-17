@@ -1,7 +1,6 @@
 import functools
-import json
 import logging
-from typing import Any, Callable, Optional, Union
+from typing import Callable, Optional
 import pickle
 
 from app.config import settings

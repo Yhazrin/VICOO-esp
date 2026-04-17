@@ -1,19 +1,16 @@
 import logging
-from typing import Optional, Dict, Any, Tuple
+from typing import Optional, Dict
 from decimal import Decimal
 from datetime import datetime, timedelta
 
 from fastapi import HTTPException
 from sqlalchemy import select, func, update
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.payment import PaymentTransaction
 from app.models.order import Order
-from app.models.donation import Donation
 from app.services.base import BaseService
 from app.services.donation.service import DonationService
 from app.core.audit import audit_action
-from app.config import settings
 
 logger = logging.getLogger("tonghua.payment_service")
 

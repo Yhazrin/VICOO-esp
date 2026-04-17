@@ -1,9 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select, func
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from decimal import Decimal
 import json
-import random
 import logging
 
 from app.database import get_db
@@ -19,7 +17,6 @@ from app.schemas import (
 )
 from app.schemas.order import ReturnRequestCreate
 from app.deps import get_current_user, require_role
-from app.security import generate_order_no
 from app.services.payment_service import get_payment_service
 
 router = APIRouter(prefix="/orders", tags=["Orders"])

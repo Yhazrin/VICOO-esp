@@ -1,9 +1,7 @@
 import logging
-import hmac
 import time
 
-import httpx
-from fastapi import APIRouter, Depends, HTTPException, Request, Cookie
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,17 +13,14 @@ from app.schemas import (
     ApiResponse, 
     LoginRequest, 
     RegisterRequest, 
-    RefreshRequest, 
     TokenResponse,
     ForgotPasswordRequest
 )
 from app.security import (
-    create_access_token,
-    create_refresh_token,
     decode_token,
 )
 from app.services.auth.service import AuthService
-from app.services.mailer import send_welcome_email, send_password_recovery_email
+from app.services.mailer import send_password_recovery_email
 
 logger = logging.getLogger("tonghua.auth")
 

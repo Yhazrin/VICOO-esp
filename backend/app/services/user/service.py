@@ -1,9 +1,7 @@
 import logging
-from typing import Optional, List, Dict, Any, Tuple
+from typing import Dict, Any
 
-from fastapi import HTTPException
-from sqlalchemy import select, func
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from app.core.errors import ResourceNotFoundException
 from app.models.user import User

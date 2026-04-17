@@ -1,12 +1,11 @@
 import os
 import base64
-import json
 import uuid
 from datetime import datetime, timedelta, timezone
-from typing import Any, Optional
+from typing import Any
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-from jose import jwt, JWTError
+from jose import jwt
 from passlib.context import CryptContext
 
 from app.config import settings
