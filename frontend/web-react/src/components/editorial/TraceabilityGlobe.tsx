@@ -5,10 +5,22 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import type { SupplyChainTimelineRecord } from '@/types';
 import { getRecordLatLng } from '@/utils/supplyChainGeo';
 import { latLngToVector3, createArcCurve } from '@/components/scroll/globeUtils';
-import { createLandOutlinesGroup } from '@/utils/globeLandOutlines';
+import { buildLandOutlinesFromGeoJson } from '@/utils/globeLandOutlines';
 
 const GLOBE_RADIUS = 1.85;
 const STAGE_ORDER = ['material_sourcing', 'processing', 'manufacturing', 'quality_check', 'shipping'];
+const TOUCH_HINT_KEY = 'vicoo-globe-touch-hint';
+const AUTO_ROTATE_FULL = 0.35;
+const AUTO_ROTATE_SLOW = 0.06;
+
+function canUseWebGL(): boolean {
+  try {
+    const c = document.createElement('canvas');
+    return !!(c.getContext('webgl2') || c.getContext('webgl'));
+  } catch {
+    return false;
+  }
+}
 
 /** Great-circle central angle in degrees (0–180). */
 function centralAngleDeg(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -33,10 +45,6 @@ function maxPairwiseSpanDeg(coords: { lat: number; lng: number }[]): number {
   return max;
 }
 
-/**
- * When all nodes sit in one region, markers & tubes look huge relative to separation.
- * Scale them down and add tiny surface jitter (display still shows true coords in panel).
- */
 function layoutForGeographicSpread(maxSpanDeg: number, nodeCount: number) {
   const span = Math.max(maxSpanDeg, 1e-6);
   const t = THREE.MathUtils.clamp(span / 42, 0, 1);
@@ -86,6 +94,7 @@ function readThemeColors() {
     ink: hex('--color-ink', '#1A1A16'),
     rust: hex('--color-rust', '#8B3A2A'),
     sage: hex('--color-sage', '#3F4F45'),
+    paper: hex('--color-paper', '#F5F0E8'),
   };
 }
 
@@ -106,6 +115,7 @@ type GlobeCtx = {
   runners: SegmentRunner[];
   animationId: number;
   focus: null | { endCam: THREE.Vector3; endTarget: THREE.Vector3 };
+  landGroup: THREE.Group | null;
 };
 
 export interface TraceabilityGlobeProps {
@@ -113,7 +123,7 @@ export interface TraceabilityGlobeProps {
   selectedId: number | null;
   onSelect: (id: number | null) => void;
   getStageLabel: (stage: string) => string;
-  /** 切换主题时传入以重建材质颜色 */
+  prefersReducedMotion?: boolean;
   themeKey?: string;
   className?: string;
 }
@@ -123,6 +133,7 @@ export default function TraceabilityGlobe({
   selectedId,
   onSelect,
   getStageLabel,
+  prefersReducedMotion = false,
   themeKey = 'default',
   className = '',
 }: TraceabilityGlobeProps) {
@@ -137,15 +148,29 @@ export default function TraceabilityGlobe({
   const sortedRef = useRef<SupplyChainTimelineRecord[]>([]);
   const [hoverId, setHoverId] = useState<number | null>(null);
   const hoverIdRef = useRef<number | null>(null);
+  const prefersReducedMotionRef = useRef(prefersReducedMotion);
+  prefersReducedMotionRef.current = prefersReducedMotion;
+
+  const focusBreathUntilRef = useRef(0);
+  const rotateEaseUntilRef = useRef(0);
+  const prevSelectedRef = useRef(selectedId);
+
+  const [webglOk, setWebglOk] = useState(() => canUseWebGL());
+  const [touchHintVisible, setTouchHintVisible] = useState(false);
 
   const sorted = useMemo(() => sortSupplyRecords(records), [records]);
 
   const setFocus = useCallback((recordId: number | null) => {
     const ctx = ctxRef.current;
     if (!ctx) return;
+    rotateEaseUntilRef.current = 0;
     if (!recordId) {
       ctx.focus = null;
-      ctx.controls.autoRotate = true;
+      ctx.controls.autoRotate = !prefersReducedMotionRef.current;
+      if (!prefersReducedMotionRef.current) {
+        ctx.controls.autoRotateSpeed = AUTO_ROTATE_SLOW;
+        rotateEaseUntilRef.current = performance.now() + 2200;
+      }
       return;
     }
     const mesh = ctx.markers.get(recordId);
@@ -158,17 +183,27 @@ export default function TraceabilityGlobe({
       endTarget: world.clone(),
     };
     ctx.controls.autoRotate = false;
+    if (!prefersReducedMotionRef.current) {
+      ctx.controls.autoRotateSpeed = AUTO_ROTATE_SLOW;
+    }
   }, []);
 
   useEffect(() => {
     setFocus(selectedId);
   }, [selectedId, setFocus]);
 
+  useEffect(() => {
+    if (selectedId !== prevSelectedRef.current && selectedId != null) {
+      focusBreathUntilRef.current = performance.now() + 3200;
+    }
+    prevSelectedRef.current = selectedId;
+  }, [selectedId]);
+
+  const overlayPickId = hoverId ?? selectedId;
   const displayRecord = useMemo(() => {
-    const id = hoverId ?? selectedId;
-    if (id == null) return null;
-    return sorted.find((r) => r.id === id) ?? null;
-  }, [hoverId, selectedId, sorted]);
+    if (overlayPickId == null) return null;
+    return sorted.find((r) => r.id === overlayPickId) ?? null;
+  }, [overlayPickId, sorted]);
 
   const displayCoords = useMemo(() => {
     if (!displayRecord) return null;
@@ -181,14 +216,61 @@ export default function TraceabilityGlobe({
   }, [sorted]);
 
   useEffect(() => {
-    if (!canvasRef.current || !containerRef.current || records.length === 0) return;
+    const coarse = window.matchMedia('(pointer: coarse)').matches;
+    if (coarse && !localStorage.getItem(TOUCH_HINT_KEY)) {
+      setTouchHintVisible(true);
+    }
+  }, []);
+
+  const dismissTouchHint = useCallback(() => {
+    setTouchHintVisible(false);
+    try {
+      localStorage.setItem(TOUCH_HINT_KEY, '1');
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const captureSnapshot = useCallback(async () => {
+    const ctx = ctxRef.current;
+    if (!ctx) return;
+    ctx.renderer.render(ctx.scene, ctx.camera);
+    const canvas = ctx.renderer.domElement;
+    const url = canvas.toDataURL('image/png');
+    const base = displayRecord ? `trace-${displayRecord.id}` : 'trace-globe';
+    if (navigator.share) {
+      try {
+        const blob = await (await fetch(url)).blob();
+        const file = new File([blob], `${base}.png`, { type: 'image/png' });
+        const sharePayload: ShareData = {
+          files: [file],
+          title: t('shop.detail.globeShareTitle', '溯源地球仪'),
+        };
+        if (typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
+          await navigator.share(sharePayload);
+          return;
+        }
+      } catch {
+        /* fall through */
+      }
+    }
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${base}.png`;
+    a.click();
+  }, [displayRecord, t]);
+
+  useEffect(() => {
+    if (!webglOk || !canvasRef.current || !containerRef.current || records.length === 0) return;
 
     const canvas = canvasRef.current;
     const container = containerRef.current;
     const theme = readThemeColors();
     sortedRef.current = sorted;
+    let cancelled = false;
 
     const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(theme.paper.clone().lerp(theme.wire, 0.35), 14, 52);
 
     const camera = new THREE.PerspectiveCamera(
       48,
@@ -198,28 +280,43 @@ export default function TraceabilityGlobe({
     );
     camera.position.set(0, 1.2, 5.2);
 
-    const renderer = new THREE.WebGLRenderer({
-      canvas,
-      antialias: true,
-      alpha: true,
-    });
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        canvas,
+        antialias: true,
+        alpha: true,
+        preserveDrawingBuffer: true,
+      });
+    } catch {
+      setWebglOk(false);
+      return;
+    }
+    if (!renderer.getContext()) {
+      setWebglOk(false);
+      renderer.dispose();
+      return;
+    }
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(container.clientWidth, container.clientHeight);
 
     const controls = new OrbitControls(camera, canvas);
     controls.enableDamping = true;
     controls.dampingFactor = 0.06;
-    // 允许大幅拉近/拉远（近到略贴球面，远到轨道级）；避免与球心距离 ≤ 球半径导致穿模
     controls.minDistance = GLOBE_RADIUS * 1.02;
     controls.maxDistance = 4000;
     controls.zoomSpeed = 1.15;
-    controls.autoRotate = true;
-    controls.autoRotateSpeed = 0.35;
+    const prm = prefersReducedMotionRef.current;
+    controls.autoRotate = !prm;
+    controls.autoRotateSpeed = prm ? 0 : AUTO_ROTATE_FULL;
 
-    scene.add(new THREE.AmbientLight(0xfff5eb, 0.75));
-    const key = new THREE.DirectionalLight(0xffe8d0, 0.95);
+    scene.add(new THREE.AmbientLight(0xfff5eb, 0.72));
+    const key = new THREE.DirectionalLight(0xffe8d0, 0.92);
     key.position.set(4, 6, 5);
     scene.add(key);
+    const rim = new THREE.DirectionalLight(0xc8d4e0, 0.28);
+    rim.position.set(-5, 2, -6);
+    scene.add(rim);
 
     const globeGroup = new THREE.Group();
     globeGroup.rotation.x = 0.3;
@@ -268,9 +365,17 @@ export default function TraceabilityGlobe({
     globeGroup.add(gridGroup);
 
     const landColor = theme.ink.clone().lerp(theme.wire, 0.42);
-    globeGroup.add(
-      createLandOutlinesGroup(GLOBE_RADIUS + 0.028, landColor, 0.5),
-    );
+    void import('@/data/world-land-110m.json').then((mod) => {
+      if (cancelled || !ctxRef.current) return;
+      const g = buildLandOutlinesFromGeoJson(
+        mod.default as { features: { geometry?: { type: string; coordinates: unknown } }[] },
+        GLOBE_RADIUS + 0.028,
+        landColor,
+        0.5
+      );
+      globeGroup.add(g);
+      ctxRef.current.landGroup = g;
+    });
 
     const markers = new Map<number, THREE.Mesh>();
     const runners: SegmentRunner[] = [];
@@ -366,11 +471,16 @@ export default function TraceabilityGlobe({
     };
 
     const onPointerDown = (e: PointerEvent) => {
+      dismissTouchHint();
       const id = pickMarker(e.clientX, e.clientY);
       if (id != null) {
         const ctx = ctxRef.current;
         if (ctx) ctx.controls.autoRotate = false;
-        onSelectRef.current(id);
+        if (id === selectedRef.current) {
+          onSelectRef.current(null);
+        } else {
+          onSelectRef.current(id);
+        }
       }
     };
 
@@ -401,6 +511,7 @@ export default function TraceabilityGlobe({
       runners,
       animationId: 0,
       focus: null,
+      landGroup: null,
     };
     ctxRef.current = ctx;
 
@@ -410,16 +521,37 @@ export default function TraceabilityGlobe({
       if (!c) return;
       c.animationId = requestAnimationFrame(animate);
       time += 1;
+      const prmNow = prefersReducedMotionRef.current;
+      const now = performance.now();
+
+      if (c.controls.autoRotate && !prmNow && now < rotateEaseUntilRef.current) {
+        const u = 1 - (rotateEaseUntilRef.current - now) / 2200;
+        c.controls.autoRotateSpeed = THREE.MathUtils.lerp(AUTO_ROTATE_SLOW, AUTO_ROTATE_FULL, u * u);
+      } else if (c.controls.autoRotate && !prmNow) {
+        c.controls.autoRotateSpeed = AUTO_ROTATE_FULL;
+      }
 
       const sel = selectedRef.current;
+      const breathT = now < focusBreathUntilRef.current && !prmNow && sel != null;
+      const breath = breathT ? Math.sin(time * 0.055) * 0.045 : 0;
+
       c.markers.forEach((mesh, id) => {
         const mat = mesh.material as THREE.MeshStandardMaterial;
         const isSel = id === sel;
-        const isHover = id === hoverIdRef.current;
-        const active = isSel || isHover;
-        mat.color.copy(active ? theme.rust : theme.sage);
-        mat.emissiveIntensity = active ? 0.22 : 0.12;
-        mesh.scale.setScalar(active ? 1.28 : 1);
+        const isHov = id === hoverIdRef.current;
+        if (isSel) {
+          mat.color.copy(theme.rust);
+          mat.emissiveIntensity = 0.24;
+          mesh.scale.setScalar(1.28 + breath);
+        } else if (isHov) {
+          mat.color.copy(theme.sage.clone().lerp(theme.rust, 0.5));
+          mat.emissiveIntensity = 0.18;
+          mesh.scale.setScalar(1.14);
+        } else {
+          mat.color.copy(theme.sage);
+          mat.emissiveIntensity = 0.12;
+          mesh.scale.setScalar(1);
+        }
       });
 
       for (const run of c.runners) {
@@ -429,8 +561,12 @@ export default function TraceabilityGlobe({
         const tng = run.curve.getTangent(run.t).normalize();
         run.arrow.position.copy(p);
         run.arrow.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), tng);
-        const mat = run.arrow.material as THREE.MeshBasicMaterial;
-        mat.opacity = 0.65 + Math.sin(time * 0.04 + run.t * Math.PI * 2) * 0.28;
+        const am = run.arrow.material as THREE.MeshBasicMaterial;
+        if (prmNow) {
+          am.opacity = 0.78;
+        } else {
+          am.opacity = 0.65 + Math.sin(time * 0.04 + run.t * Math.PI * 2) * 0.28;
+        }
       }
 
       if (c.focus) {
@@ -459,8 +595,38 @@ export default function TraceabilityGlobe({
     const ro = new ResizeObserver(onResize);
     ro.observe(container);
 
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (document.activeElement !== containerRef.current) return;
+      if (e.key === 'Escape') {
+        if (selectedRef.current != null) {
+          e.preventDefault();
+          onSelectRef.current(null);
+        }
+        return;
+      }
+      if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
+      const c = ctxRef.current;
+      if (!c) return;
+      e.preventDefault();
+      const { camera: cam, controls: ctl } = c;
+      const offset = new THREE.Vector3().copy(cam.position).sub(ctl.target);
+      const spherical = new THREE.Spherical().setFromVector3(offset);
+      const step = 0.09;
+      if (e.key === 'ArrowLeft') spherical.theta -= step;
+      if (e.key === 'ArrowRight') spherical.theta += step;
+      if (e.key === 'ArrowUp') spherical.phi -= step;
+      if (e.key === 'ArrowDown') spherical.phi += step;
+      spherical.phi = Math.max(0.12, Math.min(Math.PI - 0.12, spherical.phi));
+      offset.setFromSpherical(spherical);
+      cam.position.copy(ctl.target).add(offset);
+      ctl.update();
+    };
+    container.addEventListener('keydown', onKeyDown);
+
     return () => {
+      cancelled = true;
       ro.disconnect();
+      container.removeEventListener('keydown', onKeyDown);
       canvas.removeEventListener('pointerdown', onPointerDown);
       canvas.removeEventListener('pointermove', onPointerMove);
       canvas.removeEventListener('pointerleave', onPointerLeave);
@@ -492,7 +658,21 @@ export default function TraceabilityGlobe({
       controls.dispose();
       renderer.dispose();
     };
-  }, [records, sorted, themeKey]);
+  }, [records, sorted, themeKey, webglOk, dismissTouchHint]);
+
+  useEffect(() => {
+    const ctx = ctxRef.current;
+    if (!ctx) return;
+    const prm = prefersReducedMotion;
+    ctx.controls.autoRotate = !prm && selectedRef.current == null;
+    if (prm) {
+      ctx.controls.autoRotateSpeed = 0;
+    } else if (!ctx.controls.autoRotate) {
+      ctx.controls.autoRotateSpeed = AUTO_ROTATE_SLOW;
+    } else {
+      ctx.controls.autoRotateSpeed = AUTO_ROTATE_FULL;
+    }
+  }, [prefersReducedMotion, selectedId]);
 
   if (records.length === 0) return null;
 
@@ -502,25 +682,95 @@ export default function TraceabilityGlobe({
     !Number.isNaN(displayRecord.latitude) &&
     !Number.isNaN(displayRecord.longitude);
 
+  const carbonKg = displayRecord?.carbon_kg ?? displayRecord?.carbonFootprint;
+
+  if (!webglOk) {
+    return (
+      <div
+        className={`relative w-full aspect-square min-w-0 bg-transparent py-2 flex flex-col gap-3 ${className}`}
+      >
+        <p className="font-body text-caption text-ink-faded">{t('shop.detail.globeWebglFallback')}</p>
+        <ul className="space-y-2 overflow-auto text-left">
+          {sorted.map((r) => (
+            <li key={r.id}>
+              <button
+                type="button"
+                onClick={() => onSelect(selectedId === r.id ? null : r.id)}
+                className="w-full text-left font-body text-caption py-2 px-1 border-b border-warm-gray/20 hover:border-warm-gray/40 border-t-0 border-x-0 rounded-none"
+              >
+                <span className="font-medium text-ink">{getStageLabel(r.stage)}</span>
+                <span className="block text-sepia-mid">{r.location}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
   return (
     <div
       ref={containerRef}
-      className={`relative w-full aspect-square min-w-0 rounded-sm border border-warm-gray/25 bg-aged-stock/40 ${className}`}
+      tabIndex={0}
+      role="application"
+      data-pin-active={selectedId != null ? 'true' : 'false'}
+      aria-label={t('shop.detail.globeAria', '交互式溯源地球仪，可用方向键微调视角')}
+      onPointerDownCapture={() => containerRef.current?.focus({ preventScroll: true })}
+      className={`relative w-full aspect-square min-w-0 bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-rust/35 focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--color-aged-stock)] ${className}`}
     >
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 block h-full w-full cursor-grab active:cursor-grabbing touch-none"
+        className="absolute inset-0 block h-full w-full cursor-grab active:cursor-grabbing touch-none [mask-image:radial-gradient(ellipse_92%_90%_at_50%_50%,#000_62%,#000_76%,transparent_100%)] [-webkit-mask-image:radial-gradient(ellipse_92%_90%_at_50%_50%,#000_62%,#000_76%,transparent_100%)]"
       />
+
+      {touchHintVisible && (
+        <p className="absolute bottom-1 left-1/2 -translate-x-1/2 z-[5] max-w-[95%] text-center font-body text-[10px] text-ink-faded px-2 pointer-events-none md:hidden [text-shadow:0_1px_2px_var(--color-paper),0_0_12px_var(--color-paper)]">
+          {t('shop.detail.globeTouchHint')}
+        </p>
+      )}
+
+      <div className="absolute top-1 right-1 z-20 flex flex-col items-end gap-1">
+        <button
+          type="button"
+          onClick={() => void captureSnapshot()}
+          className="font-body text-[10px] tracking-wide uppercase px-2 py-1 text-ink-faded hover:text-ink bg-paper/50 backdrop-blur-sm border border-warm-gray/25 cursor-pointer transition-colors"
+        >
+          {t('shop.detail.globeShareSnapshot')}
+        </button>
+      </div>
 
       {displayRecord && displayCoords && (
         <div
-          className="absolute z-10 w-[min(92vw,288px)] pointer-events-none max-md:bottom-3 max-md:left-1/2 max-md:-translate-x-1/2 md:right-5 md:top-1/2 md:-translate-y-1/2"
+          className="absolute z-10 w-[min(92vw,288px)] pointer-events-none max-md:bottom-10 max-md:left-1/2 max-md:-translate-x-1/2 md:right-5 md:top-1/2 md:-translate-y-1/2"
           aria-live="polite"
         >
-          <div className="pointer-events-auto border border-warm-gray/35 bg-paper/95 px-4 py-3 shadow-lg backdrop-blur-md rounded-sm space-y-2">
+          <div className="pointer-events-auto relative overflow-hidden border border-warm-gray/30 bg-paper/96 px-4 py-3.5 shadow-[0_12px_40px_-16px_rgba(26,26,22,0.18)] backdrop-blur-md rounded-sm space-y-2">
+            <div
+              className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-rust/35 to-transparent pointer-events-none"
+              aria-hidden="true"
+            />
             <p className="font-display text-base font-bold text-ink leading-snug">
               {getStageLabel(displayRecord.stage)}
             </p>
+            <div className="flex flex-wrap gap-1.5">
+              {displayRecord.verified ? (
+                <span className="font-body text-[10px] tracking-wider uppercase px-2 py-0.5 bg-sage/15 text-sage border border-sage/30">
+                  {t('shop.detail.globeCertified')}
+                </span>
+              ) : (
+                <span className="font-body text-[10px] tracking-wider uppercase px-2 py-0.5 bg-warm-gray/20 text-ink-faded border border-warm-gray/35">
+                  {t('shop.detail.globeUncertified')}
+                </span>
+              )}
+              {carbonKg != null && !Number.isNaN(Number(carbonKg)) && (
+                <span className="font-body text-[10px] tracking-wider uppercase px-2 py-0.5 bg-rust/10 text-rust border border-rust/25">
+                  {t('shop.detail.globeCarbonBadge', { kg: Number(carbonKg).toFixed(2) })}
+                </span>
+              )}
+            </div>
+            {displayRecord.carbon_note && (
+              <p className="font-body text-[11px] text-ink-faded leading-snug">{displayRecord.carbon_note}</p>
+            )}
             <p className="font-body text-caption text-sepia-mid">
               {displayRecord.location}
               {displayRecord.date ? ` · ${displayRecord.date}` : ''}

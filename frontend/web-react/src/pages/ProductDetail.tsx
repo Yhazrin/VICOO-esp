@@ -77,7 +77,6 @@ export default function ProductDetail() {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewTitle, setReviewTitle] = useState('');
   const [reviewBody, setReviewBody] = useState('');
-
   const { data: product, isLoading: loading } = useQuery({
     queryKey: ['product', id],
     queryFn: () => productsApi.getById(id!),
@@ -400,53 +399,25 @@ export default function ProductDetail() {
 
       <PaperTextureBackground variant="aged" className="py-16 md:py-24">
         <SectionContainer>
-          {product.isImpactProduct && isImpactProductDetail && !prefersReducedMotion && timelineRecords.length > 0 && (
-            <div className="mb-12 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
-              <div className="lg:col-span-8 min-w-0">
-                <TraceabilityGlobe
-                  key={currentTheme}
-                  records={timelineRecords}
-                  selectedId={globePinId}
-                  onSelect={setGlobePinId}
-                  getStageLabel={(stage) => supplyChainStageLabel(stage, t)}
-                />
-              </div>
-              <div className="lg:col-span-4 border border-warm-gray/30 bg-paper/80 p-5 md:p-6 space-y-5">
-                  <p className="font-body text-overline tracking-[0.15em] uppercase text-sepia-mid">
-                    {t('shop.detail.globeNodeList')}
-                  </p>
-                  <ul className="space-y-2">
-                    {timelineRecords.map((r) => (
-                      <li key={r.id}>
-                        <button
-                          type="button"
-                          onClick={() => setGlobePinId(r.id)}
-                          className={`w-full text-left font-body text-caption py-2 px-3 border transition-colors cursor-pointer ${
-                            globePinId === r.id
-                              ? 'border-rust bg-rust/5 text-ink'
-                              : 'border-warm-gray/25 text-ink-faded hover:border-warm-gray/50'
-                          }`}
-                        >
-                          <span className="font-medium text-ink">
-                            {supplyChainStageLabel(r.stage, t)}
-                          </span>
-                          <span className="block text-sepia-mid mt-0.5">{r.location}</span>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                  <button
-                    type="button"
-                    onClick={() => setGlobePinId(null)}
-                    className="font-body text-label tracking-[0.12em] uppercase text-rust border-b border-rust/30 pb-0.5 hover:border-rust cursor-pointer"
-                  >
-                    {t('shop.detail.globeResetView')}
-                  </button>
-              </div>
+          {product.isImpactProduct && isImpactProductDetail && timelineRecords.length > 0 && (
+            <div className="mb-12 mx-auto w-full max-w-[min(100%,min(92vw,46rem))]">
+              <TraceabilityGlobe
+                key={currentTheme}
+                records={timelineRecords}
+                selectedId={globePinId}
+                onSelect={setGlobePinId}
+                prefersReducedMotion={Boolean(prefersReducedMotion)}
+                getStageLabel={(stage) => supplyChainStageLabel(stage, t)}
+              />
+              {globePinId != null && (
+                <p className="mt-5 text-center font-body text-[10px] md:text-[11px] tracking-[0.14em] uppercase text-sepia-mid/85 max-w-md mx-auto leading-relaxed">
+                  {t('shop.detail.globeDefocusHint')}
+                </p>
+              )}
             </div>
           )}
 
-          <TraceabilityTimeline records={timelineRecords} />
+          <TraceabilityTimeline records={timelineRecords} linkedFromGlobeId={globePinId} />
         </SectionContainer>
       </PaperTextureBackground>
 

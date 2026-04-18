@@ -3,7 +3,7 @@
  * https://www.naturalearthdata.com/
  */
 import * as THREE from 'three';
-import landData from '@/data/world-land-110m.json';
+import landDataStatic from '@/data/world-land-110m.json';
 import { latLngToVector3 } from '@/components/scroll/globeUtils';
 
 type LngLatRing = [number, number][];
@@ -20,11 +20,16 @@ function addRing(
   group.add(new THREE.LineLoop(geo, material));
 }
 
+type GeoJsonLike = {
+  features: { geometry?: { type: string; coordinates: unknown } }[];
+};
+
 /**
- * Natural Earth 110m land polygons as LineLoops on a sphere (editorial / low poly).
- * Shares one material across all loops — dispose material once after removing the group.
+ * Build land outline line loops from parsed GeoJSON (sync).
+ * Dispose `group.userData.landOutlineMaterial` when removing the group.
  */
-export function createLandOutlinesGroup(
+export function buildLandOutlinesFromGeoJson(
+  data: GeoJsonLike,
   radius: number,
   color: THREE.Color,
   opacity = 0.45,
@@ -38,11 +43,7 @@ export function createLandOutlinesGroup(
     depthTest: true,
   });
 
-  const fc = landData as {
-    features: { geometry?: { type: string; coordinates: unknown } }[];
-  };
-
-  for (const f of fc.features) {
+  for (const f of data.features) {
     const g = f.geometry;
     if (!g?.coordinates) continue;
 
@@ -69,4 +70,16 @@ export function createLandOutlinesGroup(
 
   group.userData.landOutlineMaterial = material;
   return group;
+}
+
+/**
+ * Natural Earth 110m land polygons as LineLoops on a sphere (editorial / low poly).
+ * Shares one material across all loops — dispose material once after removing the group.
+ */
+export function createLandOutlinesGroup(
+  radius: number,
+  color: THREE.Color,
+  opacity = 0.45,
+): THREE.Group {
+  return buildLandOutlinesFromGeoJson(landDataStatic as GeoJsonLike, radius, color, opacity);
 }
