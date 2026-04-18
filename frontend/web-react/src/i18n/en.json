@@ -321,7 +321,23 @@
     "empty.subtitle": "Check back soon.",
     "goalReached": "Goal Reached",
     "funded": "{{percent}}% funded",
-    "loadError": "Failed to load campaigns. Please try again later."
+    "loadError": "Failed to load campaigns. Please try again later.",
+    "sustainabilityLoop": {
+      "eyebrow": "Materials · Welfare · Environment",
+      "title": "Sustainability you can trace: public records, not green labels",
+      "subtitle": "Campaign funds support children's art and community programs. In parallel, every lot of fiber, dye, and trim is documented at supply-chain nodes. We keep welfare storytelling and environmental claims on the same evidence base—certificates, batches, partners, and carbon data aligned with each product page.",
+      "p1Title": "Responsible sourcing gate",
+      "p1Body": "Organic, recycled, or lower-impact fibers require valid certification; higher-risk steps pass social and environmental screening before sampling.",
+      "p2Title": "Node-by-node trace files",
+      "p2Body": "From raw material arrival through spinning, dyeing, cut-and-sew, and logistics—each stop logs place, time, accountable partner, and verification status, queryable per product.",
+      "p3Title": "Lifecycle metrics, one method",
+      "p3Body": "Key impacts such as carbon are summed across the traceable chain and compared to conventional benchmarks, so reductions are explained with one consistent methodology.",
+      "p4Title": "Welfare flows, auditable",
+      "p4Body": "Donation percentages, campaign progress, and program spending are disclosed separately; chain-of-custody records do not replace charity compliance, but together they make goodwill verifiable.",
+      "footnote": "Public claims should point to evidence—third-party certificates, internal batch logs, or audit summaries. Where data is still being completed, we mark nodes as pending verification instead of omitting them quietly.",
+      "ctaTraceability": "Open traceability hub",
+      "ctaShop": "Impact shop records"
+    }
   },
   "stories": {
     "hero": {
@@ -577,6 +593,9 @@
       "addToCart": "Add to Cart",
       "added": "Added to Cart",
       "supplyChain": "Supply Chain Journey",
+      "traceSection": "Traceability",
+      "coordsRegistered": "WGS84 coordinates",
+      "coordsDerived": "Inferred from location",
       "sustainability": "Sustainability Score",
       "artwork": "Based on artwork by",
       "size": "Size",
@@ -589,7 +608,13 @@
       "reviewTitle": "Title (optional)",
       "reviewBody": "Share your wearing or packaging experience",
       "reviewError": "You may have already reviewed this product",
-      "submitReview": "Submit"
+      "submitReview": "Submit",
+      "globeTitle": "Global traceability",
+      "globeHint": "Drag to orbit the globe. Tap a pin to focus and read that node’s sourcing or production details; use the list to jump between nodes.",
+      "globeNodeList": "Supply chain nodes",
+      "globeResetView": "Reset view",
+      "globeVerified": "Verified",
+      "globePending": "Pending verification"
     },
     "sort": {
       "label": "Sort by",
@@ -728,8 +753,12 @@
       "artwork": "Artwork Creation",
       "design": "Design Adaptation",
       "material": "Material Sourcing",
+      "material_sourcing": "Material sourcing",
+      "processing": "Processing & dyeing",
+      "manufacturing": "Manufacturing",
       "production": "Production",
       "quality": "Quality Check",
+      "quality_check": "Quality inspection",
       "shipping": "Shipping"
     },
     "verified": "Verified",
@@ -774,6 +803,17 @@
       "highlighted": "Highlighted Record",
       "viewProduct": "View Product"
     },
+    "welfareMaterialBridge": {
+      "title": "Welfare and materials: one evidence chain",
+      "body": "Donations flow to children's art and community programs; fibers and dyes are documented node by node on the garment side. The two ledgers are published separately but share the same rule: claims must be checkable—so your support for the story comes with the right to know where materials started, who handled them, and how environmental costs were counted.",
+      "linkCampaigns": "Browse campaigns",
+      "linkShop": "Impact shop product records"
+    },
+    "materialsHeading": "Materials at this node",
+    "materialOrigin": "Origin",
+    "materialCertified": "Certified",
+    "materialCertifiedYes": "Yes",
+    "materialCertifiedNo": "Pending verification",
     "status": {
       "verified": "Verified",
       "inProgress": "In Progress",

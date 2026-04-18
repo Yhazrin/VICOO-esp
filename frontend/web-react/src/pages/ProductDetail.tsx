@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate, useLocation, matchPath } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, useReducedMotion } from 'framer-motion';
@@ -9,13 +9,23 @@ import SectionContainer from '@/components/layout/SectionContainer';
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
 import TraceabilityTimeline from '@/components/editorial/TraceabilityTimeline';
+import TraceabilityGlobe from '@/components/editorial/TraceabilityGlobe';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import { useCartStore } from '@/stores/cartStore';
+import { useUIStore } from '@/stores/uiStore';
 import { productsApi } from '@/services/products';
 import { supplyChainApi } from '@/services/supply-chain';
 import { reviewsApi } from '@/services/reviewsApi';
 import { useAuthStore } from '@/stores/authStore';
 import type { SupplyChainTimelineRecord } from '@/types';
+import { companyProductPath, impactProductPath } from '@/utils/productPaths';
+
+function supplyChainStageLabel(stage: string, t: (key: string) => string): string {
+  const key = stage.trim().toLowerCase().replace(/[\s-]+/g, '_');
+  const tr = t(`traceability.stages.${key}`);
+  if (tr !== `traceability.stages.${key}`) return tr;
+  return stage.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 function ThumbnailButton({
   url,
@@ -54,10 +64,16 @@ function ThumbnailButton({
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const isImpactProductDetail = Boolean(
+    matchPath({ path: '/impact/shop/:id', end: true }, pathname)
+  );
   const { t } = useTranslation();
   const qc = useQueryClient();
   const { isAuthenticated } = useAuthStore();
   const prefersReducedMotion = useReducedMotion();
+  const currentTheme = useUIStore((s) => s.currentTheme);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewTitle, setReviewTitle] = useState('');
   const [reviewBody, setReviewBody] = useState('');
@@ -76,17 +92,16 @@ export default function ProductDetail() {
     retry: false,
   });
 
-  const { data: supplyChainRecords = [] } = useQuery({
+  const { data: supplyChainRaw = [] } = useQuery({
     queryKey: ['product-supply-chain', id],
     queryFn: () => supplyChainApi.getProductJourney(id!),
     enabled: !!id,
     retry: false,
   });
 
-  // Map API SupplyChainRecord to SupplyChainTimelineRecord for TraceabilityTimeline
   const timelineRecords: SupplyChainTimelineRecord[] = useMemo(
     () =>
-      supplyChainRecords.map((r, i) => ({
+      supplyChainRaw.map((r, i) => ({
         id: Number(r.id) || i + 1,
         stage: r.stage,
         description: r.description,
@@ -95,8 +110,12 @@ export default function ProductDetail() {
         verified: r.certified ?? false,
         partnerName: r.artisan?.name ?? r.productName ?? '',
         carbonFootprint: r.carbon_kg,
+        carbon_kg: r.carbon_kg,
+        carbon_note: r.carbon_note,
+        latitude: r.latitude,
+        longitude: r.longitude,
       })),
-    [supplyChainRecords]
+    [supplyChainRaw]
   );
 
   const { data: reviewsResult } = useQuery({
@@ -127,6 +146,7 @@ export default function ProductDetail() {
   const [added, setAdded] = useState(false);
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>('');
+  const [globePinId, setGlobePinId] = useState<number | null>(null);
   const addItem = useCartStore((s) => s.addItem);
   const setCartOpen = useCartStore((s) => s.setCartOpen);
   const addedTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
@@ -136,6 +156,19 @@ export default function ProductDetail() {
       if (addedTimeoutRef.current) clearTimeout(addedTimeoutRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    setGlobePinId(null);
+  }, [id]);
+
+  useEffect(() => {
+    if (!product || !id) return;
+    if (product.isImpactProduct && !isImpactProductDetail) {
+      navigate(impactProductPath(id), { replace: true });
+    } else if (product.isImpactProduct === false && isImpactProductDetail) {
+      navigate(companyProductPath(id), { replace: true });
+    }
+  }, [product, id, isImpactProductDetail, navigate]);
 
   const handleAddToCart = () => {
     if (!product) return;
@@ -159,11 +192,6 @@ export default function ProductDetail() {
   }
 
   const productImages = product.image_url ? [product.image_url] : [];
-  const totalCarbon = timelineRecords.reduce(
-    (sum, r) => sum + (r.carbonFootprint || 0),
-    0
-  );
-
   const safeProduct = {
     name: product.name ?? '',
     description: product.description ?? '',
@@ -370,15 +398,57 @@ export default function ProductDetail() {
         </SectionContainer>
       </PaperTextureBackground>
 
-      {/* Supply Chain Journey */}
       <PaperTextureBackground variant="aged" className="py-16 md:py-24">
         <SectionContainer>
           <h2 className="font-display text-h3 font-bold text-ink mb-8">
-            {t('shop.detail.supplyChain')}
+            {t('shop.detail.traceSection')}
           </h2>
-          <p className="font-body text-body-sm text-ink-faded mt-2 mb-8">
-            {t('shop.detail.carbonTotal', { total: totalCarbon.toFixed(1), defaultValue: 'Total carbon footprint: {{total}} kg CO\u2082e \u00b7 Offset via verified programs' })}
-          </p>
+          {product.isImpactProduct && isImpactProductDetail && !prefersReducedMotion && timelineRecords.length > 0 && (
+            <div className="mb-12 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
+              <div className="lg:col-span-8">
+                <TraceabilityGlobe
+                  key={currentTheme}
+                  records={timelineRecords}
+                  selectedId={globePinId}
+                  onSelect={setGlobePinId}
+                  getStageLabel={(stage) => supplyChainStageLabel(stage, t)}
+                />
+              </div>
+              <div className="lg:col-span-4 border border-warm-gray/30 bg-paper/80 p-5 md:p-6 space-y-5">
+                  <p className="font-body text-overline tracking-[0.15em] uppercase text-sepia-mid">
+                    {t('shop.detail.globeNodeList')}
+                  </p>
+                  <ul className="space-y-2">
+                    {timelineRecords.map((r) => (
+                      <li key={r.id}>
+                        <button
+                          type="button"
+                          onClick={() => setGlobePinId(r.id)}
+                          className={`w-full text-left font-body text-caption py-2 px-3 border transition-colors cursor-pointer ${
+                            globePinId === r.id
+                              ? 'border-rust bg-rust/5 text-ink'
+                              : 'border-warm-gray/25 text-ink-faded hover:border-warm-gray/50'
+                          }`}
+                        >
+                          <span className="font-medium text-ink">
+                            {supplyChainStageLabel(r.stage, t)}
+                          </span>
+                          <span className="block text-sepia-mid mt-0.5">{r.location}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  <button
+                    type="button"
+                    onClick={() => setGlobePinId(null)}
+                    className="font-body text-label tracking-[0.12em] uppercase text-rust border-b border-rust/30 pb-0.5 hover:border-rust cursor-pointer"
+                  >
+                    {t('shop.detail.globeResetView')}
+                  </button>
+              </div>
+            </div>
+          )}
+
           <TraceabilityTimeline records={timelineRecords} />
         </SectionContainer>
       </PaperTextureBackground>
@@ -455,10 +525,13 @@ export default function ProductDetail() {
       {/* Back link */}
       <SectionContainer className="py-8">
         <Link
-          to="/shop"
+          to={isImpactProductDetail ? '/impact/shop' : '/shop'}
           className="font-body text-caption tracking-[0.15em] uppercase text-ink-faded hover:text-rust transition-colors cursor-pointer"
         >
-          &larr; {t('shop.detail.backToShop', 'Back to shop')}
+          &larr;{' '}
+          {isImpactProductDetail
+            ? t('shop.detail.backToImpactShop', '返回公益商店')
+            : t('shop.detail.backToShop', 'Back to shop')}
         </Link>
       </SectionContainer>
     </PageWrapper>

@@ -116,6 +116,9 @@ export interface SupplyChainTimelineRecord {
   carbonFootprint?: number;
   carbon_kg?: number;
   carbon_note?: string;
+  /** WGS84 — when set, globe pins use exact coordinates */
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface SupplyChainRecord extends SupplyChainTimelineRecord {}

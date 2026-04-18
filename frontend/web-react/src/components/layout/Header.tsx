@@ -40,11 +40,13 @@ function PillWindow({
   activeImpactTab,
   setActiveImpactTab,
   locationPathname,
+  navigate,
 }: {
   impactMode: boolean;
   activeImpactTab: string;
   setActiveImpactTab: (tab: string) => void;
   locationPathname: string;
+  navigate: (to: string) => void;
 }) {
   const { t } = useTranslation();
 
@@ -115,7 +117,14 @@ function PillWindow({
             return (
               <button
                 key={tab.key}
-                onClick={() => { setActiveImpactTab(tab.key); }}
+                onClick={() => {
+                  setActiveImpactTab(tab.key);
+                  if (tab.key === 'shop') {
+                    navigate('/impact/shop');
+                  } else if (locationPathname.startsWith('/impact/shop')) {
+                    navigate('/');
+                  }
+                }}
                 className={`
                   font-body text-label tracking-wide px-3 py-1 rounded-full transition-all duration-200 cursor-pointer whitespace-nowrap
                   ${isActive ? 'text-ink font-medium bg-rust/15' : 'text-ink-faded hover:text-ink'}
@@ -182,7 +191,7 @@ export default function Header() {
     if (isCompanyRoute) {
       setImpactMode(false);
     }
-  }, [location.pathname]);
+  }, [location.pathname, impactMode, setImpactMode]);
 
   // Close user menu when clicking outside
   useEffect(() => {
@@ -246,6 +255,14 @@ export default function Header() {
     } else {
       setImpactMode(true);
       setActiveImpactTab('campaigns');
+      // 仍在 /shop、/about 等公司路径时，同步 effect 会立刻关掉 impact；先回首页再展示公益壳
+      const companySubPaths = COMPANY_NAV.filter((n) => n.path !== '/').map((n) => n.path);
+      const onCompanySubRoute = companySubPaths.some(
+        (p) => location.pathname === p || location.pathname.startsWith(p + '/')
+      );
+      if (onCompanySubRoute) {
+        navigate('/', { replace: true });
+      }
     }
   };
 
@@ -294,6 +311,7 @@ export default function Header() {
                 activeImpactTab={activeImpactTab}
                 setActiveImpactTab={setActiveImpactTab}
                 locationPathname={location.pathname}
+                navigate={navigate}
               />
 
               {/* Impact toggle button */}

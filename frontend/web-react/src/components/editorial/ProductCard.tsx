@@ -8,11 +8,14 @@ import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import { VintageInput } from '@/components/editorial/VintageInput';
 import type { Product } from '@/types';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
+import { companyProductPath, impactProductPath } from '@/utils/productPaths';
 
 interface ProductCardProps {
   product: Product;
   index?: number;
   className?: string;
+  /** `impact` → `/impact/shop/:id` (公益壳 + 地球溯源); default 常规商店 */
+  detailContext?: 'company' | 'impact';
 }
 
 function getSustainabilityTier(score: number): { labelKey: string; colorClass: string; barColor: string } {
@@ -25,6 +28,7 @@ export default function ProductCard({
   product,
   index = 0,
   className = '',
+  detailContext = 'company',
 }: ProductCardProps) {
   const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
@@ -63,7 +67,10 @@ export default function ProductCard({
         }}
         className="h-full"
       >
-        <Link to={`/shop/${product.id}`} className="block cursor-pointer">
+        <Link
+          to={detailContext === 'impact' ? impactProductPath(product.id) : companyProductPath(product.id)}
+          className="block cursor-pointer"
+        >
         {/* Image */}
         <div className="relative aspect-[3/4] overflow-hidden border-2 border-rust/30 bg-aged-stock mb-5 group-hover:border-rust/50 transition-colors duration-300">
           {/* Vintage frame effect */}

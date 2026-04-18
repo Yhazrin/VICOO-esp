@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text, Boolean, Enum, ForeignKey, DECIMAL, func
+from sqlalchemy import Column, Integer, String, DateTime, Text, Boolean, Enum, ForeignKey, DECIMAL, Float, func
 from app.database import Base
 
 
@@ -20,6 +20,8 @@ class SupplyChainRecord(Base):
     )
     description = Column(Text, nullable=True)
     location = Column(String(300), nullable=True)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
     certified = Column(Boolean, default=False, nullable=False)
     cert_image_url = Column(String(500), nullable=True)
     carbon_kg = Column(DECIMAL(8, 2), nullable=True)

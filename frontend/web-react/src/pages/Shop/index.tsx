@@ -99,7 +99,7 @@ export default function Shop() {
   const [filtersExpanded, setFiltersExpanded] = useState(false);
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['products', { category: activeCategory, isImpactProduct: false }],
+    queryKey: ['products', 'company', { category: activeCategory, isImpactProduct: false }],
     queryFn: async () => {
       const result = await productsApi.getAll({
         category: activeCategory === 'all' ? undefined : activeCategory,
@@ -109,27 +109,27 @@ export default function Shop() {
     },
     staleTime: 5 * 60 * 1000,
   });
-  const { data: categoriesData } = useQuery({
-    queryKey: ['product-categories'],
-    queryFn: async () => {
-      return await productsApi.getCategories();
-    },
-    staleTime: 10 * 60 * 1000,
-  });
+
+  /** 优衣库常规店：仅非公益商品（与公益商店目录完全分离，双保险） */
+  const companyItems = useMemo(
+    () => (data?.items ?? []).filter((p) => !p.isImpactProduct),
+    [data?.items]
+  );
 
   const categories: Category[] = useMemo(() => {
-    const fromApi = (categoriesData ?? [])
-      .filter((c): c is Category => ['apparel', 'accessories', 'stationery', 'prints', 'lifestyle', 'footwear', 'home', 'gift_box'].includes(c))
-      .filter((c, i, arr) => arr.indexOf(c) === i);
-    return ['all', ...fromApi];
-  }, [categoriesData]);
+    const cats = new Set(companyItems.map((p) => p.category));
+    const ordered = (
+      ['apparel', 'accessories', 'stationery', 'prints', 'lifestyle', 'footwear', 'home', 'gift_box'] as const
+    ).filter((c) => cats.has(c));
+    return ['all', ...ordered] as Category[];
+  }, [companyItems]);
 
   const priceBounds = useMemo(() => {
-    const items = data?.items ?? [];
+    const items = companyItems;
     if (items.length === 0) return { min: 0, max: 5000 };
     const prices = items.map((p) => p.price);
     return { min: Math.floor(Math.min(...prices)), max: Math.ceil(Math.max(...prices)) };
-  }, [data]);
+  }, [companyItems]);
 
   const handleTabKeyDown = useCallback(
     (e: React.KeyboardEvent, cat: Category) => {
@@ -182,7 +182,7 @@ export default function Shop() {
   };
 
   const filtered = useMemo(() => {
-    let list = data?.items ?? [];
+    let list = companyItems;
 
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
@@ -234,7 +234,7 @@ export default function Shop() {
       default:
         return list;
     }
-  }, [data, activeCategory, sortBy, priceRange, sustainFilter, searchQuery, selectedSizes, selectedColors, seasonFilter]);
+  }, [companyItems, activeCategory, sortBy, priceRange, sustainFilter, searchQuery, selectedSizes, selectedColors, seasonFilter]);
 
   const gridItems = useMemo(() => {
     const items: Array<{ type: 'product'; product: Product } | { type: 'promo'; variant: PromoVariant }> = [];

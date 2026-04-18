@@ -9,7 +9,7 @@ Creates tables and inserts sample data:
   - 3 campaigns
   - 20 artworks
   - 10 donations
-  - 8 products
+  - 24 products（10 件公益 × 儿童画作授权 + 14 件优衣库式常规）
   - 5 orders (with items)
   - supply chain records
   - audit logs
@@ -36,6 +36,7 @@ from app.models.contact import ContactMessage
 from app.models.editorial import EditorialArticle
 from app.security import hash_password
 from app.config import settings
+from app.data.default_regular_products import regular_catalog_for_orm
 
 
 async def seed():
@@ -230,8 +231,8 @@ async def seed():
                 Artwork(
                     title=title,
                     description=desc,
-                    image_url=f"/static/artworks/artwork_{i + 1}.jpg",
-                    thumbnail_url=f"/static/artworks/thumb_{i + 1}.jpg",
+                    image_url=f"https://picsum.photos/seed/vicoo-art-{i + 1}/900/900",
+                    thumbnail_url=f"https://picsum.photos/seed/vicoo-art-{i + 1}/400/400",
                     child_participant_id=cpid,
                     artist_name=artist,
                     status=status,
@@ -244,93 +245,102 @@ async def seed():
         await session.flush()
 
         # ── Products ─────────────────────────────────────────────
+        # 公益商品：is_impact_product=True，配图为可直连的 HTTPS（与上方 artworks.id 一一对应）
         print("Seeding products...")
+        _u = "https://images.unsplash.com"
         products = [
             Product(
                 name="彩虹鱼棉质 T 恤",
                 description="采用有机棉面料，印有获奖作品《彩虹鱼》。每件 T 恤的收益 30% 用于乡村美育基金。",
                 price=Decimal("168.00"), currency="CNY",
-                image_url="/static/products/tshirt1.jpg", category="apparel", stock=200, status="active",
+                image_url=f"{_u}/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80",
+                category="apparel", stock=200, status="active",
                 is_impact_product=True, campaign_id=campaign_ids[0], donation_percentage=Decimal("30.00"),
+                artwork_id=2,
             ),
             Product(
                 name="星星之夜帆布袋",
-                description="再生帆布材质，印有梵高风格星空画作。环保材质，可持续时尚。",
+                description="再生帆布材质，印有《星星之夜》星空画作。环保材质，可持续时尚。",
                 price=Decimal("89.00"), currency="CNY",
-                image_url="/static/products/bag1.jpg", category="accessories", stock=150, status="active",
+                image_url=f"{_u}/photo-1597484662317-9bd7bdda2907?auto=format&fit=crop&w=900&q=80",
+                category="accessories", stock=150, status="active",
                 is_impact_product=True, campaign_id=campaign_ids[0], donation_percentage=Decimal("25.00"),
+                artwork_id=4,
             ),
             Product(
                 name="春天的花园丝巾",
                 description="100% 真丝面料，孩子们的画作化为丝巾图案，每一条都是独一无二的艺术品。",
                 price=Decimal("258.00"), currency="CNY",
-                image_url="/static/products/scarf1.jpg", category="accessories", stock=80, status="active",
+                image_url=f"{_u}/photo-1606760227091-3dd870d97f1d?auto=format&fit=crop&w=900&q=80",
+                category="accessories", stock=80, status="active",
                 is_impact_product=True, campaign_id=campaign_ids[0], donation_percentage=Decimal("30.00"),
+                artwork_id=1,
             ),
             Product(
                 name="妈妈的手环保笔记本",
                 description="再生纸制作，封面印有《妈妈的手》。可用于记录生活中的美好瞬间。",
                 price=Decimal("39.00"), currency="CNY",
-                image_url="/static/products/notebook1.jpg", category="stationery", stock=500, status="active",
+                image_url=f"{_u}/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=900&q=80",
+                category="stationery", stock=500, status="active",
                 is_impact_product=True, campaign_id=campaign_ids[1], donation_percentage=Decimal("20.00"),
+                artwork_id=11,
             ),
             Product(
                 name="太空旅行马克杯",
                 description="陶瓷马克杯，印有《太空旅行》画作。送给每个梦想家。",
                 price=Decimal("68.00"), currency="CNY",
-                image_url="/static/products/cup1.jpg", category="lifestyle", stock=120, status="active",
+                image_url=f"{_u}/photo-1577937927133-66ef06acdf18?auto=format&fit=crop&w=900&q=80",
+                category="lifestyle", stock=120, status="active",
                 is_impact_product=True, campaign_id=campaign_ids[2], donation_percentage=Decimal("25.00"),
+                artwork_id=15,
             ),
             Product(
                 name="我的家帆布鞋",
                 description="有机棉帆布鞋面，可降解鞋底。鞋侧印有《我的家》画作。",
                 price=Decimal("198.00"), currency="CNY",
-                image_url="/static/products/shoes1.jpg", category="footwear", stock=0, status="sold_out",
+                image_url=f"{_u}/photo-1560769629-975ec94e6a86?auto=format&fit=crop&w=900&q=80",
+                category="footwear", stock=0, status="sold_out",
                 is_impact_product=True, campaign_id=campaign_ids[1], donation_percentage=Decimal("30.00"),
+                artwork_id=3,
             ),
             Product(
                 name="画出未来环保抱枕",
-                description="再生棉填充，有机棉外套。科幻画作成为你客厅的亮点。",
+                description="再生棉填充，有机棉外套。《未来城市》画作点亮客厅角落。",
                 price=Decimal("128.00"), currency="CNY",
-                image_url="/static/products/pillow1.jpg", category="home", stock=90, status="active",
+                image_url=f"{_u}/photo-1584100936595-c9d1d09786c4?auto=format&fit=crop&w=900&q=80",
+                category="home", stock=90, status="active",
                 is_impact_product=True, campaign_id=campaign_ids[2], donation_percentage=Decimal("25.00"),
+                artwork_id=19,
             ),
             Product(
                 name="过年了限定礼盒",
                 description="包含 T 恤、帆布袋、笔记本三件套，精美包装。限量 100 套。",
                 price=Decimal("368.00"), currency="CNY",
-                image_url="/static/products/giftbox1.jpg", category="gift_box", stock=35, status="active",
+                image_url=f"{_u}/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=900&q=80",
+                category="gift_box", stock=35, status="active",
                 is_impact_product=True, campaign_id=campaign_ids[0], donation_percentage=Decimal("30.00"),
-            ),
-            # Regular fashion products (no charity attributes)
-            Product(
-                name="Organic Linen Oversized Shirt",
-                description="Relaxed-fit shirt in GOTS-certified organic linen. Pre-washed for a lived-in softness.",
-                price=Decimal("328.00"), currency="CNY",
-                image_url="/static/products/shirt_regular1.jpg", category="apparel", stock=150, status="active",
-                is_impact_product=False,
+                artwork_id=18,
             ),
             Product(
-                name="Recycled Cashmere Crewneck",
-                description="100% recycled Italian cashmere. Circular knit technology, zero waste pattern cutting.",
-                price=Decimal("598.00"), currency="CNY",
-                image_url="/static/products/sweater_regular1.jpg", category="apparel", stock=80, status="active",
-                is_impact_product=False,
-            ),
-            Product(
-                name="Hemp Canvas Tote",
-                description="Natural hemp canvas tote bag. Durable, biodegradable, minimal aesthetic.",
-                price=Decimal("128.00"), currency="CNY",
-                image_url="/static/products/tote_regular1.jpg", category="accessories", stock=200, status="active",
-                is_impact_product=False,
-            ),
-            Product(
-                name="Merino Wool Scarf",
-                description="Ethically sourced merino wool. Hand-finished edges, natural dye in rust and sage.",
+                name="海豚之歌·再生纤维披肩",
+                description="海洋主题儿童画作《海豚之歌》授权印花，再生聚酯与有机棉混纺，收益 28% 捐入「春天的色彩」美育项目。",
                 price=Decimal("198.00"), currency="CNY",
-                image_url="/static/products/scarf_regular1.jpg", category="accessories", stock=120, status="active",
-                is_impact_product=False,
+                image_url=f"{_u}/photo-1601925260368-ae2f83cf8b7f?auto=format&fit=crop&w=900&q=80",
+                category="accessories", stock=110, status="active",
+                is_impact_product=True, campaign_id=campaign_ids[0], donation_percentage=Decimal("28.00"),
+                artwork_id=8,
             ),
+            Product(
+                name="牧羊曲·手工拼布壁挂",
+                description="甘肃定西合作工坊手工缝制，图案来自《牧羊曲》画作，每件附带溯源卡，捐赠比例 22% 用于乡村儿童画材。",
+                price=Decimal("158.00"), currency="CNY",
+                image_url=f"{_u}/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=900&q=80",
+                category="home", stock=45, status="active",
+                is_impact_product=True, campaign_id=campaign_ids[1], donation_percentage=Decimal("22.00"),
+                artwork_id=20,
+            ),
+            # 优衣库式常规店 SKU（图文见 app/data/default_regular_products.py）
+            *[Product(**kwargs) for kwargs in regular_catalog_for_orm()],
         ]
         session.add_all(products)
         await session.flush()
@@ -342,34 +352,39 @@ async def seed():
             SupplyChainRecord(
                 product_id=product_ids[0], stage="material_sourcing",
                 description="有机棉来自新疆阿克苏有机棉田，GOTS 认证",
-                location="新疆阿克苏", certified=True,
+                location="新疆阿克苏", latitude=41.17, longitude=80.26,
+                certified=True,
                 cert_image_url="/static/certs/gots_cert.jpg",
                 timestamp=datetime(2025, 2, 1),
             ),
             SupplyChainRecord(
                 product_id=product_ids[0], stage="processing",
                 description="纱线纺织与面料染色，使用植物染料，无有害化学品",
-                location="浙江绍兴", certified=True,
+                location="浙江绍兴", latitude=30.0, longitude=120.58,
+                certified=True,
                 cert_image_url="/static/certs/oeko_cert.jpg",
                 timestamp=datetime(2025, 2, 15),
             ),
             SupplyChainRecord(
                 product_id=product_ids[0], stage="manufacturing",
                 description="成衣裁剪与缝制，ISO 9001 质量管理体系工厂",
-                location="广东深圳", certified=True,
+                location="广东深圳", latitude=22.55, longitude=114.05,
+                certified=True,
                 cert_image_url="/static/certs/iso9001.jpg",
                 timestamp=datetime(2025, 3, 1),
             ),
             SupplyChainRecord(
                 product_id=product_ids[0], stage="quality_check",
                 description="成品质量检验，甲醛含量、色牢度等 12 项指标检测",
-                location="广东深圳", certified=True,
+                location="广东深圳", latitude=22.55, longitude=114.08,
+                certified=True,
                 timestamp=datetime(2025, 3, 10),
             ),
             SupplyChainRecord(
                 product_id=product_ids[0], stage="shipping",
                 description="使用可降解包装材料，碳中和物流",
-                location="全国配送", certified=False,
+                location="全国配送", latitude=35.86, longitude=104.2,
+                certified=False,
                 timestamp=datetime(2025, 3, 15),
             ),
         ]

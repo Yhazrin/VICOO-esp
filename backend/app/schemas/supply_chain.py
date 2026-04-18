@@ -20,6 +20,8 @@ class SupplyChainRecordCreate(BaseModel):
     cert_image_url: Optional[str] = Field(None, max_length=500, description="Certification document image URL")
     carbon_kg: Optional[Decimal] = None
     carbon_note: Optional[str] = Field(None, max_length=500)
+    latitude: Optional[float] = Field(None, description="WGS84 latitude in degrees")
+    longitude: Optional[float] = Field(None, description="WGS84 longitude in degrees")
     timestamp: Optional[datetime] = Field(None, description="Actual date/time of this stage")
 
 
@@ -28,6 +30,8 @@ class SupplyChainRecordUpdate(BaseModel):
     location: Optional[str] = Field(None, max_length=300)
     certified: Optional[bool] = None
     cert_image_url: Optional[str] = Field(None, max_length=500)
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     timestamp: Optional[datetime] = None
 
 
@@ -41,6 +45,8 @@ class SupplyChainRecordOut(BaseModel):
     cert_image_url: Optional[str] = None
     carbon_kg: Optional[Decimal] = None
     carbon_note: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     timestamp: Optional[datetime] = None
     created_at: datetime
 

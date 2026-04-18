@@ -12,6 +12,7 @@ import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
 import DonationPanel from '@/components/editorial/DonationPanel';
 import ArtworkCard from '@/components/editorial/ArtworkCard';
+import WelfareTraceabilitySustainabilityPanel from '@/components/editorial/WelfareTraceabilitySustainabilityPanel';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import { campaignsApi } from '@/services/campaigns';
 import { artworksApi } from '@/services/artworks';
@@ -209,6 +210,10 @@ export default function CampaignDetail() {
                 </div>
               </div>
             </div>
+          </div>
+
+          <div className="mt-16 md:mt-20">
+            <WelfareTraceabilitySustainabilityPanel />
           </div>
         </SectionContainer>
       </PaperTextureBackground>

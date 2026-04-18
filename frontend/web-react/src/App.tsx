@@ -13,6 +13,7 @@ import { useUIStore } from '@/stores/uiStore';
 const UniqloHome = lazy(() => import('@/pages/UniqloHome'));
 const About = lazy(() => import('@/pages/About'));
 const Shop = lazy(() => import('@/pages/Shop'));
+const ImpactShop = lazy(() => import('@/pages/ImpactShop'));
 const ProductDetail = lazy(() => import('@/pages/ProductDetail'));
 const Contact = lazy(() => import('@/pages/Contact'));
 const Login = lazy(() => import('@/pages/Login'));
@@ -63,6 +64,8 @@ function AnimatedRoutes() {
             <Route index element={<ErrorBoundary><UniqloHome /></ErrorBoundary>} />
             <Route path="shop" element={<ErrorBoundary><Shop /></ErrorBoundary>} />
             <Route path="shop/:id" element={<ErrorBoundary><ProductDetail /></ErrorBoundary>} />
+            <Route path="impact/shop" element={<ErrorBoundary><ImpactShop /></ErrorBoundary>} />
+            <Route path="impact/shop/:id" element={<ErrorBoundary><ProductDetail /></ErrorBoundary>} />
             <Route path="about" element={<ErrorBoundary><About /></ErrorBoundary>} />
             <Route path="contact" element={<ErrorBoundary><Contact /></ErrorBoundary>} />
             <Route path="auth/callback" element={<ErrorBoundary><AuthCallback /></ErrorBoundary>} />
