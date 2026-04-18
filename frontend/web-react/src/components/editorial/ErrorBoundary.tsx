@@ -1,4 +1,5 @@
 import { Component, type ReactNode, type ErrorInfo } from 'react';
+import { Link } from 'react-router-dom';
 import i18n from '@/i18n';
 
 interface ErrorBoundaryProps {
@@ -52,12 +53,12 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
             >
               {i18n.t('error.tryAgain')}
             </button>
-            <a
-              href="/"
+            <Link
+              to="/"
               className="font-body text-caption tracking-[0.15em] uppercase px-6 py-3 border border-warm-gray/50 text-ink hover:bg-warm-gray/20 transition-colors cursor-pointer"
             >
               {i18n.t('error.goHome')}
-            </a>
+            </Link>
           </div>
         </div>
       );

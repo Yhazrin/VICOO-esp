@@ -11,6 +11,7 @@
   "dependencies": {
     "@tanstack/react-query": "^5.12.0",
     "axios": "^1.6.2",
+    "border-beam": "^1.0.1",
     "dayjs": "^1.11.10",
     "framer-motion": "^11.0.0",
     "i18next": "^26.0.3",

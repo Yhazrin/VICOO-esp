@@ -13,7 +13,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="md:col-span-4">
             <h3 className="font-display text-2xl md:text-3xl font-bold mb-4">
-              Tonghua
+              {t('footer.brandName', 'VICOO')}
             </h3>
             <p className="font-body text-body-sm text-warm-gray leading-relaxed max-w-xs">
               {t('footer.tagline')}
@@ -64,13 +64,13 @@ export default function Footer() {
               {t('footer.sections.legal')}
             </h4>
             <ul className="space-y-3">
-              {['privacy', 'terms', 'children'].map((key) => (
+              {['privacy', 'terms', 'children-safety'].map((key) => (
                 <li key={key}>
                   <Link
                     to={`/${key}`}
                     className="font-body text-body-sm text-warm-gray hover:text-paper transition-colors cursor-pointer"
                   >
-                    {t(`footer.links.${key}`)}
+                    {t(`footer.links.${key === 'children-safety' ? 'children' : key}`)}
                   </Link>
                 </li>
               ))}

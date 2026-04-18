@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 from typing import AsyncGenerator
+from fastapi import HTTPException
 
 from app.config import settings
 
@@ -37,6 +38,9 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
         try:
             yield session
             await session.commit()
-        except Exception:
-            await session.rollback()
+        except Exception as exc:
+            # Don't rollback on HTTPException — it's control flow, not a data error.
+            # If data was flushed before an HTTPException was raised, we want to keep it.
+            if not isinstance(exc, HTTPException):
+                await session.rollback()
             raise

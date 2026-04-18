@@ -20,6 +20,8 @@ export interface SupplyChainRecord {
   certifications?: string[];
   cert_image_url?: string | null;
   created_at?: string;
+  carbon_kg?: number;
+  carbon_note?: string;
   artisan?: {
     name: string;
     location: string;

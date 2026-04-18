@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import axios from 'axios';
 import { useTranslation } from 'react-i18next';
-
-const API_BASE = '/api/v1';
+import { aiAssistantApi, type AIChatMessage } from '@/services/aiAssistant';
 
 interface Message {
+  id: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
 }
+
+let _msgId = 0;
+const nextMsgId = () => `msg-${++_msgId}`;
 
 export const AIAssistantBall: React.FC = () => {
   const { t } = useTranslation();
@@ -27,21 +29,21 @@ export const AIAssistantBall: React.FC = () => {
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
-    const userMsg: Message = { role: 'user', content: input };
+    const userMsg: Message = { id: nextMsgId(), role: 'user', content: input };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setIsLoading(true);
 
     try {
-      const response = await axios.post(`${API_BASE}/ai/chat`, {
-        messages: [...messages, userMsg],
-        context: 'general'
-      });
-      
-      const reply = response.data?.data?.reply || t('aiAssistant.replyError');
-      setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
-    } catch (error) {
-      setMessages(prev => [...prev, { role: 'system', content: t('aiAssistant.connectionError') }]);
+      const chatMessages: AIChatMessage[] = [...messages, userMsg].map((m) => ({
+        role: m.role as AIChatMessage['role'],
+        content: m.content,
+      }));
+      const result = await aiAssistantApi.chat(chatMessages, 'general');
+      const reply = result.reply || t('aiAssistant.replyError');
+      setMessages(prev => [...prev, { id: nextMsgId(), role: 'assistant', content: reply }]);
+    } catch {
+      setMessages(prev => [...prev, { id: nextMsgId(), role: 'system', content: t('aiAssistant.connectionError') }]);
     } finally {
       setIsLoading(false);
     }
@@ -62,8 +64,8 @@ export const AIAssistantBall: React.FC = () => {
             {/* Masthead Header */}
             <div className="bg-[#1A1A16] text-[#F5F0E8] p-4 flex justify-between items-center border-b border-[#1A1A16]">
               <div>
-                <h3 className="text-xs uppercase tracking-[0.2em] font-bold">VICOO Assistant</h3>
-                <p className="text-[10px] opacity-60">Vol. 1 — Issue 01 — AI Edition</p>
+                <h3 className="text-xs uppercase tracking-[0.2em] font-bold">{t('aiAssistant.ballTitle', 'VICOO Assistant')}</h3>
+                <p className="text-[10px] opacity-60">{t('aiAssistant.ballSubtitle', 'Vol. 1 — Issue 01 — AI Edition')}</p>
               </div>
               <button onClick={() => setIsOpen(false)} className="text-xl hover:opacity-70">×</button>
             </div>
@@ -79,8 +81,8 @@ export const AIAssistantBall: React.FC = () => {
                   <p className="mt-4 text-xs">{t('aiAssistant.greeting')}</p>
                 </div>
               )}
-              {messages.map((m, i) => (
-                <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              {messages.map((m) => (
+                <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                   <div className={`max-w-[85%] p-3 text-xs leading-relaxed ${
                     m.role === 'user' 
                       ? 'bg-[#EDE6D6] border border-[#1A1A16] text-[#1A1A16]' 
@@ -92,7 +94,7 @@ export const AIAssistantBall: React.FC = () => {
               ))}
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="p-3 text-xs animate-pulse">... Typing ...</div>
+                  <div className="p-3 text-xs animate-pulse">{t('aiAssistant.typing', '... Typing ...')}</div>
                 </div>
               )}
             </div>
@@ -104,8 +106,8 @@ export const AIAssistantBall: React.FC = () => {
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                  placeholder="Type your message..."
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+                  placeholder={t('aiAssistant.placeholder', 'Type your message...')}
                   className="flex-1 bg-white border border-[#1A1A16] px-3 py-2 text-xs focus:outline-none placeholder:opacity-40"
                 />
                 <button 
@@ -113,7 +115,7 @@ export const AIAssistantBall: React.FC = () => {
                   disabled={isLoading}
                   className="bg-[#1A1A16] text-[#F5F0E8] px-4 py-2 text-[10px] uppercase tracking-widest hover:opacity-90 transition-opacity"
                 >
-                  Send
+                  {t('aiAssistant.send', 'Send')}
                 </button>
               </div>
             </div>

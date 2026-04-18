@@ -1,21 +1,12 @@
-import { useState, useCallback, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
-import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
-import FAQAccordion from '@/components/editorial/FAQAccordion';
-import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
-import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
-import { VintageInput } from '@/components/editorial/VintageInput';
-import { VintageSelect } from '@/components/editorial/VintageSelect';
-import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { contactApi } from '@/services/contact';
-import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 
 const MAX_MESSAGE_LENGTH = 1000;
 
-type FormStatus = 'idle' | 'validation' | 'sending' | 'success' | 'error';
+type FormStatus = 'idle' | 'sending' | 'success' | 'error';
 
 interface FormErrors {
   name?: string;
@@ -24,574 +15,265 @@ interface FormErrors {
   message?: string;
 }
 
-// SVG icons for contact cards
-function EmailIcon() {
-  return (
-    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.2} aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-    </svg>
-  );
-}
+const SUBJECT_OPTIONS = [
+  { value: 'general', label: 'General Inquiry' },
+  { value: 'order', label: 'Order Support' },
+  { value: 'partnership', label: 'Business Partnership' },
+  { value: 'other', label: 'Other' },
+];
 
-function LocationIcon() {
-  return (
-    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.2} aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-    </svg>
-  );
-}
-
-function ClockIcon() {
-  return (
-    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.2} aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  );
-}
-
-function CheckmarkIcon({ prefersReducedMotion }: { prefersReducedMotion: boolean | null }) {
-  if (prefersReducedMotion) {
-    return (
-      <svg
-        aria-hidden="true"
-        className="w-12 h-12 text-rust"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={1.5}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-        />
-      </svg>
-    );
-  }
-
-  return (
-    <motion.svg
-      className="w-12 h-12 text-rust"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.5}
-      {...(prefersReducedMotion ? {} : { initial: { pathLength: 0 }, animate: { pathLength: 1 }, transition: { duration: 0.6, ease: [0, 0, 0.2, 1] } })}
-    >
-      <motion.path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-        {...(prefersReducedMotion ? {} : { initial: { pathLength: 0 }, animate: { pathLength: 1 }, transition: { duration: 0.6, ease: [0, 0, 0.2, 1] } })}
-      />
-    </motion.svg>
-  );
-}
-
-interface ContactCardData {
-  icon: React.ReactNode;
-  titleKey: string;
-  descKey: string;
-  imageSeed: string;
-}
-
-const CONTACT_CARDS: ContactCardData[] = [
+const FAQS = [
   {
-    icon: <EmailIcon />,
-    titleKey: 'contact.cards.email.title',
-    descKey: 'contact.cards.email.description',
-    imageSeed: 'contact-email',
+    q: 'What is your return policy?',
+    a: 'We accept returns within 30 days of purchase. Items must be unworn, unwashed, and in original packaging with tags attached.',
   },
   {
-    icon: <LocationIcon />,
-    titleKey: 'contact.cards.location.title',
-    descKey: 'contact.cards.location.description',
-    imageSeed: 'contact-office',
+    q: 'How long does shipping take?',
+    a: 'Standard shipping takes 3-5 business days. Express shipping is available for next-day delivery in select areas.',
   },
   {
-    icon: <ClockIcon />,
-    titleKey: 'contact.cards.responseTime.title',
-    descKey: 'contact.cards.responseTime.description',
-    imageSeed: 'contact-clock',
+    q: 'How can I track my order?',
+    a: 'Once your order ships, you\'ll receive a tracking number via email. You can also check your order status in your account.',
+  },
+  {
+    q: 'Do you ship internationally?',
+    a: 'Yes, we ship to over 20 countries. International shipping typically takes 7-14 business days depending on destination.',
   },
 ];
 
-function ContactInfoCard({
-  card,
-  index,
-  prefersReducedMotion,
-}: {
-  card: ContactCardData;
-  index: number;
-  prefersReducedMotion: boolean | null;
-}) {
-  const { t } = useTranslation();
-  const [ref, isVisible] = useScrollReveal<HTMLDivElement>();
-
-  return (
-    <motion.div
-      ref={ref}
-      {...(prefersReducedMotion ? {} : {
-        initial: { opacity: 0, y: 30 },
-        animate: isVisible ? { opacity: 1, y: 0 } : {},
-        transition: {
-          duration: 0.6,
-          ease: [0, 0, 0.2, 1],
-          delay: index * 0.15,
-        },
-      })}
-      className="group"
-    >
-      <div className="relative border-2 border-warm-gray/50 bg-paper overflow-hidden">
-        <SectionGrainOverlay />
-
-        {/* Corner accents — diagonal pattern */}
-        <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-rust/30 pointer-events-none" aria-hidden="true" />
-        <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-rust/30 pointer-events-none" aria-hidden="true" />
-
-        {/* Image */}
-        <div className="relative aspect-[16/9] overflow-hidden">
-          <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/10 via-transparent to-archive-brown/10" aria-hidden="true" />
-          <div className="absolute inset-0 z-10 pointer-events-none" style={{ boxShadow: 'inset 0 0 40px color-mix(in srgb, var(--color-ink) 15%, transparent)' }} aria-hidden="true" />
-          <img
-            src={`https://picsum.photos/seed/${card.imageSeed}/600/338`}
-            alt={t(card.titleKey)}
-            className="w-full h-full object-cover sepia-[0.1] transition-transform duration-700 group-hover:scale-105"
-            loading="lazy"
-          />
-        </div>
-
-        {/* Content */}
-        <div className="p-5 md:p-6 relative z-10">
-          <div className="flex items-center gap-3 mb-3">
-            <span className="text-rust/70">
-              {card.icon}
-            </span>
-            <h3 className="font-display text-lg font-semibold text-ink">
-              {t(card.titleKey)}
-            </h3>
-          </div>
-          <p className="font-body text-body-sm text-ink-faded leading-relaxed">
-            {t(card.descKey)}
-          </p>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-// Loading dots animation for submit button
-function LoadingDots() {
-  const prefersReducedMotion = useReducedMotion();
-
-  if (prefersReducedMotion) {
-    return (
-      <span className="inline-flex items-center gap-1">
-        {[0, 1, 2].map((i) => (
-          <span key={i} className="inline-block w-1 h-1 rounded-sm bg-paper" />
-        ))}
-      </span>
-    );
-  }
-
-  return (
-    <span className="inline-flex items-center gap-1">
-      {[0, 1, 2].map((i) => (
-        <motion.span
-          key={i}
-          className="inline-block w-1 h-1 rounded-sm bg-paper"
-          animate={{ opacity: [0.3, 1, 0.3] }}
-          transition={{
-            duration: 1,
-            repeat: Infinity,
-            delay: i * 0.2,
-            ease: 'easeInOut',
-          }}
-        />
-      ))}
-    </span>
-  );
-}
-
 export default function Contact() {
-  const { t } = useTranslation();
-  const prefersReducedMotion = useReducedMotion();
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: '',
-  });
-  const [status, setStatus] = useState<FormStatus>('idle');
+  const [form, setForm] = useState({ name: '', email: '', subject: 'general', message: '' });
   const [errors, setErrors] = useState<FormErrors>({});
-  const pullQuoteRef = useRef<HTMLDivElement>(null);
+  const [status, setStatus] = useState<FormStatus>('idle');
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-  // FAQ items from translations
-  const faqItems = t('contact.faq.items', { returnObjects: true }) as Array<{
-    question: string;
-    answer: string;
-  }>;
-
-  // Subject options
-  const subjectOptions = [
-    { value: 'general', label: t('contact.form.subjectOptions.general') },
-    { value: 'donation', label: t('contact.form.subjectOptions.donation') },
-    { value: 'order', label: t('contact.form.subjectOptions.order') },
-    { value: 'partnership', label: t('contact.form.subjectOptions.partnership') },
-    { value: 'artwork', label: t('contact.form.subjectOptions.artwork') },
-    { value: 'other', label: t('contact.form.subjectOptions.other') },
-  ];
-
-  const validateForm = useCallback((): FormErrors => {
-    const newErrors: FormErrors = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = t('contact.form.requiredField');
-    }
-    if (!formData.email.trim()) {
-      newErrors.email = t('contact.form.requiredField');
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = t('contact.form.invalidEmail');
-    }
-    if (!formData.subject) {
-      newErrors.subject = t('contact.form.requiredField');
-    }
-    if (!formData.message.trim()) {
-      newErrors.message = t('contact.form.requiredField');
-    }
-
-    return newErrors;
-  }, [formData, t]);
+  const validate = useCallback((): FormErrors => {
+    const errs: FormErrors = {};
+    if (!form.name.trim()) errs.name = 'Name is required';
+    if (!form.email.trim()) errs.email = 'Email is required';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = 'Invalid email';
+    if (!form.message.trim()) errs.message = 'Message is required';
+    else if (form.message.length > MAX_MESSAGE_LENGTH) errs.message = `Max ${MAX_MESSAGE_LENGTH} characters`;
+    return errs;
+  }, [form]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const errs = validate();
+    setErrors(errs);
+    if (Object.keys(errs).length > 0) return;
 
-    const validationErrors = validateForm();
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      setStatus('validation');
-      return;
-    }
-
-    setErrors({});
     setStatus('sending');
-
     try {
       await contactApi.submit({
-        name: formData.name.trim(),
-        email: formData.email.trim(),
-        subject: formData.subject,
-        message: formData.message.trim(),
+        name: form.name,
+        email: form.email,
+        subject: form.subject,
+        message: form.message,
       });
       setStatus('success');
-      setFormData({ name: '', email: '', subject: '', message: '' });
     } catch {
       setStatus('error');
     }
   };
 
-  const handleChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const value = e.target.value;
-
-    // Enforce character limit on message
-    if (field === 'message' && value.length > MAX_MESSAGE_LENGTH) {
-      return;
-    }
-
-    setFormData((prev) => ({ ...prev, [field]: value }));
-
-    // Clear field error on change
-    if (errors[field as keyof FormErrors]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
-    }
-  };
-
-  const handleSubjectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFormData((prev) => ({ ...prev, subject: e.target.value }));
-    if (errors.subject) {
-      setErrors((prev) => ({ ...prev, subject: undefined }));
-    }
-  };
-
-  const resetForm = () => {
-    setStatus('idle');
-    setErrors({});
-  };
-
   return (
     <PageWrapper>
-      {/* FAQ Section */}
-      <SectionContainer noTopSpacing>
-        <h2 className="font-display text-h3 font-bold text-ink mb-8">
-          {t('contact.faq.title')}
-        </h2>
+      {/* ── Header ── */}
+      <section className="bg-white">
+        <SectionContainer>
+          <div className="max-w-2xl mx-auto text-center py-16 md:py-20">
+            <motion.h1
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="font-sans text-3xl md:text-5xl font-bold tracking-tight"
+              style={{ color: '#1A1A1A' }}
+            >
+              CONTACT US
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="mt-4 font-sans text-sm"
+              style={{ color: '#888' }}
+            >
+              Have a question? We&apos;re here to help.
+            </motion.p>
+          </div>
+        </SectionContainer>
+      </section>
 
-        <div className="max-w-3xl">
-          {Array.isArray(faqItems) && <FAQAccordion items={faqItems} />}
-        </div>
-      </SectionContainer>
-
-      {/* Pull quote connector */}
-      <div ref={pullQuoteRef} className="relative max-w-[1400px] mx-auto px-6 md:px-10">
-        <ScrollPathDrawInline
-          path="M 0 0 C 20 40, 40 60, 60 30 S 100 80, 120 50"
-          strokeColor="var(--color-rust)"
-          strokeWidth={1}
-          className="absolute left-0 top-0 h-full w-16 pointer-events-none opacity-20"
-          containerRef={pullQuoteRef}
-        />
-        <StoryQuoteBlock
-          quote={t('contact.pullQuote.quote')}
-          author={t('contact.pullQuote.author')}
-          role={t('contact.pullQuote.role')}
-        />
-      </div>
-
-      {/* Contact Form + Info */}
-      <SectionContainer>
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-16">
-          {/* Form */}
-          <div className="md:col-span-7">
-            <h2 className="font-display text-h3 font-bold text-ink mb-8">
-              {t('contact.formTitle')}
-            </h2>
-
-            <AnimatePresence mode="wait">
-              {status === 'success' ? (
-                <motion.div
-                  key="success"
-                  {...(prefersReducedMotion ? {} : { initial: { opacity: 0, scale: 0.95 }, animate: { opacity: 1, scale: 1 }, exit: { opacity: 0, scale: 0.95 }, transition: { duration: 0.5, ease: [0, 0, 0.2, 1] } })}
-                  className="border-2 border-rust/30 bg-paper p-10 md:p-14 text-center relative"
-                >
-                  <SectionGrainOverlay />
-
-                  {/* Corner accents — diagonal pattern */}
-                  <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-rust/30 pointer-events-none" aria-hidden="true" />
-                  <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-rust/30 pointer-events-none" aria-hidden="true" />
-
-                  <div className="relative z-10 flex flex-col items-center">
-                    <CheckmarkIcon prefersReducedMotion={prefersReducedMotion} />
-
-                    <h3 className="font-display text-h3 font-bold text-ink mt-6">
-                      {t('contact.form.successTitle')}
-                    </h3>
-
-                    <p className="font-body text-body-sm md:text-body text-ink-faded mt-3 max-w-md leading-relaxed">
-                      {t('contact.form.success')}
+      {/* ── Form + Info ── */}
+      <section className="bg-white pb-16 md:pb-24">
+        <SectionContainer>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-12 md:gap-16">
+            {/* Form */}
+            <div className="md:col-span-3">
+              <AnimatePresence mode="wait">
+                {status === 'success' ? (
+                  <motion.div
+                    key="success"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="text-center py-16"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-4">
+                      <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <h3 className="font-sans text-lg font-bold" style={{ color: '#1A1A1A' }}>Message Sent</h3>
+                    <p className="font-sans text-sm mt-2" style={{ color: '#888' }}>
+                      We&apos;ll get back to you within 24 hours.
                     </p>
-
-                    <motion.button
-                      type="button"
-                      onClick={resetForm}
-                      whileHover={prefersReducedMotion ? undefined : { scale: 1.01 }}
-                      whileTap={prefersReducedMotion ? undefined : { scale: 0.99 }}
-                      className="mt-8 font-body text-body-sm tracking-[0.15em] uppercase border-2 border-ink text-ink px-8 py-3 hover:bg-ink hover:text-paper transition-colors duration-300 cursor-pointer"
+                    <button
+                      onClick={() => { setStatus('idle'); setForm({ name: '', email: '', subject: 'general', message: '' }); }}
+                      className="mt-6 font-sans text-xs tracking-widest underline"
+                      style={{ color: '#999' }}
                     >
-                      {t('contact.form.submit')}
-                    </motion.button>
-                  </div>
-                </motion.div>
-              ) : (
-                <motion.form
-                  key="form"
-                  {...(prefersReducedMotion ? {} : { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 } })}
-                  onSubmit={handleSubmit}
-                  className="space-y-8"
-                  noValidate
-                >
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <VintageInput
-                      label={t('contact.form.name')}
-                      type="text"
-                      value={formData.name}
-                      onChange={handleChange('name')}
-                      error={errors.name}
-                      required
-                    />
-                    <VintageInput
-                      label={t('contact.form.email')}
-                      type="email"
-                      value={formData.email}
-                      onChange={handleChange('email')}
-                      error={errors.email}
-                      required
-                    />
-                  </div>
-
-                  {/* Subject dropdown */}
-                  <VintageSelect
-                    id="contact-subject"
-                    label={t('contact.form.subject')}
-                    options={[
-                      { value: '', label: t('contact.form.subjectPlaceholder') },
-                      ...subjectOptions,
-                    ]}
-                    value={formData.subject}
-                    onChange={handleSubjectChange}
-                    error={errors.subject}
-                    required
-                  />
-
-                  {/* Message textarea with character counter */}
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="contact-message"
-                      className="font-body text-overline tracking-[0.2em] uppercase text-sepia-mid block"
-                    >
-                      {t('contact.form.message')}
-                    </label>
-                    <div className="relative">
-                      <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-rust/30 pointer-events-none z-10" aria-hidden="true" />
-                      <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-rust/30 pointer-events-none z-10" aria-hidden="true" />
-                      <motion.textarea
-                        id="contact-message"
-                        value={formData.message}
-                        onChange={handleChange('message')}
-                        rows={5}
-                        aria-describedby={errors.message ? 'contact-message-error' : undefined}
-                        aria-invalid={!!errors.message}
-                        whileFocus={prefersReducedMotion ? undefined : { scale: 1.005 }}
-                        className={`
-                          w-full font-body text-body-sm py-3 px-3
-                          border-b-2 bg-transparent
-                          transition-all duration-300
-                          placeholder:text-ink-faded/80
-                          focus:outline-none focus-visible:ring-2 focus-visible:ring-rust/50 focus:border-rust
-                          ${errors.message ? 'border-archive-brown' : 'border-warm-gray/60'}
-                        `}
+                      Send another message
+                    </button>
+                  </motion.div>
+                ) : (
+                  <motion.form key="form" onSubmit={handleSubmit} className="space-y-6">
+                    <div>
+                      <label className="block font-sans text-xs tracking-widest uppercase mb-2" style={{ color: '#999' }}>Name</label>
+                      <input
+                        type="text"
+                        value={form.name}
+                        onChange={(e) => setForm({ ...form, name: e.target.value })}
+                        className="w-full px-4 py-3 border font-sans text-sm outline-none transition-colors focus:border-gray-400"
+                        style={{ borderColor: errors.name ? '#FF0000' : '#ddd', color: '#1A1A1A' }}
                       />
+                      {errors.name && <p className="mt-1 font-sans text-xs" style={{ color: '#FF0000' }}>{errors.name}</p>}
                     </div>
-                    <div className="flex items-center justify-between">
-                      {errors.message ? (
-                        <motion.p
-                          id="contact-message-error"
-                          initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: -5 }}
-                          animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-                          role="alert"
-                          className="font-body text-overline text-archive-brown"
-                        >
-                          {errors.message}
-                        </motion.p>
-                      ) : (
-                        <span />
-                      )}
-                      <span
-                        aria-live="polite"
-                        aria-atomic="true"
-                        className={`font-body text-overline tracking-wide transition-colors duration-200 ${
-                          formData.message.length > MAX_MESSAGE_LENGTH * 0.9
-                            ? 'text-archive-brown'
-                            : 'text-sepia-mid'
-                        }`}
-                      >
-                        {t('contact.form.characterCount', { count: formData.message.length, max: MAX_MESSAGE_LENGTH })}
-                      </span>
-                    </div>
-                  </div>
 
-                  {/* Submit button */}
-                  <div className="flex items-center gap-6">
-                    <motion.button
+                    <div>
+                      <label className="block font-sans text-xs tracking-widest uppercase mb-2" style={{ color: '#999' }}>Email</label>
+                      <input
+                        type="email"
+                        value={form.email}
+                        onChange={(e) => setForm({ ...form, email: e.target.value })}
+                        className="w-full px-4 py-3 border font-sans text-sm outline-none transition-colors focus:border-gray-400"
+                        style={{ borderColor: errors.email ? '#FF0000' : '#ddd', color: '#1A1A1A' }}
+                      />
+                      {errors.email && <p className="mt-1 font-sans text-xs" style={{ color: '#FF0000' }}>{errors.email}</p>}
+                    </div>
+
+                    <div>
+                      <label className="block font-sans text-xs tracking-widest uppercase mb-2" style={{ color: '#999' }}>Subject</label>
+                      <select
+                        value={form.subject}
+                        onChange={(e) => setForm({ ...form, subject: e.target.value })}
+                        className="w-full px-4 py-3 border font-sans text-sm outline-none bg-white transition-colors focus:border-gray-400"
+                        style={{ borderColor: '#ddd', color: '#1A1A1A' }}
+                      >
+                        {SUBJECT_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block font-sans text-xs tracking-widest uppercase mb-2" style={{ color: '#999' }}>
+                        Message
+                        <span className="float-right normal-case tracking-normal" style={{ fontWeight: 400 }}>
+                          {form.message.length}/{MAX_MESSAGE_LENGTH}
+                        </span>
+                      </label>
+                      <textarea
+                        value={form.message}
+                        onChange={(e) => setForm({ ...form, message: e.target.value })}
+                        rows={6}
+                        maxLength={MAX_MESSAGE_LENGTH}
+                        className="w-full px-4 py-3 border font-sans text-sm outline-none resize-none transition-colors focus:border-gray-400"
+                        style={{ borderColor: errors.message ? '#FF0000' : '#ddd', color: '#1A1A1A' }}
+                      />
+                      {errors.message && <p className="mt-1 font-sans text-xs" style={{ color: '#FF0000' }}>{errors.message}</p>}
+                    </div>
+
+                    {status === 'error' && (
+                      <p className="font-sans text-sm" style={{ color: '#FF0000' }}>
+                        Something went wrong. Please try again.
+                      </p>
+                    )}
+
+                    <button
                       type="submit"
                       disabled={status === 'sending'}
-                      whileHover={prefersReducedMotion ? undefined : { scale: 1.01 }}
-                      whileTap={prefersReducedMotion ? undefined : { scale: 0.99 }}
-                      className="font-body text-body-sm tracking-[0.15em] uppercase bg-ink text-paper px-10 py-4 hover:bg-rust transition-colors duration-300 disabled:opacity-60 flex items-center gap-3 cursor-pointer"
+                      className="px-10 py-3 font-sans text-xs font-semibold tracking-widest uppercase text-white transition-opacity duration-200 disabled:opacity-50"
+                      style={{ background: '#FF0000' }}
                     >
-                      {status === 'sending' ? (
-                        <>
-                          <span>{t('contact.form.sending')}</span>
-                          <LoadingDots />
-                        </>
-                      ) : (
-                        t('contact.form.submit')
-                      )}
-                    </motion.button>
-                  </div>
+                      {status === 'sending' ? 'Sending...' : 'Send Message'}
+                    </button>
+                  </motion.form>
+                )}
+              </AnimatePresence>
+            </div>
 
-                  {/* Error state */}
-                  {status === 'error' && (
-                    <motion.p
-                      initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
-                      animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-                      role="alert"
-                      className="font-body text-body-sm text-archive-brown"
-                    >
-                      {t('contact.form.error')}
-                    </motion.p>
-                  )}
-                </motion.form>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Contact info sidebar */}
-          <div className="md:col-span-5">
-            <h2 className="font-display text-h3 font-bold text-ink mb-8">
-              {t('contact.info.title')}
-            </h2>
-
-            <div className="space-y-8">
+            {/* Contact Info */}
+            <div className="md:col-span-2 space-y-8">
               <div>
-                <span className="font-body text-caption text-sepia-mid tracking-[0.2em] uppercase">
-                  {t('contact.info.emailLabel')}
-                </span>
-                <a
-                  href={`mailto:${t('contact.info.email')}`}
-                  className="block font-display text-h3 font-semibold text-ink mt-2 hover:text-rust transition-colors cursor-pointer"
+                <h3 className="font-sans text-xs font-bold tracking-widest uppercase mb-2" style={{ color: '#1A1A1A' }}>Email</h3>
+                <p className="font-sans text-sm" style={{ color: '#666' }}>support@uniqlo.com</p>
+              </div>
+              <div>
+                <h3 className="font-sans text-xs font-bold tracking-widest uppercase mb-2" style={{ color: '#1A1A1A' }}>Customer Service</h3>
+                <p className="font-sans text-sm" style={{ color: '#666' }}>Mon — Fri, 9:00 — 18:00 (JST)</p>
+              </div>
+              <div>
+                <h3 className="font-sans text-xs font-bold tracking-widest uppercase mb-2" style={{ color: '#1A1A1A' }}>Headquarters</h3>
+                <p className="font-sans text-sm" style={{ color: '#666' }}>
+                  Midtown Tower, 9-7-1 Akasaka<br />
+                  Minato-ku, Tokyo 107-6231, Japan
+                </p>
+              </div>
+            </div>
+          </div>
+        </SectionContainer>
+      </section>
+
+      {/* ── FAQ ── */}
+      <section className="bg-gray-50 py-16 md:py-24">
+        <SectionContainer>
+          <h2 className="font-sans text-2xl md:text-3xl font-bold tracking-tight mb-10 text-center" style={{ color: '#1A1A1A' }}>
+            FREQUENTLY ASKED
+          </h2>
+          <div className="max-w-2xl mx-auto space-y-0">
+            {FAQS.map((faq, i) => (
+              <div key={i} className="border-b border-gray-200">
+                <button
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="w-full flex items-center justify-between py-5 font-sans text-sm text-left cursor-pointer"
+                  style={{ color: '#1A1A1A' }}
                 >
-                  {t('contact.info.email')}
-                </a>
+                  <span className="font-semibold">{faq.q}</span>
+                  <span className="ml-4 text-lg shrink-0" style={{ color: '#ccc' }}>
+                    {openFaq === i ? '−' : '+'}
+                  </span>
+                </button>
+                <AnimatePresence>
+                  {openFaq === i && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25 }}
+                      className="overflow-hidden"
+                    >
+                      <p className="pb-5 font-sans text-sm leading-relaxed" style={{ color: '#666' }}>
+                        {faq.a}
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-
-              <div>
-                <span className="font-body text-caption text-sepia-mid tracking-[0.2em] uppercase">
-                  {t('contact.info.wechatLabel')}
-                </span>
-                <p className="font-display text-h3 font-semibold text-ink mt-2">
-                  {t('contact.info.wechat')}
-                </p>
-              </div>
-
-              <div>
-                <span className="font-body text-caption text-sepia-mid tracking-[0.2em] uppercase">
-                  {t('contact.info.locationLabel')}
-                </span>
-                <p className="font-display text-h3 font-semibold text-ink mt-2">
-                  {t('contact.info.address')}
-                </p>
-              </div>
-            </div>
-
-            {/* Decorative image */}
-            <div className="mt-12">
-              <SepiaImageFrame
-                src="https://picsum.photos/seed/vicoo-shanghai-office/600/450"
-                alt={t('contact.info.officeCaption')}
-                caption={t('contact.info.officeCaption')}
-                aspectRatio="landscape"
-                size="full"
-              />
-            </div>
+            ))}
           </div>
-        </div>
-      </SectionContainer>
-
-      {/* Contact Info Cards */}
-      <SectionContainer>
-        <h2 className="font-display text-h3 font-bold text-ink mb-8">
-          {t('contact.contactTitle')}
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-          {CONTACT_CARDS.map((card, index) => (
-            <ContactInfoCard key={card.imageSeed} card={card} index={index} prefersReducedMotion={prefersReducedMotion} />
-          ))}
-        </div>
-      </SectionContainer>
-
-      <div className="editorial-divider" aria-hidden="true" />
+        </SectionContainer>
+      </section>
     </PageWrapper>
   );
 }

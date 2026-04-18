@@ -59,8 +59,10 @@ export default function EditorialHero({
     };
 
     // Handle orientation change on mobile
+    let orientationTimeoutId: ReturnType<typeof setTimeout>;
     const handleOrientationChange = () => {
-      setTimeout(updateVh, 200);
+      clearTimeout(orientationTimeoutId);
+      orientationTimeoutId = setTimeout(updateVh, 200);
     };
 
     // Handle tab switching (visibility change) - critical for 100dvh stability
@@ -82,6 +84,7 @@ export default function EditorialHero({
       window.removeEventListener('orientationchange', handleOrientationChange);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       clearTimeout(timeoutId);
+      clearTimeout(orientationTimeoutId);
     };
   }, []);
 
@@ -238,7 +241,7 @@ export default function EditorialHero({
           transition={{ duration: 0.6, ease: [0, 0, 0.2, 1] }}
           className="block font-body text-caption text-sepia-mid tracking-[0.3em] mb-6 md:mb-8"
         >
-          Vision In Creative Opportunity
+          {t('footer.brand.description')}
         </motion.span>
 
         <motion.h1

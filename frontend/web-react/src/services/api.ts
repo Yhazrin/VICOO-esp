@@ -8,15 +8,16 @@ if (!API_BASE_URL) {
 }
 
 let isRefreshing = false;
-let refreshSubscribers: Array<(token: string) => void> = [];
+let refreshSubscribers: Array<{ resolve: (token: string) => void; reject: (err: unknown) => void }> = [];
 
 function onRefreshed(newToken: string) {
-  refreshSubscribers.forEach((cb) => cb(newToken));
+  refreshSubscribers.forEach((sub) => sub.resolve(newToken));
   refreshSubscribers = [];
 }
 
-function addRefreshSubscriber(cb: (token: string) => void) {
-  refreshSubscribers.push(cb);
+function onRefreshFailed(err: unknown) {
+  refreshSubscribers.forEach((sub) => sub.reject(err));
+  refreshSubscribers = [];
 }
 
 export const api = axios.create({
@@ -60,9 +61,10 @@ api.interceptors.response.use(
 
       if (isRefreshing) {
         // Wait for the in-flight refresh to complete
-        return new Promise((resolve) => {
-          addRefreshSubscriber(() => {
-            resolve(api(originalRequest));
+        return new Promise((resolve, reject) => {
+          refreshSubscribers.push({
+            resolve: () => resolve(api(originalRequest)),
+            reject,
           });
         });
       }
@@ -85,10 +87,11 @@ api.interceptors.response.use(
         isRefreshing = false;
         onRefreshed(access_token);
         return api(originalRequest);
-      } catch {
+      } catch (refreshError) {
         isRefreshing = false;
-        refreshSubscribers = [];
-        return Promise.reject(error);
+        // Reject all waiting subscribers so they propagate the error immediately
+        onRefreshFailed(refreshError);
+        return Promise.reject(refreshError);
       }
     }
 

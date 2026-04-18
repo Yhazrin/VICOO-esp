@@ -13,6 +13,8 @@ export default function HorizontalScrollTransition({ children }: HorizontalScrol
   const [mousePosition, setMousePosition] = useState({ x: 0.5, y: 0.5 });
 
   useEffect(() => {
+    if (prefersReducedMotion) return;
+
     const handleMouseMove = (e: MouseEvent) => {
       if (containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
@@ -25,7 +27,7 @@ export default function HorizontalScrollTransition({ children }: HorizontalScrol
 
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+  }, [prefersReducedMotion]);
 
   if (prefersReducedMotion) {
     return (

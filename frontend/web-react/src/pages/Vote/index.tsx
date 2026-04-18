@@ -17,7 +17,7 @@ function ArtworkVoteCard({
 }: {
   artwork: Artwork;
   index: number;
-  onVote: (id: number) => void;
+  onVote: (id: number) => Promise<void>;
 }) {
   const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
@@ -31,7 +31,10 @@ function ArtworkVoteCard({
     if (!voted) {
       setVoted(true);
       setVoteCount((c) => c + 1);
-      onVote(artwork.id);
+      onVote(artwork.id).catch(() => {
+        setVoted(false);
+        setVoteCount((c) => c - 1);
+      });
     }
   };
 
@@ -92,7 +95,7 @@ export default function Vote() {
   const [voteError, setVoteError] = useState('');
 
   // Fetch featured artworks for voting
-  const { data: artworksData } = useQuery({
+  const { data: artworksData, isLoading, error: queryError } = useQuery({
     queryKey: ['artworks-featured'],
     queryFn: async () => {
       const result = await artworksApi.getAll({ page_size: 12 });
@@ -108,13 +111,28 @@ export default function Vote() {
   const handleVote = useCallback(async (artworkId: number) => {
     try {
       await artworksApi.vote(String(artworkId));
-    } catch {
+    } catch (err) {
       setVoteError(t('vote.error', '投票失败，请重试'));
+      throw err; // Re-throw so ArtworkVoteCard can rollback optimistic state
     }
   }, [t]);
 
   return (
     <PageWrapper>
+      {queryError && (
+        <div className="max-w-[1400px] mx-auto px-6 md:px-10 w-full">
+          <div className="flex items-center gap-3 bg-rust/10 border border-rust/20 px-4 py-3 mt-4 mb-2">
+            <p className="font-body text-body-sm text-rust flex-1">{t('vote.loadError', '加载作品失败，请刷新重试')}</p>
+          </div>
+        </div>
+      )}
+      {isLoading && (
+        <SectionContainer noTopSpacing>
+          <div className="py-24 text-center">
+            <p className="font-body text-sepia-mid">{t('vote.loading', '加载中...')}</p>
+          </div>
+        </SectionContainer>
+      )}
       {voteError && (
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 w-full">
           <div className="flex items-center gap-3 bg-rust/10 border border-rust/20 px-4 py-3 mt-4 mb-2">
@@ -122,7 +140,7 @@ export default function Vote() {
             <button
               onClick={() => setVoteError('')}
               className="text-rust hover:text-rust-light cursor-pointer"
-              aria-label="Dismiss"
+              aria-label={t('common.dismiss', 'Dismiss')}
             >
               &times;
             </button>
