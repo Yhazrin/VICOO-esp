@@ -29,6 +29,7 @@ interface EnhancedSupplyChainRecord {
   cert_image_url?: string | null;
   timestamp?: string;
   created_at?: string;
+  materials?: { name: string; origin: string; certified: boolean }[];
 }
 
 function normalizeStageKey(stage: string): string {
@@ -311,6 +312,32 @@ function EnhancedTimelineEntry({ record, index, t }: {
               </div>
             )}
           </div>
+
+          {record.materials && record.materials.length > 0 && (
+            <div className="mt-5 pt-5 border-t border-warm-gray/25">
+              <p className="font-body text-overline text-sepia-mid tracking-[0.12em] uppercase mb-3">
+                {t('traceability.materialsHeading')}
+              </p>
+              <ul className="space-y-2">
+                {record.materials.map((m) => (
+                  <li
+                    key={`${m.name}-${m.origin}`}
+                    className="font-body text-caption text-ink-faded flex flex-wrap gap-x-4 gap-y-1"
+                  >
+                    <span className="text-ink font-medium">{m.name}</span>
+                    <span>
+                      <span className="uppercase tracking-[0.08em] text-sepia-mid">{t('traceability.materialOrigin')}:</span>{' '}
+                      {m.origin}
+                    </span>
+                    <span className={m.certified ? 'text-sage' : 'text-warm-gray'}>
+                      <span className="uppercase tracking-[0.08em] text-sepia-mid">{t('traceability.materialCertified')}:</span>{' '}
+                      {m.certified ? t('traceability.materialCertifiedYes') : t('traceability.materialCertifiedNo')}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </motion.div>
     </motion.div>
@@ -403,6 +430,7 @@ export default function Traceability() {
             cert_image_url: r.cert_image_url ?? null,
             timestamp: r.timestamp,
             created_at: r.created_at,
+            materials: r.materials,
           };
         });
         setRecords(mapped);
@@ -463,6 +491,7 @@ export default function Traceability() {
               cert_image_url: first.cert_image_url ?? null,
               timestamp: first.timestamp,
               created_at: first.created_at,
+              materials: first.materials,
             };
             setHighlightedId(enhanced.id);
             setSearchResult(enhanced);
@@ -584,6 +613,42 @@ export default function Traceability() {
               </motion.div>
             )}
           </AnimatePresence>
+        </motion.div>
+      </SectionContainer>
+
+      {/* Welfare × raw materials × sustainability — editorial bridge */}
+      <SectionContainer>
+        <motion.div
+          {...(prefersReducedMotion ? {} : {
+            initial: { opacity: 0, y: 16 },
+            whileInView: { opacity: 1, y: 0 },
+            viewport: { once: true },
+            transition: { duration: 0.55 },
+          })}
+          className="border border-sage/25 bg-sage/5 p-8 md:p-10 relative overflow-hidden"
+        >
+          <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-sage/25" />
+          <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-sage/25" />
+          <h2 className="font-display text-h3 font-bold text-ink mb-4 relative z-10">
+            {t('traceability.welfareMaterialBridge.title')}
+          </h2>
+          <p className="font-body text-body-sm text-ink-faded leading-[1.85] max-w-3xl mb-8 relative z-10">
+            {t('traceability.welfareMaterialBridge.body')}
+          </p>
+          <div className="flex flex-wrap gap-4 relative z-10">
+            <Link
+              to="/impact?tab=campaigns"
+              className="font-body text-label tracking-[0.15em] uppercase text-rust border-b border-rust/40 pb-0.5 hover:border-rust transition-colors"
+            >
+              {t('traceability.welfareMaterialBridge.linkCampaigns')}
+            </Link>
+            <Link
+              to="/impact?tab=shop"
+              className="font-body text-label tracking-[0.15em] uppercase text-rust border-b border-rust/40 pb-0.5 hover:border-rust transition-colors"
+            >
+              {t('traceability.welfareMaterialBridge.linkShop')}
+            </Link>
+          </div>
         </motion.div>
       </SectionContainer>
 

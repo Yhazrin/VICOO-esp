@@ -315,7 +315,23 @@
     "empty.subtitle": "请稍后再来",
     "goalReached": "目标达成",
     "funded": "已筹{{percent}}%",
-    "loadError": "加载活动失败，请稍后再试。"
+    "loadError": "加载活动失败，请稍后再试。",
+    "sustainabilityLoop": {
+      "eyebrow": "原料 · 公益 · 环境",
+      "title": "可持续的追溯：公开档案，而不是绿色标签",
+      "subtitle": "活动善款用于儿童美育与社区项目；与此并行的，是每一批纤维、染料与辅料在供应链节点上的留痕。我们坚持「可核对」——证书、批次、合作方与碳排数据与单品页同源，避免公益叙事与环境主张脱节。",
+      "p1Title": "负责任原料准入",
+      "p1Body": "有机、再生或低冲击纤维需附有效认证；高风险工序须通过社会与环境合规筛查后才可进入打样。",
+      "p2Title": "节点化追溯档案",
+      "p2Body": "从原料到场、纺纱、染整到成衣与物流，每一站记录地点、时间、责任主体与核验状态，支持按商品查询。",
+      "p3Title": "生命周期环境口径",
+      "p3Body": "在可追溯链条上累加核算碳排等关键指标，并与行业常规水平对照，用同一套方法解释「减了多少、凭什么」。",
+      "p4Title": "公益回流可审计",
+      "p4Body": "销售捐赠比例、活动筹款进度与项目支出方向分别披露；供应链档案不影响善款合规，但共同构成「善意可验证」的全景。",
+      "footnote": "对外陈述均应有据可查：第三方证书、内部批次记录或独立审计摘要。若数据尚在补齐，页面会标明「待核验」而非静默省略。",
+      "ctaTraceability": "全站溯源",
+      "ctaShop": "公益商城档案"
+    }
   },
   "stories": {
     "hero": {
@@ -571,6 +587,9 @@
       "addToCart": "加入购物车",
       "added": "已加入购物车",
       "supplyChain": "供应链旅程",
+      "traceSection": "生产溯源",
+      "coordsRegistered": "WGS84 登记坐标",
+      "coordsDerived": "由地点推算坐标",
       "sustainability": "可持续评分",
       "artwork": "基于作品",
       "size": "尺码",
@@ -583,7 +602,13 @@
       "reviewTitle": "标题（可选）",
       "reviewBody": "分享穿着或包装体验",
       "reviewError": "您可能已评价过该商品",
-      "submitReview": "提交"
+      "submitReview": "提交",
+      "globeTitle": "全球溯源视图",
+      "globeHint": "拖拽旋转地球，点击亮点查看该节点的原料或生产档案；右侧可快速切换节点。",
+      "globeNodeList": "供应链节点",
+      "globeResetView": "重置视角",
+      "globeVerified": "已核验",
+      "globePending": "待核验"
     },
     "sort": {
       "label": "排序",
@@ -722,8 +747,12 @@
       "artwork": "艺术创作",
       "design": "设计转化",
       "material": "材料采购",
+      "material_sourcing": "原料采购",
+      "processing": "纺染加工",
+      "manufacturing": "生产制造",
       "production": "生产制作",
       "quality": "质量检测",
+      "quality_check": "品质检验",
       "shipping": "物流配送"
     },
     "verified": "已验证",
@@ -768,6 +797,17 @@
       "highlighted": "高亮记录",
       "viewProduct": "查看商品"
     },
+    "welfareMaterialBridge": {
+      "title": "公益与原料：同一条证据链",
+      "body": "善款流向儿童美育与社区项目；成衣上的纤维与染料则按节点留痕。两侧信息分开披露，但共用「可核对」原则——您在为故事付费时，也有权知道材料从何处来、经谁之手、环境代价如何核算。",
+      "linkCampaigns": "浏览公益活动",
+      "linkShop": "查看公益商城单品档案"
+    },
+    "materialsHeading": "本节点涉及原料",
+    "materialOrigin": "产地",
+    "materialCertified": "认证",
+    "materialCertifiedYes": "已认证",
+    "materialCertifiedNo": "待核验",
     "status": {
       "verified": "已验证",
       "inProgress": "进行中",

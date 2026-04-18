@@ -32,6 +32,8 @@ export interface SupplyChainRecord {
     origin: string;
     certified: boolean;
   }[];
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface TraceResponse {

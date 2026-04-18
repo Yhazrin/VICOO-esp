@@ -46,6 +46,16 @@ async def lifespan(app: FastAPI):
                     logger.info("Demo data seeded successfully.")
         except Exception:
             logger.warning("Demo data seeding failed (non-critical)", exc_info=True)
+
+    # 修复旧库：中文类目、is_impact_product 未维护时，公益 / 优衣库常规分流错误（幂等，全环境执行）
+    try:
+        from app.db_repair import repair_product_catalog
+
+        async with AsyncSessionLocal() as session:
+            await repair_product_catalog(session)
+            await session.commit()
+    except Exception:
+        logger.warning("Catalog repair failed (non-critical)", exc_info=True)
     yield
     await engine.dispose()
 

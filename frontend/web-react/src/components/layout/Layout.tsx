@@ -1,4 +1,5 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useMatch, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import Header from './Header';
 import EditorialFooter from './EditorialFooter';
 import MobileNav from './MobileNav';
@@ -26,7 +27,20 @@ function ImpactContent() {
 }
 
 export default function Layout() {
-  const { impactMode, activeImpactTab } = useUIStore();
+  const { impactMode, activeImpactTab, setImpactMode, setActiveImpactTab } = useUIStore();
+  const location = useLocation();
+  const isImpactShopRoute = Boolean(useMatch({ path: '/impact/shop', end: false }));
+  /** 仅在首页 `/` 且开启公益壳时用 tab 内容；`/shop`、`/about` 等必须走 `<Outlet />`，否则常规店被挡住 */
+  const renderImpactShell = impactMode && location.pathname === '/';
+  const mainContent = renderImpactShell ? <ImpactContent /> : <Outlet />;
+  const mountKey = renderImpactShell ? `impact-${activeImpactTab}` : location.pathname;
+
+  useEffect(() => {
+    if (isImpactShopRoute) {
+      setImpactMode(true);
+      setActiveImpactTab('shop');
+    }
+  }, [isImpactShopRoute, setImpactMode, setActiveImpactTab]);
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-paper text-ink">
@@ -39,8 +53,8 @@ export default function Layout() {
       <Header />
       <MobileNav />
       <main id="main-content" className="flex-1 pt-16 md:pt-20">
-        <KeyedRouteContent mountKey={impactMode ? `impact-${activeImpactTab}` : undefined}>
-          {impactMode ? <ImpactContent /> : <Outlet />}
+        <KeyedRouteContent mountKey={mountKey}>
+          {mainContent}
         </KeyedRouteContent>
       </main>
       <EditorialFooter />

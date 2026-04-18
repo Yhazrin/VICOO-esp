@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { productDetailPath } from '@/utils/productPaths';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { productsApi } from '@/services/products';
@@ -31,10 +32,12 @@ const BANNER_ITEMS = [
 
 export default function UniqloHome() {
   const { data: products } = useQuery({
-    queryKey: ['uniqlo-home-products'],
-    queryFn: () => productsApi.getAll({ page_size: 8, isImpactProduct: false }),
+    queryKey: ['uniqlo-home-products', 'company'],
+    queryFn: () => productsApi.getAll({ page_size: 16, isImpactProduct: false }),
     staleTime: 5 * 60 * 1000,
   });
+
+  const homeCompanyPick = (products?.items ?? []).filter((p) => !p.isImpactProduct).slice(0, 8);
 
   return (
     <PageWrapper>
@@ -119,10 +122,10 @@ export default function UniqloHome() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {(products?.items ?? []).slice(0, 8).map((product) => (
+            {homeCompanyPick.map((product) => (
               <Link
                 key={product.id}
-                to={`/shop/${product.id}`}
+                to={productDetailPath(product.id, product)}
                 className="group block"
               >
                 <div

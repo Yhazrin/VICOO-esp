@@ -54,6 +54,8 @@ class SupplyChainService(BaseService):
             stage=record_data.get("stage"),
             description=record_data.get("description"),
             location=record_data.get("location"),
+            latitude=record_data.get("latitude"),
+            longitude=record_data.get("longitude"),
             certified=record_data.get("certified", False),
             cert_image_url=record_data.get("cert_image_url"),
             timestamp=record_data.get("timestamp")

@@ -11,6 +11,7 @@ from app.models.supply_chain import SupplyChainRecord
 from app.models.artwork import Artwork
 from app.schemas import ApiResponse, PaginatedResponse, ProductCreate, ProductOut, ProductUpdate, SupplyChainRecordOut
 from app.deps import require_role, get_current_user
+from app.data.default_regular_products import regular_catalog_mock_dicts
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
@@ -28,28 +29,28 @@ def _apply_product_filters(stmt, category: str | None, status: str | None, is_im
     return stmt
 
 
+_U = "https://images.unsplash.com"
 _mock_products = [
-    {"id": 1, "name": "彩虹鱼棉质 T 恤", "description": "采用有机棉面料，印有获奖作品《彩虹鱼》。每件 T 恤的收益 30% 用于乡村美育基金。", "price": "168.00", "currency": "CNY", "image_url": "/static/products/tshirt1.jpg", "category": "apparel", "stock": 200, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "30.00", "artwork_id": 2, "sizes": ["S", "M", "L", "XL"], "colors": [{"name": "White", "hex": "#F5F0E8"}, {"name": "Navy", "hex": "#1C2841"}, {"name": "Rust", "hex": "#8B3A2A"}], "created_at": "2025-04-01T10:00:00"},
-    {"id": 2, "name": "星星之夜帆布袋", "description": "再生帆布材质，印有梵高风格星空画作。环保材质，可持续时尚。", "price": "89.00", "currency": "CNY", "image_url": "/static/products/bag1.jpg", "category": "accessories", "stock": 150, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "25.00", "artwork_id": 4, "created_at": "2025-04-05T10:00:00"},
-    {"id": 3, "name": "春天的花园丝巾", "description": "100% 真丝面料，孩子们的画作化为丝巾图案，每一条都是独一无二的艺术品。", "price": "258.00", "currency": "CNY", "image_url": "/static/products/scarf1.jpg", "category": "accessories", "stock": 80, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "30.00", "artwork_id": 1, "created_at": "2025-04-10T10:00:00"},
-    {"id": 4, "name": "妈妈的手环保笔记本", "description": "再生纸制作，封面印有《妈妈的手》。可用于记录生活中的美好瞬间。", "price": "39.00", "currency": "CNY", "image_url": "/static/products/notebook1.jpg", "category": "stationery", "stock": 500, "status": "active", "is_impact_product": True, "campaign_id": 2, "donation_percentage": "20.00", "artwork_id": 11, "created_at": "2025-04-15T10:00:00"},
-    {"id": 5, "name": "太空旅行马克杯", "description": "陶瓷马克杯，印有《太空旅行》画作。送给每个梦想家。", "price": "68.00", "currency": "CNY", "image_url": "/static/products/cup1.jpg", "category": "lifestyle", "stock": 120, "status": "active", "is_impact_product": True, "campaign_id": 3, "donation_percentage": "25.00", "artwork_id": 15, "created_at": "2025-04-20T10:00:00"},
-    {"id": 6, "name": "我的家帆布鞋", "description": "有机棉帆布鞋面，可降解鞋底。鞋侧印有《我的家》画作。", "price": "198.00", "currency": "CNY", "image_url": "/static/products/shoes1.jpg", "category": "footwear", "stock": 0, "status": "sold_out", "is_impact_product": True, "campaign_id": 2, "donation_percentage": "30.00", "artwork_id": 3, "sizes": ["36", "37", "38", "39", "40", "41", "42", "43"], "colors": [{"name": "White", "hex": "#F5F0E8"}, {"name": "Black", "hex": "#1A1A16"}], "created_at": "2025-04-25T10:00:00"},
-    {"id": 7, "name": "画出未来环保抱枕", "description": "再生棉填充，有机棉外套。科幻画作成为你客厅的亮点。", "price": "128.00", "currency": "CNY", "image_url": "/static/products/pillow1.jpg", "category": "home", "stock": 90, "status": "active", "is_impact_product": True, "campaign_id": 3, "donation_percentage": "25.00", "artwork_id": 19, "created_at": "2025-05-01T10:00:00"},
-    {"id": 8, "name": "过年了限定礼盒", "description": "包含 T 恤、帆布袋、笔记本三件套，精美包装。限量 100 套。", "price": "368.00", "currency": "CNY", "image_url": "/static/products/giftbox1.jpg", "category": "gift_box", "stock": 35, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "30.00", "artwork_id": 18, "sizes": ["S", "M", "L", "XL"], "created_at": "2025-05-05T10:00:00"},
-    # Regular fashion products (no charity attributes)
-    {"id": 9, "name": "Organic Linen Oversized Shirt", "description": "Relaxed-fit shirt in GOTS-certified organic linen. Pre-washed for a lived-in softness.", "price": "328.00", "currency": "CNY", "image_url": "/static/products/shirt_regular1.jpg", "category": "apparel", "stock": 150, "status": "active", "is_impact_product": False, "campaign_id": None, "donation_percentage": None, "sizes": ["XS", "S", "M", "L", "XL", "XXL"], "colors": [{"name": "White", "hex": "#F5F0E8"}, {"name": "Sand", "hex": "#C4A45A"}, {"name": "Sage", "hex": "#3F4F45"}], "created_at": "2025-06-01T10:00:00"},
-    {"id": 10, "name": "Recycled Cashmere Crewneck", "description": "100% recycled Italian cashmere. Circular knit technology, zero waste pattern cutting.", "price": "598.00", "currency": "CNY", "image_url": "/static/products/sweater_regular1.jpg", "category": "apparel", "stock": 80, "status": "active", "is_impact_product": False, "campaign_id": None, "donation_percentage": None, "sizes": ["S", "M", "L", "XL"], "colors": [{"name": "Black", "hex": "#1A1A16"}, {"name": "Navy", "hex": "#1C2841"}, {"name": "Rust", "hex": "#8B3A2A"}], "created_at": "2025-06-05T10:00:00"},
-    {"id": 11, "name": "Hemp Canvas Tote", "description": "Natural hemp canvas tote bag. Durable, biodegradable, minimal aesthetic.", "price": "128.00", "currency": "CNY", "image_url": "/static/products/tote_regular1.jpg", "category": "accessories", "stock": 200, "status": "active", "is_impact_product": False, "campaign_id": None, "donation_percentage": None, "created_at": "2025-06-10T10:00:00"},
-    {"id": 12, "name": "Merino Wool Scarf", "description": "Ethically sourced merino wool. Hand-finished edges, natural dye in rust and sage.", "price": "198.00", "currency": "CNY", "image_url": "/static/products/scarf_regular1.jpg", "category": "accessories", "stock": 120, "status": "active", "is_impact_product": False, "campaign_id": None, "donation_percentage": None, "colors": [{"name": "Rust", "hex": "#8B3A2A"}, {"name": "Sage", "hex": "#3F4F45"}], "created_at": "2025-06-15T10:00:00"},
+    {"id": 1, "name": "彩虹鱼棉质 T 恤", "description": "采用有机棉面料，印有获奖作品《彩虹鱼》。每件 T 恤的收益 30% 用于乡村美育基金。", "price": "168.00", "currency": "CNY", "image_url": f"{_U}/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80", "category": "apparel", "stock": 200, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "30.00", "artwork_id": 2, "sizes": ["S", "M", "L", "XL"], "colors": [{"name": "White", "hex": "#F5F0E8"}, {"name": "Navy", "hex": "#1C2841"}, {"name": "Rust", "hex": "#8B3A2A"}], "created_at": "2025-04-01T10:00:00"},
+    {"id": 2, "name": "星星之夜帆布袋", "description": "再生帆布材质，印有《星星之夜》星空画作。环保材质，可持续时尚。", "price": "89.00", "currency": "CNY", "image_url": f"{_U}/photo-1597484662317-9bd7bdda2907?auto=format&fit=crop&w=900&q=80", "category": "accessories", "stock": 150, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "25.00", "artwork_id": 4, "created_at": "2025-04-05T10:00:00"},
+    {"id": 3, "name": "春天的花园丝巾", "description": "100% 真丝面料，孩子们的画作化为丝巾图案，每一条都是独一无二的艺术品。", "price": "258.00", "currency": "CNY", "image_url": f"{_U}/photo-1606760227091-3dd870d97f1d?auto=format&fit=crop&w=900&q=80", "category": "accessories", "stock": 80, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "30.00", "artwork_id": 1, "created_at": "2025-04-10T10:00:00"},
+    {"id": 4, "name": "妈妈的手环保笔记本", "description": "再生纸制作，封面印有《妈妈的手》。可用于记录生活中的美好瞬间。", "price": "39.00", "currency": "CNY", "image_url": f"{_U}/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=900&q=80", "category": "stationery", "stock": 500, "status": "active", "is_impact_product": True, "campaign_id": 2, "donation_percentage": "20.00", "artwork_id": 11, "created_at": "2025-04-15T10:00:00"},
+    {"id": 5, "name": "太空旅行马克杯", "description": "陶瓷马克杯，印有《太空旅行》画作。送给每个梦想家。", "price": "68.00", "currency": "CNY", "image_url": f"{_U}/photo-1577937927133-66ef06acdf18?auto=format&fit=crop&w=900&q=80", "category": "lifestyle", "stock": 120, "status": "active", "is_impact_product": True, "campaign_id": 3, "donation_percentage": "25.00", "artwork_id": 15, "created_at": "2025-04-20T10:00:00"},
+    {"id": 6, "name": "我的家帆布鞋", "description": "有机棉帆布鞋面，可降解鞋底。鞋侧印有《我的家》画作。", "price": "198.00", "currency": "CNY", "image_url": f"{_U}/photo-1560769629-975ec94e6a86?auto=format&fit=crop&w=900&q=80", "category": "footwear", "stock": 0, "status": "sold_out", "is_impact_product": True, "campaign_id": 2, "donation_percentage": "30.00", "artwork_id": 3, "sizes": ["36", "37", "38", "39", "40", "41", "42", "43"], "colors": [{"name": "White", "hex": "#F5F0E8"}, {"name": "Black", "hex": "#1A1A16"}], "created_at": "2025-04-25T10:00:00"},
+    {"id": 7, "name": "画出未来环保抱枕", "description": "再生棉填充，有机棉外套。《未来城市》画作点亮客厅角落。", "price": "128.00", "currency": "CNY", "image_url": f"{_U}/photo-1584100936595-c9d1d09786c4?auto=format&fit=crop&w=900&q=80", "category": "home", "stock": 90, "status": "active", "is_impact_product": True, "campaign_id": 3, "donation_percentage": "25.00", "artwork_id": 19, "created_at": "2025-05-01T10:00:00"},
+    {"id": 8, "name": "过年了限定礼盒", "description": "包含 T 恤、帆布袋、笔记本三件套，精美包装。限量 100 套。", "price": "368.00", "currency": "CNY", "image_url": f"{_U}/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=900&q=80", "category": "gift_box", "stock": 35, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "30.00", "artwork_id": 18, "sizes": ["S", "M", "L", "XL"], "created_at": "2025-05-05T10:00:00"},
+    {"id": 13, "name": "海豚之歌·再生纤维披肩", "description": "海洋主题儿童画作《海豚之歌》授权印花，再生聚酯与有机棉混纺，收益 28% 捐入「春天的色彩」美育项目。", "price": "198.00", "currency": "CNY", "image_url": f"{_U}/photo-1601925260368-ae2f83cf8b7f?auto=format&fit=crop&w=900&q=80", "category": "accessories", "stock": 110, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "28.00", "artwork_id": 8, "created_at": "2025-05-08T10:00:00"},
+    {"id": 14, "name": "牧羊曲·手工拼布壁挂", "description": "甘肃定西合作工坊手工缝制，图案来自《牧羊曲》画作，每件附带溯源卡，捐赠比例 22% 用于乡村儿童画材。", "price": "158.00", "currency": "CNY", "image_url": f"{_U}/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=900&q=80", "category": "home", "stock": 45, "status": "active", "is_impact_product": True, "campaign_id": 2, "donation_percentage": "22.00", "artwork_id": 20, "created_at": "2025-05-09T10:00:00"},
+    # 常规店 SKU（id 从 20 起，避免与公益 mock id 13/14 区间重叠）
+    *regular_catalog_mock_dicts(20),
 ]
 
 _mock_supply_chain = [
-    {"id": 1, "product_id": 1, "stage": "material_sourcing", "description": "有机棉来自新疆阿克苏有机棉田，GOTS 认证", "location": "新疆阿克苏", "certified": True, "cert_image_url": "/static/certs/gots_cert.jpg", "timestamp": "2025-02-01T08:00:00", "created_at": "2025-02-01T08:00:00"},
-    {"id": 2, "product_id": 1, "stage": "processing", "description": "纱线纺织与面料染色，使用植物染料，无有害化学品", "location": "浙江绍兴", "certified": True, "cert_image_url": "/static/certs/oeko_cert.jpg", "timestamp": "2025-02-15T08:00:00", "created_at": "2025-02-15T08:00:00"},
-    {"id": 3, "product_id": 1, "stage": "manufacturing", "description": "成衣裁剪与缝制，ISO 9001 质量管理体系工厂", "location": "广东深圳", "certified": True, "cert_image_url": "/static/certs/iso9001.jpg", "timestamp": "2025-03-01T08:00:00", "created_at": "2025-03-01T08:00:00"},
-    {"id": 4, "product_id": 1, "stage": "quality_check", "description": "成品质量检验，甲醛含量、色牢度等 12 项指标检测", "location": "广东深圳", "certified": True, "cert_image_url": None, "timestamp": "2025-03-10T08:00:00", "created_at": "2025-03-10T08:00:00"},
-    {"id": 5, "product_id": 1, "stage": "shipping", "description": "使用可降解包装材料，碳中和物流", "location": "全国配送", "certified": False, "cert_image_url": None, "timestamp": "2025-03-15T08:00:00", "created_at": "2025-03-15T08:00:00"},
+    {"id": 1, "product_id": 1, "stage": "material_sourcing", "description": "有机棉来自新疆阿克苏有机棉田，GOTS 认证", "location": "新疆阿克苏", "latitude": 41.17, "longitude": 80.26, "certified": True, "cert_image_url": "/static/certs/gots_cert.jpg", "timestamp": "2025-02-01T08:00:00", "created_at": "2025-02-01T08:00:00"},
+    {"id": 2, "product_id": 1, "stage": "processing", "description": "纱线纺织与面料染色，使用植物染料，无有害化学品", "location": "浙江绍兴", "latitude": 30.0, "longitude": 120.58, "certified": True, "cert_image_url": "/static/certs/oeko_cert.jpg", "timestamp": "2025-02-15T08:00:00", "created_at": "2025-02-15T08:00:00"},
+    {"id": 3, "product_id": 1, "stage": "manufacturing", "description": "成衣裁剪与缝制，ISO 9001 质量管理体系工厂", "location": "广东深圳", "latitude": 22.55, "longitude": 114.05, "certified": True, "cert_image_url": "/static/certs/iso9001.jpg", "timestamp": "2025-03-01T08:00:00", "created_at": "2025-03-01T08:00:00"},
+    {"id": 4, "product_id": 1, "stage": "quality_check", "description": "成品质量检验，甲醛含量、色牢度等 12 项指标检测", "location": "广东深圳", "latitude": 22.55, "longitude": 114.08, "certified": True, "cert_image_url": None, "timestamp": "2025-03-10T08:00:00", "created_at": "2025-03-10T08:00:00"},
+    {"id": 5, "product_id": 1, "stage": "shipping", "description": "使用可降解包装材料，碳中和物流", "location": "全国配送", "latitude": 35.86, "longitude": 104.2, "certified": False, "cert_image_url": None, "timestamp": "2025-03-15T08:00:00", "created_at": "2025-03-15T08:00:00"},
 ]
 
 
@@ -79,6 +80,7 @@ async def list_products(
     except HTTPException:
         raise
     except Exception:
+        logger.exception("list_products: database query failed")
         if not settings.DEMO_MODE:
             raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         filtered = _mock_products
@@ -180,10 +182,18 @@ async def get_product_artwork(product_id: int, db: AsyncSession = Depends(get_db
         if not settings.DEMO_MODE:
             raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         # DEMO_MODE fallback
+        _aw = "https://images.unsplash.com"
         mock_artworks = {
-            1: {"id": 1, "title": "彩虹鱼", "artist_name": "小红", "image_url": "/static/artworks/artwork_2.jpg", "status": "approved"},
-            2: {"id": 2, "title": "星星之夜", "artist_name": "小刚", "image_url": "/static/artworks/artwork_4.jpg", "status": "featured"},
-            3: {"id": 3, "title": "妈妈的手", "artist_name": "小花", "image_url": "/static/artworks/artwork_11.jpg", "status": "featured"},
+            1: {"id": 1, "title": "春天的花园", "artist_name": "小明", "image_url": f"{_aw}/photo-1549887557-07aa9327f35d?auto=format&fit=crop&w=800&q=80", "status": "approved"},
+            2: {"id": 2, "title": "彩虹鱼", "artist_name": "小红", "image_url": f"{_aw}/photo-1502082554558-074e87f815bc?auto=format&fit=crop&w=800&q=80", "status": "approved"},
+            3: {"id": 3, "title": "我的家", "artist_name": "小丽", "image_url": f"{_aw}/photo-1511895426328-dc8714191300?auto=format&fit=crop&w=800&q=80", "status": "approved"},
+            4: {"id": 4, "title": "星星之夜", "artist_name": "小刚", "image_url": f"{_aw}/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=800&q=80", "status": "featured"},
+            8: {"id": 8, "title": "海豚之歌", "artist_name": "小海", "image_url": f"{_aw}/photo-1559827260-dc66d52bef19?auto=format&fit=crop&w=800&q=80", "status": "approved"},
+            11: {"id": 11, "title": "妈妈的手", "artist_name": "小花", "image_url": f"{_aw}/photo-1513542789411-b6b5fbdb320b?auto=format&fit=crop&w=800&q=80", "status": "featured"},
+            15: {"id": 15, "title": "太空旅行", "artist_name": "小刚", "image_url": f"{_aw}/photo-1457364887197-9150188c107b?auto=format&fit=crop&w=800&q=80", "status": "approved"},
+            18: {"id": 18, "title": "过年了", "artist_name": "小雪", "image_url": f"{_aw}/photo-1482517967863-00e15c9b44be?auto=format&fit=crop&w=800&q=80", "status": "approved"},
+            19: {"id": 19, "title": "未来城市", "artist_name": "小海", "image_url": f"{_aw}/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=800&q=80", "status": "approved"},
+            20: {"id": 20, "title": "牧羊曲", "artist_name": "小芳", "image_url": f"{_aw}/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=800&q=80", "status": "approved"},
         }
         for p in _mock_products:
             if p["id"] == product_id and p.get("artwork_id"):

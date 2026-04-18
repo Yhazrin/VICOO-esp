@@ -71,9 +71,17 @@ export default function MobileNav() {
   const handleImpactToggle = () => {
     if (impactMode) {
       setImpactMode(false);
+      navigate('/');
     } else {
       setImpactMode(true);
       setActiveImpactTab('campaigns');
+      const companySubPaths = COMPANY_NAV.filter((n) => n.path !== '/').map((n) => n.path);
+      const onCompanySubRoute = companySubPaths.some(
+        (p) => location.pathname === p || location.pathname.startsWith(p + '/')
+      );
+      if (onCompanySubRoute) {
+        navigate('/', { replace: true });
+      }
     }
     setMobileNavOpen(false);
   };
@@ -157,7 +165,15 @@ export default function MobileNav() {
                 </p>
                 {impactMode
                   ? IMPACT_TABS.map((tab, index) =>
-                      renderNavItem(tab.key, t(`nav.${tab.key}`), index, activeImpactTab === tab.key, () => { setActiveImpactTab(tab.key); setMobileNavOpen(false); })
+                      renderNavItem(tab.key, t(`nav.${tab.key}`), index, activeImpactTab === tab.key, () => {
+                        setActiveImpactTab(tab.key);
+                        if (tab.key === 'shop') {
+                          navigate('/impact/shop');
+                        } else if (location.pathname.startsWith('/impact/shop')) {
+                          navigate('/');
+                        }
+                        setMobileNavOpen(false);
+                      })
                     )
                   : COMPANY_NAV.map((item, index) =>
                       renderNavItem(item.key, t(`nav.${item.key}`), index, location.pathname === item.path, () => setMobileNavOpen(false), item.path)

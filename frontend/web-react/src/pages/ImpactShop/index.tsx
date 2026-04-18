@@ -78,7 +78,7 @@ export default function ImpactShop() {
 
   // Fetch impact products
   const { data, isLoading, error: productsError } = useQuery({
-    queryKey: ['products', { category: activeCategory, isImpactProduct: true }],
+    queryKey: ['products', 'impact', { category: activeCategory, isImpactProduct: true }],
     queryFn: async () => {
       const result = await productsApi.getAll({
         category: activeCategory === 'all' ? undefined : activeCategory,
@@ -88,6 +88,12 @@ export default function ImpactShop() {
     },
     staleTime: 5 * 60 * 1000,
   });
+
+  /** 公益商店：仅展示公益属性商品（与优衣库常规店目录分离） */
+  const impactItems = useMemo(
+    () => (data?.items ?? []).filter((p) => p.isImpactProduct),
+    [data?.items]
+  );
 
   // Fetch campaigns for filter
   const { data: campaignsData } = useQuery({
@@ -122,18 +128,17 @@ export default function ImpactShop() {
   }, [campaignsData]);
 
   const filtered = useMemo(() => {
-    let list = data?.items ?? [];
+    let list = impactItems;
     if (activeCampaignId !== 'all') {
       list = list.filter((p) => p.campaignId === activeCampaignId);
     }
     return list;
-  }, [data, activeCampaignId]);
+  }, [impactItems, activeCampaignId]);
 
   const categories: Category[] = useMemo(() => {
-    const items = data?.items ?? [];
-    const cats = new Set(items.map((p) => p.category));
+    const cats = new Set(impactItems.map((p) => p.category));
     return ['all', ...Array.from(cats)] as Category[];
-  }, [data]);
+  }, [impactItems]);
 
   const clearFilters = () => {
     setActiveCategory('all');
@@ -241,7 +246,7 @@ export default function ImpactShop() {
                 className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-5 gap-y-8 md:gap-x-6 md:gap-y-12"
               >
                 {filtered.map((product, index) => (
-                  <ProductCard key={product.id} product={product} index={index} />
+                  <ProductCard key={product.id} product={product} index={index} detailContext="impact" />
                 ))}
               </motion.div>
             </AnimatePresence>

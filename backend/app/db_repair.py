@@ -1,0 +1,118 @@
+"""
+Idempotent catalog repair: 中文类目 → 英文枚举、公益 / 优衣库常规 SKU 分流。
+
+开发环境在 lifespan 中自动执行；生产可运行:
+  cd backend && python -m app.db_repair
+"""
+
+from __future__ import annotations
+
+import asyncio
+import logging
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.database import AsyncSessionLocal
+from app.models.product import Product
+from app.data.default_regular_products import REGULAR_CATALOG, regular_catalog_for_orm
+
+logger = logging.getLogger("tonghua")
+
+REGULAR_PRODUCT_NAMES = {r["name"] for r in REGULAR_CATALOG}
+
+ZH_CATEGORY_TO_EN: dict[str, str] = {
+    "服装": "apparel",
+    "配饰": "accessories",
+    "文具": "stationery",
+    "印刷": "prints",
+    "生活": "lifestyle",
+    "鞋履": "footwear",
+    "家居": "home",
+    "礼盒": "gift_box",
+}
+
+_IMPACT_TITLE_MARKERS = (
+    "彩虹鱼",
+    "星星之夜",
+    "春天的花园",
+    "妈妈的手",
+    "太空旅行",
+    "我的家帆布鞋",
+    "画出未来",
+    "过年了",
+    "海豚之歌",
+    "牧羊曲",
+    "再生纤维披肩",
+    "手工拼布壁挂",
+)
+
+_COMPANY_TITLE_MARKERS = (
+    "Organic Linen",
+    "Recycled Cashmere",
+    "Hemp Canvas",
+    "Merino Wool",
+)
+
+
+def _impact_from_copy(name: str, description: str | None) -> bool:
+    n = name or ""
+    blob = f"{n} {description or ''}"
+    if any(m in n for m in _IMPACT_TITLE_MARKERS):
+        return True
+    if any(k in blob for k in ("收益", "捐赠", "美育", "获奖作品", "义卖", "印有《", "乡村美育")):
+        return True
+    return False
+
+
+def _company_from_title(name: str) -> bool:
+    n = name or ""
+    return any(m in n for m in _COMPANY_TITLE_MARKERS)
+
+
+async def repair_product_catalog(session: AsyncSession) -> int:
+    """
+    Returns number of product rows created (baseline company SKUs), not updates.
+    """
+    result = await session.execute(select(Product))
+    rows: list[Product] = list(result.scalars().all())
+
+    for p in rows:
+        if p.category and p.category in ZH_CATEGORY_TO_EN:
+            p.category = ZH_CATEGORY_TO_EN[p.category]
+
+        if p.name in REGULAR_PRODUCT_NAMES:
+            p.is_impact_product = False
+            continue
+
+        if _company_from_title(p.name or ""):
+            p.is_impact_product = False
+            continue
+
+        if _impact_from_copy(p.name or "", p.description):
+            p.is_impact_product = True
+
+    existing_names = {p.name for p in rows}
+    created = 0
+    company_count = sum(1 for p in rows if not p.is_impact_product)
+    if company_count < 1:
+        for spec in regular_catalog_for_orm():
+            if spec["name"] in existing_names:
+                continue
+            session.add(Product(**spec))
+            created += 1
+            existing_names.add(spec["name"])
+
+    if created:
+        logger.info("db_repair: created baseline company SKUs: %s", created)
+    return created
+
+
+async def _cli() -> None:
+    async with AsyncSessionLocal() as session:
+        n = await repair_product_catalog(session)
+        await session.commit()
+        print(f"Catalog repair done. New baseline SKUs: {n}")
+
+
+if __name__ == "__main__":
+    asyncio.run(_cli())
