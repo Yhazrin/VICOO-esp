@@ -2,7 +2,8 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { useReducedMotion } from 'framer-motion';
 import type { SupplyChainRoute } from '@/data/supplyChain';
-import { createRouteVisuals } from './globeUtils';
+import { createRouteVisuals, latLngToVector3 } from './globeUtils';
+import { createLandOutlinesGroup } from '@/utils/globeLandOutlines';
 
 /* ─── Brand palette hex → Three.js color ints ─── */
 const COLORS = {
@@ -100,38 +101,30 @@ export default function SupplyChainGlobe({ routes }: SupplyChainGlobeProps) {
     const gridGroup = new THREE.Group();
     const gridMat = new THREE.LineBasicMaterial({ color: COLORS.wireframe, transparent: true, opacity: 0.06 });
 
-    // Latitude rings
+    // Latitude / longitude grid — same projection as routes & land (latLngToVector3)
     for (let lat = -60; lat <= 60; lat += 30) {
       const points: THREE.Vector3[] = [];
-      for (let lng = 0; lng <= 360; lng += 5) {
-        const phi = (90 - lat) * (Math.PI / 180);
-        const theta = lng * (Math.PI / 180);
-        points.push(new THREE.Vector3(
-          -GLOBE_RADIUS * Math.sin(phi) * Math.cos(theta),
-           GLOBE_RADIUS * Math.cos(phi),
-           GLOBE_RADIUS * Math.sin(phi) * Math.sin(theta),
-        ));
+      for (let lng = -180; lng <= 180; lng += 5) {
+        points.push(latLngToVector3(lat, lng, GLOBE_RADIUS));
       }
       const geo = new THREE.BufferGeometry().setFromPoints(points);
       gridGroup.add(new THREE.Line(geo, gridMat));
     }
 
-    // Longitude meridians
-    for (let lng = 0; lng < 360; lng += 30) {
+    for (let lng = -180; lng < 180; lng += 30) {
       const points: THREE.Vector3[] = [];
       for (let lat = -90; lat <= 90; lat += 5) {
-        const phi = (90 - lat) * (Math.PI / 180);
-        const theta = lng * (Math.PI / 180);
-        points.push(new THREE.Vector3(
-          -GLOBE_RADIUS * Math.sin(phi) * Math.cos(theta),
-           GLOBE_RADIUS * Math.cos(phi),
-           GLOBE_RADIUS * Math.sin(phi) * Math.sin(theta),
-        ));
+        points.push(latLngToVector3(lat, lng, GLOBE_RADIUS));
       }
       const geo = new THREE.BufferGeometry().setFromPoints(points);
       gridGroup.add(new THREE.Line(geo, gridMat));
     }
     globeGroup.add(gridGroup);
+
+    const landColor = new THREE.Color(COLORS.ink).lerp(new THREE.Color(COLORS.wireframe), 0.42);
+    globeGroup.add(
+      createLandOutlinesGroup(GLOBE_RADIUS + 0.028, landColor, 0.52),
+    );
 
     /* ── Route visuals ── */
     const particles: ParticleState[] = [];
