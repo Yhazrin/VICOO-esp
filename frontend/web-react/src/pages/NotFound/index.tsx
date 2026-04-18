@@ -4,7 +4,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
-import GrainOverlay from '@/components/editorial/GrainOverlay';
+
 
 export default function NotFound() {
   const { t } = useTranslation();
@@ -13,7 +13,7 @@ export default function NotFound() {
   return (
     <PageWrapper>
       <PaperTextureBackground variant="paper" className="min-h-[80dvh] flex items-center relative">
-        <GrainOverlay />
+
 
         <SectionContainer>
           <motion.div
@@ -47,7 +47,7 @@ export default function NotFound() {
 
             <Link
               to="/"
-              className="inline-block font-body text-caption text-rust tracking-[0.15em] uppercase hover:text-ink transition-colors cursor-pointer border border-rust/30 px-8 py-3 hover:bg-rust hover:text-paper transition-all duration-300"
+              className="inline-block font-body text-caption text-rust tracking-[0.15em] uppercase cursor-pointer border border-rust/30 px-8 py-3 hover:bg-rust hover:text-paper transition-all duration-300"
             >
               {t('notFound.cta')}
             </Link>

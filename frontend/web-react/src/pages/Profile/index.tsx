@@ -1,13 +1,12 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import i18n from 'i18next';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
-import GrainOverlay from '@/components/editorial/GrainOverlay';
+
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 import { MagazineDivider } from '@/components/editorial/MagazineDivider';
 import { EditorialCard } from '@/components/editorial/EditorialCard';
@@ -28,6 +27,15 @@ const STATUS_COLORS: Record<string, string> = {
   completed: 'text-archive-brown',
   failed: 'text-rust',
   refunded: 'text-sepia-mid',
+  submitted: 'text-sepia-mid',
+  received: 'text-archive-brown',
+  processing: 'text-archive-brown',
+  listed: 'text-sage',
+  rejected: 'text-rust',
+  open: 'text-sepia-mid',
+  in_progress: 'text-archive-brown',
+  resolved: 'text-sage',
+  closed: 'text-archive-brown',
 };
 
 type TabKey = 'orders' | 'donations' | 'clothing' | 'support' | 'addresses';
@@ -35,7 +43,7 @@ type TabKey = 'orders' | 'donations' | 'clothing' | 'support' | 'addresses';
 const ORDER_STATUSES = ['', 'pending', 'paid', 'shipped', 'completed', 'cancelled'] as const;
 
 export default function Profile() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const prefersReducedMotion = useReducedMotion();
   const { user, isAuthenticated } = useAuthStore();
@@ -60,23 +68,20 @@ export default function Profile() {
 
   const tabs: TabKey[] = ['orders', 'donations', 'clothing', 'support', 'addresses'];
 
-  const handleTabKeyDown = useCallback(
-    (e: React.KeyboardEvent, tab: TabKey) => {
-      const idx = tabs.indexOf(tab);
-      if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        const next = tabs[(idx + 1) % tabs.length];
-        setActiveTab(next);
-        document.getElementById(`tab-${next}`)?.focus();
-      } else if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        const prev = tabs[(idx - 1 + tabs.length) % tabs.length];
-        setActiveTab(prev);
-        document.getElementById(`tab-${prev}`)?.focus();
-      }
-    },
-    [],
-  );
+  const handleTabKeyDown = (e: React.KeyboardEvent, tab: TabKey) => {
+    const idx = tabs.indexOf(tab);
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      const next = tabs[(idx + 1) % tabs.length];
+      setActiveTab(next);
+      document.getElementById(`tab-${next}`)?.focus();
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      const prev = tabs[(idx - 1 + tabs.length) % tabs.length];
+      setActiveTab(prev);
+      document.getElementById(`tab-${prev}`)?.focus();
+    }
+  };
 
   const { data: orders = [], isLoading: loadingOrders, isError: errorOrders } = useQuery({
     queryKey: ['my-orders', orderStatus, orderKeyword],
@@ -177,7 +182,7 @@ export default function Profile() {
     return (
       <PageWrapper>
         <PaperTextureBackground variant="paper" className="min-h-[100dvh] flex items-center justify-center relative">
-          <GrainOverlay />
+
           <div className="absolute left-6 top-1/4 bottom-1/4 w-px bg-rust/15 hidden md:block" aria-hidden="true" />
           <div className="text-center relative">
             <motion.span
@@ -226,7 +231,7 @@ export default function Profile() {
             <button
               onClick={() => setErrorMessage('')}
               className="text-rust hover:text-rust-light cursor-pointer"
-              aria-label="Dismiss"
+              aria-label={t('common.dismiss', 'Dismiss')}
             >
               &times;
             </button>
@@ -236,7 +241,7 @@ export default function Profile() {
       <h1 className="sr-only">{t('profile.title')}</h1>
       {/* Profile Header */}
       <PaperTextureBackground variant="paper" className="py-16 md:py-24 relative">
-        <GrainOverlay />
+
         <SectionContainer>
           <h1 className="sr-only">{t('profile.title')}</h1>
           <h2 className="font-display text-h3 font-bold text-ink mb-8">
@@ -314,28 +319,12 @@ export default function Profile() {
 
       {/* Orders & Donations & Addresses */}
       <PaperTextureBackground variant="aged" className="py-16 md:py-24 relative">
-        <GrainOverlay />
+
         <SectionContainer>
           {/* Tab switcher — capsule style */}
-          {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
           <div
             className="flex items-center mb-12 rounded-full bg-white/80 backdrop-blur-xl shadow-sm px-2 py-1 overflow-x-auto"
             role="tablist"
-            onKeyDown={(e) => {
-              const tabIds = ['orders', 'donations', 'clothing', 'support', 'addresses'] as const;
-              const currentIndex = tabIds.indexOf(activeTab);
-              if (e.key === 'ArrowRight') {
-                e.preventDefault();
-                const next = tabIds[(currentIndex + 1) % tabIds.length];
-                setActiveTab(next);
-                (e.currentTarget.querySelectorAll('[role="tab"]')[(currentIndex + 1) % tabIds.length] as HTMLElement)?.focus();
-              } else if (e.key === 'ArrowLeft') {
-                e.preventDefault();
-                const prev = tabIds[(currentIndex - 1 + tabIds.length) % tabIds.length];
-                setActiveTab(prev);
-                (e.currentTarget.querySelectorAll('[role="tab"]')[(currentIndex - 1 + tabIds.length) % tabIds.length] as HTMLElement)?.focus();
-              }
-            }}
           >
             {tabs.map((tab) => (
               <button
@@ -445,8 +434,8 @@ export default function Profile() {
 
                       {/* Items with images */}
                       <div className="space-y-3 mb-4">
-                        {order.items?.map((item, i) => (
-                          <div key={i} className="flex items-center gap-3">
+                        {order.items?.map((item) => (
+                          <div key={item.id} className="flex items-center gap-3">
                             <div className="w-12 h-14 flex-shrink-0 overflow-hidden border border-warm-gray/15 bg-aged-stock">
                               {item.product_image ? (
                                 <img src={item.product_image} alt={item.product_name || ''} className="w-full h-full object-cover" loading="lazy" />
@@ -598,7 +587,7 @@ export default function Profile() {
                       index={index}
                       hoverEffect="border"
                     >
-                      <p className={`font-body text-overline uppercase ${STATUS_COLORS[row.status] ?? 'text-sepia-mid'}`}>{row.status}</p>
+                      <p className={`font-body text-overline uppercase ${STATUS_COLORS[row.status] ?? 'text-sepia-mid'}`}>{t(`donateClothing.statusLabels.${row.status}`, row.status)}</p>
                       {row.product_id && (
                         <Link to={`/shop/${row.product_id}`} className="font-body text-caption text-rust mt-2 inline-block">
                           {t('profile.viewLinkedProduct', '查看关联商品')} →

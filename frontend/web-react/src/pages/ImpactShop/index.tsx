@@ -1,16 +1,15 @@
 import { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import ProductCard from '@/components/editorial/ProductCard';
-import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
-import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { productsApi } from '@/services/products';
 import { campaignsApi } from '@/services/campaigns';
+import { donationsApi } from '@/services/donations';
+import { artworksApi } from '@/services/artworks';
 import type { Campaign } from '@/types';
 
 type Category = 'all' | 'apparel' | 'accessories' | 'stationery' | 'prints' | 'lifestyle' | 'footwear' | 'home' | 'gift_box';
@@ -78,7 +77,7 @@ export default function ImpactShop() {
   const [activeCampaignId, setActiveCampaignId] = useState<number | 'all'>('all');
 
   // Fetch impact products
-  const { data } = useQuery({
+  const { data, isLoading, error: productsError } = useQuery({
     queryKey: ['products', { category: activeCategory, isImpactProduct: true }],
     queryFn: async () => {
       const result = await productsApi.getAll({
@@ -98,6 +97,24 @@ export default function ImpactShop() {
       return result;
     },
     staleTime: 10 * 60 * 1000,
+  });
+
+  // Fetch live impact stats
+  const { data: impactStats } = useQuery({
+    queryKey: ['impact-shop-stats'],
+    queryFn: async () => {
+      const [stats, artworks] = await Promise.all([
+        donationsApi.getImpactStats(),
+        artworksApi.getAll({ page_size: 1 }),
+      ]);
+      return {
+        totalDonations: Number(stats.total_amount ?? 0),
+        totalDonors: stats.total_donors ?? 0,
+        totalArtworks: artworks.total ?? 0,
+      };
+    },
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
   });
 
   const campaigns: Campaign[] = useMemo(() => {
@@ -145,6 +162,16 @@ export default function ImpactShop() {
       {/* ═══ Product Grid Section ═══ */}
       <SectionContainer>
         <div className="border-t border-warm-gray/20 pt-12">
+          {productsError && (
+            <div className="flex items-center gap-3 bg-rust/10 border border-rust/20 px-4 py-3 mb-4">
+              <p className="font-body text-body-sm text-rust flex-1">{t('impactShop.loadError', '加载商品失败，请刷新重试')}</p>
+            </div>
+          )}
+          {isLoading && (
+            <div className="py-24 text-center">
+              <p className="font-body text-sepia-mid">{t('impactShop.loading', '加载中...')}</p>
+            </div>
+          )}
           {/* Filters */}
           <div className="flex items-center gap-3 mb-8 flex-wrap">
             {/* Category pills */}
@@ -229,9 +256,9 @@ export default function ImpactShop() {
             {t('impactShop.impactSummary.title')}
           </span>
           <div className="grid grid-cols-3 gap-8 max-w-lg mx-auto">
-            <ImpactPill label={t('impactShop.impactSummary.childrenHelped')} value="120+" />
-            <ImpactPill label={t('impactShop.impactSummary.fundsRaised')} value="¥86K" />
-            <ImpactPill label={t('impactShop.impactSummary.artworksTransformed')} value="200+" />
+            <ImpactPill label={t('impactShop.impactSummary.childrenHelped')} value={impactStats ? `${impactStats.totalDonors}+` : '--'} />
+            <ImpactPill label={t('impactShop.impactSummary.fundsRaised')} value={impactStats ? `¥${Math.round(impactStats.totalDonations / 1000)}K` : '--'} />
+            <ImpactPill label={t('impactShop.impactSummary.artworksTransformed')} value={impactStats ? `${impactStats.totalArtworks}+` : '--'} />
           </div>
         </div>
       </SectionContainer>
@@ -239,46 +266,23 @@ export default function ImpactShop() {
       {/* ═══ Traceability CTA ═══ */}
       <SectionContainer>
         <div className="border-t border-warm-gray/20 pt-16 pb-16">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
-            <motion.div
-              className="md:col-span-7"
-              {...(prefersReducedMotion ? {} : { initial: { opacity: 0, x: -20 }, whileInView: { opacity: 1, x: 0 } })}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, ease: [0, 0, 0.2, 1] }}
-            >
-              <SepiaImageFrame
-                src="https://picsum.photos/seed/vicoo-trace-cta/800/500"
-                alt={t('impactShop.cta.title')}
-                caption={t('impactShop.cta.subtitle')}
-                aspectRatio="wide"
-                size="full"
-                showCornerAccents={true}
-                accentPosition="diagonal"
-              />
-            </motion.div>
-
-            <motion.div
-              className="md:col-span-5 flex flex-col justify-center"
-              {...(prefersReducedMotion ? {} : { initial: { opacity: 0, x: 20 }, whileInView: { opacity: 1, x: 0 } })}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: 0.15, ease: [0, 0, 0.2, 1] }}
-            >
-              <StoryQuoteBlock
-                quote={t('impactShop.cta.subtitle')}
-                author="VICOO"
-                role={t('impactShop.cta.title')}
-              />
-
-              <Link
-                to="/traceability"
-                className="mt-8 inline-flex items-center gap-2 font-body text-label tracking-[0.15em] uppercase text-rust hover:text-rust-light transition-colors cursor-pointer group"
-              >
-                <span>{t('impactShop.cta.button')}</span>
-                <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
-                  <path d="M3 8h10M9 4l4 4-4 4" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </Link>
-            </motion.div>
+          <div className="text-center max-w-2xl mx-auto">
+            <span className="font-body text-overline tracking-[0.3em] uppercase text-sepia-mid block mb-4">
+              {t('impactShop.cta.title', 'Traceability')}
+            </span>
+            <p className="font-body text-body text-ink-faded leading-[1.7] mb-6">
+              {t('impactShop.cta.subtitle', 'Every impact product comes with full supply chain transparency. Track the journey from raw materials to your hands.')}
+            </p>
+            <div className="flex items-center justify-center gap-3 flex-wrap">
+              {['GOTS Certified', 'Fair Trade', 'Carbon Measured', 'Child Safe'].map((badge) => (
+                <span
+                  key={badge}
+                  className="font-body text-[10px] tracking-[0.1em] uppercase px-3 py-1.5 border border-warm-gray/25 text-sepia-mid"
+                >
+                  {badge}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       </SectionContainer>

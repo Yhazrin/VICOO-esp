@@ -1,5 +1,6 @@
 import { motion, useMotionValue, useTransform, useReducedMotion } from 'framer-motion';
 import { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface FloatingCardProps {
   children: React.ReactNode;
@@ -73,6 +74,7 @@ function FloatingCard({
 }
 
 export default function HeroFloatingCards({ className = '' }: HeroFloatingCardsProps) {
+  const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
   return (
     <div className={`absolute right-0 top-0 bottom-0 w-[44%] z-[4] ${className}`} aria-hidden="true">
@@ -94,7 +96,7 @@ export default function HeroFloatingCards({ className = '' }: HeroFloatingCardsP
             <rect x="60" y="108" width="55" height="5" rx="2" fill="var(--color-muted-gray)" opacity="0.4"/>
           </svg>
           <div className="font-mono text-[8px] tracking-widest text-sepia-light text-center py-2 border-t border-black/[0.06] bg-paper/70 w-full">
-            CHILD DRAWING · AGE 8
+            {t('hero.cards.childDrawing', 'CHILD DRAWING · AGE 8')}
           </div>
         </div>
       </FloatingCard>
@@ -139,7 +141,7 @@ export default function HeroFloatingCards({ className = '' }: HeroFloatingCardsP
             <rect x="66" y="80" width="18" height="15" rx="2" fill="var(--color-sepia-dark)" opacity="0.5"/>
           </svg>
           <div className="font-mono text-[8px] tracking-widest text-sepia-light text-center py-2 border-t border-black/[0.06] bg-paper/70 w-full">
-            TSHIRT · ¥188
+            {t('hero.cards.tshirt', 'TSHIRT · ¥188')}
           </div>
         </div>
       </FloatingCard>
@@ -163,7 +165,7 @@ export default function HeroFloatingCards({ className = '' }: HeroFloatingCardsP
             <path d="M55 110 L60 120 M72 112 L72 122 M88 110 L83 120" stroke="#999" strokeWidth="1" opacity="0.3"/>
           </svg>
           <div className="font-mono text-[8px] tracking-widest text-sepia-light text-center py-2 border-t border-black/[0.06] bg-paper/70 w-full">
-            HOODIE · ¥298
+            {t('hero.cards.hoodie', 'HOODIE · ¥298')}
           </div>
         </div>
       </FloatingCard>
@@ -185,7 +187,7 @@ export default function HeroFloatingCards({ className = '' }: HeroFloatingCardsP
             <rect x="18" y="80" width="70" height="6" rx="2" fill="var(--color-sepia-light)" opacity="0.4"/>
           </svg>
           <div className="font-mono text-[8px] tracking-widest text-sepia-light text-center py-2 border-t border-black/[0.06] bg-paper/70 w-full">
-            BAG · ¥228
+            {t('hero.cards.bag', 'BAG · ¥228')}
           </div>
         </div>
       </FloatingCard>
@@ -197,16 +199,15 @@ export default function HeroFloatingCards({ className = '' }: HeroFloatingCardsP
         transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6, delay: 0.7 }}
         className="absolute bottom-[80px] right-[60px] w-20 h-20 rounded-full border border-black/10 bg-paper/90 flex flex-col items-center justify-center gap-1 cursor-pointer shadow-lg shadow-black/5"
         whileHover={prefersReducedMotion ? undefined : { scale: 1.1, rotate: 0 }}
-        role="button"
-        tabIndex={0}
+        role="img"
         aria-label="100% Organic certified"
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') e.preventDefault(); }}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M12 3L14 9H20L15.5 12.5L17.5 18.5L12 15L6.5 18.5L8.5 12.5L4 9H10L12 3Z" fill="var(--color-rust)" opacity="0.55"/>
         </svg>
         <span className="font-mono text-[7px] tracking-wider text-sepia-light text-center leading-[1.4]">
-          100%<br/>ORGANIC
+          100%<br/>
+          {t('hero.cards.organicLabel', 'ORGANIC')}
         </span>
       </motion.div>
     </div>

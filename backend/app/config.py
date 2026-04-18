@@ -76,7 +76,7 @@ class Settings(BaseSettings):
     ENCRYPTION_KEY: str = _gen_secret(32)
 
     # CORS - receives raw string from env, parsed to list in model_validator
-    CORS_ORIGINS: str = "http://localhost"
+    CORS_ORIGINS: str = "http://localhost,http://localhost:5173,http://localhost:9111,http://localhost:9112"
 
     # Seed passwords
     SEED_ADMIN_PASSWORD: str = "vicoo-admin"

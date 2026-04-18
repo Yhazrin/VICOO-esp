@@ -128,6 +128,18 @@ export default function ProductCard({
             </div>
           )}
 
+          {/* Traceability badge */}
+          {product.isImpactProduct && (
+            <div className="flex items-center gap-1.5 mb-2">
+              <svg className="w-3 h-3 text-sepia-mid" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+                <path d="M2 8h12M5 4l-3 4 3 4M11 4l3 4-3 4" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <span className="font-body text-overline text-sepia-mid tracking-wider">
+                {t('impactShop.traceable', 'Traceable Supply Chain')}
+              </span>
+            </div>
+          )}
+
           <div className="flex items-center justify-between">
             <div className="flex flex-col">
               <span className="font-body text-body-sm text-ink font-medium">

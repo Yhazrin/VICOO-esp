@@ -6,52 +6,51 @@ interface StatusBadgeProps {
 }
 
 const statusStyles: Record<string, { bg: string; color: string; key: string }> = {
-  pending: { bg: 'var(--color-warning-light)', color: 'var(--color-warning)', key: 'statusBadge.artwork.pending' },
-  approved: { bg: 'var(--color-success-light)', color: 'var(--color-success)', key: 'statusBadge.artwork.approved' },
-  rejected: { bg: 'var(--color-danger-light)', color: 'var(--color-danger)', key: 'statusBadge.artwork.rejected' },
-  archived: { bg: 'var(--color-info-light)', color: 'var(--color-info)', key: 'statusBadge.artwork.archived' },
-  draft: { bg: 'var(--color-accent-light)', color: 'var(--color-accent)', key: 'statusBadge.campaign.draft' },
-  active: { bg: 'var(--color-success-light)', color: 'var(--color-success)', key: 'statusBadge.campaign.active' },
-  ended: { bg: 'var(--color-warm-gray)', color: 'var(--color-sepia-mid)', key: 'statusBadge.campaign.ended' },
-  paid: { bg: 'var(--color-info-light)', color: 'var(--color-info)', key: 'statusBadge.order.paid' },
-  shipped: { bg: 'var(--color-accent-light)', color: 'var(--color-accent)', key: 'statusBadge.order.shipped' },
-  delivered: { bg: 'var(--color-success-light)', color: 'var(--color-success)', key: 'statusBadge.order.delivered' },
-  cancelled: { bg: 'var(--color-danger-light)', color: 'var(--color-danger)', key: 'statusBadge.order.cancelled' },
-  refunded: { bg: 'var(--color-warm-gray)', color: 'var(--color-sepia-mid)', key: 'statusBadge.order.refunded' },
-  completed: { bg: 'var(--color-success-light)', color: 'var(--color-success)', key: 'statusBadge.general.completed' },
-  failed: { bg: 'var(--color-danger-light)', color: 'var(--color-danger)', key: 'statusBadge.general.failed' },
-  active_user: { bg: 'var(--color-success-light)', color: 'var(--color-success)', key: 'statusBadge.user.active_user' },
-  disabled: { bg: 'var(--color-danger-light)', color: 'var(--color-danger)', key: 'statusBadge.user.disabled' },
-  withdrawn: { bg: 'var(--color-danger-light)', color: 'var(--color-danger)', key: 'statusBadge.afterSales.withdrawn' },
-  pending_review: { bg: 'var(--color-warning-light)', color: 'var(--color-warning)', key: 'statusBadge.afterSales.pending_review' },
+  pending: { bg: 'var(--color-warning-bg)', color: 'var(--color-warning)', key: 'statusBadge.artwork.pending' },
+  approved: { bg: 'var(--color-success-bg)', color: 'var(--color-success)', key: 'statusBadge.artwork.approved' },
+  rejected: { bg: 'var(--color-error-bg)', color: 'var(--color-error)', key: 'statusBadge.artwork.rejected' },
+  archived: { bg: 'var(--color-info-bg)', color: 'var(--color-info)', key: 'statusBadge.artwork.archived' },
+  draft: { bg: 'rgba(255,255,255,0.06)', color: 'var(--color-text-2)', key: 'statusBadge.campaign.draft' },
+  active: { bg: 'var(--color-success-bg)', color: 'var(--color-success)', key: 'statusBadge.campaign.active' },
+  ended: { bg: 'rgba(255,255,255,0.06)', color: 'var(--color-text-3)', key: 'statusBadge.campaign.ended' },
+  paid: { bg: 'var(--color-info-bg)', color: 'var(--color-info)', key: 'statusBadge.order.paid' },
+  shipped: { bg: 'rgba(255,255,255,0.06)', color: 'var(--color-text-2)', key: 'statusBadge.order.shipped' },
+  delivered: { bg: 'var(--color-success-bg)', color: 'var(--color-success)', key: 'statusBadge.order.delivered' },
+  cancelled: { bg: 'var(--color-error-bg)', color: 'var(--color-error)', key: 'statusBadge.order.cancelled' },
+  refunded: { bg: 'rgba(255,255,255,0.06)', color: 'var(--color-text-3)', key: 'statusBadge.order.refunded' },
+  completed: { bg: 'var(--color-success-bg)', color: 'var(--color-success)', key: 'statusBadge.general.completed' },
+  failed: { bg: 'var(--color-error-bg)', color: 'var(--color-error)', key: 'statusBadge.general.failed' },
+  active_user: { bg: 'var(--color-success-bg)', color: 'var(--color-success)', key: 'statusBadge.user.active_user' },
+  disabled: { bg: 'var(--color-error-bg)', color: 'var(--color-error)', key: 'statusBadge.user.disabled' },
+  withdrawn: { bg: 'var(--color-error-bg)', color: 'var(--color-error)', key: 'statusBadge.afterSales.withdrawn' },
+  pending_review: { bg: 'var(--color-warning-bg)', color: 'var(--color-warning)', key: 'statusBadge.afterSales.pending_review' },
 };
 
 export default function StatusBadge({ status, label }: StatusBadgeProps) {
   const { t } = useTranslation();
-  const style = statusStyles[status] || { bg: 'var(--color-accent-light)', color: 'var(--color-accent)', key: '' };
+  const style = statusStyles[status] || { bg: 'rgba(255,255,255,0.06)', color: 'var(--color-text-2)', key: '' };
 
   return (
     <span style={{
       display: 'inline-flex',
       alignItems: 'center',
-      padding: '4px 12px',
-      borderRadius: '2px',
+      padding: '3px 10px',
+      borderRadius: '6px',
       fontSize: '11px',
-      fontWeight: 700,
+      fontWeight: 500,
+      fontFamily: 'var(--font-mono)',
       background: style.bg,
       color: style.color,
       whiteSpace: 'nowrap',
-      textTransform: 'uppercase',
-      letterSpacing: '0.05em',
-      border: `1px solid ${style.color}20`
+      letterSpacing: '0.03em',
     }}>
       <span style={{
-        width: '6px',
-        height: '6px',
+        width: '5px',
+        height: '5px',
         borderRadius: '50%',
         backgroundColor: style.color,
-        marginRight: '8px',
-        display: 'inline-block'
+        marginRight: '6px',
+        display: 'inline-block',
       }} />
       {label || (style.key ? t(style.key) : status)}
     </span>

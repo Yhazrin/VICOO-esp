@@ -12,6 +12,7 @@ from app.models.order import Order
 from app.models.donation import Donation
 from app.services.base import BaseService
 from app.services.donation.service import DonationService
+from app.services.impact_fund.service import ImpactFundService
 from app.core.audit import audit_action
 from app.config import settings
 
@@ -83,6 +84,12 @@ class PaymentService(BaseService):
                     .where(Order.id == order_id)
                     .values(status="paid", payment_id=provider_tx_id, payment_method=method, updated_at=func.now())
                 )
+                # Allocate impact funds for charity products
+                try:
+                    impact_service = ImpactFundService(self.db)
+                    await impact_service.allocate_for_order(order_id)
+                except Exception as e:
+                    logger.error(f"Impact fund allocation failed for order {order_id}: {e}", exc_info=True)
 
         # 2. Handle Donation
         if donation_id:

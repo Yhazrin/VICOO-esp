@@ -39,6 +39,7 @@ function normalizeProduct(raw: any): Product {
     artworkBy: raw?.artworkBy,
     isImpactProduct: Boolean(raw?.is_impact_product ?? raw?.isImpactProduct ?? false),
     campaignId: raw?.campaign_id ?? raw?.campaignId ?? null,
+    artworkId: raw?.artwork_id ?? raw?.artworkId ?? undefined,
     donationPercentage: raw?.donation_percentage != null ? Number(raw.donation_percentage) : (raw?.donationPercentage != null ? Number(raw.donationPercentage) : undefined),
     sizes: raw?.sizes ?? undefined,
     colors: raw?.colors ?? undefined,
@@ -90,6 +91,11 @@ export const productsApi = {
       pageSize: d.pageSize ?? d.page_size ?? 20,
       totalPages: Math.ceil((d.total ?? 0) / (d.pageSize ?? d.page_size ?? 20)),
     };
+  },
+
+  getArtwork: async (productId: string | number): Promise<any | null> => {
+    const response = await api.get(`/products/${productId}/artwork`);
+    return response.data.data ?? null;
   },
 
   getCategories: async (): Promise<string[]> => {

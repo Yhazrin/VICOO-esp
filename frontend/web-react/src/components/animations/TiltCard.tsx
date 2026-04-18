@@ -88,7 +88,7 @@ export default function TiltCard({
   return (
     <motion.div
       ref={cardRef}
-      className={`cursor-pointer perspective-1000 ${className}`}
+      className={`cursor-pointer ${className}`}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={{

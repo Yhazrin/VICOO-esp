@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
 import PageWrapper from '@/components/layout/PageWrapper';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
-import GrainOverlay from '@/components/editorial/GrainOverlay';
+
 
 /**
  * OAuth Callback Page
@@ -19,7 +19,7 @@ export default function AuthCallback() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { restoreSession, setAccessToken } = useAuthStore();
+  const { restoreSession } = useAuthStore();
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export default function AuthCallback() {
       email: email || '',
       nickname: nickname || t('authCallback.user', 'User'),
       role: 'user' as const,
-      avatar: avatar || undefined,
+      avatarUrl: avatar || undefined,
       createdAt: new Date().toISOString(),
     };
 
@@ -54,12 +54,12 @@ export default function AuthCallback() {
     // Redirect to home after a brief moment
     const timer = setTimeout(() => navigate('/', { replace: true }), 500);
     return () => clearTimeout(timer);
-  }, [searchParams, navigate, restoreSession, setAccessToken]);
+  }, [searchParams, navigate, restoreSession]);
 
   return (
     <PageWrapper>
       <PaperTextureBackground variant="paper" className="min-h-[100dvh] flex items-center justify-center relative">
-        <GrainOverlay />
+
         <div className="text-center relative z-10">
           {error ? (
             <>

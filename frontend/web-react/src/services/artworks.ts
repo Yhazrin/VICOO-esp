@@ -39,6 +39,11 @@ export const artworksApi = {
     return response.data.data;
   },
 
+  mine: async (): Promise<Artwork[]> => {
+    const response = await api.get('/artworks/mine');
+    return response.data.data ?? [];
+  },
+
   create: async (data: {
     title: string;
     image: File;

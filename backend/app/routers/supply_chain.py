@@ -92,7 +92,6 @@ async def create_record(
     sc_service = SupplyChainService(db)
     try:
         record = await sc_service.add_record(body.product_id, body.model_dump())
-        await db.commit()
         return ApiResponse(data=SupplyChainRecordOut.model_validate(record).model_dump())
     except HTTPException:
         raise
