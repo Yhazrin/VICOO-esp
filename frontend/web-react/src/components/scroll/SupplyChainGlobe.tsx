@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { useReducedMotion } from 'framer-motion';
 import type { SupplyChainRoute } from '@/data/supplyChain';
 import { createRouteVisuals, latLngToVector3 } from './globeUtils';
@@ -24,6 +25,7 @@ interface GlobeSceneState {
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
   renderer: THREE.WebGLRenderer;
+  controls: OrbitControls;
   globeGroup: THREE.Group;
   particles: ParticleState[];
   animationId: number;
@@ -37,7 +39,6 @@ export default function SupplyChainGlobe({ routes }: SupplyChainGlobeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<GlobeSceneState | null>(null);
-  const mouseRef = useRef({ x: 0, normalized: 0 });
   const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
@@ -55,24 +56,36 @@ export default function SupplyChainGlobe({ routes }: SupplyChainGlobeProps) {
 
     /* ── Camera ── */
     const camera = new THREE.PerspectiveCamera(
-      45,
-      container.clientWidth / container.clientHeight,
+      42,
+      container.clientWidth / Math.max(container.clientHeight, 1),
       0.1,
       100,
     );
-    camera.position.z = 4.5;
+    camera.position.set(0, 0.35, 4.45);
 
     /* ── Renderer ── */
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1 : 2));
 
-    /* ── Globe group (everything rotates together) ── */
+    /* ── Globe group (tilt + content; view rotation via OrbitControls) ── */
     const globeGroup = new THREE.Group();
     scene.add(globeGroup);
 
-    // Tilt the globe slightly so China faces the camera
     globeGroup.rotation.x = 0.3;
+
+    const controls = new OrbitControls(camera, canvas);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.target.set(0, 0, 0);
+    controls.enablePan = false;
+    controls.minDistance = 2.85;
+    controls.maxDistance = 7.5;
+    controls.zoomSpeed = 0.85;
+    controls.autoRotate = !prefersReducedMotion;
+    controls.autoRotateSpeed = 0.32;
+    controls.minPolarAngle = 0.18;
+    controls.maxPolarAngle = Math.PI - 0.18;
 
     /* ── Wireframe sphere ── */
     const wireGeo = new THREE.SphereGeometry(
@@ -147,17 +160,11 @@ export default function SupplyChainGlobe({ routes }: SupplyChainGlobeProps) {
       scene,
       camera,
       renderer,
+      controls,
       globeGroup,
       particles,
       animationId: 0,
     };
-
-    /* ── Mouse tracking ── */
-    const handleMouseMove = (e: MouseEvent) => {
-      const rect = container.getBoundingClientRect();
-      mouseRef.current.normalized = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
-    };
-    container.addEventListener('mousemove', handleMouseMove);
 
     /* ── Scroll-driven opacity ── */
     const handleScroll = () => {
@@ -174,20 +181,14 @@ export default function SupplyChainGlobe({ routes }: SupplyChainGlobeProps) {
 
     /* ── Animation loop ── */
     let time = 0;
-    const currentRotY = { value: globeGroup.rotation.y };
 
     const animate = () => {
       if (!sceneRef.current) return;
       time += 1;
 
-      const { globeGroup: gg, particles: p, renderer: r, scene: s, camera: c } = sceneRef.current;
+      const { particles: p, renderer: r, scene: s, camera: c, controls: ctl } = sceneRef.current;
 
-      // Auto-rotate
-      currentRotY.value += 0.0015;
-
-      // Mouse-influenced rotation offset
-      const targetOffset = mouseRef.current.normalized * 0.4;
-      gg.rotation.y = currentRotY.value + targetOffset * 0.3;
+      ctl.update();
 
       // Animate traveling particles
       for (const pState of p) {
@@ -212,11 +213,13 @@ export default function SupplyChainGlobe({ routes }: SupplyChainGlobeProps) {
     const handleResize = () => {
       if (!container || !sceneRef.current) return;
       const w = container.clientWidth;
-      const h = container.clientHeight;
+      const h = Math.max(container.clientHeight, 1);
       sceneRef.current.camera.aspect = w / h;
       sceneRef.current.camera.updateProjectionMatrix();
       sceneRef.current.renderer.setSize(w, h);
     };
+    const ro = new ResizeObserver(handleResize);
+    ro.observe(container);
     window.addEventListener('resize', handleResize);
 
     /* ── Cleanup ── */
@@ -226,7 +229,8 @@ export default function SupplyChainGlobe({ routes }: SupplyChainGlobeProps) {
       }
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleResize);
-      container.removeEventListener('mousemove', handleMouseMove);
+      ro.disconnect();
+      controls.dispose();
       renderer.dispose();
       sceneRef.current = null;
     };
@@ -237,10 +241,13 @@ export default function SupplyChainGlobe({ routes }: SupplyChainGlobeProps) {
   return (
     <div
       ref={containerRef}
-      className="absolute inset-0 z-[5]"
+      className="absolute inset-0 z-[5] touch-none"
       style={{ cursor: 'grab' }}
     >
-      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 h-full w-full cursor-grab active:cursor-grabbing"
+      />
     </div>
   );
 }

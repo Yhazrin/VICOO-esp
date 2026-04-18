@@ -70,7 +70,7 @@ export default function SepiaImageFrame({
         className={`
           ${aspectClasses[aspectRatio]}
           relative overflow-hidden
-          border border-warm-gray/60
+          border border-warm-gray/40
           bg-aged-stock
         `}
       >

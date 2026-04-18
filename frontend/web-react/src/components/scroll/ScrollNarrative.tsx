@@ -75,13 +75,17 @@ export default function ScrollNarrative() {
   const rm = prefersReducedMotion;
 
   return (
-    <div ref={containerRef} className="relative w-full" style={{ height: '500vh' }}>
+    <div
+      ref={containerRef}
+      className="relative z-10 -mt-[min(22dvh,12rem)] w-full"
+      style={{ height: '500vh' }}
+    >
       <div
         className="sticky overflow-hidden"
         style={{ position: 'sticky', top: 0, height: '100vh', width: '100%', zIndex: 10 }}
       >
-        {/* Background */}
-        <div className="absolute inset-0 bg-aged-stock" />
+        {/* Background: top fades from transparent so the hero globe can read through underneath */}
+        <div className="absolute inset-0 bg-gradient-to-b from-aged-stock/25 via-aged-stock/82 to-aged-stock" />
 
         {/* Scene 01 — Brand Manifesto */}
         <Scene01 p={p} rm={rm} mapRange={mapRange} t={t} />
