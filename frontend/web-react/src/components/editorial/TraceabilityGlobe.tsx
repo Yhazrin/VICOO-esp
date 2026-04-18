@@ -5,6 +5,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import type { SupplyChainTimelineRecord } from '@/types';
 import { getRecordLatLng } from '@/utils/supplyChainGeo';
 import { latLngToVector3, createArcCurve } from '@/components/scroll/globeUtils';
+import { createLandOutlinesGroup } from '@/utils/globeLandOutlines';
 
 const GLOBE_RADIUS = 1.85;
 const STAGE_ORDER = ['material_sourcing', 'processing', 'manufacturing', 'quality_check', 'shipping'];
@@ -193,35 +194,24 @@ export default function TraceabilityGlobe({
     });
     for (let lat = -60; lat <= 60; lat += 30) {
       const points: THREE.Vector3[] = [];
-      for (let lng = 0; lng <= 360; lng += 5) {
-        const phi = (90 - lat) * (Math.PI / 180);
-        const theta = lng * (Math.PI / 180);
-        points.push(
-          new THREE.Vector3(
-            -GLOBE_RADIUS * Math.sin(phi) * Math.cos(theta),
-            GLOBE_RADIUS * Math.cos(phi),
-            GLOBE_RADIUS * Math.sin(phi) * Math.sin(theta)
-          )
-        );
+      for (let lng = -180; lng <= 180; lng += 5) {
+        points.push(latLngToVector3(lat, lng, GLOBE_RADIUS));
       }
       gridGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), gridMat));
     }
-    for (let lng = 0; lng < 360; lng += 30) {
+    for (let lng = -180; lng < 180; lng += 30) {
       const points: THREE.Vector3[] = [];
       for (let lat = -90; lat <= 90; lat += 5) {
-        const phi = (90 - lat) * (Math.PI / 180);
-        const theta = lng * (Math.PI / 180);
-        points.push(
-          new THREE.Vector3(
-            -GLOBE_RADIUS * Math.sin(phi) * Math.cos(theta),
-            GLOBE_RADIUS * Math.cos(phi),
-            GLOBE_RADIUS * Math.sin(phi) * Math.sin(theta)
-          )
-        );
+        points.push(latLngToVector3(lat, lng, GLOBE_RADIUS));
       }
       gridGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), gridMat));
     }
     globeGroup.add(gridGroup);
+
+    const landColor = theme.ink.clone().lerp(theme.wire, 0.42);
+    globeGroup.add(
+      createLandOutlinesGroup(GLOBE_RADIUS + 0.028, landColor, 0.5),
+    );
 
     const markers = new Map<number, THREE.Mesh>();
     const runners: SegmentRunner[] = [];
