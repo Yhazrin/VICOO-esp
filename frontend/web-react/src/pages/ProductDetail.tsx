@@ -400,12 +400,9 @@ export default function ProductDetail() {
 
       <PaperTextureBackground variant="aged" className="py-16 md:py-24">
         <SectionContainer>
-          <h2 className="font-display text-h3 font-bold text-ink mb-8">
-            {t('shop.detail.traceSection')}
-          </h2>
           {product.isImpactProduct && isImpactProductDetail && !prefersReducedMotion && timelineRecords.length > 0 && (
             <div className="mb-12 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
-              <div className="lg:col-span-8">
+              <div className="lg:col-span-8 min-w-0">
                 <TraceabilityGlobe
                   key={currentTheme}
                   records={timelineRecords}
