@@ -1,0 +1,28 @@
+# ============================================
+# VICOO — Host Nginx reverse-proxy overlay
+# Use when the VPS runs system nginx (HTTPS) and
+# only the app stack should listen on loopback.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.host-nginx.yml up -d --build
+#
+# Point vicoo.yhazrin.xyz to 127.0.0.1:9080 (see nginx-site-vicoo.yhazrin.xyz.conf).
+# Set CORS_ORIGINS and FRONTEND_URL in .env to your public https URL.
+# ============================================
+
+services:
+  mysql:
+    ports: !override []
+
+  redis:
+    ports: !override []
+
+  backend:
+    ports: !override []
+
+  frontend:
+    ports: !override
+      - "127.0.0.1:9080:80"
+
+  admin:
+    ports: !override
+      - "127.0.0.1:9081:80"
