@@ -10,6 +10,63 @@ import { createLandOutlinesGroup } from '@/utils/globeLandOutlines';
 const GLOBE_RADIUS = 1.85;
 const STAGE_ORDER = ['material_sourcing', 'processing', 'manufacturing', 'quality_check', 'shipping'];
 
+/** Great-circle central angle in degrees (0–180). */
+function centralAngleDeg(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const φ1 = (lat1 * Math.PI) / 180;
+  const φ2 = (lat2 * Math.PI) / 180;
+  const Δλ = ((lng2 - lng1) * Math.PI) / 180;
+  const cosd = Math.sin(φ1) * Math.sin(φ2) + Math.cos(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+  return (Math.acos(Math.min(1, Math.max(-1, cosd))) * 180) / Math.PI;
+}
+
+function maxPairwiseSpanDeg(coords: { lat: number; lng: number }[]): number {
+  if (coords.length < 2) return 72;
+  let max = 0;
+  for (let i = 0; i < coords.length; i++) {
+    for (let j = i + 1; j < coords.length; j++) {
+      max = Math.max(
+        max,
+        centralAngleDeg(coords[i].lat, coords[i].lng, coords[j].lat, coords[j].lng)
+      );
+    }
+  }
+  return max;
+}
+
+/**
+ * When all nodes sit in one region, markers & tubes look huge relative to separation.
+ * Scale them down and add tiny surface jitter (display still shows true coords in panel).
+ */
+function layoutForGeographicSpread(maxSpanDeg: number, nodeCount: number) {
+  const span = Math.max(maxSpanDeg, 1e-6);
+  const t = THREE.MathUtils.clamp(span / 42, 0, 1);
+  const markerRadiusMul = THREE.MathUtils.lerp(0.32, 1, t);
+  const tubeRadiusMul = THREE.MathUtils.lerp(0.42, 1, t);
+  const coneRadiusMul = THREE.MathUtils.lerp(0.48, 1, t);
+  const coneHeightMul = THREE.MathUtils.lerp(0.55, 1, t);
+  const jitterDeg =
+    nodeCount > 1 && maxSpanDeg < 11
+      ? THREE.MathUtils.lerp(0.52, 0.06, maxSpanDeg / 11)
+      : 0;
+  const radialBump = nodeCount > 1 && maxSpanDeg < 9 ? 0.022 : 0.012;
+  return { markerRadiusMul, tubeRadiusMul, coneRadiusMul, coneHeightMul, jitterDeg, radialBump };
+}
+
+function jitteredLatLng(
+  lat: number,
+  lng: number,
+  index: number,
+  total: number,
+  jitterDeg: number
+): { lat: number; lng: number } {
+  if (jitterDeg <= 0) return { lat, lng };
+  const a = (index / Math.max(total, 1)) * Math.PI * 2 + 0.73 + index * 0.41;
+  const cosLat = Math.max(0.2, Math.cos((lat * Math.PI) / 180));
+  const dLat = Math.cos(a) * jitterDeg * 0.42;
+  const dLng = (Math.sin(a) * jitterDeg * 0.42) / cosLat;
+  return { lat: lat + dLat, lng: lng + dLng };
+}
+
 function sortSupplyRecords(records: SupplyChainTimelineRecord[]) {
   return [...records].sort((a, b) => {
     const ia = STAGE_ORDER.indexOf((a.stage ?? '').toLowerCase());
@@ -136,8 +193,8 @@ export default function TraceabilityGlobe({
     const camera = new THREE.PerspectiveCamera(
       48,
       container.clientWidth / Math.max(container.clientHeight, 1),
-      0.1,
-      100
+      0.05,
+      5000
     );
     camera.position.set(0, 1.2, 5.2);
 
@@ -152,8 +209,10 @@ export default function TraceabilityGlobe({
     const controls = new OrbitControls(camera, canvas);
     controls.enableDamping = true;
     controls.dampingFactor = 0.06;
-    controls.minDistance = 3.2;
-    controls.maxDistance = 10;
+    // 允许大幅拉近/拉远（近到略贴球面，远到轨道级）；避免与球心距离 ≤ 球半径导致穿模
+    controls.minDistance = GLOBE_RADIUS * 1.02;
+    controls.maxDistance = 4000;
+    controls.zoomSpeed = 1.15;
     controls.autoRotate = true;
     controls.autoRotateSpeed = 0.35;
 
@@ -216,10 +275,29 @@ export default function TraceabilityGlobe({
     const markers = new Map<number, THREE.Mesh>();
     const runners: SegmentRunner[] = [];
 
+    const rawCoords = sorted.map((rec, index) => getRecordLatLng(rec, index, sorted.length));
+    const maxSpanDeg = maxPairwiseSpanDeg(rawCoords);
+    const spreadLayout = layoutForGeographicSpread(maxSpanDeg, sorted.length);
+    const markerBaseR = isMobile ? 0.065 : 0.078;
+    const markerR = markerBaseR * spreadLayout.markerRadiusMul;
+    const tubeCoreR = (isMobile ? 0.006 : 0.008) * spreadLayout.tubeRadiusMul;
+    const coneBaseR = (isMobile ? 0.045 : 0.055) * spreadLayout.coneRadiusMul;
+    const coneH = 0.12 * spreadLayout.coneHeightMul;
+
+    const vizLatLng = (index: number) =>
+      jitteredLatLng(
+        rawCoords[index].lat,
+        rawCoords[index].lng,
+        index,
+        sorted.length,
+        spreadLayout.jitterDeg
+      );
+
     sorted.forEach((rec, index) => {
-      const { lat, lng } = getRecordLatLng(rec, index, sorted.length);
-      const pos = latLngToVector3(lat, lng, GLOBE_RADIUS + 0.04);
-      const markerGeo = new THREE.SphereGeometry(isMobile ? 0.065 : 0.078, 16, 16);
+      const { lat, lng } = vizLatLng(index);
+      const lift = GLOBE_RADIUS + 0.036 + index * spreadLayout.radialBump;
+      const pos = latLngToVector3(lat, lng, lift);
+      const markerGeo = new THREE.SphereGeometry(markerR, 16, 16);
       const mat = new THREE.MeshStandardMaterial({
         color: theme.sage,
         emissive: theme.ink,
@@ -235,14 +313,14 @@ export default function TraceabilityGlobe({
     });
 
     for (let i = 0; i < sorted.length - 1; i++) {
-      const a = sorted[i];
-      const b = sorted[i + 1];
-      const { lat: lat1, lng: lng1 } = getRecordLatLng(a, i, sorted.length);
-      const { lat: lat2, lng: lng2 } = getRecordLatLng(b, i + 1, sorted.length);
-      const start = latLngToVector3(lat1, lng1, GLOBE_RADIUS + 0.03);
-      const end = latLngToVector3(lat2, lng2, GLOBE_RADIUS + 0.03);
+      const { lat: lat1, lng: lng1 } = vizLatLng(i);
+      const { lat: lat2, lng: lng2 } = vizLatLng(i + 1);
+      const arcLiftA = GLOBE_RADIUS + 0.028 + i * spreadLayout.radialBump * 0.85;
+      const arcLiftB = GLOBE_RADIUS + 0.028 + (i + 1) * spreadLayout.radialBump * 0.85;
+      const start = latLngToVector3(lat1, lng1, arcLiftA);
+      const end = latLngToVector3(lat2, lng2, arcLiftB);
       const curve = createArcCurve(start, end, GLOBE_RADIUS);
-      const tubeGeo = new THREE.TubeGeometry(curve, isMobile ? 20 : 36, isMobile ? 0.006 : 0.008, 6, false);
+      const tubeGeo = new THREE.TubeGeometry(curve, isMobile ? 20 : 36, tubeCoreR, 6, false);
       const tubeMat = new THREE.MeshBasicMaterial({
         color: theme.rust,
         transparent: true,
@@ -250,7 +328,7 @@ export default function TraceabilityGlobe({
       });
       globeGroup.add(new THREE.Mesh(tubeGeo, tubeMat));
 
-      const coneGeo = new THREE.ConeGeometry(isMobile ? 0.045 : 0.055, 0.12, 8);
+      const coneGeo = new THREE.ConeGeometry(coneBaseR, coneH, 8);
       const coneMat = new THREE.MeshBasicMaterial({
         color: theme.rust,
         transparent: true,
@@ -427,11 +505,11 @@ export default function TraceabilityGlobe({
   return (
     <div
       ref={containerRef}
-      className={`relative w-full min-h-[320px] md:min-h-[440px] rounded-sm border border-warm-gray/25 bg-aged-stock/40 ${className}`}
+      className={`relative w-full aspect-square min-w-0 rounded-sm border border-warm-gray/25 bg-aged-stock/40 ${className}`}
     >
       <canvas
         ref={canvasRef}
-        className="block w-full h-full min-h-[320px] md:min-h-[440px] cursor-grab active:cursor-grabbing"
+        className="absolute inset-0 block h-full w-full cursor-grab active:cursor-grabbing touch-none"
       />
 
       {displayRecord && displayCoords && (

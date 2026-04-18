@@ -38,4 +38,6 @@ async def test_supply_chain_timeline(app):
         # 验证排序是否正确 (按时间升序)
         assert timeline[0]["stage"] == "material_sourcing"
         assert timeline[1]["stage"] == "manufacturing"
-        assert timeline[0]["is_certified"] is True
+        assert timeline[0]["certified"] is True
+        assert "latitude" in timeline[0]
+        assert "longitude" in timeline[0]

@@ -29,20 +29,28 @@ class SupplyChainService(BaseService):
     async def get_sustainability_timeline(self, product_id: int) -> List[Dict[str, Any]]:
         """
         Get a formatted timeline of the supply chain.
+        Must include latitude/longitude for globe UI (same shape as /products/{id}/supply-chain).
         """
         records = await self.get_product_traceability(product_id)
-        return [
-            {
+        out: List[Dict[str, Any]] = []
+        for r in records:
+            row: Dict[str, Any] = {
                 "id": r.id,
                 "stage": r.stage,
                 "description": r.description,
                 "location": r.location,
                 "timestamp": r.timestamp.isoformat() if r.timestamp else None,
-                "is_certified": r.certified,
-                "image": r.cert_image_url
+                "certified": r.certified,
+                "cert_image_url": r.cert_image_url,
+                "latitude": r.latitude,
+                "longitude": r.longitude,
             }
-            for r in records
-        ]
+            if r.carbon_kg is not None:
+                row["carbon_kg"] = float(r.carbon_kg)
+            if r.carbon_note is not None:
+                row["carbon_note"] = r.carbon_note
+            out.append(row)
+        return out
 
     @audit_action(action="create_traceability_record", resource_type="supply_chain")
     async def add_record(self, product_id: int, record_data: Dict[str, Any]) -> SupplyChainRecord:

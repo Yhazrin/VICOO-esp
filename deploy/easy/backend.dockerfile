@@ -6,6 +6,10 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+# Faster apt on CN / congested links to deb.debian.org
+RUN sed -i 's|deb.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list.d/debian.sources 2>/dev/null || true; \
+    sed -i 's|deb.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list 2>/dev/null || true
+
 # Install runtime dependencies (including mysql client for entrypoint)
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
