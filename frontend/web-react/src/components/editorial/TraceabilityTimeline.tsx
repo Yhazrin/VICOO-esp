@@ -7,11 +7,14 @@ import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 interface TraceabilityTimelineProps {
   records: SupplyChainTimelineRecord[];
   className?: string;
+  /** 与商品详情地球仪选中节点同步：对应卡片低调高亮，不滚动页面 */
+  linkedFromGlobeId?: number | null;
 }
 
 export default function TraceabilityTimeline({
   records,
   className = '',
+  linkedFromGlobeId = null,
 }: TraceabilityTimelineProps) {
   const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
@@ -104,20 +107,25 @@ export default function TraceabilityTimeline({
       </svg>
 
       <div className="space-y-0">
-        {records.map((record, index) => (
+        {records.map((record, index) => {
+          const isGlobeLinked = linkedFromGlobeId != null && record.id === linkedFromGlobeId;
+          return (
           <motion.div
             key={record.id}
+            id={`trace-step-${record.id}`}
             initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, x: -20 }}
             whileInView={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, x: 0 }}
             viewport={{ once: true, margin: '-30px' }}
             transition={{ duration: 0.5, delay: index * 0.1 }}
-            className="relative pb-12 last:pb-0"
+            className="relative pb-12 last:pb-0 scroll-mt-24 md:scroll-mt-28"
+            aria-current={isGlobeLinked ? 'step' : undefined}
           >
             {/* Dot */}
             <div
               className={`
-                absolute left-[-33px] top-1 w-4 h-4 rounded-sm border-[3px] border-paper z-[2]
+                absolute left-[-33px] top-1 w-4 h-4 rounded-sm border-[3px] border-paper z-[2] transition-transform duration-500 ease-out
                 ${record.verified ? 'bg-rust' : 'bg-warm-gray'}
+                ${isGlobeLinked ? 'scale-125 ring-2 ring-rust/55 ring-offset-2 ring-offset-aged-stock' : ''}
               `}
               aria-hidden="true"
             />
@@ -127,9 +135,28 @@ export default function TraceabilityTimeline({
               initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
               whileInView={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: index * 0.1 }}
+              transition={
+                isGlobeLinked && !prefersReducedMotion
+                  ? { duration: 1.15, ease: [0.22, 1, 0.36, 1] }
+                  : { duration: 0.4, delay: index * 0.1 }
+              }
               whileHover={prefersReducedMotion ? undefined : { y: -2 }}
-              className="relative p-6 border-2 border-rust/30 bg-paper transition-all duration-300 hover:border-rust/50 overflow-hidden"
+              animate={
+                prefersReducedMotion || !isGlobeLinked
+                  ? undefined
+                  : {
+                      boxShadow: [
+                        '0 0 0 0 rgba(139, 58, 42, 0)',
+                        '0 0 36px -10px rgba(139, 58, 42, 0.22)',
+                        '0 0 22px -14px rgba(139, 58, 42, 0.16)',
+                      ],
+                    }
+              }
+              className={`relative p-6 border-2 bg-paper transition-[border-color,box-shadow] duration-500 ease-out overflow-hidden ${
+                isGlobeLinked
+                  ? 'border-rust/50 shadow-[0_0_28px_-12px_rgba(139,58,42,0.22)]'
+                  : 'border-rust/30 hover:border-rust/50'
+              }`}
             >
               <SectionGrainOverlay className="z-10" />
 
@@ -184,7 +211,8 @@ export default function TraceabilityTimeline({
               </div>
             </motion.div>
           </motion.div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
