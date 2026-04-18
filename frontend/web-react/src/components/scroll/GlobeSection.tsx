@@ -16,13 +16,15 @@ export default function GlobeSection() {
   const staggerDelay = (index: number) => (prefersReducedMotion ? 0 : 0.15 + index * 0.1);
 
   return (
-    <section className="relative w-full h-screen overflow-hidden bg-aged-stock">
-      {/* Globe canvas */}
-      <SupplyChainGlobe routes={routes} />
+    <section className="relative z-0 w-full min-h-[100dvh] overflow-visible bg-aged-stock">
+      {/* Globe: taller than viewport so it can extend under the next section; no clipping */}
+      <div className="pointer-events-auto absolute left-0 right-0 top-0 z-0 h-[min(135dvh,260vw)] max-h-[2200px]">
+        <SupplyChainGlobe routes={routes} />
+      </div>
 
       {/* Reduced-motion fallback: static route visualization */}
       {prefersReducedMotion && (
-        <div className="absolute inset-0 flex items-center justify-center z-[5]">
+        <div className="absolute inset-0 z-[5] flex min-h-[100dvh] items-center justify-center">
           <div className="flex gap-6 px-8">
             {routes.map((route) => (
               <div
@@ -130,7 +132,7 @@ export default function GlobeSection() {
         </div>
       </div>
 
-      <SectionGrainOverlay opacity={0.02} />
+      <SectionGrainOverlay className="!z-[1]" opacity={0.02} />
     </section>
   );
 }

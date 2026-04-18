@@ -687,7 +687,7 @@ export default function TraceabilityGlobe({
   if (!webglOk) {
     return (
       <div
-        className={`relative w-full aspect-square min-w-0 bg-transparent py-2 flex flex-col gap-3 ${className}`}
+        className={`relative w-full min-h-[70dvh] min-w-0 bg-transparent py-2 flex flex-col gap-3 ${className}`}
       >
         <p className="font-body text-caption text-ink-faded">{t('shop.detail.globeWebglFallback')}</p>
         <ul className="space-y-2 overflow-auto text-left">
@@ -716,11 +716,11 @@ export default function TraceabilityGlobe({
       data-pin-active={selectedId != null ? 'true' : 'false'}
       aria-label={t('shop.detail.globeAria', '交互式溯源地球仪，可用方向键微调视角')}
       onPointerDownCapture={() => containerRef.current?.focus({ preventScroll: true })}
-      className={`relative w-full aspect-square min-w-0 bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-rust/35 focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--color-aged-stock)] ${className}`}
+      className={`relative z-0 w-full min-w-0 bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-rust/35 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent min-h-[100dvh] md:min-h-[115dvh] ${className}`}
     >
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 block h-full w-full cursor-grab active:cursor-grabbing touch-none [mask-image:radial-gradient(ellipse_92%_90%_at_50%_50%,#000_62%,#000_76%,transparent_100%)] [-webkit-mask-image:radial-gradient(ellipse_92%_90%_at_50%_50%,#000_62%,#000_76%,transparent_100%)]"
+        className="absolute inset-0 block h-full w-full cursor-grab active:cursor-grabbing touch-none"
       />
 
       {touchHintVisible && (
