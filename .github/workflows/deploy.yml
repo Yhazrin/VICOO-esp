@@ -358,7 +358,7 @@ jobs:
           echo "检查Frontend健康状态..."
           ssh vm "curl -sf http://localhost:80 || echo 'Frontend健康检查失败'"
           echo "检查Admin健康状态..."
-          ssh vm "curl -sf http://localhost:8080 || echo 'Admin健康检查失败'"
+          ssh vm "curl -sf http://localhost:80/admin/ || echo 'Admin健康检查失败'"
 
       - name: 显示服务日志
         if: failure()

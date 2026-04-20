@@ -146,8 +146,6 @@ services:
       dockerfile: deploy/easy/admin.dockerfile
     container_name: vicoo-admin
     restart: unless-stopped
-    ports:
-      - "8080:80"
     depends_on:
       backend:
         condition: service_healthy
