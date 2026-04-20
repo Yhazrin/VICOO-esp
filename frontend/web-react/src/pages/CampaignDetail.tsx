@@ -212,7 +212,7 @@ export default function CampaignDetail() {
             </div>
           </div>
 
-          <div className="mt-16 md:mt-20">
+          <div className="mt-10 md:mt-12">
             <WelfareTraceabilitySustainabilityPanel />
           </div>
         </SectionContainer>

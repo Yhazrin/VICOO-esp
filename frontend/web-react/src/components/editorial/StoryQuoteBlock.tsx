@@ -7,6 +7,8 @@ interface StoryQuoteBlockProps {
   author?: string;
   role?: string;
   className?: string;
+  /** 条带式排布：无大号引号与左侧重边框，适合页面顶部或窄栏 */
+  variant?: 'default' | 'strip';
 }
 
 export default function StoryQuoteBlock({
@@ -14,6 +16,7 @@ export default function StoryQuoteBlock({
   author,
   role,
   className = '',
+  variant = 'default',
 }: StoryQuoteBlockProps) {
   const [ref, isVisible] = useScrollReveal<HTMLQuoteElement>();
   const prefersReducedMotion = useReducedMotion();
@@ -29,6 +32,36 @@ export default function StoryQuoteBlock({
   const strokeDashoffset = useTransform(scrollYProgress, [0, 1], [200, 0]);
   const underlineOpacity = useTransform(scrollYProgress, [0, 0.3], [0, 1]);
   const flourishDashoffset = useTransform(scrollYProgress, [0.1, 0.5], [20, 0]);
+
+  if (variant === 'strip') {
+    return (
+      <motion.blockquote
+        ref={ref}
+        initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 16 }}
+        animate={isVisible ? { opacity: 1, y: 0 } : {}}
+        transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        className={`relative border-t border-warm-gray/20 pt-8 pb-2 md:pt-10 md:pb-4 ${className}`}
+      >
+        <p className="font-display text-xl md:text-2xl italic leading-[1.45] text-ink/92 font-normal max-w-3xl">
+          {quote}
+        </p>
+        {(author || role) && (
+          <footer className="mt-6 flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-3">
+            {author && (
+              <cite className="font-body text-sm text-ink not-italic font-medium tracking-wide">
+                {author}
+              </cite>
+            )}
+            {role && (
+              <span className="font-body text-[11px] md:text-caption text-sepia-mid tracking-[0.12em] uppercase">
+                {role}
+              </span>
+            )}
+          </footer>
+        )}
+      </motion.blockquote>
+    );
+  }
 
   return (
     <motion.blockquote

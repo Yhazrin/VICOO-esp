@@ -53,7 +53,8 @@ function AnimatedRoutes() {
     <ErrorBoundary>
       <Suspense fallback={<div style={{ minHeight: '60vh' }} />}>
       <SmoothTransition>
-        <Routes location={location} key={location.pathname}>
+        {/* Do not key Routes by pathname — that remounts Layout/Header on every navigation (feels like a full reload). */}
+        <Routes location={location}>
           {/* Auth pages — standalone, no header/footer */}
           <Route path="login" element={<ErrorBoundary><Login /></ErrorBoundary>} />
           <Route path="register" element={<ErrorBoundary><Register /></ErrorBoundary>} />

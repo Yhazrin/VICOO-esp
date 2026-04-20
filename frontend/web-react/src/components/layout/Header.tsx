@@ -1,21 +1,39 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion, type Transition } from 'framer-motion';
 import { useUIStore, THEMES, type ThemeId } from '@/stores/uiStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useCartStore, selectTotalItems } from '@/stores/cartStore';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/useMediaQuery';
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useRef, useEffect, useState, useCallback, useLayoutEffect, useMemo } from 'react';
 import UniqloLogo from './UniqloLogo';
+import { COMPANY_NAV, matchCompanyNavKey } from '@/constants/companyNav';
 
-// ── Company nav: UNIQLO portal ──
-const COMPANY_NAV = [
-  { key: 'home', path: '/' },
-  { key: 'shop', path: '/shop' },
-  { key: 'about', path: '/about' },
-  { key: 'contact', path: '/contact' },
-];
+/** Spring for sliding nav pill — bouncier settle (non-linear). */
+const SLIDING_PILL_SPRING = {
+  type: 'spring' as const,
+  stiffness: 400,
+  damping: 22,
+  mass: 0.72,
+};
+
+/**
+ * Mode morph: single duration + cubic-bezier for every driven property.
+ * Springs settle at different rates per channel — tween keeps radius/width/margin/x in phase.
+ */
+const MODE_MORPH_DURATION = 0.52;
+const MODE_MORPH_EASE = [0.33, 1, 0.68, 1] as const;
+
+function getModeMorphTransition(reduceMotion: boolean): Transition {
+  if (reduceMotion) {
+    return { duration: 0.2, ease: [0.25, 0.1, 0.25, 1] };
+  }
+  return {
+    duration: MODE_MORPH_DURATION,
+    ease: MODE_MORPH_EASE,
+  };
+}
 
 // ── Impact nav tabs (all public-welfare pages live here) ──
 // Impact tabs don't use routing — they switch inline content via activeImpactTab.
@@ -40,25 +58,69 @@ function PillWindow({
   activeImpactTab,
   setActiveImpactTab,
   locationPathname,
-  navigate,
+  modeMorphTransition,
 }: {
   impactMode: boolean;
   activeImpactTab: string;
   setActiveImpactTab: (tab: string) => void;
   locationPathname: string;
-  navigate: (to: string) => void;
+  modeMorphTransition: Transition;
 }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const prefersReducedMotion = useReducedMotion();
 
   const companyRef = useRef<HTMLDivElement>(null);
   const impactRef = useRef<HTMLDivElement>(null);
+  const companyItemRefs = useRef<Map<string, HTMLElement>>(new Map());
+  const impactItemRefs = useRef<Map<string, HTMLElement>>(new Map());
   const [companyW, setCompanyW] = useState(0);
   const [impactW, setImpactW] = useState(0);
+  const [companyHl, setCompanyHl] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+  const [impactHl, setImpactHl] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+
+  /**
+   * Company rail: only one “active” item when NOT in impact mode.
+   * On `/` + impactMode, pathname is shared — do not treat company Home as selected.
+   * Nested routes: `/shop/:id`, `/about/...` still highlight the right company tab.
+   */
+  const activeCompanyKey = useMemo((): string | null => {
+    if (impactMode) return null;
+    return matchCompanyNavKey(locationPathname);
+  }, [locationPathname, impactMode]);
 
   const measure = useCallback(() => {
     if (companyRef.current) setCompanyW(companyRef.current.offsetWidth);
     if (impactRef.current) setImpactW(impactRef.current.offsetWidth);
   }, []);
+
+  const measureHighlight = useCallback(
+    (container: HTMLDivElement | null, activeKey: string | null, refs: Map<string, HTMLElement>) => {
+      if (!container || !activeKey) return null;
+      const el = refs.get(activeKey);
+      if (!el) return null;
+      const c = container.getBoundingClientRect();
+      const e = el.getBoundingClientRect();
+      return {
+        x: e.left - c.left,
+        y: e.top - c.top,
+        w: e.width,
+        h: e.height,
+      };
+    },
+    [],
+  );
+
+  const updateHighlights = useCallback(() => {
+    // Only measure the rail that is logically active — avoids two pills / wrong slides when modes share `/`.
+    if (!impactMode) {
+      setImpactHl(null);
+      setCompanyHl(measureHighlight(companyRef.current, activeCompanyKey, companyItemRefs.current));
+    } else {
+      setCompanyHl(null);
+      setImpactHl(measureHighlight(impactRef.current, activeImpactTab, impactItemRefs.current));
+    }
+  }, [activeCompanyKey, activeImpactTab, impactMode, measureHighlight]);
 
   useEffect(() => {
     measure();
@@ -72,6 +134,49 @@ function PillWindow({
     return () => cancelAnimationFrame(id);
   }, [t, measure]);
 
+  useLayoutEffect(() => {
+    updateHighlights();
+  }, [updateHighlights, companyW, impactW, impactMode, locationPathname, t]);
+
+  useLayoutEffect(() => {
+    const c = companyRef.current;
+    const i = impactRef.current;
+    const ro = new ResizeObserver(() => updateHighlights());
+    if (c) ro.observe(c);
+    if (i) ro.observe(i);
+    return () => ro.disconnect();
+  }, [updateHighlights]);
+
+  // After capsule / rail motion settles, pill geometry may shift slightly
+  useEffect(() => {
+    const ms = prefersReducedMotion ? 220 : Math.round(MODE_MORPH_DURATION * 1000) + 40;
+    const t1 = window.setTimeout(updateHighlights, ms);
+    return () => clearTimeout(t1);
+  }, [impactMode, updateHighlights, prefersReducedMotion]);
+
+  // Company tabs: remeasure after client navigation so the sliding pill matches (Outlet paint can lag one frame).
+  useEffect(() => {
+    if (impactMode) return;
+    let alive = true;
+    let raf2 = 0;
+    const raf1 = requestAnimationFrame(() => {
+      if (!alive) return;
+      updateHighlights();
+      raf2 = requestAnimationFrame(() => {
+        if (alive) updateHighlights();
+      });
+    });
+    return () => {
+      alive = false;
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+    };
+  }, [locationPathname, impactMode, updateHighlights]);
+
+  const pillTransition = prefersReducedMotion
+    ? { duration: 0.12, ease: [0.25, 0.1, 0.25, 1] as const }
+    : SLIDING_PILL_SPRING;
+
   // Capsule has px-2 (8px each side = 16px padding).
   // Offset uses pure content width; capsule width adds padding so
   // the first & last tags have equal breathing room on both sides.
@@ -81,28 +186,64 @@ function PillWindow({
 
   return (
     <motion.div
-      className="flex items-center rounded-full bg-white/80 backdrop-blur-xl shadow-sm px-2 py-1 overflow-hidden"
-      animate={{ width: capsuleW || 'auto' }}
-      transition={{ duration: 0.45, ease: [0.32, 0.72, 0, 1] }}
+      className={`
+        flex items-center overflow-hidden px-2 py-1 shadow-sm
+        ${impactMode
+          ? 'border border-warm-gray/20 bg-white/80 backdrop-blur-xl'
+          : 'border border-white/30 bg-white/15 backdrop-blur-md'
+        }
+      `}
+      animate={{
+        width: capsuleW || 'auto',
+        borderRadius: impactMode ? 9999 : 4,
+      }}
+      transition={modeMorphTransition}
       style={{ width: (companyW + PADDING) || 'auto' }}
     >
       <motion.div
         className="flex items-center"
         animate={{ x: xOffset }}
-        transition={{ duration: 0.45, ease: [0.32, 0.72, 0, 1] }}
+        transition={modeMorphTransition}
         style={{ minWidth: 'max-content', willChange: 'transform' }}
       >
         {/* Company group */}
-        <div ref={companyRef} className="flex items-center flex-shrink-0">
+        <div ref={companyRef} className="relative flex flex-shrink-0 items-center">
+          {companyHl && (
+            <motion.div
+              aria-hidden
+              className={`pointer-events-none absolute z-0 ${impactMode ? 'rounded-full bg-ink' : 'rounded-sm bg-white'}`}
+              initial={false}
+              animate={{
+                left: companyHl.x,
+                top: companyHl.y,
+                width: companyHl.w,
+                height: companyHl.h,
+              }}
+              transition={pillTransition}
+            />
+          )}
           {COMPANY_NAV.map((item) => {
-            const isActive = locationPathname === item.path;
+            const isActive = !impactMode && activeCompanyKey === item.key;
             return (
               <Link
                 key={item.key}
+                ref={(el) => {
+                  if (el) companyItemRefs.current.set(item.key, el);
+                  else companyItemRefs.current.delete(item.key);
+                }}
                 to={item.path}
+                aria-current={isActive ? 'page' : undefined}
                 className={`
-                  font-body text-label tracking-wide px-3 py-1 rounded-full transition-all duration-200 cursor-pointer whitespace-nowrap
-                  ${isActive ? 'text-ink font-medium bg-rust/15' : 'text-ink-faded hover:text-ink'}
+                  relative z-10 cursor-pointer whitespace-nowrap px-5 py-1 font-body text-label tracking-wide
+                  ${impactMode ? 'rounded-full' : 'rounded-sm'}
+                  ${isActive
+                    ? impactMode
+                      ? 'font-medium text-paper'
+                      : 'font-medium text-[#E60012]'
+                    : impactMode
+                      ? 'text-ink-faded hover:text-ink'
+                      : 'text-white/85 hover:text-white'
+                  }
                 `}
               >
                 {t(`nav.${item.key}`)}
@@ -111,23 +252,52 @@ function PillWindow({
           })}
         </div>
         {/* Impact group */}
-        <div ref={impactRef} className="flex items-center flex-shrink-0">
+        <div ref={impactRef} className="relative flex flex-shrink-0 items-center">
+          {impactHl && (
+            <motion.div
+              aria-hidden
+              className="pointer-events-none absolute z-0 rounded-full bg-ink"
+              initial={false}
+              animate={{
+                left: impactHl.x,
+                top: impactHl.y,
+                width: impactHl.w,
+                height: impactHl.h,
+              }}
+              transition={pillTransition}
+            />
+          )}
           {IMPACT_TABS.map((tab) => {
-            const isActive = activeImpactTab === tab.key;
+            const isActive = impactMode && activeImpactTab === tab.key;
             return (
               <button
                 key={tab.key}
+                ref={(el) => {
+                  if (el) impactItemRefs.current.set(tab.key, el);
+                  else impactItemRefs.current.delete(tab.key);
+                }}
+                type="button"
+                aria-current={isActive ? 'page' : undefined}
                 onClick={() => {
                   setActiveImpactTab(tab.key);
                   if (tab.key === 'shop') {
-                    navigate('/impact/shop');
+                    // Stay on `/` + impact shell like other tabs — routing to `/impact/shop` remounts via <Outlet /> and feels like a full refresh.
+                    if (locationPathname !== '/' && locationPathname.startsWith('/impact/shop')) {
+                      navigate('/', { replace: true });
+                    }
                   } else if (locationPathname.startsWith('/impact/shop')) {
                     navigate('/');
                   }
                 }}
                 className={`
-                  font-body text-label tracking-wide px-3 py-1 rounded-full transition-all duration-200 cursor-pointer whitespace-nowrap
-                  ${isActive ? 'text-ink font-medium bg-rust/15' : 'text-ink-faded hover:text-ink'}
+                  relative z-10 cursor-pointer whitespace-nowrap px-5 py-1 font-body text-label tracking-wide
+                  ${impactMode ? 'rounded-full' : 'rounded-sm'}
+                  ${isActive
+                    ? 'font-medium text-paper'
+                    : impactMode
+                      ? 'text-ink-faded hover:text-ink'
+                      : 'text-white/40'
+                  }
                 `}
               >
                 {t(`nav.${tab.key}`)}
@@ -266,9 +436,37 @@ export default function Header() {
     }
   };
 
+  const modeMorphTransition = getModeMorphTransition(Boolean(prefersReducedMotion));
+
+  const iconDisc = impactMode
+    ? 'bg-white text-ink-faded shadow-sm hover:shadow-md border border-warm-gray/15'
+    : 'border border-white/25 bg-white/20 text-white shadow-none hover:bg-white/30';
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50">
-      <div className="relative max-w-[1400px] mx-auto px-6 md:px-10 flex items-center justify-between h-14">
+    <header className="pointer-events-none fixed top-0 left-0 right-0 z-50">
+      <motion.div
+        className="pointer-events-auto"
+        initial={false}
+        animate={{
+          marginTop: impactMode ? 10 : 0,
+          marginLeft: impactMode ? 12 : 0,
+          marginRight: impactMode ? 12 : 0,
+          borderRadius: impactMode ? 9999 : 0,
+          backgroundColor: impactMode ? 'rgba(252, 250, 246, 0.92)' : '#E60012',
+        }}
+        transition={modeMorphTransition}
+        style={{
+          boxShadow: impactMode
+            ? '0 8px 32px rgba(0, 0, 0, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.58)'
+            : 'inset 0 -1px 0 rgba(0, 0, 0, 0.2)',
+          backdropFilter: impactMode ? 'saturate(180%) blur(14px)' : 'none',
+          WebkitBackdropFilter: impactMode ? 'saturate(180%) blur(14px)' : 'none',
+          transition: prefersReducedMotion
+            ? undefined
+            : `box-shadow ${MODE_MORPH_DURATION}s cubic-bezier(0.33, 1, 0.68, 1), backdrop-filter ${MODE_MORPH_DURATION}s cubic-bezier(0.33, 1, 0.68, 1), -webkit-backdrop-filter ${MODE_MORPH_DURATION}s cubic-bezier(0.33, 1, 0.68, 1)`,
+        }}
+      >
+        <div className="relative mx-auto flex h-14 max-w-[1400px] items-center justify-between px-6 md:px-10">
         {/* Logo */}
         <Link
           to="/"
@@ -278,11 +476,8 @@ export default function Header() {
             setImpactMode(false);
           }}
         >
-          <motion.div
-            animate={{ x: impactMode ? -6 : 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-          >
-            <UniqloLogo />
+          <motion.div animate={{ x: impactMode ? -6 : 0 }} transition={modeMorphTransition}>
+            <UniqloLogo variant={impactMode ? 'default' : 'onRed'} />
           </motion.div>
           <AnimatePresence mode="wait">
             {impactMode && (
@@ -292,7 +487,7 @@ export default function Header() {
                 animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
                 exit={{ opacity: 0, x: -12, filter: 'blur(4px)' }}
                 transition={{ type: 'spring', stiffness: 350, damping: 25, delay: 0.05 }}
-                className="font-display text-ink text-sm md:text-base font-medium tracking-wide whitespace-nowrap select-none"
+                className="font-display text-sm font-medium tracking-wide whitespace-nowrap text-ink select-none md:text-base"
               >
                 × VICOO
               </motion.span>
@@ -311,21 +506,32 @@ export default function Header() {
                 activeImpactTab={activeImpactTab}
                 setActiveImpactTab={setActiveImpactTab}
                 locationPathname={location.pathname}
-                navigate={navigate}
+                modeMorphTransition={modeMorphTransition}
               />
 
-              {/* Impact toggle button */}
+              {/* Impact toggle: UNIQLO = classic red/white; Impact shell = glass card */}
               <button
+                type="button"
                 onClick={handleImpactToggle}
+                aria-pressed={impactMode}
                 className={`
-                  font-body text-label tracking-wide px-5 py-1.5 rounded-full transition-all duration-300 cursor-pointer
+                  rounded-full px-5 py-1.5 font-body text-label font-medium tracking-wide transition-all duration-300 cursor-pointer
+                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
                   ${impactMode
-                    ? 'bg-ink text-paper font-medium'
-                    : 'bg-white/80 backdrop-blur-xl shadow-sm text-ink-faded hover:text-ink'
+                    ? `
+                      border border-warm-gray/25 bg-white/75 text-ink shadow-sm backdrop-blur-xl
+                      hover:bg-white/90 hover:border-warm-gray/35 hover:shadow-md
+                      focus-visible:ring-[#E60012]/40 focus-visible:ring-offset-paper
+                    `
+                    : `
+                      border-0 bg-white text-[#E60012] shadow-md
+                      hover:bg-white/95
+                      focus-visible:ring-white/80 focus-visible:ring-offset-[#E60012]
+                    `
                   }
                 `}
               >
-                {impactMode ? t('nav.home', 'Home') : t('nav.impact', 'Impact')}
+                {impactMode ? t('nav.uniqloPortal') : t('nav.impact')}
               </button>
             </nav>
           )}
@@ -366,10 +572,10 @@ export default function Header() {
               </AnimatePresence>
               <button
                 onClick={() => setSearchOpen(!searchOpen)}
-                className="flex items-center justify-center w-9 h-9 rounded-full bg-white shadow-sm hover:shadow-md transition-all cursor-pointer"
+                className={`flex h-9 w-9 items-center justify-center rounded-full transition-all cursor-pointer ${iconDisc}`}
                 aria-label="Search"
               >
-                <svg className="w-4 h-4 text-ink-faded" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
                   <circle cx="11" cy="11" r="7" />
                   <path d="M21 21l-4.35-4.35" strokeLinecap="round" />
                 </svg>
@@ -380,16 +586,20 @@ export default function Header() {
           {/* Cart icon — white disc */}
           <button
             onClick={toggleCart}
-            className="relative flex items-center justify-center w-9 h-9 rounded-full bg-white shadow-sm hover:shadow-md transition-all cursor-pointer"
+            className={`relative flex h-9 w-9 items-center justify-center rounded-full transition-all cursor-pointer ${iconDisc}`}
             aria-label={t('cart.title')}
           >
-            <svg className="w-4 h-4 text-ink-faded" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
               <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
               <line x1="3" y1="6" x2="21" y2="6" />
               <path d="M16 10a4 4 0 01-8 0" />
             </svg>
             {totalCartItems > 0 && (
-              <span className="absolute -top-1 -right-1 w-4.5 h-4.5 min-w-[18px] min-h-[18px] flex items-center justify-center bg-rust text-paper font-mono text-[10px] rounded-full leading-none">
+              <span
+                className={`absolute -right-1 -top-1 flex h-4.5 min-h-[18px] w-4.5 min-w-[18px] items-center justify-center rounded-full font-mono text-[10px] leading-none ${
+                  impactMode ? 'bg-rust text-paper' : 'bg-white text-[#E60012]'
+                }`}
+              >
                 {totalCartItems > 99 ? '99+' : totalCartItems}
               </span>
             )}
@@ -398,7 +608,7 @@ export default function Header() {
           {/* Language toggle — white disc */}
           <button
             onClick={toggleLocale}
-            className="font-body text-caption text-ink-faded hover:text-ink transition-colors w-9 h-9 rounded-full bg-white shadow-sm flex items-center justify-center cursor-pointer"
+            className={`font-body text-caption flex h-9 w-9 items-center justify-center rounded-full transition-colors cursor-pointer ${iconDisc} ${impactMode ? 'hover:text-ink' : ''}`}
             aria-label={t('nav.toggleLanguage', 'Toggle language')}
           >
             {currentLocale === 'zh' ? 'EN' : '中'}
@@ -411,7 +621,7 @@ export default function Header() {
                 setUserMenuOpen(!userMenuOpen);
                 setActiveSubmenu(null);
               }}
-              className="flex items-center justify-center w-9 h-9 rounded-full bg-white shadow-sm hover:shadow-md transition-all cursor-pointer"
+              className={`flex h-9 w-9 items-center justify-center rounded-full transition-all cursor-pointer ${iconDisc}`}
               aria-label={t('nav.userMenu', 'User menu')}
               aria-expanded={userMenuOpen}
               aria-haspopup="menu"
@@ -423,7 +633,7 @@ export default function Header() {
                   </span>
                 </div>
               ) : (
-                <svg className="w-4 h-4 text-ink-faded" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               )}
@@ -617,27 +827,28 @@ export default function Header() {
             <button
               ref={menuTriggerRef}
               onClick={toggleMobileNav}
-              className="flex flex-col gap-1.5 p-2 cursor-pointer"
+              className="flex cursor-pointer flex-col gap-1.5 p-2"
               aria-label={t('nav.toggleMenu', 'Toggle menu')}
               aria-expanded={mobileNavOpen}
               aria-controls="mobile-navigation"
             >
               <motion.span
                 animate={prefersReducedMotion ? {} : (mobileNavOpen ? { rotate: 45, y: 6 } : { rotate: 0, y: 0 })}
-                className="block w-6 h-px bg-ink"
+                className={`block h-px w-6 ${impactMode ? 'bg-ink' : 'bg-white'}`}
               />
               <motion.span
                 animate={prefersReducedMotion ? {} : (mobileNavOpen ? { opacity: 0 } : { opacity: 1 })}
-                className="block w-6 h-px bg-ink"
+                className={`block h-px w-6 ${impactMode ? 'bg-ink' : 'bg-white'}`}
               />
               <motion.span
                 animate={prefersReducedMotion ? {} : (mobileNavOpen ? { rotate: -45, y: -6 } : { rotate: 0, y: 0 })}
-                className="block w-6 h-px bg-ink"
+                className={`block h-px w-6 ${impactMode ? 'bg-ink' : 'bg-white'}`}
               />
             </button>
           )}
         </div>
-      </div>
+        </div>
+      </motion.div>
     </header>
   );
 }
