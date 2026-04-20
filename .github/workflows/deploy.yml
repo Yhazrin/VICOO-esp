@@ -346,8 +346,6 @@ jobs:
         run: |
           ssh vm "cd /home/student/vicoo/deploy/easy && \
             docker-compose pull && \
-            docker-compose build && \
-            docker-compose down && \
             docker-compose up -d"
 
       - name: 等待服务启动
