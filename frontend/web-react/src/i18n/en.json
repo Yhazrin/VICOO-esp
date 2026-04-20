@@ -20,6 +20,7 @@
     "aiDesign": "AI Design",
     "clothing-recycle": "Recycle",
     "impact": "Impact",
+    "uniqloPortal": "UNIQLO",
     "group": {
       "company": "Company",
       "impact": "Impact"
@@ -710,8 +711,8 @@
   },
   "impactShop": {
     "hero": {
-      "title": "Impact Shop",
-      "subtitle": "Every product carries a child's artwork. Every purchase funds their future."
+      "title": "Shop with traceability",
+      "subtitle": "Children's art on every piece. Proceeds support workshops and materials — full supply-chain disclosure on each product."
     },
     "loading": "Loading...",
     "loadError": "Failed to load products. Please refresh.",
@@ -1106,6 +1107,7 @@
     "submitError": "Submission failed, please try again",
     "disclaimer": "You can check progress in your profile after submission; personal information is used only for logistics coordination.",
     "clothingHint": "Idle clothing can also be donated, processed into sustainable fashion products, with proceeds supporting rural arts education.",
+    "clothingHintShort": "Clothing reuse program",
     "donateLink": "Donate Clothing →",
     "heroTitle": "Circular Fashion",
     "heroSubtitle": "Give old garments a second life, from submission and review to relisting and reuse.",

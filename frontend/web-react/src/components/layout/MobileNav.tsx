@@ -5,14 +5,7 @@ import { useUIStore } from '@/stores/uiStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useAuth } from '@/hooks/useAuth';
 import { useRef, useEffect, useState } from 'react';
-
-// ── Company nav ──
-const COMPANY_NAV = [
-  { key: 'home', path: '/' },
-  { key: 'shop', path: '/shop' },
-  { key: 'about', path: '/about' },
-  { key: 'contact', path: '/contact' },
-];
+import { COMPANY_NAV } from '@/constants/companyNav';
 
 // ── Impact tabs ──
 const IMPACT_TABS = [
@@ -107,28 +100,22 @@ export default function MobileNav() {
           to={linkTo}
           onClick={onClick}
           className={`
-            flex items-baseline gap-4 py-4 border-b border-warm-gray/20 w-full
+            flex items-center py-4 border-b border-warm-gray/20 w-full
             transition-colors duration-200 cursor-pointer
             ${isActive ? 'text-rust' : 'text-ink hover:text-rust'}
           `}
         >
-          <span className="font-body text-caption text-sepia-mid tracking-widest">
-            {String(index + 1).padStart(2, '0')}
-          </span>
           <span className="font-display text-h2 md:text-h1">{label}</span>
         </Link>
       ) : (
         <button
           onClick={onClick}
           className={`
-            flex items-baseline gap-4 py-4 border-b border-warm-gray/20 w-full text-left
+            flex items-center py-4 border-b border-warm-gray/20 w-full text-left
             transition-colors duration-200 cursor-pointer
             ${isActive ? 'text-rust' : 'text-ink hover:text-rust'}
           `}
         >
-          <span className="font-body text-caption text-sepia-mid tracking-widest">
-            {String(index + 1).padStart(2, '0')}
-          </span>
           <span className="font-display text-h2 md:text-h1">{label}</span>
         </button>
       )}
@@ -168,7 +155,9 @@ export default function MobileNav() {
                       renderNavItem(tab.key, t(`nav.${tab.key}`), index, activeImpactTab === tab.key, () => {
                         setActiveImpactTab(tab.key);
                         if (tab.key === 'shop') {
-                          navigate('/impact/shop');
+                          if (location.pathname !== '/' && location.pathname.startsWith('/impact/shop')) {
+                            navigate('/', { replace: true });
+                          }
                         } else if (location.pathname.startsWith('/impact/shop')) {
                           navigate('/');
                         }
@@ -184,18 +173,21 @@ export default function MobileNav() {
 
             {/* Impact toggle */}
             <button
+              type="button"
               onClick={handleImpactToggle}
+              aria-pressed={impactMode}
               className={`
-                mt-6 w-full flex items-baseline gap-4 py-4 border-b border-warm-gray/20
-                transition-colors duration-200 cursor-pointer
-                ${impactMode ? 'text-rust' : 'text-ink hover:text-rust'}
+                group mt-6 w-full flex items-center px-4 py-4 rounded-xl transition-all duration-200 cursor-pointer text-left
+                ${impactMode
+                  ? 'border border-warm-gray/25 bg-white/70 text-ink shadow-sm backdrop-blur-md hover:bg-white/85'
+                  : 'border-2 border-[#E60012] bg-white text-[#E60012] shadow-sm hover:bg-[#E60012] hover:text-white'
+                }
               `}
             >
-              <span className="font-body text-caption text-sepia-mid tracking-widest">
-                {String(IMPACT_TABS.length + 1).padStart(2, '0')}
-              </span>
-              <span className="font-display text-h2 md:text-h1">
-                {impactMode ? t('nav.home', 'Home') : t('nav.impact', 'Impact')}
+              <span
+                className={`font-display text-h2 md:text-h1 ${!impactMode ? 'text-[#E60012] group-hover:text-white' : ''}`}
+              >
+                {impactMode ? t('nav.uniqloPortal') : t('nav.impact')}
               </span>
             </button>
           </nav>

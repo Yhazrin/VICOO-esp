@@ -85,44 +85,28 @@ export default function MagazineNav() {
           />
         </Link>
 
-        {/* Desktop Navigation - Magazine style numbered items */}
+        {/* Desktop Navigation — capsule rail (matches Donation Frequency selected state) */}
         {!isMobile && (
-          <nav className="flex items-center gap-0.5">
-            {NAV_ITEMS.map((item, index) => {
+          <nav
+            className="relative z-10 flex max-w-[min(100%,52vw)] xl:max-w-[min(100%,58rem)] items-center gap-0.5 overflow-x-auto overscroll-x-contain rounded-full border border-warm-gray/25 bg-white/80 px-1.5 py-1 shadow-sm backdrop-blur-xl [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            aria-label={t('nav.primary', 'Primary navigation')}
+          >
+            {NAV_ITEMS.map((item) => {
               const isActive = location.pathname === item.path;
               return (
                 <Link
                   key={item.key}
                   to={item.path}
+                  aria-current={isActive ? 'page' : undefined}
                   className={`
-                    relative font-body text-label tracking-wide px-4 py-2.5 transition-all duration-300 overflow-hidden cursor-pointer
-                    ${isActive ? 'text-rust' : 'text-ink-faded hover:text-ink'}
+                    shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 font-body text-label tracking-wide transition-all duration-300 cursor-pointer
+                    ${isActive
+                      ? 'bg-ink font-medium text-paper'
+                      : 'text-ink-faded hover:text-ink'
+                    }
                   `}
                 >
-                  {/* Hover background */}
-                  <motion.div
-                    className="absolute inset-0 bg-rust/5 opacity-0"
-                    initial={prefersReducedMotion ? {} : { opacity: 0 }}
-                    whileHover={prefersReducedMotion ? undefined : { opacity: 1 }}
-                    transition={{ duration: 0.2 }}
-                  />
-
-                  {/* Content */}
-                  <div className="relative z-10 flex items-center">
-                    <span className="text-overline tracking-[0.2em] text-sepia-mid mr-2 font-body">
-                      {String(index + 1).padStart(2, '0')}
-                    </span>
-                    <span className="relative">
-                      {t(`nav.${item.key}`)}
-                      {isActive && (
-                        <motion.span
-                          layoutId="nav-indicator"
-                          className="absolute -bottom-1 left-0 right-0 h-px bg-rust"
-                          transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                        />
-                      )}
-                    </span>
-                  </div>
+                  {t(`nav.${item.key}`)}
                 </Link>
               );
             })}

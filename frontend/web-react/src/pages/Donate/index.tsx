@@ -273,26 +273,61 @@ export default function Donate() {
 
   return (
     <PageWrapper>
-      {/* Emotional Introduction */}
-      <SectionContainer narrow>
-        <StoryQuoteBlock
-          quote={t('donate.emotional.quote')}
-          author={t('donate.emotional.author')}
-          role={t('donate.emotional.role')}
-        />
-      </SectionContainer>
+      {/* Hero + donation core: form first on small screens, supporting info beside on desktop */}
+      <SectionContainer noTopSpacing className="!pb-12 md:!pb-16">
+        <header className="max-w-3xl mb-8 md:mb-10">
+          <h1 className="font-display text-h2 md:text-h1 font-bold text-ink tracking-tight">
+            {t('donate.hero.title')}
+          </h1>
+          <p className="mt-3 md:mt-4 font-body text-body text-ink-faded leading-relaxed">
+            {t('donate.hero.subtitle')}
+          </p>
+        </header>
 
-      {/* Main donation area */}
-      <SectionContainer noTopSpacing>
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-16">
-          {/* Left: Impact Breakdown */}
-          <div className="md:col-span-5">
-            <h2 className="font-display text-h3 font-bold text-ink mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-10 lg:gap-12 items-start">
+          {/* Primary: donation form */}
+          <div
+            className="md:col-span-7 order-1 md:order-2 space-y-4"
+            id="donate-form"
+          >
+            {donateMutation.isSuccess && (
+              <div className="p-4 border border-sepia-light bg-paper-warm">
+                <p className="font-body text-body-sm text-ink">
+                  {t('donate.success')}
+                </p>
+              </div>
+            )}
+            {donateMutation.isError && (
+              <div className="p-4 border border-rust bg-red-50">
+                <p className="font-body text-body-sm text-rust">
+                  {donationErrorMessage}
+                </p>
+              </div>
+            )}
+            <DonationPanel
+              onSubmit={donateMutation.mutate}
+              isSubmitting={donateMutation.isPending}
+            />
+            <p className="pt-1 text-center md:text-left font-body text-[11px] text-ink-faded/90 tracking-wide leading-relaxed">
+              <Link
+                to="/clothing-recycle"
+                className="text-sepia-mid underline underline-offset-4 decoration-warm-gray/40 hover:text-ink transition-colors"
+              >
+                {t('donateClothing.donateLink')}
+              </Link>
+              <span className="mx-2 text-warm-gray/50" aria-hidden="true">
+                ·
+              </span>
+              <span>{t('donateClothing.clothingHintShort')}</span>
+            </p>
+          </div>
+
+          {/* Supporting: where funds go + live stats + voice */}
+          <aside className="md:col-span-5 order-2 md:order-1 border-t border-warm-gray/20 md:border-t-0 md:border-r md:border-warm-gray/15 pt-8 md:pt-0 md:pr-8 lg:pr-10">
+            <h2 className="font-display text-xl md:text-h3 font-bold text-ink mb-5 md:mb-6">
               {t('donate.impact.title')}
             </h2>
-
-            {/* Enhanced impact progress bars */}
-            <div className="space-y-7 mt-8">
+            <div className="space-y-5">
               {IMPACT_AREAS.map((area, index) => (
                 <ImpactProgressBar
                   key={area.key}
@@ -305,52 +340,25 @@ export default function Donate() {
                 />
               ))}
             </div>
-
-            {/* Impact counters */}
-            <div className="grid grid-cols-2 gap-6 mt-12">
+            <div className="grid grid-cols-2 gap-4 mt-8 pt-8 border-t border-warm-gray/15">
               <ImpactCounter value={totalAmount} label={t('donate.counters.fundsRaised')} prefix="¥" />
               <ImpactCounter value={totalDonors} label={t('donate.counters.childrenHelped')} />
             </div>
-          </div>
-
-          {/* Right: Donation panel */}
-          <div className="md:col-span-7" id="donate-form">
-            {donateMutation.isSuccess && (
-              <div className="mb-4 p-4 border border-sepia-light bg-paper-warm">
-                <p className="font-body text-body-sm text-ink">
-                  {t('donate.success')}
-                </p>
-              </div>
-            )}
-            {donateMutation.isError && (
-              <div className="mb-4 p-4 border border-rust bg-red-50">
-                <p className="font-body text-body-sm text-rust">
-                  {donationErrorMessage}
-                </p>
-              </div>
-            )}
-            <DonationPanel
-              onSubmit={donateMutation.mutate}
-              isSubmitting={donateMutation.isPending}
-            />
-            <div className="mt-8 p-4 border border-warm-gray/30 bg-paper/50">
-              <p className="font-body text-body-sm text-ink-faded mb-2">
-                {t('donateClothing.clothingHint')}
-              </p>
-              <Link
-                to="/clothing-recycle"
-                className="font-body text-overline tracking-[0.1em] uppercase text-rust hover:text-ink transition-colors"
-              >
-                {t('donateClothing.donateLink')}
-              </Link>
+            <div className="mt-8 pt-6 border-t border-warm-gray/15">
+              <StoryQuoteBlock
+                variant="strip"
+                quote={t('donate.emotional.quote')}
+                author={t('donate.emotional.author')}
+                role={t('donate.emotional.role')}
+              />
             </div>
-          </div>
+          </aside>
         </div>
       </SectionContainer>
 
       {/* Donation Success Stories */}
-      <SectionContainer>
-        <h2 className="font-display text-h3 font-bold text-ink mb-8">
+      <SectionContainer decorativeDivider>
+        <h2 className="font-display text-h3 font-bold text-ink mb-6 md:mb-8">
           {t('donate.stories.title')}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
@@ -372,7 +380,7 @@ export default function Donate() {
         <SectionGrainOverlay />
 
         <SectionContainer>
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-10 items-start relative z-10">
             <div className="md:col-span-5 relative">
               {/* Decorative corner accents */}
               <div className="absolute -top-2 -left-2 w-4 h-4 border-t-2 border-l-2 border-sage/30 pointer-events-none" aria-hidden="true" />
@@ -430,6 +438,13 @@ export default function Donate() {
               >
                 {t('donate.transparency.viewReport')} &rarr;
               </motion.button>
+
+              <p className="mt-8 font-body text-body-sm text-ink-faded italic leading-relaxed border-l-2 border-sage/25 pl-4">
+                {t('donate.transparency.transparencyQuote')}
+                <span className="not-italic text-caption text-sepia-mid block mt-2 tracking-wide">
+                  — {t('donate.transparency.transparencyQuoteAuthor')}
+                </span>
+              </p>
             </div>
             <div className="md:col-span-7">
               <div className="grid grid-cols-2 gap-4">
@@ -464,14 +479,6 @@ export default function Donate() {
           </div>
         </SectionContainer>
       </section>
-
-      {/* Quote */}
-      <SectionContainer narrow>
-        <StoryQuoteBlock
-          quote={t('donate.transparency.transparencyQuote')}
-          author={t('donate.transparency.transparencyQuoteAuthor')}
-        />
-      </SectionContainer>
 
       {/* FAQ Section */}
       <SectionContainer>

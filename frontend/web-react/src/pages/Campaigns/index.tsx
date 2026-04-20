@@ -65,15 +65,8 @@ export default function Campaigns() {
   return (
     <PageWrapper>
       <SectionContainer noTopSpacing>
-        <h2 className="font-display text-h3 font-bold text-ink mb-8">
-          {t('campaigns.listing.sectionTitle')}
-        </h2>
-        <p className="font-body text-body-sm text-ink-faded mb-8">
-          {t('campaigns.listing.sectionSubtitle')}
-        </p>
-
         {/* Search bar */}
-        <div className="mb-8 max-w-md">
+        <div className="mb-6 max-w-md pt-2">
           <VintageInput
             type="text"
             value={search}
@@ -91,7 +84,7 @@ export default function Campaigns() {
         {/* Filter tabs — capsule style */}
         {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
         <div
-          className="flex items-center mb-12 rounded-full bg-white/80 backdrop-blur-xl shadow-sm px-2 py-1 overflow-x-auto"
+          className="flex items-center mb-8 rounded-full bg-white/80 backdrop-blur-xl shadow-sm px-2 py-1 overflow-x-auto"
           role="tablist"
           onKeyDown={(e) => {
             const tabs = e.currentTarget.querySelectorAll('[role="tab"]');
@@ -147,7 +140,7 @@ export default function Campaigns() {
         </div>
 
         {/* Results count */}
-        <p className="font-body text-caption text-sepia-mid mb-8 tracking-wider">
+        <p className="font-body text-caption text-sepia-mid mb-6 tracking-wider">
           {t('campaigns.results', { count: campaigns.length })}
         </p>
 
@@ -350,7 +343,7 @@ export default function Campaigns() {
                     }
                   `}
                 >
-                  {String(p).padStart(2, '0')}
+                  {p}
                 </button>
               ))}
               <button

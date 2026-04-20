@@ -33,7 +33,8 @@ export default function Layout() {
   /** 仅在首页 `/` 且开启公益壳时用 tab 内容；`/shop`、`/about` 等必须走 `<Outlet />`，否则常规店被挡住 */
   const renderImpactShell = impactMode && location.pathname === '/';
   const mainContent = renderImpactShell ? <ImpactContent /> : <Outlet />;
-  const mountKey = renderImpactShell ? `impact-${activeImpactTab}` : location.pathname;
+  /** Impact: remount per tab (same as before). Company: stable shell — let <Outlet /> swap pages without tearing the wrapper. */
+  const mountKey = renderImpactShell ? `impact-${activeImpactTab}` : 'company-outlet';
 
   useEffect(() => {
     if (isImpactShopRoute) {
@@ -52,7 +53,7 @@ export default function Layout() {
       </a>
       <Header />
       <MobileNav />
-      <main id="main-content" className="flex-1 pt-16 md:pt-20">
+      <main id="main-content" className="flex-1 pt-[4.25rem] md:pt-24">
         <KeyedRouteContent mountKey={mountKey}>
           {mainContent}
         </KeyedRouteContent>

@@ -20,6 +20,7 @@
     "aiDesign": "AI 设计",
     "clothing-recycle": "旧衣回收",
     "impact": "公益",
+    "uniqloPortal": "优衣库",
     "group": {
       "company": "品牌服务",
       "impact": "可持续发展"
@@ -704,8 +705,8 @@
   },
   "impactShop": {
     "hero": {
-      "title": "公益商城",
-      "subtitle": "每件商品承载一个孩子的画作，每笔消费点亮他们的未来。"
+      "title": "公益商城 · 可溯源",
+      "subtitle": "印刻孩子画作，收益支持美育与画材；每件商品可查看供应链节点。"
     },
     "loading": "加载中...",
     "loadError": "加载商品失败，请刷新重试",
@@ -1106,6 +1107,7 @@
     "submit": "提交登记",
     "disclaimer": "提交后可在个人中心查看进度；涉及个人隐私仅用于物流联络。",
     "clothingHint": "闲置衣物也可捐献，经处理后转为可持续时尚商品，收益支持乡村美育。",
+    "clothingHintShort": "旧衣循环计划",
     "donateLink": "捐献衣物 →",
     "heroTitle": "循环时尚",
     "heroSubtitle": "让旧衣获得新生，从提交审核到上架复用。",

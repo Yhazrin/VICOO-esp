@@ -149,36 +149,29 @@ export default function ImpactShop() {
 
   return (
     <PageWrapper>
-      {/* ═══ Hero Section ═══ */}
-      <SectionContainer noTopSpacing>
-        <div className="pt-6 pb-10">
-          <span className="font-body text-overline tracking-[0.3em] uppercase text-sepia-mid block mb-2">
-            {t('impactShop.collection')}
-          </span>
-          <h1 className="font-display text-[clamp(28px,4vw,48px)] font-bold text-ink leading-[1.05] tracking-[-0.02em] mb-3">
+      <SectionContainer noTopSpacing className="!pb-10 md:!pb-14">
+        <header className="pt-4 pb-5 md:pb-6 border-b border-warm-gray/15">
+          <h1 className="font-display text-[clamp(1.35rem,3.2vw,2.25rem)] font-semibold text-ink leading-[1.08] tracking-[-0.02em]">
             {t('impactShop.hero.title')}
           </h1>
-          <p className="font-body text-body text-ink-faded leading-[1.7] max-w-2xl">
+          <p className="font-body text-sm md:text-body-sm text-ink-faded leading-[1.75] max-w-2xl mt-2.5">
             {t('impactShop.hero.subtitle')}
           </p>
-        </div>
-      </SectionContainer>
+        </header>
 
-      {/* ═══ Product Grid Section ═══ */}
-      <SectionContainer>
-        <div className="border-t border-warm-gray/20 pt-12">
+        <div className="pt-6 md:pt-8">
           {productsError && (
             <div className="flex items-center gap-3 bg-rust/10 border border-rust/20 px-4 py-3 mb-4">
               <p className="font-body text-body-sm text-rust flex-1">{t('impactShop.loadError', '加载商品失败，请刷新重试')}</p>
             </div>
           )}
           {isLoading && (
-            <div className="py-24 text-center">
+            <div className="py-16 text-center">
               <p className="font-body text-sepia-mid">{t('impactShop.loading', '加载中...')}</p>
             </div>
           )}
           {/* Filters */}
-          <div className="flex items-center gap-3 mb-8 flex-wrap">
+          <div className="flex items-center gap-3 mb-5 flex-wrap">
             {/* Category pills */}
             <div className="flex items-center gap-1 overflow-x-auto">
               {categories.map((cat) => (
@@ -226,8 +219,8 @@ export default function ImpactShop() {
           </div>
 
           {/* Results count */}
-          <div className="mb-6">
-            <span className="font-body text-caption text-sepia-mid tracking-wider">
+          <div className="mb-4">
+            <span className="font-body text-[11px] text-sepia-mid tracking-wider uppercase">
               {t('impactShop.results', { count: filtered.length })}
             </span>
           </div>
