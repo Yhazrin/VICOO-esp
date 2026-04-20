@@ -18,6 +18,10 @@ export default defineConfig({
                 changeOrigin: true,
                 ws: true,
             },
+            '/static': {
+                target: 'http://localhost:8080',
+                changeOrigin: true,
+            },
         },
         strictPort: true,
     },
