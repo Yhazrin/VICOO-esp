@@ -332,7 +332,7 @@ jobs:
 
       - name: 拉取最新代码并部署
         run: |
-          ssh vm "cd /home/student/vicoo && git fetch origin && git checkout main && git pull origin main"
+          ssh vm "cd /home/student/vicoo && git fetch origin && git checkout main && git reset --hard origin/main"
 
       - name: 配置环境变量文件
         run: |
@@ -402,7 +402,7 @@ jobs:
 
       - name: 部署到开发服务器
         run: |
-          ssh vm "cd /home/student/vicoo && git fetch origin && git checkout develop && git pull origin develop && cd deploy/easy && docker-compose up -d --build"
+          ssh vm "cd /home/student/vicoo && git fetch origin && git checkout develop && git reset --hard origin/develop && cd deploy/easy && docker-compose up -d --build"
           echo "开发环境部署完成!"
 
   # ==================== 构建通知 ====================
