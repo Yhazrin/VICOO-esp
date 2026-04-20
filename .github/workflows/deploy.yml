@@ -342,11 +342,19 @@ jobs:
         run: |
           ssh vm "cd /home/student/vicoo/deploy/easy && docker-compose run --rm --entrypoint 'python -m alembic upgrade head' backend || echo '迁移完成或无需迁移'"
 
+      # docker-compose 1.29 + 新版 Docker Engine 在 recreate admin 时可能 KeyError: ContainerConfig；
+      # 先删掉旧容器再走 create，或优先用 Compose V2（docker compose）。
       - name: 启动服务
         run: |
           ssh vm "cd /home/student/vicoo/deploy/easy && \
             docker-compose pull && \
-            docker-compose up -d"
+            if docker compose version >/dev/null 2>&1; then \
+              docker compose up -d; \
+            else \
+              docker-compose stop admin 2>/dev/null || true; \
+              docker rm -f vicoo-admin 2>/dev/null || true; \
+              docker-compose up -d; \
+            fi"
 
       - name: 等待服务启动
         run: sleep 30
@@ -402,7 +410,14 @@ jobs:
 
       - name: 部署到开发服务器
         run: |
-          ssh vm "cd /home/student/vicoo && git fetch origin && git checkout develop && git reset --hard origin/develop && cd deploy/easy && docker-compose up -d --build"
+          ssh vm "cd /home/student/vicoo && git fetch origin && git checkout develop && git reset --hard origin/develop && cd deploy/easy && \
+            if docker compose version >/dev/null 2>&1; then \
+              docker compose up -d --build; \
+            else \
+              docker-compose stop admin 2>/dev/null || true; \
+              docker rm -f vicoo-admin 2>/dev/null || true; \
+              docker-compose up -d --build; \
+            fi"
           echo "开发环境部署完成!"
 
   # ==================== 构建通知 ====================
