@@ -1,5 +1,5 @@
 import api from './api';
-import type { Product, PaginatedResponse, SupplyChainTimelineRecord } from '@/types';
+import type { Product, PaginatedResponse, SupplyChainTimelineRecord, TraceMediaItem } from '@/types';
 
 const CATEGORY_MAP: Record<string, Product['category']> = {
   apparel: 'apparel',
@@ -56,6 +56,20 @@ function normalizeIsImpactProduct(raw: any): boolean {
 function normalizeSupplyTimeline(raw: Record<string, unknown>, index: number): SupplyChainTimelineRecord {
   const id = Number(raw?.id ?? index);
   const ts = String(raw?.timestamp ?? raw?.created_at ?? '');
+  const rawGallery = raw?.gallery;
+  let gallery: TraceMediaItem[] | undefined;
+  if (Array.isArray(rawGallery)) {
+    gallery = rawGallery
+      .map((g: unknown) => {
+        const o = g as { type?: string; url?: string; caption?: string };
+        return {
+          type: o?.type === 'video' ? ('video' as const) : ('image' as const),
+          url: String(o?.url ?? '').trim(),
+          caption: o?.caption != null ? String(o.caption) : undefined,
+        };
+      })
+      .filter((x) => x.url);
+  }
   return {
     id: Number.isFinite(id) ? id : index,
     stage: String(raw?.stage ?? ''),
@@ -69,6 +83,7 @@ function normalizeSupplyTimeline(raw: Record<string, unknown>, index: number): S
     carbon_note: raw?.carbon_note != null ? String(raw.carbon_note) : undefined,
     latitude: raw?.latitude != null ? Number(raw.latitude) : undefined,
     longitude: raw?.longitude != null ? Number(raw.longitude) : undefined,
+    ...(gallery?.length ? { gallery } : {}),
   };
 }
 

@@ -32,6 +32,9 @@ export const api = axios.create({
 // Request interceptor — add access token and security headers
 api.interceptors.request.use(
   async (config) => {
+    if (config.data instanceof FormData) {
+      delete (config.headers as Record<string, unknown>)['Content-Type'];
+    }
     // Get access token from auth store
     const { accessToken } = useAuthStore.getState();
     if (accessToken) {

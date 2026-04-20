@@ -1,5 +1,7 @@
+import json
 import logging
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
+
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,6 +10,7 @@ from app.services.base import BaseService
 from app.core.audit import audit_action
 
 logger = logging.getLogger("tonghua.supply_chain_service")
+
 
 class SupplyChainService(BaseService):
     """
@@ -29,7 +32,7 @@ class SupplyChainService(BaseService):
     async def get_sustainability_timeline(self, product_id: int) -> List[Dict[str, Any]]:
         """
         Get a formatted timeline of the supply chain.
-        Must include latitude/longitude for globe UI (same shape as /products/{id}/supply-chain).
+        Must include latitude/longitude for globe UI (same shape as /supply-chain/trace).
         """
         records = await self.get_product_traceability(product_id)
         out: List[Dict[str, Any]] = []
@@ -49,6 +52,13 @@ class SupplyChainService(BaseService):
                 row["carbon_kg"] = float(r.carbon_kg)
             if r.carbon_note is not None:
                 row["carbon_note"] = r.carbon_note
+            if r.gallery_json:
+                try:
+                    row["gallery"] = json.loads(r.gallery_json)
+                except Exception:
+                    row["gallery"] = []
+            else:
+                row["gallery"] = []
             out.append(row)
         return out
 
@@ -57,6 +67,11 @@ class SupplyChainService(BaseService):
         """
         Add a new stage to a product's supply chain (Admin action).
         """
+        gallery_json = record_data.get("gallery_json")
+        if gallery_json is None and record_data.get("gallery") is not None:
+            g = record_data.get("gallery")
+            gallery_json = json.dumps(g) if g else None
+
         record = SupplyChainRecord(
             product_id=product_id,
             stage=record_data.get("stage"),
@@ -66,8 +81,30 @@ class SupplyChainService(BaseService):
             longitude=record_data.get("longitude"),
             certified=record_data.get("certified", False),
             cert_image_url=record_data.get("cert_image_url"),
-            timestamp=record_data.get("timestamp")
+            carbon_kg=record_data.get("carbon_kg"),
+            carbon_note=record_data.get("carbon_note"),
+            gallery_json=gallery_json,
+            timestamp=record_data.get("timestamp"),
         )
         self.db.add(record)
+        await self.db.flush()
+        return record
+
+    @audit_action(action="update_traceability_record", resource_type="supply_chain")
+    async def update_record(self, record_id: int, data: Dict[str, Any]) -> Optional[SupplyChainRecord]:
+        """Partial update (admin/editor)."""
+        record = await self.db.get(SupplyChainRecord, record_id)
+        if not record:
+            return None
+
+        if "gallery" in data:
+            g = data.pop("gallery")
+            record.gallery_json = json.dumps(g) if g else None
+
+        for key, val in data.items():
+            if not hasattr(record, key):
+                continue
+            setattr(record, key, val)
+
         await self.db.flush()
         return record

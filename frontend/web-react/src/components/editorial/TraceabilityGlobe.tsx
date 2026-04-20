@@ -3,9 +3,15 @@ import { useTranslation } from 'react-i18next';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import type { SupplyChainTimelineRecord } from '@/types';
+import TraceMediaGallery from '@/components/editorial/TraceMediaGallery';
 import { getRecordLatLng } from '@/utils/supplyChainGeo';
 import { latLngToVector3, createArcCurve } from '@/components/scroll/globeUtils';
-import { buildLandOutlinesFromGeoJson } from '@/utils/globeLandOutlines';
+import {
+  buildLandOutlinesFromGeoJson,
+  landOutlineRadius,
+  LAND_OUTLINE_WIDTH_TRACEABILITY_PX,
+  syncLandOutlineLine2Resolution,
+} from '@/utils/globeLandOutlines';
 
 const GLOBE_RADIUS = 1.85;
 const STAGE_ORDER = ['material_sourcing', 'processing', 'manufacturing', 'quality_check', 'shipping'];
@@ -116,6 +122,10 @@ type GlobeCtx = {
   animationId: number;
   focus: null | { endCam: THREE.Vector3; endTarget: THREE.Vector3 };
   landGroup: THREE.Group | null;
+  /** 用于射线检测「是否在星球上」——内层实心球 */
+  globeHitMesh: THREE.Mesh;
+  initialCameraPosition: THREE.Vector3;
+  initialTarget: THREE.Vector3;
 };
 
 export interface TraceabilityGlobeProps {
@@ -126,6 +136,10 @@ export interface TraceabilityGlobeProps {
   prefersReducedMotion?: boolean;
   themeKey?: string;
   className?: string;
+  /**
+   * 作为全幅背景层：填满父级，不再用固定「卡片高度」约束，由外层控制占位与叠层。
+   */
+  ambientBackdrop?: boolean;
 }
 
 export default function TraceabilityGlobe({
@@ -136,6 +150,7 @@ export default function TraceabilityGlobe({
   prefersReducedMotion = false,
   themeKey = 'default',
   className = '',
+  ambientBackdrop = false,
 }: TraceabilityGlobeProps) {
   const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -148,6 +163,8 @@ export default function TraceabilityGlobe({
   const sortedRef = useRef<SupplyChainTimelineRecord[]>([]);
   const [hoverId, setHoverId] = useState<number | null>(null);
   const hoverIdRef = useRef<number | null>(null);
+  const pinOverlayRef = useRef<HTMLDivElement>(null);
+  const overlayPickIdRef = useRef<number | null>(null);
   const prefersReducedMotionRef = useRef(prefersReducedMotion);
   prefersReducedMotionRef.current = prefersReducedMotion;
 
@@ -165,12 +182,11 @@ export default function TraceabilityGlobe({
     if (!ctx) return;
     rotateEaseUntilRef.current = 0;
     if (!recordId) {
-      ctx.focus = null;
-      ctx.controls.autoRotate = !prefersReducedMotionRef.current;
-      if (!prefersReducedMotionRef.current) {
-        ctx.controls.autoRotateSpeed = AUTO_ROTATE_SLOW;
-        rotateEaseUntilRef.current = performance.now() + 2200;
-      }
+      ctx.focus = {
+        endCam: ctx.initialCameraPosition.clone(),
+        endTarget: ctx.initialTarget.clone(),
+      };
+      ctx.controls.autoRotate = false;
       return;
     }
     const mesh = ctx.markers.get(recordId);
@@ -200,6 +216,11 @@ export default function TraceabilityGlobe({
   }, [selectedId]);
 
   const overlayPickId = hoverId ?? selectedId;
+
+  useEffect(() => {
+    overlayPickIdRef.current = overlayPickId ?? null;
+  }, [overlayPickId]);
+
   const displayRecord = useMemo(() => {
     if (overlayPickId == null) return null;
     return sorted.find((r) => r.id === overlayPickId) ?? null;
@@ -270,7 +291,7 @@ export default function TraceabilityGlobe({
     let cancelled = false;
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(theme.paper.clone().lerp(theme.wire, 0.35), 14, 52);
+    scene.fog = new THREE.Fog(theme.paper.clone().lerp(theme.wire, 0.14), 16, 58);
 
     const camera = new THREE.PerspectiveCamera(
       48,
@@ -306,15 +327,16 @@ export default function TraceabilityGlobe({
     controls.minDistance = GLOBE_RADIUS * 1.02;
     controls.maxDistance = 4000;
     controls.zoomSpeed = 1.15;
+    controls.enableZoom = false;
     const prm = prefersReducedMotionRef.current;
     controls.autoRotate = !prm;
     controls.autoRotateSpeed = prm ? 0 : AUTO_ROTATE_FULL;
 
-    scene.add(new THREE.AmbientLight(0xfff5eb, 0.72));
-    const key = new THREE.DirectionalLight(0xffe8d0, 0.92);
+    scene.add(new THREE.AmbientLight(0xfff2e6, 0.78));
+    const key = new THREE.DirectionalLight(0xffead4, 1.05);
     key.position.set(4, 6, 5);
     scene.add(key);
-    const rim = new THREE.DirectionalLight(0xc8d4e0, 0.28);
+    const rim = new THREE.DirectionalLight(0xa8bdd4, 0.42);
     rim.position.set(-5, 2, -6);
     scene.add(rim);
 
@@ -330,7 +352,7 @@ export default function TraceabilityGlobe({
       color: theme.wire,
       wireframe: true,
       transparent: true,
-      opacity: 0.22,
+      opacity: 0.34,
     });
     globeGroup.add(new THREE.Mesh(wireGeo, wireMat));
 
@@ -338,15 +360,16 @@ export default function TraceabilityGlobe({
     const innerMat = new THREE.MeshBasicMaterial({
       color: theme.ink,
       transparent: true,
-      opacity: 0.035,
+      opacity: 0.065,
     });
-    globeGroup.add(new THREE.Mesh(innerGeo, innerMat));
+    const globeHitMesh = new THREE.Mesh(innerGeo, innerMat);
+    globeGroup.add(globeHitMesh);
 
     const gridGroup = new THREE.Group();
     const gridMat = new THREE.LineBasicMaterial({
       color: theme.wire,
       transparent: true,
-      opacity: 0.07,
+      opacity: 0.14,
     });
     for (let lat = -60; lat <= 60; lat += 30) {
       const points: THREE.Vector3[] = [];
@@ -364,17 +387,28 @@ export default function TraceabilityGlobe({
     }
     globeGroup.add(gridGroup);
 
-    const landColor = theme.ink.clone().lerp(theme.wire, 0.42);
+    const landColor = theme.ink
+      .clone()
+      .lerp(theme.sage, 0.22)
+      .lerp(theme.wire, 0.08);
     void import('@/data/world-land-110m.json').then((mod) => {
       if (cancelled || !ctxRef.current) return;
       const g = buildLandOutlinesFromGeoJson(
         mod.default as { features: { geometry?: { type: string; coordinates: unknown } }[] },
-        GLOBE_RADIUS + 0.028,
+        landOutlineRadius(GLOBE_RADIUS),
         landColor,
-        0.5
+        0.92,
+        { lineWidthPx: LAND_OUTLINE_WIDTH_TRACEABILITY_PX }
       );
       globeGroup.add(g);
       ctxRef.current.landGroup = g;
+      if (container) {
+        syncLandOutlineLine2Resolution(
+          g,
+          container.clientWidth,
+          Math.max(container.clientHeight, 1),
+        );
+      }
     });
 
     const markers = new Map<number, THREE.Mesh>();
@@ -429,7 +463,7 @@ export default function TraceabilityGlobe({
       const tubeMat = new THREE.MeshBasicMaterial({
         color: theme.rust,
         transparent: true,
-        opacity: 0.38,
+        opacity: 0.48,
       });
       globeGroup.add(new THREE.Mesh(tubeGeo, tubeMat));
 
@@ -467,7 +501,24 @@ export default function TraceabilityGlobe({
       if (hits.length > 0) {
         return hits[0].object.userData.recordId as number;
       }
-      return null;
+      const hitPt = new THREE.Vector3();
+      let bestId: number | null = null;
+      let bestT = Infinity;
+      for (const m of meshes) {
+        const g = m.geometry;
+        if (!g.boundingSphere) g.computeBoundingSphere();
+        const sphere = new THREE.Sphere().copy(g.boundingSphere!);
+        sphere.applyMatrix4(m.matrixWorld);
+        const hit = raycaster.ray.intersectSphere(sphere, hitPt);
+        if (hit !== null) {
+          const dist = raycaster.ray.origin.distanceTo(hit);
+          if (dist > 1e-6 && dist < bestT) {
+            bestT = dist;
+            bestId = m.userData.recordId as number;
+          }
+        }
+      }
+      return bestId;
     };
 
     const onPointerDown = (e: PointerEvent) => {
@@ -501,6 +552,35 @@ export default function TraceabilityGlobe({
     canvas.addEventListener('pointermove', onPointerMove);
     canvas.addEventListener('pointerleave', onPointerLeave);
 
+    const initialCameraPosition = camera.position.clone();
+    const initialTarget = controls.target.clone();
+
+    const onWheel = (e: WheelEvent) => {
+      const c = ctxRef.current;
+      if (!c) return;
+      const rect = canvas.getBoundingClientRect();
+      if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
+        return;
+      }
+      pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      if (raycaster.intersectObject(c.globeHitMesh, false).length === 0) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      const scale = Math.pow(0.92, e.deltaY * 0.01);
+      const offset = new THREE.Vector3().copy(camera.position).sub(controls.target);
+      let dist = offset.length();
+      dist *= scale;
+      dist = THREE.MathUtils.clamp(dist, controls.minDistance, controls.maxDistance);
+      offset.normalize().multiplyScalar(dist);
+      camera.position.copy(controls.target).add(offset);
+      controls.update();
+    };
+    canvas.addEventListener('wheel', onWheel, { passive: false });
+
     const ctx: GlobeCtx = {
       scene,
       camera,
@@ -512,8 +592,56 @@ export default function TraceabilityGlobe({
       animationId: 0,
       focus: null,
       landGroup: null,
+      globeHitMesh,
+      initialCameraPosition,
+      initialTarget,
     };
     ctxRef.current = ctx;
+
+    const updatePinOverlay = (gc: GlobeCtx) => {
+      const el = pinOverlayRef.current;
+      const containerEl = containerRef.current;
+      const pick = overlayPickIdRef.current;
+      if (!el || !containerEl) return;
+      if (pick == null) {
+        el.style.opacity = '0';
+        return;
+      }
+      const mesh = gc.markers.get(pick);
+      if (!mesh) {
+        el.style.opacity = '0';
+        return;
+      }
+      const world = new THREE.Vector3();
+      mesh.getWorldPosition(world);
+      const projected = world.clone().project(gc.camera);
+      if (projected.z >= 1) {
+        el.style.opacity = '0';
+        return;
+      }
+      const rect = containerEl.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      const x = (projected.x * 0.5 + 0.5) * w;
+      const y = (-projected.y * 0.5 + 0.5) * h;
+      const nx = x / Math.max(w, 1);
+      const ny = y / Math.max(h, 1);
+      const halfW = 144;
+      const halfH = 110;
+      const gap = 12;
+      let transform = `translate(-50%, calc(-50% - ${gap + halfH}px))`;
+      if (nx < 0.38) {
+        transform = `translate(calc(-50% + ${gap + halfW}px), -50%)`;
+      } else if (nx > 0.62) {
+        transform = `translate(calc(-50% - ${gap + halfW}px), -50%)`;
+      } else if (ny < 0.32) {
+        transform = `translate(-50%, calc(-50% + ${gap + halfH}px))`;
+      }
+      el.style.opacity = '1';
+      el.style.left = `${x}px`;
+      el.style.top = `${y}px`;
+      el.style.transform = transform;
+    };
 
     let time = 0;
     const animate = () => {
@@ -542,15 +670,15 @@ export default function TraceabilityGlobe({
         if (isSel) {
           mat.color.copy(theme.rust);
           mat.emissiveIntensity = 0.24;
-          mesh.scale.setScalar(1.28 + breath);
+          mesh.scale.setScalar(1.22 + breath);
         } else if (isHov) {
           mat.color.copy(theme.sage.clone().lerp(theme.rust, 0.5));
           mat.emissiveIntensity = 0.18;
-          mesh.scale.setScalar(1.14);
+          mesh.scale.setScalar(1.04);
         } else {
           mat.color.copy(theme.sage);
           mat.emissiveIntensity = 0.12;
-          mesh.scale.setScalar(1);
+          mesh.scale.setScalar(0.76);
         }
       });
 
@@ -573,13 +701,21 @@ export default function TraceabilityGlobe({
         c.controls.autoRotate = false;
         camera.position.lerp(c.focus.endCam, 0.07);
         c.controls.target.lerp(c.focus.endTarget, 0.07);
-        if (camera.position.distanceTo(c.focus.endCam) < 0.07) {
+        if (camera.position.distanceTo(c.focus.endCam) < 0.08) {
+          camera.position.copy(c.focus.endCam);
+          c.controls.target.copy(c.focus.endTarget);
           c.focus = null;
+          if (selectedRef.current == null && !prmNow) {
+            c.controls.autoRotate = true;
+            rotateEaseUntilRef.current = performance.now() + 2200;
+            c.controls.autoRotateSpeed = AUTO_ROTATE_SLOW;
+          }
         }
       }
 
       c.controls.update();
       c.renderer.render(c.scene, c.camera);
+      updatePinOverlay(c);
     };
     animate();
 
@@ -591,6 +727,7 @@ export default function TraceabilityGlobe({
       c.camera.aspect = w / h;
       c.camera.updateProjectionMatrix();
       c.renderer.setSize(w, h);
+      if (c.landGroup) syncLandOutlineLine2Resolution(c.landGroup, w, h);
     };
     const ro = new ResizeObserver(onResize);
     ro.observe(container);
@@ -630,6 +767,7 @@ export default function TraceabilityGlobe({
       canvas.removeEventListener('pointerdown', onPointerDown);
       canvas.removeEventListener('pointermove', onPointerMove);
       canvas.removeEventListener('pointerleave', onPointerLeave);
+      canvas.removeEventListener('wheel', onWheel);
       const last = ctxRef.current;
       if (last) {
         cancelAnimationFrame(last.animationId);
@@ -664,14 +802,18 @@ export default function TraceabilityGlobe({
     const ctx = ctxRef.current;
     if (!ctx) return;
     const prm = prefersReducedMotion;
-    ctx.controls.autoRotate = !prm && selectedRef.current == null;
     if (prm) {
+      ctx.controls.autoRotate = false;
       ctx.controls.autoRotateSpeed = 0;
-    } else if (!ctx.controls.autoRotate) {
-      ctx.controls.autoRotateSpeed = AUTO_ROTATE_SLOW;
-    } else {
-      ctx.controls.autoRotateSpeed = AUTO_ROTATE_FULL;
+      return;
     }
+    if (selectedRef.current != null) {
+      ctx.controls.autoRotate = false;
+      return;
+    }
+    if (ctx.focus != null) return;
+    ctx.controls.autoRotate = true;
+    ctx.controls.autoRotateSpeed = AUTO_ROTATE_FULL;
   }, [prefersReducedMotion, selectedId]);
 
   if (records.length === 0) return null;
@@ -687,7 +829,9 @@ export default function TraceabilityGlobe({
   if (!webglOk) {
     return (
       <div
-        className={`relative w-full min-h-[70dvh] min-w-0 bg-transparent py-2 flex flex-col gap-3 ${className}`}
+        className={`relative w-full min-w-0 bg-transparent py-2 flex flex-col gap-3 ${
+          ambientBackdrop ? 'min-h-[70dvh] h-full' : 'min-h-[70dvh]'
+        } ${className}`}
       >
         <p className="font-body text-caption text-ink-faded">{t('shop.detail.globeWebglFallback')}</p>
         <ul className="space-y-2 overflow-auto text-left">
@@ -716,7 +860,11 @@ export default function TraceabilityGlobe({
       data-pin-active={selectedId != null ? 'true' : 'false'}
       aria-label={t('shop.detail.globeAria', '交互式溯源地球仪，可用方向键微调视角')}
       onPointerDownCapture={() => containerRef.current?.focus({ preventScroll: true })}
-      className={`relative z-0 w-full min-w-0 bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-rust/35 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent min-h-[100dvh] md:min-h-[115dvh] ${className}`}
+      className={`relative z-0 w-full min-w-0 max-w-none bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-rust/35 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${
+        ambientBackdrop
+          ? 'h-full min-h-[100dvh]'
+          : 'min-h-[100dvh] md:min-h-[115dvh]'
+      } ${className}`}
     >
       <canvas
         ref={canvasRef}
@@ -741,10 +889,12 @@ export default function TraceabilityGlobe({
 
       {displayRecord && displayCoords && (
         <div
-          className="absolute z-10 w-[min(92vw,288px)] pointer-events-none max-md:bottom-10 max-md:left-1/2 max-md:-translate-x-1/2 md:right-5 md:top-1/2 md:-translate-y-1/2"
+          ref={pinOverlayRef}
+          className="absolute z-10 w-[min(92vw,288px)] pointer-events-none max-h-[min(72dvh,520px)]"
+          style={{ opacity: 0, left: 0, top: 0 }}
           aria-live="polite"
         >
-          <div className="pointer-events-auto relative overflow-hidden border border-warm-gray/30 bg-paper/96 px-4 py-3.5 shadow-[0_12px_40px_-16px_rgba(26,26,22,0.18)] backdrop-blur-md rounded-sm space-y-2">
+          <div className="pointer-events-auto relative overflow-x-hidden overflow-y-auto max-h-[min(72dvh,520px)] border border-warm-gray/30 bg-paper/96 px-4 py-3.5 shadow-[0_12px_40px_-16px_rgba(26,26,22,0.18)] backdrop-blur-md rounded-sm space-y-2">
             <div
               className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-rust/35 to-transparent pointer-events-none"
               aria-hidden="true"
@@ -783,6 +933,9 @@ export default function TraceabilityGlobe({
               <p className="font-body text-body-sm text-ink-faded leading-relaxed line-clamp-4">
                 {displayRecord.description}
               </p>
+            )}
+            {displayRecord.gallery && displayRecord.gallery.length > 0 && (
+              <TraceMediaGallery items={displayRecord.gallery} compact className="pt-1 border-t border-warm-gray/15" />
             )}
           </div>
         </div>

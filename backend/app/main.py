@@ -6,7 +6,10 @@ from contextlib import asynccontextmanager
 from typing import Optional
 from decimal import Decimal
 
+from pathlib import Path
+
 from fastapi import FastAPI, Request, HTTPException
+from fastapi.staticfiles import StaticFiles
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
@@ -90,7 +93,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=[
         "Authorization",
         "Content-Type",
@@ -291,6 +294,12 @@ async def legacy_api_redirect_middleware(request: Request, call_next):
 
 for router in routers:
     app.include_router(router, prefix="/api/v1")
+
+# 静态资源：溯源媒体上传、证书图等（/static/...）
+_STATIC_ROOT = Path(__file__).resolve().parent.parent / "static"
+_STATIC_ROOT.mkdir(parents=True, exist_ok=True)
+(_STATIC_ROOT / "uploads" / "traceability").mkdir(parents=True, exist_ok=True)
+app.mount("/static", StaticFiles(directory=str(_STATIC_ROOT)), name="static")
 
 if __name__ == "__main__":
     import uvicorn

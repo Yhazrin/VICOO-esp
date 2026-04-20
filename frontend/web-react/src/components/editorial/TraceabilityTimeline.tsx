@@ -3,18 +3,22 @@ import { useRef } from 'react';
 import type { SupplyChainTimelineRecord } from '@/types';
 import { useTranslation } from 'react-i18next';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
+import TraceMediaGallery from '@/components/editorial/TraceMediaGallery';
 
 interface TraceabilityTimelineProps {
   records: SupplyChainTimelineRecord[];
   className?: string;
   /** 与商品详情地球仪选中节点同步：对应卡片低调高亮，不滚动页面 */
   linkedFromGlobeId?: number | null;
+  /** 将 API stage 键转为展示文案 */
+  getStageLabel?: (stage: string) => string;
 }
 
 export default function TraceabilityTimeline({
   records,
   className = '',
   linkedFromGlobeId = null,
+  getStageLabel,
 }: TraceabilityTimelineProps) {
   const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
@@ -173,7 +177,7 @@ export default function TraceabilityTimeline({
               <div className="relative z-20">
                 <div className="flex justify-between items-start flex-wrap gap-3 mb-3">
                   <h4 className="font-display text-[clamp(17px,1.9vw,22px)] font-semibold text-ink tracking-[-0.02em]">
-                    {record.stage}
+                    {getStageLabel ? getStageLabel(record.stage) : record.stage}
                   </h4>
                   {record.verified && (
                     <span className="font-body text-[9px] md:text-[10px] tracking-[0.14em] uppercase px-2.5 py-1 bg-sage/12 text-sage border border-sage/25">
@@ -185,6 +189,12 @@ export default function TraceabilityTimeline({
                 <p className="font-body text-body-sm text-ink-faded leading-[1.85] mb-5 max-w-2xl">
                   {record.description}
                 </p>
+
+                {record.gallery && record.gallery.length > 0 && (
+                  <div className="mb-6 max-w-2xl">
+                    <TraceMediaGallery items={record.gallery} />
+                  </div>
+                )}
 
                 <div className="flex flex-wrap gap-x-8 gap-y-3">
                   <div className="font-body text-[11px] text-sepia-mid leading-snug">

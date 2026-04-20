@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import AsyncSessionLocal
 from app.models.product import Product
 from app.data.default_regular_products import REGULAR_CATALOG, regular_catalog_for_orm
+from app.data.impact_product_images import IMPACT_PRODUCT_IMAGE_BY_NAME
 
 logger = logging.getLogger("tonghua")
 
@@ -69,6 +70,36 @@ def _company_from_title(name: str) -> bool:
     return any(m in n for m in _COMPANY_TITLE_MARKERS)
 
 
+def _needs_impact_image_refresh(url: str | None) -> bool:
+    """空链接、或仍为 Unsplash 的旧数据，需换成可直连的 Picsum。"""
+    u = (url or "").strip()
+    if not u:
+        return True
+    if "picsum.photos" in u:
+        return False
+    if "unsplash.com" in u:
+        return True
+    return False
+
+
+async def repair_impact_product_images(session: AsyncSession) -> int:
+    """幂等：按商品名写回公益店主图 URL（修复已有库里的 Unsplash 无法加载问题）。"""
+    result = await session.execute(select(Product).where(Product.is_impact_product.is_(True)))
+    updated = 0
+    for p in result.scalars().all():
+        key = (p.name or "").strip()
+        fixed = IMPACT_PRODUCT_IMAGE_BY_NAME.get(key)
+        if not fixed:
+            continue
+        if not _needs_impact_image_refresh(p.image_url):
+            continue
+        p.image_url = fixed
+        updated += 1
+    if updated:
+        logger.info("db_repair: refreshed impact product image_url rows: %s", updated)
+    return updated
+
+
 async def repair_product_catalog(session: AsyncSession) -> int:
     """
     Returns number of product rows created (baseline company SKUs), not updates.
@@ -104,6 +135,8 @@ async def repair_product_catalog(session: AsyncSession) -> int:
 
     if created:
         logger.info("db_repair: created baseline company SKUs: %s", created)
+
+    await repair_impact_product_images(session)
     return created
 
 

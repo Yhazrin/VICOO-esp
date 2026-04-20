@@ -50,6 +50,34 @@ body::before {
     radial-gradient(ellipse at 70% 60%, var(--paper-texture-4, rgba(212, 207, 196, 0.08)) 0%, transparent 50%);
 }
 
+/* ── 公益壳：提高对比、减弱灰雾感（与常规店 editorial 低饱和区分） ── */
+html[data-welfare-vivid] {
+  --color-paper: #fcfaf7;
+  --color-aged-stock: #f5f2eb;
+  --color-warm-gray: #c8c0b0;
+  --color-muted-gray: #9a9285;
+  --color-ink: #12110e;
+  --color-ink-faded: #3a362f;
+  --color-ink-light: #585246;
+  --color-sepia-dark: #2e261e;
+  --color-sepia-mid: #4a3d30;
+  --color-sepia-light: #6a5a48;
+  --color-sage: #2a382f;
+  --color-sage-light: #445548;
+  --color-sage-lighter: #5f7164;
+  --color-sage-muted: #7d8a80;
+  --color-sage-pale: #b8c4bb;
+  --color-sage-dark: #1e2822;
+}
+
+html[data-welfare-vivid] body::before {
+  background:
+    radial-gradient(ellipse at 15% 30%, rgba(180, 140, 70, 0.045) 0%, transparent 45%),
+    radial-gradient(ellipse at 85% 15%, rgba(120, 48, 36, 0.035) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 85%, rgba(72, 52, 40, 0.028) 0%, transparent 55%),
+    radial-gradient(ellipse at 70% 60%, rgba(210, 205, 196, 0.06) 0%, transparent 50%);
+}
+
 /* ── Scrollbar — Editorial Style ── */
 ::-webkit-scrollbar {
   width: 8px;
@@ -684,6 +712,33 @@ input, textarea, select {
 /* ─────────────────────────────────────────────────────────────
    Print-specific styles
    ───────────────────────────────────────────────────────────── */
+
+/* ── View Transitions API（公益商店 → 详情：共享主图 + 整页柔和过渡） ── */
+@supports (view-transition-name: none) {
+  @media (prefers-reduced-motion: no-preference) {
+    /*
+     * 浏览器默认把 ::view-transition 树叠在极高层，会盖住 fixed 顶栏 (Header z-50)。
+     * 压到 45：低于顶栏/购物车层，高于普通页面内容。
+     */
+    ::view-transition {
+      z-index: 45 !important;
+    }
+
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation-duration: 0.65s !important;
+      animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1) !important;
+    }
+
+    /* 命名共享元素（含 impact-product-*）：旧/新快照层，需显式时长否则易被其它规则压成「瞬切」 */
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+      animation-duration: 0.75s !important;
+      animation-timing-function: cubic-bezier(0.2, 0.85, 0.15, 1) !important;
+    }
+  }
+}
 
 /* ── Reduced Motion ── */
 @media (prefers-reduced-motion: reduce) {

@@ -28,3 +28,5 @@ class SupplyChainRecord(Base):
     carbon_note = Column(String(500), nullable=True)
     timestamp = Column(DateTime, nullable=True)
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
+    # JSON array of {type: "image"|"video", url: str, caption?: str}
+    gallery_json = Column(Text, nullable=True)

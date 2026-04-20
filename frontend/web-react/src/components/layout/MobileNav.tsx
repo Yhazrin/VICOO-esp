@@ -227,6 +227,15 @@ export default function MobileNav() {
                     {t('nav.aiDesign', 'AI Design')}
                   </Link>
                 )}
+                {(user.role === 'admin' || user.role === 'editor') && (
+                  <Link
+                    to="/studio/supply-chain"
+                    onClick={() => setMobileNavOpen(false)}
+                    className="inline-block font-body text-body-sm text-ink-faded border border-warm-gray/40 px-6 py-3 rounded-full hover:text-ink transition-colors cursor-pointer"
+                  >
+                    {t('nav.supplyChainStudio', '溯源媒体')}
+                  </Link>
+                )}
                 <button
                   onClick={handleLogout}
                   className="inline-block font-body text-body-sm bg-ink text-paper border border-ink px-6 py-3 rounded-full hover:bg-rust transition-colors text-left cursor-pointer"

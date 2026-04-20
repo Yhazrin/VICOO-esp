@@ -35,6 +35,9 @@ build/
 .env.*.local
 deploy/easy/.env
 
+# 本地私有笔记（域名、服务器、个人部署步骤等，勿提交）
+docs/private/
+
 # OS files
 .DS_Store
 Thumbs.db

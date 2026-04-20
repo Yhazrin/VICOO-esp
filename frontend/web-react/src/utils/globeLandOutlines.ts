@@ -3,10 +3,35 @@
  * https://www.naturalearthdata.com/
  */
 import * as THREE from 'three';
+import { Line2 } from 'three/addons/lines/Line2.js';
+import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
+import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 import landDataStatic from '@/data/world-land-110m.json';
 import { latLngToVector3 } from '@/components/scroll/globeUtils';
 
+/**
+ * Coastlines sit slightly above the sphere mesh to avoid z-fighting with the wireframe.
+ * Keep this tiny so lines read as drawn on the globe surface, not floating above it.
+ */
+export function landOutlineRadius(globeRadius: number): number {
+  return globeRadius + Math.max(globeRadius * 0.0011, 0.0018);
+}
+
 type LngLatRing = [number, number][];
+
+export type LandOutlineStyle = {
+  /**
+   * Screen-space stroke width in CSS pixels (WebGL `Line2`).
+   * When omitted or ≤ 1, uses thin `LineLoop` (width not reliable in WebGL1).
+   */
+  lineWidthPx?: number;
+};
+
+/** Traceability 产品页地球：陆地轮廓线宽（屏幕空间 px，`Line2`） */
+export const LAND_OUTLINE_WIDTH_TRACEABILITY_PX = 2;
+
+/** 首页供应链地球：与 `lineWidthPx` 一致时用 `Line2` */
+export const LAND_OUTLINE_WIDTH_SUPPLY_CHAIN_PX = 1.35;
 
 function addRing(
   group: THREE.Group,
@@ -18,6 +43,24 @@ function addRing(
   const pts = ring.map(([lng, lat]) => latLngToVector3(lat, lng, radius));
   const geo = new THREE.BufferGeometry().setFromPoints(pts);
   group.add(new THREE.LineLoop(geo, material));
+}
+
+function addRingLine2(group: THREE.Group, ring: LngLatRing, radius: number, material: LineMaterial) {
+  if (ring.length < 3) return;
+  const positions: number[] = [];
+  for (const [lng, lat] of ring) {
+    const v = latLngToVector3(lat, lng, radius);
+    positions.push(v.x, v.y, v.z);
+  }
+  const [lng0, lat0] = ring[0];
+  const vClose = latLngToVector3(lat0, lng0, radius);
+  positions.push(vClose.x, vClose.y, vClose.z);
+
+  const geo = new LineGeometry();
+  geo.setPositions(positions);
+  const line = new Line2(geo, material);
+  line.renderOrder = 1;
+  group.add(line);
 }
 
 type GeoJsonLike = {
@@ -33,14 +76,57 @@ export function buildLandOutlinesFromGeoJson(
   radius: number,
   color: THREE.Color,
   opacity = 0.45,
+  style?: LandOutlineStyle,
 ): THREE.Group {
   const group = new THREE.Group();
+  const lineWidthPx = style?.lineWidthPx ?? 0;
+  const useThick = lineWidthPx > 1;
+
+  if (useThick) {
+    const material = new LineMaterial({
+      color,
+      linewidth: lineWidthPx,
+      transparent: true,
+      opacity,
+      depthWrite: false,
+      depthTest: true,
+      polygonOffset: true,
+      polygonOffsetFactor: -0.8,
+      polygonOffsetUnits: -0.8,
+    });
+
+    for (const f of data.features) {
+      const g = f.geometry;
+      if (!g?.coordinates) continue;
+
+      if (g.type === 'Polygon') {
+        const rings = g.coordinates as LngLatRing[];
+        for (const ring of rings) {
+          addRingLine2(group, ring, radius, material);
+        }
+      } else if (g.type === 'MultiPolygon') {
+        const polys = g.coordinates as LngLatRing[][];
+        for (const poly of polys) {
+          for (const ring of poly) {
+            addRingLine2(group, ring, radius, material);
+          }
+        }
+      }
+    }
+
+    group.userData.landLineMaterial = material;
+    return group;
+  }
+
   const material = new THREE.LineBasicMaterial({
     color,
     transparent: true,
     opacity,
     depthWrite: false,
     depthTest: true,
+    polygonOffset: true,
+    polygonOffsetFactor: -0.8,
+    polygonOffsetUnits: -0.8,
   });
 
   for (const f of data.features) {
@@ -80,6 +166,13 @@ export function createLandOutlinesGroup(
   radius: number,
   color: THREE.Color,
   opacity = 0.45,
+  style?: LandOutlineStyle,
 ): THREE.Group {
-  return buildLandOutlinesFromGeoJson(landDataStatic as GeoJsonLike, radius, color, opacity);
+  return buildLandOutlinesFromGeoJson(landDataStatic as GeoJsonLike, radius, color, opacity, style);
+}
+
+/** `Line2` / `LineMaterial` linewidth is in CSS pixels — must match canvas pixel size. */
+export function syncLandOutlineLine2Resolution(group: THREE.Group, width: number, height: number) {
+  const m = group.userData.landLineMaterial as { resolution?: THREE.Vector2 } | undefined;
+  if (m?.resolution) m.resolution.set(width, height);
 }

@@ -25,6 +25,10 @@ const SLIDING_PILL_SPRING = {
 const MODE_MORPH_DURATION = 0.52;
 const MODE_MORPH_EASE = [0.33, 1, 0.68, 1] as const;
 
+/** 与 MODE_MORPH 同步的圆角过渡（避免 class 瞬间切换与容器 motion 不同步） */
+const PILL_CORNER_TRANSITION_CLASS =
+  'transition-[border-radius] duration-[520ms] ease-[cubic-bezier(0.33,1,0.68,1)]';
+
 function getModeMorphTransition(reduceMotion: boolean): Transition {
   if (reduceMotion) {
     return { duration: 0.2, ease: [0.25, 0.1, 0.25, 1] };
@@ -198,7 +202,6 @@ function PillWindow({
         borderRadius: impactMode ? 9999 : 4,
       }}
       transition={modeMorphTransition}
-      style={{ width: (companyW + PADDING) || 'auto' }}
     >
       <motion.div
         className="flex items-center"
@@ -211,15 +214,22 @@ function PillWindow({
           {companyHl && (
             <motion.div
               aria-hidden
-              className={`pointer-events-none absolute z-0 ${impactMode ? 'rounded-full bg-ink' : 'rounded-sm bg-white'}`}
+              className={`pointer-events-none absolute z-0 bg-white ${PILL_CORNER_TRANSITION_CLASS} ${impactMode ? 'rounded-full' : 'rounded-sm'}`}
               initial={false}
               animate={{
                 left: companyHl.x,
                 top: companyHl.y,
                 width: companyHl.w,
                 height: companyHl.h,
+                borderRadius: impactMode ? 9999 : 4,
               }}
-              transition={pillTransition}
+              transition={{
+                left: pillTransition,
+                top: pillTransition,
+                width: pillTransition,
+                height: pillTransition,
+                borderRadius: modeMorphTransition,
+              }}
             />
           )}
           {COMPANY_NAV.map((item) => {
@@ -235,6 +245,7 @@ function PillWindow({
                 aria-current={isActive ? 'page' : undefined}
                 className={`
                   relative z-10 cursor-pointer whitespace-nowrap px-5 py-1 font-body text-label tracking-wide
+                  ${PILL_CORNER_TRANSITION_CLASS}
                   ${impactMode ? 'rounded-full' : 'rounded-sm'}
                   ${isActive
                     ? impactMode
@@ -256,15 +267,22 @@ function PillWindow({
           {impactHl && (
             <motion.div
               aria-hidden
-              className="pointer-events-none absolute z-0 rounded-full bg-ink"
+              className={`pointer-events-none absolute z-0 rounded-full bg-ink ${PILL_CORNER_TRANSITION_CLASS}`}
               initial={false}
               animate={{
                 left: impactHl.x,
                 top: impactHl.y,
                 width: impactHl.w,
                 height: impactHl.h,
+                borderRadius: 9999,
               }}
-              transition={pillTransition}
+              transition={{
+                left: pillTransition,
+                top: pillTransition,
+                width: pillTransition,
+                height: pillTransition,
+                borderRadius: modeMorphTransition,
+              }}
             />
           )}
           {IMPACT_TABS.map((tab) => {
@@ -291,6 +309,7 @@ function PillWindow({
                 }}
                 className={`
                   relative z-10 cursor-pointer whitespace-nowrap px-5 py-1 font-body text-label tracking-wide
+                  ${PILL_CORNER_TRANSITION_CLASS}
                   ${impactMode ? 'rounded-full' : 'rounded-sm'}
                   ${isActive
                     ? 'font-medium text-paper'
@@ -762,6 +781,19 @@ export default function Header() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                               </svg>
                               <span className="font-body text-body-sm text-ink">{t('nav.aiDesign', 'AI Design')}</span>
+                            </Link>
+                          )}
+                          {(user.role === 'admin' || user.role === 'editor') && (
+                            <Link
+                              to="/studio/supply-chain"
+                              role="menuitem"
+                              className="flex items-center gap-2 px-4 py-2.5 hover:bg-warm-gray/10 transition-colors cursor-pointer"
+                              onClick={() => setUserMenuOpen(false)}
+                            >
+                              <svg className="w-4 h-4 text-sepia-mid" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <span className="font-body text-body-sm text-ink">{t('nav.supplyChainStudio', '溯源媒体')}</span>
                             </Link>
                           )}
 
