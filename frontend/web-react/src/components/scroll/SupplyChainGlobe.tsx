@@ -4,7 +4,12 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { useReducedMotion } from 'framer-motion';
 import type { SupplyChainRoute } from '@/data/supplyChain';
 import { createRouteVisuals, latLngToVector3 } from './globeUtils';
-import { createLandOutlinesGroup } from '@/utils/globeLandOutlines';
+import {
+  createLandOutlinesGroup,
+  landOutlineRadius,
+  LAND_OUTLINE_WIDTH_SUPPLY_CHAIN_PX,
+  syncLandOutlineLine2Resolution,
+} from '@/utils/globeLandOutlines';
 
 /* ─── Brand palette hex → Three.js color ints ─── */
 const COLORS = {
@@ -135,8 +140,14 @@ export default function SupplyChainGlobe({ routes }: SupplyChainGlobeProps) {
     globeGroup.add(gridGroup);
 
     const landColor = new THREE.Color(COLORS.ink).lerp(new THREE.Color(COLORS.wireframe), 0.42);
-    globeGroup.add(
-      createLandOutlinesGroup(GLOBE_RADIUS + 0.028, landColor, 0.52),
+    const landGroup = createLandOutlinesGroup(landOutlineRadius(GLOBE_RADIUS), landColor, 0.52, {
+      lineWidthPx: LAND_OUTLINE_WIDTH_SUPPLY_CHAIN_PX,
+    });
+    globeGroup.add(landGroup);
+    syncLandOutlineLine2Resolution(
+      landGroup,
+      container.clientWidth,
+      Math.max(container.clientHeight, 1),
     );
 
     /* ── Route visuals ── */
@@ -217,6 +228,7 @@ export default function SupplyChainGlobe({ routes }: SupplyChainGlobeProps) {
       sceneRef.current.camera.aspect = w / h;
       sceneRef.current.camera.updateProjectionMatrix();
       sceneRef.current.renderer.setSize(w, h);
+      syncLandOutlineLine2Resolution(landGroup, w, h);
     };
     const ro = new ResizeObserver(handleResize);
     ro.observe(container);

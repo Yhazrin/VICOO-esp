@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
@@ -9,6 +9,8 @@ import { VintageInput } from '@/components/editorial/VintageInput';
 import type { Product } from '@/types';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 import { companyProductPath, impactProductPath } from '@/utils/productPaths';
+import { navigateWithViewTransition, supportsViewTransition } from '@/utils/navigateViewTransition';
+import { productsApi } from '@/services/products';
 
 interface ProductCardProps {
   product: Product;
@@ -31,9 +33,38 @@ export default function ProductCard({
   detailContext = 'company',
 }: ProductCardProps) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const prefersReducedMotion = useReducedMotion();
   const [ref, isVisible] = useScrollReveal<HTMLDivElement>();
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [cardImageSrc, setCardImageSrc] = useState(() => product.image_url?.trim() ?? '');
+  const artworkFallbackTriedRef = useRef(false);
+
+  useEffect(() => {
+    setCardImageSrc(product.image_url?.trim() ?? '');
+    setImageLoaded(false);
+    artworkFallbackTriedRef.current = false;
+  }, [product.id, product.image_url]);
+
+  const tryArtworkImage = useCallback(async () => {
+    if (!product.artworkId || artworkFallbackTriedRef.current) return;
+    artworkFallbackTriedRef.current = true;
+    try {
+      const aw = await productsApi.getArtwork(String(product.id));
+      if (aw?.image_url) {
+        setCardImageSrc(String(aw.image_url).trim());
+        setImageLoaded(false);
+      }
+    } catch {
+      /* keep previous src */
+    }
+  }, [product.artworkId, product.id]);
+
+  useEffect(() => {
+    if (cardImageSrc.trim()) return;
+    if (!product.artworkId) return;
+    void tryArtworkImage();
+  }, [cardImageSrc, product.artworkId, tryArtworkImage]);
   const [showNotifyInput, setShowNotifyInput] = useState(false);
   const [notifyEmail, setNotifyEmail] = useState('');
   const [notifySubmitted, setNotifySubmitted] = useState(false);
@@ -46,6 +77,30 @@ export default function ProductCard({
     if (notifyEmail.trim()) {
       setNotifySubmitted(true);
     }
+  };
+
+  const detailPath =
+    detailContext === 'impact' ? impactProductPath(product.id) : companyProductPath(product.id);
+
+  const impactLinkState =
+    detailContext === 'impact'
+      ? { impactHeroPreview: cardImageSrc || product.image_url?.trim() || '' }
+      : undefined;
+
+  const handleDetailLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (detailContext !== 'impact') return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    const reduceMotion =
+      prefersReducedMotion ||
+      (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    if (!supportsViewTransition() || reduceMotion) return;
+    e.preventDefault();
+    navigateWithViewTransition(
+      navigate,
+      detailPath,
+      { state: impactLinkState },
+      () => import('@/pages/ProductDetail')
+    );
   };
 
   return (
@@ -68,11 +123,23 @@ export default function ProductCard({
         className="h-full"
       >
         <Link
-          to={detailContext === 'impact' ? impactProductPath(product.id) : companyProductPath(product.id)}
+          to={detailPath}
+          state={impactLinkState}
+          onClick={handleDetailLinkClick}
+          onMouseEnter={() => {
+            if (detailContext === 'impact') void import('@/pages/ProductDetail');
+          }}
           className="block cursor-pointer"
         >
-        {/* Image */}
-        <div className="relative aspect-[3/4] overflow-hidden border-2 border-rust/30 bg-aged-stock mb-5 group-hover:border-rust/50 transition-colors duration-300">
+        {/* Image — view-transition-name 在画框容器上（与详情 SepiaImageFrame 内框对应），不是 hover 遮罩层 */}
+        <div
+          className="relative aspect-[3/4] overflow-hidden border-2 border-rust/30 bg-aged-stock mb-5 group-hover:border-rust/50 transition-colors duration-300"
+          style={
+            detailContext === 'impact'
+              ? { viewTransitionName: `impact-product-${product.id}` }
+              : undefined
+          }
+        >
           {/* Vintage frame effect */}
           <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-br from-pale-gold/3 via-transparent to-archive-brown/5" aria-hidden="true" />
 
@@ -82,11 +149,14 @@ export default function ProductCard({
           {!imageLoaded && <ImageSkeleton className="absolute inset-0" aspectRatio="aspect-[3/4]" />}
 
           <img
-            src={product.image_url ?? ''}
+            src={cardImageSrc || ''}
             alt={product.name}
             className={`w-full h-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:scale-105 sepia-[0.1] ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
             loading="lazy"
             onLoad={() => setImageLoaded(true)}
+            onError={() => {
+              void tryArtworkImage();
+            }}
           />
 
           {/* Stock badge */}

@@ -33,8 +33,19 @@ export default function Layout() {
   /** 仅在首页 `/` 且开启公益壳时用 tab 内容；`/shop`、`/about` 等必须走 `<Outlet />`，否则常规店被挡住 */
   const renderImpactShell = impactMode && location.pathname === '/';
   const mainContent = renderImpactShell ? <ImpactContent /> : <Outlet />;
-  /** Impact: remount per tab (same as before). Company: stable shell — let <Outlet /> swap pages without tearing the wrapper. */
-  const mountKey = renderImpactShell ? `impact-${activeImpactTab}` : 'company-outlet';
+  /**
+   * 公益商店列表与详情共用同一 key，避免 `/` 公益 tab 商店 → `/impact/shop/:id` 时整棵主内容被卸载，
+   * 否则 View Transitions 的共享元素无法正确衔接。
+   * 其它公益 tab 仍按 tab 区分 key 以便切换时刷新。
+   */
+  const impactShopUnifiedKey =
+    location.pathname.startsWith('/impact/shop') ||
+    (renderImpactShell && activeImpactTab === 'shop');
+  const mountKey = impactShopUnifiedKey
+    ? 'impact-shop-route'
+    : renderImpactShell
+      ? `impact-${activeImpactTab}`
+      : 'company-outlet';
 
   useEffect(() => {
     if (isImpactShopRoute) {
@@ -42,6 +53,12 @@ export default function Layout() {
       setActiveImpactTab('shop');
     }
   }, [isImpactShopRoute, setImpactMode, setActiveImpactTab]);
+
+  useEffect(() => {
+    const on = impactMode || isImpactShopRoute;
+    document.documentElement.toggleAttribute('data-welfare-vivid', on);
+    return () => document.documentElement.removeAttribute('data-welfare-vivid');
+  }, [impactMode, isImpactShopRoute]);
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-paper text-ink">

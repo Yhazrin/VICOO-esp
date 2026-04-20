@@ -88,10 +88,12 @@ from app.schemas.payment_common import (
 
 # Supply chain
 from app.schemas.supply_chain import (
+    TraceMediaItem,
     SupplyChainRecordCreate,
     SupplyChainRecordOut,
     SupplyChainRecordUpdate,
     SupplyChainTrace,
+    supply_chain_record_to_out,
 )
 
 from app.schemas.circular_commerce import (
@@ -199,10 +201,12 @@ __all__ = [
     "PaymentListItem",
     "PaymentOut",
     # Supply chain
+    "TraceMediaItem",
     "SupplyChainRecordCreate",
     "SupplyChainRecordUpdate",
     "SupplyChainRecordOut",
     "SupplyChainTrace",
+    "supply_chain_record_to_out",
     "ClothingIntakeCreate",
     "ClothingIntakeOut",
     "ClothingIntakeStatusUpdate",

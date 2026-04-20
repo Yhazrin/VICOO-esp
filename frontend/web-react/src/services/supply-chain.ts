@@ -1,4 +1,5 @@
 import api from './api';
+import type { TraceMediaItem } from '@/types';
 
 interface GetRecordsParams {
   page?: number;
@@ -34,7 +35,27 @@ export interface SupplyChainRecord {
   }[];
   latitude?: number;
   longitude?: number;
+  gallery?: TraceMediaItem[];
 }
+
+export interface SupplyChainRecordCreatePayload {
+  product_id: number;
+  stage: string;
+  description?: string;
+  location?: string;
+  certified?: boolean;
+  cert_image_url?: string | null;
+  carbon_kg?: number;
+  carbon_note?: string;
+  latitude?: number;
+  longitude?: number;
+  timestamp?: string;
+  gallery?: TraceMediaItem[];
+}
+
+export type SupplyChainRecordPatchPayload = Partial<
+  Omit<SupplyChainRecordCreatePayload, 'product_id' | 'stage'>
+>;
 
 export interface TraceResponse {
   product_id: number;
@@ -70,6 +91,29 @@ export const supplyChainApi = {
   getProductJourney: async (productId: string | number): Promise<SupplyChainRecord[]> => {
     const response = await api.get(`/supply-chain/trace/${productId}`);
     return normalizeRecordList(response.data.data?.records ?? response.data.data);
+  },
+
+  createRecord: async (payload: SupplyChainRecordCreatePayload): Promise<SupplyChainRecord> => {
+    const response = await api.post('/supply-chain/records', payload);
+    return response.data.data as SupplyChainRecord;
+  },
+
+  patchRecord: async (
+    recordId: string | number,
+    payload: SupplyChainRecordPatchPayload
+  ): Promise<SupplyChainRecord> => {
+    const response = await api.patch(`/supply-chain/records/${recordId}`, payload);
+    return response.data.data as SupplyChainRecord;
+  },
+
+  /** 本地上传图片/视频，返回写入 gallery 用的相对路径（/static/...） */
+  uploadTraceMedia: async (file: File): Promise<{ url: string; mime: string }> => {
+    const form = new FormData();
+    form.append('file', file);
+    const response = await api.post('/supply-chain/media/upload', form, {
+      timeout: 120000,
+    });
+    return response.data.data as { url: string; mime: string };
   },
 
   trace: async (productId: string | number): Promise<TraceResponse> => {

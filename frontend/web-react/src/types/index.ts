@@ -104,6 +104,13 @@ export interface Product {
   colors?: { name: string; hex: string }[];
 }
 
+/** Image / video attached to a trace node (URLs from API) */
+export interface TraceMediaItem {
+  type: 'image' | 'video';
+  url: string;
+  caption?: string;
+}
+
 /** Frontend display type for TraceabilityTimeline — not a direct API response type */
 export interface SupplyChainTimelineRecord {
   id: number;
@@ -119,6 +126,8 @@ export interface SupplyChainTimelineRecord {
   /** WGS84 — when set, globe pins use exact coordinates */
   latitude?: number;
   longitude?: number;
+  /** 溯源点现场图 / 视频等 */
+  gallery?: TraceMediaItem[];
 }
 
 export interface SupplyChainRecord extends SupplyChainTimelineRecord {}

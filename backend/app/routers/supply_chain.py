@@ -1,14 +1,24 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+import json
+import logging
+import uuid
+from pathlib import Path
+
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime
-import logging
 
 from app.database import get_db
 from app.models.supply_chain import SupplyChainRecord
 from app.models.product import Product
-from app.schemas import ApiResponse, SupplyChainRecordCreate, SupplyChainRecordOut, SupplyChainTrace, PaginatedResponse
-from app.deps import get_current_user, require_role
+from app.schemas import (
+    ApiResponse,
+    SupplyChainRecordCreate,
+    SupplyChainRecordUpdate,
+    SupplyChainTrace,
+    PaginatedResponse,
+    supply_chain_record_to_out,
+)
+from app.deps import require_role
 
 router = APIRouter(prefix="/supply-chain", tags=["Supply Chain"])
 
@@ -16,8 +26,44 @@ logger = logging.getLogger(__name__)
 
 STAGES_ORDER = ["material_sourcing", "processing", "manufacturing", "quality_check", "shipping"]
 
+_STATIC_ROOT = Path(__file__).resolve().parent.parent.parent / "static"
+_TRACE_UPLOAD_DIR = _STATIC_ROOT / "uploads" / "traceability"
+_MAX_TRACE_UPLOAD = 10 * 1024 * 1024
+_ALLOWED_TRACE_MEDIA = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/webp": ".webp",
+    "image/gif": ".gif",
+    "video/mp4": ".mp4",
+    "video/webm": ".webm",
+    "video/quicktime": ".mov",
+}
 
 from app.services.supply_chain.service import SupplyChainService
+
+
+@router.post("/media/upload", response_model=ApiResponse)
+async def upload_trace_media(
+    file: UploadFile = File(...),
+    _current_user: dict = Depends(require_role("admin", "editor")),
+):
+    """上传溯源节点图片/视频至本地 static，返回可供写入 gallery 的相对 URL（/static/...）。"""
+    body = await file.read()
+    if len(body) > _MAX_TRACE_UPLOAD:
+        raise HTTPException(status_code=413, detail="File too large (max 10MB)")
+    ct = (file.content_type or "").split(";")[0].strip().lower()
+    ext = _ALLOWED_TRACE_MEDIA.get(ct)
+    if not ext:
+        raise HTTPException(
+            status_code=400,
+            detail="Unsupported type; use jpeg/png/webp/gif or mp4/webm/mov",
+        )
+    _TRACE_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    name = f"{uuid.uuid4().hex}{ext}"
+    path = _TRACE_UPLOAD_DIR / name
+    path.write_bytes(body)
+    url = f"/static/uploads/traceability/{name}"
+    return ApiResponse(data={"url": url, "mime": ct})
 
 @router.get("/records", response_model=PaginatedResponse)
 async def list_records(
@@ -49,7 +95,7 @@ async def list_records(
         records = result.scalars().all()
         
         return PaginatedResponse(
-            data=[SupplyChainRecordOut.model_validate(r).model_dump() for r in records],
+            data=[supply_chain_record_to_out(r).model_dump() for r in records],
             total=total,
             page=page,
             page_size=page_size,
@@ -91,10 +137,36 @@ async def create_record(
     """Create a new supply chain record (admin/editor only). (Refactored)"""
     sc_service = SupplyChainService(db)
     try:
-        record = await sc_service.add_record(body.product_id, body.model_dump())
-        return ApiResponse(data=SupplyChainRecordOut.model_validate(record).model_dump())
+        payload = body.model_dump()
+        if payload.get("gallery"):
+            payload["gallery_json"] = json.dumps(payload["gallery"])
+        payload.pop("gallery", None)
+        record = await sc_service.add_record(body.product_id, payload)
+        return ApiResponse(data=supply_chain_record_to_out(record).model_dump())
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Failed to create record: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@router.patch("/records/{record_id}", response_model=ApiResponse)
+async def patch_record(
+    record_id: int,
+    body: SupplyChainRecordUpdate,
+    db: AsyncSession = Depends(get_db),
+    _current_user: dict = Depends(require_role("admin", "editor")),
+):
+    """Update a supply chain record (admin/editor). Gallery replaces entire list when sent."""
+    sc_service = SupplyChainService(db)
+    try:
+        payload = body.model_dump(exclude_unset=True)
+        record = await sc_service.update_record(record_id, payload)
+        if not record:
+            raise HTTPException(status_code=404, detail="Record not found")
+        return ApiResponse(data=supply_chain_record_to_out(record).model_dump())
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to update record: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")

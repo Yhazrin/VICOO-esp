@@ -14,6 +14,10 @@ interface SepiaImageFrameProps {
   showCornerAccents?: boolean;
   accentPosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'diagonal';
   accentSize?: 'sm' | 'md' | 'lg';
+  /** View Transitions API：与列表页同名的共享元素过渡 */
+  viewTransitionName?: string;
+  /** 跳过滚动揭示与入场动画（详情首屏 / 过渡衔接） */
+  instantReveal?: boolean;
 }
 
 const aspectClasses = {
@@ -40,10 +44,15 @@ export default function SepiaImageFrame({
   showCornerAccents = true,
   accentPosition = 'diagonal',
   accentSize = 'sm',
+  viewTransitionName,
+  instantReveal = false,
 }: SepiaImageFrameProps) {
   const [ref, isVisible] = useScrollReveal<HTMLDivElement>();
   const prefersReducedMotion = useReducedMotion();
   const [imageLoaded, setImageLoaded] = useState(false);
+  const skipEntrance = instantReveal || prefersReducedMotion;
+  /** 参与 View Transitions 时首帧必须可见，否则新快照拍到 opacity:0，共享元素 morph 会失效 */
+  const imgVisible = imageLoaded || Boolean(viewTransitionName);
 
   // Determine corner accent positions based on accentPosition
   const getCornerAccents = () => {
@@ -61,9 +70,9 @@ export default function SepiaImageFrame({
   return (
     <motion.figure
       ref={ref}
-      initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 30 }}
-      animate={isVisible ? { opacity: 1, y: 0 } : {}}
-      transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.7, ease: [0, 0, 0.2, 1] }}
+      initial={skipEntrance ? { opacity: 1 } : { opacity: 0, y: 30 }}
+      animate={skipEntrance ? { opacity: 1, y: 0 } : isVisible ? { opacity: 1, y: 0 } : {}}
+      transition={skipEntrance ? { duration: 0 } : { duration: 0.7, ease: [0, 0, 0.2, 1] }}
       className={`${sizeClasses[size]} ${className}`}
     >
       <div
@@ -73,6 +82,7 @@ export default function SepiaImageFrame({
           border border-warm-gray/40
           bg-aged-stock
         `}
+        style={viewTransitionName ? { viewTransitionName } : undefined}
       >
         {/* Origami corner accents */}
         {showCornerAccents && cornerAccents.map((accent, index) => (
@@ -101,8 +111,10 @@ export default function SepiaImageFrame({
         <img
           src={src}
           alt={alt}
-          className={`w-full h-full object-cover ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-          loading="lazy"
+          className={`w-full h-full object-cover ${imgVisible ? 'opacity-100' : 'opacity-0'}`}
+          loading={viewTransitionName ? 'eager' : 'lazy'}
+          decoding="async"
+          fetchPriority={viewTransitionName ? 'high' : undefined}
           onLoad={() => setImageLoaded(true)}
         />
       </div>

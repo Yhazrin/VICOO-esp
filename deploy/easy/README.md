@@ -187,6 +187,17 @@ docker compose down -v
 docker compose up -d
 ```
 
+### 路演展示商品（商店图文）
+
+将课程/演示用常规店与公益店商品写入数据库（Unsplash 配图 + 中文文案；按商品名幂等更新）。需已有种子数据（`campaigns`、`artworks`），通常首次启动并完成迁移与 seed 后即可执行：
+
+```bash
+# 在 deploy/easy 目录下
+docker compose exec backend python -m app.load_showcase_shop
+```
+
+数据定义见 `backend/app/showcase_shop_catalog.py`。
+
 ### 本地开发（非 Docker）
 
 ```bash

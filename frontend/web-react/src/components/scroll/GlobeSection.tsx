@@ -4,11 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 import { SUPPLY_CHAIN_ROUTES } from '@/data/supplyChain';
+import { useUIStore } from '@/stores/uiStore';
 import SupplyChainGlobe from './SupplyChainGlobe';
 
 export default function GlobeSection() {
   const { t, i18n } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
+  const impactMode = useUIStore((s) => s.impactMode);
   const isEnglish = i18n.resolvedLanguage?.startsWith('en');
 
   const routes = useMemo(() => SUPPLY_CHAIN_ROUTES, []);
@@ -16,7 +18,13 @@ export default function GlobeSection() {
   const staggerDelay = (index: number) => (prefersReducedMotion ? 0 : 0.15 + index * 0.1);
 
   return (
-    <section className="relative z-0 w-full min-h-[100dvh] overflow-visible bg-aged-stock">
+    <section
+      className={`relative z-0 w-full min-h-[100dvh] overflow-visible ${
+        impactMode
+          ? '-mt-[4.25rem] md:-mt-24 border-b border-white/20 bg-white/[0.18] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.45)] backdrop-blur-md backdrop-saturate-150 supports-[backdrop-filter]:bg-white/10'
+          : 'bg-aged-stock'
+      }`}
+    >
       {/* Globe: taller than viewport so it can extend under the next section; no clipping */}
       <div className="pointer-events-auto absolute left-0 right-0 top-0 z-0 h-[min(135dvh,260vw)] max-h-[2200px]">
         <SupplyChainGlobe routes={routes} />
@@ -29,7 +37,11 @@ export default function GlobeSection() {
             {routes.map((route) => (
               <div
                 key={route.productId}
-                className="flex flex-col items-center gap-2 p-4 border border-rust/20 bg-paper/60"
+                className={`flex flex-col items-center gap-2 p-4 border ${
+                  impactMode
+                    ? 'border-white/35 bg-white/45 backdrop-blur-md'
+                    : 'border-rust/20 bg-paper/60'
+                }`}
               >
                 <div className="w-3 h-3 rounded-full" style={{ backgroundColor: route.color }} />
                 <span className="font-body text-caption text-ink">
@@ -47,7 +59,11 @@ export default function GlobeSection() {
       {/* Info overlay */}
       <div className="absolute inset-0 z-10 pointer-events-none flex flex-col justify-between">
         {/* Top-left headline */}
-        <div className="px-8 md:px-16 pt-24 md:pt-32 max-w-2xl">
+        <div
+          className={`px-8 md:px-16 max-w-2xl ${
+            impactMode ? 'pt-[5.5rem] md:pt-[8rem]' : 'pt-24 md:pt-32'
+          }`}
+        >
           <motion.div
             {...(prefersReducedMotion ? {} : {
               initial: { opacity: 0, y: 30 },
@@ -93,7 +109,11 @@ export default function GlobeSection() {
               >
                 <Link
                   to="/traceability"
-                  className="flex items-center gap-3 px-4 py-3 border border-rust/20 bg-paper/80 backdrop-blur-sm hover:border-rust/40 transition-colors group"
+                  className={`flex items-center gap-3 px-4 py-3 border backdrop-blur-md transition-colors group ${
+                    impactMode
+                      ? 'border-white/40 bg-white/50 hover:border-white/55 hover:bg-white/60'
+                      : 'border-rust/20 bg-paper/80 backdrop-blur-sm hover:border-rust/40'
+                  }`}
                 >
                   <div
                     className="w-2.5 h-2.5 rounded-full flex-shrink-0"
@@ -132,7 +152,7 @@ export default function GlobeSection() {
         </div>
       </div>
 
-      <SectionGrainOverlay className="!z-[1]" opacity={0.02} />
+      <SectionGrainOverlay className="!z-[1]" opacity={impactMode ? 0.008 : 0.02} />
     </section>
   );
 }

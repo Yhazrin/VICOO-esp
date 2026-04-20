@@ -16,6 +16,7 @@ Creates tables and inserts sample data:
 """
 
 import asyncio
+import json
 from datetime import datetime, timedelta
 from decimal import Decimal
 
@@ -37,6 +38,8 @@ from app.models.editorial import EditorialArticle
 from app.security import hash_password
 from app.config import settings
 from app.data.default_regular_products import regular_catalog_for_orm
+from app.data.impact_product_images import IMPACT_PRODUCT_IMAGE_BY_NAME as _IMPACT_IMG
+from app.data.impact_supply_chain_seed import extra_impact_supply_records
 
 
 async def seed():
@@ -247,13 +250,12 @@ async def seed():
         # ── Products ─────────────────────────────────────────────
         # 公益商品：is_impact_product=True，配图为可直连的 HTTPS（与上方 artworks.id 一一对应）
         print("Seeding products...")
-        _u = "https://images.unsplash.com"
         products = [
             Product(
                 name="彩虹鱼棉质 T 恤",
                 description="采用有机棉面料，印有获奖作品《彩虹鱼》。每件 T 恤的收益 30% 用于乡村美育基金。",
                 price=Decimal("168.00"), currency="CNY",
-                image_url=f"{_u}/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80",
+                image_url=_IMPACT_IMG["彩虹鱼棉质 T 恤"],
                 category="apparel", stock=200, status="active",
                 is_impact_product=True, campaign_id=campaign_ids[0], donation_percentage=Decimal("30.00"),
                 artwork_id=2,
@@ -262,7 +264,7 @@ async def seed():
                 name="星星之夜帆布袋",
                 description="再生帆布材质，印有《星星之夜》星空画作。环保材质，可持续时尚。",
                 price=Decimal("89.00"), currency="CNY",
-                image_url=f"{_u}/photo-1597484662317-9bd7bdda2907?auto=format&fit=crop&w=900&q=80",
+                image_url=_IMPACT_IMG["星星之夜帆布袋"],
                 category="accessories", stock=150, status="active",
                 is_impact_product=True, campaign_id=campaign_ids[0], donation_percentage=Decimal("25.00"),
                 artwork_id=4,
@@ -271,7 +273,7 @@ async def seed():
                 name="春天的花园丝巾",
                 description="100% 真丝面料，孩子们的画作化为丝巾图案，每一条都是独一无二的艺术品。",
                 price=Decimal("258.00"), currency="CNY",
-                image_url=f"{_u}/photo-1606760227091-3dd870d97f1d?auto=format&fit=crop&w=900&q=80",
+                image_url=_IMPACT_IMG["春天的花园丝巾"],
                 category="accessories", stock=80, status="active",
                 is_impact_product=True, campaign_id=campaign_ids[0], donation_percentage=Decimal("30.00"),
                 artwork_id=1,
@@ -280,7 +282,7 @@ async def seed():
                 name="妈妈的手环保笔记本",
                 description="再生纸制作，封面印有《妈妈的手》。可用于记录生活中的美好瞬间。",
                 price=Decimal("39.00"), currency="CNY",
-                image_url=f"{_u}/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=900&q=80",
+                image_url=_IMPACT_IMG["妈妈的手环保笔记本"],
                 category="stationery", stock=500, status="active",
                 is_impact_product=True, campaign_id=campaign_ids[1], donation_percentage=Decimal("20.00"),
                 artwork_id=11,
@@ -289,7 +291,7 @@ async def seed():
                 name="太空旅行马克杯",
                 description="陶瓷马克杯，印有《太空旅行》画作。送给每个梦想家。",
                 price=Decimal("68.00"), currency="CNY",
-                image_url=f"{_u}/photo-1577937927133-66ef06acdf18?auto=format&fit=crop&w=900&q=80",
+                image_url=_IMPACT_IMG["太空旅行马克杯"],
                 category="lifestyle", stock=120, status="active",
                 is_impact_product=True, campaign_id=campaign_ids[2], donation_percentage=Decimal("25.00"),
                 artwork_id=15,
@@ -298,7 +300,7 @@ async def seed():
                 name="我的家帆布鞋",
                 description="有机棉帆布鞋面，可降解鞋底。鞋侧印有《我的家》画作。",
                 price=Decimal("198.00"), currency="CNY",
-                image_url=f"{_u}/photo-1560769629-975ec94e6a86?auto=format&fit=crop&w=900&q=80",
+                image_url=_IMPACT_IMG["我的家帆布鞋"],
                 category="footwear", stock=0, status="sold_out",
                 is_impact_product=True, campaign_id=campaign_ids[1], donation_percentage=Decimal("30.00"),
                 artwork_id=3,
@@ -307,7 +309,7 @@ async def seed():
                 name="画出未来环保抱枕",
                 description="再生棉填充，有机棉外套。《未来城市》画作点亮客厅角落。",
                 price=Decimal("128.00"), currency="CNY",
-                image_url=f"{_u}/photo-1584100936595-c9d1d09786c4?auto=format&fit=crop&w=900&q=80",
+                image_url=_IMPACT_IMG["画出未来环保抱枕"],
                 category="home", stock=90, status="active",
                 is_impact_product=True, campaign_id=campaign_ids[2], donation_percentage=Decimal("25.00"),
                 artwork_id=19,
@@ -316,7 +318,7 @@ async def seed():
                 name="过年了限定礼盒",
                 description="包含 T 恤、帆布袋、笔记本三件套，精美包装。限量 100 套。",
                 price=Decimal("368.00"), currency="CNY",
-                image_url=f"{_u}/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=900&q=80",
+                image_url=_IMPACT_IMG["过年了限定礼盒"],
                 category="gift_box", stock=35, status="active",
                 is_impact_product=True, campaign_id=campaign_ids[0], donation_percentage=Decimal("30.00"),
                 artwork_id=18,
@@ -325,7 +327,7 @@ async def seed():
                 name="海豚之歌·再生纤维披肩",
                 description="海洋主题儿童画作《海豚之歌》授权印花，再生聚酯与有机棉混纺，收益 28% 捐入「春天的色彩」美育项目。",
                 price=Decimal("198.00"), currency="CNY",
-                image_url=f"{_u}/photo-1601925260368-ae2f83cf8b7f?auto=format&fit=crop&w=900&q=80",
+                image_url=_IMPACT_IMG["海豚之歌·再生纤维披肩"],
                 category="accessories", stock=110, status="active",
                 is_impact_product=True, campaign_id=campaign_ids[0], donation_percentage=Decimal("28.00"),
                 artwork_id=8,
@@ -334,7 +336,7 @@ async def seed():
                 name="牧羊曲·手工拼布壁挂",
                 description="甘肃定西合作工坊手工缝制，图案来自《牧羊曲》画作，每件附带溯源卡，捐赠比例 22% 用于乡村儿童画材。",
                 price=Decimal("158.00"), currency="CNY",
-                image_url=f"{_u}/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=900&q=80",
+                image_url=_IMPACT_IMG["牧羊曲·手工拼布壁挂"],
                 category="home", stock=45, status="active",
                 is_impact_product=True, campaign_id=campaign_ids[1], donation_percentage=Decimal("22.00"),
                 artwork_id=20,
@@ -348,6 +350,20 @@ async def seed():
 
         # ── Supply Chain Records ─────────────────────────────────
         print("Seeding supply chain records...")
+        _demo_gallery = json.dumps(
+            [
+                {
+                    "type": "image",
+                    "url": "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=640&q=80",
+                    "caption": "有机棉田现场",
+                },
+                {
+                    "type": "video",
+                    "url": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+                    "caption": "采收与初加工短片（示例）",
+                },
+            ]
+        )
         supply_records = [
             SupplyChainRecord(
                 product_id=product_ids[0], stage="material_sourcing",
@@ -355,6 +371,7 @@ async def seed():
                 location="新疆阿克苏", latitude=41.17, longitude=80.26,
                 certified=True,
                 cert_image_url="/static/certs/gots_cert.jpg",
+                gallery_json=_demo_gallery,
                 timestamp=datetime(2025, 2, 1),
             ),
             SupplyChainRecord(
@@ -390,6 +407,12 @@ async def seed():
         ]
         session.add_all(supply_records)
         await session.flush()
+
+        # 其余公益 SKU（索引 1–9）各 5 条溯源：优衣库式中日供应链叙事见 impact_supply_chain_seed
+        extra_supply = extra_impact_supply_records(product_ids)
+        if extra_supply:
+            session.add_all(extra_supply)
+            await session.flush()
 
         # ── Donations ────────────────────────────────────────────
         print("Seeding donations...")

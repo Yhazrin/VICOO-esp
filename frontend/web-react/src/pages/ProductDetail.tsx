@@ -17,8 +17,9 @@ import { productsApi } from '@/services/products';
 import { supplyChainApi } from '@/services/supply-chain';
 import { reviewsApi } from '@/services/reviewsApi';
 import { useAuthStore } from '@/stores/authStore';
-import type { SupplyChainTimelineRecord } from '@/types';
+import type { SupplyChainTimelineRecord, TraceMediaItem } from '@/types';
 import { companyProductPath, impactProductPath } from '@/utils/productPaths';
+import { navigateWithViewTransition, supportsViewTransition } from '@/utils/navigateViewTransition';
 
 function supplyChainStageLabel(stage: string, t: (key: string) => string): string {
   const key = stage.trim().toLowerCase().replace(/[\s-]+/g, '_');
@@ -67,7 +68,12 @@ function ThumbnailButton({
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const location = useLocation();
+  const { pathname } = location;
+  const impactHeroPreview =
+    typeof location.state === 'object' && location.state != null && 'impactHeroPreview' in location.state
+      ? String((location.state as { impactHeroPreview?: string }).impactHeroPreview ?? '').trim()
+      : '';
   const isImpactProductDetail = Boolean(
     matchPath({ path: '/impact/shop/:id', end: true }, pathname)
   );
@@ -102,20 +108,33 @@ export default function ProductDetail() {
 
   const timelineRecords: SupplyChainTimelineRecord[] = useMemo(
     () =>
-      supplyChainRaw.map((r, i) => ({
-        id: Number(r.id) || i + 1,
-        stage: r.stage,
-        description: r.description,
-        location: r.location,
-        date: r.timestamp ? r.timestamp.split('T')[0] : '',
-        verified: r.certified ?? false,
-        partnerName: r.artisan?.name ?? r.productName ?? '',
-        carbonFootprint: r.carbon_kg,
-        carbon_kg: r.carbon_kg,
-        carbon_note: r.carbon_note,
-        latitude: r.latitude,
-        longitude: r.longitude,
-      })),
+      supplyChainRaw.map((r, i) => {
+        const rawGallery = (r as { gallery?: unknown }).gallery;
+        const gallery: TraceMediaItem[] = Array.isArray(rawGallery)
+          ? rawGallery
+              .map((x: { type?: string; url?: string; caption?: string }) => ({
+                type: x?.type === 'video' ? ('video' as const) : ('image' as const),
+                url: String(x?.url ?? '').trim(),
+                caption: x?.caption != null ? String(x.caption) : undefined,
+              }))
+              .filter((x) => x.url)
+          : [];
+        return {
+          id: Number(r.id) || i + 1,
+          stage: r.stage,
+          description: r.description,
+          location: r.location,
+          date: r.timestamp ? r.timestamp.split('T')[0] : '',
+          verified: r.certified ?? false,
+          partnerName: r.artisan?.name ?? r.productName ?? '',
+          carbonFootprint: r.carbon_kg,
+          carbon_kg: r.carbon_kg,
+          carbon_note: r.carbon_note,
+          latitude: r.latitude,
+          longitude: r.longitude,
+          gallery,
+        };
+      }),
     [supplyChainRaw]
   );
 
@@ -171,6 +190,14 @@ export default function ProductDetail() {
     }
   }, [product, id, isImpactProductDetail, navigate]);
 
+  const productImages = useMemo(() => {
+    const primary = product?.image_url?.trim();
+    const fromArt = linkedArtwork?.image_url?.trim();
+    if (primary) return [primary];
+    if (fromArt) return [fromArt];
+    return [];
+  }, [product?.image_url, linkedArtwork?.image_url]);
+
   const handleAddToCart = () => {
     if (!product) return;
     addItem(product, quantity, selectedSize || undefined, selectedColor || undefined);
@@ -180,7 +207,50 @@ export default function ProductDetail() {
     addedTimeoutRef.current = setTimeout(() => setAdded(false), 2000);
   };
 
+  const handleBackToImpactShopClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!isImpactProductDetail) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    const reduceMotion =
+      prefersReducedMotion ||
+      (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    if (!supportsViewTransition() || reduceMotion) return;
+    e.preventDefault();
+    navigateWithViewTransition(
+      navigate,
+      '/impact/shop',
+      {},
+      () => import('@/pages/ImpactShop')
+    );
+  };
+
   if (loading || !product) {
+    if (isImpactProductDetail && impactHeroPreview && id) {
+      return (
+        <PageWrapper>
+          <PaperTextureBackground variant="paper" className="py-20 md:py-28">
+            <SectionContainer>
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-14 md:gap-20 lg:gap-24 items-start">
+                <div className="md:col-span-6 lg:col-span-7">
+                  <motion.div initial={{ opacity: 1 }} animate={{ opacity: 1 }} transition={{ duration: 0 }}>
+                    <SepiaImageFrame
+                      src={impactHeroPreview}
+                      alt=""
+                      aspectRatio="portrait"
+                      size="full"
+                      viewTransitionName={`impact-product-${id}`}
+                      instantReveal
+                    />
+                  </motion.div>
+                </div>
+                <div className="md:col-span-5 md:col-start-8 lg:col-span-5 lg:col-start-8 md:pt-2">
+                  <p className="font-body text-sepia-mid">{t('shop.detail.loading')}</p>
+                </div>
+              </div>
+            </SectionContainer>
+          </PaperTextureBackground>
+        </PageWrapper>
+      );
+    }
     return (
       <PageWrapper>
         <PaperTextureBackground variant="paper" className="py-16 md:py-24">
@@ -192,7 +262,6 @@ export default function ProductDetail() {
     );
   }
 
-  const productImages = product.image_url ? [product.image_url] : [];
   const safeProduct = {
     name: product.name ?? '',
     description: product.description ?? '',
@@ -211,20 +280,43 @@ export default function ProductDetail() {
       {/* Product section */}
       <PaperTextureBackground variant="paper" className="py-20 md:py-28">
         <SectionContainer>
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-14 md:gap-20 lg:gap-24 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-16 lg:gap-20 items-stretch">
             {/* Images */}
-            <div className="md:col-span-6 lg:col-span-7">
+            <div className="md:col-span-6 lg:col-span-7 flex flex-col">
               <motion.div
-                initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
-                animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1 }}
-                transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                className="w-full"
+                initial={
+                  prefersReducedMotion || isImpactProductDetail ? { opacity: 1 } : { opacity: 0 }
+                }
+                animate={{ opacity: 1 }}
+                transition={
+                  isImpactProductDetail
+                    ? { duration: 0 }
+                    : { duration: 0.55, ease: [0.22, 1, 0.36, 1] }
+                }
               >
+                {productImages.length > 0 ? (
                 <SepiaImageFrame
-                  src={productImages[selectedImage]}
+                  src={productImages[selectedImage] ?? productImages[0]}
                   alt={safeProduct.name}
                   aspectRatio="portrait"
                   size="full"
+                  viewTransitionName={
+                    isImpactProductDetail && id && selectedImage === 0
+                      ? `impact-product-${id}`
+                      : undefined
+                  }
+                  instantReveal={isImpactProductDetail}
                 />
+                ) : (
+                  <div
+                    className="aspect-[3/4] w-full flex items-center justify-center border border-warm-gray/40 bg-aged-stock text-sepia-mid font-body text-caption px-6 text-center"
+                    role="img"
+                    aria-label={t('shop.detail.noImage', '暂无商品图')}
+                  >
+                    {t('shop.detail.noImage', '暂无商品图')}
+                  </div>
+                )}
               </motion.div>
               {productImages.length > 1 && (
                 <div className="flex gap-3 mt-6">
@@ -242,215 +334,257 @@ export default function ProductDetail() {
               )}
             </div>
 
-            {/* Details — editorial hierarchy: story first, commerce grouped */}
-            <div className="md:col-span-5 md:col-start-8 lg:col-span-5 lg:col-start-8 md:pt-2">
-              <header className="space-y-5 mb-10">
-                <p className="font-body text-[10px] md:text-[11px] tracking-[0.38em] uppercase text-sepia-mid">
-                  {safeProduct.category}
-                </p>
-                <h1 className="font-display text-[clamp(1.65rem,3.2vw,2.65rem)] text-ink font-semibold leading-[1.06] tracking-[-0.025em]">
-                  {safeProduct.name}
-                </h1>
-              </header>
-
-              <p className="font-body text-lg md:text-xl text-ink/90 tabular-nums tracking-tight mb-8">
-                <span className="text-sepia-mid text-sm font-normal tracking-[0.2em] uppercase mr-2">
-                  {safeProduct.currency}
-                </span>
-                {Number(safeProduct.price).toFixed(2)}
-              </p>
-
-              <div className="max-w-[28rem] mb-12">
-                <p className="font-body text-body-sm text-ink-faded leading-[1.9]">
-                  {safeProduct.description}
-                </p>
-              </div>
-
-              {linkedArtwork && (
-                <div className="mb-12 px-5 py-4 border border-warm-gray/20 bg-paper/40 shadow-[0_1px_0_rgba(26,26,22,0.04)]">
-                  <p className="font-body text-[10px] tracking-[0.22em] uppercase text-sepia-mid mb-2">
-                    {t('shop.detail.artwork')}
-                  </p>
-                  <p className="font-display text-base text-ink leading-snug">
-                    {linkedArtwork.artist_name || linkedArtwork.title}
-                  </p>
-                  {linkedArtwork.artist_name &&
-                    linkedArtwork.title &&
-                    linkedArtwork.artist_name !== linkedArtwork.title && (
-                      <p className="font-body text-caption text-ink-faded mt-1.5">{linkedArtwork.title}</p>
-                    )}
-                </div>
-              )}
-
-              <div className="pt-10 border-t border-warm-gray/15 space-y-10">
-                {safeProduct.sizes && safeProduct.sizes.length > 0 && (
-                  <div>
-                    <p className="font-body text-[10px] tracking-[0.22em] uppercase text-sepia-mid mb-4">
-                      {t('shop.detail.size', 'Size')}
+            {/* Details — 桌面端与左栏等高；叙事在上，购买区 mt-auto 贴底 */}
+            <div className="md:col-span-5 md:col-start-8 lg:col-span-5 lg:col-start-8 flex flex-col md:h-full md:min-h-0">
+              <div className="flex flex-col md:flex-1 md:min-h-0 md:h-full">
+                <div className="space-y-7 md:space-y-9">
+                  <header className="space-y-4">
+                    <p className="font-body text-[10px] md:text-[11px] tracking-[0.38em] uppercase text-sepia-mid">
+                      {safeProduct.category}
                     </p>
-                    <div className="flex flex-wrap gap-2">
-                      {safeProduct.sizes.map((size) => (
-                        <button
-                          key={size}
-                          type="button"
-                          onClick={() => setSelectedSize(selectedSize === size ? '' : size)}
-                          className={`
+                    <h1 className="font-display text-[clamp(1.85rem,3.6vw,2.85rem)] text-ink font-semibold leading-[1.05] tracking-[-0.03em]">
+                      {safeProduct.name}
+                    </h1>
+                  </header>
+
+                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <span className="font-body text-[10px] tracking-[0.28em] uppercase text-sepia-mid">
+                      {t('shop.detail.priceLabel', '价格')}
+                    </span>
+                    <p className="font-display text-[clamp(1.85rem,3.5vw,2.5rem)] text-ink tabular-nums tracking-tight">
+                      <span className="text-sepia-mid text-sm md:text-base font-body font-normal tracking-[0.18em] uppercase mr-2">
+                        {safeProduct.currency}
+                      </span>
+                      {Number(safeProduct.price).toFixed(2)}
+                    </p>
+                  </div>
+
+                  {safeProduct.description.trim() && (
+                    <div className="relative max-w-[32rem] pl-5 border-l-[3px] border-sage/40">
+                      <p className="font-body text-base md:text-[1.0625rem] text-ink/92 leading-[1.78]">
+                        {safeProduct.description}
+                      </p>
+                    </div>
+                  )}
+
+                  {linkedArtwork && (
+                    <div className="rounded-sm border border-warm-gray/22 bg-gradient-to-br from-paper/90 to-aged-stock/50 px-5 py-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.45),0_12px_36px_-24px_rgba(26,26,22,0.14)]">
+                      <p className="font-body text-[10px] tracking-[0.24em] uppercase text-sepia-mid mb-3">
+                        {t('shop.detail.artwork')}
+                      </p>
+                      <p className="font-display text-lg md:text-xl text-ink leading-snug tracking-tight">
+                        {linkedArtwork.artist_name || linkedArtwork.title}
+                      </p>
+                      {linkedArtwork.artist_name &&
+                        linkedArtwork.title &&
+                        linkedArtwork.artist_name !== linkedArtwork.title && (
+                          <p className="font-body text-body-sm text-ink-faded/90 mt-2 leading-relaxed">
+                            {linkedArtwork.title}
+                          </p>
+                        )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-10 md:mt-auto pt-10 md:pt-12 border-t border-warm-gray/18 space-y-9">
+                  {safeProduct.sizes && safeProduct.sizes.length > 0 && (
+                    <div>
+                      <p className="font-body text-[10px] tracking-[0.22em] uppercase text-sepia-mid mb-4">
+                        {t('shop.detail.size', 'Size')}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {safeProduct.sizes.map((size) => (
+                          <button
+                            key={size}
+                            type="button"
+                            onClick={() => setSelectedSize(selectedSize === size ? '' : size)}
+                            className={`
                           min-w-[44px] h-10 px-3 font-mono text-xs flex items-center justify-center transition-colors duration-300 cursor-pointer
                           ${selectedSize === size
                             ? 'bg-ink text-paper border border-ink'
                             : 'bg-transparent text-ink border border-warm-gray/25 hover:border-warm-gray/50'
                           }
                         `}
-                        >
-                          {size}
-                        </button>
-                      ))}
+                          >
+                            {size}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {safeProduct.colors && safeProduct.colors.length > 0 && (
-                  <div>
-                    <p className="font-body text-[10px] tracking-[0.22em] uppercase text-sepia-mid mb-4">
-                      {t('shop.detail.color', 'Color')}
-                      {selectedColor && (
-                        <span className="text-ink ml-2 normal-case tracking-normal font-body text-caption">
-                          {selectedColor}
-                        </span>
-                      )}
-                    </p>
-                    <div className="flex flex-wrap gap-3">
-                      {safeProduct.colors.map((color) => (
-                        <button
-                          key={color.name}
-                          type="button"
-                          onClick={() => setSelectedColor(selectedColor === color.name ? '' : color.name)}
-                          className={`
+                  {safeProduct.colors && safeProduct.colors.length > 0 && (
+                    <div>
+                      <p className="font-body text-[10px] tracking-[0.22em] uppercase text-sepia-mid mb-4">
+                        {t('shop.detail.color', 'Color')}
+                        {selectedColor && (
+                          <span className="text-ink ml-2 normal-case tracking-normal font-body text-caption">
+                            {selectedColor}
+                          </span>
+                        )}
+                      </p>
+                      <div className="flex flex-wrap gap-3">
+                        {safeProduct.colors.map((color) => (
+                          <button
+                            key={color.name}
+                            type="button"
+                            onClick={() => setSelectedColor(selectedColor === color.name ? '' : color.name)}
+                            className={`
                           w-9 h-9 rounded-full border transition-colors duration-300 cursor-pointer
                           ${selectedColor === color.name
                             ? 'border-ink ring-1 ring-ink/25 ring-offset-2 ring-offset-paper'
                             : 'border-warm-gray/25 hover:border-warm-gray/50'
                           }
                         `}
-                          style={{ backgroundColor: color.hex }}
-                          aria-label={color.name}
-                          title={color.name}
-                        />
-                      ))}
+                            style={{ backgroundColor: color.hex }}
+                            aria-label={color.name}
+                            title={color.name}
+                          />
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                <div>
-                  <p className="font-body text-[10px] tracking-[0.22em] uppercase text-sepia-mid mb-3">
-                    {t('shop.detail.sustainability')}
-                  </p>
-                  <div className="flex items-center gap-3">
-                    <div className="flex gap-1">
+                  <div className="rounded-sm border border-warm-gray/18 bg-paper/35 px-4 py-4 md:px-5 md:py-5">
+                    <div className="flex flex-wrap items-end justify-between gap-3 mb-3">
+                      <p className="font-body text-[10px] tracking-[0.22em] uppercase text-sepia-mid">
+                        {t('shop.detail.sustainability')}
+                      </p>
+                      <p className="font-display text-3xl md:text-4xl text-ink tabular-nums leading-none tracking-tight">
+                        {safeProduct.sustainabilityScore}
+                        <span className="font-body text-sm text-sepia-mid/80 font-normal">/100</span>
+                      </p>
+                    </div>
+                    <div
+                      className="h-1.5 w-full rounded-full bg-warm-gray/25 overflow-hidden"
+                      role="presentation"
+                    >
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-sage/70 to-sage transition-[width] duration-500 ease-out"
+                        style={{ width: `${Math.min(100, Math.max(0, safeProduct.sustainabilityScore))}%` }}
+                      />
+                    </div>
+                    <div className="flex gap-1.5 mt-3" aria-hidden="true">
                       {[1, 2, 3, 4, 5].map((level) => (
                         <div
                           key={level}
-                          className={`w-3.5 h-3.5 rounded-[2px] ${
-                            level <= safeProduct.sustainabilityScore / 20
-                              ? 'bg-sage/85'
-                              : 'bg-warm-gray/30'
+                          className={`h-1 flex-1 rounded-sm ${
+                            level <= safeProduct.sustainabilityScore / 20 ? 'bg-sage/55' : 'bg-warm-gray/22'
                           }`}
                         />
                       ))}
                     </div>
-                    <span className="font-mono text-[11px] text-sepia-mid tabular-nums">
-                      {safeProduct.sustainabilityScore}
-                      <span className="text-sepia-mid/70">/100</span>
-                    </span>
                   </div>
-                </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4 pt-2">
-                  <label className="font-body text-[10px] tracking-[0.22em] uppercase text-sepia-mid sm:min-w-[5rem]">
-                    {t('shop.detail.quantity')}
-                  </label>
-                  <div className="inline-flex items-center border border-warm-gray/25 bg-paper/30">
-                    <button
-                      type="button"
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      aria-label={t('cart.decreaseQuantity', 'Decrease quantity')}
-                      className="min-w-[44px] min-h-[44px] px-3 py-2 text-ink hover:bg-warm-gray/15 transition-colors duration-300 cursor-pointer"
-                    >
-                      −
-                    </button>
-                    <span className="font-mono text-sm px-5 py-2 text-ink tabular-nums" aria-live="polite">
-                      {quantity}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setQuantity(quantity + 1)}
-                      aria-label={t('cart.increaseQuantity', 'Increase quantity')}
-                      className="min-w-[44px] min-h-[44px] px-3 py-2 text-ink hover:bg-warm-gray/15 transition-colors duration-300 cursor-pointer"
-                    >
-                      +
-                    </button>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                    <label className="font-body text-[10px] tracking-[0.22em] uppercase text-sepia-mid sm:min-w-[5rem]">
+                      {t('shop.detail.quantity')}
+                    </label>
+                    <div className="inline-flex items-center border border-warm-gray/25 bg-paper/30">
+                      <button
+                        type="button"
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        aria-label={t('cart.decreaseQuantity', 'Decrease quantity')}
+                        className="min-w-[44px] min-h-[44px] px-3 py-2 text-ink hover:bg-warm-gray/15 transition-colors duration-300 cursor-pointer"
+                      >
+                        −
+                      </button>
+                      <span className="font-mono text-sm px-5 py-2 text-ink tabular-nums" aria-live="polite">
+                        {quantity}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setQuantity(quantity + 1)}
+                        aria-label={t('cart.increaseQuantity', 'Increase quantity')}
+                        className="min-w-[44px] min-h-[44px] px-3 py-2 text-ink hover:bg-warm-gray/15 transition-colors duration-300 cursor-pointer"
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
-                </div>
 
-                <motion.button
-                  type="button"
-                  whileHover={prefersReducedMotion ? undefined : { y: -1 }}
-                  whileTap={prefersReducedMotion ? undefined : { y: 0 }}
-                  transition={{ type: 'spring', stiffness: 520, damping: 28 }}
-                  onClick={handleAddToCart}
-                  disabled={!safeProduct.inStock}
-                  className={`w-full font-body text-[11px] md:text-body-sm tracking-[0.2em] uppercase py-4 transition-colors duration-500 ${
-                    added
-                      ? 'bg-sage text-paper'
-                      : safeProduct.inStock
-                        ? 'bg-ink text-paper hover:bg-ink-faded cursor-pointer'
-                        : 'bg-warm-gray/50 text-ink-faded cursor-not-allowed'
-                  }`}
-                >
-                  {!safeProduct.inStock
-                    ? t('shop.card.soldOut')
-                    : added
-                      ? t('shop.detail.added') + ' \u2713'
-                      : t('shop.detail.addToCart')}
-                </motion.button>
+                  <motion.button
+                    type="button"
+                    whileHover={prefersReducedMotion ? undefined : { y: -1 }}
+                    whileTap={prefersReducedMotion ? undefined : { y: 0 }}
+                    transition={{ type: 'spring', stiffness: 520, damping: 28 }}
+                    onClick={handleAddToCart}
+                    disabled={!safeProduct.inStock}
+                    className={`w-full font-body text-[11px] md:text-body-sm tracking-[0.22em] uppercase py-4 md:py-[1.125rem] shadow-[0_14px_40px_-22px_rgba(18,17,14,0.55)] transition-colors duration-500 ${
+                      added
+                        ? 'bg-sage text-paper'
+                        : safeProduct.inStock
+                          ? 'bg-ink text-paper hover:bg-ink-faded cursor-pointer'
+                          : 'bg-warm-gray/50 text-ink-faded cursor-not-allowed'
+                    }`}
+                  >
+                    {!safeProduct.inStock
+                      ? t('shop.card.soldOut')
+                      : added
+                        ? t('shop.detail.added') + ' \u2713'
+                        : t('shop.detail.addToCart')}
+                  </motion.button>
+                </div>
               </div>
             </div>
           </div>
         </SectionContainer>
       </PaperTextureBackground>
 
-      <PaperTextureBackground variant="aged" className="overflow-visible py-12 md:py-16">
+      <PaperTextureBackground
+        variant="aged"
+        className={`overflow-visible ${
+          product.isImpactProduct && isImpactProductDetail && timelineRecords.length > 0
+            ? 'py-0'
+            : 'py-12 md:py-16'
+        }`}
+      >
         {product.isImpactProduct && isImpactProductDetail && timelineRecords.length > 0 && (
           <>
-            <div className="relative z-0 w-full px-3 sm:px-6 md:px-10">
-              <div className="mx-auto w-full max-w-[min(1920px,100%)]">
-                <TraceabilityGlobe
-                  key={currentTheme}
-                  records={timelineRecords}
-                  selectedId={globePinId}
-                  onSelect={setGlobePinId}
-                  prefersReducedMotion={Boolean(prefersReducedMotion)}
-                  getStageLabel={(stage) => supplyChainStageLabel(stage, t)}
-                />
+            {/* 全幅背景地球仪：横纵铺满视口感，不受 Paper 区块 padding / max-h 限制；时间线单独留白 */}
+            <section className="relative isolate w-full overflow-visible">
+              <div className="relative min-h-[100dvh] w-full">
+                <div className="absolute inset-0 z-0 w-[100vw] max-w-none min-h-[100dvh] left-1/2 -translate-x-1/2 pointer-events-none">
+                  <div className="pointer-events-auto relative h-full min-h-[inherit] w-full">
+                    <TraceabilityGlobe
+                      key={currentTheme}
+                      ambientBackdrop
+                      records={timelineRecords}
+                      selectedId={globePinId}
+                      onSelect={setGlobePinId}
+                      prefersReducedMotion={Boolean(prefersReducedMotion)}
+                      getStageLabel={(stage) => supplyChainStageLabel(stage, t)}
+                    />
+                  </div>
+                </div>
               </div>
+
               {globePinId != null && (
-                <p className="relative z-[5] mt-5 text-center font-body text-[10px] md:text-[11px] tracking-[0.14em] uppercase text-sepia-mid/85 max-w-md mx-auto leading-relaxed px-4">
+                <p className="relative z-[8] mt-5 text-center font-body text-[10px] md:text-[11px] tracking-[0.14em] uppercase text-sepia-mid/85 max-w-md mx-auto leading-relaxed px-4">
                   {t('shop.detail.globeDefocusHint')}
                 </p>
               )}
-            </div>
 
-            <div className="relative z-10 -mt-[min(30dvh,16rem)] bg-gradient-to-b from-transparent via-aged-stock/88 to-aged-stock pt-[min(24dvh,12rem)] pb-4 md:pb-6">
-              <SectionContainer className="!pt-0">
-                <TraceabilityTimeline records={timelineRecords} linkedFromGlobeId={globePinId} />
-              </SectionContainer>
-            </div>
+              <div className="relative z-20 -mt-[min(28dvh,15rem)] bg-gradient-to-b from-transparent via-aged-stock/90 to-aged-stock pt-[min(22dvh,11rem)] pb-12 md:pb-16">
+                <SectionContainer className="!pt-0">
+                  <TraceabilityTimeline
+                    records={timelineRecords}
+                    linkedFromGlobeId={globePinId}
+                    getStageLabel={(stage) => supplyChainStageLabel(stage, t)}
+                  />
+                </SectionContainer>
+              </div>
+            </section>
           </>
         )}
 
         {!(product.isImpactProduct && isImpactProductDetail && timelineRecords.length > 0) && (
           <SectionContainer>
-            <TraceabilityTimeline records={timelineRecords} linkedFromGlobeId={globePinId} />
+            <TraceabilityTimeline
+              records={timelineRecords}
+              linkedFromGlobeId={globePinId}
+              getStageLabel={(stage) => supplyChainStageLabel(stage, t)}
+            />
           </SectionContainer>
         )}
       </PaperTextureBackground>
@@ -540,6 +674,8 @@ export default function ProductDetail() {
       <SectionContainer className="py-10">
         <Link
           to={isImpactProductDetail ? '/impact/shop' : '/shop'}
+          onClick={handleBackToImpactShopClick}
+          onMouseEnter={isImpactProductDetail ? () => void import('@/pages/ImpactShop') : undefined}
           className="font-body text-[10px] tracking-[0.22em] uppercase text-sepia-mid hover:text-ink transition-colors duration-300 cursor-pointer"
         >
           &larr;{' '}

@@ -9,9 +9,17 @@ from app.database import get_db
 from app.models.product import Product
 from app.models.supply_chain import SupplyChainRecord
 from app.models.artwork import Artwork
-from app.schemas import ApiResponse, PaginatedResponse, ProductCreate, ProductOut, ProductUpdate, SupplyChainRecordOut
+from app.schemas import (
+    ApiResponse,
+    PaginatedResponse,
+    ProductCreate,
+    ProductOut,
+    ProductUpdate,
+    supply_chain_record_to_out,
+)
 from app.deps import require_role, get_current_user
 from app.data.default_regular_products import regular_catalog_mock_dicts
+from app.data.impact_product_images import IMPACT_PRODUCT_IMAGE_BY_NAME as _IMPACT_IMG
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
@@ -29,18 +37,39 @@ def _apply_product_filters(stmt, category: str | None, status: str | None, is_im
     return stmt
 
 
-_U = "https://images.unsplash.com"
+async def _artwork_image_fallback_map(db: AsyncSession, products: list[Product]) -> dict[int, str]:
+    """When product.image_url is empty, use linked artwork image (batch lookup)."""
+    need = {p.artwork_id for p in products if p.artwork_id and not (p.image_url and str(p.image_url).strip())}
+    if not need:
+        return {}
+    r = await db.execute(select(Artwork.id, Artwork.image_url).where(Artwork.id.in_(need)))
+    return {row[0]: row[1] for row in r.all() if row[1]}
+
+
+async def _products_to_out_dicts(db: AsyncSession, products: list[Product]) -> list[dict]:
+    fb = await _artwork_image_fallback_map(db, products)
+    out: list[dict] = []
+    for p in products:
+        d = ProductOut.model_validate(p).model_dump()
+        if not (d.get("image_url") or "").strip() and p.artwork_id:
+            u = fb.get(p.artwork_id)
+            if u:
+                d["image_url"] = u
+        out.append(d)
+    return out
+
+
 _mock_products = [
-    {"id": 1, "name": "彩虹鱼棉质 T 恤", "description": "采用有机棉面料，印有获奖作品《彩虹鱼》。每件 T 恤的收益 30% 用于乡村美育基金。", "price": "168.00", "currency": "CNY", "image_url": f"{_U}/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80", "category": "apparel", "stock": 200, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "30.00", "artwork_id": 2, "sizes": ["S", "M", "L", "XL"], "colors": [{"name": "White", "hex": "#F5F0E8"}, {"name": "Navy", "hex": "#1C2841"}, {"name": "Rust", "hex": "#8B3A2A"}], "created_at": "2025-04-01T10:00:00"},
-    {"id": 2, "name": "星星之夜帆布袋", "description": "再生帆布材质，印有《星星之夜》星空画作。环保材质，可持续时尚。", "price": "89.00", "currency": "CNY", "image_url": f"{_U}/photo-1597484662317-9bd7bdda2907?auto=format&fit=crop&w=900&q=80", "category": "accessories", "stock": 150, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "25.00", "artwork_id": 4, "created_at": "2025-04-05T10:00:00"},
-    {"id": 3, "name": "春天的花园丝巾", "description": "100% 真丝面料，孩子们的画作化为丝巾图案，每一条都是独一无二的艺术品。", "price": "258.00", "currency": "CNY", "image_url": f"{_U}/photo-1606760227091-3dd870d97f1d?auto=format&fit=crop&w=900&q=80", "category": "accessories", "stock": 80, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "30.00", "artwork_id": 1, "created_at": "2025-04-10T10:00:00"},
-    {"id": 4, "name": "妈妈的手环保笔记本", "description": "再生纸制作，封面印有《妈妈的手》。可用于记录生活中的美好瞬间。", "price": "39.00", "currency": "CNY", "image_url": f"{_U}/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=900&q=80", "category": "stationery", "stock": 500, "status": "active", "is_impact_product": True, "campaign_id": 2, "donation_percentage": "20.00", "artwork_id": 11, "created_at": "2025-04-15T10:00:00"},
-    {"id": 5, "name": "太空旅行马克杯", "description": "陶瓷马克杯，印有《太空旅行》画作。送给每个梦想家。", "price": "68.00", "currency": "CNY", "image_url": f"{_U}/photo-1577937927133-66ef06acdf18?auto=format&fit=crop&w=900&q=80", "category": "lifestyle", "stock": 120, "status": "active", "is_impact_product": True, "campaign_id": 3, "donation_percentage": "25.00", "artwork_id": 15, "created_at": "2025-04-20T10:00:00"},
-    {"id": 6, "name": "我的家帆布鞋", "description": "有机棉帆布鞋面，可降解鞋底。鞋侧印有《我的家》画作。", "price": "198.00", "currency": "CNY", "image_url": f"{_U}/photo-1560769629-975ec94e6a86?auto=format&fit=crop&w=900&q=80", "category": "footwear", "stock": 0, "status": "sold_out", "is_impact_product": True, "campaign_id": 2, "donation_percentage": "30.00", "artwork_id": 3, "sizes": ["36", "37", "38", "39", "40", "41", "42", "43"], "colors": [{"name": "White", "hex": "#F5F0E8"}, {"name": "Black", "hex": "#1A1A16"}], "created_at": "2025-04-25T10:00:00"},
-    {"id": 7, "name": "画出未来环保抱枕", "description": "再生棉填充，有机棉外套。《未来城市》画作点亮客厅角落。", "price": "128.00", "currency": "CNY", "image_url": f"{_U}/photo-1584100936595-c9d1d09786c4?auto=format&fit=crop&w=900&q=80", "category": "home", "stock": 90, "status": "active", "is_impact_product": True, "campaign_id": 3, "donation_percentage": "25.00", "artwork_id": 19, "created_at": "2025-05-01T10:00:00"},
-    {"id": 8, "name": "过年了限定礼盒", "description": "包含 T 恤、帆布袋、笔记本三件套，精美包装。限量 100 套。", "price": "368.00", "currency": "CNY", "image_url": f"{_U}/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=900&q=80", "category": "gift_box", "stock": 35, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "30.00", "artwork_id": 18, "sizes": ["S", "M", "L", "XL"], "created_at": "2025-05-05T10:00:00"},
-    {"id": 13, "name": "海豚之歌·再生纤维披肩", "description": "海洋主题儿童画作《海豚之歌》授权印花，再生聚酯与有机棉混纺，收益 28% 捐入「春天的色彩」美育项目。", "price": "198.00", "currency": "CNY", "image_url": f"{_U}/photo-1601925260368-ae2f83cf8b7f?auto=format&fit=crop&w=900&q=80", "category": "accessories", "stock": 110, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "28.00", "artwork_id": 8, "created_at": "2025-05-08T10:00:00"},
-    {"id": 14, "name": "牧羊曲·手工拼布壁挂", "description": "甘肃定西合作工坊手工缝制，图案来自《牧羊曲》画作，每件附带溯源卡，捐赠比例 22% 用于乡村儿童画材。", "price": "158.00", "currency": "CNY", "image_url": f"{_U}/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=900&q=80", "category": "home", "stock": 45, "status": "active", "is_impact_product": True, "campaign_id": 2, "donation_percentage": "22.00", "artwork_id": 20, "created_at": "2025-05-09T10:00:00"},
+    {"id": 1, "name": "彩虹鱼棉质 T 恤", "description": "采用有机棉面料，印有获奖作品《彩虹鱼》。每件 T 恤的收益 30% 用于乡村美育基金。", "price": "168.00", "currency": "CNY", "image_url": _IMPACT_IMG["彩虹鱼棉质 T 恤"], "category": "apparel", "stock": 200, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "30.00", "artwork_id": 2, "sizes": ["S", "M", "L", "XL"], "colors": [{"name": "White", "hex": "#F5F0E8"}, {"name": "Navy", "hex": "#1C2841"}, {"name": "Rust", "hex": "#8B3A2A"}], "created_at": "2025-04-01T10:00:00"},
+    {"id": 2, "name": "星星之夜帆布袋", "description": "再生帆布材质，印有《星星之夜》星空画作。环保材质，可持续时尚。", "price": "89.00", "currency": "CNY", "image_url": _IMPACT_IMG["星星之夜帆布袋"], "category": "accessories", "stock": 150, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "25.00", "artwork_id": 4, "created_at": "2025-04-05T10:00:00"},
+    {"id": 3, "name": "春天的花园丝巾", "description": "100% 真丝面料，孩子们的画作化为丝巾图案，每一条都是独一无二的艺术品。", "price": "258.00", "currency": "CNY", "image_url": _IMPACT_IMG["春天的花园丝巾"], "category": "accessories", "stock": 80, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "30.00", "artwork_id": 1, "created_at": "2025-04-10T10:00:00"},
+    {"id": 4, "name": "妈妈的手环保笔记本", "description": "再生纸制作，封面印有《妈妈的手》。可用于记录生活中的美好瞬间。", "price": "39.00", "currency": "CNY", "image_url": _IMPACT_IMG["妈妈的手环保笔记本"], "category": "stationery", "stock": 500, "status": "active", "is_impact_product": True, "campaign_id": 2, "donation_percentage": "20.00", "artwork_id": 11, "created_at": "2025-04-15T10:00:00"},
+    {"id": 5, "name": "太空旅行马克杯", "description": "陶瓷马克杯，印有《太空旅行》画作。送给每个梦想家。", "price": "68.00", "currency": "CNY", "image_url": _IMPACT_IMG["太空旅行马克杯"], "category": "lifestyle", "stock": 120, "status": "active", "is_impact_product": True, "campaign_id": 3, "donation_percentage": "25.00", "artwork_id": 15, "created_at": "2025-04-20T10:00:00"},
+    {"id": 6, "name": "我的家帆布鞋", "description": "有机棉帆布鞋面，可降解鞋底。鞋侧印有《我的家》画作。", "price": "198.00", "currency": "CNY", "image_url": _IMPACT_IMG["我的家帆布鞋"], "category": "footwear", "stock": 0, "status": "sold_out", "is_impact_product": True, "campaign_id": 2, "donation_percentage": "30.00", "artwork_id": 3, "sizes": ["36", "37", "38", "39", "40", "41", "42", "43"], "colors": [{"name": "White", "hex": "#F5F0E8"}, {"name": "Black", "hex": "#1A1A16"}], "created_at": "2025-04-25T10:00:00"},
+    {"id": 7, "name": "画出未来环保抱枕", "description": "再生棉填充，有机棉外套。《未来城市》画作点亮客厅角落。", "price": "128.00", "currency": "CNY", "image_url": _IMPACT_IMG["画出未来环保抱枕"], "category": "home", "stock": 90, "status": "active", "is_impact_product": True, "campaign_id": 3, "donation_percentage": "25.00", "artwork_id": 19, "created_at": "2025-05-01T10:00:00"},
+    {"id": 8, "name": "过年了限定礼盒", "description": "包含 T 恤、帆布袋、笔记本三件套，精美包装。限量 100 套。", "price": "368.00", "currency": "CNY", "image_url": _IMPACT_IMG["过年了限定礼盒"], "category": "gift_box", "stock": 35, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "30.00", "artwork_id": 18, "sizes": ["S", "M", "L", "XL"], "created_at": "2025-05-05T10:00:00"},
+    {"id": 13, "name": "海豚之歌·再生纤维披肩", "description": "海洋主题儿童画作《海豚之歌》授权印花，再生聚酯与有机棉混纺，收益 28% 捐入「春天的色彩」美育项目。", "price": "198.00", "currency": "CNY", "image_url": _IMPACT_IMG["海豚之歌·再生纤维披肩"], "category": "accessories", "stock": 110, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "28.00", "artwork_id": 8, "created_at": "2025-05-08T10:00:00"},
+    {"id": 14, "name": "牧羊曲·手工拼布壁挂", "description": "甘肃定西合作工坊手工缝制，图案来自《牧羊曲》画作，每件附带溯源卡，捐赠比例 22% 用于乡村儿童画材。", "price": "158.00", "currency": "CNY", "image_url": _IMPACT_IMG["牧羊曲·手工拼布壁挂"], "category": "home", "stock": 45, "status": "active", "is_impact_product": True, "campaign_id": 2, "donation_percentage": "22.00", "artwork_id": 20, "created_at": "2025-05-09T10:00:00"},
     # 常规店 SKU（id 从 20 起，避免与公益 mock id 13/14 区间重叠）
     *regular_catalog_mock_dicts(20),
 ]
@@ -72,7 +101,7 @@ async def list_products(
         result = await db.execute(stmt)
         products = result.scalars().all()
         return PaginatedResponse(
-            data=[ProductOut.model_validate(p).model_dump() for p in products],
+            data=await _products_to_out_dicts(db, list(products)),
             total=total,
             page=page,
             page_size=page_size,
@@ -131,7 +160,7 @@ async def list_featured_products(db: AsyncSession = Depends(get_db)):
         stmt = select(Product).where(Product.status == "active", Product.stock > 0).limit(8)
         result = await db.execute(stmt)
         products = result.scalars().all()
-        return ApiResponse(data=[ProductOut.model_validate(p).model_dump() for p in products])
+        return ApiResponse(data=await _products_to_out_dicts(db, list(products)))
     except HTTPException:
         raise
     except Exception:
@@ -148,7 +177,7 @@ async def get_product_supply_chain(product_id: int, db: AsyncSession = Depends(g
         stmt = select(SupplyChainRecord).where(SupplyChainRecord.product_id == product_id)
         result = await db.execute(stmt)
         records = result.scalars().all()
-        return ApiResponse(data=[SupplyChainRecordOut.model_validate(r).model_dump() for r in records])
+        return ApiResponse(data=[supply_chain_record_to_out(r).model_dump() for r in records])
     except HTTPException:
         raise
     except Exception:
@@ -212,7 +241,8 @@ async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
         product = result.scalar_one_or_none()
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
-        return ApiResponse(data=ProductOut.model_validate(product).model_dump())
+        data = (await _products_to_out_dicts(db, [product]))[0]
+        return ApiResponse(data=data)
     except HTTPException:
         raise
     except Exception:
