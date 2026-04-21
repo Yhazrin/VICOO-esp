@@ -163,6 +163,16 @@ docker compose exec backend alembic history
 docker compose exec backend alembic upgrade head
 ```
 
+### CI/CD 部署（staging / develop）
+
+为避免“代码已更新但数据库结构未更新”导致的 503，CI/CD 采用以下顺序：
+
+1. `compose-up-staging.sh --build` 强制重建并启动最新服务
+2. `python -m alembic upgrade head` 在运行中的 backend 容器内执行迁移
+3. 健康检查 `http://localhost:8000/api/v1/health`
+
+> 注意：迁移失败会直接使部署失败，不再忽略错误继续上线。
+
 ### 常用命令
 
 ```bash
