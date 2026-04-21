@@ -35,15 +35,18 @@ logging.getLogger("tonghua.auth").setLevel(_log_level)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Auto-seed demo data on first run
-    if settings.APP_ENV == "development":
+    # Auto-seed demo data：development 默认执行；production/staging 需 SEED_IF_EMPTY=true 且库中无用户时执行
+    _seed_if_empty = settings.APP_ENV == "development" or getattr(
+        settings, "SEED_IF_EMPTY", False
+    )
+    if _seed_if_empty:
         try:
             from app.models.user import User
             async with AsyncSessionLocal() as session:
                 from sqlalchemy import select
                 result = await session.execute(select(User))
                 if result.scalars().first() is None:
-                    logger.info("Seeding demo data...")
+                    logger.info("Seeding demo data (empty database)...")
                     from app.seed import seed
                     await seed()
                     logger.info("Demo data seeded successfully.")
