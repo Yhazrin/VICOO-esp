@@ -22,7 +22,3 @@ services:
   frontend:
     ports: !override
       - "127.0.0.1:9080:80"
-
-  admin:
-    ports: !override
-      - "127.0.0.1:9081:80"

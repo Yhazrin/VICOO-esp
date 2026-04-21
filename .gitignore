@@ -23,6 +23,7 @@ CHANGELOG.md
 # Build outputs
 dist/
 build/
+.local-preview-site/
 *.apk
 *.aab
 .gradle/

@@ -22,6 +22,13 @@ ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 # Skip tsc type-checking to avoid TS errors in dev code
 RUN npx vite build
 
+# ---- Admin SPA（base=/admin/）——与主站同镜像、同端口，挂在 /admin/ 路径下 ----
+WORKDIR /build-admin
+COPY admin/package.json admin/package-lock.json* ./
+RUN npm ci
+COPY admin/ .
+RUN npx vite build
+
 # ---- Stage 2: Serve with Nginx ----
 FROM nginx:alpine AS production
 
@@ -32,8 +39,9 @@ RUN rm /etc/nginx/conf.d/default.conf
 # ✅ 修复路径：从项目根目录寻找 nginx 配置
 COPY deploy/easy/nginx.conf /etc/nginx/conf.d/vicoo.conf
 
-# Copy built React app
+# Copy built React apps — 主站根路径 + 管理后台 /admin/
 COPY --from=builder /build/dist /usr/share/nginx/html
+COPY --from=builder /build-admin/dist /usr/share/nginx/html/admin
 
 # Create nginx cache directories
 RUN mkdir -p /var/cache/nginx/client_temp \
