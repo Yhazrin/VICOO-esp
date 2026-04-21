@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 # Staging / 生产式一键拉起：避免 docker-compose 1.29 在「重建」旧容器时出现 KeyError: ContainerConfig
 #（与新版 Docker Engine 镜像元数据不兼容）。策略：先 down 再 up，只创建不 recreate。
+#
+# 用法:
+#   ./compose-up-staging.sh
+#   ./compose-up-staging.sh --build
+#   VICOO_USE_HOST_NGINX=1 ./compose-up-staging.sh --build   # 宿主机 Nginx 反代到 127.0.0.1:9080（见 docker-compose.host-nginx.yml）
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -11,9 +16,16 @@ if [[ "${1:-}" == "--build" ]]; then
   WITH_BUILD=1
 fi
 
+_compose_args=()
+if [[ "${VICOO_USE_HOST_NGINX:-}" == "1" ]]; then
+  _compose_args=(-f docker-compose.yml -f docker-compose.host-nginx.yml)
+fi
+
 _compose() {
   if docker compose version >/dev/null 2>&1; then
-    docker compose "$@"
+    docker compose "${_compose_args[@]}" "$@"
+  elif ((${#_compose_args[@]} > 0)); then
+    COMPOSE_FILE=docker-compose.yml:docker-compose.host-nginx.yml docker-compose "$@"
   else
     docker-compose "$@"
   fi
