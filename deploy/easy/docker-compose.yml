@@ -139,23 +139,8 @@ services:
     #   - ../../frontend/web-react:/app
     #   - /app/node_modules  # Preserve node_modules
 
-  # ---- Admin Dashboard (React + Nginx) ----
-  admin:
-    build:
-      context: ../../
-      dockerfile: deploy/easy/admin.dockerfile
-    container_name: vicoo-admin
-    restart: unless-stopped
-    depends_on:
-      backend:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q -O- http://127.0.0.1/ | head -1 || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    networks:
-      - vicoo-net
+  # 管理后台已并入 frontend 镜像（静态资源 /usr/share/nginx/html/admin/），
+  # 不再单独起 admin 容器；独立构建见 deploy/easy/admin.dockerfile
 
 volumes:
   mysql_data:

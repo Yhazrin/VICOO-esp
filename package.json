@@ -1,4 +1,9 @@
 {
+  "scripts": {
+    "preview:9111": "node scripts/preview-local-9111.mjs",
+    "preview:9111:serve": "node scripts/preview-local-9111.mjs --no-build",
+    "docker:preview:9111": "bash scripts/docker-preview-9111.sh"
+  },
   "dependencies": {
     "border-beam": "^1.0.1"
   }

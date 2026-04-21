@@ -279,7 +279,7 @@ jobs:
   deploy-staging:
     name: 部署到Staging环境
     runs-on: ubuntu-latest
-    needs: [backend-build, frontend-build, admin-build]
+    needs: [backend-build, frontend-build]
     if: github.ref == 'refs/heads/main'
     environment:
       name: staging
