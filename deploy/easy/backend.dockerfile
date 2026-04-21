@@ -41,6 +41,6 @@ ENV PYTHONPATH=/app/backend:$PYTHONPATH
 
 # Health check
 HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=5 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost:8000/api/v1/health || exit 1
 
 ENTRYPOINT ["/entrypoint.sh"]

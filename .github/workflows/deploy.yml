@@ -338,14 +338,14 @@ jobs:
         run: |
           ssh vm "cp /home/student/vicoo/deploy/easy/.env.example /home/student/vicoo/deploy/easy/.env || true"
 
-      - name: 执行数据库迁移
-        run: |
-          ssh vm "cd /home/student/vicoo/deploy/easy && docker-compose run --rm --entrypoint 'python -m alembic upgrade head' backend || echo '迁移完成或无需迁移'"
-
       # 旧版 docker-compose 在「重建」某些容器时会 KeyError: ContainerConfig；用 down 清掉本项目容器再 up（见 deploy/easy/compose-up-staging.sh）。
       - name: 启动服务
         run: |
-          ssh vm "chmod +x /home/student/vicoo/deploy/easy/compose-up-staging.sh && /home/student/vicoo/deploy/easy/compose-up-staging.sh"
+          ssh vm "chmod +x /home/student/vicoo/deploy/easy/compose-up-staging.sh && /home/student/vicoo/deploy/easy/compose-up-staging.sh --build"
+
+      - name: 执行数据库迁移
+        run: |
+          ssh vm "cd /home/student/vicoo/deploy/easy && (docker compose exec -T backend sh -lc 'cd /app/backend && python -m alembic upgrade head' || docker-compose exec -T backend sh -lc 'cd /app/backend && python -m alembic upgrade head')"
 
       - name: 等待服务启动
         run: sleep 30
@@ -353,16 +353,16 @@ jobs:
       - name: 健康检查
         run: |
           echo "检查Backend健康状态..."
-          ssh vm "curl -sf http://localhost:8000/health || echo 'Backend健康检查失败'"
+          ssh vm "curl -fsS http://localhost:8000/api/v1/health"
           echo "检查Frontend健康状态..."
-          ssh vm "curl -sf http://localhost:80 || echo 'Frontend健康检查失败'"
+          ssh vm "curl -fsS http://localhost:80"
           echo "检查Admin健康状态..."
-          ssh vm "curl -sf http://localhost:80/admin/ || echo 'Admin健康检查失败'"
+          ssh vm "curl -fsS http://localhost:80/admin/"
 
       - name: 显示服务日志
         if: failure()
         run: |
-          ssh vm "cd /home/student/vicoo/deploy/easy && docker-compose logs --tail=50"
+          ssh vm "cd /home/student/vicoo/deploy/easy && (docker compose logs --tail=100 || docker-compose logs --tail=100)"
 
   # ==================== 开发分支快速部署 ====================
   deploy-develop:
@@ -402,6 +402,8 @@ jobs:
       - name: 部署到开发服务器
         run: |
           ssh vm "cd /home/student/vicoo && git fetch origin && git checkout develop && git reset --hard origin/develop && chmod +x deploy/easy/compose-up-staging.sh && ./deploy/easy/compose-up-staging.sh --build"
+          ssh vm "cd /home/student/vicoo/deploy/easy && (docker compose exec -T backend sh -lc 'cd /app/backend && python -m alembic upgrade head' || docker-compose exec -T backend sh -lc 'cd /app/backend && python -m alembic upgrade head')"
+          ssh vm "curl -fsS http://localhost:8000/api/v1/health"
           echo "开发环境部署完成!"
 
   # ==================== 构建通知 ====================
