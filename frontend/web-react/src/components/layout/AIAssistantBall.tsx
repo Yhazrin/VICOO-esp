@@ -20,7 +20,24 @@ export const AIAssistantBall: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [feedbackMap, setFeedbackMap] = useState<Record<string, 'idle'|'submitting'|'sent'|'escalated'>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const handleFeedback = async (messageId: string, isHelpful: boolean) => {
+    if (feedbackMap[messageId] === 'submitting') return;
+    setFeedbackMap(prev => ({ ...prev, [messageId]: 'submitting' }));
+    try {
+      const chatMessages: AIChatMessage[] = messages.map(m => ({ role: m.role as AIChatMessage['role'], content: m.content }));
+      const res = await aiAssistantApi.feedback(isHelpful, chatMessages, { impactMode, route: window.location.pathname }, isHelpful ? undefined : 'User reported not helpful');
+      if (isHelpful) {
+        setFeedbackMap(prev => ({ ...prev, [messageId]: 'sent' }));
+      } else {
+        setFeedbackMap(prev => ({ ...prev, [messageId]: res && res.escalated ? 'escalated' : 'sent' }));
+      }
+    } catch (e) {
+      setFeedbackMap(prev => ({ ...prev, [messageId]: 'sent' }));
+    }
+  };
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -92,6 +109,16 @@ export const AIAssistantBall: React.FC = () => {
                   } ${m.role === 'system' ? 'opacity-50 italic border-none bg-transparent' : ''}`}>
                     {m.content}
                   </div>
+
+                  {m.role === 'assistant' && (
+                    <div className="flex items-center gap-2 ml-2">
+                      <button onClick={() => handleFeedback(m.id, true)} aria-label="helpful" className="text-green-600">👍</button>
+                      <button onClick={() => handleFeedback(m.id, false)} aria-label="not-helpful" className="text-red-600">👎</button>
+                      {feedbackMap[m.id] === 'submitting' && <span className="text-xs ml-2">...</span>}
+                      {feedbackMap[m.id] === 'sent' && <span className="text-xs ml-2 text-green-600">已提交</span>}
+                      {feedbackMap[m.id] === 'escalated' && <span className="text-xs ml-2 text-[#8B3A2A]">已转人工</span>}
+                    </div>
+                  )}
                 </div>
               ))}
               {isLoading && (

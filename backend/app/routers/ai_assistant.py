@@ -7,13 +7,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.deps import get_optional_current_user
 from app.schemas import (
-    AIChatRequest, 
-    AIChatResponse, 
-    ApiResponse, 
-    ArtworkAnalysisRequest, 
+    AIChatRequest,
+    AIChatResponse,
+    ApiResponse,
+    ArtworkAnalysisRequest,
     ArtworkAnalysisResponse,
     ContentModerationRequest,
-    ContentModerationResponse
+    ContentModerationResponse,
+    AIFeedbackRequest,
 )
 from app.services.ai_assistant.service import AIAssistantService
 
@@ -78,3 +79,30 @@ async def moderate_content(
     ai_service = AIAssistantService(db)
     result = await ai_service.moderate_content(text=body.text)
     return ApiResponse(data=ContentModerationResponse(**result).model_dump())
+
+
+@router.post("/feedback", response_model=ApiResponse)
+async def ai_feedback(
+    body: AIFeedbackRequest,
+    current_user: dict | None = Depends(get_optional_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Record user feedback on AI assistant replies. If not helpful, escalate to contact message for follow-up."""
+    ai_service = AIAssistantService(db)
+    user_id = current_user.get("id") if current_user else None
+    try:
+        # Convert incoming messages (Pydantic models) to simple dicts for storage/processing
+        msgs = [m.model_dump() if hasattr(m, "model_dump") else dict(m) for m in body.messages]
+        res = await ai_service.record_feedback(
+            is_helpful=body.is_helpful,
+            messages=msgs,
+            metadata=getattr(body, "metadata", None),
+            user_id=user_id,
+            reason=getattr(body, "reason", None),
+        )
+        return ApiResponse(data=res)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to record AI feedback: {e}")
+        return ApiResponse(data={"escalated": False, "error": "feedback_failed"})

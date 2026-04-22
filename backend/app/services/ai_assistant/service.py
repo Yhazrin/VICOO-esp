@@ -418,4 +418,44 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
             logger.error(f"RAG retrieval failed: {e}")
             return ""
 
+    async def record_feedback(self, is_helpful: bool, messages: List[Dict[str, Any]], metadata: Optional[Dict[str, Any]] = None, user_id: Optional[int] = None, reason: Optional[str] = None) -> Dict[str, Any]:
+        """Record user feedback. If not helpful, escalate by creating a ContactMessage for follow-up.
+        Returns a dict describing whether an escalation/contact was created.
+        """
+        try:
+            if is_helpful:
+                logger.info("AI feedback helpful. user_id=%s", user_id)
+                return {"escalated": False}
+
+            # Escalate: create contact message so ops/support can follow up
+            from app.models.contact import ContactMessage
+            name = None
+            email = None
+            if metadata and isinstance(metadata, dict):
+                name = metadata.get("user_name") or metadata.get("name")
+                email = metadata.get("user_email") or metadata.get("email")
+            if not name and user_id:
+                name = f"user_{user_id}"
+            if not name:
+                name = "Anonymous"
+            if not email:
+                email = "anonymous@no-reply.local"
+
+            subject = "AI assistant feedback: reply not helpful"
+            if metadata and isinstance(metadata, dict) and metadata.get("context"):
+                subject += f" ({metadata.get('context')})"
+
+            # Compose conversation snippet (last ~8 messages)
+            conv = "\n".join([f"{m.get('role')}: {m.get('content', '')}" for m in (messages or [])[-8:]])
+            contact_message = f"User marked AI response as not helpful. Reason: {reason or 'N/A'}\n\nConversation:\n{conv}\n\nMetadata:\n{json.dumps(metadata, ensure_ascii=False)}"
+
+            contact = ContactMessage(name=name, email=email, subject=subject, message=contact_message)
+            self.db.add(contact)
+            await self.db.flush()
+            logger.info("Created contact message from AI feedback id=%s", contact.id)
+            return {"escalated": True, "contact_id": contact.id}
+        except Exception as e:
+            logger.error(f"Failed to record AI feedback: {e}")
+            return {"escalated": False, "error": str(e)}
+
     # End of class
