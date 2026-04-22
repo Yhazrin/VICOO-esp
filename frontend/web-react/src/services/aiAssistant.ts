@@ -6,8 +6,11 @@ export interface AIChatMessage {
 }
 
 export const aiAssistantApi = {
-  chat: async (messages: AIChatMessage[], context?: string): Promise<{ reply: string; model: string; source: string }> => {
-    const { data } = await api.post('/ai/chat', { messages, context });
+  chat: async (messages: AIChatMessage[], context?: string, metadata?: Record<string, any>): Promise<{ reply: string; model: string; source: string }> => {
+    const payload: Record<string, any> = { messages };
+    if (context) payload.context = context;
+    if (metadata) payload.metadata = metadata;
+    const { data } = await api.post('/ai/chat', payload);
     return data.data;
   },
 };

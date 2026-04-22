@@ -38,7 +38,8 @@ async def ai_chat(
         result = await ai_service.get_chat_completion(
             messages=messages,
             context=body.context or "general",
-            user_id=user_id
+            user_id=user_id,
+            metadata=getattr(body, 'metadata', None)
         )
         return ApiResponse(data=AIChatResponse(**result).model_dump())
     except HTTPException:

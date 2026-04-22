@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
@@ -6,6 +7,7 @@ import SectionContainer from '@/components/layout/SectionContainer';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
 
 import { aiAssistantApi, type AIChatMessage } from '@/services/aiAssistant';
+import { useUIStore } from '@/stores/uiStore';
 
 interface ChatMessage extends AIChatMessage {
   id: string;
@@ -21,6 +23,7 @@ export default function AiAssistant() {
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const { impactMode } = useUIStore();
 
   const contextOptions = [
     { value: 'general', label: t('aiAssistant.general') },
@@ -34,6 +37,29 @@ export default function AiAssistant() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // If navigated here with prefill + metadata (e.g., from product detail), auto-send the prefill message
+  const location = useLocation();
+  useEffect(() => {
+    const state = (location as unknown as any)?.state;
+    if (state?.prefill) {
+      const prefillText = String(state.prefill);
+      const userMsg: ChatMessage = { id: nextChatMsgId(), role: 'user', content: prefillText };
+      const nextMsgs: ChatMessage[] = [...messages, userMsg];
+      setMessages(nextMsgs);
+      const metadata = state.metadata ?? { impactMode };
+      (async () => {
+        try {
+          const res = await aiAssistantApi.chat(nextMsgs.map(({ id: _id, ...m }) => m) as AIChatMessage[], context, { ...metadata, route: window.location.pathname });
+          setMessages([...nextMsgs, { id: nextChatMsgId(), role: 'assistant', content: res.reply }]);
+        } catch {
+          setMessages([...nextMsgs, { id: nextChatMsgId(), role: 'assistant', content: t('aiAssistant.error', '请求失败，请稍后再试。') }]);
+        }
+      })();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
   const send = async () => {
     const text = input.trim();
     if (!text || loading) return;
@@ -43,7 +69,7 @@ export default function AiAssistant() {
     setInput('');
     setLoading(true);
     try {
-      const res = await aiAssistantApi.chat(next.map(({ id: _id, ...m }) => m) as AIChatMessage[], context);
+      const res = await aiAssistantApi.chat(next.map(({ id: _id, ...m }) => m) as AIChatMessage[], context, { impactMode, route: window.location.pathname });
       setMessages([...next, { id: nextChatMsgId(), role: 'assistant', content: res.reply }]);
     } catch {
       setMessages([
