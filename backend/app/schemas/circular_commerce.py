@@ -121,6 +121,14 @@ class AIChatResponse(BaseModel):
     source: str = Field("openai", description="openai | stub")
 
 
+class AIFeedbackRequest(BaseModel):
+    """User feedback on AI assistant replies. If is_helpful is false the backend may escalate to contact."""
+    is_helpful: bool
+    reason: Optional[str] = Field(None, max_length=1000)
+    messages: list[AIChatMessage] = Field(..., min_length=1)
+    metadata: Optional[dict] = None
+
+
 class ArtworkAnalysisRequest(BaseModel):
     image_url: str = Field(..., max_length=500)
     description: Optional[str] = Field(None, max_length=2000)
