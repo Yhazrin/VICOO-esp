@@ -98,6 +98,14 @@ export interface Product {
   campaignId?: number | null;
   /** Percentage of sale price donated to public welfare */
   donationPercentage?: number;
+  /** Origin country dictionary ID */
+  originCountryId?: number | null;
+  /** Origin region dictionary ID */
+  originRegionId?: number | null;
+  /** Product-level traceability story title */
+  traceStoryTitle?: string;
+  /** Product-level traceability story body */
+  traceStoryContent?: string;
   /** Available sizes for this product */
   sizes?: string[];
   /** Available colors for this product (name + hex) */

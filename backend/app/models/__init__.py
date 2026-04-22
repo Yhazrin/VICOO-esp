@@ -14,6 +14,8 @@ from app.models.editorial import EditorialArticle
 from app.models.address import Address
 from app.models.impact_fund import ImpactFundEntry
 from app.models.design_draft import DesignDraft
+from app.models.country import Country
+from app.models.region import Region
 
 __all__ = [
     "User",
@@ -36,4 +38,6 @@ __all__ = [
     "Address",
     "ImpactFundEntry",
     "DesignDraft",
+    "Country",
+    "Region",
 ]

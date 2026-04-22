@@ -8,6 +8,7 @@ const pathToKey: Record<string, string> = {
   donations: 'breadcrumb.donations',
   orders: 'breadcrumb.orders',
   users: 'breadcrumb.users',
+  products: 'breadcrumb.products',
   'clothing-donations': 'breadcrumb.clothingDonations',
   'after-sales': 'breadcrumb.afterSales',
   'child-audit': 'breadcrumb.childAudit',

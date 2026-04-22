@@ -1,11 +1,16 @@
 import logging
 from typing import List, Dict, Any, Optional
+import re
+import json
 import httpx
 from fastapi import HTTPException
 
 from app.config import settings
 from app.services.base import BaseService
 from app.core.audit import audit_action
+from app.models.audit import AuditLog
+from app.services.supply_chain.service import SupplyChainService
+from app.models.product import Product
 
 logger = logging.getLogger("tonghua.ai_service")
 
@@ -21,10 +26,11 @@ class AIAssistantService(BaseService):
 
     @audit_action(action="ai_chat", resource_type="ai_assistant")
     async def get_chat_completion(
-        self, 
-        messages: List[Dict[str, str]], 
+        self,
+        messages: List[Dict[str, str]],
         context: str = "general",
-        user_id: Optional[int] = None
+        user_id: Optional[int] = None,
+        metadata: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         Request AI completion with business context injection.
@@ -35,7 +41,34 @@ class AIAssistantService(BaseService):
         
         full_system_prompt = SYSTEM_PROMPT + context_hint
 
-        # 2. Check for API key
+        # 2. Lightweight tool invocation: detect explicit product/search/trace intents and fetch factual data
+        tool_output = await self._maybe_call_tools(messages, context, metadata)
+        if tool_output:
+            full_system_prompt += f"\n\n[Tool Output]\n{tool_output}\n[End Tool Output]\n\nPlease use the above factual tool output to ground your answer and cite sources."
+
+        # 2b. Retrieval-Augmented Generation (RAG) — fetch relevant snippets to ground answers for Impact/sustainability/shop contexts
+        use_rag = False
+        if metadata and isinstance(metadata, dict):
+            if metadata.get("use_rag") is True:
+                use_rag = True
+        if not use_rag:
+            if context in ("impact", "sustainability", "shop") or (metadata and metadata.get("impactMode")):
+                use_rag = True
+
+        if use_rag:
+            # extract last user message to use as retrieval query
+            last_user = ""
+            if messages:
+                for m in reversed(messages):
+                    if m.get("role") == "user":
+                        last_user = m.get("content", "").strip()
+                        break
+            if last_user:
+                rag_output = await self._retrieve_rag(last_user, context)
+                if rag_output:
+                    full_system_prompt += f"\n\n[Retrieval Results]\n{rag_output}\n[End Retrieval]\n\nPlease use the above retrieval snippets to ground your answer and cite sources."
+
+        # 3. Check for API key
         if not settings.OPENAI_API_KEY:
             logger.warning("OPENAI_API_KEY not configured. Returning simulation response.")
             return {
@@ -202,3 +235,262 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
         except Exception as e:
             logger.error(f"Failed to fetch business context for AI: {e}")
             return "[Business context unavailable]"
+
+    async def _maybe_call_tools(self, messages: List[Dict[str, str]], context: str, metadata: Optional[Dict[str, Any]] = None) -> str:
+        """Detects if a tool call is needed based on the latest user message and returns formatted tool output.
+
+        Simple, deterministic triggers are used to avoid unsafe actions. This is a lightweight "tooling" layer
+        that returns factual data (product details, supply-chain timeline, impact product search) to the LLM
+        so it can ground its responses.
+        """
+        # Prefer deterministic calls from metadata when available (e.g., product_id passed from frontend)
+        if metadata and isinstance(metadata, dict):
+            pid = metadata.get("product_id") or metadata.get("productId") or metadata.get("id")
+            if pid:
+                try:
+                    pid = int(pid)
+                    prod = await self.db.get(Product, pid)
+                    sc_service = SupplyChainService(self.db)
+                    timeline = await sc_service.get_sustainability_timeline(pid)
+
+                    out = f"Product ID: {pid}\n"
+                    if prod:
+                        out += f"Name: {prod.name}\nPrice: {prod.price} {prod.currency}\nIsImpact: {bool(prod.is_impact_product)}\n"
+                        if prod.donation_percentage:
+                            out += f"Donation Percentage: {prod.donation_percentage}%\n"
+                        if prod.description:
+                            snippet = (prod.description[:500] + '...') if len(prod.description) > 500 else prod.description
+                            out += f"Description Snippet: {snippet}\n"
+
+                    out += "\nSupply Chain Timeline:\n"
+                    for step in timeline:
+                        ts = step.get("timestamp") or "N/A"
+                        out += f"- [{ts}] {step.get('stage')} @ {step.get('location')}: {step.get('description')}"
+                        if step.get("certified"):
+                            out += " (certified)"
+                        if step.get("carbon_kg") is not None:
+                            out += f"; carbon_kg={step.get('carbon_kg')}"
+                        out += "\n"
+
+                    out += "\n(Source: supply_chain records, product table)"
+                    return out
+                except Exception as e:
+                    logger.error(f"Tool invocation by metadata failed: {e}")
+
+        last_user = ""
+        if messages:
+            for m in reversed(messages):
+                if m.get("role") == "user":
+                    last_user = m.get("content", "").strip()
+                    break
+
+        if not last_user:
+            return ""
+
+        # 1) Check for explicit product id patterns (e.g., "product id: 123", "商品id:123", "商品 123")
+        pid_patterns = [r"product\s*id[:#\s]*(\d+)", r"商品(?:id)?[:：#\s]*(\d+)", r"商品\s+(\d{2,})"]
+        for pat in pid_patterns:
+            m = re.search(pat, last_user, flags=re.IGNORECASE)
+            if m:
+                try:
+                    pid = int(m.group(1))
+                except Exception:
+                    continue
+
+                # fetch product and supply chain timeline
+                prod = await self.db.get(Product, pid)
+                sc_service = SupplyChainService(self.db)
+                timeline = await sc_service.get_sustainability_timeline(pid)
+
+                out = f"Product ID: {pid}\n"
+                if prod:
+                    out += f"Name: {prod.name}\nPrice: {prod.price} {prod.currency}\nIsImpact: {bool(prod.is_impact_product)}\n"
+                    if prod.donation_percentage:
+                        out += f"Donation Percentage: {prod.donation_percentage}%\n"
+                    if prod.description:
+                        snippet = (prod.description[:500] + '...') if len(prod.description) > 500 else prod.description
+                        out += f"Description Snippet: {snippet}\n"
+
+                out += "\nSupply Chain Timeline:\n"
+                for step in timeline:
+                    ts = step.get("timestamp") or "N/A"
+                    out += f"- [{ts}] {step.get('stage')} @ {step.get('location')}: {step.get('description')}"
+                    if step.get("certified"):
+                        out += " (certified)"
+                    if step.get("carbon_kg") is not None:
+                        out += f"; carbon_kg={step.get('carbon_kg')}"
+                    out += "\n"
+
+                out += "\n(Source: supply_chain records, product table)"
+                return out
+
+        # 2) If context is shop/impact and user asked to find impact products, perform a simple keyword search
+        if context in ("shop", "impact", "sustainability") or any(k in last_user.lower() for k in ["公益", "impact", "溯源", "找", "推荐", "商品"]):
+            # pick search terms (words > 2 chars)
+            terms = [t for t in re.split(r"\W+", last_user) if len(t) > 1]
+            if terms:
+                query_text = " ".join(terms[:3])
+                # simple SQL search
+                from sqlalchemy import select
+                stmt = select(Product).where(Product.is_impact_product)
+                # apply ilike filters for each term
+                for t in terms[:3]:
+                    stmt = stmt.where((Product.name.ilike(f"%{t}%")) | (Product.description.ilike(f"%{t}%")))
+                stmt = stmt.limit(5)
+                try:
+                    res = (await self.db.execute(stmt)).scalars().all()
+                    if res:
+                        out = f"Impact product search results for query: '{query_text}'\n"
+                        for p in res:
+                            out += f"- ID:{p.id} Name:{p.name} Price:{p.price} {p.currency} Donation:{p.donation_percentage or 0}%\n"
+                        out += "\n(Source: products table)"
+                        return out
+                except Exception as e:
+                    logger.error(f"Impact product search failed: {e}")
+
+        return ""
+
+    async def _retrieve_rag(self, query: str, context: str) -> str:
+        """Lightweight retrieval over impact product descriptions, campaigns, and supply-chain records.
+        Returns a textual list of short snippets with source tags to be injected into the LLM prompt.
+        """
+        if not query or not query.strip():
+            return ""
+        try:
+            from sqlalchemy import select, or_
+            results = []
+            terms = [t for t in re.split(r"\W+", query) if len(t) > 1][:6]
+            if not terms:
+                return ""
+
+            # 1) Product search (impact products)
+            try:
+                stmt = select(Product).where(Product.is_impact_product)
+                for t in terms[:3]:
+                    stmt = stmt.where((Product.name.ilike(f"%{t}%")) | (Product.description.ilike(f"%{t}%")))
+                stmt = stmt.limit(5)
+                prods = (await self.db.execute(stmt)).scalars().all()
+                for p in prods:
+                    snippet = (p.description or "").replace("\n", " ")[:300]
+                    results.append({"source": f"product/{p.id}", "title": p.name, "text": snippet, "url": f"/impact/shop/{p.id}"})
+            except Exception as e:
+                logger.debug(f"RAG product search error: {e}")
+
+            # 2) Campaign search
+            try:
+                from app.models.campaign import Campaign
+                stmt = select(Campaign)
+                filters = []
+                for t in terms[:3]:
+                    filters.append(Campaign.title.ilike(f"%{t}%"))
+                    filters.append(Campaign.description.ilike(f"%{t}%"))
+                if filters:
+                    stmt = stmt.where(or_(*filters)).limit(3)
+                    camps = (await self.db.execute(stmt)).scalars().all()
+                    for c in camps:
+                        snippet = (c.description or "").replace("\n", " ")[:300]
+                        results.append({"source": f"campaign/{c.id}", "title": c.title, "text": snippet, "url": f"/campaigns/{c.id}"})
+            except Exception:
+                pass
+
+            # 3) Supply chain records
+            try:
+                from app.models.supply_chain import SupplyChainRecord
+                stmt = select(SupplyChainRecord)
+                filters = [SupplyChainRecord.description.ilike(f"%{t}%") for t in terms[:3]]
+                if filters:
+                    stmt = stmt.where(or_(*filters)).limit(5)
+                    recs = (await self.db.execute(stmt)).scalars().all()
+                    for r in recs:
+                        snippet = (r.description or "").replace("\n", " ")[:300]
+                        results.append({"source": f"supply_chain/{r.id}", "title": r.stage or "stage", "text": snippet, "url": f"/supply-chain/records/{r.id}"})
+            except Exception:
+                pass
+
+            if not results:
+                return ""
+
+            out = f"RAG search results for query: '{query}'\n"
+            for it in results[:8]:
+                out += f"- [source:{it['source']}] {it['title']} — {it['text']} (url:{it['url']})\n"
+            out += "\n(End of retrieval results)\n"
+            return out
+        except Exception as e:
+            logger.error(f"RAG retrieval failed: {e}")
+            return ""
+
+    async def record_feedback(self, is_helpful: bool, messages: List[Dict[str, Any]], metadata: Optional[Dict[str, Any]] = None, user_id: Optional[int] = None, reason: Optional[str] = None) -> Dict[str, Any]:
+        """Record user feedback. If not helpful, escalate by creating a ContactMessage for follow-up.
+        Returns a dict describing whether an escalation/contact was created.
+        """
+        try:
+            if is_helpful:
+                logger.info("AI feedback helpful. user_id=%s", user_id)
+                feedback_details = {
+                    "is_helpful": True,
+                    "reason": reason,
+                    "context": metadata.get("context") if isinstance(metadata, dict) else None,
+                }
+                self.db.add(
+                    AuditLog(
+                        user_id=user_id,
+                        user_name=(metadata or {}).get("user_name") if isinstance(metadata, dict) else None,
+                        action="ai_feedback",
+                        resource="ai_assistant",
+                        resource_id=None,
+                        details=json.dumps(feedback_details, ensure_ascii=False),
+                    )
+                )
+                await self.db.flush()
+                return {"escalated": False}
+
+            # Escalate: create contact message so ops/support can follow up
+            from app.models.contact import ContactMessage
+            name = None
+            email = None
+            if metadata and isinstance(metadata, dict):
+                name = metadata.get("user_name") or metadata.get("name")
+                email = metadata.get("user_email") or metadata.get("email")
+            if not name and user_id:
+                name = f"user_{user_id}"
+            if not name:
+                name = "Anonymous"
+            if not email:
+                email = "anonymous@no-reply.local"
+
+            subject = "AI assistant feedback: reply not helpful"
+            if metadata and isinstance(metadata, dict) and metadata.get("context"):
+                subject += f" ({metadata.get('context')})"
+
+            # Compose conversation snippet (last ~8 messages)
+            conv = "\n".join([f"{m.get('role')}: {m.get('content', '')}" for m in (messages or [])[-8:]])
+            contact_message = f"User marked AI response as not helpful. Reason: {reason or 'N/A'}\n\nConversation:\n{conv}\n\nMetadata:\n{json.dumps(metadata, ensure_ascii=False)}"
+
+            contact = ContactMessage(name=name, email=email, subject=subject, message=contact_message)
+            self.db.add(contact)
+            await self.db.flush()
+
+            feedback_details = {
+                "is_helpful": False,
+                "reason": reason,
+                "context": metadata.get("context") if isinstance(metadata, dict) else None,
+                "contact_id": contact.id,
+            }
+            self.db.add(
+                AuditLog(
+                    user_id=user_id,
+                    user_name=name,
+                    action="ai_feedback",
+                    resource="ai_assistant",
+                    resource_id=str(contact.id),
+                    details=json.dumps(feedback_details, ensure_ascii=False),
+                )
+            )
+            await self.db.flush()
+            logger.info("Created contact message from AI feedback id=%s", contact.id)
+            return {"escalated": True, "contact_id": contact.id}
+        except Exception as e:
+            logger.error(f"Failed to record AI feedback: {e}")
+            return {"escalated": False, "error": str(e)}
+
+    # End of class

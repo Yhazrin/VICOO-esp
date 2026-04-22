@@ -273,7 +273,10 @@ export default function ProductDetail() {
     image_url: product.image_url ?? '',
     sizes: product.sizes ?? undefined,
     colors: product.colors ?? undefined,
+    traceStoryTitle: (product.traceStoryTitle ?? '').trim(),
+    traceStoryContent: (product.traceStoryContent ?? '').trim(),
   };
+  const hasTraceStory = Boolean(safeProduct.traceStoryTitle || safeProduct.traceStoryContent);
 
   return (
     <PageWrapper>
@@ -382,6 +385,24 @@ export default function ProductDetail() {
                             {linkedArtwork.title}
                           </p>
                         )}
+                    </div>
+                  )}
+
+                  {hasTraceStory && (
+                    <div className="rounded-sm border border-warm-gray/20 bg-aged-stock/30 px-5 py-5 md:px-6 md:py-6">
+                      <p className="font-body text-[10px] tracking-[0.24em] uppercase text-sepia-mid mb-3">
+                        {t('shop.detail.traceStory', '溯源故事')}
+                      </p>
+                      {safeProduct.traceStoryTitle && (
+                        <p className="font-display text-xl md:text-2xl text-ink leading-snug tracking-tight mb-2">
+                          {safeProduct.traceStoryTitle}
+                        </p>
+                      )}
+                      {safeProduct.traceStoryContent && (
+                        <p className="font-body text-body-sm md:text-body text-ink-faded leading-[1.85] whitespace-pre-wrap">
+                          {safeProduct.traceStoryContent}
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
@@ -503,28 +524,38 @@ export default function ProductDetail() {
                     </div>
                   </div>
 
-                  <motion.button
-                    type="button"
-                    whileHover={prefersReducedMotion ? undefined : { y: -1 }}
-                    whileTap={prefersReducedMotion ? undefined : { y: 0 }}
-                    transition={{ type: 'spring', stiffness: 520, damping: 28 }}
-                    onClick={handleAddToCart}
-                    disabled={!safeProduct.inStock}
-                    className={`w-full font-body text-[11px] md:text-body-sm tracking-[0.22em] uppercase py-4 md:py-[1.125rem] shadow-[0_14px_40px_-22px_rgba(18,17,14,0.55)] transition-colors duration-500 ${
-                      added
-                        ? 'bg-sage text-paper'
-                        : safeProduct.inStock
-                          ? 'bg-ink text-paper hover:bg-ink-faded cursor-pointer'
-                          : 'bg-warm-gray/50 text-ink-faded cursor-not-allowed'
-                    }`}
-                  >
-                    {!safeProduct.inStock
-                      ? t('shop.card.soldOut')
-                      : added
-                        ? t('shop.detail.added') + ' \u2713'
-                        : t('shop.detail.addToCart')}
-                  </motion.button>
-                </div>
+                    <div className="w-full sm:w-auto flex gap-3">
+                      <motion.button
+                        type="button"
+                        whileHover={prefersReducedMotion ? undefined : { y: -1 }}
+                        whileTap={prefersReducedMotion ? undefined : { y: 0 }}
+                        transition={{ type: 'spring', stiffness: 520, damping: 28 }}
+                        onClick={handleAddToCart}
+                        disabled={!safeProduct.inStock}
+                        className={`flex-1 sm:flex-none font-body text-[11px] md:text-body-sm tracking-[0.22em] uppercase py-4 md:py-[1.125rem] shadow-[0_14px_40px_-22px_rgba(18,17,14,0.55)] transition-colors duration-500 ${
+                          added
+                            ? 'bg-sage text-paper'
+                            : safeProduct.inStock
+                              ? 'bg-ink text-paper hover:bg-ink-faded cursor-pointer'
+                              : 'bg-warm-gray/50 text-ink-faded cursor-not-allowed'
+                        }`}
+                      >
+                        {!safeProduct.inStock
+                          ? t('shop.card.soldOut')
+                          : added
+                            ? t('shop.detail.added') + ' \u2713'
+                            : t('shop.detail.addToCart')}
+                      </motion.button>
+
+                      <Link
+                        to="/assistant"
+                        state={{ metadata: { product_id: Number(id), impactMode: product.isImpactProduct }, prefill: `请介绍这件商品的溯源和公益影响。商品ID: ${id}` }}
+                        className="flex-1 sm:flex-none inline-flex items-center justify-center border border-warm-gray/25 bg-paper px-4 py-3 text-ink text-[11px] tracking-[0.12em] uppercase hover:bg-aged-stock transition-colors"
+                      >
+                        {t('aiAssistant.askAboutProduct', '问 AI 关于这件商品')}
+                      </Link>
+                    </div>
+                  </div>
               </div>
             </div>
           </div>

@@ -44,6 +44,25 @@ async def dashboard(
             raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         return ApiResponse(data={"total_users": 0, "pending_artworks": 0})
 
+
+@router.get("/analytics/ai", response_model=ApiResponse)
+async def ai_analytics(
+    db: AsyncSession = Depends(get_db),
+    _current_user: dict = Depends(require_role("admin", "editor")),
+):
+    """Get AI rollout metrics for quality gates and handoff tracking."""
+    admin_service = AdminService(db)
+    try:
+        stats = await admin_service.get_ai_rollout_metrics()
+        return ApiResponse(data=stats)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"AI analytics failed: {e}")
+        if not settings.DEMO_MODE:
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+        return ApiResponse(data={"chat_count": 0, "feedback_total": 0, "handoff_count": 0})
+
 @router.post("/artworks/batch-moderate", response_model=ApiResponse)
 async def batch_moderate_artworks(
     artwork_ids: List[int],

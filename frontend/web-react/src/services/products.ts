@@ -111,6 +111,10 @@ function normalizeProduct(raw: any): Product {
     campaignId: raw?.campaign_id ?? raw?.campaignId ?? null,
     artworkId: raw?.artwork_id ?? raw?.artworkId ?? undefined,
     donationPercentage: raw?.donation_percentage != null ? Number(raw.donation_percentage) : (raw?.donationPercentage != null ? Number(raw.donationPercentage) : undefined),
+    originCountryId: raw?.origin_country_id ?? raw?.originCountryId ?? null,
+    originRegionId: raw?.origin_region_id ?? raw?.originRegionId ?? null,
+    traceStoryTitle: raw?.trace_story_title ?? raw?.traceStoryTitle ?? '',
+    traceStoryContent: raw?.trace_story_content ?? raw?.traceStoryContent ?? '',
     sizes: raw?.sizes ?? undefined,
     colors: raw?.colors ?? undefined,
   };
