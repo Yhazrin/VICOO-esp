@@ -578,7 +578,7 @@ export default function ProductDetail() {
                 <div className="absolute inset-0 z-0 w-[100vw] max-w-none min-h-[100dvh] left-1/2 -translate-x-1/2 pointer-events-none">
                   <div className="pointer-events-auto relative h-full min-h-[inherit] w-full">
                     <TraceabilityGlobe
-                      key={currentTheme}
+                      themeKey={currentTheme}
                       ambientBackdrop
                       records={timelineRecords}
                       selectedId={globePinId}

@@ -1,6 +1,7 @@
 import { Outlet, useMatch, useLocation } from 'react-router-dom';
 import { useEffect, useLayoutEffect } from 'react';
 import Header from './Header';
+import ImpactWelfareGlobeLayer from './ImpactWelfareGlobeLayer';
 import EditorialFooter from './EditorialFooter';
 import MobileNav from './MobileNav';
 import KeyedRouteContent from '../transitions/KeyedRouteContent';
@@ -33,19 +34,23 @@ export default function Layout() {
   /** 仅在首页 `/` 且开启公益壳时用 tab 内容；`/shop`、`/about` 等必须走 `<Outlet />`，否则常规店被挡住 */
   const renderImpactShell = impactMode && location.pathname === '/';
   const mainContent = renderImpactShell ? <ImpactContent /> : <Outlet />;
+
+  useEffect(() => {
+    if (!renderImpactShell) return;
+    void import('@/components/scroll/SupplyChainGlobe');
+    void import('@/data/world-land-110m.json');
+  }, [renderImpactShell]);
   /**
-   * 公益商店列表与详情共用同一 key，避免 `/` 公益 tab 商店 → `/impact/shop/:id` 时整棵主内容被卸载，
-   * 否则 View Transitions 的共享元素无法正确衔接。
-   * 其它公益 tab 仍按 tab 区分 key 以便切换时刷新。
+   * 与「公司」下整站共用 `company-outlet`：在**同一 URL `/`** 上切换优衣库与公益时不再更换外层 key。
+   * 若仍用 `company-outlet`↔`impact-${tab}`，KeyedRouteContent 会多卸一屏，与 Outlet↔ImpactContent 子树切换叠加，主线程/双 WebGL 冷启动会明显更卡。
+   * tab 子页面刷新由 `ImpactContent` 内部 `switch` 完成，外无需再包一层 `impact-${tab}`。
+   *
+   * 公益商店：列表与详情共用 `impact-shop-route`（与既有 View Transitions 设计一致）。
    */
   const impactShopUnifiedKey =
     location.pathname.startsWith('/impact/shop') ||
     (renderImpactShell && activeImpactTab === 'shop');
-  const mountKey = impactShopUnifiedKey
-    ? 'impact-shop-route'
-    : renderImpactShell
-      ? `impact-${activeImpactTab}`
-      : 'company-outlet';
+  const mountKey: string = impactShopUnifiedKey ? 'impact-shop-route' : 'company-outlet';
 
   useEffect(() => {
     if (isImpactShopRoute) {
@@ -74,10 +79,13 @@ export default function Layout() {
       </a>
       <Header />
       <MobileNav />
-      <main id="main-content" className="flex-1 pt-[4.25rem] md:pt-24">
-        <KeyedRouteContent mountKey={mountKey}>
-          {mainContent}
-        </KeyedRouteContent>
+      <main id="main-content" className="relative flex-1 pt-[4.25rem] md:pt-24">
+        {renderImpactShell && <ImpactWelfareGlobeLayer />}
+        <div className="relative z-10 min-h-0">
+          <KeyedRouteContent mountKey={mountKey}>
+            {mainContent}
+          </KeyedRouteContent>
+        </div>
       </main>
       <EditorialFooter />
       <GrainOverlay />
