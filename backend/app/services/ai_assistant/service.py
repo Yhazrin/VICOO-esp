@@ -45,6 +45,28 @@ class AIAssistantService(BaseService):
         if tool_output:
             full_system_prompt += f"\n\n[Tool Output]\n{tool_output}\n[End Tool Output]\n\nPlease use the above factual tool output to ground your answer and cite sources."
 
+        # 2b. Retrieval-Augmented Generation (RAG) — fetch relevant snippets to ground answers for Impact/sustainability/shop contexts
+        use_rag = False
+        if metadata and isinstance(metadata, dict):
+            if metadata.get("use_rag") is True:
+                use_rag = True
+        if not use_rag:
+            if context in ("impact", "sustainability", "shop") or (metadata and metadata.get("impactMode")):
+                use_rag = True
+
+        if use_rag:
+            # extract last user message to use as retrieval query
+            last_user = ""
+            if messages:
+                for m in reversed(messages):
+                    if m.get("role") == "user":
+                        last_user = m.get("content", "").strip()
+                        break
+            if last_user:
+                rag_output = await self._retrieve_rag(last_user, context)
+                if rag_output:
+                    full_system_prompt += f"\n\n[Retrieval Results]\n{rag_output}\n[End Retrieval]\n\nPlease use the above retrieval snippets to ground your answer and cite sources."
+
         # 3. Check for API key
         if not settings.OPENAI_API_KEY:
             logger.warning("OPENAI_API_KEY not configured. Returning simulation response.")
@@ -326,5 +348,74 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                     logger.error(f"Impact product search failed: {e}")
 
         return ""
+
+    async def _retrieve_rag(self, query: str, context: str) -> str:
+        """Lightweight retrieval over impact product descriptions, campaigns, and supply-chain records.
+        Returns a textual list of short snippets with source tags to be injected into the LLM prompt.
+        """
+        if not query or not query.strip():
+            return ""
+        try:
+            from sqlalchemy import select, or_
+            results = []
+            terms = [t for t in re.split(r"\W+", query) if len(t) > 1][:6]
+            if not terms:
+                return ""
+
+            # 1) Product search (impact products)
+            try:
+                stmt = select(Product).where(Product.is_impact_product == True)
+                for t in terms[:3]:
+                    stmt = stmt.where((Product.name.ilike(f"%{t}%")) | (Product.description.ilike(f"%{t}%")))
+                stmt = stmt.limit(5)
+                prods = (await self.db.execute(stmt)).scalars().all()
+                for p in prods:
+                    snippet = (p.description or "").replace("\n", " ")[:300]
+                    results.append({"source": f"product/{p.id}", "title": p.name, "text": snippet, "url": f"/impact/shop/{p.id}"})
+            except Exception as e:
+                logger.debug(f"RAG product search error: {e}")
+
+            # 2) Campaign search
+            try:
+                from app.models.campaign import Campaign
+                stmt = select(Campaign)
+                filters = []
+                for t in terms[:3]:
+                    filters.append(Campaign.title.ilike(f"%{t}%"))
+                    filters.append(Campaign.description.ilike(f"%{t}%"))
+                if filters:
+                    stmt = stmt.where(or_(*filters)).limit(3)
+                    camps = (await self.db.execute(stmt)).scalars().all()
+                    for c in camps:
+                        snippet = (c.description or "").replace("\n", " ")[:300]
+                        results.append({"source": f"campaign/{c.id}", "title": c.title, "text": snippet, "url": f"/campaigns/{c.id}"})
+            except Exception:
+                pass
+
+            # 3) Supply chain records
+            try:
+                from app.models.supply_chain import SupplyChainRecord
+                stmt = select(SupplyChainRecord)
+                filters = [SupplyChainRecord.description.ilike(f"%{t}%") for t in terms[:3]]
+                if filters:
+                    stmt = stmt.where(or_(*filters)).limit(5)
+                    recs = (await self.db.execute(stmt)).scalars().all()
+                    for r in recs:
+                        snippet = (r.description or "").replace("\n", " ")[:300]
+                        results.append({"source": f"supply_chain/{r.id}", "title": r.stage or "stage", "text": snippet, "url": f"/supply-chain/records/{r.id}"})
+            except Exception:
+                pass
+
+            if not results:
+                return ""
+
+            out = f"RAG search results for query: '{query}'\n"
+            for it in results[:8]:
+                out += f"- [source:{it['source']}] {it['title']} — {it['text']} (url:{it['url']})\n"
+            out += "\n(End of retrieval results)\n"
+            return out
+        except Exception as e:
+            logger.error(f"RAG retrieval failed: {e}")
+            return ""
 
     # End of class

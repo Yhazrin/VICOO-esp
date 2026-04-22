@@ -39,6 +39,9 @@ EXPOSE 8000
 
 ENV PYTHONPATH=/app/backend:$PYTHONPATH
 
+# Default command (used by containers if entrypoint doesn't override)
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
 # Health check
 HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=5 \
     CMD curl -f http://localhost:8000/api/v1/health || exit 1
