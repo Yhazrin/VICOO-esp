@@ -332,7 +332,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                 query_text = " ".join(terms[:3])
                 # simple SQL search
                 from sqlalchemy import select
-                stmt = select(Product).where(Product.is_impact_product == True)
+                stmt = select(Product).where(Product.is_impact_product)
                 # apply ilike filters for each term
                 for t in terms[:3]:
                     stmt = stmt.where((Product.name.ilike(f"%{t}%")) | (Product.description.ilike(f"%{t}%")))
@@ -365,7 +365,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
 
             # 1) Product search (impact products)
             try:
-                stmt = select(Product).where(Product.is_impact_product == True)
+                stmt = select(Product).where(Product.is_impact_product)
                 for t in terms[:3]:
                     stmt = stmt.where((Product.name.ilike(f"%{t}%")) | (Product.description.ilike(f"%{t}%")))
                 stmt = stmt.limit(5)
