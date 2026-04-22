@@ -24,6 +24,8 @@ from app.models.supply_chain import SupplyChainRecord
 from app.models.payment import PaymentTransaction
 from app.models.audit import AuditLog
 from app.models.circular_commerce import ClothingIntake, ProductReview, AfterSaleTicket
+from app.models.country import Country
+from app.models.region import Region
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

@@ -273,7 +273,10 @@ export default function ProductDetail() {
     image_url: product.image_url ?? '',
     sizes: product.sizes ?? undefined,
     colors: product.colors ?? undefined,
+    traceStoryTitle: (product.traceStoryTitle ?? '').trim(),
+    traceStoryContent: (product.traceStoryContent ?? '').trim(),
   };
+  const hasTraceStory = Boolean(safeProduct.traceStoryTitle || safeProduct.traceStoryContent);
 
   return (
     <PageWrapper>
@@ -382,6 +385,24 @@ export default function ProductDetail() {
                             {linkedArtwork.title}
                           </p>
                         )}
+                    </div>
+                  )}
+
+                  {hasTraceStory && (
+                    <div className="rounded-sm border border-warm-gray/20 bg-aged-stock/30 px-5 py-5 md:px-6 md:py-6">
+                      <p className="font-body text-[10px] tracking-[0.24em] uppercase text-sepia-mid mb-3">
+                        {t('shop.detail.traceStory', '溯源故事')}
+                      </p>
+                      {safeProduct.traceStoryTitle && (
+                        <p className="font-display text-xl md:text-2xl text-ink leading-snug tracking-tight mb-2">
+                          {safeProduct.traceStoryTitle}
+                        </p>
+                      )}
+                      {safeProduct.traceStoryContent && (
+                        <p className="font-body text-body-sm md:text-body text-ink-faded leading-[1.85] whitespace-pre-wrap">
+                          {safeProduct.traceStoryContent}
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>

@@ -166,3 +166,39 @@ export interface SystemSettings {
   globalRateLimit: number;
   perUserRateLimit: number;
 }
+
+export interface AdminProduct {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  currency: string;
+  imageUrl?: string;
+  category?: string;
+  stock: number;
+  status: 'active' | 'inactive' | 'sold_out';
+  isImpactProduct: boolean;
+  campaignId?: string;
+  donationPercentage?: number;
+  artworkId?: string;
+  originCountryId?: string;
+  originRegionId?: string;
+  traceStoryTitle?: string;
+  traceStoryContent?: string;
+  createdAt: string;
+}
+
+export interface OriginCountry {
+  id: string;
+  code: string;
+  nameZh: string;
+  nameEn: string;
+}
+
+export interface OriginRegion {
+  id: string;
+  countryId: string;
+  nameZh: string;
+  nameEn: string;
+  regionType?: string;
+}
