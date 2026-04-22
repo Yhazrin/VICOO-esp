@@ -286,13 +286,16 @@ routers = (
     addresses_router, impact_fund_router, design_drafts_router,
 )
 
-# Compat: redirect legacy /api/* requests to /api/v1/* (301)
+# Compat: rewrite legacy /api/* requests to /api/v1/* in-place (no external redirect)
 @app.middleware("http")
 async def legacy_api_redirect_middleware(request: Request, call_next):
     path = request.url.path
     if path.startswith("/api/") and not path.startswith("/api/v1/"):
-        new_url = str(request.url).replace("/api/", "/api/v1/", 1)
-        return RedirectResponse(url=new_url, status_code=301)
+        # rewrite the request path internally to avoid 301 redirects (maintain backward compatibility)
+        new_path = path.replace("/api/", "/api/v1/", 1)
+        request.scope["path"] = new_path
+        if "raw_path" in request.scope:
+            request.scope["raw_path"] = new_path.encode("utf-8")
     return await call_next(request)
 
 for router in routers:
