@@ -8,6 +8,7 @@ from fastapi import HTTPException
 from app.config import settings
 from app.services.base import BaseService
 from app.core.audit import audit_action
+from app.models.audit import AuditLog
 from app.services.supply_chain.service import SupplyChainService
 from app.models.product import Product
 
@@ -425,6 +426,22 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
         try:
             if is_helpful:
                 logger.info("AI feedback helpful. user_id=%s", user_id)
+                feedback_details = {
+                    "is_helpful": True,
+                    "reason": reason,
+                    "context": metadata.get("context") if isinstance(metadata, dict) else None,
+                }
+                self.db.add(
+                    AuditLog(
+                        user_id=user_id,
+                        user_name=(metadata or {}).get("user_name") if isinstance(metadata, dict) else None,
+                        action="ai_feedback",
+                        resource="ai_assistant",
+                        resource_id=None,
+                        details=json.dumps(feedback_details, ensure_ascii=False),
+                    )
+                )
+                await self.db.flush()
                 return {"escalated": False}
 
             # Escalate: create contact message so ops/support can follow up
@@ -451,6 +468,24 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
 
             contact = ContactMessage(name=name, email=email, subject=subject, message=contact_message)
             self.db.add(contact)
+            await self.db.flush()
+
+            feedback_details = {
+                "is_helpful": False,
+                "reason": reason,
+                "context": metadata.get("context") if isinstance(metadata, dict) else None,
+                "contact_id": contact.id,
+            }
+            self.db.add(
+                AuditLog(
+                    user_id=user_id,
+                    user_name=name,
+                    action="ai_feedback",
+                    resource="ai_assistant",
+                    resource_id=str(contact.id),
+                    details=json.dumps(feedback_details, ensure_ascii=False),
+                )
+            )
             await self.db.flush()
             logger.info("Created contact message from AI feedback id=%s", contact.id)
             return {"escalated": True, "contact_id": contact.id}

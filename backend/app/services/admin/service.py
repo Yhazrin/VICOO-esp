@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.user import User, ChildParticipant
 from app.models.artwork import Artwork
 from app.models.donation import Donation
+from app.models.contact import ContactMessage
 from app.models.order import Order
 from app.models.campaign import Campaign
 from app.services.base import BaseService
@@ -81,6 +82,50 @@ class AdminService(BaseService):
             "active_campaigns_count": active_campaigns,
             "total_users_count": total_users,
             "currency": "CNY"
+        }
+
+    async def get_ai_rollout_metrics(self) -> Dict[str, Any]:
+        """Aggregate AI rollout metrics from audit logs and contact handoffs."""
+        chat_count = (await self.db.execute(
+            select(func.count(AuditLog.id)).where(
+                AuditLog.resource == "ai_assistant",
+                AuditLog.action == "ai_chat",
+            )
+        )).scalar() or 0
+
+        feedback_total = (await self.db.execute(
+            select(func.count(AuditLog.id)).where(
+                AuditLog.resource == "ai_assistant",
+                AuditLog.action == "ai_feedback",
+            )
+        )).scalar() or 0
+
+        helpful_feedback = (await self.db.execute(
+            select(func.count(AuditLog.id)).where(
+                AuditLog.resource == "ai_assistant",
+                AuditLog.action == "ai_feedback",
+                AuditLog.details.like('%"is_helpful": true%'),
+            )
+        )).scalar() or 0
+
+        negative_feedback = max(feedback_total - helpful_feedback, 0)
+        handoff_count = (await self.db.execute(
+            select(func.count(ContactMessage.id)).where(
+                ContactMessage.subject.like("AI assistant feedback:%")
+            )
+        )).scalar() or 0
+
+        handoff_rate = round(handoff_count / feedback_total, 4) if feedback_total else 0
+        helpful_rate = round(helpful_feedback / feedback_total, 4) if feedback_total else 0
+
+        return {
+            "chat_count": chat_count,
+            "feedback_total": feedback_total,
+            "helpful_feedback": helpful_feedback,
+            "negative_feedback": negative_feedback,
+            "handoff_count": handoff_count,
+            "helpful_rate": helpful_rate,
+            "handoff_rate": handoff_rate,
         }
 
     @audit_action(action="batch_moderate_artworks", resource_type="artwork")
