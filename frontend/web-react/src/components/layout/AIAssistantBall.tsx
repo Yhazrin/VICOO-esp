@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { aiAssistantApi, type AIChatMessage } from '@/services/aiAssistant';
+import { useUIStore } from '@/stores/uiStore';
 
 interface Message {
   id: string;
@@ -14,6 +15,7 @@ const nextMsgId = () => `msg-${++_msgId}`;
 
 export const AIAssistantBall: React.FC = () => {
   const { t } = useTranslation();
+  const { impactMode } = useUIStore();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -39,7 +41,7 @@ export const AIAssistantBall: React.FC = () => {
         role: m.role as AIChatMessage['role'],
         content: m.content,
       }));
-      const result = await aiAssistantApi.chat(chatMessages, 'general');
+      const result = await aiAssistantApi.chat(chatMessages, 'general', { impactMode, route: window.location.pathname });
       const reply = result.reply || t('aiAssistant.replyError');
       setMessages(prev => [...prev, { id: nextMsgId(), role: 'assistant', content: reply }]);
     } catch {

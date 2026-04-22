@@ -112,6 +112,7 @@ class AIChatRequest(BaseModel):
         description="可选业务上下文：donation / shop / logistics / sustainability",
         max_length=64,
     )
+    metadata: Optional[dict] = Field(None, description="附加元数据：product_id, impactMode, route 等，将转发给后端工具层")
 
 
 class AIChatResponse(BaseModel):

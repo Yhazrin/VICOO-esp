@@ -1,11 +1,15 @@
 import logging
 from typing import List, Dict, Any, Optional
+import re
+import json
 import httpx
 from fastapi import HTTPException
 
 from app.config import settings
 from app.services.base import BaseService
 from app.core.audit import audit_action
+from app.services.supply_chain.service import SupplyChainService
+from app.models.product import Product
 
 logger = logging.getLogger("tonghua.ai_service")
 
@@ -21,10 +25,11 @@ class AIAssistantService(BaseService):
 
     @audit_action(action="ai_chat", resource_type="ai_assistant")
     async def get_chat_completion(
-        self, 
-        messages: List[Dict[str, str]], 
+        self,
+        messages: List[Dict[str, str]],
         context: str = "general",
-        user_id: Optional[int] = None
+        user_id: Optional[int] = None,
+        metadata: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         Request AI completion with business context injection.
@@ -35,7 +40,12 @@ class AIAssistantService(BaseService):
         
         full_system_prompt = SYSTEM_PROMPT + context_hint
 
-        # 2. Check for API key
+        # 2. Lightweight tool invocation: detect explicit product/search/trace intents and fetch factual data
+        tool_output = await self._maybe_call_tools(messages, context, metadata)
+        if tool_output:
+            full_system_prompt += f"\n\n[Tool Output]\n{tool_output}\n[End Tool Output]\n\nPlease use the above factual tool output to ground your answer and cite sources."
+
+        # 3. Check for API key
         if not settings.OPENAI_API_KEY:
             logger.warning("OPENAI_API_KEY not configured. Returning simulation response.")
             return {
@@ -202,3 +212,119 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
         except Exception as e:
             logger.error(f"Failed to fetch business context for AI: {e}")
             return "[Business context unavailable]"
+
+    async def _maybe_call_tools(self, messages: List[Dict[str, str]], context: str, metadata: Optional[Dict[str, Any]] = None) -> str:
+        """Detects if a tool call is needed based on the latest user message and returns formatted tool output.
+
+        Simple, deterministic triggers are used to avoid unsafe actions. This is a lightweight "tooling" layer
+        that returns factual data (product details, supply-chain timeline, impact product search) to the LLM
+        so it can ground its responses.
+        """
+        # Prefer deterministic calls from metadata when available (e.g., product_id passed from frontend)
+        if metadata and isinstance(metadata, dict):
+            pid = metadata.get("product_id") or metadata.get("productId") or metadata.get("id")
+            if pid:
+                try:
+                    pid = int(pid)
+                    prod = await self.db.get(Product, pid)
+                    sc_service = SupplyChainService(self.db)
+                    timeline = await sc_service.get_sustainability_timeline(pid)
+
+                    out = f"Product ID: {pid}\n"
+                    if prod:
+                        out += f"Name: {prod.name}\nPrice: {prod.price} {prod.currency}\nIsImpact: {bool(prod.is_impact_product)}\n"
+                        if prod.donation_percentage:
+                            out += f"Donation Percentage: {prod.donation_percentage}%\n"
+                        if prod.description:
+                            snippet = (prod.description[:500] + '...') if len(prod.description) > 500 else prod.description
+                            out += f"Description Snippet: {snippet}\n"
+
+                    out += "\nSupply Chain Timeline:\n"
+                    for step in timeline:
+                        ts = step.get("timestamp") or "N/A"
+                        out += f"- [{ts}] {step.get('stage')} @ {step.get('location')}: {step.get('description')}"
+                        if step.get("certified"):
+                            out += " (certified)"
+                        if step.get("carbon_kg") is not None:
+                            out += f"; carbon_kg={step.get('carbon_kg')}"
+                        out += "\n"
+
+                    out += "\n(Source: supply_chain records, product table)"
+                    return out
+                except Exception as e:
+                    logger.error(f"Tool invocation by metadata failed: {e}")
+
+        last_user = ""
+        if messages:
+            for m in reversed(messages):
+                if m.get("role") == "user":
+                    last_user = m.get("content", "").strip()
+                    break
+
+        if not last_user:
+            return ""
+
+        # 1) Check for explicit product id patterns (e.g., "product id: 123", "商品id:123", "商品 123")
+        pid_patterns = [r"product\s*id[:#\s]*(\d+)", r"商品(?:id)?[:：#\s]*(\d+)", r"商品\s+(\d{2,})"]
+        for pat in pid_patterns:
+            m = re.search(pat, last_user, flags=re.IGNORECASE)
+            if m:
+                try:
+                    pid = int(m.group(1))
+                except Exception:
+                    continue
+
+                # fetch product and supply chain timeline
+                prod = await self.db.get(Product, pid)
+                sc_service = SupplyChainService(self.db)
+                timeline = await sc_service.get_sustainability_timeline(pid)
+
+                out = f"Product ID: {pid}\n"
+                if prod:
+                    out += f"Name: {prod.name}\nPrice: {prod.price} {prod.currency}\nIsImpact: {bool(prod.is_impact_product)}\n"
+                    if prod.donation_percentage:
+                        out += f"Donation Percentage: {prod.donation_percentage}%\n"
+                    if prod.description:
+                        snippet = (prod.description[:500] + '...') if len(prod.description) > 500 else prod.description
+                        out += f"Description Snippet: {snippet}\n"
+
+                out += "\nSupply Chain Timeline:\n"
+                for step in timeline:
+                    ts = step.get("timestamp") or "N/A"
+                    out += f"- [{ts}] {step.get('stage')} @ {step.get('location')}: {step.get('description')}"
+                    if step.get("certified"):
+                        out += " (certified)"
+                    if step.get("carbon_kg") is not None:
+                        out += f"; carbon_kg={step.get('carbon_kg')}"
+                    out += "\n"
+
+                out += "\n(Source: supply_chain records, product table)"
+                return out
+
+        # 2) If context is shop/impact and user asked to find impact products, perform a simple keyword search
+        if context in ("shop", "impact", "sustainability") or any(k in last_user.lower() for k in ["公益", "impact", "溯源", "找", "推荐", "商品"]):
+            # pick search terms (words > 2 chars)
+            terms = [t for t in re.split(r"\W+", last_user) if len(t) > 1]
+            if terms:
+                query_text = " ".join(terms[:3])
+                # simple SQL search
+                from sqlalchemy import select
+                stmt = select(Product).where(Product.is_impact_product == True)
+                # apply ilike filters for each term
+                for t in terms[:3]:
+                    stmt = stmt.where((Product.name.ilike(f"%{t}%")) | (Product.description.ilike(f"%{t}%")))
+                stmt = stmt.limit(5)
+                try:
+                    res = (await self.db.execute(stmt)).scalars().all()
+                    if res:
+                        out = f"Impact product search results for query: '{query_text}'\n"
+                        for p in res:
+                            out += f"- ID:{p.id} Name:{p.name} Price:{p.price} {p.currency} Donation:{p.donation_percentage or 0}%\n"
+                        out += "\n(Source: products table)"
+                        return out
+                except Exception as e:
+                    logger.error(f"Impact product search failed: {e}")
+
+        return ""
+
+    # End of class
