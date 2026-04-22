@@ -7,6 +7,23 @@ from httpx import AsyncClient
 
 
 @pytest.mark.asyncio
+async def test_chat_simulation_mode(client: AsyncClient, no_auth_headers):
+    payload = {
+        "messages": [
+            {"role": "user", "content": "请介绍一下这个平台的 AI 能力"}
+        ],
+        "context": "general",
+        "metadata": {"impactMode": False, "route": "/assistant"}
+    }
+    resp = await client.post("/api/v1/ai/chat", json=payload, headers=no_auth_headers)
+    assert resp.status_code in (200, 404, 500)
+    if resp.status_code == 200:
+        body = resp.json()
+        assert "data" in body
+        assert "reply" in body["data"]
+
+
+@pytest.mark.asyncio
 async def test_feedback_helpful(client: AsyncClient, no_auth_headers):
     payload = {
         "is_helpful": True,

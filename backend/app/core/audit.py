@@ -1,8 +1,7 @@
 import functools
 import logging
-import asyncio
+import json
 from typing import Any, Callable, Optional
-from datetime import datetime, timezone
 
 from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,7 +14,7 @@ async def log_audit(
     db: AsyncSession,
     user_id: Optional[int],
     action: str,
-    resource_type: str,
+    resource: str,
     resource_id: Optional[str],
     status: str = "success",
     details: Optional[dict] = None,
@@ -27,13 +26,12 @@ async def log_audit(
     try:
         audit_entry = AuditLog(
             user_id=user_id,
+            user_name=None,
             action=action,
-            resource_type=resource_type,
+            resource=resource,
             resource_id=str(resource_id) if resource_id else None,
-            status=status,
-            details=details or {},
+            details=json.dumps({"status": status, **(details or {})}, ensure_ascii=False),
             ip_address=ip_address,
-            created_at=datetime.now(timezone.utc),
         )
         db.add(audit_entry)
         await db.commit()
@@ -62,36 +60,28 @@ def audit_action(action: str, resource_type: str):
             try:
                 result = await func(*args, **kwargs)
                 
-                # Log success asynchronously to not block the response if needed, 
-                # but for simplicity we'll wait or use background tasks later.
                 if db:
                     # Capture resource_id from result if it has an 'id' attribute
                     res_id = getattr(result, "id", None) if result else None
-                    
-                    # We create a new task to avoid blocking the main business logic
-                    asyncio.create_task(
-                        log_audit(
-                            db=db,
-                            user_id=user_id,
-                            action=action,
-                            resource_type=resource_type,
-                            resource_id=res_id,
-                            status="success",
-                        )
+                    await log_audit(
+                        db=db,
+                        user_id=user_id,
+                        action=action,
+                        resource=resource_type,
+                        resource_id=res_id,
+                        status="success",
                     )
                 return result
             except Exception as e:
                 if db:
-                    asyncio.create_task(
-                        log_audit(
-                            db=db,
-                            user_id=user_id,
-                            action=action,
-                            resource_type=resource_type,
-                            resource_id=None,
-                            status="failed",
-                            details={"error": str(e)},
-                        )
+                    await log_audit(
+                        db=db,
+                        user_id=user_id,
+                        action=action,
+                        resource=resource_type,
+                        resource_id=None,
+                        status="failed",
+                        details={"error": str(e)},
                     )
                 raise e
 

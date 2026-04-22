@@ -8,6 +8,7 @@ import PaperTextureBackground from '@/components/editorial/PaperTextureBackgroun
 
 import { aiAssistantApi, type AIChatMessage } from '@/services/aiAssistant';
 import { useUIStore } from '@/stores/uiStore';
+import { getAIAssistantMetadata, getAIAssistantSuggestions } from '@/config/aiAssistantScenarios';
 
 interface ChatMessage extends AIChatMessage {
   id: string;
@@ -24,6 +25,10 @@ export default function AiAssistant() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
   const { impactMode } = useUIStore();
+  const location = useLocation();
+  const route = location.pathname;
+  const suggestions = getAIAssistantSuggestions(impactMode, route);
+  const baseMetadata = getAIAssistantMetadata(impactMode, route);
 
   const contextOptions = [
     { value: 'general', label: t('aiAssistant.general') },
@@ -38,7 +43,6 @@ export default function AiAssistant() {
   }, [messages]);
 
   // If navigated here with prefill + metadata (e.g., from product detail), auto-send the prefill message
-  const location = useLocation();
   useEffect(() => {
     const state = (location as unknown as any)?.state;
     if (state?.prefill) {
@@ -46,10 +50,10 @@ export default function AiAssistant() {
       const userMsg: ChatMessage = { id: nextChatMsgId(), role: 'user', content: prefillText };
       const nextMsgs: ChatMessage[] = [...messages, userMsg];
       setMessages(nextMsgs);
-      const metadata = state.metadata ?? { impactMode };
+      const metadata = { ...baseMetadata, ...(state.metadata ?? {}) };
       (async () => {
         try {
-          const res = await aiAssistantApi.chat(nextMsgs.map(({ id: _id, ...m }) => m) as AIChatMessage[], context, { ...metadata, route: window.location.pathname });
+          const res = await aiAssistantApi.chat(nextMsgs.map(({ id: _id, ...m }) => m) as AIChatMessage[], context, metadata);
           setMessages([...nextMsgs, { id: nextChatMsgId(), role: 'assistant', content: res.reply }]);
         } catch {
           setMessages([...nextMsgs, { id: nextChatMsgId(), role: 'assistant', content: t('aiAssistant.error', '请求失败，请稍后再试。') }]);
@@ -60,8 +64,8 @@ export default function AiAssistant() {
   }, []);
 
 
-  const send = async () => {
-    const text = input.trim();
+  const send = async (overrideText?: string) => {
+    const text = (overrideText ?? input).trim();
     if (!text || loading) return;
     const userMsg: ChatMessage = { id: nextChatMsgId(), role: 'user', content: text };
     const next: ChatMessage[] = [...messages, userMsg];
@@ -69,7 +73,7 @@ export default function AiAssistant() {
     setInput('');
     setLoading(true);
     try {
-      const res = await aiAssistantApi.chat(next.map(({ id: _id, ...m }) => m) as AIChatMessage[], context, { impactMode, route: window.location.pathname });
+      const res = await aiAssistantApi.chat(next.map(({ id: _id, ...m }) => m) as AIChatMessage[], context, baseMetadata);
       setMessages([...next, { id: nextChatMsgId(), role: 'assistant', content: res.reply }]);
     } catch {
       setMessages([
@@ -108,6 +112,18 @@ export default function AiAssistant() {
                 </option>
               ))}
             </select>
+          </div>
+          <div className="mb-6 flex flex-wrap gap-2">
+            {suggestions.map((item) => (
+              <button
+                key={item.label}
+                type="button"
+                onClick={() => void send(item.prompt)}
+                className="font-body text-caption border border-warm-gray/40 bg-white px-3 py-1.5 text-ink hover:bg-sepia-light"
+              >
+                {item.label}
+              </button>
+            ))}
           </div>
           <div
             className="border border-warm-gray/30 bg-paper/90 p-4 md:p-6 min-h-[320px] max-h-[50dvh] overflow-y-auto mb-4 space-y-4"

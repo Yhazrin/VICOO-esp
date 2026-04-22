@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { aiAssistantApi, type AIChatMessage } from '@/services/aiAssistant';
 import { useUIStore } from '@/stores/uiStore';
+import { getAIAssistantMetadata, getAIAssistantSuggestions } from '@/config/aiAssistantScenarios';
 
 interface Message {
   id: string;
@@ -22,13 +23,16 @@ export const AIAssistantBall: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [feedbackMap, setFeedbackMap] = useState<Record<string, 'idle'|'submitting'|'sent'|'escalated'>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
+  const route = window.location.pathname;
+  const suggestions = getAIAssistantSuggestions(impactMode, route);
+  const assistantMetadata = getAIAssistantMetadata(impactMode, route);
 
   const handleFeedback = async (messageId: string, isHelpful: boolean) => {
     if (feedbackMap[messageId] === 'submitting') return;
     setFeedbackMap(prev => ({ ...prev, [messageId]: 'submitting' }));
     try {
       const chatMessages: AIChatMessage[] = messages.map(m => ({ role: m.role as AIChatMessage['role'], content: m.content }));
-      const res = await aiAssistantApi.feedback(isHelpful, chatMessages, { impactMode, route: window.location.pathname }, isHelpful ? undefined : 'User reported not helpful');
+      const res = await aiAssistantApi.feedback(isHelpful, chatMessages, assistantMetadata, isHelpful ? undefined : 'User reported not helpful');
       if (isHelpful) {
         setFeedbackMap(prev => ({ ...prev, [messageId]: 'sent' }));
       } else {
@@ -45,10 +49,11 @@ export const AIAssistantBall: React.FC = () => {
     }
   }, [messages]);
 
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
+  const handleSend = async (overrideText?: string) => {
+    const text = (overrideText ?? input).trim();
+    if (!text || isLoading) return;
 
-    const userMsg: Message = { id: nextMsgId(), role: 'user', content: input };
+    const userMsg: Message = { id: nextMsgId(), role: 'user', content: text };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setIsLoading(true);
@@ -58,7 +63,7 @@ export const AIAssistantBall: React.FC = () => {
         role: m.role as AIChatMessage['role'],
         content: m.content,
       }));
-      const result = await aiAssistantApi.chat(chatMessages, 'general', { impactMode, route: window.location.pathname });
+      const result = await aiAssistantApi.chat(chatMessages, 'general', assistantMetadata);
       const reply = result.reply || t('aiAssistant.replyError');
       setMessages(prev => [...prev, { id: nextMsgId(), role: 'assistant', content: reply }]);
     } catch {
@@ -98,6 +103,18 @@ export const AIAssistantBall: React.FC = () => {
                 <div className="text-center py-10 px-4">
                   <p className="text-sm italic opacity-60">"Art is the most intense mode of individualism that the world has known."</p>
                   <p className="mt-4 text-xs">{t('aiAssistant.greeting')}</p>
+                  <div className="mt-4 flex flex-wrap justify-center gap-2">
+                    {suggestions.map((item) => (
+                      <button
+                        key={item.label}
+                        type="button"
+                        onClick={() => void handleSend(item.prompt)}
+                        className="text-[10px] px-3 py-1 border border-[#1A1A16] bg-white hover:bg-[#EDE6D6]"
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
               {messages.map((m) => (
