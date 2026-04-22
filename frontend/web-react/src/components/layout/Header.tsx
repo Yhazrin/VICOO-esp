@@ -22,12 +22,13 @@ const SLIDING_PILL_SPRING = {
  * Mode morph: single duration + cubic-bezier for every driven property.
  * Springs settle at different rates per channel — tween keeps radius/width/margin/x in phase.
  */
-const MODE_MORPH_DURATION = 0.52;
-const MODE_MORPH_EASE = [0.33, 1, 0.68, 1] as const;
+/** 略短于旧 520ms：产品里顶栏形态切换多在 380–450ms，体感更跟手、长任务窗更短 */
+const MODE_MORPH_DURATION = 0.44;
+const MODE_MORPH_EASE = [0.22, 1, 0.36, 1] as const;
 
 /** 与 MODE_MORPH 同步的圆角过渡（避免 class 瞬间切换与容器 motion 不同步） */
 const PILL_CORNER_TRANSITION_CLASS =
-  'transition-[border-radius] duration-[520ms] ease-[cubic-bezier(0.33,1,0.68,1)]';
+  'transition-[border-radius] duration-[440ms] ease-[cubic-bezier(0.22,1,0.36,1)]';
 
 function getModeMorphTransition(reduceMotion: boolean): Transition {
   if (reduceMotion) {
@@ -228,7 +229,7 @@ function PillWindow({
           {companyHl && (
             <motion.div
               aria-hidden
-              className={`pointer-events-none absolute z-0 bg-white ${PILL_CORNER_TRANSITION_CLASS} ${impactMode ? 'rounded-full' : 'rounded-sm'}`}
+              className={`pointer-events-none absolute z-0 bg-white ${PILL_CORNER_TRANSITION_CLASS} ${impactMode ? 'rounded-full' : 'rounded-sm'} ${prefersReducedMotion ? '' : 'will-change-[left,top,width,height]'}`}
               initial={false}
               animate={{
                 left: companyHl.x,
@@ -281,7 +282,7 @@ function PillWindow({
           {impactHl && (
             <motion.div
               aria-hidden
-              className={`pointer-events-none absolute z-0 rounded-full bg-ink ${PILL_CORNER_TRANSITION_CLASS}`}
+              className={`pointer-events-none absolute z-0 rounded-full bg-ink ${PILL_CORNER_TRANSITION_CLASS} ${prefersReducedMotion ? '' : 'will-change-[left,top,width,height]'}`}
               initial={false}
               animate={{
                 left: impactHl.x,
@@ -470,6 +471,8 @@ export default function Header() {
   };
 
   const modeMorphTransition = getModeMorphTransition(Boolean(prefersReducedMotion));
+  /** 顶栏玻璃+大圆角：blur 与 margin 同帧很吃合成；升层减轻跟手时的掉帧 */
+  const headerBarGpuClass = 'transform-gpu [backface-visibility:hidden] [isolation:isolate]';
 
   const iconDisc = impactMode
     ? 'bg-white text-ink-faded shadow-sm hover:shadow-md border border-warm-gray/15'
@@ -478,7 +481,7 @@ export default function Header() {
   return (
     <header className="pointer-events-none fixed top-0 left-0 right-0 z-50">
       <motion.div
-        className="pointer-events-auto"
+        className={`pointer-events-auto ${headerBarGpuClass}`}
         initial={false}
         animate={{
           marginTop: impactMode ? 10 : 0,
@@ -518,10 +521,10 @@ export default function Header() {
             {impactMode && (
               <motion.span
                 key="vicoo-badge"
-                initial={{ opacity: 0, x: -12, filter: 'blur(4px)' }}
-                animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
-                exit={{ opacity: 0, x: -12, filter: 'blur(4px)' }}
-                transition={{ type: 'spring', stiffness: 350, damping: 25, delay: 0.05 }}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -8 }}
+                transition={{ type: 'spring', stiffness: 420, damping: 28, delay: 0.04 }}
                 className="font-display text-sm font-medium tracking-wide whitespace-nowrap text-ink select-none md:text-base"
               >
                 × VICOO
@@ -547,6 +550,7 @@ export default function Header() {
               {/* Impact toggle: UNIQLO = classic red/white; Impact shell = glass card */}
               <button
                 type="button"
+                data-testid="impact-mode-toggle"
                 onClick={handleImpactToggle}
                 aria-pressed={impactMode}
                 className={`

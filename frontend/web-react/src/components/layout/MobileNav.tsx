@@ -138,38 +138,33 @@ export default function MobileNav() {
           aria-label="Mobile navigation menu"
         >
           <nav className="flex flex-col items-start px-8 gap-0">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={impactMode ? 'impact' : 'company'}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
-                transition={{ duration: 0.25 }}
-                className="w-full"
-              >
-                <p className="font-body text-caption text-sepia-mid tracking-[0.25em] uppercase pt-4 pb-2">
-                  {impactMode ? t('nav.group.impact', 'Impact') : t('nav.group.company', 'Company')}
-                </p>
-                {impactMode
-                  ? IMPACT_TABS.map((tab, index) =>
-                      renderNavItem(tab.key, t(`nav.${tab.key}`), index, activeImpactTab === tab.key, () => {
-                        setActiveImpactTab(tab.key);
-                        if (tab.key === 'shop') {
-                          if (location.pathname !== '/' && location.pathname.startsWith('/impact/shop')) {
-                            navigate('/', { replace: true });
-                          }
-                        } else if (location.pathname.startsWith('/impact/shop')) {
-                          navigate('/');
+            {/*
+              不再用 key=impact/company 驱动 AnimatePresence：该模式会整片卸载/重挂导航，与公益/优衣库切换同帧时放大卡顿。
+              同一稳定容器内切换列表，由内部链接重渲染即可。
+            */}
+            <div className="w-full">
+              <p className="font-body text-caption text-sepia-mid tracking-[0.25em] uppercase pt-4 pb-2">
+                {impactMode ? t('nav.group.impact', 'Impact') : t('nav.group.company', 'Company')}
+              </p>
+              {impactMode
+                ? IMPACT_TABS.map((tab, index) =>
+                    renderNavItem(tab.key, t(`nav.${tab.key}`), index, activeImpactTab === tab.key, () => {
+                      setActiveImpactTab(tab.key);
+                      if (tab.key === 'shop') {
+                        if (location.pathname !== '/' && location.pathname.startsWith('/impact/shop')) {
+                          navigate('/', { replace: true });
                         }
-                        setMobileNavOpen(false);
-                      })
-                    )
-                  : COMPANY_NAV.map((item, index) =>
-                      renderNavItem(item.key, t(`nav.${item.key}`), index, location.pathname === item.path, () => setMobileNavOpen(false), item.path)
-                    )
-                }
-              </motion.div>
-            </AnimatePresence>
+                      } else if (location.pathname.startsWith('/impact/shop')) {
+                        navigate('/');
+                      }
+                      setMobileNavOpen(false);
+                    })
+                  )
+                : COMPANY_NAV.map((item, index) =>
+                    renderNavItem(item.key, t(`nav.${item.key}`), index, location.pathname === item.path, () => setMobileNavOpen(false), item.path)
+                  )
+              }
+            </div>
 
             {/* Impact toggle */}
             <button

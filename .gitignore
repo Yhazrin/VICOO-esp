@@ -60,3 +60,7 @@ local.properties
 
 # WeChat
 miniprogram_npm/
+
+# Playwright / e2e（运行产物不提交）
+test-results/
+playwright-report/

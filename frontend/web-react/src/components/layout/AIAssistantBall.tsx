@@ -156,8 +156,11 @@ export const AIAssistantBall: React.FC = () => {
                   placeholder={t('aiAssistant.placeholder', 'Type your message...')}
                   className="flex-1 bg-white border border-[#1A1A16] px-3 py-2 text-xs focus:outline-none placeholder:opacity-40"
                 />
-                <button 
-                  onClick={handleSend}
+                <button
+                  type="button"
+                  onClick={() => {
+                    void handleSend();
+                  }}
                   disabled={isLoading}
                   className="bg-[#1A1A16] text-[#F5F0E8] px-4 py-2 text-[10px] uppercase tracking-widest hover:opacity-90 transition-opacity"
                 >
