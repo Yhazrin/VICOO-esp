@@ -67,7 +67,7 @@ export default function MobileNav() {
       navigate('/');
     } else {
       setImpactMode(true);
-      setActiveImpactTab('campaigns');
+      setActiveImpactTab('home');
       const companySubPaths = COMPANY_NAV.filter((n) => n.path !== '/').map((n) => n.path);
       const onCompanySubRoute = companySubPaths.some(
         (p) => location.pathname === p || location.pathname.startsWith(p + '/')

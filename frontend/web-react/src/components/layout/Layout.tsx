@@ -1,5 +1,5 @@
 import { Outlet, useMatch, useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import Header from './Header';
 import EditorialFooter from './EditorialFooter';
 import MobileNav from './MobileNav';
@@ -54,10 +54,14 @@ export default function Layout() {
     }
   }, [isImpactShopRoute, setImpactMode, setActiveImpactTab]);
 
-  useEffect(() => {
+  // 与顶栏公益↔优衣库切换同一帧同步，避免 paint 后再改 html 变量导致 header 上仍用旧的 --color-*（看起来像样式丢失）
+  useLayoutEffect(() => {
     const on = impactMode || isImpactShopRoute;
-    document.documentElement.toggleAttribute('data-welfare-vivid', on);
-    return () => document.documentElement.removeAttribute('data-welfare-vivid');
+    if (on) {
+      document.documentElement.setAttribute('data-welfare-vivid', '');
+    } else {
+      document.documentElement.removeAttribute('data-welfare-vivid');
+    }
   }, [impactMode, isImpactShopRoute]);
 
   return (

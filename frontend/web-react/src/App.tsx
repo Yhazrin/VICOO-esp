@@ -32,12 +32,18 @@ const Checkout = lazy(() => import('@/pages/Checkout'));
 const AiDesign = lazy(() => import('@/pages/AiDesign'));
 const SupplyChainStudio = lazy(() => import('@/pages/SupplyChainStudio'));
 
+function normalizeLang(code: string | undefined) {
+  if (!code) return '';
+  return code.split('-')[0] ?? code;
+}
+
 function AppLocaleSync() {
   const { i18n } = useTranslation();
   const currentLocale = useUIStore((state) => state.currentLocale);
 
   useEffect(() => {
-    if (i18n.language !== currentLocale) {
+    const resolved = normalizeLang(i18n.resolvedLanguage || i18n.language);
+    if (resolved !== currentLocale) {
       void i18n.changeLanguage(currentLocale);
     }
     document.documentElement.lang = currentLocale;

@@ -94,14 +94,32 @@ function applyLocale(locale: Locale) {
   document.documentElement.lang = locale;
 }
 
-function getStoredUISettings(): { currentTheme: ThemeId; currentLocale: Locale } {
+const IMPACT_TAB_KEYS = new Set([
+  'home',
+  'campaigns',
+  'donate',
+  'shop',
+  'clothing-recycle',
+]);
+
+function getStoredUISettings(): {
+  currentTheme: ThemeId;
+  currentLocale: Locale;
+  impactMode: boolean;
+  activeImpactTab: string;
+} {
   try {
     const stored = localStorage.getItem('tonghua-ui-settings');
     if (stored) {
       const parsed = JSON.parse(stored);
+      const rawTab = parsed.state?.activeImpactTab;
+      const activeImpactTab =
+        typeof rawTab === 'string' && IMPACT_TAB_KEYS.has(rawTab) ? rawTab : 'home';
       return {
         currentTheme: (parsed.state?.currentTheme as ThemeId) || 'editorial',
         currentLocale: (parsed.state?.currentLocale as Locale) || 'en',
+        impactMode: typeof parsed.state?.impactMode === 'boolean' ? parsed.state.impactMode : false,
+        activeImpactTab,
       };
     }
   } catch {
@@ -111,6 +129,8 @@ function getStoredUISettings(): { currentTheme: ThemeId; currentLocale: Locale }
   return {
     currentTheme: 'editorial',
     currentLocale: 'en',
+    impactMode: false,
+    activeImpactTab: 'home',
   };
 }
 
@@ -133,16 +153,18 @@ interface UIState {
   setActiveImpactTab: (tab: string) => void;
 }
 
+const initialUI = getStoredUISettings();
+
 export const useUIStore = create<UIState>()(
   persist(
     (set) => ({
       mobileNavOpen: false,
-      currentLocale: getStoredUISettings().currentLocale,
-      currentTheme: getStoredUISettings().currentTheme,
+      currentLocale: initialUI.currentLocale,
+      currentTheme: initialUI.currentTheme,
       menuTriggerRef: null,
       settingsMenuOpen: false,
-      impactMode: false,
-      activeImpactTab: 'campaigns',
+      impactMode: initialUI.impactMode,
+      activeImpactTab: initialUI.activeImpactTab,
 
       setMobileNavOpen: (mobileNavOpen) => set({ mobileNavOpen }),
       toggleMobileNav: () =>
@@ -167,7 +189,24 @@ export const useUIStore = create<UIState>()(
       partialize: (state) => ({
         currentTheme: state.currentTheme,
         currentLocale: state.currentLocale,
+        impactMode: state.impactMode,
+        activeImpactTab: state.activeImpactTab,
       }),
+      /**
+       * persist 的 hydrate 是异步的：用户可能在 getItem 完成前已切回优衣库。
+       * 默认 merge 会让 localStorage 里的 impactMode **覆盖**内存中更新后的 false，
+       * 导致顶栏红底 + 公益配色/胶囊/logo（`<img>` 未切到 onRed）等「半套 UI」错乱。
+       * theme/locale 仍以持久化为准；impact 始终以当前内存为准（与首屏 initialUI 一致，除非用户已操作）。
+       */
+      merge: (persistedState, currentState) => {
+        if (!persistedState) return currentState;
+        return {
+          ...currentState,
+          ...persistedState,
+          impactMode: currentState.impactMode,
+          activeImpactTab: currentState.activeImpactTab,
+        };
+      },
       onRehydrateStorage: () => (state) => {
         // Apply persisted theme after rehydration to avoid flash
         if (state?.currentTheme) {
@@ -181,7 +220,6 @@ export const useUIStore = create<UIState>()(
   )
 );
 
-// Apply theme on first load (before hydration) to prevent flash
-const initialUISettings = getStoredUISettings();
-applyTheme(initialUISettings.currentTheme);
-applyLocale(initialUISettings.currentLocale);
+// Apply theme + document lang on first load (before hydration) to prevent flash
+applyTheme(initialUI.currentTheme);
+applyLocale(initialUI.currentLocale);
