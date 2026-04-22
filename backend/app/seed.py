@@ -20,6 +20,7 @@ import json
 from datetime import datetime, timedelta
 from decimal import Decimal
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import engine, Base, AsyncSessionLocal
@@ -35,11 +36,19 @@ from app.models.audit import AuditLog
 from app.models.settings import SiteSettings
 from app.models.contact import ContactMessage
 from app.models.editorial import EditorialArticle
+from app.models.country import Country
+from app.models.region import Region
 from app.security import hash_password
 from app.config import settings
 from app.data.default_regular_products import regular_catalog_for_orm
 from app.data.impact_product_images import IMPACT_PRODUCT_IMAGE_BY_NAME as _IMPACT_IMG
 from app.data.impact_supply_chain_seed import extra_impact_supply_records
+from app.data.impact_origin_story_seed import (
+    DEFAULT_IMPACT_TRACE_STORY,
+    IMPACT_TRACE_STORY_BY_NAME,
+    ORIGIN_COUNTRIES,
+    ORIGIN_REGIONS,
+)
 
 
 async def seed():
@@ -247,6 +256,35 @@ async def seed():
         session.add_all(artworks)
         await session.flush()
 
+        # ── Origin Dictionaries ───────────────────────────────────
+        print("Seeding origin dictionaries...")
+        country_id_by_code: dict[str, int] = {}
+        for row in ORIGIN_COUNTRIES:
+            existing_country = (
+                await session.execute(select(Country).where(Country.code == row["code"]))
+            ).scalar_one_or_none()
+            if existing_country is None:
+                existing_country = Country(**row)
+                session.add(existing_country)
+                await session.flush()
+            country_id_by_code[row["code"]] = existing_country.id
+
+        region_id_by_name_zh: dict[str, int] = {}
+        for row in ORIGIN_REGIONS:
+            existing_region = (
+                await session.execute(select(Region).where(Region.name_zh == row["name_zh"]))
+            ).scalar_one_or_none()
+            if existing_region is None:
+                existing_region = Region(
+                    country_id=country_id_by_code[row["country_code"]],
+                    name_zh=row["name_zh"],
+                    name_en=row["name_en"],
+                    region_type=row.get("region_type"),
+                )
+                session.add(existing_region)
+                await session.flush()
+            region_id_by_name_zh[row["name_zh"]] = existing_region.id
+
         # ── Products ─────────────────────────────────────────────
         # 公益商品：is_impact_product=True，配图为可直连的 HTTPS（与上方 artworks.id 一一对应）
         print("Seeding products...")
@@ -346,6 +384,14 @@ async def seed():
         ]
         session.add_all(products)
         await session.flush()
+        for p in products:
+            if not p.is_impact_product:
+                continue
+            story = IMPACT_TRACE_STORY_BY_NAME.get(p.name, DEFAULT_IMPACT_TRACE_STORY)
+            p.origin_country_id = country_id_by_code.get(story["country_code"])
+            p.origin_region_id = region_id_by_name_zh.get(story["region_name_zh"])
+            p.trace_story_title = story["title"]
+            p.trace_story_content = story["content"]
         product_ids = [p.id for p in products]
 
         # ── Supply Chain Records ─────────────────────────────────

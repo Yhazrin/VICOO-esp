@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
@@ -6,6 +7,8 @@ import SectionContainer from '@/components/layout/SectionContainer';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
 
 import { aiAssistantApi, type AIChatMessage } from '@/services/aiAssistant';
+import { useUIStore } from '@/stores/uiStore';
+import { getAIAssistantMetadata, getAIAssistantSuggestions } from '@/config/aiAssistantScenarios';
 
 interface ChatMessage extends AIChatMessage {
   id: string;
@@ -21,6 +24,11 @@ export default function AiAssistant() {
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const { impactMode } = useUIStore();
+  const location = useLocation();
+  const route = location.pathname;
+  const suggestions = getAIAssistantSuggestions(impactMode, route);
+  const baseMetadata = getAIAssistantMetadata(impactMode, route);
 
   const contextOptions = [
     { value: 'general', label: t('aiAssistant.general') },
@@ -34,8 +42,30 @@ export default function AiAssistant() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const send = async () => {
-    const text = input.trim();
+  // If navigated here with prefill + metadata (e.g., from product detail), auto-send the prefill message
+  useEffect(() => {
+    const state = (location as unknown as any)?.state;
+    if (state?.prefill) {
+      const prefillText = String(state.prefill);
+      const userMsg: ChatMessage = { id: nextChatMsgId(), role: 'user', content: prefillText };
+      const nextMsgs: ChatMessage[] = [...messages, userMsg];
+      setMessages(nextMsgs);
+      const metadata = { ...baseMetadata, ...(state.metadata ?? {}) };
+      (async () => {
+        try {
+          const res = await aiAssistantApi.chat(nextMsgs.map(({ id: _id, ...m }) => m) as AIChatMessage[], context, metadata);
+          setMessages([...nextMsgs, { id: nextChatMsgId(), role: 'assistant', content: res.reply }]);
+        } catch {
+          setMessages([...nextMsgs, { id: nextChatMsgId(), role: 'assistant', content: t('aiAssistant.error', '请求失败，请稍后再试。') }]);
+        }
+      })();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
+  const send = async (overrideText?: string) => {
+    const text = (overrideText ?? input).trim();
     if (!text || loading) return;
     const userMsg: ChatMessage = { id: nextChatMsgId(), role: 'user', content: text };
     const next: ChatMessage[] = [...messages, userMsg];
@@ -43,7 +73,7 @@ export default function AiAssistant() {
     setInput('');
     setLoading(true);
     try {
-      const res = await aiAssistantApi.chat(next.map(({ id: _id, ...m }) => m) as AIChatMessage[], context);
+      const res = await aiAssistantApi.chat(next.map(({ id: _id, ...m }) => m) as AIChatMessage[], context, baseMetadata);
       setMessages([...next, { id: nextChatMsgId(), role: 'assistant', content: res.reply }]);
     } catch {
       setMessages([
@@ -82,6 +112,18 @@ export default function AiAssistant() {
                 </option>
               ))}
             </select>
+          </div>
+          <div className="mb-6 flex flex-wrap gap-2">
+            {suggestions.map((item) => (
+              <button
+                key={item.label}
+                type="button"
+                onClick={() => void send(item.prompt)}
+                className="font-body text-caption border border-warm-gray/40 bg-white px-3 py-1.5 text-ink hover:bg-sepia-light"
+              >
+                {item.label}
+              </button>
+            ))}
           </div>
           <div
             className="border border-warm-gray/30 bg-paper/90 p-4 md:p-6 min-h-[320px] max-h-[50dvh] overflow-y-auto mb-4 space-y-4"

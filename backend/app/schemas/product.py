@@ -19,6 +19,10 @@ class ProductCreate(BaseModel):
     campaign_id: Optional[int] = Field(None, description="Linked campaign ID for impact products")
     donation_percentage: Optional[Decimal] = Field(None, ge=0, le=100, description="Percentage of sale price donated")
     artwork_id: Optional[int] = Field(None, description="Linked original artwork ID")
+    origin_country_id: Optional[int] = Field(None, description="Origin country dictionary ID")
+    origin_region_id: Optional[int] = Field(None, description="Origin region dictionary ID")
+    trace_story_title: Optional[str] = Field(None, max_length=300, description="Trace story title")
+    trace_story_content: Optional[str] = Field(None, description="Trace story rich text/plain content")
 
 
 class ProductUpdate(BaseModel):
@@ -33,6 +37,10 @@ class ProductUpdate(BaseModel):
     campaign_id: Optional[int] = None
     donation_percentage: Optional[Decimal] = Field(None, ge=0, le=100)
     artwork_id: Optional[int] = None
+    origin_country_id: Optional[int] = None
+    origin_region_id: Optional[int] = None
+    trace_story_title: Optional[str] = Field(None, max_length=300)
+    trace_story_content: Optional[str] = None
 
 
 class ProductListItem(BaseModel):
@@ -67,6 +75,10 @@ class ProductOut(BaseModel):
     campaign_id: Optional[int] = None
     donation_percentage: Optional[float] = None
     artwork_id: Optional[int] = None
+    origin_country_id: Optional[int] = None
+    origin_region_id: Optional[int] = None
+    trace_story_title: Optional[str] = None
+    trace_story_content: Optional[str] = None
     created_at: datetime
 
     model_config = {"from_attributes": True}

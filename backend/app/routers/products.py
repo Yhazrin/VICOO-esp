@@ -9,6 +9,8 @@ from app.database import get_db
 from app.models.product import Product
 from app.models.supply_chain import SupplyChainRecord
 from app.models.artwork import Artwork
+from app.models.country import Country
+from app.models.region import Region
 from app.schemas import (
     ApiResponse,
     PaginatedResponse,
@@ -24,6 +26,52 @@ from app.data.impact_product_images import IMPACT_PRODUCT_IMAGE_BY_NAME as _IMPA
 router = APIRouter(prefix="/products", tags=["Products"])
 
 logger = logging.getLogger(__name__)
+
+_mock_countries = [
+    {"id": 1, "code": "CN", "name_zh": "中国", "name_en": "China"},
+    {"id": 2, "code": "JP", "name_zh": "日本", "name_en": "Japan"},
+    {"id": 3, "code": "GLOBAL", "name_zh": "全球", "name_en": "Global"},
+]
+
+_mock_regions = [
+    {"id": 1, "country_id": 1, "name_zh": "新疆阿克苏", "name_en": "Aksu, Xinjiang", "region_type": "province"},
+    {"id": 2, "country_id": 1, "name_zh": "山东", "name_en": "Shandong", "region_type": "province"},
+    {"id": 3, "country_id": 2, "name_zh": "东京", "name_en": "Tokyo", "region_type": "prefecture"},
+    {"id": 4, "country_id": 3, "name_zh": "巴西马托格罗索", "name_en": "Mato Grosso, Brazil", "region_type": "global_origin"},
+    {"id": 5, "country_id": 3, "name_zh": "美国得州", "name_en": "Texas, USA", "region_type": "global_origin"},
+    {"id": 6, "country_id": 3, "name_zh": "印度古吉拉特", "name_en": "Gujarat, India", "region_type": "global_origin"},
+]
+
+
+async def _resolve_origin_ids(
+    db: AsyncSession,
+    *,
+    country_id: int | None,
+    region_id: int | None,
+) -> tuple[int | None, int | None]:
+    if region_id is None:
+        if country_id is None:
+            return None, None
+        c = await db.get(Country, country_id)
+        if not c:
+            raise HTTPException(status_code=400, detail="Invalid origin_country_id")
+        return country_id, None
+
+    region = await db.get(Region, region_id)
+    if not region:
+        raise HTTPException(status_code=400, detail="Invalid origin_region_id")
+
+    resolved_country_id = country_id if country_id is not None else region.country_id
+    if resolved_country_id != region.country_id:
+        raise HTTPException(
+            status_code=400,
+            detail="origin_region_id does not belong to origin_country_id",
+        )
+
+    c = await db.get(Country, resolved_country_id)
+    if not c:
+        raise HTTPException(status_code=400, detail="Invalid origin_country_id")
+    return resolved_country_id, region_id
 
 
 def _apply_product_filters(stmt, category: str | None, status: str | None, is_impact_product: bool | None):
@@ -60,8 +108,8 @@ async def _products_to_out_dicts(db: AsyncSession, products: list[Product]) -> l
 
 
 _mock_products = [
-    {"id": 1, "name": "彩虹鱼棉质 T 恤", "description": "采用有机棉面料，印有获奖作品《彩虹鱼》。每件 T 恤的收益 30% 用于乡村美育基金。", "price": "168.00", "currency": "CNY", "image_url": _IMPACT_IMG["彩虹鱼棉质 T 恤"], "category": "apparel", "stock": 200, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "30.00", "artwork_id": 2, "sizes": ["S", "M", "L", "XL"], "colors": [{"name": "White", "hex": "#F5F0E8"}, {"name": "Navy", "hex": "#1C2841"}, {"name": "Rust", "hex": "#8B3A2A"}], "created_at": "2025-04-01T10:00:00"},
-    {"id": 2, "name": "星星之夜帆布袋", "description": "再生帆布材质，印有《星星之夜》星空画作。环保材质，可持续时尚。", "price": "89.00", "currency": "CNY", "image_url": _IMPACT_IMG["星星之夜帆布袋"], "category": "accessories", "stock": 150, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "25.00", "artwork_id": 4, "created_at": "2025-04-05T10:00:00"},
+    {"id": 1, "name": "彩虹鱼棉质 T 恤", "description": "采用有机棉面料，印有获奖作品《彩虹鱼》。每件 T 恤的收益 30% 用于乡村美育基金。", "price": "168.00", "currency": "CNY", "image_url": _IMPACT_IMG["彩虹鱼棉质 T 恤"], "category": "apparel", "stock": 200, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "30.00", "artwork_id": 2, "origin_country_id": 1, "origin_region_id": 1, "trace_story_title": "从新疆棉田到东京衣橱", "trace_story_content": "这件 T 恤的棉纤维以中国新疆阿克苏为主源，辅以全球认证棉花配比。纺纱与织造在华东完成，最终以透明溯源方式进入日本东京联名渠道，讲述一条跨区域公益供应链。", "sizes": ["S", "M", "L", "XL"], "colors": [{"name": "White", "hex": "#F5F0E8"}, {"name": "Navy", "hex": "#1C2841"}, {"name": "Rust", "hex": "#8B3A2A"}], "created_at": "2025-04-01T10:00:00"},
+    {"id": 2, "name": "星星之夜帆布袋", "description": "再生帆布材质，印有《星星之夜》星空画作。环保材质，可持续时尚。", "price": "89.00", "currency": "CNY", "image_url": _IMPACT_IMG["星星之夜帆布袋"], "category": "accessories", "stock": 150, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "25.00", "artwork_id": 4, "origin_country_id": 3, "origin_region_id": 4, "trace_story_title": "全球棉花的二次生命", "trace_story_content": "帆布包原料采用全球来源的可追溯棉花纤维与再生棉混纺，重点覆盖巴西马托格罗索与美国得州供应批次。通过再生工艺与短链物流，形成更低碳足迹的公益商品故事。", "created_at": "2025-04-05T10:00:00"},
     {"id": 3, "name": "春天的花园丝巾", "description": "100% 真丝面料，孩子们的画作化为丝巾图案，每一条都是独一无二的艺术品。", "price": "258.00", "currency": "CNY", "image_url": _IMPACT_IMG["春天的花园丝巾"], "category": "accessories", "stock": 80, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "30.00", "artwork_id": 1, "created_at": "2025-04-10T10:00:00"},
     {"id": 4, "name": "妈妈的手环保笔记本", "description": "再生纸制作，封面印有《妈妈的手》。可用于记录生活中的美好瞬间。", "price": "39.00", "currency": "CNY", "image_url": _IMPACT_IMG["妈妈的手环保笔记本"], "category": "stationery", "stock": 500, "status": "active", "is_impact_product": True, "campaign_id": 2, "donation_percentage": "20.00", "artwork_id": 11, "created_at": "2025-04-15T10:00:00"},
     {"id": 5, "name": "太空旅行马克杯", "description": "陶瓷马克杯，印有《太空旅行》画作。送给每个梦想家。", "price": "68.00", "currency": "CNY", "image_url": _IMPACT_IMG["太空旅行马克杯"], "category": "lifestyle", "stock": 120, "status": "active", "is_impact_product": True, "campaign_id": 3, "donation_percentage": "25.00", "artwork_id": 15, "created_at": "2025-04-20T10:00:00"},
@@ -151,6 +199,67 @@ async def list_categories(db: AsyncSession = Depends(get_db)):
             cat_counts[cat] = cat_counts.get(cat, 0) + 1
         categories = [{"name": k, "count": v} for k, v in cat_counts.items()]
         return ApiResponse(data=categories)
+
+
+@router.get("/origins/countries", response_model=ApiResponse)
+async def list_origin_countries(db: AsyncSession = Depends(get_db)):
+    """List origin country dictionary rows."""
+    try:
+        stmt = select(Country).order_by(Country.id.asc())
+        result = await db.execute(stmt)
+        countries = result.scalars().all()
+        return ApiResponse(
+            data=[
+                {
+                    "id": c.id,
+                    "code": c.code,
+                    "name_zh": c.name_zh,
+                    "name_en": c.name_en,
+                }
+                for c in countries
+            ]
+        )
+    except HTTPException:
+        raise
+    except Exception:
+        if not settings.DEMO_MODE:
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+        return ApiResponse(data=_mock_countries)
+
+
+@router.get("/origins/regions", response_model=ApiResponse)
+async def list_origin_regions(
+    country_id: int | None = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """List origin region dictionary rows, optionally filtered by country."""
+    try:
+        stmt = select(Region).order_by(Region.id.asc())
+        if country_id is not None:
+            stmt = stmt.where(Region.country_id == country_id)
+        result = await db.execute(stmt)
+        regions = result.scalars().all()
+        return ApiResponse(
+            data=[
+                {
+                    "id": r.id,
+                    "country_id": r.country_id,
+                    "name_zh": r.name_zh,
+                    "name_en": r.name_en,
+                    "region_type": r.region_type,
+                }
+                for r in regions
+            ]
+        )
+    except HTTPException:
+        raise
+    except Exception:
+        if not settings.DEMO_MODE:
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+        data = _mock_regions
+        if country_id is not None:
+            data = [r for r in data if r["country_id"] == country_id]
+        return ApiResponse(data=data)
 
 
 @router.get("/featured", response_model=ApiResponse)
@@ -258,7 +367,15 @@ async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
 async def create_product(body: ProductCreate, db: AsyncSession = Depends(get_db), current_user: dict = Depends(require_role("admin", "editor"))):
     """Create a new product."""
     try:
-        product = Product(**body.model_dump())
+        payload = body.model_dump()
+        origin_country_id, origin_region_id = await _resolve_origin_ids(
+            db,
+            country_id=payload.get("origin_country_id"),
+            region_id=payload.get("origin_region_id"),
+        )
+        payload["origin_country_id"] = origin_country_id
+        payload["origin_region_id"] = origin_region_id
+        product = Product(**payload)
         db.add(product)
         await db.flush()
         return ApiResponse(data=ProductOut.model_validate(product).model_dump())
@@ -278,7 +395,17 @@ async def update_product(product_id: int, body: ProductUpdate, db: AsyncSession 
         product = result.scalar_one_or_none()
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
-        for k, v in body.model_dump(exclude_unset=True).items():
+        payload = body.model_dump(exclude_unset=True)
+        if "origin_country_id" in payload or "origin_region_id" in payload:
+            origin_country_id, origin_region_id = await _resolve_origin_ids(
+                db,
+                country_id=payload.get("origin_country_id", product.origin_country_id),
+                region_id=payload.get("origin_region_id", product.origin_region_id),
+            )
+            payload["origin_country_id"] = origin_country_id
+            payload["origin_region_id"] = origin_region_id
+
+        for k, v in payload.items():
             setattr(product, k, v)
         await db.flush()
         return ApiResponse(data=ProductOut.model_validate(product).model_dump())

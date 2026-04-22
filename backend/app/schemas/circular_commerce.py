@@ -112,12 +112,21 @@ class AIChatRequest(BaseModel):
         description="可选业务上下文：donation / shop / logistics / sustainability",
         max_length=64,
     )
+    metadata: Optional[dict] = Field(None, description="附加元数据：product_id, impactMode, route 等，将转发给后端工具层")
 
 
 class AIChatResponse(BaseModel):
     reply: str
     model: str
     source: str = Field("openai", description="openai | stub")
+
+
+class AIFeedbackRequest(BaseModel):
+    """User feedback on AI assistant replies. If is_helpful is false the backend may escalate to contact."""
+    is_helpful: bool
+    reason: Optional[str] = Field(None, max_length=1000)
+    messages: list[AIChatMessage] = Field(..., min_length=1)
+    metadata: Optional[dict] = None
 
 
 class ArtworkAnalysisRequest(BaseModel):

@@ -257,6 +257,33 @@ async def app():
                 db.add(guardian_user)
                 await db.commit()
                 print("Test guardian user seeded successfully.")
+
+            from app.models.country import Country
+            from app.models.region import Region
+            stmt_country = select(Country).where(Country.code == "CN")
+            country_cn = (await db.execute(stmt_country)).scalar_one_or_none()
+            if not country_cn:
+                country_cn = Country(code="CN", name_zh="中国", name_en="China")
+                db.add(country_cn)
+                await db.flush()
+            stmt_country_jp = select(Country).where(Country.code == "JP")
+            country_jp = (await db.execute(stmt_country_jp)).scalar_one_or_none()
+            if not country_jp:
+                country_jp = Country(code="JP", name_zh="日本", name_en="Japan")
+                db.add(country_jp)
+                await db.flush()
+            stmt_region = select(Region).where(Region.name_zh == "新疆阿克苏")
+            region = (await db.execute(stmt_region)).scalar_one_or_none()
+            if not region:
+                db.add(
+                    Region(
+                        country_id=country_cn.id,
+                        name_zh="新疆阿克苏",
+                        name_en="Aksu, Xinjiang",
+                        region_type="cotton_origin",
+                    )
+                )
+            await db.commit()
     except Exception as e:
         print(f"Warning: Could not seed test user: {e}")
 
