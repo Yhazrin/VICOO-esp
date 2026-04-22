@@ -23,7 +23,11 @@ fi
 
 _compose() {
   if docker compose version >/dev/null 2>&1; then
-    docker compose "${_compose_args[@]}" "$@"
+    if ((${#_compose_args[@]} > 0)); then
+      docker compose "${_compose_args[@]}" "$@"
+    else
+      docker compose "$@"
+    fi
   elif ((${#_compose_args[@]} > 0)); then
     COMPOSE_FILE=docker-compose.yml:docker-compose.host-nginx.yml docker-compose "$@"
   else

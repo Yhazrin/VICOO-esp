@@ -132,6 +132,11 @@ function PillWindow({
     return () => window.removeEventListener('resize', measure);
   }, [measure]);
 
+  // 公益 ↔ 优衣库切换时外层胶囊宽度依赖 companyW/impactW；仅 mount 时 measure 一次会在模式切换后留下错误宽度（刷新后更明显）
+  useLayoutEffect(() => {
+    measure();
+  }, [impactMode, measure]);
+
   // Re-measure when language changes (text width changes)
   useEffect(() => {
     const id = requestAnimationFrame(measure);
@@ -186,10 +191,17 @@ function PillWindow({
   // the first & last tags have equal breathing room on both sides.
   const PADDING = 16;
   const xOffset = impactMode ? -companyW : 0;
-  const capsuleW = (impactMode ? impactW : companyW) + PADDING;
+  const activeRailW = impactMode ? impactW : companyW;
+  // innerW 为 0 时不要用 0+PADDING 当成真实宽度，否则 Framer 会动画到极窄宽度，切回优衣库后导航条样式像「丢失」
+  const capsuleW = activeRailW > 0 ? activeRailW + PADDING : 0;
 
+  const pillWidthTransition = prefersReducedMotion
+    ? undefined
+    : `width ${MODE_MORPH_DURATION}s cubic-bezier(0.33, 1, 0.68, 1), border-radius ${MODE_MORPH_DURATION}s cubic-bezier(0.33, 1, 0.68, 1)`;
+
+  // 外层不用 motion 驱动 width：Framer 在 width 数字与 "auto" 间切换时，公益↔优衣库偶发卡在中间态；改为 CSS transition + 像素宽度
   return (
-    <motion.div
+    <div
       className={`
         flex items-center overflow-hidden px-2 py-1 shadow-sm
         ${impactMode
@@ -197,11 +209,13 @@ function PillWindow({
           : 'border border-white/30 bg-white/15 backdrop-blur-md'
         }
       `}
-      animate={{
-        width: capsuleW || 'auto',
+      style={{
+        width: capsuleW > 0 ? capsuleW : undefined,
+        maxWidth: '100%',
         borderRadius: impactMode ? 9999 : 4,
+        transition: pillWidthTransition,
+        boxSizing: 'border-box',
       }}
-      transition={modeMorphTransition}
     >
       <motion.div
         className="flex items-center"
@@ -325,7 +339,7 @@ function PillWindow({
           })}
         </div>
       </motion.div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -443,7 +457,7 @@ export default function Header() {
       navigate('/');
     } else {
       setImpactMode(true);
-      setActiveImpactTab('campaigns');
+      setActiveImpactTab('home');
       // 仍在 /shop、/about 等公司路径时，同步 effect 会立刻关掉 impact；先回首页再展示公益壳
       const companySubPaths = COMPANY_NAV.filter((n) => n.path !== '/').map((n) => n.path);
       const onCompanySubRoute = companySubPaths.some(
@@ -482,7 +496,9 @@ export default function Header() {
           WebkitBackdropFilter: impactMode ? 'saturate(180%) blur(14px)' : 'none',
           transition: prefersReducedMotion
             ? undefined
-            : `box-shadow ${MODE_MORPH_DURATION}s cubic-bezier(0.33, 1, 0.68, 1), backdrop-filter ${MODE_MORPH_DURATION}s cubic-bezier(0.33, 1, 0.68, 1), -webkit-backdrop-filter ${MODE_MORPH_DURATION}s cubic-bezier(0.33, 1, 0.68, 1)`,
+            : impactMode
+              ? `box-shadow ${MODE_MORPH_DURATION}s cubic-bezier(0.33, 1, 0.68, 1), backdrop-filter ${MODE_MORPH_DURATION}s cubic-bezier(0.33, 1, 0.68, 1), -webkit-backdrop-filter ${MODE_MORPH_DURATION}s cubic-bezier(0.33, 1, 0.68, 1)`
+              : `box-shadow ${MODE_MORPH_DURATION}s cubic-bezier(0.33, 1, 0.68, 1), backdrop-filter 0s linear, -webkit-backdrop-filter 0s linear`,
         }}
       >
         <div className="relative mx-auto flex h-14 max-w-[1400px] items-center justify-between px-6 md:px-10">

@@ -1,14 +1,16 @@
 import api from './api';
+import { resolveApiAssetUrl } from '@/utils/resolveApiAssetUrl';
 import type { Campaign, PaginatedResponse } from '@/types';
 
 /** Normalize snake_case backend CampaignOut → camelCase frontend Campaign */
 function normalizeCampaign(raw: Record<string, unknown>): Campaign {
+  const coverRaw = (raw.cover_image as string) ?? (raw.coverImageUrl as string) ?? '';
   return {
     id: raw.id as number,
     title: (raw.title as string) ?? '',
     subtitle: (raw.subtitle as string) ?? '',
     description: (raw.description as string) ?? '',
-    coverImageUrl: (raw.cover_image as string) ?? (raw.coverImageUrl as string) ?? '',
+    coverImageUrl: resolveApiAssetUrl(coverRaw),
     startDate: (raw.start_date as string) ?? (raw.startDate as string) ?? '',
     endDate: (raw.end_date as string) ?? (raw.endDate as string) ?? '',
     status: ((raw.status as string) ?? 'active') as Campaign['status'],
