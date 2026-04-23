@@ -105,13 +105,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # =======================
-      # 🔥 关键修复：自动生成 .env 文件
-      # =======================
+      # 只在 .env 不存在时才从 .env.example 生成（保护已配置的密钥）
       - name: 创建临时 .env 文件
         run: |
-          cp deploy/easy/.env.example deploy/easy/.env
-          echo "✅ 自动生成 .env 完成"
+          if [ ! -f deploy/easy/.env ]; then
+            cp deploy/easy/.env.example deploy/easy/.env
+            echo "✅ 自动生成 .env 完成"
+          else
+            echo "ℹ️ .env 已存在，跳过生成（保护已配置的凭证）"
+          fi
 
       - name: 设置Docker元数据
         id: meta
@@ -336,7 +338,7 @@ jobs:
 
       - name: 配置环境变量文件
         run: |
-          ssh vm "cp /home/student/vicoo/deploy/easy/.env.example /home/student/vicoo/deploy/easy/.env || true"
+          ssh vm "if [ ! -f /home/student/vicoo/deploy/easy/.env ]; then cp /home/student/vicoo/deploy/easy/.env.example /home/student/vicoo/deploy/easy/.env; fi"
 
       # 旧版 docker-compose 在「重建」某些容器时会 KeyError: ContainerConfig；用 down 清掉本项目容器再 up（见 deploy/easy/compose-up-staging.sh）。
       - name: 启动服务
