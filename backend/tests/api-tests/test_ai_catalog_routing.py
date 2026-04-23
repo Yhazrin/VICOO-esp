@@ -41,3 +41,9 @@ def test_build_product_url_uses_surface_path():
     uniqlo_url = svc._build_product_url(9, False)
     assert "/impact/shop/12" in impact_url
     assert "/shop/9" in uniqlo_url
+
+
+def test_sanitize_assistant_reply_removes_think_block():
+    svc = _service()
+    raw = "<think>internal reasoning</think>\n\n好的，我给你推荐几款包。"
+    assert svc._sanitize_assistant_reply(raw) == "好的，我给你推荐几款包。"

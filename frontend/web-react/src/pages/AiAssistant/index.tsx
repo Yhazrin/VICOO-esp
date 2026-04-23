@@ -11,6 +11,7 @@ import PaperTextureBackground from '@/components/editorial/PaperTextureBackgroun
 import { aiAssistantApi, type AIChatMessage } from '@/services/aiAssistant';
 import { useUIStore } from '@/stores/uiStore';
 import { getAIAssistantMetadata, getAIAssistantSuggestions } from '@/config/aiAssistantScenarios';
+import { sanitizeAssistantContent } from '@/utils/aiContent';
 
 interface ChatMessage extends AIChatMessage {
   id: string;
@@ -18,10 +19,6 @@ interface ChatMessage extends AIChatMessage {
 
 let _chatMsgId = 0;
 const nextChatMsgId = () => `chat-${++_chatMsgId}`;
-
-// Strip <think>...</think> blocks from AI response before rendering
-const stripThink = (content: string) =>
-  content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
 
 export default function AiAssistant() {
   const { t } = useTranslation();
@@ -145,7 +142,11 @@ export default function AiAssistant() {
                 className={`font-body text-body-sm leading-relaxed ${m.role === 'user' ? 'text-ink pl-4 border-l-2 border-rust/40' : 'text-ink-faded'}`}
               >
                 <span className="text-overline text-sepia-mid block mb-1">{m.role === 'user' ? t('aiAssistant.userLabel') : t('aiAssistant.assistantLabel')}</span>
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.role === 'assistant' ? stripThink(m.content) : m.content}</ReactMarkdown>
+                <div className="[&_p]:text-current [&_li]:text-current [&_ol]:text-current [&_ul]:text-current [&_strong]:text-current [&_em]:text-current [&_code]:text-current [&_a]:text-current [&_a]:underline [&_a]:decoration-current [&_a:hover]:opacity-80">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {m.role === 'assistant' ? sanitizeAssistantContent(m.content) : m.content}
+                  </ReactMarkdown>
+                </div>
               </div>
             ))}
             <div ref={bottomRef} />

@@ -6,6 +6,7 @@ import remarkGfm from 'remark-gfm';
 import { aiAssistantApi, type AIChatMessage } from '@/services/aiAssistant';
 import { useUIStore } from '@/stores/uiStore';
 import { getAIAssistantMetadata, getAIAssistantSuggestions } from '@/config/aiAssistantScenarios';
+import { sanitizeAssistantContent } from '@/utils/aiContent';
 
 interface Message {
   id: string;
@@ -15,10 +16,6 @@ interface Message {
 
 let _msgId = 0;
 const nextMsgId = () => `msg-${++_msgId}`;
-
-// Strip <think>... blocks from AI response before rendering
-const stripThink = (content: string) =>
-  content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
 
 type AIAssistantTheme = {
   panel: string;
@@ -206,8 +203,8 @@ export const AIAssistantBall: React.FC = () => {
                     m.role === 'user' 
                       ? theme.userBubble 
                       : theme.assistantBubble
-                  } ${m.role === 'system' ? `opacity-70 italic border-none bg-transparent ${theme.systemBubble}` : ''}`}>
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.role === 'assistant' ? stripThink(m.content) : m.content}</ReactMarkdown>
+                  } ${m.role === 'system' ? `opacity-70 italic border-none bg-transparent ${theme.systemBubble}` : ''} [&_p]:text-current [&_li]:text-current [&_ol]:text-current [&_ul]:text-current [&_strong]:text-current [&_em]:text-current [&_code]:text-current [&_a]:text-current [&_a]:underline [&_a]:decoration-current [&_a:hover]:opacity-80`}>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.role === 'assistant' ? sanitizeAssistantContent(m.content) : m.content}</ReactMarkdown>
                   </div>
 
                   {m.role === 'assistant' && (
