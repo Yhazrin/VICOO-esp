@@ -97,7 +97,10 @@ function normalizeProduct(raw: any): Product {
   return {
     id: Number(raw?.id ?? 0),
     name: raw?.name ?? '',
+    nameEn: raw?.name_en != null && String(raw.name_en).trim() !== '' ? String(raw.name_en) : undefined,
     description: raw?.description ?? '',
+    descriptionEn:
+      raw?.description_en != null && String(raw.description_en).trim() !== '' ? String(raw.description_en) : undefined,
     price: Number(raw?.price ?? 0),
     currency: raw?.currency ?? 'CNY',
     image_url: raw?.image_url ?? null,
@@ -115,6 +118,14 @@ function normalizeProduct(raw: any): Product {
     originRegionId: raw?.origin_region_id ?? raw?.originRegionId ?? null,
     traceStoryTitle: raw?.trace_story_title ?? raw?.traceStoryTitle ?? '',
     traceStoryContent: raw?.trace_story_content ?? raw?.traceStoryContent ?? '',
+    traceStoryTitleEn:
+      raw?.trace_story_title_en != null && String(raw.trace_story_title_en).trim() !== ''
+        ? String(raw.trace_story_title_en)
+        : undefined,
+    traceStoryContentEn:
+      raw?.trace_story_content_en != null && String(raw.trace_story_content_en).trim() !== ''
+        ? String(raw.trace_story_content_en)
+        : undefined,
     sizes: raw?.sizes ?? undefined,
     colors: raw?.colors ?? undefined,
   };

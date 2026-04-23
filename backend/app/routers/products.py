@@ -21,6 +21,7 @@ from app.schemas import (
 )
 from app.deps import require_role, get_current_user
 from app.data.default_regular_products import regular_catalog_mock_dicts
+from app.data.product_i18n_seed import PRODUCT_I18N_BY_NAME_ZH
 from app.data.impact_product_images import IMPACT_PRODUCT_IMAGE_BY_NAME as _IMPACT_IMG
 
 router = APIRouter(prefix="/products", tags=["Products"])
@@ -121,6 +122,24 @@ _mock_products = [
     # 常规店 SKU（id 从 20 起，避免与公益 mock id 13/14 区间重叠）
     *regular_catalog_mock_dicts(20),
 ]
+
+
+def _merge_product_mock_i18n(rows: list[dict]) -> None:
+    for p in rows:
+        m = PRODUCT_I18N_BY_NAME_ZH.get(str(p.get("name", "")).strip())
+        if not m:
+            continue
+        if m.get("name_en"):
+            p["name_en"] = m["name_en"]
+        if m.get("description_en"):
+            p["description_en"] = m["description_en"]
+        if m.get("trace_story_title_en"):
+            p["trace_story_title_en"] = m["trace_story_title_en"]
+        if m.get("trace_story_content_en"):
+            p["trace_story_content_en"] = m["trace_story_content_en"]
+
+
+_merge_product_mock_i18n(_mock_products)
 
 _mock_supply_chain = [
     {"id": 1, "product_id": 1, "stage": "material_sourcing", "description": "有机棉来自新疆阿克苏有机棉田，GOTS 认证", "location": "新疆阿克苏", "latitude": 41.17, "longitude": 80.26, "certified": True, "cert_image_url": "/static/certs/gots_cert.jpg", "timestamp": "2025-02-01T08:00:00", "created_at": "2025-02-01T08:00:00"},

@@ -2,9 +2,10 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useCartStore, selectTotalItems, selectTotalPrice } from '@/stores/cartStore';
+import { resolveProductLocale } from '@/utils/productLocale';
 
 export default function CartDrawer() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
   const isOpen = useCartStore((s) => s.isOpen);
   const items = useCartStore((s) => s.items);
@@ -88,6 +89,7 @@ export default function CartDrawer() {
                 <ul className="space-y-4">
                   {items.map((item) => {
                     const itemKey = `${item.product.id}-${item.selectedSize || ''}-${item.selectedColor || ''}`;
+                    const lineName = resolveProductLocale(item.product, i18n.language).name;
                     return (
                     <motion.li
                       key={itemKey}
@@ -103,7 +105,7 @@ export default function CartDrawer() {
                         {item.product.image_url ? (
                           <img
                             src={item.product.image_url}
-                            alt={item.product.name}
+                            alt={lineName}
                             className="w-full h-full object-cover"
                             loading="lazy"
                           />
@@ -117,7 +119,7 @@ export default function CartDrawer() {
                       {/* Details */}
                       <div className="flex-1 min-w-0">
                         <h3 className="font-display text-sm font-semibold text-ink leading-tight truncate">
-                          {item.product.name}
+                          {lineName}
                         </h3>
                         {(item.selectedSize || item.selectedColor) && (
                           <p className="font-body text-[11px] text-sepia-mid mt-0.5">

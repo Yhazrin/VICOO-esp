@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { productDetailPath } from '@/utils/productPaths';
+import { resolveProductLocale } from '@/utils/productLocale';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { productsApi } from '@/services/products';
@@ -31,6 +33,7 @@ const BANNER_ITEMS = [
 ];
 
 export default function UniqloHome() {
+  const { i18n } = useTranslation();
   const { data: products } = useQuery({
     queryKey: ['uniqlo-home-products', 'company'],
     queryFn: () => productsApi.getAll({ page_size: 16, isImpactProduct: false }),
@@ -122,7 +125,9 @@ export default function UniqloHome() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {homeCompanyPick.map((product) => (
+            {homeCompanyPick.map((product) => {
+              const pn = resolveProductLocale(product, i18n.language).name;
+              return (
               <Link
                 key={product.id}
                 to={productDetailPath(product.id, product)}
@@ -134,7 +139,7 @@ export default function UniqloHome() {
                   {product.image_url ? (
                     <img
                       src={product.image_url}
-                      alt={product.name}
+                      alt={pn}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
@@ -145,14 +150,15 @@ export default function UniqloHome() {
                 </div>
                 <div className="mt-2 md:mt-3">
                   <p className="font-sans text-xs md:text-sm truncate" style={{ color: '#1A1A1A' }}>
-                    {product.name}
+                    {pn}
                   </p>
                   <p className="font-sans text-xs font-semibold mt-1" style={{ color: '#1A1A1A' }}>
                     &yen;{product.price.toLocaleString()}
                   </p>
                 </div>
               </Link>
-            ))}
+            );
+            })}
           </div>
         </SectionContainer>
       </section>

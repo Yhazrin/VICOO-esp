@@ -170,7 +170,9 @@ export interface SystemSettings {
 export interface AdminProduct {
   id: string;
   name: string;
+  nameEn?: string;
   description: string;
+  descriptionEn?: string;
   price: number;
   currency: string;
   imageUrl?: string;
@@ -185,6 +187,8 @@ export interface AdminProduct {
   originRegionId?: string;
   traceStoryTitle?: string;
   traceStoryContent?: string;
+  traceStoryTitleEn?: string;
+  traceStoryContentEn?: string;
   createdAt: string;
 }
 
