@@ -69,7 +69,7 @@ class AIAssistantService(BaseService):
 
         rag_output = ""
         if use_rag and last_user:
-            rag_output = await self._retrieve_rag(last_user, context, catalog_scope)
+            rag_output = await self._retrieve_rag(last_user, context, catalog_scope, metadata)
             if rag_output:
                 full_system_prompt += f"\n\n[Retrieval Results]\n{rag_output}\n[End Retrieval]\n\nPlease use the above retrieval snippets to ground your answer and cite sources."
 
@@ -336,8 +336,23 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                 break
         return normalized[:limit]
 
-    def _build_product_url(self, product_id: int, is_impact_product: bool) -> str:
-        base = settings.FRONTEND_URL.rstrip("/") + "/"
+    def _resolve_frontend_base_url(self, metadata: Optional[Dict[str, Any]] = None) -> str:
+        base = ""
+        if metadata and isinstance(metadata, dict):
+            origin = metadata.get("frontendOrigin") or metadata.get("origin")
+            if isinstance(origin, str) and origin.startswith(("http://", "https://")):
+                base = origin
+        if not base:
+            base = settings.FRONTEND_URL
+        lowered = base.lower()
+        if "localhost" in lowered or "127.0.0.1" in lowered:
+            base = "http://csi420-02-vm8.ucd.ie"
+        return base.rstrip("/") + "/"
+
+    def _build_product_url(
+        self, product_id: int, is_impact_product: bool, metadata: Optional[Dict[str, Any]] = None
+    ) -> str:
+        base = self._resolve_frontend_base_url(metadata)
         path = f"impact/shop/{product_id}" if is_impact_product else f"shop/{product_id}"
         return urljoin(base, path)
 
@@ -367,7 +382,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                     out = f"Product ID: {pid}\n"
                     if prod:
                         out += f"Name: {prod.name}\nPrice: {prod.price} {prod.currency}\nIsImpact: {bool(prod.is_impact_product)}\n"
-                        out += f"Product URL: {self._build_product_url(prod.id, bool(prod.is_impact_product))}\n"
+                        out += f"Product URL: {self._build_product_url(prod.id, bool(prod.is_impact_product), metadata)}\n"
                         if prod.donation_percentage:
                             out += f"Donation Percentage: {prod.donation_percentage}%\n"
                         if prod.description:
@@ -412,7 +427,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                 out = f"Product ID: {pid}\n"
                 if prod:
                     out += f"Name: {prod.name}\nPrice: {prod.price} {prod.currency}\nIsImpact: {bool(prod.is_impact_product)}\n"
-                    out += f"Product URL: {self._build_product_url(prod.id, bool(prod.is_impact_product))}\n"
+                    out += f"Product URL: {self._build_product_url(prod.id, bool(prod.is_impact_product), metadata)}\n"
                     if prod.donation_percentage:
                         out += f"Donation Percentage: {prod.donation_percentage}%\n"
                     if prod.description:
@@ -474,7 +489,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                         out += (
                             f"- Name:{p.name} | Price:{p.price} {p.currency} | "
                             f"Donation:{p.donation_percentage or 0}% | "
-                            f"URL:{self._build_product_url(p.id, bool(p.is_impact_product))}\n"
+                            f"URL:{self._build_product_url(p.id, bool(p.is_impact_product), metadata)}\n"
                         )
                     out += "\n(Source: products table)"
                     return out
@@ -511,14 +526,20 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                             out += (
                                 f"- Name:{p.name} | Price:{p.price} {p.currency} | "
                                 f"Donation:{p.donation_percentage or 0}% | "
-                                f"URL:{self._build_product_url(p.id, bool(p.is_impact_product))}\n"
+                                f"URL:{self._build_product_url(p.id, bool(p.is_impact_product), metadata)}\n"
                             )
                         out += "\n(Source: products table)"
                         return out
 
         return ""
 
-    async def _retrieve_rag(self, query: str, context: str, catalog_scope: str = "mixed") -> str:
+    async def _retrieve_rag(
+        self,
+        query: str,
+        context: str,
+        catalog_scope: str = "mixed",
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> str:
         """Lightweight retrieval over impact product descriptions, campaigns, and supply-chain records.
         Returns a textual list of short snippets with source tags to be injected into the LLM prompt.
         """
@@ -540,6 +561,8 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                 if resolved_scope in ("impact", "uniqlo")
                 else ["uniqlo", "impact"]
             )
+
+            base_url = self._resolve_frontend_base_url(metadata)
 
             # 1) Product search by selected catalog scope
             for scope in product_scopes:
@@ -565,9 +588,9 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                                 "source": f"product/{p.id}",
                                 "title": p.name,
                                 "text": snippet,
-                                "url": self._build_product_url(p.id, bool(p.is_impact_product)),
-                            }
-                        )
+                                    "url": self._build_product_url(p.id, bool(p.is_impact_product), metadata),
+                                }
+                            )
                     if prods:
                         break
                 except Exception as e:
@@ -597,7 +620,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                                     "source": f"campaign/{c.id}",
                                     "title": c.title,
                                     "text": snippet,
-                                    "url": urljoin(settings.FRONTEND_URL.rstrip("/") + "/", f"campaigns/{c.id}"),
+                                    "url": urljoin(base_url, f"campaigns/{c.id}"),
                                 }
                             )
                 except Exception:
@@ -617,7 +640,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                                     "source": f"supply_chain/{r.id}",
                                     "title": r.stage or "stage",
                                     "text": snippet,
-                                    "url": urljoin(settings.FRONTEND_URL.rstrip("/") + "/", f"supply-chain/records/{r.id}"),
+                                    "url": urljoin(base_url, f"supply-chain/records/{r.id}"),
                                 }
                             )
                 except Exception:
