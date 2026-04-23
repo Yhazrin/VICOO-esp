@@ -4,11 +4,25 @@ export interface AIAssistantSuggestion {
   context: string;
 }
 
-export const getAIAssistantMetadata = (impactMode: boolean, route: string) => ({
-  impactMode,
-  route,
-  surface: impactMode ? 'impact' : 'uniqlo',
-});
+export const getAIAssistantMetadata = (impactMode: boolean, route: string) => {
+  const isImpactSurface = impactMode || route.includes('/impact');
+  return {
+    impactMode: isImpactSurface,
+    route,
+    surface: isImpactSurface ? 'impact' : 'uniqlo',
+    preferredCatalog: isImpactSurface ? 'impact' : 'uniqlo',
+    sustainabilityPriorityKeywords: [
+      '可持续',
+      '环保',
+      '公益',
+      '捐赠',
+      'sustainable',
+      'sustainability',
+      'impact',
+      'charity',
+    ],
+  };
+};
 
 export const getAIAssistantSuggestions = (impactMode: boolean, route: string): AIAssistantSuggestion[] => {
   const isProductPage = /\/products?\//.test(route);
