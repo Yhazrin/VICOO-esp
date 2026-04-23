@@ -7,7 +7,8 @@
     "dev": "vite --port 9111",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "test:perf": "playwright test e2e/perf-impact-toggle.spec.ts"
+    "test:perf": "playwright test e2e/perf-impact-toggle.spec.ts",
+    "screenshots:manual": "playwright test e2e/manual-screenshots.spec.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.17.19",
