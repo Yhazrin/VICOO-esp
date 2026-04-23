@@ -217,7 +217,16 @@
         "line1": "Every Thread,",
         "line2": "Traced from",
         "line3": "Source to Stitch",
-        "subtitle": "From organic cotton fields to finished garments — verified at every step."
+        "subtitle": "From organic cotton fields to finished garments — verified at every step.",
+        "scrollCue": "Scroll"
+      },
+      "scene02": {
+        "quote": "Where imagination meets fabric, stories are worn.",
+        "artworkAlt": "Children's artwork {{n}}"
+      },
+      "scene03": {
+        "title": "Impact in Numbers",
+        "established": "EST. 2024"
       },
       "scene04": {
         "title": "Be Part of the Story",
@@ -1235,7 +1244,68 @@
     "chatWithAI": "Chat with AI Assistant",
     "demomode": "Demo Mode",
     "userLabel": "You",
-    "assistantLabel": "Assistant"
+    "assistantLabel": "Assistant",
+    "ballTitle": "VICOO Assistant",
+    "ballSubtitle": "Vol. 1 — Issue 01 — AI Edition",
+    "typing": "... Typing ...",
+    "emptyQuote": "\"Art is the most intense mode of individualism that the world has known.\"",
+    "askAboutProduct": "Ask AI about this product",
+    "productPrefill": "Please explain this product's traceability and welfare impact. Product ID: {{id}}",
+    "feedbackSubmitted": "Submitted",
+    "feedbackEscalated": "Escalated to human support",
+    "feedbackHelpfulAria": "Helpful",
+    "feedbackNotHelpfulAria": "Not helpful",
+    "feedbackNotHelpfulNote": "User reported not helpful",
+    "suggestions": {
+      "impactRecommend": {
+        "label": "Recommend impact products",
+        "prompt": "Recommend a few products suited to children's welfare contexts and briefly explain why."
+      },
+      "impactTraceFlow": {
+        "label": "Traceability flow",
+        "prompt": "Explain this product's traceability flow and key milestones."
+      },
+      "impactDonationRatio": {
+        "label": "Donation & impact",
+        "prompt": "What are the donation ratio and welfare impact for these products?"
+      },
+      "impactCampaignProgress": {
+        "label": "Campaign progress",
+        "prompt": "How is this welfare project progressing, and what impact can it create?"
+      },
+      "productMaterials": {
+        "label": "Materials & styling",
+        "prompt": "Tell me this product's materials, suitable season, and everyday styling tips."
+      },
+      "productSizing": {
+        "label": "Sizing help",
+        "prompt": "How should I choose a size for this product? Keep the advice short."
+      },
+      "productTraceability": {
+        "label": "Traceability",
+        "prompt": "Explain this product's traceability and supply chain information."
+      },
+      "productAfterSales": {
+        "label": "Returns & care",
+        "prompt": "What return/exchange and after-sales notes apply to this product?"
+      },
+      "generalFindProduct": {
+        "label": "Find products",
+        "prompt": "Recommend suitable products based on my needs."
+      },
+      "generalLogistics": {
+        "label": "Track shipping",
+        "prompt": "How can I check logistics status for my order?"
+      },
+      "generalReturns": {
+        "label": "Returns policy",
+        "prompt": "Explain returns and after-sales steps."
+      },
+      "generalWelfareIntro": {
+        "label": "Welfare & sustainability",
+        "prompt": "Introduce the platform's welfare work and sustainability practices."
+      }
+    }
   },
   "orderDetail": {
     "error": "Unable to load order",

@@ -56,7 +56,7 @@ export default function AiAssistant() {
           const res = await aiAssistantApi.chat(nextMsgs.map(({ id: _id, ...m }) => m) as AIChatMessage[], context, metadata);
           setMessages([...nextMsgs, { id: nextChatMsgId(), role: 'assistant', content: res.reply }]);
         } catch {
-          setMessages([...nextMsgs, { id: nextChatMsgId(), role: 'assistant', content: t('aiAssistant.error', '请求失败，请稍后再试。') }]);
+          setMessages([...nextMsgs, { id: nextChatMsgId(), role: 'assistant', content: t('aiAssistant.error') }]);
         }
       })();
     }
@@ -78,7 +78,7 @@ export default function AiAssistant() {
     } catch {
       setMessages([
         ...next,
-        { id: nextChatMsgId(), role: 'assistant', content: t('aiAssistant.error', '请求失败，请稍后再试。') },
+        { id: nextChatMsgId(), role: 'assistant', content: t('aiAssistant.error') },
       ]);
     } finally {
       setLoading(false);
@@ -91,14 +91,14 @@ export default function AiAssistant() {
 
         <SectionContainer>
           <h2 className="font-display text-h3 font-bold text-ink mb-8">
-            {t('aiAssistant.title', '智能助手')}
+            {t('aiAssistant.title')}
           </h2>
           <p className="font-body text-body-sm text-ink-faded mt-2 mb-8">
-            {t('aiAssistant.subtitle', '捐赠、购物、物流与可持续实践')}
+            {t('aiAssistant.subtitle')}
           </p>
           <div className="mb-6 flex flex-wrap gap-3 items-center">
             <label htmlFor="ai-ctx" className="font-body text-overline text-sepia-mid">
-              {t('aiAssistant.context', '上下文')}
+              {t('aiAssistant.context')}
             </label>
             <select
               id="ai-ctx"
@@ -116,12 +116,12 @@ export default function AiAssistant() {
           <div className="mb-6 flex flex-wrap gap-2">
             {suggestions.map((item) => (
               <button
-                key={item.label}
+                key={item.id}
                 type="button"
-                onClick={() => void send(item.prompt)}
+                onClick={() => void send(t(`aiAssistant.suggestions.${item.id}.prompt`))}
                 className="font-body text-caption border border-warm-gray/40 bg-white px-3 py-1.5 text-ink hover:bg-sepia-light"
               >
-                {item.label}
+                {t(`aiAssistant.suggestions.${item.id}.label`)}
               </button>
             ))}
           </div>
@@ -131,7 +131,7 @@ export default function AiAssistant() {
             aria-live="polite"
           >
             {messages.length === 0 && (
-              <p className="font-body text-caption text-ink-faded">{t('aiAssistant.empty', '输入问题开始对话。未配置 API 时返回演示回复。')}</p>
+              <p className="font-body text-caption text-ink-faded">{t('aiAssistant.empty')}</p>
             )}
             {messages.map((m) => (
               <div
@@ -150,7 +150,7 @@ export default function AiAssistant() {
               onChange={(e) => setInput(e.target.value)}
               rows={3}
               className="flex-1 font-body text-body-sm border border-warm-gray/40 bg-transparent p-3 text-ink resize-y min-h-[88px]"
-              placeholder={t('aiAssistant.placeholder', '例如：衣物捐献后多久能上架？')}
+              placeholder={t('aiAssistant.placeholder')}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
@@ -164,7 +164,7 @@ export default function AiAssistant() {
               disabled={loading || !input.trim()}
               className="sm:self-end font-body text-body-sm tracking-[0.12em] uppercase px-8 py-4 bg-ink text-paper hover:bg-rust disabled:opacity-50 cursor-pointer"
             >
-              {loading ? t('common.loading', '…') : t('aiAssistant.send', '发送')}
+              {loading ? t('common.loading') : t('aiAssistant.send')}
             </button>
           </div>
         </SectionContainer>

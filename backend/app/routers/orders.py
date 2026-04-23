@@ -21,8 +21,13 @@ from app.schemas.order import ReturnRequestCreate
 from app.deps import get_current_user, require_role
 from app.security import generate_order_no
 from app.services.payment_service import get_payment_service
+from app.data.impact_product_images import IMPACT_PRODUCT_IMAGE_BY_NAME
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
+
+
+def _mock_impact_item_image(name: str) -> str:
+    return IMPACT_PRODUCT_IMAGE_BY_NAME.get(name) or "https://picsum.photos/seed/vicoo-order-mock/900/1200"
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +92,7 @@ _mock_orders = [
         "shipping_address": "北京市朝阳区建国路88号",
         "payment_method": "wechat",
         "payment_id": "wx_order_001",
-        "items": [{"id": 1, "product_id": 1, "product_name": "彩虹鱼棉质 T 恤", "product_image": "/static/products/tshirt1.jpg", "quantity": 1, "price": "168.00"}, {"id": 2, "product_id": 4, "product_name": "妈妈的手环保笔记本", "product_image": "/static/products/notebook1.jpg", "quantity": 2, "price": "39.00"}],
+        "items": [{"id": 1, "product_id": 1, "product_name": "彩虹鱼棉质 T 恤", "product_image": _mock_impact_item_image("彩虹鱼棉质 T 恤"), "quantity": 1, "price": "168.00"}, {"id": 2, "product_id": 4, "product_name": "妈妈的手环保笔记本", "product_image": _mock_impact_item_image("妈妈的手环保笔记本"), "quantity": 2, "price": "39.00"}],
         "created_at": "2025-04-01T10:00:00",
         "updated_at": "2025-04-03T15:00:00",
     },
@@ -100,7 +105,7 @@ _mock_orders = [
         "shipping_address": "上海市浦东新区陆家嘴环路1000号",
         "payment_method": "alipay",
         "payment_id": "ali_order_002",
-        "items": [{"id": 3, "product_id": 3, "product_name": "春天的花园丝巾", "product_image": "/static/products/scarf1.jpg", "quantity": 1, "price": "258.00"}],
+        "items": [{"id": 3, "product_id": 3, "product_name": "春天的花园丝巾", "product_image": _mock_impact_item_image("春天的花园丝巾"), "quantity": 1, "price": "258.00"}],
         "created_at": "2025-04-05T14:00:00",
         "updated_at": "2025-04-06T09:00:00",
     },
@@ -113,7 +118,7 @@ _mock_orders = [
         "shipping_address": "广州市天河区体育西路103号",
         "payment_method": "wechat",
         "payment_id": "wx_order_003",
-        "items": [{"id": 4, "product_id": 8, "product_name": "过年了限定礼盒", "product_image": "/static/products/giftbox1.jpg", "quantity": 1, "price": "368.00"}],
+        "items": [{"id": 4, "product_id": 8, "product_name": "过年了限定礼盒", "product_image": _mock_impact_item_image("过年了限定礼盒"), "quantity": 1, "price": "368.00"}],
         "created_at": "2025-04-10T16:00:00",
         "updated_at": "2025-04-10T16:05:00",
     },
@@ -126,7 +131,7 @@ _mock_orders = [
         "shipping_address": "北京市朝阳区建国路88号",
         "payment_method": None,
         "payment_id": None,
-        "items": [{"id": 5, "product_id": 2, "product_name": "星星之夜帆布袋", "product_image": "/static/products/bag1.jpg", "quantity": 1, "price": "89.00"}, {"id": 6, "product_id": 5, "product_name": "太空旅行马克杯", "product_image": "/static/products/cup1.jpg", "quantity": 1, "price": "68.00"}],
+        "items": [{"id": 5, "product_id": 2, "product_name": "星星之夜帆布袋", "product_image": _mock_impact_item_image("星星之夜帆布袋"), "quantity": 1, "price": "89.00"}, {"id": 6, "product_id": 5, "product_name": "太空旅行马克杯", "product_image": _mock_impact_item_image("太空旅行马克杯"), "quantity": 1, "price": "68.00"}],
         "created_at": "2025-04-15T11:00:00",
         "updated_at": "2025-04-15T11:00:00",
     },
@@ -139,7 +144,7 @@ _mock_orders = [
         "shipping_address": "上海市浦东新区陆家嘴环路1000号",
         "payment_method": "alipay",
         "payment_id": "ali_order_005",
-        "items": [{"id": 7, "product_id": 1, "product_name": "彩虹鱼棉质 T 恤", "product_image": "/static/products/tshirt1.jpg", "quantity": 1, "price": "168.00"}, {"id": 8, "product_id": 7, "product_name": "画出未来环保抱枕", "product_image": "/static/products/pillow1.jpg", "quantity": 1, "price": "128.00"}],
+        "items": [{"id": 7, "product_id": 1, "product_name": "彩虹鱼棉质 T 恤", "product_image": _mock_impact_item_image("彩虹鱼棉质 T 恤"), "quantity": 1, "price": "168.00"}, {"id": 8, "product_id": 7, "product_name": "画出未来环保抱枕", "product_image": _mock_impact_item_image("画出未来环保抱枕"), "quantity": 1, "price": "128.00"}],
         "created_at": "2025-04-20T09:00:00",
         "updated_at": "2025-04-22T14:00:00",
     },
@@ -152,7 +157,7 @@ _mock_orders = [
         "shipping_address": "Test Address",
         "payment_method": "wechat",
         "payment_id": None,
-        "items": [{"id": 9, "product_id": 1, "product_name": "彩虹鱼棉质 T 恤", "product_image": "/static/products/tshirt1.jpg", "quantity": 1, "price": "128.00"}],
+        "items": [{"id": 9, "product_id": 1, "product_name": "彩虹鱼棉质 T 恤", "product_image": _mock_impact_item_image("彩虹鱼棉质 T 恤"), "quantity": 1, "price": "128.00"}],
         "created_at": "2025-04-25T12:00:00",
         "updated_at": "2025-04-25T12:00:00",
     },
