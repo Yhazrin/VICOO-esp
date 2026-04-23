@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { aiAssistantApi, type AIChatMessage } from '@/services/aiAssistant';
 import { useUIStore } from '@/stores/uiStore';
 import { getAIAssistantMetadata, getAIAssistantSuggestions } from '@/config/aiAssistantScenarios';
@@ -13,6 +15,10 @@ interface Message {
 
 let _msgId = 0;
 const nextMsgId = () => `msg-${++_msgId}`;
+
+// Strip <think>... blocks from AI response before rendering
+const stripThink = (content: string) =>
+  content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
 
 export const AIAssistantBall: React.FC = () => {
   const { t } = useTranslation();
@@ -129,7 +135,7 @@ export const AIAssistantBall: React.FC = () => {
                       ? 'bg-[#EDE6D6] border border-[#1A1A16] text-[#1A1A16]' 
                       : 'bg-white border border-[#1A1A16] text-[#1A1A16]'
                   } ${m.role === 'system' ? 'opacity-50 italic border-none bg-transparent' : ''}`}>
-                    {m.content}
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.role === 'assistant' ? stripThink(m.content) : m.content}</ReactMarkdown>
                   </div>
 
                   {m.role === 'assistant' && (
