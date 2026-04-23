@@ -347,6 +347,33 @@
       "footnote": "Public claims should point to evidence—third-party certificates, internal batch logs, or audit summaries. Where data is still being completed, we mark nodes as pending verification instead of omitting them quietly.",
       "ctaTraceability": "Open traceability hub",
       "ctaShop": "Impact shop records"
+    },
+    "items": {
+      "springExhibition": {
+        "title": "Spring Colors — Rural Children's Art Exhibition",
+        "subtitle": "Paintings from village primary schools, a city gallery show, and charity postcard sales.",
+        "description": "We collect paintings from children in village primary schools across the country, showing spring through their eyes. Selected works are exhibited in a city art museum and made into charity postcard sets for sale."
+      },
+      "hometownMemories": {
+        "title": "My Hometown — Memory of the Land",
+        "subtitle": "Children paint the rivers, customs, and stories of home—preserving memories that might otherwise fade.",
+        "description": "We invite children to record their hometown mountains, rivers, and culture in paint. We document vanishing village memory and invite society to care for local heritage."
+      },
+      "futureAndDreams": {
+        "title": "Drawing the Future — Technology and Dreams",
+        "subtitle": "A “future technology” theme: winning art on sustainable tees; all proceeds fund rural art education.",
+        "description": "With “future technology” as the theme, we encourage children to imagine tomorrow’s world boldly. Winning works are used for sustainable fashion T-shirt prints; proceeds go entirely to rural arts education."
+      },
+      "sustainableWorkshop": {
+        "title": "Woven from Innocence — Sustainable Materials Workshop",
+        "subtitle": "Recycled fabrics and plant dyes in village schools—small quilts and scarves, funded by this campaign.",
+        "description": "We run introductory workshops on recycled fabrics and natural dyes in village primary schools, using reclaimed cloth for small patchwork pieces and scarves. Material costs and instructor stipends are supported by donations to this campaign."
+      },
+      "mountainChoir": {
+        "title": "Voices of the Cloud Mountains — Rural Children's Choir",
+        "subtitle": "Choirs in Yunnan and Guizhou villages: sheet music, outfits, and one performance in the city.",
+        "description": "We help form small choirs in villages across Yunnan and Guizhou, providing sheet music, outfits, and one chance to perform in the city."
+      }
     }
   },
   "stories": {
@@ -604,14 +631,21 @@
       "added": "Added to Cart",
       "supplyChain": "Supply Chain Journey",
       "traceSection": "Traceability",
+      "traceStory": "Trace story",
       "coordsRegistered": "WGS84 coordinates",
       "coordsDerived": "Inferred from location",
       "sustainability": "Sustainability Score",
       "artwork": "Based on artwork by",
       "size": "Size",
+      "color": "Color",
+      "priceLabel": "Price",
       "quantity": "Quantity",
+      "noImage": "No product image",
+      "viewImage": "View image",
+      "viewImageAria": "View image {{n}}",
       "loading": "Loading...",
       "reviews": "Reviews",
+      "reviewsLead": "Real feedback from buyers, for reference only.",
       "noReviews": "No reviews yet",
       "rating": "Rating",
       "writeReview": "Write a Review",
@@ -619,6 +653,8 @@
       "reviewBody": "Share your wearing or packaging experience",
       "reviewError": "You may have already reviewed this product",
       "submitReview": "Submit",
+      "backToShop": "Back to shop",
+      "backToImpactShop": "Back to impact shop",
       "globeTitle": "Global traceability",
       "globeHint": "Drag to orbit. Tap a pin to read that leg of the journey; tap the same pin again to release the view.",
       "globeNodeList": "Supply chain nodes",
@@ -783,6 +819,8 @@
       "shipping": "Shipping"
     },
     "verified": "Verified",
+    "noRecords": "No supply chain records available.",
+    "carbonFootprintKg": "{{value}} kg CO₂",
     "carbonLabel": "Carbon Footprint",
     "imageAlt": "Dreamscape Tee",
     "kgCO2": "kg CO2",
@@ -831,6 +869,7 @@
       "linkShop": "Impact shop product records"
     },
     "materialsHeading": "Materials at this node",
+    "mediaVideoTitle": "Video",
     "materialOrigin": "Origin",
     "materialCertified": "Certified",
     "materialCertifiedYes": "Yes",
@@ -1093,6 +1132,7 @@
     "tryAgain": "Try again",
     "goHome": "Home"
   },
+  "campaigns.detail.statusLine": "{{status}} · Campaign",
   "campaigns.detail.about": "About This Campaign",
   "campaigns.detail.backToAll": "to all campaigns",
   "campaigns.detail.quote": "I drew a dress that makes rain sounds when you walk. That way, everyone knows you're coming.",
@@ -1343,6 +1383,8 @@
     "checkout": "Checkout",
     "continueShopping": "Continue Shopping",
     "remove": "Remove",
+    "decreaseQuantity": "Decrease quantity",
+    "increaseQuantity": "Increase quantity",
     "quantity": "Qty",
     "items": "{{count}} item",
     "items_plural": "{{count}} items",

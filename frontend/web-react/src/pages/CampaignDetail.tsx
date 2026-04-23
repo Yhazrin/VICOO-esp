@@ -15,6 +15,7 @@ import ArtworkCard from '@/components/editorial/ArtworkCard';
 import WelfareTraceabilitySustainabilityPanel from '@/components/editorial/WelfareTraceabilitySustainabilityPanel';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import { campaignsApi } from '@/services/campaigns';
+import { getLocalizedCampaignCopy } from '@/utils/campaignLocale';
 import { artworksApi } from '@/services/artworks';
 import { donationsApi } from '@/services/donations';
 import { useAuthStore } from '@/stores/authStore';
@@ -22,7 +23,7 @@ import type { Campaign } from '@/types';
 
 export default function CampaignDetail() {
   const { id } = useParams<{ id: string }>();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
@@ -103,15 +104,17 @@ export default function CampaignDetail() {
     ? Math.round((campaign.raisedAmount / campaign.goalAmount) * 100)
     : 0;
 
+  const copy = getLocalizedCampaignCopy(campaign, t, i18n);
+
   return (
     <PageWrapper>
-      <h1 className="sr-only">{campaign.title}</h1>
+      <h1 className="sr-only">{copy.title}</h1>
       {/* Hero Image */}
       <section className="relative h-[50dvh] md:h-[60dvh]">
         <ImageSkeleton className="absolute inset-0" aspectRatio="aspect-video" />
         <img
           src={campaign.coverImageUrl}
-          alt={campaign.title}
+          alt={copy.title}
           className="w-full h-full object-cover"
           style={{ filter: 'sepia(0.2) contrast(1.05) brightness(0.97)', opacity: 0, transition: 'opacity 0.3s' }}
           onLoad={(e) => {
@@ -125,10 +128,12 @@ export default function CampaignDetail() {
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
           <div className="max-w-[1400px] mx-auto">
             <span className="font-body text-overline tracking-[0.3em] uppercase text-pale-gold mb-3 block">
-              {t(`campaigns.status.${campaign.status}`)} Campaign
+              {t('campaigns.detail.statusLine', {
+                status: t(`campaigns.status.${campaign.status}`),
+              })}
             </span>
             <BleedTitleBlock>
-              <span className="text-paper">{campaign.title}</span>
+              <span className="text-paper">{copy.title}</span>
             </BleedTitleBlock>
           </div>
         </div>
@@ -144,7 +149,7 @@ export default function CampaignDetail() {
                 {t('campaigns.detail.about')}
               </h2>
               <p className="font-body text-body-sm text-ink-faded leading-[1.8] mb-6">
-                {campaign.description}
+                {copy.description}
               </p>
 
               <StoryQuoteBlock
