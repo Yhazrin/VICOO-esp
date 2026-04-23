@@ -78,7 +78,10 @@ export interface ProductArtworkAttribution {
 export interface Product {
   id: number;
   name: string;
+  /** English name when API provides `name_en` (optional) */
+  nameEn?: string;
   description: string;
+  descriptionEn?: string;
   price: number;
   currency: string;
   image_url: string | null;
@@ -106,6 +109,8 @@ export interface Product {
   traceStoryTitle?: string;
   /** Product-level traceability story body */
   traceStoryContent?: string;
+  traceStoryTitleEn?: string;
+  traceStoryContentEn?: string;
   /** Available sizes for this product */
   sizes?: string[];
   /** Available colors for this product (name + hex) */

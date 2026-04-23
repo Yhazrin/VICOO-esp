@@ -44,6 +44,10 @@ export default function ProductPage() {
     originRegionId: '',
     traceStoryTitle: '',
     traceStoryContent: '',
+    nameEn: '',
+    descriptionEn: '',
+    traceStoryTitleEn: '',
+    traceStoryContentEn: '',
   });
 
   const { data, isLoading } = useQuery({
@@ -91,6 +95,10 @@ export default function ProductPage() {
         originRegionId: '',
         traceStoryTitle: '',
         traceStoryContent: '',
+        nameEn: '',
+        descriptionEn: '',
+        traceStoryTitleEn: '',
+        traceStoryContentEn: '',
       });
     },
     onError: (e: any) => {
@@ -146,6 +154,10 @@ export default function ProductPage() {
       originRegionId: form.originRegionId || undefined,
       traceStoryTitle: form.traceStoryTitle,
       traceStoryContent: form.traceStoryContent,
+      nameEn: form.nameEn,
+      descriptionEn: form.descriptionEn,
+      traceStoryTitleEn: form.traceStoryTitleEn,
+      traceStoryContentEn: form.traceStoryContentEn,
     });
   };
 
@@ -224,6 +236,14 @@ export default function ProductPage() {
             <label style={{ display: 'block', fontSize: 13, marginBottom: 6 }}>{t('product.labelDescription')}</label>
             <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} style={{ ...inputStyle, height: 80 }} />
           </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 13, marginBottom: 6 }}>English name (optional)</label>
+            <input value={form.nameEn} onChange={(e) => setForm({ ...form, nameEn: e.target.value })} style={inputStyle} placeholder="Shown when site language is English" />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 13, marginBottom: 6 }}>English description (optional)</label>
+            <textarea value={form.descriptionEn} onChange={(e) => setForm({ ...form, descriptionEn: e.target.value })} style={{ ...inputStyle, height: 72 }} />
+          </div>
           <div style={{ gridColumn: '1 / -1' }}>
             <label style={{ display: 'block', fontSize: 13, marginBottom: 6 }}>{t('product.labelImageUrl')}</label>
             <input value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} style={inputStyle} />
@@ -276,6 +296,14 @@ export default function ProductPage() {
           <div style={{ gridColumn: '1 / -1' }}>
             <label style={{ display: 'block', fontSize: 13, marginBottom: 6 }}>{t('product.labelTraceStoryContent')}</label>
             <textarea value={form.traceStoryContent} onChange={(e) => setForm({ ...form, traceStoryContent: e.target.value })} style={{ ...inputStyle, height: 110 }} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 13, marginBottom: 6 }}>Trace story title (EN, optional)</label>
+            <input value={form.traceStoryTitleEn} onChange={(e) => setForm({ ...form, traceStoryTitleEn: e.target.value })} style={inputStyle} />
+          </div>
+          <div style={{ gridColumn: '1 / -1' }}>
+            <label style={{ display: 'block', fontSize: 13, marginBottom: 6 }}>Trace story content (EN, optional)</label>
+            <textarea value={form.traceStoryContentEn} onChange={(e) => setForm({ ...form, traceStoryContentEn: e.target.value })} style={{ ...inputStyle, height: 88 }} />
           </div>
         </form>
       </Modal>

@@ -19,6 +19,7 @@ import { reviewsApi } from '@/services/reviewsApi';
 import { useAuthStore } from '@/stores/authStore';
 import type { SupplyChainTimelineRecord, TraceMediaItem } from '@/types';
 import { companyProductPath, impactProductPath } from '@/utils/productPaths';
+import { resolveProductLocale } from '@/utils/productLocale';
 import { navigateWithViewTransition, supportsViewTransition } from '@/utils/navigateViewTransition';
 
 function supplyChainStageLabel(stage: string, t: (key: string) => string): string {
@@ -77,7 +78,7 @@ export default function ProductDetail() {
   const isImpactProductDetail = Boolean(
     matchPath({ path: '/impact/shop/:id', end: true }, pathname)
   );
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const qc = useQueryClient();
   const { isAuthenticated } = useAuthStore();
   const prefersReducedMotion = useReducedMotion();
@@ -181,6 +182,43 @@ export default function ProductDetail() {
     setGlobePinId(null);
   }, [id]);
 
+  const safeProduct = useMemo(() => {
+    if (!product) {
+      return {
+        name: '',
+        description: '',
+        category: '',
+        price: 0,
+        currency: 'CNY',
+        inStock: true,
+        sustainabilityScore: 0,
+        image_url: '',
+        sizes: undefined as string[] | undefined,
+        colors: undefined as { name: string; hex: string }[] | undefined,
+        traceStoryTitle: '',
+        traceStoryContent: '',
+      };
+    }
+    const loc = resolveProductLocale(product, i18n.language);
+    return {
+      name: loc.name,
+      description: loc.description,
+      category: product.category ?? '',
+      price: product.price ?? 0,
+      currency: product.currency ?? 'CNY',
+      inStock: product.inStock ?? true,
+      sustainabilityScore: product.sustainabilityScore ?? 0,
+      image_url: product.image_url ?? '',
+      sizes: product.sizes ?? undefined,
+      colors: product.colors ?? undefined,
+      traceStoryTitle: loc.traceStoryTitle.trim(),
+      traceStoryContent: loc.traceStoryContent.trim(),
+    };
+  }, [product, i18n.language]);
+  const hasTraceStory = Boolean(
+    product && (safeProduct.traceStoryTitle || safeProduct.traceStoryContent)
+  );
+
   useEffect(() => {
     if (!product || !id) return;
     if (product.isImpactProduct && !isImpactProductDetail) {
@@ -261,22 +299,6 @@ export default function ProductDetail() {
       </PageWrapper>
     );
   }
-
-  const safeProduct = {
-    name: product.name ?? '',
-    description: product.description ?? '',
-    category: product.category ?? '',
-    price: product.price ?? 0,
-    currency: product.currency ?? 'CNY',
-    inStock: product.inStock ?? true,
-    sustainabilityScore: product.sustainabilityScore ?? 0,
-    image_url: product.image_url ?? '',
-    sizes: product.sizes ?? undefined,
-    colors: product.colors ?? undefined,
-    traceStoryTitle: (product.traceStoryTitle ?? '').trim(),
-    traceStoryContent: (product.traceStoryContent ?? '').trim(),
-  };
-  const hasTraceStory = Boolean(safeProduct.traceStoryTitle || safeProduct.traceStoryContent);
 
   return (
     <PageWrapper>

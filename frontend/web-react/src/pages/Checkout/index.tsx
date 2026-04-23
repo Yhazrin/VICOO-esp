@@ -11,6 +11,7 @@ import { ordersApi } from '@/services/orders';
 import { paymentsApi } from '@/services/payments';
 import { addressesApi, type Address } from '@/services/addresses';
 import type { CreateOrderRequest } from '@/types';
+import { resolveProductLocale } from '@/utils/productLocale';
 
 type PaymentMethod = 'wechat' | 'alipay' | 'stripe' | 'paypal';
 
@@ -34,7 +35,7 @@ const PAYMENT_OPTIONS: { key: PaymentMethod; icon: string }[] = [
 ];
 
 export default function Checkout() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
 
   const items = useCartStore((s) => s.items);
@@ -454,22 +455,25 @@ export default function Checkout() {
                     <div className="border border-warm-gray/20 p-5">
                       <span className="font-body text-overline text-sepia-mid tracking-wider uppercase block mb-4">{t('checkout.orderSummary')}</span>
                       <ul className="space-y-3">
-                        {items.map((item) => (
+                        {items.map((item) => {
+                          const lineName = resolveProductLocale(item.product, i18n.language).name;
+                          return (
                           <li key={`${item.product.id}-${item.selectedSize || ''}-${item.selectedColor || ''}`} className="flex items-center gap-3">
                             <div className="w-12 h-14 flex-shrink-0 overflow-hidden border border-warm-gray/15 bg-aged-stock">
                               {item.product.image_url && (
-                                <img src={item.product.image_url} alt={item.product.name} className="w-full h-full object-cover" loading="lazy" />
+                                <img src={item.product.image_url} alt={lineName} className="w-full h-full object-cover" loading="lazy" />
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-body text-body-sm text-ink truncate">{item.product.name}</p>
+                              <p className="font-body text-body-sm text-ink truncate">{lineName}</p>
                               <p className="font-mono text-[11px] text-sepia-mid">x{item.quantity}</p>
                             </div>
                             <span className="font-mono text-sm text-ink">
                               ¥{(item.product.price * item.quantity).toFixed(2)}
                             </span>
                           </li>
-                        ))}
+                        );
+                        })}
                       </ul>
                     </div>
 
@@ -553,22 +557,25 @@ export default function Checkout() {
                 <h3 className="font-display text-base font-semibold text-ink mb-4">{t('checkout.orderSummary')}</h3>
 
                 <ul className="space-y-3 mb-6">
-                  {items.map((item) => (
+                  {items.map((item) => {
+                    const lineName = resolveProductLocale(item.product, i18n.language).name;
+                    return (
                     <li key={`${item.product.id}-${item.selectedSize || ''}-${item.selectedColor || ''}`} className="flex items-center gap-3">
                       <div className="w-10 h-12 flex-shrink-0 overflow-hidden border border-warm-gray/15 bg-aged-stock">
                         {item.product.image_url && (
-                          <img src={item.product.image_url} alt={item.product.name} className="w-full h-full object-cover" loading="lazy" />
+                          <img src={item.product.image_url} alt={lineName} className="w-full h-full object-cover" loading="lazy" />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-body text-caption text-ink truncate">{item.product.name}</p>
+                        <p className="font-body text-caption text-ink truncate">{lineName}</p>
                         <p className="font-mono text-[10px] text-sepia-mid">x{item.quantity}</p>
                       </div>
                       <span className="font-mono text-xs text-ink">
                         ¥{(item.product.price * item.quantity).toFixed(2)}
                       </span>
                     </li>
-                  ))}
+                  );
+                  })}
                 </ul>
 
                 <div className="border-t border-warm-gray/20 pt-4 space-y-2">

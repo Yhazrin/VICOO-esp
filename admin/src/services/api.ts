@@ -388,6 +388,10 @@ function adaptAdminProduct(item: any): AdminProduct {
     originRegionId: item.origin_region_id != null ? String(item.origin_region_id) : undefined,
     traceStoryTitle: item.trace_story_title ?? '',
     traceStoryContent: item.trace_story_content ?? '',
+    nameEn: item.name_en ?? '',
+    descriptionEn: item.description_en ?? '',
+    traceStoryTitleEn: item.trace_story_title_en ?? '',
+    traceStoryContentEn: item.trace_story_content_en ?? '',
     createdAt: item.created_at ?? '',
   };
 }
@@ -422,6 +426,10 @@ export async function createProduct(payload: Partial<AdminProduct>): Promise<Adm
     origin_region_id: payload.originRegionId ? Number(payload.originRegionId) : null,
     trace_story_title: payload.traceStoryTitle || null,
     trace_story_content: payload.traceStoryContent || null,
+    name_en: payload.nameEn?.trim() || null,
+    description_en: payload.descriptionEn?.trim() || null,
+    trace_story_title_en: payload.traceStoryTitleEn?.trim() || null,
+    trace_story_content_en: payload.traceStoryContentEn?.trim() || null,
   });
   return adaptAdminProduct(envelope.data);
 }
