@@ -3,6 +3,7 @@ from typing import List, Dict, Any, Optional
 import re
 import json
 import httpx
+from urllib.parse import urljoin
 from fastapi import HTTPException
 
 from app.config import settings
@@ -14,10 +15,14 @@ from app.models.product import Product
 
 logger = logging.getLogger("tonghua.ai_service")
 
-SYSTEM_PROMPT = """你是「童画公益 × 可持续时尚」平台的助手。语气温暖、克制、具有人文关怀。
-帮助用户理解：衣物捐献流程、商品与溯源、订单与物流、捐赠与售后、可持续实践。
-如果你发现用户询问的是具体的订单或捐赠记录，请告知他们你可以看到基础状态，但不要泄露详细隐私信息。
-涉及儿童信息、支付与法律问题时提醒用户以站内条款与客服为准。"""
+SYSTEM_PROMPT = """你是「童画公益 × 可持续时尚」平台助手。语气温暖、克制、专业。
+你需要根据页面语境推荐对应商品，并优先使用站内数据库与检索结果回答：
+1) 如果当前是 Uniqlo/常规商城语境，默认优先推荐常规商品（/shop/{id}）。
+2) 如果当前是 Impact/公益语境，默认优先推荐公益商品（/impact/shop/{id}）。
+3) 但当用户明确强调“可持续/公益/捐赠/环保/sustainable/impact/charity”时，即使在 Uniqlo 页面也要优先推荐 Impact 商品。
+4) 进行商品推荐时，尽量返回可点击链接，并给出推荐理由（材质、价格、公益比例、溯源等）。
+5) 如果用户问到订单、支付、隐私，请只给基础状态说明，不泄露敏感信息。
+6) 涉及儿童信息、支付与法律问题，提醒以站内条款与客服为准。"""
 
 class AIAssistantService(BaseService):
     """
@@ -35,14 +40,21 @@ class AIAssistantService(BaseService):
         """
         Request AI completion with business context injection.
         """
+        last_user = self._get_last_user_message(messages)
+        catalog_scope = self._determine_catalog_scope(last_user, context, metadata)
+
         # 1. Prepare business-specific context
         business_context = await self._get_business_context(user_id)
         context_hint = f"\n[Platform Context: {context}]\n{business_context}"
-        
-        full_system_prompt = SYSTEM_PROMPT + context_hint
+
+        full_system_prompt = (
+            SYSTEM_PROMPT
+            + context_hint
+            + f"\n[Catalog Routing]\nSelected catalog scope: {catalog_scope}\n"
+        )
 
         # 2. Lightweight tool invocation: detect explicit product/search/trace intents and fetch factual data
-        tool_output = await self._maybe_call_tools(messages, context, metadata)
+        tool_output = await self._maybe_call_tools(messages, context, metadata, catalog_scope)
         if tool_output:
             full_system_prompt += f"\n\n[Tool Output]\n{tool_output}\n[End Tool Output]\n\nPlease use the above factual tool output to ground your answer and cite sources."
 
@@ -55,22 +67,22 @@ class AIAssistantService(BaseService):
             if context in ("impact", "sustainability", "shop") or (metadata and metadata.get("impactMode")):
                 use_rag = True
 
-        if use_rag:
-            # extract last user message to use as retrieval query
-            last_user = ""
-            if messages:
-                for m in reversed(messages):
-                    if m.get("role") == "user":
-                        last_user = m.get("content", "").strip()
-                        break
-            if last_user:
-                rag_output = await self._retrieve_rag(last_user, context)
-                if rag_output:
-                    full_system_prompt += f"\n\n[Retrieval Results]\n{rag_output}\n[End Retrieval]\n\nPlease use the above retrieval snippets to ground your answer and cite sources."
+        rag_output = ""
+        if use_rag and last_user:
+            rag_output = await self._retrieve_rag(last_user, context, catalog_scope)
+            if rag_output:
+                full_system_prompt += f"\n\n[Retrieval Results]\n{rag_output}\n[End Retrieval]\n\nPlease use the above retrieval snippets to ground your answer and cite sources."
 
         # 3. Check for API key
         if not settings.OPENAI_API_KEY:
             logger.warning("OPENAI_API_KEY not configured. Returning simulation response.")
+            grounded = tool_output or rag_output
+            if grounded:
+                return {
+                    "reply": f"我已根据站内数据库与检索结果整理如下：\n\n{grounded}",
+                    "model": "simulation-mode",
+                    "source": "local-stub"
+                }
             return {
                 "reply": f"您好，我是您的公益助手。目前我正处于演示模式（Context: {context}）。配置 API Key 后我可以为您提供更智能的回复。",
                 "model": "simulation-mode",
@@ -236,7 +248,82 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
             logger.error(f"Failed to fetch business context for AI: {e}")
             return "[Business context unavailable]"
 
-    async def _maybe_call_tools(self, messages: List[Dict[str, str]], context: str, metadata: Optional[Dict[str, Any]] = None) -> str:
+    def _get_last_user_message(self, messages: List[Dict[str, str]]) -> str:
+        if not messages:
+            return ""
+        for m in reversed(messages):
+            if m.get("role") == "user":
+                return (m.get("content") or "").strip()
+        return ""
+
+    def _contains_sustainability_intent(self, text: str, metadata: Optional[Dict[str, Any]] = None) -> bool:
+        if not text:
+            return False
+        lowered = text.lower()
+        if any(k in text for k in ["可持续", "环保", "公益", "捐赠", "慈善", "溯源"]):
+            return True
+        if any(k in lowered for k in ["sustainable", "sustainability", "impact", "charity", "donation"]):
+            return True
+        if metadata and isinstance(metadata, dict):
+            extra_keywords = metadata.get("sustainabilityPriorityKeywords")
+            if isinstance(extra_keywords, list):
+                for kw in extra_keywords:
+                    if isinstance(kw, str) and (kw in text or kw.lower() in lowered):
+                        return True
+        return False
+
+    def _determine_catalog_scope(self, last_user: str, context: str, metadata: Optional[Dict[str, Any]] = None) -> str:
+        """Determine preferred product catalog scope: impact | uniqlo | mixed."""
+        if self._contains_sustainability_intent(last_user, metadata):
+            return "impact"
+
+        if metadata and isinstance(metadata, dict):
+            route = str(metadata.get("route") or "").lower()
+            surface = str(metadata.get("surface") or "").lower()
+            preferred = str(metadata.get("preferredCatalog") or "").lower()
+            impact_mode = bool(metadata.get("impactMode"))
+            if preferred in ("impact", "uniqlo", "mixed"):
+                return preferred
+            if impact_mode or "impact" in route or surface == "impact":
+                return "impact"
+            if "/shop" in route or surface == "uniqlo":
+                return "uniqlo"
+
+        if context in ("impact", "sustainability"):
+            return "impact"
+        if context in ("shop", "logistics", "general"):
+            return "uniqlo"
+        return "mixed"
+
+    def _extract_search_terms(self, query: str, limit: int = 6) -> List[str]:
+        """Extract Chinese and Latin keywords for DB matching."""
+        if not query:
+            return []
+        tokens = re.findall(r"[\u4e00-\u9fff]+|[A-Za-z0-9]+", query)
+        normalized: List[str] = []
+        for tok in tokens:
+            if re.fullmatch(r"[A-Za-z0-9]+", tok):
+                if len(tok) < 2:
+                    continue
+                normalized.append(tok.lower())
+            else:
+                normalized.append(tok)
+            if len(normalized) >= limit:
+                break
+        return normalized
+
+    def _build_product_url(self, product_id: int, is_impact_product: bool) -> str:
+        base = settings.FRONTEND_URL.rstrip("/") + "/"
+        path = f"impact/shop/{product_id}" if is_impact_product else f"shop/{product_id}"
+        return urljoin(base, path)
+
+    async def _maybe_call_tools(
+        self,
+        messages: List[Dict[str, str]],
+        context: str,
+        metadata: Optional[Dict[str, Any]] = None,
+        catalog_scope: str = "mixed",
+    ) -> str:
         """Detects if a tool call is needed based on the latest user message and returns formatted tool output.
 
         Simple, deterministic triggers are used to avoid unsafe actions. This is a lightweight "tooling" layer
@@ -256,6 +343,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                     out = f"Product ID: {pid}\n"
                     if prod:
                         out += f"Name: {prod.name}\nPrice: {prod.price} {prod.currency}\nIsImpact: {bool(prod.is_impact_product)}\n"
+                        out += f"Product URL: {self._build_product_url(prod.id, bool(prod.is_impact_product))}\n"
                         if prod.donation_percentage:
                             out += f"Donation Percentage: {prod.donation_percentage}%\n"
                         if prod.description:
@@ -277,12 +365,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                 except Exception as e:
                     logger.error(f"Tool invocation by metadata failed: {e}")
 
-        last_user = ""
-        if messages:
-            for m in reversed(messages):
-                if m.get("role") == "user":
-                    last_user = m.get("content", "").strip()
-                    break
+        last_user = self._get_last_user_message(messages)
 
         if not last_user:
             return ""
@@ -305,6 +388,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                 out = f"Product ID: {pid}\n"
                 if prod:
                     out += f"Name: {prod.name}\nPrice: {prod.price} {prod.currency}\nIsImpact: {bool(prod.is_impact_product)}\n"
+                    out += f"Product URL: {self._build_product_url(prod.id, bool(prod.is_impact_product))}\n"
                     if prod.donation_percentage:
                         out += f"Donation Percentage: {prod.donation_percentage}%\n"
                     if prod.description:
@@ -324,33 +408,56 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                 out += "\n(Source: supply_chain records, product table)"
                 return out
 
-        # 2) If context is shop/impact and user asked to find impact products, perform a simple keyword search
-        if context in ("shop", "impact", "sustainability") or any(k in last_user.lower() for k in ["公益", "impact", "溯源", "找", "推荐", "商品"]):
-            # pick search terms (words > 2 chars)
-            terms = [t for t in re.split(r"\W+", last_user) if len(t) > 1]
+        # 2) Product recommendation/search routing by surface + sustainability intent.
+        intent_scope = self._determine_catalog_scope(last_user, context, metadata)
+        if intent_scope != "mixed":
+            catalog_scope = intent_scope
+
+        search_trigger = (
+            context in ("shop", "impact", "sustainability")
+            or any(k in last_user.lower() for k in ["impact", "trace", "recommend", "bag", "tote", "sustainable", "charity"])
+            or any(k in last_user for k in ["公益", "溯源", "推荐", "找", "商品", "包", "环保", "可持续"])
+        )
+        if search_trigger:
+            terms = self._extract_search_terms(last_user, limit=6)
             if terms:
-                query_text = " ".join(terms[:3])
-                # simple SQL search
                 from sqlalchemy import select
-                stmt = select(Product).where(Product.is_impact_product)
-                # apply ilike filters for each term
-                for t in terms[:3]:
-                    stmt = stmt.where((Product.name.ilike(f"%{t}%")) | (Product.description.ilike(f"%{t}%")))
-                stmt = stmt.limit(5)
-                try:
-                    res = (await self.db.execute(stmt)).scalars().all()
-                    if res:
-                        out = f"Impact product search results for query: '{query_text}'\n"
-                        for p in res:
-                            out += f"- ID:{p.id} Name:{p.name} Price:{p.price} {p.currency} Donation:{p.donation_percentage or 0}%\n"
-                        out += "\n(Source: products table)"
-                        return out
-                except Exception as e:
-                    logger.error(f"Impact product search failed: {e}")
+                scopes = [catalog_scope] if catalog_scope in ("impact", "uniqlo") else ["uniqlo", "impact"]
+                for scope in scopes:
+                    stmt = select(Product).where(Product.status == "active")
+                    stmt = stmt.where(
+                        Product.is_impact_product.is_(True)
+                        if scope == "impact"
+                        else Product.is_impact_product.is_(False)
+                    )
+                    for t in terms[:4]:
+                        stmt = stmt.where(
+                            (Product.name.ilike(f"%{t}%"))
+                            | (Product.description.ilike(f"%{t}%"))
+                            | (Product.category.ilike(f"%{t}%"))
+                        )
+                    stmt = stmt.limit(5)
+                    try:
+                        res = (await self.db.execute(stmt)).scalars().all()
+                    except Exception as e:
+                        logger.error(f"{scope} product search failed: {e}")
+                        res = []
+                    if not res:
+                        continue
+
+                    out = f"{scope.capitalize()} product search results for query: '{last_user}'\n"
+                    for p in res:
+                        out += (
+                            f"- Name:{p.name} | Price:{p.price} {p.currency} | "
+                            f"Donation:{p.donation_percentage or 0}% | "
+                            f"URL:{self._build_product_url(p.id, bool(p.is_impact_product))}\n"
+                        )
+                    out += "\n(Source: products table)"
+                    return out
 
         return ""
 
-    async def _retrieve_rag(self, query: str, context: str) -> str:
+    async def _retrieve_rag(self, query: str, context: str, catalog_scope: str = "mixed") -> str:
         """Lightweight retrieval over impact product descriptions, campaigns, and supply-chain records.
         Returns a textual list of short snippets with source tags to be injected into the LLM prompt.
         """
@@ -359,58 +466,106 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
         try:
             from sqlalchemy import select, or_
             results = []
-            terms = [t for t in re.split(r"\W+", query) if len(t) > 1][:6]
+            terms = self._extract_search_terms(query, limit=6)
             if not terms:
                 return ""
 
-            # 1) Product search (impact products)
-            try:
-                stmt = select(Product).where(Product.is_impact_product)
-                for t in terms[:3]:
-                    stmt = stmt.where((Product.name.ilike(f"%{t}%")) | (Product.description.ilike(f"%{t}%")))
-                stmt = stmt.limit(5)
-                prods = (await self.db.execute(stmt)).scalars().all()
-                for p in prods:
-                    snippet = (p.description or "").replace("\n", " ")[:300]
-                    results.append({"source": f"product/{p.id}", "title": p.name, "text": snippet, "url": f"/impact/shop/{p.id}"})
-            except Exception as e:
-                logger.debug(f"RAG product search error: {e}")
+            resolved_scope = catalog_scope
+            if resolved_scope not in ("impact", "uniqlo", "mixed"):
+                resolved_scope = self._determine_catalog_scope(query, context, None)
 
-            # 2) Campaign search
-            try:
-                from app.models.campaign import Campaign
-                stmt = select(Campaign)
-                filters = []
-                for t in terms[:3]:
-                    filters.append(Campaign.title.ilike(f"%{t}%"))
-                    filters.append(Campaign.description.ilike(f"%{t}%"))
-                if filters:
-                    stmt = stmt.where(or_(*filters)).limit(3)
-                    camps = (await self.db.execute(stmt)).scalars().all()
-                    for c in camps:
-                        snippet = (c.description or "").replace("\n", " ")[:300]
-                        results.append({"source": f"campaign/{c.id}", "title": c.title, "text": snippet, "url": f"/campaigns/{c.id}"})
-            except Exception:
-                pass
+            product_scopes = (
+                [resolved_scope]
+                if resolved_scope in ("impact", "uniqlo")
+                else ["uniqlo", "impact"]
+            )
 
-            # 3) Supply chain records
-            try:
-                from app.models.supply_chain import SupplyChainRecord
-                stmt = select(SupplyChainRecord)
-                filters = [SupplyChainRecord.description.ilike(f"%{t}%") for t in terms[:3]]
-                if filters:
-                    stmt = stmt.where(or_(*filters)).limit(5)
-                    recs = (await self.db.execute(stmt)).scalars().all()
-                    for r in recs:
-                        snippet = (r.description or "").replace("\n", " ")[:300]
-                        results.append({"source": f"supply_chain/{r.id}", "title": r.stage or "stage", "text": snippet, "url": f"/supply-chain/records/{r.id}"})
-            except Exception:
-                pass
+            # 1) Product search by selected catalog scope
+            for scope in product_scopes:
+                try:
+                    stmt = select(Product).where(Product.status == "active")
+                    stmt = stmt.where(
+                        Product.is_impact_product.is_(True)
+                        if scope == "impact"
+                        else Product.is_impact_product.is_(False)
+                    )
+                    for t in terms[:4]:
+                        stmt = stmt.where(
+                            (Product.name.ilike(f"%{t}%"))
+                            | (Product.description.ilike(f"%{t}%"))
+                            | (Product.category.ilike(f"%{t}%"))
+                        )
+                    stmt = stmt.limit(5)
+                    prods = (await self.db.execute(stmt)).scalars().all()
+                    for p in prods:
+                        snippet = (p.description or "").replace("\n", " ")[:260]
+                        results.append(
+                            {
+                                "source": f"product/{p.id}",
+                                "title": p.name,
+                                "text": snippet,
+                                "url": self._build_product_url(p.id, bool(p.is_impact_product)),
+                            }
+                        )
+                    if prods:
+                        break
+                except Exception as e:
+                    logger.debug(f"RAG {scope} product search error: {e}")
+
+            # 2) Campaign + supply-chain retrieval is mainly relevant to impact/sustainability
+            is_impact_scope = (
+                resolved_scope == "impact"
+                or context in ("impact", "sustainability")
+                or self._contains_sustainability_intent(query)
+            )
+            if is_impact_scope:
+                try:
+                    from app.models.campaign import Campaign
+                    stmt = select(Campaign)
+                    filters = []
+                    for t in terms[:3]:
+                        filters.append(Campaign.title.ilike(f"%{t}%"))
+                        filters.append(Campaign.description.ilike(f"%{t}%"))
+                    if filters:
+                        stmt = stmt.where(or_(*filters)).limit(3)
+                        camps = (await self.db.execute(stmt)).scalars().all()
+                        for c in camps:
+                            snippet = (c.description or "").replace("\n", " ")[:260]
+                            results.append(
+                                {
+                                    "source": f"campaign/{c.id}",
+                                    "title": c.title,
+                                    "text": snippet,
+                                    "url": urljoin(settings.FRONTEND_URL.rstrip("/") + "/", f"campaigns/{c.id}"),
+                                }
+                            )
+                except Exception:
+                    pass
+
+                try:
+                    from app.models.supply_chain import SupplyChainRecord
+                    stmt = select(SupplyChainRecord)
+                    filters = [SupplyChainRecord.description.ilike(f"%{t}%") for t in terms[:3]]
+                    if filters:
+                        stmt = stmt.where(or_(*filters)).limit(5)
+                        recs = (await self.db.execute(stmt)).scalars().all()
+                        for r in recs:
+                            snippet = (r.description or "").replace("\n", " ")[:260]
+                            results.append(
+                                {
+                                    "source": f"supply_chain/{r.id}",
+                                    "title": r.stage or "stage",
+                                    "text": snippet,
+                                    "url": urljoin(settings.FRONTEND_URL.rstrip("/") + "/", f"supply-chain/records/{r.id}"),
+                                }
+                            )
+                except Exception:
+                    pass
 
             if not results:
                 return ""
 
-            out = f"RAG search results for query: '{query}'\n"
+            out = f"RAG search results for query: '{query}' (catalog_scope={resolved_scope})\n"
             for it in results[:8]:
                 out += f"- [source:{it['source']}] {it['title']} — {it['text']} (url:{it['url']})\n"
             out += "\n(End of retrieval results)\n"
