@@ -88,7 +88,9 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       OPENAI_API_BASE: ${OPENAI_API_BASE}
       OPENAI_MODEL: ${OPENAI_MODEL}
-      # For entrypoint.sh -- MySQL connection
+    env_file:
+      - ./deploy/easy/.env
+    # For entrypoint.sh -- MySQL connection
       MYSQL_HOST: mysql
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
