@@ -112,7 +112,9 @@ class AIAssistantService(BaseService):
                 response.raise_for_status()
                 data = response.json()
                 
-                content = data["choices"][0]["message"]["content"].strip()
+                content = self._sanitize_assistant_reply(
+                    data["choices"][0]["message"]["content"].strip()
+                )
                 return {
                     "reply": content,
                     "model": data.get("model", settings.OPENAI_MODEL),
@@ -256,6 +258,24 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                 return (m.get("content") or "").strip()
         return ""
 
+    def _sanitize_assistant_reply(self, content: str) -> str:
+        """Remove chain-of-thought style tags/content before returning to UI."""
+        if not content:
+            return ""
+        cleaned = content
+        # Standard/variant think tags
+        cleaned = re.sub(r"<think\b[^>]*>[\s\S]*?<\/think>", "", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"<thinking\b[^>]*>[\s\S]*?<\/thinking>", "", cleaned, flags=re.IGNORECASE)
+        # Defensive: if model leaks closing tag only, keep visible answer after the tag
+        if re.search(r"</think>", cleaned, flags=re.IGNORECASE):
+            cleaned = re.split(r"</think>", cleaned, flags=re.IGNORECASE)[-1]
+        if re.search(r"</thinking>", cleaned, flags=re.IGNORECASE):
+            cleaned = re.split(r"</thinking>", cleaned, flags=re.IGNORECASE)[-1]
+        # Defensive fenced reasoning block
+        cleaned = re.sub(r"```(?:think|reasoning)[\s\S]*?```", "", cleaned, flags=re.IGNORECASE)
+        cleaned = cleaned.strip()
+        return cleaned or content.strip()
+
     def _contains_sustainability_intent(self, text: str, metadata: Optional[Dict[str, Any]] = None) -> bool:
         if not text:
             return False
@@ -308,9 +328,13 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                 normalized.append(tok.lower())
             else:
                 normalized.append(tok)
+                if len(tok) >= 4:
+                    for kw in ["包", "帆布袋", "托特", "背包", "公益", "可持续", "环保", "捐赠"]:
+                        if kw in tok:
+                            normalized.append(kw)
             if len(normalized) >= limit:
                 break
-        return normalized
+        return normalized[:limit]
 
     def _build_product_url(self, product_id: int, is_impact_product: bool) -> str:
         base = settings.FRONTEND_URL.rstrip("/") + "/"
@@ -454,6 +478,43 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                         )
                     out += "\n(Source: products table)"
                     return out
+
+                # Fallback: for bag-related asks, return top active bag-like products from preferred scope
+                lower_q = last_user.lower()
+                bag_intent = ("包" in last_user) or any(k in lower_q for k in ["bag", "tote", "backpack"])
+                if bag_intent:
+                    for scope in scopes:
+                        fallback_stmt = select(Product).where(Product.status == "active")
+                        fallback_stmt = fallback_stmt.where(
+                            Product.is_impact_product.is_(True)
+                            if scope == "impact"
+                            else Product.is_impact_product.is_(False)
+                        )
+                        fallback_stmt = fallback_stmt.where(
+                            Product.name.ilike("%包%")
+                            | Product.name.ilike("%袋%")
+                            | Product.name.ilike("%bag%")
+                            | Product.description.ilike("%包%")
+                            | Product.description.ilike("%bag%")
+                            | Product.category.ilike("%accessories%")
+                        ).limit(5)
+                        try:
+                            fallback_res = (await self.db.execute(fallback_stmt)).scalars().all()
+                        except Exception as e:
+                            logger.error(f"{scope} bag fallback search failed: {e}")
+                            fallback_res = []
+                        if not fallback_res:
+                            continue
+
+                        out = f"{scope.capitalize()} bag recommendations (fallback)\n"
+                        for p in fallback_res:
+                            out += (
+                                f"- Name:{p.name} | Price:{p.price} {p.currency} | "
+                                f"Donation:{p.donation_percentage or 0}% | "
+                                f"URL:{self._build_product_url(p.id, bool(p.is_impact_product))}\n"
+                            )
+                        out += "\n(Source: products table)"
+                        return out
 
         return ""
 
