@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 
@@ -16,6 +18,10 @@ interface ChatMessage extends AIChatMessage {
 
 let _chatMsgId = 0;
 const nextChatMsgId = () => `chat-${++_chatMsgId}`;
+
+// Strip <think>...</think> blocks from AI response before rendering
+const stripThink = (content: string) =>
+  content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
 
 export default function AiAssistant() {
   const { t } = useTranslation();
@@ -139,7 +145,7 @@ export default function AiAssistant() {
                 className={`font-body text-body-sm leading-relaxed ${m.role === 'user' ? 'text-ink pl-4 border-l-2 border-rust/40' : 'text-ink-faded'}`}
               >
                 <span className="text-overline text-sepia-mid block mb-1">{m.role === 'user' ? t('aiAssistant.userLabel') : t('aiAssistant.assistantLabel')}</span>
-                {m.content}
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.role === 'assistant' ? stripThink(m.content) : m.content}</ReactMarkdown>
               </div>
             ))}
             <div ref={bottomRef} />
