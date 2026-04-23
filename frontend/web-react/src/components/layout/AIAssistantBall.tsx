@@ -32,7 +32,12 @@ export const AIAssistantBall: React.FC = () => {
     setFeedbackMap(prev => ({ ...prev, [messageId]: 'submitting' }));
     try {
       const chatMessages: AIChatMessage[] = messages.map(m => ({ role: m.role as AIChatMessage['role'], content: m.content }));
-      const res = await aiAssistantApi.feedback(isHelpful, chatMessages, assistantMetadata, isHelpful ? undefined : 'User reported not helpful');
+      const res = await aiAssistantApi.feedback(
+        isHelpful,
+        chatMessages,
+        assistantMetadata,
+        isHelpful ? undefined : t('aiAssistant.feedbackNotHelpfulNote')
+      );
       if (isHelpful) {
         setFeedbackMap(prev => ({ ...prev, [messageId]: 'sent' }));
       } else {
@@ -88,8 +93,8 @@ export const AIAssistantBall: React.FC = () => {
             {/* Masthead Header */}
             <div className="bg-[#1A1A16] text-[#F5F0E8] p-4 flex justify-between items-center border-b border-[#1A1A16]">
               <div>
-                <h3 className="text-xs uppercase tracking-[0.2em] font-bold">{t('aiAssistant.ballTitle', 'VICOO Assistant')}</h3>
-                <p className="text-[10px] opacity-60">{t('aiAssistant.ballSubtitle', 'Vol. 1 — Issue 01 — AI Edition')}</p>
+                <h3 className="text-xs uppercase tracking-[0.2em] font-bold">{t('aiAssistant.ballTitle')}</h3>
+                <p className="text-[10px] opacity-60">{t('aiAssistant.ballSubtitle')}</p>
               </div>
               <button onClick={() => setIsOpen(false)} className="text-xl hover:opacity-70">×</button>
             </div>
@@ -101,17 +106,17 @@ export const AIAssistantBall: React.FC = () => {
             >
               {messages.length === 0 && (
                 <div className="text-center py-10 px-4">
-                  <p className="text-sm italic opacity-60">"Art is the most intense mode of individualism that the world has known."</p>
+                  <p className="text-sm italic opacity-60">{t('aiAssistant.emptyQuote')}</p>
                   <p className="mt-4 text-xs">{t('aiAssistant.greeting')}</p>
                   <div className="mt-4 flex flex-wrap justify-center gap-2">
                     {suggestions.map((item) => (
                       <button
-                        key={item.label}
+                        key={item.id}
                         type="button"
-                        onClick={() => void handleSend(item.prompt)}
+                        onClick={() => void handleSend(t(`aiAssistant.suggestions.${item.id}.prompt`))}
                         className="text-[10px] px-3 py-1 border border-[#1A1A16] bg-white hover:bg-[#EDE6D6]"
                       >
-                        {item.label}
+                        {t(`aiAssistant.suggestions.${item.id}.label`)}
                       </button>
                     ))}
                   </div>
@@ -129,18 +134,18 @@ export const AIAssistantBall: React.FC = () => {
 
                   {m.role === 'assistant' && (
                     <div className="flex items-center gap-2 ml-2">
-                      <button onClick={() => handleFeedback(m.id, true)} aria-label="helpful" className="text-green-600">👍</button>
-                      <button onClick={() => handleFeedback(m.id, false)} aria-label="not-helpful" className="text-red-600">👎</button>
+                      <button onClick={() => handleFeedback(m.id, true)} aria-label={t('aiAssistant.feedbackHelpfulAria')} className="text-green-600">👍</button>
+                      <button onClick={() => handleFeedback(m.id, false)} aria-label={t('aiAssistant.feedbackNotHelpfulAria')} className="text-red-600">👎</button>
                       {feedbackMap[m.id] === 'submitting' && <span className="text-xs ml-2">...</span>}
-                      {feedbackMap[m.id] === 'sent' && <span className="text-xs ml-2 text-green-600">已提交</span>}
-                      {feedbackMap[m.id] === 'escalated' && <span className="text-xs ml-2 text-[#8B3A2A]">已转人工</span>}
+                      {feedbackMap[m.id] === 'sent' && <span className="text-xs ml-2 text-green-600">{t('aiAssistant.feedbackSubmitted')}</span>}
+                      {feedbackMap[m.id] === 'escalated' && <span className="text-xs ml-2 text-[#8B3A2A]">{t('aiAssistant.feedbackEscalated')}</span>}
                     </div>
                   )}
                 </div>
               ))}
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="p-3 text-xs animate-pulse">{t('aiAssistant.typing', '... Typing ...')}</div>
+                  <div className="p-3 text-xs animate-pulse">{t('aiAssistant.typing')}</div>
                 </div>
               )}
             </div>
@@ -153,7 +158,7 @@ export const AIAssistantBall: React.FC = () => {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-                  placeholder={t('aiAssistant.placeholder', 'Type your message...')}
+                  placeholder={t('aiAssistant.placeholder')}
                   className="flex-1 bg-white border border-[#1A1A16] px-3 py-2 text-xs focus:outline-none placeholder:opacity-40"
                 />
                 <button
@@ -164,7 +169,7 @@ export const AIAssistantBall: React.FC = () => {
                   disabled={isLoading}
                   className="bg-[#1A1A16] text-[#F5F0E8] px-4 py-2 text-[10px] uppercase tracking-widest hover:opacity-90 transition-opacity"
                 >
-                  {t('aiAssistant.send', 'Send')}
+                  {t('aiAssistant.send')}
                 </button>
               </div>
             </div>

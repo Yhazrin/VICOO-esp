@@ -211,7 +211,16 @@
         "line1": "每一根线，",
         "line2": "从源头",
         "line3": "到针脚都可追溯",
-        "subtitle": "从有机棉田到成衣——每一步都经过验证。"
+        "subtitle": "从有机棉田到成衣——每一步都经过验证。",
+        "scrollCue": "滚动"
+      },
+      "scene02": {
+        "quote": "「想象与织物相遇之处，故事被穿在身上。」",
+        "artworkAlt": "儿童画作 {{n}}"
+      },
+      "scene03": {
+        "title": "数字见证影响",
+        "established": "创立于 2024"
       },
       "scene04": {
         "title": "成为故事的一部分",
@@ -1235,7 +1244,68 @@
     "chatWithAI": "与 AI 助手对话",
     "demomode": "演示模式",
     "userLabel": "您",
-    "assistantLabel": "助手"
+    "assistantLabel": "助手",
+    "ballTitle": "VICOO 智能助手",
+    "ballSubtitle": "卷一 · 第 01 期 · AI 特刊",
+    "typing": "正在输入…",
+    "emptyQuote": "「艺术，是世人所知的最强烈的个人主义形式。」",
+    "askAboutProduct": "问 AI 关于这件商品",
+    "productPrefill": "请介绍这件商品的溯源和公益影响。商品ID: {{id}}",
+    "feedbackSubmitted": "已提交",
+    "feedbackEscalated": "已转人工",
+    "feedbackHelpfulAria": "有帮助",
+    "feedbackNotHelpfulAria": "没有帮助",
+    "feedbackNotHelpfulNote": "用户反馈：没有帮助",
+    "suggestions": {
+      "impactRecommend": {
+        "label": "推荐公益商品",
+        "prompt": "请推荐几件适合儿童公益场景的商品，并说明推荐理由。"
+      },
+      "impactTraceFlow": {
+        "label": "查询溯源",
+        "prompt": "请帮我解释这件商品的溯源流程和关键节点。"
+      },
+      "impactDonationRatio": {
+        "label": "看捐赠比例",
+        "prompt": "这类商品的捐赠比例和公益影响如何？"
+      },
+      "impactCampaignProgress": {
+        "label": "活动进展",
+        "prompt": "这个公益项目目前进展怎么样，能带来什么影响？"
+      },
+      "productMaterials": {
+        "label": "问材质",
+        "prompt": "请告诉我这件商品的材质、适合季节和日常穿搭建议。"
+      },
+      "productSizing": {
+        "label": "看尺码",
+        "prompt": "我该怎么选择这件商品的尺码？请给出简单建议。"
+      },
+      "productTraceability": {
+        "label": "查溯源",
+        "prompt": "请解释这件商品的溯源和供应链信息。"
+      },
+      "productAfterSales": {
+        "label": "售后说明",
+        "prompt": "这件商品有哪些退换货或售后注意事项？"
+      },
+      "generalFindProduct": {
+        "label": "找商品",
+        "prompt": "请根据我的需求推荐合适的商品。"
+      },
+      "generalLogistics": {
+        "label": "查物流",
+        "prompt": "如何查看我的订单物流状态？"
+      },
+      "generalReturns": {
+        "label": "问售后",
+        "prompt": "请说明退换货和售后流程。"
+      },
+      "generalWelfareIntro": {
+        "label": "公益了解",
+        "prompt": "请介绍一下平台的公益和可持续实践。"
+      }
+    }
   },
   "orderDetail": {
     "error": "无法加载订单",

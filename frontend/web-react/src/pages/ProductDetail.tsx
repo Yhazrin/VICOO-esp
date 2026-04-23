@@ -571,10 +571,13 @@ export default function ProductDetail() {
 
                       <Link
                         to="/assistant"
-                        state={{ metadata: { product_id: Number(id), impactMode: product.isImpactProduct }, prefill: `请介绍这件商品的溯源和公益影响。商品ID: ${id}` }}
+                        state={{
+                          metadata: { product_id: Number(id), impactMode: product.isImpactProduct },
+                          prefill: t('aiAssistant.productPrefill', { id }),
+                        }}
                         className="flex-1 sm:flex-none inline-flex items-center justify-center border border-warm-gray/25 bg-paper px-4 py-3 text-ink text-[11px] tracking-[0.12em] uppercase hover:bg-aged-stock transition-colors"
                       >
-                        {t('aiAssistant.askAboutProduct', '问 AI 关于这件商品')}
+                        {t('aiAssistant.askAboutProduct')}
                       </Link>
                     </div>
                   </div>
