@@ -24,7 +24,7 @@
 \titleformat{\section}{\Large\bfseries}{\thesection}{0.6em}{}
 \titleformat{\subsection}{\large\bfseries}{\thesubsection}{0.6em}{}
 \newcommand{\projectname}{VICOO-ESP}
-% 本文件位于仓库 \texttt{tex/}；配图在同目录 \texttt{user-manual-figures/}（Playwright 生成）。需 API + 消费者站点（9111）；U3 需 admin（\texttt{cd admin \&\& npm run dev}，部分环境为 \texttt{http://localhost:5173}）。
+% 本文件位于仓库 \texttt{tex/}；配图在同目录 \texttt{user-manual-figures/}。默认用 Playwright 截 \texttt{http://vicoo.yhazrin.xyz/} 与 \texttt{/impact/shop/2}（见 \texttt{playwright.manual-figures.config.ts}）；U3 仍为本地 admin。
 %   \texttt{cd frontend/web-react \&\& npm run screenshots:manual}
 % 编译请在 \texttt{tex/} 下执行 \texttt{pdflatex "7\_user\_draft (2).tex"}，或将整个 \texttt{tex/} 上传 Overleaf。
 \newcommand{\placeholder}[1]{\begin{figure}[H]\centering\fbox{\parbox[c][4.2cm][c]{0.86\linewidth}{\centering #1}}\end{figure}}
@@ -115,9 +115,9 @@ Consumer users can access the following (route names refer to the consumer app):
 \textbf{Expected result:}
 The detail page loads; navigation back to the correct shop (\texttt{/shop} vs \texttt{/impact/shop}) works. Layout is readable and consistent with the design system.
 
-\IfFileExists{user-manual-figures/u1-impact-shop.png}{%
-\begin{figure}[H]\centering\includegraphics[width=0.94\linewidth]{user-manual-figures/u1-impact-shop.png}\caption*{Figure U1: Impact shop (\texttt{/impact/shop}).}\end{figure}%
-}{\placeholder{Generate \texttt{user-manual-figures/u1-impact-shop.png} via \texttt{npm run screenshots:manual}.}}
+\IfFileExists{user-manual-figures/u1-homepage.png}{%
+\begin{figure}[H]\centering\includegraphics[width=0.94\linewidth]{user-manual-figures/u1-homepage.png}\caption*{Figure U1: Site homepage (\texttt{http://vicoo.yhazrin.xyz/}).}\end{figure}%
+}{\placeholder{Generate \texttt{user-manual-figures/u1-homepage.png} via \texttt{npm run screenshots:manual}.}}
 
 \subsection{Typical Flow 2: Traceability Globe (Impact Products)}
 \label{sec:globe}
@@ -135,7 +135,7 @@ The detail page loads; navigation back to the correct shop (\texttt{/shop} vs \t
 Nodes respond to input; selected stage information matches API data. If WebGL fails, note browser, GPU, and console errors.
 
 \IfFileExists{user-manual-figures/u2-globe-timeline.png}{%
-\begin{figure}[H]\centering\includegraphics[width=0.94\linewidth]{user-manual-figures/u2-globe-timeline.png}\caption*{Figure U2: Traceability globe and timeline (\texttt{/impact/shop/1}).}\end{figure}%
+\begin{figure}[H]\centering\includegraphics[width=0.94\linewidth]{user-manual-figures/u2-globe-timeline.png}\caption*{Figure U2: Traceability globe and timeline (\texttt{/impact/shop/2}).}\end{figure}%
 }{\placeholder{Generate \texttt{user-manual-figures/u2-globe-timeline.png} via \texttt{npm run screenshots:manual}.}}
 
 \subsection{Typical Flow 3: Timeline and Scroll Behaviour}

@@ -1,12 +1,14 @@
 /**
- * 生成用户文档配图（仓库 tex/user-manual-figures/）。
+ * 生成用户文档配图 → 仓库 tex/user-manual-figures/
  *
- * 前置条件：
- * - 消费者站点：默认 http://127.0.0.1:9111（playwright.config 的 webServer 可拉起）
- * - API：与 vite 代理一致（默认前端代理到 8080）
- * - 管理后台 U3：需单独启动 admin（http://127.0.0.1:5173），否则 U3 会被 skip
+ * 默认截取线上站点（与课程演示一致）：
+ *   U1 = MANUAL_U1_URL 或 baseURL + MANUAL_U1_PATH（默认首页 /）
+ *   U2 = MANUAL_U2_URL 或 baseURL + MANUAL_U2_PATH（默认 /impact/shop/2）
  *
- * 运行：cd frontend/web-react && npx playwright test e2e/manual-screenshots.spec.ts
+ * U3 仍为本地 admin（需另开终端 npm run dev）；不可用时 skip。
+ *
+ * 运行：cd frontend/web-react && npm run screenshots:manual
+ * （使用 playwright.manual-figures.config.ts，不拉起本地 9111）
  */
 import * as path from 'node:path';
 import * as fs from 'node:fs';
@@ -17,7 +19,23 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 const OUT_DIR = path.join(REPO_ROOT, 'tex', 'user-manual-figures');
 
-/** Vite 在部分环境下只监听 \`localhost\`（IPv6），与 \`127.0.0.1\` 不等价 */
+const DEFAULT_ORIGIN = (process.env.MANUAL_PUBLIC_ORIGIN ?? 'http://vicoo.yhazrin.xyz').replace(/\/$/, '');
+
+function absoluteUrl(pathOrUrl: string): string {
+  if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
+  const p = pathOrUrl.startsWith('/') ? pathOrUrl : `/${pathOrUrl}`;
+  return `${DEFAULT_ORIGIN}${p}`;
+}
+
+const U1_TARGET =
+  process.env.MANUAL_U1_URL?.trim() ||
+  absoluteUrl(process.env.MANUAL_U1_PATH?.trim() || '/');
+
+const U2_TARGET =
+  process.env.MANUAL_U2_URL?.trim() ||
+  absoluteUrl(process.env.MANUAL_U2_PATH?.trim() || '/impact/shop/2');
+
+/** Vite 在部分环境下只监听 localhost（IPv6） */
 const ADMIN_ORIGIN = process.env.MANUAL_ADMIN_ORIGIN ?? 'http://localhost:5173';
 const ADMIN_EMAIL = process.env.MANUAL_ADMIN_EMAIL ?? 'admin@tonghua.org';
 const ADMIN_PASSWORD = process.env.MANUAL_ADMIN_PASSWORD ?? 'vicoo-admin';
@@ -28,20 +46,20 @@ test.beforeAll(() => {
   fs.mkdirSync(OUT_DIR, { recursive: true });
 });
 
-test('U1: Impact shop grid', async ({ page }) => {
-  await page.goto('/impact/shop', { waitUntil: 'domcontentloaded' });
+test('U1: Homepage (production)', async ({ page }) => {
+  await page.goto(U1_TARGET, { waitUntil: 'domcontentloaded' });
   await page.waitForLoadState('networkidle').catch(() => {});
   await expect(page.locator('body')).toBeVisible();
   await page.screenshot({
-    path: path.join(OUT_DIR, 'u1-impact-shop.png'),
+    path: path.join(OUT_DIR, 'u1-homepage.png'),
     fullPage: true,
   });
 });
 
-test('U2: Globe + timeline on impact product detail', async ({ page }) => {
-  await page.goto('/impact/shop/1', { waitUntil: 'domcontentloaded' });
+test('U2: Globe + timeline — impact product detail (production)', async ({ page }) => {
+  await page.goto(U2_TARGET, { waitUntil: 'domcontentloaded' });
   await page.waitForLoadState('networkidle').catch(() => {});
-  await page.waitForTimeout(2500);
+  await page.waitForTimeout(4000);
   await page.screenshot({
     path: path.join(OUT_DIR, 'u2-globe-timeline.png'),
     fullPage: true,
