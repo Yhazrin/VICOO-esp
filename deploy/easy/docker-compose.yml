@@ -88,14 +88,14 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       OPENAI_API_BASE: ${OPENAI_API_BASE}
       OPENAI_MODEL: ${OPENAI_MODEL}
-    env_file:
-      - ./deploy/easy/.env
-    # For entrypoint.sh -- MySQL connection
+      # For entrypoint.sh -- MySQL connection
       MYSQL_HOST: mysql
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    env_file:
+      - ./deploy/easy/.env
     ports:
       - "8000:8000"
     depends_on:
