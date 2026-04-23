@@ -25,11 +25,14 @@ type AIAssistantTheme = {
   header: string;
   subtitle: string;
   body: string;
+  title: string;
+  bodyText: string;
   inputPanel: string;
   input: string;
   suggestion: string;
   userBubble: string;
   assistantBubble: string;
+  systemBubble: string;
   typing: string;
   sendButton: string;
   ball: string;
@@ -42,41 +45,47 @@ const getAssistantTheme = (isImpactSurface: boolean): AIAssistantTheme =>
   isImpactSurface
     ? {
         panel:
-          'bg-gradient-to-br from-emerald-950 via-teal-900 to-cyan-900 border border-emerald-200/60 shadow-[0_20px_60px_rgba(6,182,212,0.35)]',
-        header: 'bg-emerald-300/10 text-emerald-50 border-b border-emerald-200/40',
-        subtitle: 'text-emerald-100/80',
-        body: 'text-emerald-50',
-        inputPanel: 'border-t border-emerald-200/40 bg-emerald-950/55',
-        input: 'bg-emerald-950/70 border border-emerald-200/60 text-emerald-50 placeholder:text-emerald-100/60 focus:ring-1 focus:ring-emerald-200/70',
+          'bg-gradient-to-br from-[#f8f0e1] via-[#f5e6cc] to-[#eed5af] border border-[#7f4f2a]/35 shadow-[0_20px_60px_rgba(139,89,42,0.28)]',
+        header: 'bg-gradient-to-r from-[#6b321a] to-[#8f4a23] text-[#fff7ea] border-b border-[#b77749]/40',
+        subtitle: 'text-[#ffe9cc]',
+        body: 'text-[#332217]',
+        title: 'font-display tracking-[0.14em]',
+        bodyText: 'text-[#342317]',
+        inputPanel: 'border-t border-[#9b643f]/35 bg-[#f8ecd9]/85',
+        input: 'bg-[#fff8ec] border border-[#9b643f]/55 text-[#2d1e14] placeholder:text-[#7a553f]/70 focus:ring-1 focus:ring-[#8f4a23]/40',
         suggestion:
-          'text-emerald-50 border border-emerald-200/60 bg-emerald-800/40 hover:bg-emerald-700/60',
-        userBubble: 'bg-emerald-300/20 border border-emerald-100/60 text-emerald-50',
-        assistantBubble: 'bg-cyan-300/15 border border-cyan-100/70 text-cyan-50',
-        typing: 'text-emerald-100/85',
-        sendButton: 'bg-cyan-300 text-emerald-950 hover:bg-cyan-200',
-        ball: 'bg-gradient-to-br from-emerald-400 via-teal-300 to-cyan-300',
-        ballRing: 'border border-emerald-100/80 shadow-[0_0_0_2px_rgba(255,255,255,0.14)]',
-        ballLabel: 'text-emerald-950',
-        hoverOverlay: 'bg-emerald-100/35',
+          'text-[#4a2d1d] border border-[#9b643f]/45 bg-[#fff4df] hover:bg-[#ffe7c7]',
+        userBubble: 'bg-[#b55f34] border border-[#8c4423]/60 text-[#fff7ec]',
+        assistantBubble: 'bg-[#fff7ea] border border-[#c88b58]/50 text-[#3b2718]',
+        systemBubble: 'text-[#6e4b35]',
+        typing: 'text-[#6f4a34]',
+        sendButton: 'bg-[#7f3c20] text-[#fff4e3] hover:bg-[#6d3118]',
+        ball: 'bg-gradient-to-br from-[#f6ba6f] via-[#e8894a] to-[#be5d2e]',
+        ballRing: 'border border-[#fff3e2] shadow-[0_0_0_2px_rgba(255,233,204,0.45)]',
+        ballLabel: 'text-[#fff4e3]',
+        hoverOverlay: 'bg-[#fff2dc]/35',
       }
     : {
         panel:
-          'bg-gradient-to-br from-slate-950 via-indigo-950 to-blue-900 border border-sky-200/60 shadow-[0_20px_60px_rgba(56,189,248,0.3)]',
-        header: 'bg-sky-300/10 text-sky-50 border-b border-sky-200/40',
-        subtitle: 'text-sky-100/80',
-        body: 'text-sky-50',
-        inputPanel: 'border-t border-sky-200/40 bg-indigo-950/60',
-        input: 'bg-slate-950/70 border border-sky-200/60 text-sky-50 placeholder:text-sky-100/60 focus:ring-1 focus:ring-sky-200/70',
+          'bg-gradient-to-br from-[#fbf2e3] via-[#f7e4c5] to-[#f0cca4] border border-[#7f4f2a]/35 shadow-[0_20px_60px_rgba(130,82,41,0.24)]',
+        header: 'bg-gradient-to-r from-[#5e2d1b] to-[#7a4022] text-[#fff7ea] border-b border-[#b77749]/40',
+        subtitle: 'text-[#ffe9cc]',
+        body: 'text-[#332217]',
+        title: 'font-display tracking-[0.14em]',
+        bodyText: 'text-[#342317]',
+        inputPanel: 'border-t border-[#9b643f]/35 bg-[#f8ecd9]/80',
+        input: 'bg-[#fff8ec] border border-[#9b643f]/55 text-[#2d1e14] placeholder:text-[#7a553f]/70 focus:ring-1 focus:ring-[#8f4a23]/40',
         suggestion:
-          'text-sky-50 border border-sky-200/60 bg-blue-900/40 hover:bg-blue-800/60',
-        userBubble: 'bg-blue-300/20 border border-blue-100/70 text-blue-50',
-        assistantBubble: 'bg-sky-300/15 border border-sky-100/70 text-sky-50',
-        typing: 'text-sky-100/85',
-        sendButton: 'bg-sky-300 text-slate-950 hover:bg-sky-200',
-        ball: 'bg-gradient-to-br from-sky-300 via-blue-300 to-indigo-300',
-        ballRing: 'border border-sky-100/80 shadow-[0_0_0_2px_rgba(255,255,255,0.14)]',
-        ballLabel: 'text-slate-950',
-        hoverOverlay: 'bg-sky-100/35',
+          'text-[#4a2d1d] border border-[#9b643f]/45 bg-[#fff4df] hover:bg-[#ffe7c7]',
+        userBubble: 'bg-[#9e4f2d] border border-[#7f3d21]/60 text-[#fff6eb]',
+        assistantBubble: 'bg-[#fff7ea] border border-[#c88b58]/50 text-[#3b2718]',
+        systemBubble: 'text-[#6e4b35]',
+        typing: 'text-[#6f4a34]',
+        sendButton: 'bg-[#70351c] text-[#fff4e3] hover:bg-[#5e2b16]',
+        ball: 'bg-gradient-to-br from-[#f5c37f] via-[#e99b58] to-[#c56735]',
+        ballRing: 'border border-[#fff3e2] shadow-[0_0_0_2px_rgba(255,233,204,0.45)]',
+        ballLabel: 'text-[#fff4e3]',
+        hoverOverlay: 'bg-[#fff2dc]/35',
       };
 
 export const AIAssistantBall: React.FC = () => {
@@ -155,12 +164,12 @@ export const AIAssistantBall: React.FC = () => {
             exit={{ opacity: 0, scale: 0.8, y: 20, rotateY: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className={`mb-4 w-80 md:w-96 h-[500px] flex flex-col overflow-hidden origin-bottom-right backdrop-blur-sm ${theme.panel}`}
-            style={{ fontFamily: 'var(--font-mono)' }}
+            style={{ fontFamily: '"Smiley Sans", "Source Sans Pro", "Noto Serif SC", serif' }}
           >
             {/* Masthead Header */}
             <div className={`p-4 flex justify-between items-center ${theme.header}`}>
               <div>
-                <h3 className="text-xs uppercase tracking-[0.2em] font-bold">{t('aiAssistant.ballTitle')}</h3>
+                <h3 className={`text-xs uppercase font-bold ${theme.title}`}>{t('aiAssistant.ballTitle')}</h3>
                 <p className={`text-[10px] ${theme.subtitle}`}>
                   {isImpactSurface ? `Impact · ${t('aiAssistant.ballSubtitle')}` : `Uniqlo · ${t('aiAssistant.ballSubtitle')}`}
                 </p>
@@ -176,7 +185,7 @@ export const AIAssistantBall: React.FC = () => {
               {messages.length === 0 && (
                 <div className="text-center py-10 px-4">
                   <p className={`text-sm italic ${theme.subtitle}`}>{t('aiAssistant.emptyQuote')}</p>
-                  <p className="mt-4 text-xs text-white">{t('aiAssistant.greeting')}</p>
+                  <p className={`mt-4 text-xs ${theme.bodyText}`}>{t('aiAssistant.greeting')}</p>
                   <div className="mt-4 flex flex-wrap justify-center gap-2">
                     {suggestions.map((item) => (
                       <button
@@ -197,7 +206,7 @@ export const AIAssistantBall: React.FC = () => {
                     m.role === 'user' 
                       ? theme.userBubble 
                       : theme.assistantBubble
-                  } ${m.role === 'system' ? 'opacity-50 italic border-none bg-transparent' : ''}`}>
+                  } ${m.role === 'system' ? `opacity-70 italic border-none bg-transparent ${theme.systemBubble}` : ''}`}>
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.role === 'assistant' ? stripThink(m.content) : m.content}</ReactMarkdown>
                   </div>
 
@@ -206,7 +215,7 @@ export const AIAssistantBall: React.FC = () => {
                       <button onClick={() => handleFeedback(m.id, true)} aria-label={t('aiAssistant.feedbackHelpfulAria')} className="text-green-600">👍</button>
                       <button onClick={() => handleFeedback(m.id, false)} aria-label={t('aiAssistant.feedbackNotHelpfulAria')} className="text-red-600">👎</button>
                       {feedbackMap[m.id] === 'submitting' && <span className="text-xs ml-2">...</span>}
-                      {feedbackMap[m.id] === 'sent' && <span className="text-xs ml-2 text-green-600">{t('aiAssistant.feedbackSubmitted')}</span>}
+                      {feedbackMap[m.id] === 'sent' && <span className="text-xs ml-2 text-[#5b6a2d]">{t('aiAssistant.feedbackSubmitted')}</span>}
                       {feedbackMap[m.id] === 'escalated' && <span className="text-xs ml-2 text-[#8B3A2A]">{t('aiAssistant.feedbackEscalated')}</span>}
                     </div>
                   )}
