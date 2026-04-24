@@ -1273,6 +1273,7 @@
     "empty": "Type a question to start chatting. Demo responses returned when API is not configured.",
     "placeholder": "e.g.: How long until donated clothing is listed?",
     "send": "Send",
+    "stopGenerating": "Stop generating",
     "greeting": "Hello! I am VICOO AI Assistant. Feel free to ask about donation processes, art activities, or sustainable fashion.",
     "replyError": "Sorry, I cannot answer right now.",
     "connectionError": "Failed to connect to assistant, please try again later.",
