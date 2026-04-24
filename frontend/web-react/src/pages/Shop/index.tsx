@@ -11,6 +11,7 @@ import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import { productsApi } from '@/services/products';
 import type { Product } from '@/types';
+import { matchesProductSearch } from '@/utils/productSearch';
 
 type Category = 'all' | 'apparel' | 'accessories' | 'stationery' | 'prints' | 'lifestyle' | 'footwear' | 'home' | 'gift_box';
 type SortOption = 'default' | 'price-asc' | 'price-desc' | 'sustainability';
@@ -185,12 +186,7 @@ export default function Shop() {
     let list = companyItems;
 
     if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      list = list.filter((p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q)
-      );
+      list = list.filter((p) => matchesProductSearch(p, searchQuery));
     }
 
     if (activeCategory !== 'all') {
