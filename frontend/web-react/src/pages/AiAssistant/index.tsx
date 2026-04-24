@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import PageWrapper from '@/components/layout/PageWrapper';
@@ -26,6 +27,7 @@ export default function AiAssistant() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const { impactMode } = useUIStore();
   const location = useLocation();
@@ -45,6 +47,13 @@ export default function AiAssistant() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+      abortControllerRef.current = null;
+    };
+  }, []);
+
   // If navigated here with prefill + metadata (e.g., from product detail), auto-send the prefill message
   useEffect(() => {
     const state = (location as unknown as any)?.state;
@@ -55,11 +64,25 @@ export default function AiAssistant() {
       setMessages(nextMsgs);
       const metadata = { ...baseMetadata, ...(state.metadata ?? {}) };
       (async () => {
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
+        setLoading(true);
         try {
-          const res = await aiAssistantApi.chat(nextMsgs.map(({ id: _id, ...m }) => m) as AIChatMessage[], context, metadata);
+          const res = await aiAssistantApi.chat(
+            nextMsgs.map(({ id: _id, ...m }) => m) as AIChatMessage[],
+            context,
+            metadata,
+            controller.signal
+          );
           setMessages([...nextMsgs, { id: nextChatMsgId(), role: 'assistant', content: res.reply }]);
-        } catch {
+        } catch (err) {
+          if (axios.isCancel(err)) return;
           setMessages([...nextMsgs, { id: nextChatMsgId(), role: 'assistant', content: t('aiAssistant.error') }]);
+        } finally {
+          setLoading(false);
+          if (abortControllerRef.current === controller) {
+            abortControllerRef.current = null;
+          }
         }
       })();
     }
@@ -75,17 +98,34 @@ export default function AiAssistant() {
     setMessages(next);
     setInput('');
     setLoading(true);
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
     try {
-      const res = await aiAssistantApi.chat(next.map(({ id: _id, ...m }) => m) as AIChatMessage[], context, baseMetadata);
+      const res = await aiAssistantApi.chat(
+        next.map(({ id: _id, ...m }) => m) as AIChatMessage[],
+        context,
+        baseMetadata,
+        controller.signal
+      );
       setMessages([...next, { id: nextChatMsgId(), role: 'assistant', content: res.reply }]);
-    } catch {
+    } catch (err) {
+      if (axios.isCancel(err)) return;
       setMessages([
         ...next,
         { id: nextChatMsgId(), role: 'assistant', content: t('aiAssistant.error') },
       ]);
     } finally {
       setLoading(false);
+      if (abortControllerRef.current === controller) {
+        abortControllerRef.current = null;
+      }
     }
+  };
+
+  const stopGenerating = () => {
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+    setLoading(false);
   };
 
   return (
@@ -159,20 +199,31 @@ export default function AiAssistant() {
               className="flex-1 font-body text-body-sm border border-warm-gray/40 bg-transparent p-3 text-ink resize-y min-h-[88px]"
               placeholder={t('aiAssistant.placeholder')}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
+                const isComposing = Boolean((e.nativeEvent as KeyboardEvent).isComposing);
+                if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
                   e.preventDefault();
                   void send();
                 }
               }}
             />
-            <button
-              type="button"
-              onClick={() => void send()}
-              disabled={loading || !input.trim()}
-              className="sm:self-end font-body text-body-sm tracking-[0.12em] uppercase px-8 py-4 bg-ink text-paper hover:bg-rust disabled:opacity-50 cursor-pointer"
-            >
-              {loading ? t('common.loading') : t('aiAssistant.send')}
-            </button>
+            {loading ? (
+              <button
+                type="button"
+                onClick={stopGenerating}
+                className="sm:self-end font-body text-body-sm tracking-[0.12em] uppercase px-8 py-4 bg-rust text-paper hover:bg-rust-light cursor-pointer"
+              >
+                {t('aiAssistant.stopGenerating', '停止生成')}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => void send()}
+                disabled={!input.trim()}
+                className="sm:self-end font-body text-body-sm tracking-[0.12em] uppercase px-8 py-4 bg-ink text-paper hover:bg-rust disabled:opacity-50 cursor-pointer"
+              >
+                {t('aiAssistant.send')}
+              </button>
+            )}
           </div>
         </SectionContainer>
       </PaperTextureBackground>
