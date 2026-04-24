@@ -53,3 +53,21 @@ def test_sanitize_assistant_reply_removes_think_block():
     svc = _service()
     raw = "<think>internal reasoning</think>\n\n好的，我给你推荐几款包。"
     assert svc._sanitize_assistant_reply(raw) == "好的，我给你推荐几款包。"
+
+
+def test_should_ask_catalog_clarification_for_ambiguous_product_intent():
+    svc = _service()
+    assert svc._should_ask_catalog_clarification("帮我推荐一款衣物")
+
+
+def test_should_not_ask_catalog_clarification_when_catalog_is_specified():
+    svc = _service()
+    assert not svc._should_ask_catalog_clarification("帮我推荐一款 Uniqlo 的包")
+    assert not svc._should_ask_catalog_clarification("给我推荐一款 Impact 公益包")
+
+
+def test_extract_search_terms_expands_tshirt_synonyms():
+    svc = _service()
+    terms = svc._extract_search_terms("I want a T-shirt", limit=6)
+    assert "tshirt" in terms
+    assert "t恤" in terms
