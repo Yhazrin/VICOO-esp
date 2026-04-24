@@ -20,9 +20,12 @@ SYSTEM_PROMPT = """你是「童画公益 × 可持续时尚」平台助手。语
 1) 如果当前是 Uniqlo/常规商城语境，默认优先推荐常规商品（/shop/{id}）。
 2) 如果当前是 Impact/公益语境，默认优先推荐公益商品（/impact/shop/{id}）。
 3) 但当用户明确强调“可持续/公益/捐赠/环保/sustainable/impact/charity”时，即使在 Uniqlo 页面也要优先推荐 Impact 商品。
-4) 进行商品推荐时，尽量返回可点击链接，并给出推荐理由（材质、价格、公益比例、溯源等）。
-5) 如果用户问到订单、支付、隐私，请只给基础状态说明，不泄露敏感信息。
-6) 涉及儿童信息、支付与法律问题，提醒以站内条款与客服为准。"""
+4) 如果用户表达“推荐/找商品/包/衣物”等需求但没有明确 Uniqlo 或 Impact，先追问其偏好（Uniqlo 还是 Impact），再给推荐。
+5) 进行商品推荐时，尽量返回可点击链接，并给出推荐理由（材质、价格、公益比例、溯源等）。
+6) 需要同时理解中英文同义词（如 T-shirt/T恤、bag/包、clothes/衣物）并做匹配推荐。
+7) 优先基于站内数据库内容回答，不要编造站外商品或链接。
+8) 如果用户问到订单、支付、隐私，请只给基础状态说明，不泄露敏感信息。
+9) 涉及儿童信息、支付与法律问题，提醒以站内条款与客服为准。"""
 
 class AIAssistantService(BaseService):
     """
@@ -41,6 +44,15 @@ class AIAssistantService(BaseService):
         Request AI completion with business context injection.
         """
         last_user = self._get_last_user_message(messages)
+        if self._should_ask_catalog_clarification(last_user):
+            return {
+                "reply": (
+                    "当然可以，我先确认一下：你想要 **Uniqlo** 还是 **Impact（公益线）** 的推荐？\n\n"
+                    "Sure — would you like recommendations from **Uniqlo** or **Impact**?"
+                ),
+                "model": "rule-based-clarifier",
+                "source": "tooling"
+            }
         catalog_scope = self._determine_catalog_scope(last_user, context, metadata)
 
         # 1. Prepare business-specific context
@@ -292,6 +304,39 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                         return True
         return False
 
+    def _mentions_catalog_preference(self, text: str) -> bool:
+        if not text:
+            return False
+        lowered = text.lower()
+        keywords = [
+            "uniqlo",
+            "impact",
+            "公益",
+            "优衣库",
+            "公益线",
+            "常规店",
+            "普通店",
+        ]
+        return any(k in lowered or k in text for k in keywords)
+
+    def _has_product_recommendation_intent(self, text: str) -> bool:
+        if not text:
+            return False
+        lowered = text.lower()
+        return (
+            any(k in lowered for k in ["recommend", "search", "find", "bag", "tote", "clothing", "clothes", "tshirt", "t-shirt"])
+            or any(k in text for k in ["推荐", "搜索", "查找", "找", "商品", "包", "衣物", "衣服", "t恤", "T恤"])
+        )
+
+    def _should_ask_catalog_clarification(self, text: str) -> bool:
+        if not text:
+            return False
+        if self._mentions_catalog_preference(text):
+            return False
+        if self._contains_sustainability_intent(text):
+            return False
+        return self._has_product_recommendation_intent(text)
+
     def _determine_catalog_scope(self, last_user: str, context: str, metadata: Optional[Dict[str, Any]] = None) -> str:
         """Determine preferred product catalog scope: impact | uniqlo | mixed."""
         if self._contains_sustainability_intent(last_user, metadata):
@@ -319,22 +364,36 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
         """Extract Chinese and Latin keywords for DB matching."""
         if not query:
             return []
-        tokens = re.findall(r"[\u4e00-\u9fff]+|[A-Za-z0-9]+", query)
+        normalized_query = query.lower()
+        normalized_query = re.sub(r"\b(t[\s-]?shirt|tee[\s-]?shirt)\b", " tshirt ", normalized_query)
+        normalized_query = re.sub(r"\b(back[\s-]?pack)\b", " backpack ", normalized_query)
+        normalized_query = re.sub(r"\b(tote[\s-]?bag)\b", " tote ", normalized_query)
+        tokens = re.findall(r"[\u4e00-\u9fff]+|[A-Za-z0-9]+", normalized_query)
         normalized: List[str] = []
         for tok in tokens:
             if re.fullmatch(r"[A-Za-z0-9]+", tok):
                 if len(tok) < 2:
                     continue
                 normalized.append(tok.lower())
+                if tok.lower() in {"tshirt", "tee"}:
+                    normalized.extend(["t恤", "短袖"])
+                if tok.lower() in {"bag", "bags", "tote", "backpack"}:
+                    normalized.extend(["包", "袋", "帆布包"])
+                if tok.lower() in {"clothing", "clothes", "wear", "apparel"}:
+                    normalized.extend(["衣物", "衣服", "服装"])
             else:
                 normalized.append(tok)
                 if len(tok) >= 4:
-                    for kw in ["包", "帆布袋", "托特", "背包", "公益", "可持续", "环保", "捐赠"]:
+                    for kw in ["包", "袋", "帆布袋", "托特", "背包", "衣物", "衣服", "t恤", "短袖", "公益", "可持续", "环保", "捐赠"]:
                         if kw in tok:
                             normalized.append(kw)
             if len(normalized) >= limit:
                 break
-        return normalized[:limit]
+        deduped: List[str] = []
+        for term in normalized:
+            if term not in deduped:
+                deduped.append(term)
+        return deduped[:limit]
 
     def _resolve_frontend_base_url(self, metadata: Optional[Dict[str, Any]] = None) -> str:
         base = ""
@@ -455,12 +514,12 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
         search_trigger = (
             context in ("shop", "impact", "sustainability")
             or any(k in last_user.lower() for k in ["impact", "trace", "recommend", "bag", "tote", "sustainable", "charity"])
-            or any(k in last_user for k in ["公益", "溯源", "推荐", "找", "商品", "包", "环保", "可持续"])
+            or any(k in last_user for k in ["公益", "溯源", "推荐", "找", "商品", "包", "衣服", "衣物", "t恤", "环保", "可持续"])
         )
         if search_trigger:
             terms = self._extract_search_terms(last_user, limit=6)
             if terms:
-                from sqlalchemy import select
+                from sqlalchemy import select, or_
                 scopes = [catalog_scope] if catalog_scope in ("impact", "uniqlo") else ["uniqlo", "impact"]
                 for scope in scopes:
                     stmt = select(Product).where(Product.status == "active")
@@ -469,12 +528,17 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                         if scope == "impact"
                         else Product.is_impact_product.is_(False)
                     )
+                    token_filters = []
                     for t in terms[:4]:
-                        stmt = stmt.where(
-                            (Product.name.ilike(f"%{t}%"))
-                            | (Product.description.ilike(f"%{t}%"))
-                            | (Product.category.ilike(f"%{t}%"))
-                        )
+                        token_filters.extend([
+                            Product.name.ilike(f"%{t}%"),
+                            Product.name_en.ilike(f"%{t}%"),
+                            Product.description.ilike(f"%{t}%"),
+                            Product.description_en.ilike(f"%{t}%"),
+                            Product.category.ilike(f"%{t}%"),
+                        ])
+                    if token_filters:
+                        stmt = stmt.where(or_(*token_filters))
                     stmt = stmt.limit(5)
                     try:
                         res = (await self.db.execute(stmt)).scalars().all()
@@ -509,8 +573,11 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                             Product.name.ilike("%包%")
                             | Product.name.ilike("%袋%")
                             | Product.name.ilike("%bag%")
+                            | Product.name_en.ilike("%bag%")
+                            | Product.name_en.ilike("%tote%")
                             | Product.description.ilike("%包%")
                             | Product.description.ilike("%bag%")
+                            | Product.description_en.ilike("%bag%")
                             | Product.category.ilike("%accessories%")
                         ).limit(5)
                         try:
@@ -573,12 +640,17 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                         if scope == "impact"
                         else Product.is_impact_product.is_(False)
                     )
+                    token_filters = []
                     for t in terms[:4]:
-                        stmt = stmt.where(
-                            (Product.name.ilike(f"%{t}%"))
-                            | (Product.description.ilike(f"%{t}%"))
-                            | (Product.category.ilike(f"%{t}%"))
-                        )
+                        token_filters.extend([
+                            Product.name.ilike(f"%{t}%"),
+                            Product.name_en.ilike(f"%{t}%"),
+                            Product.description.ilike(f"%{t}%"),
+                            Product.description_en.ilike(f"%{t}%"),
+                            Product.category.ilike(f"%{t}%"),
+                        ])
+                    if token_filters:
+                        stmt = stmt.where(or_(*token_filters))
                     stmt = stmt.limit(5)
                     prods = (await self.db.execute(stmt)).scalars().all()
                     for p in prods:
