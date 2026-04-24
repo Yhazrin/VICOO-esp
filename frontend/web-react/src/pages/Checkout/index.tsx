@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import { useCartStore, selectTotalPrice } from '@/stores/cartStore';
+import { useUIStore } from '@/stores/uiStore';
 import { useAuthStore } from '@/stores/authStore';
 import { ordersApi } from '@/services/orders';
 import { paymentsApi } from '@/services/payments';
@@ -42,6 +43,8 @@ export default function Checkout() {
   const clearCart = useCartStore((s) => s.clearCart);
   const totalPrice = useCartStore(selectTotalPrice);
   const { isAuthenticated } = useAuthStore();
+  const impactMode = useUIStore((s) => s.impactMode);
+  const continueShoppingPath = impactMode ? '/impact/shop' : '/shop';
 
   const [step, setStep] = useState(0);
   const [address, setAddress] = useState<AddressForm>({
@@ -124,7 +127,7 @@ export default function Checkout() {
           <div className="pt-6 pb-24 text-center">
             <p className="font-display text-lg text-ink-faded mb-4">{t('cart.empty')}</p>
             <Link
-              to="/shop"
+              to={continueShoppingPath}
               className="inline-block font-body text-label tracking-wide text-rust hover:text-rust-light transition-colors cursor-pointer underline underline-offset-4 decoration-rust/30"
             >
               {t('cart.continueShopping')}
@@ -506,7 +509,7 @@ export default function Checkout() {
                         {t('checkout.viewOrder')}
                       </Link>
                       <Link
-                        to="/shop"
+                        to={continueShoppingPath}
                         className="font-body text-label tracking-wide text-ink-faded hover:text-ink transition-colors cursor-pointer underline underline-offset-4 decoration-warm-gray/30"
                       >
                         {t('checkout.continueShopping')}

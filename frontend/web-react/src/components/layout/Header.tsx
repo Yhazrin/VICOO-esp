@@ -376,6 +376,7 @@ export default function Header() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
   const menuTriggerRef = useRef<HTMLButtonElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -442,11 +443,23 @@ export default function Header() {
     }
   }, [searchOpen]);
 
+  useEffect(() => {
+    if (!searchOpen) return;
+    const onMouseDown = (event: MouseEvent) => {
+      const target = event.target as Node | null;
+      if (target && searchContainerRef.current?.contains(target)) return;
+      setSearchOpen(false);
+    };
+    document.addEventListener('mousedown', onMouseDown);
+    return () => document.removeEventListener('mousedown', onMouseDown);
+  }, [searchOpen]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const q = searchQuery.trim();
     if (q) {
-      navigate(`/shop?search=${encodeURIComponent(q)}`);
+      const basePath = impactMode ? '/impact/shop' : '/shop';
+      navigate(`${basePath}?search=${encodeURIComponent(q)}`);
       setSearchOpen(false);
       setSearchQuery('');
     }
@@ -577,40 +590,41 @@ export default function Header() {
 
           {/* Search — expandable */}
           {!isMobile && (
-            <div className="relative flex items-center">
+            <div ref={searchContainerRef} className="flex items-center gap-2">
               <AnimatePresence>
                 {searchOpen && (
-                  <motion.div
+                  <motion.form
+                    onSubmit={handleSearch}
                     initial={{ width: 0, opacity: 0 }}
                     animate={{ width: 200, opacity: 1 }}
                     exit={{ width: 0, opacity: 0 }}
                     transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
-                    className="absolute right-full mr-2 overflow-hidden"
+                    className="overflow-hidden"
                   >
-                    <form onSubmit={handleSearch} className="w-[200px]">
-                      <input
-                        ref={searchInputRef}
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder={t('search.placeholder', 'Search products...')}
-                        className="w-full px-4 py-1.5 rounded-full bg-white/90 backdrop-blur-xl shadow-sm font-body text-sm text-ink placeholder:text-warm-gray/60 focus:outline-none focus:ring-1 focus:ring-rust/30"
-                        onBlur={() => {
-                          if (!searchQuery) setSearchOpen(false);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Escape') {
-                            setSearchOpen(false);
-                            setSearchQuery('');
-                          }
-                        }}
-                      />
-                    </form>
-                  </motion.div>
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder={t('search.placeholder', 'Search products...')}
+                      className="w-[200px] px-4 py-1.5 rounded-full bg-white/90 backdrop-blur-xl shadow-sm font-body text-sm text-ink placeholder:text-warm-gray/60 focus:outline-none focus:ring-1 focus:ring-rust/30"
+                      onBlur={() => {
+                        if (!searchQuery.trim()) setSearchOpen(false);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Escape') {
+                          setSearchOpen(false);
+                          setSearchQuery('');
+                        }
+                      }}
+                    />
+                  </motion.form>
                 )}
               </AnimatePresence>
               <button
-                onClick={() => setSearchOpen(!searchOpen)}
+                onClick={() => {
+                  setSearchOpen((prev) => !prev);
+                }}
                 className={`flex h-9 w-9 items-center justify-center rounded-full transition-all cursor-pointer ${iconDisc}`}
                 aria-label="Search"
               >
