@@ -20,7 +20,7 @@ from app.schemas import (
     supply_chain_record_to_out,
 )
 from app.deps import require_role, get_current_user
-from app.data.default_regular_products import regular_catalog_mock_dicts
+from app.data.default_regular_products import regular_catalog_mock_dicts, SKU_EXTRA_BY_PRODUCT_NAME
 from app.data.product_i18n_seed import PRODUCT_I18N_BY_NAME_ZH
 from app.data.impact_product_images import IMPACT_PRODUCT_IMAGE_BY_NAME as _IMPACT_IMG
 
@@ -104,6 +104,12 @@ async def _products_to_out_dicts(db: AsyncSession, products: list[Product]) -> l
             u = fb.get(p.artwork_id)
             if u:
                 d["image_url"] = u
+        extra = SKU_EXTRA_BY_PRODUCT_NAME.get((p.name or "").strip())
+        if extra:
+            if extra.get("sizes") is not None:
+                d["sizes"] = extra["sizes"]
+            if extra.get("colors") is not None:
+                d["colors"] = extra["colors"]
         out.append(d)
     return out
 
