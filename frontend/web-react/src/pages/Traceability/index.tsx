@@ -637,13 +637,13 @@ export default function Traceability() {
           </p>
           <div className="flex flex-wrap gap-4 relative z-10">
             <Link
-              to="/impact?tab=campaigns"
+              to="/campaigns"
               className="font-body text-label tracking-[0.15em] uppercase text-rust border-b border-rust/40 pb-0.5 hover:border-rust transition-colors"
             >
               {t('traceability.welfareMaterialBridge.linkCampaigns')}
             </Link>
             <Link
-              to="/impact?tab=shop"
+              to="/impact/shop"
               className="font-body text-label tracking-[0.15em] uppercase text-rust border-b border-rust/40 pb-0.5 hover:border-rust transition-colors"
             >
               {t('traceability.welfareMaterialBridge.linkShop')}

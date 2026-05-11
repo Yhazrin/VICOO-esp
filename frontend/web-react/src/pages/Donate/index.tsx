@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/authStore';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
@@ -14,6 +14,8 @@ import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 import MagneticButton from '@/components/animations/MagneticButton';
 import { donationsApi } from '@/services/donations';
 import { getErrorMessage } from '@/utils/error';
+import { invokeWechatPayment } from '@/utils/payment';
+import toast from 'react-hot-toast';
 
 /* ─── Impact Area Data ─── */
 
@@ -226,6 +228,7 @@ export default function Donate() {
     : 0;
   const totalDonors = impactStats?.total_donors ?? 0;
 
+  const queryClient = useQueryClient();
   const donateMutation = useMutation({
     mutationFn: async (data: {
       amount: number;
@@ -243,6 +246,24 @@ export default function Donate() {
         is_anonymous: data.anonymous,
         message: data.message || undefined,
       });
+    },
+    onSuccess: async (result, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['impact-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['my-donations'] });
+      // Handle WeChat JSAPI payment if parameters are returned
+      if (variables.paymentMethod === 'wechat' && result && 'appId' in result) {
+        try {
+          await invokeWechatPayment(result as unknown as Record<string, unknown>);
+          toast.success(t('donate.success', 'Thank you for your donation!'));
+        } catch {
+          toast.error(t('donate.paymentFailed', 'Payment was not completed.'));
+        }
+        return;
+      }
+      toast.success(t('donate.success', 'Thank you for your donation!'));
+    },
+    onError: () => {
+      toast.error(t('donate.error', 'Donation failed. Please try again.'));
     },
   });
 
@@ -295,6 +316,12 @@ export default function Donate() {
                 <p className="font-body text-body-sm text-ink">
                   {t('donate.success')}
                 </p>
+                <Link
+                  to="/profile"
+                  className="inline-block mt-2 font-body text-overline tracking-[0.15em] uppercase text-rust hover:text-ink transition-colors"
+                >
+                  {t('donate.viewHistory', 'View donation history')} &rarr;
+                </Link>
               </div>
             )}
             {donateMutation.isError && (
