@@ -159,11 +159,11 @@ export interface Donation {
   amount: number;
   currency: string;
   tierId?: number;
-  campaignId?: number;
+  campaign_id?: number;
   message?: string;
   is_anonymous: boolean;
   status: 'pending' | 'completed' | 'failed' | 'refunded';
-  createdAt: string;
+  created_at: string;
   transactionId?: string;
 }
 

@@ -12,7 +12,7 @@ interface DonationPanelProps {
     frequency: 'once' | 'monthly';
     anonymous: boolean;
     message: string;
-    paymentMethod: 'wechat' | 'alipay' | 'stripe';
+    paymentMethod: 'wechat' | 'alipay' | 'stripe' | 'paypal';
   }) => void;
   isSubmitting?: boolean;
   className?: string;
@@ -52,8 +52,8 @@ export default function DonationPanel({
       setSelectedAmount(amountPresets[0]);
     }
   }, [amountPresets, selectedAmount, customAmount]);
-  const [frequency, setFrequency] = useState<'once' | 'monthly'>('once');
-  const [paymentMethod, setPaymentMethod] = useState<'wechat' | 'alipay' | 'stripe'>('stripe');
+  const [frequency] = useState<'once' | 'monthly'>('once');
+  const [paymentMethod, setPaymentMethod] = useState<'wechat' | 'alipay' | 'stripe' | 'paypal'>('wechat');
   const [anonymous, setAnonymous] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState<string>('');
@@ -201,37 +201,8 @@ export default function DonationPanel({
           </motion.div>
         )}
 
-        {/* Frequency — capsule toggle */}
-        <div className="mb-8">
-          <label className="block font-body text-caption tracking-[0.05em] text-sepia-mid mb-3">
-            {t('donate.form.frequency.title')}
-          </label>
-          <div className="inline-flex items-center rounded-full bg-white/80 backdrop-blur-xl shadow-sm px-2 py-1" role="group" aria-label={t('donate.form.frequency.title')}>
-            {(['once', 'monthly'] as const).map((freq) => (
-              <button
-                key={freq}
-                type="button"
-                aria-pressed={frequency === freq}
-                onClick={() => setFrequency(freq)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    setFrequency(freq);
-                  }
-                }}
-                className={`
-                  px-5 py-1 font-body text-label tracking-wide uppercase text-center rounded-full transition-all cursor-pointer whitespace-nowrap
-                  ${frequency === freq
-                    ? 'bg-ink text-paper font-medium'
-                    : 'text-ink-faded hover:text-ink'
-                  }
-                `}
-              >
-                {t(`donate.form.frequency.${freq}`)}
-              </button>
-            ))}
-          </div>
-        </div>
+        {/* Frequency — currently only one-time donations are supported */}
+        {/* Hidden: recurring donations require backend subscription support */}
 
         {/* Payment Method — capsule selector */}
         <div className="mb-8">

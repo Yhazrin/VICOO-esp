@@ -43,7 +43,16 @@ export const donationsApi = {
     return response.data.data;
   },
 
-  getCertificate: async (id: string): Promise<{ certificate_url: string }> => {
+  getCertificate: async (id: string): Promise<{
+    donation_id: number;
+    donor_name: string;
+    amount: string;
+    currency: string;
+    date: string;
+    campaign_id: number | null;
+    certificate_no: string;
+    certificate_url: string;
+  }> => {
     const response = await api.get(`/donations/${id}/certificate`);
     return response.data.data;
   },
