@@ -1,9 +1,14 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text, Enum, DECIMAL, func
+from sqlalchemy import Column, Integer, String, DateTime, Text, Enum, DECIMAL, func, Index
 from app.database import Base
 
 
 class Campaign(Base):
     __tablename__ = "campaigns"
+    __table_args__ = (
+        Index("ix_campaigns_status", "status"),
+        Index("ix_campaigns_start_date", "start_date"),
+        Index("ix_campaigns_created_at", "created_at"),
+    )
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     title = Column(String(300), nullable=False)

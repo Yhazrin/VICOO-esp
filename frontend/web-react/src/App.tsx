@@ -63,7 +63,12 @@ function AnimatedRoutes() {
 
   return (
     <ErrorBoundary>
-      <Suspense fallback={<div style={{ minHeight: '60vh' }} />}>
+      <Suspense fallback={
+        <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 animate-pulse">
+          <div className="w-10 h-10 rounded-full bg-warm-gray/30" />
+          <div className="w-32 h-3 rounded bg-warm-gray/20" />
+        </div>
+      }>
       <SmoothTransition>
         {/* Do not key Routes by pathname — that remounts Layout/Header on every navigation (feels like a full reload). */}
         <Routes location={location}>
