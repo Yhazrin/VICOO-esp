@@ -229,22 +229,23 @@ function PillWindow({
           {companyHl && (
             <motion.div
               aria-hidden
-              className={`pointer-events-none absolute z-0 bg-white ${PILL_CORNER_TRANSITION_CLASS} ${impactMode ? 'rounded-full' : 'rounded-sm'} ${prefersReducedMotion ? '' : 'will-change-[left,top,width,height]'}`}
+              className={`pointer-events-none absolute z-0 bg-white ${PILL_CORNER_TRANSITION_CLASS} ${impactMode ? 'rounded-full' : 'rounded-sm'} ${prefersReducedMotion ? '' : 'will-change-transform'}`}
               initial={false}
               animate={{
-                left: companyHl.x,
-                top: companyHl.y,
-                width: companyHl.w,
-                height: companyHl.h,
+                x: companyHl.x,
+                y: companyHl.y,
+                scaleX: companyHl.w / 100,
+                scaleY: companyHl.h / 100,
                 borderRadius: impactMode ? 9999 : 4,
               }}
               transition={{
-                left: pillTransition,
-                top: pillTransition,
-                width: pillTransition,
-                height: pillTransition,
+                x: pillTransition,
+                y: pillTransition,
+                scaleX: pillTransition,
+                scaleY: pillTransition,
                 borderRadius: modeMorphTransition,
               }}
+              style={{ width: 100, height: 100, transformOrigin: 'top left' }}
             />
           )}
           {COMPANY_NAV.map((item) => {
@@ -282,20 +283,20 @@ function PillWindow({
           {impactHl && (
             <motion.div
               aria-hidden
-              className={`pointer-events-none absolute z-0 rounded-full bg-ink ${PILL_CORNER_TRANSITION_CLASS} ${prefersReducedMotion ? '' : 'will-change-[left,top,width,height]'}`}
+              className={`pointer-events-none absolute z-0 rounded-full bg-ink ${PILL_CORNER_TRANSITION_CLASS} ${prefersReducedMotion ? '' : 'will-change-transform'}`}
               initial={false}
               animate={{
-                left: impactHl.x,
-                top: impactHl.y,
-                width: impactHl.w,
-                height: impactHl.h,
+                x: impactHl.x,
+                y: impactHl.y,
+                scaleX: impactHl.w / 100,
+                scaleY: impactHl.h / 100,
                 borderRadius: 9999,
               }}
               transition={{
-                left: pillTransition,
-                top: pillTransition,
-                width: pillTransition,
-                height: pillTransition,
+                x: pillTransition,
+                y: pillTransition,
+                scaleX: pillTransition,
+                scaleY: pillTransition,
                 borderRadius: modeMorphTransition,
               }}
             />

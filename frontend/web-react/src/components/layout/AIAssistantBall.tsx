@@ -1,12 +1,20 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { aiAssistantApi, type AIChatMessage } from '@/services/aiAssistant';
 import { useUIStore } from '@/stores/uiStore';
 import { getAIAssistantMetadata, getAIAssistantSuggestions } from '@/config/aiAssistantScenarios';
 import { sanitizeAssistantContent } from '@/utils/aiContent';
+
+// Lazy-load markdown parser (~80KB) — only needed when chat is open
+const ReactMarkdown = lazy(() => import('react-markdown'));
+const remarkGfmPromise = import('remark-gfm').then(m => m.default);
+
+function MarkdownRenderer({ content }: { content: string }) {
+  const [plugin, setPlugin] = useState<unknown>(null);
+  useEffect(() => { remarkGfmPromise.then(setPlugin); }, []);
+  return <ReactMarkdown remarkPlugins={plugin ? [plugin] : []}>{content}</ReactMarkdown>;
+}
 
 interface Message {
   id: string;
@@ -204,7 +212,9 @@ export const AIAssistantBall: React.FC = () => {
                       ? theme.userBubble 
                       : theme.assistantBubble
                   } ${m.role === 'system' ? `opacity-70 italic border-none bg-transparent ${theme.systemBubble}` : ''} [&_p]:text-current [&_li]:text-current [&_ol]:text-current [&_ul]:text-current [&_strong]:text-current [&_em]:text-current [&_code]:text-current [&_a]:text-current [&_a]:underline [&_a]:decoration-current [&_a:hover]:opacity-80`}>
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.role === 'assistant' ? sanitizeAssistantContent(m.content) : m.content}</ReactMarkdown>
+                    <Suspense fallback={<span className="opacity-50">...</span>}>
+                      <MarkdownRenderer content={m.role === 'assistant' ? sanitizeAssistantContent(m.content) : m.content} />
+                    </Suspense>
                   </div>
 
                   {m.role === 'assistant' && (
