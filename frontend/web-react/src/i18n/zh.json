@@ -577,7 +577,8 @@
       "springSummer": "春/夏",
       "fallWinter": "秋/冬",
       "allSeasons": "四季通用",
-      "filterButton": "筛选"
+      "filterButton": "筛选",
+      "noColorData": "当前列表商品暂无颜色元数据，无法使用颜色筛选。"
     },
     "card": {
       "viewDetails": "查看详情",

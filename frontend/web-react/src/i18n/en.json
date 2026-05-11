@@ -610,7 +610,8 @@
       "springSummer": "Spring/Summer",
       "fallWinter": "Fall/Winter",
       "allSeasons": "All Seasons",
-      "filterButton": "Filters"
+      "filterButton": "Filters",
+      "noColorData": "No color metadata on current items — color filter is unavailable."
     },
     "card": {
       "viewDetails": "View Details",
