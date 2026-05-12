@@ -20,6 +20,8 @@ const Login = lazy(() => import('@/pages/Login'));
 const Register = lazy(() => import('@/pages/Register'));
 const AuthCallback = lazy(() => import('@/pages/AuthCallback'));
 const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
+const Donate = lazy(() => import('@/pages/Donate'));
+const DonationCertificate = lazy(() => import('@/pages/DonationCertificate'));
 const Profile = lazy(() => import('@/pages/Profile'));
 const Privacy = lazy(() => import('@/pages/Privacy'));
 const Terms = lazy(() => import('@/pages/Terms'));
@@ -76,6 +78,8 @@ function AnimatedRoutes() {
             <Route path="impact/shop/:id" element={<ErrorBoundary><ProductDetail /></ErrorBoundary>} />
             <Route path="about" element={<ErrorBoundary><About /></ErrorBoundary>} />
             <Route path="contact" element={<ErrorBoundary><Contact /></ErrorBoundary>} />
+            <Route path="donate" element={<ErrorBoundary><Donate /></ErrorBoundary>} />
+            <Route path="donations/:id/certificate" element={<ErrorBoundary><DonationCertificate /></ErrorBoundary>} />
             <Route path="auth/callback" element={<ErrorBoundary><AuthCallback /></ErrorBoundary>} />
             <Route path="profile" element={<ErrorBoundary><Profile /></ErrorBoundary>} />
             <Route path="orders/:id" element={<ErrorBoundary><OrderDetail /></ErrorBoundary>} />

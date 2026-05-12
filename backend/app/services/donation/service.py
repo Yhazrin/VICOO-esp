@@ -11,6 +11,7 @@ from app.models.donation import Donation
 from app.models.campaign import Campaign
 from app.services.base import BaseService
 from app.core.audit import audit_action
+from app.services.donation.certificate import build_certificate_payload
 
 from app.utils.cache import cached
 
@@ -121,7 +122,7 @@ class DonationService(BaseService):
         # Format: TH-DON-YYYYMMDD-ID
         date_str = datetime.now().strftime("%Y%m%d")
         donation.certificate_no = f"TH-DON-{date_str}-{donation.id:06d}"
-        donation.certificate_url = f"/api/donations/{donation.id}/certificate"
+        donation.certificate_url = build_certificate_payload(donation)["certificate_url"]
         
         await self.db.flush()
         return donation

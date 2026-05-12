@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import Response
 from sqlalchemy import select, func, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from decimal import Decimal
@@ -12,10 +13,31 @@ from app.models.campaign import Campaign
 from app.schemas import ApiResponse, DonationCreate, DonationOut, PaginatedResponse
 from app.deps import get_current_user, get_optional_current_user
 from app.services.payment_service import get_payment_service
+from app.services.donation.certificate import build_certificate_payload, generate_certificate_pdf
 
 router = APIRouter(prefix="/donations", tags=["Donations"])
 
 logger = logging.getLogger(__name__)
+
+
+async def _load_certificate_payload(
+    donation_id: int,
+    db: AsyncSession,
+    current_user: dict,
+) -> tuple[Donation, dict]:
+    stmt = select(Donation, Campaign.title).outerjoin(Campaign, Campaign.id == Donation.campaign_id).where(Donation.id == donation_id)
+    result = await db.execute(stmt)
+    row = result.one_or_none()
+    if not row:
+        raise HTTPException(status_code=404, detail="Donation not found")
+
+    donation, campaign_title = row
+    if current_user.get("role") != "admin" and donation.donor_user_id and donation.donor_user_id != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    if donation.status != "completed":
+        raise HTTPException(status_code=400, detail="Certificate available only for completed donations")
+
+    return donation, build_certificate_payload(donation, campaign_title=campaign_title)
 
 
 def _serialize_donation(donation: Donation) -> dict:
@@ -154,6 +176,7 @@ async def create_donation(body: DonationCreate, db: AsyncSession = Depends(get_d
 
         response_data = _serialize_donation(donation)
         response_data["donationId"] = donation.id
+        response_data["simulation_mode"] = False
 
         if body.payment_method == "wechat":
             try:
@@ -186,6 +209,15 @@ async def create_donation(body: DonationCreate, db: AsyncSession = Depends(get_d
                     raise HTTPException(status_code=400, detail="Alipay is not configured for this environment.")
                 response_data["payment_notice"] = "Alipay web payment is not configured in this environment yet."
                 response_data["simulation_mode"] = True
+        elif body.payment_method in {"stripe", "paypal"} and settings.APP_ENV != "production":
+            simulated_payment_id = f"sim_{body.payment_method}_{donation.id}"
+            donation = await donation_service.complete_donation(donation.id, simulated_payment_id)
+            await db.refresh(donation)
+            response_data = _serialize_donation(donation)
+            response_data["donationId"] = donation.id
+            response_data["simulation_mode"] = True
+            response_data["payment_notice"] = f"{body.payment_method} payment is running in local simulation mode."
+            response_data.update(build_certificate_payload(donation))
 
         return ApiResponse(data=response_data)
     except HTTPException:
@@ -199,27 +231,36 @@ async def create_donation(body: DonationCreate, db: AsyncSession = Depends(get_d
 async def get_donation_certificate(donation_id: int, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
     """Get donation certificate data."""
     try:
-        stmt = select(Donation).where(Donation.id == donation_id)
-        result = await db.execute(stmt)
-        donation = result.scalar_one_or_none()
-        if not donation:
-            raise HTTPException(status_code=404, detail="Donation not found")
-        if current_user.get("role") != "admin" and donation.donor_user_id and donation.donor_user_id != current_user["id"]:
-            raise HTTPException(status_code=403, detail="Forbidden")
-        if donation.status != "completed":
-            raise HTTPException(status_code=400, detail="Certificate available only for completed donations")
-        return ApiResponse(data={
-            "donation_id": donation.id,
-            "donor_name": donation.donor_name if not donation.is_anonymous else "爱心人士",
-            "amount": str(donation.amount),
-            "currency": donation.currency,
-            "date": donation.created_at.isoformat() if donation.created_at else None,
-            "campaign_id": donation.campaign_id,
-            "certificate_no": f"TH-DON-{donation.id:06d}",
-            "certificate_url": f"/api/donations/{donation.id}/certificate",
-        })
+        _, payload = await _load_certificate_payload(donation_id, db, current_user)
+        return ApiResponse(data=payload)
         
     except HTTPException:
         raise
     except Exception:
         raise HTTPException(status_code=404, detail="Donation not found")
+
+
+@router.get("/{donation_id}/certificate/pdf")
+async def download_donation_certificate_pdf(
+    donation_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    """Download the donation certificate as a PDF."""
+    try:
+        _, payload = await _load_certificate_payload(donation_id, db, current_user)
+        pdf_bytes = generate_certificate_pdf(payload)
+        filename = f"donation-certificate-{payload['certificate_no']}.pdf"
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"',
+                "Cache-Control": "no-store",
+            },
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error(f"Certificate PDF generation failed for donation {donation_id}: {exc}")
+        raise HTTPException(status_code=500, detail="Certificate PDF generation failed")

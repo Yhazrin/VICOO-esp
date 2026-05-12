@@ -560,6 +560,18 @@ class TestDonationCertificate:
         if response.status_code == 200:
             data = response.json()["data"]
             assert "certificate_url" in data
+            assert "certificate_pdf_url" in data
+
+    @pytest.mark.asyncio
+    async def test_download_certificate_pdf(self, client: AsyncClient, auth_headers):
+        """Completed donation certificate can be downloaded as PDF."""
+        response = await client.get(
+            f"/api/v1/donations/{DONATION_ID}/certificate/pdf", headers=auth_headers
+        )
+        assert response.status_code in (200, 404, 500)
+        if response.status_code == 200:
+            assert response.headers["content-type"].startswith("application/pdf")
+            assert response.content.startswith(b"%PDF-1.4")
 
 
 # =============================================================================

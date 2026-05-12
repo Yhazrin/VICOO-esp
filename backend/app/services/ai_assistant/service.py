@@ -2,6 +2,8 @@ import logging
 from typing import List, Dict, Any, Optional
 import re
 import json
+from pathlib import Path
+from functools import lru_cache
 import httpx
 from urllib.parse import urljoin
 from fastapi import HTTPException
@@ -14,6 +16,37 @@ from app.services.supply_chain.service import SupplyChainService
 from app.models.product import Product
 
 logger = logging.getLogger("tonghua.ai_service")
+_SYNONYM_CONFIG_PATH = Path(__file__).resolve().parents[2] / "data" / "ai_search_synonyms.json"
+_DEFAULT_SYNONYM_CONFIG = {
+    "aliases": {},
+    "fragments": [],
+}
+
+
+@lru_cache(maxsize=1)
+def _read_synonym_config() -> Dict[str, Any]:
+    try:
+        with _SYNONYM_CONFIG_PATH.open("r", encoding="utf-8") as fh:
+            loaded = json.load(fh)
+            if isinstance(loaded, dict):
+                return loaded
+    except Exception as exc:
+        logger.warning(f"Failed to load AI synonym config: {exc}")
+    return _DEFAULT_SYNONYM_CONFIG
+
+
+@lru_cache(maxsize=1)
+def _read_alias_map() -> Dict[str, List[str]]:
+    aliases = _read_synonym_config().get("aliases", {})
+    alias_map: Dict[str, List[str]] = {}
+    for canonical, raw_variants in aliases.items():
+        variants = []
+        for entry in [canonical, *(raw_variants or [])]:
+            if isinstance(entry, str) and entry not in variants:
+                variants.append(entry)
+        for entry in variants:
+            alias_map[entry.lower()] = variants
+    return alias_map
 
 SYSTEM_PROMPT = """你是「童画公益 × 可持续时尚」平台助手。语气温暖、克制、专业。
 你需要根据页面语境推荐对应商品，并优先使用站内数据库与检索结果回答：
@@ -364,6 +397,8 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
         """Extract Chinese and Latin keywords for DB matching."""
         if not query:
             return []
+        synonym_config = self._load_synonym_config()
+        alias_map = self._load_alias_map()
         normalized_query = query.lower()
         normalized_query = re.sub(r"\b(t[\s-]?shirt|tee[\s-]?shirt)\b", " tshirt ", normalized_query)
         normalized_query = re.sub(r"\b(back[\s-]?pack)\b", " backpack ", normalized_query)
@@ -374,17 +409,11 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
             if re.fullmatch(r"[A-Za-z0-9]+", tok):
                 if len(tok) < 2:
                     continue
-                normalized.append(tok.lower())
-                if tok.lower() in {"tshirt", "tee"}:
-                    normalized.extend(["t恤", "短袖"])
-                if tok.lower() in {"bag", "bags", "tote", "backpack"}:
-                    normalized.extend(["包", "袋", "帆布包"])
-                if tok.lower() in {"clothing", "clothes", "wear", "apparel"}:
-                    normalized.extend(["衣物", "衣服", "服装"])
+                normalized.extend(alias_map.get(tok.lower(), [tok.lower()]))
             else:
                 normalized.append(tok)
                 if len(tok) >= 4:
-                    for kw in ["包", "袋", "帆布袋", "托特", "背包", "衣物", "衣服", "t恤", "短袖", "公益", "可持续", "环保", "捐赠"]:
+                    for kw in synonym_config.get("fragments", []):
                         if kw in tok:
                             normalized.append(kw)
             if len(normalized) >= limit:
@@ -394,6 +423,12 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
             if term not in deduped:
                 deduped.append(term)
         return deduped[:limit]
+
+    def _load_synonym_config(self) -> Dict[str, Any]:
+        return _read_synonym_config()
+
+    def _load_alias_map(self) -> Dict[str, List[str]]:
+        return _read_alias_map()
 
     def _resolve_frontend_base_url(self, metadata: Optional[Dict[str, Any]] = None) -> str:
         base = ""
