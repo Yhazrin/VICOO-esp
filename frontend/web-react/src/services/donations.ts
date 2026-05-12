@@ -1,5 +1,5 @@
 import api from './api';
-import type { Donation, DonationTier, CreateDonationRequest, PaginatedResponse } from '@/types';
+import type { Donation, DonationCertificate, DonationTier, CreateDonationRequest, PaginatedResponse } from '@/types';
 
 export const donationsApi = {
   getTiers: async (): Promise<DonationTier[]> => {
@@ -43,8 +43,15 @@ export const donationsApi = {
     return response.data.data;
   },
 
-  getCertificate: async (id: string): Promise<{ certificate_url: string }> => {
+  getCertificate: async (id: string): Promise<DonationCertificate> => {
     const response = await api.get(`/donations/${id}/certificate`);
     return response.data.data;
+  },
+
+  downloadCertificatePdf: async (id: string): Promise<Blob> => {
+    const response = await api.get(`/donations/${id}/certificate/pdf`, {
+      responseType: 'blob',
+    });
+    return response.data;
   },
 };
