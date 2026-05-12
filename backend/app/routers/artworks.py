@@ -254,7 +254,7 @@ async def create_artwork(
         artwork = Artwork(**artwork_data)
         db.add(artwork)
         await db.flush()
-        await db.refresh(artwork, ["child_participant"])
+        await db.refresh(artwork, ["created_at", "updated_at"])
         return ApiResponse(data=_serialize_artwork(artwork))
     except HTTPException:
         raise
@@ -264,7 +264,7 @@ async def create_artwork(
 
 
 @router.put("/{artwork_id}", response_model=ApiResponse)
-async def update_artwork(artwork_id: int, body: ArtworkUpdate, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user), _admin: dict = Depends(require_role("admin"))):
+async def update_artwork(artwork_id: int, body: ArtworkUpdate, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user), _admin: dict = Depends(require_role("admin", "editor"))):
     """Update an artwork."""
     try:
         stmt = select(Artwork).options(selectinload(Artwork.child_participant)).where(Artwork.id == artwork_id)
@@ -275,7 +275,7 @@ async def update_artwork(artwork_id: int, body: ArtworkUpdate, db: AsyncSession 
         for k, v in body.model_dump(exclude_unset=True).items():
             setattr(artwork, k, v)
         await db.flush()
-        await db.refresh(artwork, ["child_participant"])
+        await db.refresh(artwork, ["created_at", "updated_at"])
         return ApiResponse(data=_serialize_artwork(artwork))
     except HTTPException:
         raise
@@ -306,7 +306,7 @@ async def get_artwork_status(artwork_id: int, db: AsyncSession = Depends(get_db)
 
 
 @router.put("/{artwork_id}/status", response_model=ApiResponse)
-async def update_artwork_status(artwork_id: int, body: ArtworkStatusUpdate, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user), _admin: dict = Depends(require_role("admin"))):
+async def update_artwork_status(artwork_id: int, body: ArtworkStatusUpdate, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user), _admin: dict = Depends(require_role("admin", "editor"))):
     """Update artwork status."""
     try:
         stmt = select(Artwork).options(selectinload(Artwork.child_participant)).where(Artwork.id == artwork_id)
@@ -316,7 +316,7 @@ async def update_artwork_status(artwork_id: int, body: ArtworkStatusUpdate, db: 
             raise HTTPException(status_code=404, detail="Artwork not found")
         artwork.status = body.status
         await db.flush()
-        await db.refresh(artwork, ["child_participant"])
+        await db.refresh(artwork, ["created_at", "updated_at"])
         return ApiResponse(data=_serialize_artwork(artwork))
     except HTTPException:
         raise

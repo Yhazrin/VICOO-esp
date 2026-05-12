@@ -4,7 +4,8 @@ export interface User {
   email: string;
   phone?: string;
   role: 'admin' | 'editor' | 'viewer' | 'auditor';
-  status: 'active' | 'disabled' | 'pending';
+  /** 与后端 users.status 枚举一致：active | banned */
+  status: 'active' | 'banned';
   avatar?: string;
   createdAt: string;
   lastLogin?: string;

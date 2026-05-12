@@ -51,7 +51,7 @@ export default function UserPage() {
     mutationFn: ({ id, status }: { id: string; status: User['status'] }) => updateUserStatus(id, status),
     onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast.success(vars.status === 'disabled' ? t('user.toastUserDisabled') : t('user.toastUserEnabled'));
+      toast.success(vars.status === 'banned' ? t('user.toastUserDisabled') : t('user.toastUserEnabled'));
     },
   });
 
@@ -182,7 +182,7 @@ export default function UserPage() {
                 if (statusConfirm) {
                   statusMutation.mutate({
                     id: statusConfirm.id,
-                    status: statusConfirm.status === 'active' ? 'disabled' : 'active',
+                    status: statusConfirm.status === 'active' ? 'banned' : 'active',
                   }, { onSuccess: () => setStatusConfirm(null) });
                 }
               }}

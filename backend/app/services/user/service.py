@@ -64,6 +64,7 @@ class UserService(BaseService):
         user = await self.get_user_by_id(user_id)
         user.role = new_role
         await self.db.flush()
+        await self.db.refresh(user, ["created_at", "updated_at"])
         return user
 
     @audit_action(action="update_status", resource_type="user")
@@ -74,4 +75,5 @@ class UserService(BaseService):
         user = await self.get_user_by_id(user_id)
         user.status = new_status
         await self.db.flush()
+        await self.db.refresh(user, ["created_at", "updated_at"])
         return user
