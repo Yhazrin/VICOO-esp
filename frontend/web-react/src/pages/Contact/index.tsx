@@ -4,7 +4,8 @@ import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import { contactApi } from '@/services/contact';
 
-const MAX_MESSAGE_LENGTH = 1000;
+const MIN_MESSAGE_LENGTH = 5; // 与 backend ContactForm.message 一致，避免短留言返回 422
+const MAX_MESSAGE_LENGTH = 5000; // 与 backend max_length 一致
 
 type FormStatus = 'idle' | 'sending' | 'success' | 'error';
 
@@ -52,8 +53,11 @@ export default function Contact() {
     if (!form.name.trim()) errs.name = 'Name is required';
     if (!form.email.trim()) errs.email = 'Email is required';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = 'Invalid email';
-    if (!form.message.trim()) errs.message = 'Message is required';
-    else if (form.message.length > MAX_MESSAGE_LENGTH) errs.message = `Max ${MAX_MESSAGE_LENGTH} characters`;
+    const msg = form.message.trim();
+    if (!msg) errs.message = 'Message is required';
+    else if (msg.length < MIN_MESSAGE_LENGTH) {
+      errs.message = `Please enter at least ${MIN_MESSAGE_LENGTH} characters.`;
+    } else if (msg.length > MAX_MESSAGE_LENGTH) errs.message = `Max ${MAX_MESSAGE_LENGTH} characters`;
     return errs;
   }, [form]);
 
@@ -66,10 +70,10 @@ export default function Contact() {
     setStatus('sending');
     try {
       await contactApi.submit({
-        name: form.name,
-        email: form.email,
-        subject: form.subject,
-        message: form.message,
+        name: form.name.trim(),
+        email: form.email.trim(),
+        subject: form.subject.trim() || 'general',
+        message: form.message.trim(),
       });
       setStatus('success');
     } catch {
@@ -180,7 +184,7 @@ export default function Contact() {
                       <label className="block font-sans text-xs tracking-widest uppercase mb-2" style={{ color: '#999' }}>
                         Message
                         <span className="float-right normal-case tracking-normal" style={{ fontWeight: 400 }}>
-                          {form.message.length}/{MAX_MESSAGE_LENGTH}
+                          {form.message.trim().length}/{MAX_MESSAGE_LENGTH} (min {MIN_MESSAGE_LENGTH})
                         </span>
                       </label>
                       <textarea

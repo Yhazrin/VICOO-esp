@@ -1136,6 +1136,7 @@
   "campaigns.detail.statusLine": "{{status}} · Campaign",
   "campaigns.detail.about": "About This Campaign",
   "campaigns.detail.backToAll": "to all campaigns",
+  "campaigns.detailLoadError": "This campaign could not be loaded. It may have been removed or the link is invalid.",
   "campaigns.detail.quote": "I drew a dress that makes rain sounds when you walk. That way, everyone knows you're coming.",
   "campaigns.detail.quoteAuthor": "Mei, age 8",
   "campaigns.detail.quoteRole": "Guizhou",

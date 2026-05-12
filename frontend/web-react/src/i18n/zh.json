@@ -1109,6 +1109,7 @@
   "campaigns.detail.statusLine": "{{status}} · 活动",
   "campaigns.detail.about": "关于此活动",
   "campaigns.detail.backToAll": "返回全部活动",
+  "campaigns.detailLoadError": "无法加载该活动，可能已下线或链接无效。",
   "campaigns.detail.quote": "我画了一条走路会发出雨声的裙子，这样大家都知道你来了。",
   "campaigns.detail.quoteAuthor": "小美，8岁",
   "campaigns.detail.quoteRole": "贵州",
