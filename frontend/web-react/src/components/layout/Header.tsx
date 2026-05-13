@@ -313,13 +313,10 @@ function PillWindow({
                 aria-current={isActive ? 'page' : undefined}
                 onClick={() => {
                   setActiveImpactTab(tab.key);
-                  // Impact 子页（活动列表/详情等）走 <Outlet />，只有 pathname === '/' 时才渲染顶栏 tab 对应的 ImpactContent
-                  if (locationPathname === '/') return;
-                  if (tab.key === 'shop' && locationPathname.startsWith('/impact/shop')) {
+                  // 公益内容只能在首页显示，非首页时切换 tab 需要先跳回首页
+                  if (locationPathname !== '/') {
                     navigate('/', { replace: true });
-                    return;
                   }
-                  navigate('/');
                 }}
                 className={`
                   relative z-10 cursor-pointer whitespace-nowrap px-5 py-1 font-body text-label tracking-wide
