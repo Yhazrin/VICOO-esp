@@ -10,14 +10,14 @@ const statusStyles: Record<string, { bg: string; color: string; key: string }> =
   approved: { bg: 'var(--color-success-bg)', color: 'var(--color-success)', key: 'statusBadge.artwork.approved' },
   rejected: { bg: 'var(--color-error-bg)', color: 'var(--color-error)', key: 'statusBadge.artwork.rejected' },
   archived: { bg: 'var(--color-info-bg)', color: 'var(--color-info)', key: 'statusBadge.artwork.archived' },
-  draft: { bg: 'rgba(255,255,255,0.06)', color: 'var(--color-text-2)', key: 'statusBadge.campaign.draft' },
+  draft: { bg: 'var(--color-surface)', color: 'var(--color-text-2)', key: 'statusBadge.campaign.draft' },
   active: { bg: 'var(--color-success-bg)', color: 'var(--color-success)', key: 'statusBadge.campaign.active' },
-  ended: { bg: 'rgba(255,255,255,0.06)', color: 'var(--color-text-3)', key: 'statusBadge.campaign.ended' },
+  ended: { bg: 'var(--color-surface)', color: 'var(--color-text-3)', key: 'statusBadge.campaign.ended' },
   paid: { bg: 'var(--color-info-bg)', color: 'var(--color-info)', key: 'statusBadge.order.paid' },
-  shipped: { bg: 'rgba(255,255,255,0.06)', color: 'var(--color-text-2)', key: 'statusBadge.order.shipped' },
+  shipped: { bg: 'var(--color-surface)', color: 'var(--color-text-2)', key: 'statusBadge.order.shipped' },
   delivered: { bg: 'var(--color-success-bg)', color: 'var(--color-success)', key: 'statusBadge.order.delivered' },
   cancelled: { bg: 'var(--color-error-bg)', color: 'var(--color-error)', key: 'statusBadge.order.cancelled' },
-  refunded: { bg: 'rgba(255,255,255,0.06)', color: 'var(--color-text-3)', key: 'statusBadge.order.refunded' },
+  refunded: { bg: 'var(--color-surface)', color: 'var(--color-text-3)', key: 'statusBadge.order.refunded' },
   completed: { bg: 'var(--color-success-bg)', color: 'var(--color-success)', key: 'statusBadge.general.completed' },
   failed: { bg: 'var(--color-error-bg)', color: 'var(--color-error)', key: 'statusBadge.general.failed' },
   active_user: { bg: 'var(--color-success-bg)', color: 'var(--color-success)', key: 'statusBadge.user.active_user' },
@@ -33,7 +33,7 @@ const statusStyles: Record<string, { bg: string; color: string; key: string }> =
 
 export default function StatusBadge({ status, label }: StatusBadgeProps) {
   const { t } = useTranslation();
-  const style = statusStyles[status] || { bg: 'rgba(255,255,255,0.06)', color: 'var(--color-text-2)', key: '' };
+  const style = statusStyles[status] || { bg: 'var(--color-surface)', color: 'var(--color-text-2)', key: '' };
 
   return (
     <span style={{
