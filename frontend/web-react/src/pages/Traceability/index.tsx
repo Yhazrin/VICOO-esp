@@ -470,11 +470,11 @@ export default function Traceability() {
       setIsSearching(true);
 
       supplyChainApi
-        .trace(query.trim())
-        .then((traceData) => {
-          if (traceData.records.length > 0) {
-            setTracedProductId(traceData.product_id ?? null);
-            const first = traceData.records[0];
+        .getProductJourney(query.trim())
+        .then((records) => {
+          if (records.length > 0) {
+            const first = records[0];
+            setTracedProductId(first.product_id != null ? Number(first.product_id) : null);
             const stage = normalizeStageKey(first.stage || 'unknown');
             const verified = first.certified ?? (first.certifications?.length ?? 0) > 0;
             const enhanced: EnhancedSupplyChainRecord = {
@@ -486,7 +486,7 @@ export default function Traceability() {
               date: first.timestamp?.split('T')[0] || first.created_at?.split('T')[0] || '',
               verified,
               certified: first.certified,
-              partnerName: first.artisan?.name ?? traceData.product_name ?? first.productName ?? '',
+              partnerName: first.artisan?.name ?? first.productName ?? '',
               carbonFootprint: first.carbon_kg ?? undefined,
               story: first.description,
               imageUrl: first.artisan?.imageUrl ?? `https://picsum.photos/seed/${stage}/200/200`,
