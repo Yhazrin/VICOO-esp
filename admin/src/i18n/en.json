@@ -56,7 +56,9 @@
         "logout": "Logout",
         "switchToZh": "CN",
         "switchToEn": "英文",
-        "theme": "Theme"
+        "theme": "Theme",
+        "themeLight": "Light",
+        "themeDark": "Dark"
     }, 
     "login": {
         "title": "Identify Yourself.",

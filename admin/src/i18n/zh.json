@@ -56,7 +56,9 @@
         "logout": "退出登录",
         "switchToZh": "CN",
         "switchToEn": "英文",
-        "theme": "主题"
+        "theme": "主题",
+        "themeLight": "亮色",
+        "themeDark": "暗色"
     },
     "login": {
         "title": "身份验证",

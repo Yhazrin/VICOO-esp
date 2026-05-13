@@ -10,6 +10,7 @@ export default function TopBar() {
   const setLocale = useUIStore((s) => s.setLocale);
   const theme = useUIStore((s) => s.theme);
   const toggleTheme = useUIStore((s) => s.toggleTheme);
+  const toggleSidebar = useUIStore((s) => s.toggleSidebar);
 
   const toggleLanguage = () => {
     const newLang = i18n.language === 'zh' ? 'en' : 'zh';
@@ -40,6 +41,36 @@ export default function TopBar() {
       zIndex: 10,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+
+        {/* Sidebar toggle */}
+        <button
+          onClick={toggleSidebar}
+          style={{
+            padding: '5px 10px',
+            border: '1px solid var(--color-border)',
+            borderRadius: '6px',
+            fontSize: '11px',
+            fontFamily: 'var(--font-mono)',
+            cursor: 'pointer',
+            background: 'transparent',
+            color: 'var(--color-text-3)',
+            transition: 'all 0.15s',
+            display: 'flex',
+            alignItems: 'center',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = 'var(--color-border-hi)';
+            e.currentTarget.style.color = 'var(--color-text-2)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = 'var(--color-border)';
+            e.currentTarget.style.color = 'var(--color-text-3)';
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
 
         {/* Theme toggle */}
         <button
@@ -79,7 +110,7 @@ export default function TopBar() {
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
             </svg>
           )}
-          {theme === 'dark' ? 'Light' : 'Dark'}
+          {theme === 'dark' ? t('topbar.themeLight') : t('topbar.themeDark')}
         </button>
 
         {/* Language toggle */}
