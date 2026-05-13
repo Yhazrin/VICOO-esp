@@ -1429,7 +1429,11 @@
     "loginRequired": "Please log in to continue checkout.",
     "savedAddresses": "Saved Addresses",
     "enterNewAddress": "Enter a new address",
-    "saveAddress": "Save to address book"
+    "saveAddress": "Save to address book",
+    "paymentQRTitle": "WeChat Pay",
+    "paymentQRHint": "Scan the QR code below to complete payment",
+    "paymentSuccess": "Payment Success",
+    "paymentFailed": "Payment Failed"
   },
   "submitArtwork": {
     "loginRequired": "Please log in to submit artwork",

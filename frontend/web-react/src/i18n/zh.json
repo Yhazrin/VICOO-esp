@@ -1402,7 +1402,11 @@
     "loginRequired": "请先登录再进行结算。",
     "savedAddresses": "已保存的地址",
     "enterNewAddress": "输入新地址",
-    "saveAddress": "保存到地址簿"
+    "saveAddress": "保存到地址簿",
+    "paymentQRTitle": "微信支付",
+    "paymentQRHint": "请扫描下方二维码完成支付",
+    "paymentSuccess": "支付成功",
+    "paymentFailed": "支付失败"
   },
   "submitArtwork": {
     "loginRequired": "请先登录以提交画作",
