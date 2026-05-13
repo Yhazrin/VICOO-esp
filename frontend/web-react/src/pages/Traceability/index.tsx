@@ -8,6 +8,7 @@ import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
 import { supplyChainApi } from '@/services/supply-chain';
+import type { TraceMediaItem } from '@/types';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 import { MagazineDivider } from '@/components/editorial/MagazineDivider';
 
@@ -30,6 +31,7 @@ interface EnhancedSupplyChainRecord {
   timestamp?: string;
   created_at?: string;
   materials?: { name: string; origin: string; certified: boolean }[];
+  gallery?: TraceMediaItem[];
 }
 
 function normalizeStageKey(stage: string): string {
@@ -419,7 +421,7 @@ export default function Traceability() {
             stageLabel: stageLabelFromBackend(r.stage || stage, t),
             description: r.description,
             location: r.location,
-            date: r.timestamp ? r.timestamp.split('T')[0] : '',
+            date: r.timestamp?.split('T')[0] || r.created_at?.split('T')[0] || '',
             verified,
             certified: r.certified,
             partnerName: r.artisan?.name ?? r.productName ?? '',
@@ -431,6 +433,7 @@ export default function Traceability() {
             timestamp: r.timestamp,
             created_at: r.created_at,
             materials: r.materials,
+            gallery: r.gallery ?? [],
           };
         });
         setRecords(mapped);
@@ -480,7 +483,7 @@ export default function Traceability() {
               stageLabel: stageLabelFromBackend(first.stage || stage, t),
               description: first.description,
               location: first.location,
-              date: first.timestamp ? first.timestamp.split('T')[0] : '',
+              date: first.timestamp?.split('T')[0] || first.created_at?.split('T')[0] || '',
               verified,
               certified: first.certified,
               partnerName: first.artisan?.name ?? traceData.product_name ?? first.productName ?? '',
@@ -492,6 +495,7 @@ export default function Traceability() {
               timestamp: first.timestamp,
               created_at: first.created_at,
               materials: first.materials,
+              gallery: first.gallery ?? [],
             };
             setHighlightedId(enhanced.id);
             setSearchResult(enhanced);
