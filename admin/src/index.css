@@ -268,3 +268,14 @@ code, .font-mono {
   font-family: var(--font-mono);
   font-size: 12px;
 }
+
+/* ── Mobile Responsive ── */
+@media (max-width: 768px) {
+  .main-area.sidebar-permanent {
+    padding-left: 0 !important;
+  }
+
+  .content-area {
+    padding: 16px;
+  }
+}
