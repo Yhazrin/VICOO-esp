@@ -20,7 +20,9 @@ class Product(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(300), nullable=False)
+    name_en = Column(String(300), nullable=True)
     description = Column(Text, nullable=True)
+    description_en = Column(Text, nullable=True)
     price = Column(DECIMAL(12, 2), nullable=False)
     currency = Column(String(10), default="CNY", nullable=False)
     image_url = Column(String(500), nullable=True)
@@ -41,4 +43,10 @@ class Product(Base):
     donation_percentage = Column(DECIMAL(5, 2), nullable=True)
     # Artwork linkage — connects product to the original children's artwork
     artwork_id = Column(Integer, ForeignKey("artworks.id"), nullable=True, index=True)
+    origin_country_id = Column(Integer, ForeignKey("countries.id"), nullable=True, index=True)
+    origin_region_id = Column(Integer, ForeignKey("regions.id"), nullable=True, index=True)
+    trace_story_title = Column(String(300), nullable=True)
+    trace_story_content = Column(Text, nullable=True)
+    trace_story_title_en = Column(String(300), nullable=True)
+    trace_story_content_en = Column(Text, nullable=True)
     created_at = Column(DateTime, server_default=func.now(), nullable=False)

@@ -2,9 +2,23 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useReducedMotion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useQuery } from '@tanstack/react-query';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 import { artworksApi } from '@/services/artworks';
+
+interface SceneProps {
+  p: number;
+  rm: boolean;
+  mapRange: (v: number, i0: number, i1: number, o0: number, o1: number) => number;
+}
+
+/** i18n `t` for narrative scenes */
+type NarrativeTProps = { t: TFunction };
+
+interface Scene02Props extends SceneProps, NarrativeTProps {
+  images: string[];
+}
 
 /**
  * ScrollNarrative — Apple-style scroll-driven animation
@@ -91,10 +105,10 @@ export default function ScrollNarrative() {
         <Scene01 p={p} rm={rm} mapRange={mapRange} t={t} />
 
         {/* Scene 02 — Artwork Gallery */}
-        <Scene02 p={p} rm={rm} mapRange={mapRange} images={artworkImages} />
+        <Scene02 p={p} rm={rm} mapRange={mapRange} images={artworkImages} t={t} />
 
         {/* Scene 03 — Impact Numbers */}
-        <Scene03 p={p} rm={rm} mapRange={mapRange} />
+        <Scene03 p={p} rm={rm} mapRange={mapRange} t={t} />
 
         {/* Scene 04 — Call to Action */}
         <Scene04 p={p} rm={rm} mapRange={mapRange} t={t} />
@@ -109,7 +123,7 @@ export default function ScrollNarrative() {
    Scene 01 — Brand Manifesto (0 → 28%)
    ═══════════════════════════════════════════════════════════════ */
 
-function Scene01({ p, rm, mapRange, t }: SceneProps & { t: (key: string, fallback: string) => string }) {
+function Scene01({ p, rm, mapRange, t }: SceneProps & NarrativeTProps) {
   // Layer opacity: visible 0–30%, fades out by 38%
   const opacity = rm ? 1 : (1 - mapRange(p, 0.25, 0.38, 0, 1));
   const y = rm ? 0 : mapRange(p, 0, 0.28, 0, -60);
@@ -189,7 +203,7 @@ function Scene01({ p, rm, mapRange, t }: SceneProps & { t: (key: string, fallbac
         style={{ opacity: scrollHint }}
         aria-hidden="true"
       >
-        <span className="font-body text-[10px] text-sepia-mid tracking-[0.25em] uppercase">Scroll</span>
+        <span className="font-body text-[10px] text-sepia-mid tracking-[0.25em] uppercase">{t('home.narrative.scene01.scrollCue')}</span>
         <div className="w-px h-6 bg-gradient-to-b from-sepia-mid/40 to-transparent" />
       </div>
     </div>
@@ -200,7 +214,7 @@ function Scene01({ p, rm, mapRange, t }: SceneProps & { t: (key: string, fallbac
    Scene 02 — Artwork Gallery (18% → 52%)
    ═══════════════════════════════════════════════════════════════ */
 
-function Scene02({ p, rm, mapRange, images }: Scene02Props) {
+function Scene02({ p, rm, mapRange, images, t }: Scene02Props) {
   // Layer: visible 18–52%
   const opacity = rm ? 1
     : mapRange(p, 0.18, 0.24, 0, 1) * (1 - mapRange(p, 0.46, 0.52, 0, 1));
@@ -243,7 +257,7 @@ function Scene02({ p, rm, mapRange, images }: Scene02Props) {
         }}
       >
         <p className="font-display text-body-sm md:text-h4 italic text-ink/70 leading-snug">
-          "Where imagination meets fabric, stories are worn."
+          {t('home.narrative.scene02.quote')}
         </p>
       </div>
 
@@ -268,7 +282,7 @@ function Scene02({ p, rm, mapRange, images }: Scene02Props) {
             {srcs[i] ? (
               <img
                 src={srcs[i]}
-                alt={`Children's artwork ${i + 1}`}
+                alt={t('home.narrative.scene02.artworkAlt', { n: i + 1 })}
                 className="w-full h-full object-cover"
                 style={{ filter: 'sepia(0.15) contrast(1.05) brightness(0.97)' }}
                 loading="lazy"
@@ -293,17 +307,17 @@ function Scene02({ p, rm, mapRange, images }: Scene02Props) {
    Scene 03 — Impact Numbers (40% → 72%)
    ═══════════════════════════════════════════════════════════════ */
 
-function Scene03({ p, rm, mapRange }: SceneProps) {
+function Scene03({ p, rm, mapRange, t }: SceneProps & NarrativeTProps) {
   // Layer: visible 40–72%
   const opacity = rm ? 1
     : mapRange(p, 0.40, 0.48, 0, 1) * (1 - mapRange(p, 0.66, 0.72, 0, 1));
   const layerY = rm ? 0 : mapRange(p, 0.40, 0.52, 60, 0);
 
   const stats = [
-    { value: 2847, label: 'Children Empowered', prefix: '' },
-    { value: 12563, label: 'Artworks Created', prefix: '' },
-    { value: 890000, label: 'Donated', prefix: '¥' },
-    { value: 5420, label: 'Products Made', prefix: '' },
+    { value: 2847, labelKey: 'home.impact.children' as const, prefix: '' },
+    { value: 12563, labelKey: 'home.impact.artworks' as const, prefix: '' },
+    { value: 890000, labelKey: 'home.impact.donated' as const, prefix: '¥' },
+    { value: 5420, labelKey: 'home.impact.products' as const, prefix: '' },
   ];
 
   return (
@@ -321,7 +335,7 @@ function Scene03({ p, rm, mapRange }: SceneProps) {
         style={{ transform: `translateY(${rm ? 0 : mapRange(p, 0.42, 0.52, 30, 0)}px)` }}
       >
         <h2 className="font-display text-h2 md:text-h1 font-bold text-ink leading-[1.05] tracking-[-0.03em]">
-          Impact in Numbers
+          {t('home.narrative.scene03.title')}
         </h2>
       </div>
 
@@ -334,7 +348,7 @@ function Scene03({ p, rm, mapRange }: SceneProps) {
 
           return (
             <div
-              key={stat.label}
+              key={stat.labelKey}
               className="relative text-center px-4 py-8"
               style={{ opacity: itemOp, transform: `translateY(${itemY}px)` }}
             >
@@ -351,7 +365,7 @@ function Scene03({ p, rm, mapRange }: SceneProps) {
                 {stat.prefix}{display.toLocaleString()}
               </div>
               <div className="font-body text-caption text-sepia-mid tracking-[0.12em] uppercase">
-                {stat.label}
+                {t(stat.labelKey)}
               </div>
             </div>
           );
@@ -361,7 +375,7 @@ function Scene03({ p, rm, mapRange }: SceneProps) {
       {/* Bottom divider */}
       <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex items-center gap-4">
         <div className="w-12 h-px bg-warm-gray/40" />
-        <span className="font-body text-caption text-sepia-mid tracking-[0.2em]">EST. 2024</span>
+        <span className="font-body text-caption text-sepia-mid tracking-[0.2em]">{t('home.narrative.scene03.established')}</span>
         <div className="w-12 h-px bg-warm-gray/40" />
       </div>
     </div>
@@ -372,7 +386,7 @@ function Scene03({ p, rm, mapRange }: SceneProps) {
    Scene 04 — Call to Action (65% → 100%)
    ═══════════════════════════════════════════════════════════════ */
 
-function Scene04({ p, rm, mapRange, t }: SceneProps & { t: (key: string, fallback: string) => string }) {
+function Scene04({ p, rm, mapRange, t }: SceneProps & NarrativeTProps) {
   // Layer: visible 65–100%
   const opacity = rm ? 1 : mapRange(p, 0.65, 0.75, 0, 1);
   const layerY = rm ? 0 : mapRange(p, 0.68, 0.78, 50, 0);
@@ -431,18 +445,4 @@ function Scene04({ p, rm, mapRange, t }: SceneProps & { t: (key: string, fallbac
       />
     </div>
   );
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   Shared types
-   ═══════════════════════════════════════════════════════════════ */
-
-interface SceneProps {
-  p: number;
-  rm: boolean;
-  mapRange: (v: number, i0: number, i1: number, o0: number, o1: number) => number;
-}
-
-interface Scene02Props extends SceneProps {
-  images: string[];
 }

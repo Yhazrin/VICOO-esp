@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite --port 9111",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:perf": "playwright test e2e/perf-impact-toggle.spec.ts",
+    "screenshots:manual": "playwright test e2e/manual-screenshots.spec.ts --config=playwright.manual-figures.config.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.17.19",
@@ -18,7 +20,9 @@
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.6.0",
     "react-i18next": "^14.0.1",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^6.22.0",
+    "remark-gfm": "^4.0.1",
     "three": "^0.183.2",
     "zustand": "^4.5.0"
   },

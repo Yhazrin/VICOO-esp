@@ -20,7 +20,8 @@ export default function TraceabilityTimeline({
   linkedFromGlobeId = null,
   getStageLabel,
 }: TraceabilityTimelineProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const dateLocale = i18n.language?.startsWith('zh') ? 'zh-CN' : 'en-US';
   const prefersReducedMotion = useReducedMotion();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -38,7 +39,7 @@ export default function TraceabilityTimeline({
     return (
       <div className={`text-center py-16 ${className}`}>
         <p className="font-body text-body-sm text-sepia-mid">
-          {t('traceability.noRecords', 'No supply chain records available.')}
+          {t('traceability.noRecords')}
         </p>
       </div>
     );
@@ -214,7 +215,7 @@ export default function TraceabilityTimeline({
                       {t('traceability.date')}
                     </span>
                     <span className="font-mono text-[11px] text-ink-faded">
-                      {new Date(record.date).toLocaleDateString(undefined, {
+                      {new Date(record.date).toLocaleDateString(dateLocale, {
                         year: 'numeric',
                         month: 'short',
                         day: 'numeric',
@@ -224,10 +225,10 @@ export default function TraceabilityTimeline({
                   {record.carbonFootprint !== undefined && (
                     <div className="font-body text-[11px] text-sepia-mid leading-snug">
                       <span className="uppercase tracking-[0.16em] block text-[10px] mb-0.5 opacity-90">
-                        {t('traceability.carbon')}
+                        {t('traceability.carbonLabel')}
                       </span>
                       <span className="font-mono text-[11px] text-ink-faded tabular-nums">
-                        {record.carbonFootprint} kg CO₂
+                        {t('traceability.carbonFootprintKg', { value: record.carbonFootprint })}
                       </span>
                     </div>
                   )}

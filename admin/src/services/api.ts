@@ -4,6 +4,7 @@ import type {
   Artwork, Campaign, Donation, Order, User,
   ChildParticipant, AuditLogEntry, DashboardMetrics,
   ChartDataPoint, SystemSettings, FilterParams, PaginatedResponse,
+  AdminProduct, OriginCountry, OriginRegion,
 } from '../types';
 
 
@@ -362,6 +363,98 @@ export async function updateCampaign(id: string, data: Partial<Campaign>): Promi
   if (data.coverImage !== undefined) body.cover_image = data.coverImage;
   const { data: envelope } = await api.put(`/campaigns/${id}`, body);
   return adaptCampaign(envelope.data);
+}
+
+// ---------------------------------------------------------------------------
+// Products (Admin)
+// ---------------------------------------------------------------------------
+
+function adaptAdminProduct(item: any): AdminProduct {
+  return {
+    id: String(item.id),
+    name: item.name ?? '',
+    description: item.description ?? '',
+    price: parseFloat(item.price ?? '0') || 0,
+    currency: item.currency ?? 'CNY',
+    imageUrl: item.image_url ?? undefined,
+    category: item.category ?? undefined,
+    stock: Number(item.stock ?? 0),
+    status: item.status ?? 'active',
+    isImpactProduct: Boolean(item.is_impact_product),
+    campaignId: item.campaign_id != null ? String(item.campaign_id) : undefined,
+    donationPercentage: item.donation_percentage != null ? Number(item.donation_percentage) : undefined,
+    artworkId: item.artwork_id != null ? String(item.artwork_id) : undefined,
+    originCountryId: item.origin_country_id != null ? String(item.origin_country_id) : undefined,
+    originRegionId: item.origin_region_id != null ? String(item.origin_region_id) : undefined,
+    traceStoryTitle: item.trace_story_title ?? '',
+    traceStoryContent: item.trace_story_content ?? '',
+    nameEn: item.name_en ?? '',
+    descriptionEn: item.description_en ?? '',
+    traceStoryTitleEn: item.trace_story_title_en ?? '',
+    traceStoryContentEn: item.trace_story_content_en ?? '',
+    createdAt: item.created_at ?? '',
+  };
+}
+
+export async function fetchProducts(params: FilterParams = {}): Promise<PaginatedResponse<AdminProduct>> {
+  const { data: envelope } = await api.get('/products', {
+    params: {
+      page: params.page ?? 1,
+      page_size: params.pageSize ?? 10,
+      status: params.status || undefined,
+    },
+  });
+  const paginated = adaptPaginated<any>(envelope);
+  return { ...paginated, data: paginated.data.map(adaptAdminProduct) };
+}
+
+export async function createProduct(payload: Partial<AdminProduct>): Promise<AdminProduct> {
+  const { data: envelope } = await api.post('/products', {
+    name: payload.name,
+    description: payload.description,
+    price: payload.price,
+    currency: payload.currency ?? 'CNY',
+    image_url: payload.imageUrl || null,
+    category: payload.category || null,
+    stock: payload.stock ?? 0,
+    status: payload.status ?? 'active',
+    is_impact_product: payload.isImpactProduct ?? false,
+    campaign_id: payload.campaignId ? Number(payload.campaignId) : null,
+    donation_percentage: payload.donationPercentage ?? null,
+    artwork_id: payload.artworkId ? Number(payload.artworkId) : null,
+    origin_country_id: payload.originCountryId ? Number(payload.originCountryId) : null,
+    origin_region_id: payload.originRegionId ? Number(payload.originRegionId) : null,
+    trace_story_title: payload.traceStoryTitle || null,
+    trace_story_content: payload.traceStoryContent || null,
+    name_en: payload.nameEn?.trim() || null,
+    description_en: payload.descriptionEn?.trim() || null,
+    trace_story_title_en: payload.traceStoryTitleEn?.trim() || null,
+    trace_story_content_en: payload.traceStoryContentEn?.trim() || null,
+  });
+  return adaptAdminProduct(envelope.data);
+}
+
+export async function fetchOriginCountries(): Promise<OriginCountry[]> {
+  const { data: envelope } = await api.get('/products/origins/countries');
+  return (envelope.data ?? []).map((item: any) => ({
+    id: String(item.id),
+    code: item.code ?? '',
+    nameZh: item.name_zh ?? '',
+    nameEn: item.name_en ?? '',
+  }));
+}
+
+export async function fetchOriginRegions(countryId?: string): Promise<OriginRegion[]> {
+  const { data: envelope } = await api.get('/products/origins/regions', {
+    params: { country_id: countryId ? Number(countryId) : undefined },
+  });
+  return (envelope.data ?? []).map((item: any) => ({
+    id: String(item.id),
+    countryId: String(item.country_id),
+    nameZh: item.name_zh ?? '',
+    nameEn: item.name_en ?? '',
+    regionType: item.region_type ?? undefined,
+  }));
 }
 
 // ---------------------------------------------------------------------------

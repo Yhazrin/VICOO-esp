@@ -19,6 +19,7 @@ import { reviewsApi } from '@/services/reviewsApi';
 import { useAuthStore } from '@/stores/authStore';
 import type { SupplyChainTimelineRecord, TraceMediaItem } from '@/types';
 import { companyProductPath, impactProductPath } from '@/utils/productPaths';
+import { resolveProductLocale } from '@/utils/productLocale';
 import { navigateWithViewTransition, supportsViewTransition } from '@/utils/navigateViewTransition';
 
 function supplyChainStageLabel(stage: string, t: (key: string) => string): string {
@@ -30,22 +31,20 @@ function supplyChainStageLabel(stage: string, t: (key: string) => string): strin
 
 function ThumbnailButton({
   url,
-  index,
   selected,
   onSelect,
-  label,
+  ariaLabel,
 }: {
   url: string;
-  index: number;
   selected: boolean;
   onSelect: () => void;
-  label: string;
+  ariaLabel: string;
 }) {
   const [loaded, setLoaded] = useState(false);
   return (
     <button
       onClick={onSelect}
-      aria-label={label + (index + 1)}
+      aria-label={ariaLabel}
       className={`w-16 h-16 overflow-hidden border transition-all duration-300 relative cursor-pointer ${
         selected
           ? 'border-ink/90 ring-1 ring-ink/20 ring-offset-2 ring-offset-paper'
@@ -77,7 +76,7 @@ export default function ProductDetail() {
   const isImpactProductDetail = Boolean(
     matchPath({ path: '/impact/shop/:id', end: true }, pathname)
   );
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const qc = useQueryClient();
   const { isAuthenticated } = useAuthStore();
   const prefersReducedMotion = useReducedMotion();
@@ -181,6 +180,43 @@ export default function ProductDetail() {
     setGlobePinId(null);
   }, [id]);
 
+  const safeProduct = useMemo(() => {
+    if (!product) {
+      return {
+        name: '',
+        description: '',
+        category: '',
+        price: 0,
+        currency: 'CNY',
+        inStock: true,
+        sustainabilityScore: 0,
+        image_url: '',
+        sizes: undefined as string[] | undefined,
+        colors: undefined as { name: string; hex: string }[] | undefined,
+        traceStoryTitle: '',
+        traceStoryContent: '',
+      };
+    }
+    const loc = resolveProductLocale(product, i18n.language);
+    return {
+      name: loc.name,
+      description: loc.description,
+      category: product.category ?? '',
+      price: product.price ?? 0,
+      currency: product.currency ?? 'CNY',
+      inStock: product.inStock ?? true,
+      sustainabilityScore: product.sustainabilityScore ?? 0,
+      image_url: product.image_url ?? '',
+      sizes: product.sizes ?? undefined,
+      colors: product.colors ?? undefined,
+      traceStoryTitle: loc.traceStoryTitle.trim(),
+      traceStoryContent: loc.traceStoryContent.trim(),
+    };
+  }, [product, i18n.language]);
+  const hasTraceStory = Boolean(
+    product && (safeProduct.traceStoryTitle || safeProduct.traceStoryContent)
+  );
+
   useEffect(() => {
     if (!product || !id) return;
     if (product.isImpactProduct && !isImpactProductDetail) {
@@ -262,19 +298,6 @@ export default function ProductDetail() {
     );
   }
 
-  const safeProduct = {
-    name: product.name ?? '',
-    description: product.description ?? '',
-    category: product.category ?? '',
-    price: product.price ?? 0,
-    currency: product.currency ?? 'CNY',
-    inStock: product.inStock ?? true,
-    sustainabilityScore: product.sustainabilityScore ?? 0,
-    image_url: product.image_url ?? '',
-    sizes: product.sizes ?? undefined,
-    colors: product.colors ?? undefined,
-  };
-
   return (
     <PageWrapper>
       {/* Product section */}
@@ -312,9 +335,9 @@ export default function ProductDetail() {
                   <div
                     className="aspect-[3/4] w-full flex items-center justify-center border border-warm-gray/40 bg-aged-stock text-sepia-mid font-body text-caption px-6 text-center"
                     role="img"
-                    aria-label={t('shop.detail.noImage', '暂无商品图')}
+                    aria-label={t('shop.detail.noImage')}
                   >
-                    {t('shop.detail.noImage', '暂无商品图')}
+                    {t('shop.detail.noImage')}
                   </div>
                 )}
               </motion.div>
@@ -324,10 +347,9 @@ export default function ProductDetail() {
                     <ThumbnailButton
                       key={url}
                       url={url}
-                      index={index}
                       selected={selectedImage === index}
                       onSelect={() => setSelectedImage(index)}
-                      label={t('shop.detail.viewImage', '查看图片')}
+                      ariaLabel={t('shop.detail.viewImageAria', { n: index + 1 })}
                     />
                   ))}
                 </div>
@@ -349,7 +371,7 @@ export default function ProductDetail() {
 
                   <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                     <span className="font-body text-[10px] tracking-[0.28em] uppercase text-sepia-mid">
-                      {t('shop.detail.priceLabel', '价格')}
+                      {t('shop.detail.priceLabel')}
                     </span>
                     <p className="font-display text-[clamp(1.85rem,3.5vw,2.5rem)] text-ink tabular-nums tracking-tight">
                       <span className="text-sepia-mid text-sm md:text-base font-body font-normal tracking-[0.18em] uppercase mr-2">
@@ -384,13 +406,31 @@ export default function ProductDetail() {
                         )}
                     </div>
                   )}
+
+                  {hasTraceStory && (
+                    <div className="rounded-sm border border-warm-gray/20 bg-aged-stock/30 px-5 py-5 md:px-6 md:py-6">
+                      <p className="font-body text-[10px] tracking-[0.24em] uppercase text-sepia-mid mb-3">
+                        {t('shop.detail.traceStory')}
+                      </p>
+                      {safeProduct.traceStoryTitle && (
+                        <p className="font-display text-xl md:text-2xl text-ink leading-snug tracking-tight mb-2">
+                          {safeProduct.traceStoryTitle}
+                        </p>
+                      )}
+                      {safeProduct.traceStoryContent && (
+                        <p className="font-body text-body-sm md:text-body text-ink-faded leading-[1.85] whitespace-pre-wrap">
+                          {safeProduct.traceStoryContent}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="mt-10 md:mt-auto pt-10 md:pt-12 border-t border-warm-gray/18 space-y-9">
                   {safeProduct.sizes && safeProduct.sizes.length > 0 && (
                     <div>
                       <p className="font-body text-[10px] tracking-[0.22em] uppercase text-sepia-mid mb-4">
-                        {t('shop.detail.size', 'Size')}
+                        {t('shop.detail.size')}
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {safeProduct.sizes.map((size) => (
@@ -416,7 +456,7 @@ export default function ProductDetail() {
                   {safeProduct.colors && safeProduct.colors.length > 0 && (
                     <div>
                       <p className="font-body text-[10px] tracking-[0.22em] uppercase text-sepia-mid mb-4">
-                        {t('shop.detail.color', 'Color')}
+                        {t('shop.detail.color')}
                         {selectedColor && (
                           <span className="text-ink ml-2 normal-case tracking-normal font-body text-caption">
                             {selectedColor}
@@ -484,7 +524,7 @@ export default function ProductDetail() {
                       <button
                         type="button"
                         onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                        aria-label={t('cart.decreaseQuantity', 'Decrease quantity')}
+                        aria-label={t('cart.decreaseQuantity')}
                         className="min-w-[44px] min-h-[44px] px-3 py-2 text-ink hover:bg-warm-gray/15 transition-colors duration-300 cursor-pointer"
                       >
                         −
@@ -495,7 +535,7 @@ export default function ProductDetail() {
                       <button
                         type="button"
                         onClick={() => setQuantity(quantity + 1)}
-                        aria-label={t('cart.increaseQuantity', 'Increase quantity')}
+                        aria-label={t('cart.increaseQuantity')}
                         className="min-w-[44px] min-h-[44px] px-3 py-2 text-ink hover:bg-warm-gray/15 transition-colors duration-300 cursor-pointer"
                       >
                         +
@@ -528,10 +568,13 @@ export default function ProductDetail() {
 
                       <Link
                         to="/assistant"
-                        state={{ metadata: { product_id: Number(id), impactMode: product.isImpactProduct }, prefill: `请介绍这件商品的溯源和公益影响。商品ID: ${id}` }}
+                        state={{
+                          metadata: { product_id: Number(id), impactMode: product.isImpactProduct },
+                          prefill: t('aiAssistant.productPrefill', { id }),
+                        }}
                         className="flex-1 sm:flex-none inline-flex items-center justify-center border border-warm-gray/25 bg-paper px-4 py-3 text-ink text-[11px] tracking-[0.12em] uppercase hover:bg-aged-stock transition-colors"
                       >
-                        {t('aiAssistant.askAboutProduct', '问 AI 关于这件商品')}
+                        {t('aiAssistant.askAboutProduct')}
                       </Link>
                     </div>
                   </div>
@@ -557,7 +600,7 @@ export default function ProductDetail() {
                 <div className="absolute inset-0 z-0 w-[100vw] max-w-none min-h-[100dvh] left-1/2 -translate-x-1/2 pointer-events-none">
                   <div className="pointer-events-auto relative h-full min-h-[inherit] w-full">
                     <TraceabilityGlobe
-                      key={currentTheme}
+                      themeKey={currentTheme}
                       ambientBackdrop
                       records={timelineRecords}
                       selectedId={globePinId}
@@ -603,14 +646,14 @@ export default function ProductDetail() {
       <PaperTextureBackground variant="paper" className="py-20 md:py-28">
         <SectionContainer>
           <h2 className="font-display text-h3 font-semibold text-ink mb-3 tracking-[-0.02em]">
-            {t('shop.detail.reviews', '评价')}
+            {t('shop.detail.reviews')}
           </h2>
           <p className="font-body text-caption text-sepia-mid max-w-md mb-12 leading-relaxed">
-            {t('shop.detail.reviewsLead', '购买者的真实反馈，仅作参考。')}
+            {t('shop.detail.reviewsLead')}
           </p>
           <ul className="space-y-5 mb-12">
             {(reviewsResult?.data ?? []).length === 0 && (
-              <li className="font-body text-caption text-ink-faded">{t('shop.detail.noReviews', '暂无评价')}</li>
+              <li className="font-body text-caption text-ink-faded">{t('shop.detail.noReviews')}</li>
             )}
             {(reviewsResult?.data ?? []).map((r) => (
               <li
@@ -618,7 +661,7 @@ export default function ProductDetail() {
                 className="border border-warm-gray/18 bg-paper/50 px-5 py-5 shadow-[0_12px_40px_-28px_rgba(26,26,22,0.12)]"
               >
                 <p className="font-mono text-[10px] tracking-[0.12em] uppercase text-sepia-mid">
-                  {t('shop.detail.rating', '评分')} {r.rating}/5 · {r.created_at?.slice(0, 10)}
+                  {t('shop.detail.rating')} {r.rating}/5 · {r.created_at?.slice(0, 10)}
                 </p>
                 {r.title && (
                   <p className="font-display text-lg text-ink mt-2.5 leading-snug tracking-tight">{r.title}</p>
@@ -638,10 +681,10 @@ export default function ProductDetail() {
               }}
             >
               <p className="font-body text-[10px] tracking-[0.22em] uppercase text-sepia-mid">
-                {t('shop.detail.writeReview', '撰写评价')}
+                {t('shop.detail.writeReview')}
               </p>
               <label className="font-body text-caption text-ink-faded block">
-                {t('shop.detail.rating', '评分')}
+                {t('shop.detail.rating')}
                 <input
                   type="range"
                   min={1}
@@ -653,19 +696,19 @@ export default function ProductDetail() {
               </label>
               <input
                 className="w-full border-b border-warm-gray/35 bg-transparent py-2.5 font-body text-body-sm text-ink placeholder:text-ink-faded/60 focus:border-warm-gray/60 outline-none transition-colors"
-                placeholder={t('shop.detail.reviewTitle', '标题（可选）')}
+                placeholder={t('shop.detail.reviewTitle')}
                 value={reviewTitle}
                 onChange={(e) => setReviewTitle(e.target.value)}
               />
               <textarea
                 className="w-full border border-warm-gray/25 bg-transparent p-3 font-body text-body-sm text-ink min-h-[100px] placeholder:text-ink-faded/60 focus:border-warm-gray/45 outline-none transition-colors"
-                placeholder={t('shop.detail.reviewBody', '分享穿着或包装体验')}
+                placeholder={t('shop.detail.reviewBody')}
                 value={reviewBody}
                 onChange={(e) => setReviewBody(e.target.value)}
               />
               {reviewMutation.isError && (
                 <p className="text-rust font-body text-caption" role="alert">
-                  {t('shop.detail.reviewError', '您可能已评价过该商品')}
+                  {t('shop.detail.reviewError')}
                 </p>
               )}
               <button
@@ -673,7 +716,7 @@ export default function ProductDetail() {
                 disabled={reviewMutation.isPending}
                 className="font-body text-[10px] tracking-[0.22em] uppercase bg-ink text-paper px-6 py-3.5 hover:bg-ink-faded cursor-pointer disabled:opacity-50 transition-colors duration-500"
               >
-                {reviewMutation.isPending ? t('common.loading', '…') : t('shop.detail.submitReview', '提交')}
+                {reviewMutation.isPending ? t('common.loading') : t('shop.detail.submitReview')}
               </button>
             </form>
           )}
@@ -690,8 +733,8 @@ export default function ProductDetail() {
         >
           &larr;{' '}
           {isImpactProductDetail
-            ? t('shop.detail.backToImpactShop', '返回公益商店')
-            : t('shop.detail.backToShop', 'Back to shop')}
+            ? t('shop.detail.backToImpactShop')
+            : t('shop.detail.backToShop')}
         </Link>
       </SectionContainer>
     </PageWrapper>

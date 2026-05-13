@@ -5,7 +5,7 @@ import { useReducedMotion } from 'framer-motion';
 import type { SupplyChainRoute } from '@/data/supplyChain';
 import { createRouteVisuals, latLngToVector3 } from './globeUtils';
 import {
-  createLandOutlinesGroup,
+  buildLandOutlinesFromGeoJson,
   landOutlineRadius,
   LAND_OUTLINE_WIDTH_SUPPLY_CHAIN_PX,
   syncLandOutlineLine2Resolution,
@@ -34,16 +34,28 @@ interface GlobeSceneState {
   globeGroup: THREE.Group;
   particles: ParticleState[];
   animationId: number;
+  landGroup: THREE.Group | null;
 }
 
 interface SupplyChainGlobeProps {
   routes: SupplyChainRoute[];
+  /** 为 true 时停掉 rAF、禁用手势，但保留 WebGL 上下文（如公益切 tab 时） */
+  suspended?: boolean;
+  /** 为 true 时不按滚动衰减透明度（Layout 层常驻大球用） */
+  lockOpacity?: boolean;
 }
 
-export default function SupplyChainGlobe({ routes }: SupplyChainGlobeProps) {
+export default function SupplyChainGlobe({
+  routes,
+  suspended = false,
+  lockOpacity = false,
+}: SupplyChainGlobeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<GlobeSceneState | null>(null);
+  const tickRef = useRef<(() => void) | null>(null);
+  const suspendedRef = useRef(suspended);
+  suspendedRef.current = suspended;
   const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
@@ -53,6 +65,9 @@ export default function SupplyChainGlobe({ routes }: SupplyChainGlobeProps) {
     const container = containerRef.current;
     if (!container) return;
 
+    const lock = lockOpacity;
+
+    let cancelled = false;
     const isMobile = window.innerWidth < 768;
 
     /* ── Scene ── */
@@ -66,7 +81,8 @@ export default function SupplyChainGlobe({ routes }: SupplyChainGlobeProps) {
       0.1,
       100,
     );
-    camera.position.set(0, 0.35, 4.45);
+    // 略后退，默认在画面里小一点；可与 min/maxDistance 同向微调
+    camera.position.set(0, 0.35, 5.15);
 
     /* ── Renderer ── */
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
@@ -84,8 +100,8 @@ export default function SupplyChainGlobe({ routes }: SupplyChainGlobeProps) {
     controls.dampingFactor = 0.06;
     controls.target.set(0, 0, 0);
     controls.enablePan = false;
-    controls.minDistance = 2.85;
-    controls.maxDistance = 7.5;
+    controls.minDistance = 3.05;
+    controls.maxDistance = 8.0;
     controls.zoomSpeed = 0.85;
     controls.autoRotate = !prefersReducedMotion;
     controls.autoRotateSpeed = 0.32;
@@ -140,15 +156,24 @@ export default function SupplyChainGlobe({ routes }: SupplyChainGlobeProps) {
     globeGroup.add(gridGroup);
 
     const landColor = new THREE.Color(COLORS.ink).lerp(new THREE.Color(COLORS.wireframe), 0.42);
-    const landGroup = createLandOutlinesGroup(landOutlineRadius(GLOBE_RADIUS), landColor, 0.52, {
-      lineWidthPx: LAND_OUTLINE_WIDTH_SUPPLY_CHAIN_PX,
+    void import('@/data/world-land-110m.json').then((mod) => {
+      if (cancelled) return;
+      const g = buildLandOutlinesFromGeoJson(
+        mod.default as { features: { geometry?: { type: string; coordinates: unknown } }[] },
+        landOutlineRadius(GLOBE_RADIUS),
+        landColor,
+        0.52,
+        { lineWidthPx: LAND_OUTLINE_WIDTH_SUPPLY_CHAIN_PX }
+      );
+      globeGroup.add(g);
+      const st = sceneRef.current;
+      if (st) st.landGroup = g;
+      syncLandOutlineLine2Resolution(
+        g,
+        container.clientWidth,
+        Math.max(container.clientHeight, 1),
+      );
     });
-    globeGroup.add(landGroup);
-    syncLandOutlineLine2Resolution(
-      landGroup,
-      container.clientWidth,
-      Math.max(container.clientHeight, 1),
-    );
 
     /* ── Route visuals ── */
     const particles: ParticleState[] = [];
@@ -175,50 +200,58 @@ export default function SupplyChainGlobe({ routes }: SupplyChainGlobeProps) {
       globeGroup,
       particles,
       animationId: 0,
+      landGroup: null,
     };
 
-    /* ── Scroll-driven opacity ── */
-    const handleScroll = () => {
+    /* ── Scroll-driven opacity（Layout 常驻球用 lock 关闭，避免子页滚动把球淡出） */
+    const applyScrollOpacity = () => {
       if (!container || !sceneRef.current) return;
+      if (lock) {
+        sceneRef.current.globeGroup.visible = true;
+        sceneRef.current.renderer.domElement.style.opacity = '1';
+        return;
+      }
       const rect = container.getBoundingClientRect();
       const vh = window.innerHeight;
-      // Fade out as the section scrolls past the viewport
       const visibility = Math.max(0, Math.min(1, (vh - rect.top) / (vh * 0.8)));
       sceneRef.current.globeGroup.visible = visibility > 0.01;
       sceneRef.current.renderer.domElement.style.opacity = String(visibility);
     };
-    handleScroll();
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    applyScrollOpacity();
+    if (!lock) {
+      window.addEventListener('scroll', applyScrollOpacity, { passive: true });
+    }
 
-    /* ── Animation loop ── */
+    /* ── Animation loop（suspended 时不再 schedule，恢复由下方 useEffect 触达） */
     let time = 0;
 
-    const animate = () => {
+    const tick = () => {
       if (!sceneRef.current) return;
+      if (suspendedRef.current) {
+        sceneRef.current.animationId = 0;
+        return;
+      }
       time += 1;
 
       const { particles: p, renderer: r, scene: s, camera: c, controls: ctl } = sceneRef.current;
 
       ctl.update();
 
-      // Animate traveling particles
       for (const pState of p) {
         pState.t += pState.speed;
         if (pState.t > 1) pState.t -= 1;
         const point = pState.curve.getPoint(pState.t);
         pState.mesh.position.copy(point);
         pState.mesh.visible = true;
-
-        // Pulse opacity
         const mat = pState.mesh.material as THREE.MeshBasicMaterial;
         mat.opacity = 0.5 + Math.sin(time * 0.05 + pState.t * Math.PI * 2) * 0.5;
       }
 
       r.render(s, c);
-      sceneRef.current.animationId = requestAnimationFrame(animate);
+      sceneRef.current.animationId = requestAnimationFrame(tick);
     };
-
-    animate();
+    tickRef.current = tick;
+    tick();
 
     /* ── Resize ── */
     const handleResize = () => {
@@ -228,7 +261,10 @@ export default function SupplyChainGlobe({ routes }: SupplyChainGlobeProps) {
       sceneRef.current.camera.aspect = w / h;
       sceneRef.current.camera.updateProjectionMatrix();
       sceneRef.current.renderer.setSize(w, h);
-      syncLandOutlineLine2Resolution(landGroup, w, h);
+      if (sceneRef.current.landGroup) {
+        syncLandOutlineLine2Resolution(sceneRef.current.landGroup, w, h);
+      }
+      applyScrollOpacity();
     };
     const ro = new ResizeObserver(handleResize);
     ro.observe(container);
@@ -236,17 +272,35 @@ export default function SupplyChainGlobe({ routes }: SupplyChainGlobeProps) {
 
     /* ── Cleanup ── */
     return () => {
+      cancelled = true;
       if (sceneRef.current) {
         cancelAnimationFrame(sceneRef.current.animationId);
       }
-      window.removeEventListener('scroll', handleScroll);
+      if (!lock) {
+        window.removeEventListener('scroll', applyScrollOpacity);
+      }
       window.removeEventListener('resize', handleResize);
       ro.disconnect();
       controls.dispose();
       renderer.dispose();
       sceneRef.current = null;
+      tickRef.current = null;
     };
-  }, [prefersReducedMotion, routes]);
+  }, [prefersReducedMotion, routes, lockOpacity]);
+
+  useEffect(() => {
+    if (suspended || !sceneRef.current || !tickRef.current) return;
+    const st = sceneRef.current;
+    if (st.animationId !== 0) return;
+    st.animationId = requestAnimationFrame(tickRef.current);
+  }, [suspended]);
+
+  useEffect(() => {
+    const st = sceneRef.current;
+    if (!st) return;
+    st.controls.enabled = !suspended;
+    st.controls.autoRotate = !suspended && !prefersReducedMotion;
+  }, [suspended, prefersReducedMotion]);
 
   if (prefersReducedMotion) return null;
 

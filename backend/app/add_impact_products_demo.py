@@ -16,8 +16,16 @@ from sqlalchemy import select
 from app.database import AsyncSessionLocal, engine
 from app.models.artwork import Artwork
 from app.models.campaign import Campaign
+from app.models.country import Country
 from app.models.product import Product
+from app.models.region import Region
 from app.models.supply_chain import SupplyChainRecord
+from app.data.impact_origin_story_seed import (
+    DEFAULT_IMPACT_TRACE_STORY,
+    IMPACT_TRACE_STORY_BY_NAME,
+    ORIGIN_COUNTRIES,
+    ORIGIN_REGIONS,
+)
 
 # 与 seed.py 风格一致的可直连图片
 _U = "https://images.unsplash.com"
@@ -129,6 +137,33 @@ def _impact_catalog() -> list[dict]:
 async def main() -> None:
     try:
         async with AsyncSessionLocal() as session:
+            country_id_by_code: dict[str, int] = {}
+            for row in ORIGIN_COUNTRIES:
+                existing_country = (
+                    await session.execute(select(Country).where(Country.code == row["code"]))
+                ).scalar_one_or_none()
+                if existing_country is None:
+                    existing_country = Country(**row)
+                    session.add(existing_country)
+                    await session.flush()
+                country_id_by_code[row["code"]] = existing_country.id
+
+            region_id_by_name_zh: dict[str, int] = {}
+            for row in ORIGIN_REGIONS:
+                existing_region = (
+                    await session.execute(select(Region).where(Region.name_zh == row["name_zh"]))
+                ).scalar_one_or_none()
+                if existing_region is None:
+                    existing_region = Region(
+                        country_id=country_id_by_code[row["country_code"]],
+                        name_zh=row["name_zh"],
+                        name_en=row["name_en"],
+                        region_type=row.get("region_type"),
+                    )
+                    session.add(existing_region)
+                    await session.flush()
+                region_id_by_name_zh[row["name_zh"]] = existing_region.id
+
             existing = await session.execute(select(Product.name).where(Product.name.in_(IMPACT_PRODUCT_NAMES)))
             existing_names = set(existing.scalars().all())
             if existing_names == IMPACT_PRODUCT_NAMES:
@@ -157,6 +192,7 @@ async def main() -> None:
             new_products: list[Product] = []
 
             for item in to_insert:
+                story = IMPACT_TRACE_STORY_BY_NAME.get(item["name"], DEFAULT_IMPACT_TRACE_STORY)
                 p = Product(
                     name=item["name"],
                     description=item["description"],
@@ -170,6 +206,10 @@ async def main() -> None:
                     campaign_id=campaign_ids[item["campaign_i"] % len(campaign_ids)],
                     donation_percentage=item["donation_percentage"],
                     artwork_id=artwork_ids[item["artwork_i"] % len(artwork_ids)],
+                    origin_country_id=country_id_by_code.get(story["country_code"]),
+                    origin_region_id=region_id_by_name_zh.get(story["region_name_zh"]),
+                    trace_story_title=story["title"],
+                    trace_story_content=story["content"],
                 )
                 session.add(p)
                 new_products.append(p)

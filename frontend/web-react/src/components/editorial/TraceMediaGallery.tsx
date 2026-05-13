@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { TraceMediaItem } from '@/types';
 import { resolveMediaUrl } from '@/utils/mediaUrl';
 
@@ -8,7 +9,9 @@ function youtubeEmbedUrl(url: string): string | null {
 }
 
 function MediaBlock({ item, compact }: { item: TraceMediaItem; compact?: boolean }) {
+  const { t } = useTranslation();
   const yt = item.type === 'video' ? youtubeEmbedUrl(item.url) : null;
+  const videoTitle = item.caption?.trim() || t('traceability.mediaVideoTitle');
 
   if (item.type === 'image') {
     return (
@@ -37,7 +40,7 @@ function MediaBlock({ item, compact }: { item: TraceMediaItem; compact?: boolean
           }`}
         >
           <iframe
-            title={item.caption || 'video'}
+            title={videoTitle}
             src={yt}
             className="absolute inset-0 h-full w-full"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

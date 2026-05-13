@@ -1,19 +1,47 @@
-import { useMemo } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 import { SUPPLY_CHAIN_ROUTES } from '@/data/supplyChain';
 import { useUIStore } from '@/stores/uiStore';
-import SupplyChainGlobe from './SupplyChainGlobe';
+
+const SupplyChainGlobe = lazy(() => import('./SupplyChainGlobe'));
+
+function scheduleIdle(cb: () => void, timeout: number) {
+  if (typeof requestIdleCallback !== 'undefined') {
+    return requestIdleCallback(cb, { timeout });
+  }
+  return window.setTimeout(cb, 48) as unknown as number;
+}
+
+function cancelIdle(id: number) {
+  if (typeof cancelIdleCallback !== 'undefined') {
+    cancelIdleCallback(id);
+  } else {
+    clearTimeout(id);
+  }
+}
 
 export default function GlobeSection() {
   const { t, i18n } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
   const impactMode = useUIStore((s) => s.impactMode);
   const isEnglish = i18n.resolvedLanguage?.startsWith('en');
+  /** 公益首页与文字先 paint，再 idle 时拉 chunk + 起 WebGL，避免首帧与 Planar3D 抢主线程 */
+  /** 公益壳下大球由 Layout 的 ImpactWelfareGlobeLayer 常驻，此处不挂第二套 WebGL */
+  const [mountGlobe, setMountGlobe] = useState(!impactMode);
 
   const routes = useMemo(() => SUPPLY_CHAIN_ROUTES, []);
+
+  useEffect(() => {
+    if (impactMode) {
+      setMountGlobe(false);
+      return;
+    }
+    const id = scheduleIdle(() => setMountGlobe(true), 420);
+    return () => cancelIdle(id);
+  }, [impactMode]);
 
   const staggerDelay = (index: number) => (prefersReducedMotion ? 0 : 0.15 + index * 0.1);
 
@@ -21,13 +49,18 @@ export default function GlobeSection() {
     <section
       className={`relative z-0 w-full min-h-[100dvh] overflow-visible ${
         impactMode
-          ? '-mt-[4.25rem] md:-mt-24 border-b border-white/20 bg-white/[0.18] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.45)] backdrop-blur-md backdrop-saturate-150 supports-[backdrop-filter]:bg-white/10'
+          ? // 大球在 Layout 层、本 section 在 z-10 上方；这里若用 backdrop-blur 会采样「背后」的 canvas，整颗球会发糊
+            '-mt-[4.25rem] md:-mt-24 border-b border-white/20 bg-white/22 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.45)]'
           : 'bg-aged-stock'
       }`}
     >
       {/* Globe: taller than viewport so it can extend under the next section; no clipping */}
       <div className="pointer-events-auto absolute left-0 right-0 top-0 z-0 h-[min(135dvh,260vw)] max-h-[2200px]">
-        <SupplyChainGlobe routes={routes} />
+        {mountGlobe && !prefersReducedMotion && !impactMode && (
+          <Suspense fallback={null}>
+            <SupplyChainGlobe routes={routes} />
+          </Suspense>
+        )}
       </div>
 
       {/* Reduced-motion fallback: static route visualization */}

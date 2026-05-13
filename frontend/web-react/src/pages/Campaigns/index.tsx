@@ -8,13 +8,14 @@ import SectionContainer from '@/components/layout/SectionContainer';
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import { VintageInput } from '@/components/editorial/VintageInput';
 import { campaignsApi } from '@/services/campaigns';
+import { getLocalizedCampaignCopy } from '@/utils/campaignLocale';
 
 const PAGE_SIZE = 6;
 
 type StatusFilter = 'all' | 'active' | 'upcoming' | 'completed';
 
 export default function Campaigns() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
   const [filter, setFilter] = useState<StatusFilter>('all');
   const [search, setSearch] = useState('');
@@ -42,15 +43,18 @@ export default function Campaigns() {
 
     if (search.trim()) {
       const q = search.toLowerCase();
-      list = list.filter(
-        (c) =>
-          c.title.toLowerCase().includes(q) ||
-          (c.subtitle ?? '').toLowerCase().includes(q)
-      );
+      list = list.filter((c) => {
+        const copy = getLocalizedCampaignCopy(c, t, i18n);
+        return (
+          copy.title.toLowerCase().includes(q) ||
+          (copy.subtitle ?? '').toLowerCase().includes(q) ||
+          copy.description.toLowerCase().includes(q)
+        );
+      });
     }
 
     return list;
-  }, [data, filter, search]);
+  }, [data, filter, search, t, i18n]);
 
   const totalPages = data?.totalPages ?? Math.ceil(campaigns.length / PAGE_SIZE);
   const paginated = campaigns;
@@ -182,6 +186,7 @@ export default function Campaigns() {
               className="space-y-16"
             >
               {paginated.map((campaign, index) => {
+                const copy = getLocalizedCampaignCopy(campaign, t, i18n);
                 const isCompleted = campaign.status === 'completed';
                 const fundingPercent = campaign.goalAmount > 0
                   ? Math.round((campaign.raisedAmount / campaign.goalAmount) * 100)
@@ -201,7 +206,7 @@ export default function Campaigns() {
                           <div className={isCompleted ? 'opacity-85 grayscale-[15%]' : ''}>
                             <SepiaImageFrame
                               src={campaign.coverImageUrl}
-                              alt={campaign.title}
+                              alt={copy.title}
                               aspectRatio="landscape"
                               size="full"
                             />
@@ -230,11 +235,11 @@ export default function Campaigns() {
                           </div>
 
                           <h3 className="font-display text-h3 md:text-h2 font-bold text-ink mb-3 group-hover:text-rust transition-colors">
-                            {campaign.title}
+                            {copy.title}
                           </h3>
 
                           <p className="font-body text-body-sm text-ink-faded leading-relaxed mb-6">
-                            {campaign.subtitle}
+                            {copy.subtitle}
                           </p>
 
                           {/* Progress bar */}
@@ -251,7 +256,7 @@ export default function Campaigns() {
                                   }
                                 </span>
                               </div>
-                              <div className="h-1.5 bg-warm-gray/30 w-full overflow-hidden" role="progressbar" aria-valuenow={fundingPercent} aria-valuemin={0} aria-valuemax={100} aria-label={`${campaign.title} funding progress`}>
+                              <div className="h-1.5 bg-warm-gray/30 w-full overflow-hidden" role="progressbar" aria-valuenow={fundingPercent} aria-valuemin={0} aria-valuemax={100} aria-label={`${copy.title} funding progress`}>
                                 <motion.div
                                   {...(prefersReducedMotion
                                     ? { style: { transform: `scaleX(${Math.min(100, fundingPercent) / 100})` } }
