@@ -18,18 +18,8 @@ import Pagination from '../components/ui/Pagination';
 import StatusBadge from '../components/ui/StatusBadge';
 import Button from '../components/ui/Button';
 import { fetchClothingIntakes, updateClothingIntakeStatus } from '../services/api';
+import type { ClothingDonationItem } from '../types';
 import dayjs from 'dayjs';
-
-interface ClothingDonationItem {
-  id: string;
-  garmentTypes: string;
-  quantityEstimate: number | null;
-  pickupAddress: string;
-  contactPhone: string;
-  conditionNotes: string;
-  status: string;
-  createdAt: string;
-}
 
 export default function ClothingDonationPage() {
   const { t } = useTranslation();

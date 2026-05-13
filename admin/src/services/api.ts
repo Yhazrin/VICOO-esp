@@ -6,6 +6,7 @@ import type {
   ChartDataPoint, SystemSettings, FilterParams, PaginatedResponse,
   AdminProduct, OriginCountry, OriginRegion,
   SupplyChainRecord, TraceMediaItem,
+  AfterSalesItem, ClothingDonationItem,
 } from '../types';
 
 
@@ -652,7 +653,7 @@ export async function updateUserStatus(id: string, status: User['status']): Prom
 // After-Sales
 // ---------------------------------------------------------------------------
 
-export async function fetchAfterSales(params: FilterParams = {}): Promise<PaginatedResponse<any>> {
+export async function fetchAfterSales(params: FilterParams = {}): Promise<PaginatedResponse<AfterSalesItem>> {
   const { data: envelope } = await api.get('/after-sales', {
     params: {
       page: params.page ?? 1,
@@ -685,7 +686,7 @@ export async function updateAfterSalesStatus(id: string, status: string): Promis
 // Clothing Intakes
 // ---------------------------------------------------------------------------
 
-export async function fetchClothingIntakes(params: FilterParams = {}): Promise<PaginatedResponse<any>> {
+export async function fetchClothingIntakes(params: FilterParams = {}): Promise<PaginatedResponse<ClothingDonationItem>> {
   const { data: envelope } = await api.get('/clothing-intakes', {
     params: {
       page: params.page ?? 1,

@@ -143,8 +143,6 @@ export interface SupplyChainTimelineRecord {
   gallery?: TraceMediaItem[];
 }
 
-export interface SupplyChainRecord extends SupplyChainTimelineRecord {}
-
 export interface DonationTier {
   id: number;
   amount: number;
