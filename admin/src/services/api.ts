@@ -2,9 +2,10 @@ import axios from 'axios';
 import { useAuthStore } from '../stores/authStore';
 import type {
   Artwork, Campaign, Donation, Order, User,
-  ChildParticipant, AuditLogEntry, DashboardMetrics,
+  AuditLogEntry, DashboardMetrics,
   ChartDataPoint, SystemSettings, FilterParams, PaginatedResponse,
   AdminProduct, OriginCountry, OriginRegion,
+  SupplyChainRecord, TraceMediaItem,
 } from '../types';
 
 
@@ -434,6 +435,124 @@ export async function createProduct(payload: Partial<AdminProduct>): Promise<Adm
   return adaptAdminProduct(envelope.data);
 }
 
+export async function updateProduct(id: string, payload: Partial<AdminProduct>): Promise<AdminProduct> {
+  const { data: envelope } = await api.put(`/products/${id}`, {
+    name: payload.name,
+    description: payload.description,
+    price: payload.price,
+    currency: payload.currency,
+    image_url: payload.imageUrl,
+    category: payload.category,
+    stock: payload.stock,
+    status: payload.status,
+    is_impact_product: payload.isImpactProduct,
+    campaign_id: payload.campaignId ? Number(payload.campaignId) : null,
+    donation_percentage: payload.donationPercentage,
+    artwork_id: payload.artworkId ? Number(payload.artworkId) : null,
+    origin_country_id: payload.originCountryId ? Number(payload.originCountryId) : null,
+    origin_region_id: payload.originRegionId ? Number(payload.originRegionId) : null,
+    trace_story_title: payload.traceStoryTitle,
+    trace_story_content: payload.traceStoryContent,
+    name_en: payload.nameEn?.trim() || null,
+    description_en: payload.descriptionEn?.trim() || null,
+    trace_story_title_en: payload.traceStoryTitleEn?.trim() || null,
+    trace_story_content_en: payload.traceStoryContentEn?.trim() || null,
+  });
+  return adaptAdminProduct(envelope.data);
+}
+
+export async function deleteProduct(id: string): Promise<void> {
+  await api.delete(`/products/${id}`);
+}
+
+// ---------------------------------------------------------------------------
+// Supply Chain Records
+// ---------------------------------------------------------------------------
+
+function adaptSupplyChainRecord(item: any): SupplyChainRecord {
+  return {
+    id: String(item.id),
+    productId: String(item.product_id),
+    stage: item.stage,
+    description: item.description ?? '',
+    location: item.location ?? '',
+    latitude: item.latitude,
+    longitude: item.longitude,
+    certified: item.certified ?? false,
+    certImageUrl: item.cert_image_url,
+    carbonKg: item.carbon_kg,
+    carbonNote: item.carbon_note,
+    timestamp: item.timestamp ?? '',
+    gallery: (item.gallery ?? []).map((g: any) => ({
+      type: g.type ?? 'image',
+      url: g.url ?? '',
+      caption: g.caption,
+    })),
+    createdAt: item.created_at ?? '',
+  };
+}
+
+export async function fetchSupplyChainRecords(productId: string): Promise<SupplyChainRecord[]> {
+  const { data: envelope } = await api.get('/supply-chain/records', {
+    params: { product_id: Number(productId), page_size: 100 },
+  });
+  return (envelope.data ?? []).map(adaptSupplyChainRecord);
+}
+
+export async function createSupplyChainRecord(
+  productId: string,
+  payload: Omit<SupplyChainRecord, 'id' | 'productId' | 'createdAt'>,
+): Promise<SupplyChainRecord> {
+  const { data: envelope } = await api.post('/supply-chain/records', {
+    product_id: Number(productId),
+    stage: payload.stage,
+    description: payload.description,
+    location: payload.location,
+    latitude: payload.latitude ?? null,
+    longitude: payload.longitude ?? null,
+    certified: payload.certified,
+    cert_image_url: payload.certImageUrl ?? null,
+    carbon_kg: payload.carbonKg ?? null,
+    carbon_note: payload.carbonNote ?? null,
+    timestamp: payload.timestamp || new Date().toISOString(),
+    gallery: payload.gallery ?? [],
+  });
+  return adaptSupplyChainRecord(envelope.data);
+}
+
+export async function updateSupplyChainRecord(
+  recordId: string,
+  payload: Partial<Omit<SupplyChainRecord, 'id' | 'productId' | 'createdAt'>>,
+): Promise<SupplyChainRecord> {
+  const body: any = {};
+  if (payload.stage !== undefined) body.stage = payload.stage;
+  if (payload.description !== undefined) body.description = payload.description;
+  if (payload.location !== undefined) body.location = payload.location;
+  if (payload.latitude !== undefined) body.latitude = payload.latitude;
+  if (payload.longitude !== undefined) body.longitude = payload.longitude;
+  if (payload.certified !== undefined) body.certified = payload.certified;
+  if (payload.certImageUrl !== undefined) body.cert_image_url = payload.certImageUrl;
+  if (payload.carbonKg !== undefined) body.carbon_kg = payload.carbonKg;
+  if (payload.carbonNote !== undefined) body.carbon_note = payload.carbonNote;
+  if (payload.timestamp !== undefined) body.timestamp = payload.timestamp;
+  if (payload.gallery !== undefined) body.gallery = payload.gallery;
+  const { data: envelope } = await api.patch(`/supply-chain/records/${recordId}`, body);
+  return adaptSupplyChainRecord(envelope.data);
+}
+
+export async function deleteSupplyChainRecord(recordId: string): Promise<void> {
+  await api.delete(`/supply-chain/records/${recordId}`);
+}
+
+export async function uploadTraceMedia(file: File): Promise<{ url: string; mime: string }> {
+  const form = new FormData();
+  form.append('file', file);
+  const { data } = await api.post('/supply-chain/media/upload', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data;
+}
+
 export async function fetchOriginCountries(): Promise<OriginCountry[]> {
   const { data: envelope } = await api.get('/products/origins/countries');
   return (envelope.data ?? []).map((item: any) => ({
@@ -527,40 +646,6 @@ export async function updateUserRole(id: string, role: User['role']): Promise<Us
 export async function updateUserStatus(id: string, status: User['status']): Promise<User> {
   const { data: envelope } = await api.put(`/users/${id}/status`, { status });
   return adaptUser(envelope.data);
-}
-
-// ---------------------------------------------------------------------------
-// Child Participants
-// ---------------------------------------------------------------------------
-
-export async function fetchChildParticipants(params: FilterParams = {}): Promise<PaginatedResponse<ChildParticipant>> {
-  const { data: envelope } = await api.get('/admin/child-participants', {
-    params: {
-      page: params.page ?? 1,
-      page_size: params.pageSize ?? 10,
-      status: params.status || undefined,
-    },
-  });
-  const paginated = adaptPaginated<any>(envelope);
-  return {
-    ...paginated,
-    data: paginated.data.map((item: any) => ({
-      id: String(item.id),
-      childName: item.child_name ?? '',
-      age: item.age ?? 0,
-      guardianName: item.guardian_name ?? '',
-      guardianPhone: item.guardian_phone ?? '',
-      guardianEmail: item.guardian_email ?? '',
-      consentGiven: item.consent_given ?? false,
-      consentDate: item.consent_date ?? '',
-      region: item.region ?? '',
-      school: item.school,
-      artworkCount: item.artwork_count ?? 0,
-      status: item.status ?? 'pending_review',
-      createdAt: item.created_at ?? '',
-      lastActivity: item.last_activity,
-    })),
-  };
 }
 
 // ---------------------------------------------------------------------------

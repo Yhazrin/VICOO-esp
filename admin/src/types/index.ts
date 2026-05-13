@@ -81,23 +81,6 @@ export interface OrderItem {
   imageUrl?: string;
 }
 
-export interface ChildParticipant {
-  id: string;
-  childName: string;
-  age: number;
-  guardianName: string;
-  guardianPhone: string;
-  guardianEmail: string;
-  consentGiven: boolean;
-  consentDate: string;
-  region: string;
-  school?: string;
-  artworkCount: number;
-  status: 'active' | 'withdrawn' | 'pending_review';
-  createdAt: string;
-  lastActivity?: string;
-}
-
 export interface AuditLogEntry {
   id: string;
   userId: string;
@@ -205,4 +188,27 @@ export interface OriginRegion {
   nameZh: string;
   nameEn: string;
   regionType?: string;
+}
+
+export interface TraceMediaItem {
+  type: 'image' | 'video';
+  url: string;
+  caption?: string;
+}
+
+export interface SupplyChainRecord {
+  id: string;
+  productId: string;
+  stage: 'material_sourcing' | 'processing' | 'manufacturing' | 'quality_check' | 'shipping';
+  description: string;
+  location: string;
+  latitude?: number;
+  longitude?: number;
+  certified: boolean;
+  certImageUrl?: string;
+  carbonKg?: number;
+  carbonNote?: string;
+  timestamp: string;
+  gallery: TraceMediaItem[];
+  createdAt: string;
 }

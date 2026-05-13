@@ -24,6 +24,11 @@ const statusStyles: Record<string, { bg: string; color: string; key: string }> =
   disabled: { bg: 'var(--color-error-bg)', color: 'var(--color-error)', key: 'statusBadge.user.disabled' },
   withdrawn: { bg: 'var(--color-error-bg)', color: 'var(--color-error)', key: 'statusBadge.afterSales.withdrawn' },
   pending_review: { bg: 'var(--color-warning-bg)', color: 'var(--color-warning)', key: 'statusBadge.afterSales.pending_review' },
+  inactive: { bg: 'rgba(255,255,255,0.06)', color: 'var(--color-text-3)', key: 'statusBadge.general.inactive' },
+  sold_out: { bg: 'var(--color-error-bg)', color: 'var(--color-error)', key: 'statusBadge.product.sold_out' },
+  processing: { bg: 'var(--color-info-bg)', color: 'var(--color-info)', key: 'statusBadge.general.processing' },
+  received: { bg: 'var(--color-success-bg)', color: 'var(--color-success)', key: 'statusBadge.general.received' },
+  converted: { bg: 'var(--color-success-bg)', color: 'var(--color-success)', key: 'statusBadge.general.converted' },
 };
 
 export default function StatusBadge({ status, label }: StatusBadgeProps) {
