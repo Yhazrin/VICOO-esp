@@ -217,7 +217,16 @@
         "line1": "Every Thread,",
         "line2": "Traced from",
         "line3": "Source to Stitch",
-        "subtitle": "From organic cotton fields to finished garments — verified at every step."
+        "subtitle": "From organic cotton fields to finished garments — verified at every step.",
+        "scrollCue": "Scroll"
+      },
+      "scene02": {
+        "quote": "Where imagination meets fabric, stories are worn.",
+        "artworkAlt": "Children's artwork {{n}}"
+      },
+      "scene03": {
+        "title": "Impact in Numbers",
+        "established": "EST. 2024"
       },
       "scene04": {
         "title": "Be Part of the Story",
@@ -338,6 +347,33 @@
       "footnote": "Public claims should point to evidence—third-party certificates, internal batch logs, or audit summaries. Where data is still being completed, we mark nodes as pending verification instead of omitting them quietly.",
       "ctaTraceability": "Open traceability hub",
       "ctaShop": "Impact shop records"
+    },
+    "items": {
+      "springExhibition": {
+        "title": "Spring Colors — Rural Children's Art Exhibition",
+        "subtitle": "Paintings from village primary schools, a city gallery show, and charity postcard sales.",
+        "description": "We collect paintings from children in village primary schools across the country, showing spring through their eyes. Selected works are exhibited in a city art museum and made into charity postcard sets for sale."
+      },
+      "hometownMemories": {
+        "title": "My Hometown — Memory of the Land",
+        "subtitle": "Children paint the rivers, customs, and stories of home—preserving memories that might otherwise fade.",
+        "description": "We invite children to record their hometown mountains, rivers, and culture in paint. We document vanishing village memory and invite society to care for local heritage."
+      },
+      "futureAndDreams": {
+        "title": "Drawing the Future — Technology and Dreams",
+        "subtitle": "A “future technology” theme: winning art on sustainable tees; all proceeds fund rural art education.",
+        "description": "With “future technology” as the theme, we encourage children to imagine tomorrow’s world boldly. Winning works are used for sustainable fashion T-shirt prints; proceeds go entirely to rural arts education."
+      },
+      "sustainableWorkshop": {
+        "title": "Woven from Innocence — Sustainable Materials Workshop",
+        "subtitle": "Recycled fabrics and plant dyes in village schools—small quilts and scarves, funded by this campaign.",
+        "description": "We run introductory workshops on recycled fabrics and natural dyes in village primary schools, using reclaimed cloth for small patchwork pieces and scarves. Material costs and instructor stipends are supported by donations to this campaign."
+      },
+      "mountainChoir": {
+        "title": "Voices of the Cloud Mountains — Rural Children's Choir",
+        "subtitle": "Choirs in Yunnan and Guizhou villages: sheet music, outfits, and one performance in the city.",
+        "description": "We help form small choirs in villages across Yunnan and Guizhou, providing sheet music, outfits, and one chance to perform in the city."
+      }
     }
   },
   "stories": {
@@ -574,7 +610,8 @@
       "springSummer": "Spring/Summer",
       "fallWinter": "Fall/Winter",
       "allSeasons": "All Seasons",
-      "filterButton": "Filters"
+      "filterButton": "Filters",
+      "noColorData": "No color metadata on current items — color filter is unavailable."
     },
     "card": {
       "viewDetails": "View Details",
@@ -595,14 +632,21 @@
       "added": "Added to Cart",
       "supplyChain": "Supply Chain Journey",
       "traceSection": "Traceability",
+      "traceStory": "Trace story",
       "coordsRegistered": "WGS84 coordinates",
       "coordsDerived": "Inferred from location",
       "sustainability": "Sustainability Score",
       "artwork": "Based on artwork by",
       "size": "Size",
+      "color": "Color",
+      "priceLabel": "Price",
       "quantity": "Quantity",
+      "noImage": "No product image",
+      "viewImage": "View image",
+      "viewImageAria": "View image {{n}}",
       "loading": "Loading...",
       "reviews": "Reviews",
+      "reviewsLead": "Real feedback from buyers, for reference only.",
       "noReviews": "No reviews yet",
       "rating": "Rating",
       "writeReview": "Write a Review",
@@ -610,6 +654,8 @@
       "reviewBody": "Share your wearing or packaging experience",
       "reviewError": "You may have already reviewed this product",
       "submitReview": "Submit",
+      "backToShop": "Back to shop",
+      "backToImpactShop": "Back to impact shop",
       "globeTitle": "Global traceability",
       "globeHint": "Drag to orbit. Tap a pin to read that leg of the journey; tap the same pin again to release the view.",
       "globeNodeList": "Supply chain nodes",
@@ -774,6 +820,8 @@
       "shipping": "Shipping"
     },
     "verified": "Verified",
+    "noRecords": "No supply chain records available.",
+    "carbonFootprintKg": "{{value}} kg CO₂",
     "carbonLabel": "Carbon Footprint",
     "imageAlt": "Dreamscape Tee",
     "kgCO2": "kg CO2",
@@ -822,6 +870,7 @@
       "linkShop": "Impact shop product records"
     },
     "materialsHeading": "Materials at this node",
+    "mediaVideoTitle": "Video",
     "materialOrigin": "Origin",
     "materialCertified": "Certified",
     "materialCertifiedYes": "Yes",
@@ -1084,6 +1133,7 @@
     "tryAgain": "Try again",
     "goHome": "Home"
   },
+  "campaigns.detail.statusLine": "{{status}} · Campaign",
   "campaigns.detail.about": "About This Campaign",
   "campaigns.detail.backToAll": "to all campaigns",
   "campaigns.detail.quote": "I drew a dress that makes rain sounds when you walk. That way, everyone knows you're coming.",
@@ -1224,6 +1274,7 @@
     "empty": "Type a question to start chatting. Demo responses returned when API is not configured.",
     "placeholder": "e.g.: How long until donated clothing is listed?",
     "send": "Send",
+    "stopGenerating": "Stop generating",
     "greeting": "Hello! I am VICOO AI Assistant. Feel free to ask about donation processes, art activities, or sustainable fashion.",
     "replyError": "Sorry, I cannot answer right now.",
     "connectionError": "Failed to connect to assistant, please try again later.",
@@ -1235,7 +1286,68 @@
     "chatWithAI": "Chat with AI Assistant",
     "demomode": "Demo Mode",
     "userLabel": "You",
-    "assistantLabel": "Assistant"
+    "assistantLabel": "Assistant",
+    "ballTitle": "VICOO Assistant",
+    "ballSubtitle": "Vol. 1 — Issue 01 — AI Edition",
+    "typing": "... Typing ...",
+    "emptyQuote": "\"Art is the most intense mode of individualism that the world has known.\"",
+    "askAboutProduct": "Ask AI about this product",
+    "productPrefill": "Please explain this product's traceability and welfare impact. Product ID: {{id}}",
+    "feedbackSubmitted": "Submitted",
+    "feedbackEscalated": "Escalated to human support",
+    "feedbackHelpfulAria": "Helpful",
+    "feedbackNotHelpfulAria": "Not helpful",
+    "feedbackNotHelpfulNote": "User reported not helpful",
+    "suggestions": {
+      "impactRecommend": {
+        "label": "Recommend impact products",
+        "prompt": "Recommend a few products suited to children's welfare contexts and briefly explain why."
+      },
+      "impactTraceFlow": {
+        "label": "Traceability flow",
+        "prompt": "Explain this product's traceability flow and key milestones."
+      },
+      "impactDonationRatio": {
+        "label": "Donation & impact",
+        "prompt": "What are the donation ratio and welfare impact for these products?"
+      },
+      "impactCampaignProgress": {
+        "label": "Campaign progress",
+        "prompt": "How is this welfare project progressing, and what impact can it create?"
+      },
+      "productMaterials": {
+        "label": "Materials & styling",
+        "prompt": "Tell me this product's materials, suitable season, and everyday styling tips."
+      },
+      "productSizing": {
+        "label": "Sizing help",
+        "prompt": "How should I choose a size for this product? Keep the advice short."
+      },
+      "productTraceability": {
+        "label": "Traceability",
+        "prompt": "Explain this product's traceability and supply chain information."
+      },
+      "productAfterSales": {
+        "label": "Returns & care",
+        "prompt": "What return/exchange and after-sales notes apply to this product?"
+      },
+      "generalFindProduct": {
+        "label": "Find products",
+        "prompt": "Recommend suitable products based on my needs."
+      },
+      "generalLogistics": {
+        "label": "Track shipping",
+        "prompt": "How can I check logistics status for my order?"
+      },
+      "generalReturns": {
+        "label": "Returns policy",
+        "prompt": "Explain returns and after-sales steps."
+      },
+      "generalWelfareIntro": {
+        "label": "Welfare & sustainability",
+        "prompt": "Introduce the platform's welfare work and sustainability practices."
+      }
+    }
   },
   "orderDetail": {
     "error": "Unable to load order",
@@ -1273,6 +1385,8 @@
     "checkout": "Checkout",
     "continueShopping": "Continue Shopping",
     "remove": "Remove",
+    "decreaseQuantity": "Decrease quantity",
+    "increaseQuantity": "Increase quantity",
     "quantity": "Qty",
     "items": "{{count}} item",
     "items_plural": "{{count}} items",

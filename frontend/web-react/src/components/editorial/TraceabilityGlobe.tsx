@@ -104,6 +104,15 @@ function readThemeColors() {
   };
 }
 
+type ThemeSnapshot = ReturnType<typeof readThemeColors>;
+
+type ThemeMats = {
+  wire: THREE.MeshBasicMaterial;
+  inner: THREE.MeshBasicMaterial;
+  grid: THREE.LineBasicMaterial;
+  rust: THREE.MeshBasicMaterial[];
+};
+
 type SegmentRunner = {
   curve: THREE.CubicBezierCurve3;
   arrow: THREE.Mesh;
@@ -126,7 +135,33 @@ type GlobeCtx = {
   globeHitMesh: THREE.Mesh;
   initialCameraPosition: THREE.Vector3;
   initialTarget: THREE.Vector3;
+  themeMats: ThemeMats;
 };
+
+/** 切换主题时只改材质/雾，不整场景重建（避免再解析 GeoJSON / WebGL 冷启动卡） */
+function applyTraceabilityTheme(ctx: GlobeCtx, theme: ThemeSnapshot) {
+  const { themeMats: tm, scene, landGroup, markers } = ctx;
+  tm.wire.color.copy(theme.wire);
+  tm.inner.color.copy(theme.ink);
+  tm.grid.color.copy(theme.wire);
+  for (const m of tm.rust) {
+    m.color.copy(theme.rust);
+  }
+  if (scene.fog instanceof THREE.Fog) {
+    scene.fog.color.copy(theme.paper.clone().lerp(theme.wire, 0.14));
+  }
+  if (landGroup) {
+    const c = theme.ink.clone().lerp(theme.sage, 0.22).lerp(theme.wire, 0.08);
+    const thick = landGroup.userData.landLineMaterial as { color: THREE.Color } | undefined;
+    if (thick) thick.color.copy(c);
+    const thin = landGroup.userData.landOutlineMaterial as { color: THREE.Color } | undefined;
+    if (thin) thin.color.copy(c);
+  }
+  markers.forEach((mesh) => {
+    const mat = mesh.material as THREE.MeshStandardMaterial;
+    mat.emissive.copy(theme.ink);
+  });
+}
 
 export interface TraceabilityGlobeProps {
   records: SupplyChainTimelineRecord[];
@@ -156,6 +191,7 @@ export default function TraceabilityGlobe({
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const ctxRef = useRef<GlobeCtx | null>(null);
+  const themeRef = useRef<ThemeSnapshot>(readThemeColors());
   const selectedRef = useRef(selectedId);
   selectedRef.current = selectedId;
   const onSelectRef = useRef(onSelect);
@@ -265,7 +301,7 @@ export default function TraceabilityGlobe({
         const file = new File([blob], `${base}.png`, { type: 'image/png' });
         const sharePayload: ShareData = {
           files: [file],
-          title: t('shop.detail.globeShareTitle', '溯源地球仪'),
+          title: t('shop.detail.globeShareTitle'),
         };
         if (typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
           await navigator.share(sharePayload);
@@ -286,7 +322,8 @@ export default function TraceabilityGlobe({
 
     const canvas = canvasRef.current;
     const container = containerRef.current;
-    const theme = readThemeColors();
+    themeRef.current = readThemeColors();
+    const theme = themeRef.current;
     sortedRef.current = sorted;
     let cancelled = false;
 
@@ -371,6 +408,7 @@ export default function TraceabilityGlobe({
       transparent: true,
       opacity: 0.14,
     });
+    const rustMats: THREE.MeshBasicMaterial[] = [];
     for (let lat = -60; lat <= 60; lat += 30) {
       const points: THREE.Vector3[] = [];
       for (let lng = -180; lng <= 180; lng += 5) {
@@ -401,7 +439,9 @@ export default function TraceabilityGlobe({
         { lineWidthPx: LAND_OUTLINE_WIDTH_TRACEABILITY_PX }
       );
       globeGroup.add(g);
-      ctxRef.current.landGroup = g;
+      const ctx0 = ctxRef.current;
+      ctx0.landGroup = g;
+      applyTraceabilityTheme(ctx0, themeRef.current);
       if (container) {
         syncLandOutlineLine2Resolution(
           g,
@@ -465,6 +505,7 @@ export default function TraceabilityGlobe({
         transparent: true,
         opacity: 0.48,
       });
+      rustMats.push(tubeMat);
       globeGroup.add(new THREE.Mesh(tubeGeo, tubeMat));
 
       const coneGeo = new THREE.ConeGeometry(coneBaseR, coneH, 8);
@@ -473,6 +514,7 @@ export default function TraceabilityGlobe({
         transparent: true,
         opacity: 0.92,
       });
+      rustMats.push(coneMat);
       const arrow = new THREE.Mesh(coneGeo, coneMat);
       arrow.position.copy(curve.getPoint(0));
       const tan = curve.getTangent(0).normalize();
@@ -581,6 +623,8 @@ export default function TraceabilityGlobe({
     };
     canvas.addEventListener('wheel', onWheel, { passive: false });
 
+    const themeMats: ThemeMats = { wire: wireMat, inner: innerMat, grid: gridMat, rust: rustMats };
+
     const ctx: GlobeCtx = {
       scene,
       camera,
@@ -595,6 +639,7 @@ export default function TraceabilityGlobe({
       globeHitMesh,
       initialCameraPosition,
       initialTarget,
+      themeMats,
     };
     ctxRef.current = ctx;
 
@@ -663,20 +708,21 @@ export default function TraceabilityGlobe({
       const breathT = now < focusBreathUntilRef.current && !prmNow && sel != null;
       const breath = breathT ? Math.sin(time * 0.055) * 0.045 : 0;
 
+      const pal = themeRef.current;
       c.markers.forEach((mesh, id) => {
         const mat = mesh.material as THREE.MeshStandardMaterial;
         const isSel = id === sel;
         const isHov = id === hoverIdRef.current;
         if (isSel) {
-          mat.color.copy(theme.rust);
+          mat.color.copy(pal.rust);
           mat.emissiveIntensity = 0.24;
           mesh.scale.setScalar(1.22 + breath);
         } else if (isHov) {
-          mat.color.copy(theme.sage.clone().lerp(theme.rust, 0.5));
+          mat.color.copy(pal.sage.clone().lerp(pal.rust, 0.5));
           mat.emissiveIntensity = 0.18;
           mesh.scale.setScalar(1.04);
         } else {
-          mat.color.copy(theme.sage);
+          mat.color.copy(pal.sage);
           mat.emissiveIntensity = 0.12;
           mesh.scale.setScalar(0.76);
         }
@@ -796,7 +842,14 @@ export default function TraceabilityGlobe({
       controls.dispose();
       renderer.dispose();
     };
-  }, [records, sorted, themeKey, webglOk, dismissTouchHint]);
+  }, [records, sorted, webglOk, dismissTouchHint]);
+
+  useEffect(() => {
+    const next = readThemeColors();
+    themeRef.current = next;
+    const c = ctxRef.current;
+    if (c) applyTraceabilityTheme(c, next);
+  }, [themeKey]);
 
   useEffect(() => {
     const ctx = ctxRef.current;
@@ -858,7 +911,7 @@ export default function TraceabilityGlobe({
       tabIndex={0}
       role="application"
       data-pin-active={selectedId != null ? 'true' : 'false'}
-      aria-label={t('shop.detail.globeAria', '交互式溯源地球仪，可用方向键微调视角')}
+      aria-label={t('shop.detail.globeAria')}
       onPointerDownCapture={() => containerRef.current?.focus({ preventScroll: true })}
       className={`relative z-0 w-full min-w-0 max-w-none bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-rust/35 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${
         ambientBackdrop

@@ -211,7 +211,16 @@
         "line1": "每一根线，",
         "line2": "从源头",
         "line3": "到针脚都可追溯",
-        "subtitle": "从有机棉田到成衣——每一步都经过验证。"
+        "subtitle": "从有机棉田到成衣——每一步都经过验证。",
+        "scrollCue": "滚动"
+      },
+      "scene02": {
+        "quote": "「想象与织物相遇之处，故事被穿在身上。」",
+        "artworkAlt": "儿童画作 {{n}}"
+      },
+      "scene03": {
+        "title": "数字见证影响",
+        "established": "创立于 2024"
       },
       "scene04": {
         "title": "成为故事的一部分",
@@ -568,7 +577,8 @@
       "springSummer": "春/夏",
       "fallWinter": "秋/冬",
       "allSeasons": "四季通用",
-      "filterButton": "筛选"
+      "filterButton": "筛选",
+      "noColorData": "当前列表商品暂无颜色元数据，无法使用颜色筛选。"
     },
     "card": {
       "viewDetails": "查看详情",
@@ -589,14 +599,21 @@
       "added": "已加入购物车",
       "supplyChain": "供应链旅程",
       "traceSection": "生产溯源",
+      "traceStory": "溯源故事",
       "coordsRegistered": "WGS84 登记坐标",
       "coordsDerived": "由地点推算坐标",
       "sustainability": "可持续评分",
       "artwork": "基于作品",
       "size": "尺码",
+      "color": "颜色",
+      "priceLabel": "价格",
       "quantity": "数量",
+      "noImage": "暂无商品图",
+      "viewImage": "查看图片",
+      "viewImageAria": "查看第 {{n}} 张图片",
       "loading": "加载中...",
       "reviews": "评价",
+      "reviewsLead": "购买者的真实反馈，仅作参考。",
       "noReviews": "暂无评价",
       "rating": "评分",
       "writeReview": "撰写评价",
@@ -604,6 +621,8 @@
       "reviewBody": "分享穿着或包装体验",
       "reviewError": "您可能已评价过该商品",
       "submitReview": "提交",
+      "backToShop": "返回商城",
+      "backToImpactShop": "返回公益商店",
       "globeTitle": "全球溯源视图",
       "globeHint": "拖拽旋转地球，点击亮点阅读该节点档案；再点同一亮点可松开视角。",
       "globeNodeList": "供应链节点",
@@ -768,6 +787,8 @@
       "shipping": "物流配送"
     },
     "verified": "已验证",
+    "noRecords": "暂无供应链溯源记录。",
+    "carbonFootprintKg": "{{value}} 千克 CO₂",
     "carbonLabel": "碳足迹",
     "imageAlt": "梦境T恤",
     "kgCO2": "千克 CO2",
@@ -816,6 +837,7 @@
       "linkShop": "查看公益商城单品档案"
     },
     "materialsHeading": "本节点涉及原料",
+    "mediaVideoTitle": "视频",
     "materialOrigin": "产地",
     "materialCertified": "认证",
     "materialCertifiedYes": "已认证",
@@ -1084,6 +1106,7 @@
     "authenticating": "认证中...",
     "backToLogin": "返回登录"
   },
+  "campaigns.detail.statusLine": "{{status}} · 活动",
   "campaigns.detail.about": "关于此活动",
   "campaigns.detail.backToAll": "返回全部活动",
   "campaigns.detail.quote": "我画了一条走路会发出雨声的裙子，这样大家都知道你来了。",
@@ -1224,6 +1247,7 @@
     "empty": "输入问题开始对话。未配置 API 时返回演示回复。",
     "placeholder": "例如：衣物捐献后多久能上架？",
     "send": "发送",
+    "stopGenerating": "停止生成",
     "greeting": "你好！我是 VICOO 智能助手。关于捐赠流程、艺术活动或可持续时尚，欢迎向我提问。",
     "replyError": "抱歉，我现在无法回答。",
     "connectionError": "连接助手失败，请稍后再试。",
@@ -1235,7 +1259,68 @@
     "chatWithAI": "与 AI 助手对话",
     "demomode": "演示模式",
     "userLabel": "您",
-    "assistantLabel": "助手"
+    "assistantLabel": "助手",
+    "ballTitle": "VICOO 智能助手",
+    "ballSubtitle": "卷一 · 第 01 期 · AI 特刊",
+    "typing": "正在输入…",
+    "emptyQuote": "「艺术，是世人所知的最强烈的个人主义形式。」",
+    "askAboutProduct": "问 AI 关于这件商品",
+    "productPrefill": "请介绍这件商品的溯源和公益影响。商品ID: {{id}}",
+    "feedbackSubmitted": "已提交",
+    "feedbackEscalated": "已转人工",
+    "feedbackHelpfulAria": "有帮助",
+    "feedbackNotHelpfulAria": "没有帮助",
+    "feedbackNotHelpfulNote": "用户反馈：没有帮助",
+    "suggestions": {
+      "impactRecommend": {
+        "label": "推荐公益商品",
+        "prompt": "请推荐几件适合儿童公益场景的商品，并说明推荐理由。"
+      },
+      "impactTraceFlow": {
+        "label": "查询溯源",
+        "prompt": "请帮我解释这件商品的溯源流程和关键节点。"
+      },
+      "impactDonationRatio": {
+        "label": "看捐赠比例",
+        "prompt": "这类商品的捐赠比例和公益影响如何？"
+      },
+      "impactCampaignProgress": {
+        "label": "活动进展",
+        "prompt": "这个公益项目目前进展怎么样，能带来什么影响？"
+      },
+      "productMaterials": {
+        "label": "问材质",
+        "prompt": "请告诉我这件商品的材质、适合季节和日常穿搭建议。"
+      },
+      "productSizing": {
+        "label": "看尺码",
+        "prompt": "我该怎么选择这件商品的尺码？请给出简单建议。"
+      },
+      "productTraceability": {
+        "label": "查溯源",
+        "prompt": "请解释这件商品的溯源和供应链信息。"
+      },
+      "productAfterSales": {
+        "label": "售后说明",
+        "prompt": "这件商品有哪些退换货或售后注意事项？"
+      },
+      "generalFindProduct": {
+        "label": "找商品",
+        "prompt": "请根据我的需求推荐合适的商品。"
+      },
+      "generalLogistics": {
+        "label": "查物流",
+        "prompt": "如何查看我的订单物流状态？"
+      },
+      "generalReturns": {
+        "label": "问售后",
+        "prompt": "请说明退换货和售后流程。"
+      },
+      "generalWelfareIntro": {
+        "label": "公益了解",
+        "prompt": "请介绍一下平台的公益和可持续实践。"
+      }
+    }
   },
   "orderDetail": {
     "error": "无法加载订单",
@@ -1273,6 +1358,8 @@
     "checkout": "去结算",
     "continueShopping": "继续购物",
     "remove": "移除",
+    "decreaseQuantity": "减少数量",
+    "increaseQuantity": "增加数量",
     "quantity": "数量",
     "items": "{{count}} 件商品",
     "items_plural": "{{count}} 件商品",

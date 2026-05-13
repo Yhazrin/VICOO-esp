@@ -3,20 +3,29 @@ from typing import List, Dict, Any, Optional
 import re
 import json
 import httpx
+from urllib.parse import urljoin
 from fastapi import HTTPException
 
 from app.config import settings
 from app.services.base import BaseService
 from app.core.audit import audit_action
+from app.models.audit import AuditLog
 from app.services.supply_chain.service import SupplyChainService
 from app.models.product import Product
 
 logger = logging.getLogger("tonghua.ai_service")
 
-SYSTEM_PROMPT = """你是「童画公益 × 可持续时尚」平台的助手。语气温暖、克制、具有人文关怀。
-帮助用户理解：衣物捐献流程、商品与溯源、订单与物流、捐赠与售后、可持续实践。
-如果你发现用户询问的是具体的订单或捐赠记录，请告知他们你可以看到基础状态，但不要泄露详细隐私信息。
-涉及儿童信息、支付与法律问题时提醒用户以站内条款与客服为准。"""
+SYSTEM_PROMPT = """你是「童画公益 × 可持续时尚」平台助手。语气温暖、克制、专业。
+你需要根据页面语境推荐对应商品，并优先使用站内数据库与检索结果回答：
+1) 如果当前是 Uniqlo/常规商城语境，默认优先推荐常规商品（/shop/{id}）。
+2) 如果当前是 Impact/公益语境，默认优先推荐公益商品（/impact/shop/{id}）。
+3) 但当用户明确强调“可持续/公益/捐赠/环保/sustainable/impact/charity”时，即使在 Uniqlo 页面也要优先推荐 Impact 商品。
+4) 如果用户表达“推荐/找商品/包/衣物”等需求但没有明确 Uniqlo 或 Impact，先追问其偏好（Uniqlo 还是 Impact），再给推荐。
+5) 进行商品推荐时，尽量返回可点击链接，并给出推荐理由（材质、价格、公益比例、溯源等）。
+6) 需要同时理解中英文同义词（如 T-shirt/T恤、bag/包、clothes/衣物）并做匹配推荐。
+7) 优先基于站内数据库内容回答，不要编造站外商品或链接。
+8) 如果用户问到订单、支付、隐私，请只给基础状态说明，不泄露敏感信息。
+9) 涉及儿童信息、支付与法律问题，提醒以站内条款与客服为准。"""
 
 class AIAssistantService(BaseService):
     """
@@ -34,14 +43,30 @@ class AIAssistantService(BaseService):
         """
         Request AI completion with business context injection.
         """
+        last_user = self._get_last_user_message(messages)
+        if self._should_ask_catalog_clarification(last_user):
+            return {
+                "reply": (
+                    "当然可以，我先确认一下：你想要 **Uniqlo** 还是 **Impact（公益线）** 的推荐？\n\n"
+                    "Sure — would you like recommendations from **Uniqlo** or **Impact**?"
+                ),
+                "model": "rule-based-clarifier",
+                "source": "tooling"
+            }
+        catalog_scope = self._determine_catalog_scope(last_user, context, metadata)
+
         # 1. Prepare business-specific context
         business_context = await self._get_business_context(user_id)
         context_hint = f"\n[Platform Context: {context}]\n{business_context}"
-        
-        full_system_prompt = SYSTEM_PROMPT + context_hint
+
+        full_system_prompt = (
+            SYSTEM_PROMPT
+            + context_hint
+            + f"\n[Catalog Routing]\nSelected catalog scope: {catalog_scope}\n"
+        )
 
         # 2. Lightweight tool invocation: detect explicit product/search/trace intents and fetch factual data
-        tool_output = await self._maybe_call_tools(messages, context, metadata)
+        tool_output = await self._maybe_call_tools(messages, context, metadata, catalog_scope)
         if tool_output:
             full_system_prompt += f"\n\n[Tool Output]\n{tool_output}\n[End Tool Output]\n\nPlease use the above factual tool output to ground your answer and cite sources."
 
@@ -54,22 +79,22 @@ class AIAssistantService(BaseService):
             if context in ("impact", "sustainability", "shop") or (metadata and metadata.get("impactMode")):
                 use_rag = True
 
-        if use_rag:
-            # extract last user message to use as retrieval query
-            last_user = ""
-            if messages:
-                for m in reversed(messages):
-                    if m.get("role") == "user":
-                        last_user = m.get("content", "").strip()
-                        break
-            if last_user:
-                rag_output = await self._retrieve_rag(last_user, context)
-                if rag_output:
-                    full_system_prompt += f"\n\n[Retrieval Results]\n{rag_output}\n[End Retrieval]\n\nPlease use the above retrieval snippets to ground your answer and cite sources."
+        rag_output = ""
+        if use_rag and last_user:
+            rag_output = await self._retrieve_rag(last_user, context, catalog_scope, metadata)
+            if rag_output:
+                full_system_prompt += f"\n\n[Retrieval Results]\n{rag_output}\n[End Retrieval]\n\nPlease use the above retrieval snippets to ground your answer and cite sources."
 
         # 3. Check for API key
         if not settings.OPENAI_API_KEY:
             logger.warning("OPENAI_API_KEY not configured. Returning simulation response.")
+            grounded = tool_output or rag_output
+            if grounded:
+                return {
+                    "reply": f"我已根据站内数据库与检索结果整理如下：\n\n{grounded}",
+                    "model": "simulation-mode",
+                    "source": "local-stub"
+                }
             return {
                 "reply": f"您好，我是您的公益助手。目前我正处于演示模式（Context: {context}）。配置 API Key 后我可以为您提供更智能的回复。",
                 "model": "simulation-mode",
@@ -99,7 +124,9 @@ class AIAssistantService(BaseService):
                 response.raise_for_status()
                 data = response.json()
                 
-                content = data["choices"][0]["message"]["content"].strip()
+                content = self._sanitize_assistant_reply(
+                    data["choices"][0]["message"]["content"].strip()
+                )
                 return {
                     "reply": content,
                     "model": data.get("model", settings.OPENAI_MODEL),
@@ -235,7 +262,166 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
             logger.error(f"Failed to fetch business context for AI: {e}")
             return "[Business context unavailable]"
 
-    async def _maybe_call_tools(self, messages: List[Dict[str, str]], context: str, metadata: Optional[Dict[str, Any]] = None) -> str:
+    def _get_last_user_message(self, messages: List[Dict[str, str]]) -> str:
+        if not messages:
+            return ""
+        for m in reversed(messages):
+            if m.get("role") == "user":
+                return (m.get("content") or "").strip()
+        return ""
+
+    def _sanitize_assistant_reply(self, content: str) -> str:
+        """Remove chain-of-thought style tags/content before returning to UI."""
+        if not content:
+            return ""
+        cleaned = content
+        # Standard/variant think tags
+        cleaned = re.sub(r"<think\b[^>]*>[\s\S]*?<\/think>", "", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"<thinking\b[^>]*>[\s\S]*?<\/thinking>", "", cleaned, flags=re.IGNORECASE)
+        # Defensive: if model leaks closing tag only, keep visible answer after the tag
+        if re.search(r"</think>", cleaned, flags=re.IGNORECASE):
+            cleaned = re.split(r"</think>", cleaned, flags=re.IGNORECASE)[-1]
+        if re.search(r"</thinking>", cleaned, flags=re.IGNORECASE):
+            cleaned = re.split(r"</thinking>", cleaned, flags=re.IGNORECASE)[-1]
+        # Defensive fenced reasoning block
+        cleaned = re.sub(r"```(?:think|reasoning)[\s\S]*?```", "", cleaned, flags=re.IGNORECASE)
+        cleaned = cleaned.strip()
+        return cleaned or content.strip()
+
+    def _contains_sustainability_intent(self, text: str, metadata: Optional[Dict[str, Any]] = None) -> bool:
+        if not text:
+            return False
+        lowered = text.lower()
+        if any(k in text for k in ["可持续", "环保", "公益", "捐赠", "慈善", "溯源"]):
+            return True
+        if any(k in lowered for k in ["sustainable", "sustainability", "impact", "charity", "donation"]):
+            return True
+        if metadata and isinstance(metadata, dict):
+            extra_keywords = metadata.get("sustainabilityPriorityKeywords")
+            if isinstance(extra_keywords, list):
+                for kw in extra_keywords:
+                    if isinstance(kw, str) and (kw in text or kw.lower() in lowered):
+                        return True
+        return False
+
+    def _mentions_catalog_preference(self, text: str) -> bool:
+        if not text:
+            return False
+        lowered = text.lower()
+        keywords = [
+            "uniqlo",
+            "impact",
+            "公益",
+            "优衣库",
+            "公益线",
+            "常规店",
+            "普通店",
+        ]
+        return any(k in lowered or k in text for k in keywords)
+
+    def _has_product_recommendation_intent(self, text: str) -> bool:
+        if not text:
+            return False
+        lowered = text.lower()
+        return (
+            any(k in lowered for k in ["recommend", "search", "find", "bag", "tote", "clothing", "clothes", "tshirt", "t-shirt"])
+            or any(k in text for k in ["推荐", "搜索", "查找", "找", "商品", "包", "衣物", "衣服", "t恤", "T恤"])
+        )
+
+    def _should_ask_catalog_clarification(self, text: str) -> bool:
+        if not text:
+            return False
+        if self._mentions_catalog_preference(text):
+            return False
+        if self._contains_sustainability_intent(text):
+            return False
+        return self._has_product_recommendation_intent(text)
+
+    def _determine_catalog_scope(self, last_user: str, context: str, metadata: Optional[Dict[str, Any]] = None) -> str:
+        """Determine preferred product catalog scope: impact | uniqlo | mixed."""
+        if self._contains_sustainability_intent(last_user, metadata):
+            return "impact"
+
+        if metadata and isinstance(metadata, dict):
+            route = str(metadata.get("route") or "").lower()
+            surface = str(metadata.get("surface") or "").lower()
+            preferred = str(metadata.get("preferredCatalog") or "").lower()
+            impact_mode = bool(metadata.get("impactMode"))
+            if preferred in ("impact", "uniqlo", "mixed"):
+                return preferred
+            if impact_mode or "impact" in route or surface == "impact":
+                return "impact"
+            if "/shop" in route or surface == "uniqlo":
+                return "uniqlo"
+
+        if context in ("impact", "sustainability"):
+            return "impact"
+        if context in ("shop", "logistics", "general"):
+            return "uniqlo"
+        return "mixed"
+
+    def _extract_search_terms(self, query: str, limit: int = 6) -> List[str]:
+        """Extract Chinese and Latin keywords for DB matching."""
+        if not query:
+            return []
+        normalized_query = query.lower()
+        normalized_query = re.sub(r"\b(t[\s-]?shirt|tee[\s-]?shirt)\b", " tshirt ", normalized_query)
+        normalized_query = re.sub(r"\b(back[\s-]?pack)\b", " backpack ", normalized_query)
+        normalized_query = re.sub(r"\b(tote[\s-]?bag)\b", " tote ", normalized_query)
+        tokens = re.findall(r"[\u4e00-\u9fff]+|[A-Za-z0-9]+", normalized_query)
+        normalized: List[str] = []
+        for tok in tokens:
+            if re.fullmatch(r"[A-Za-z0-9]+", tok):
+                if len(tok) < 2:
+                    continue
+                normalized.append(tok.lower())
+                if tok.lower() in {"tshirt", "tee"}:
+                    normalized.extend(["t恤", "短袖"])
+                if tok.lower() in {"bag", "bags", "tote", "backpack"}:
+                    normalized.extend(["包", "袋", "帆布包"])
+                if tok.lower() in {"clothing", "clothes", "wear", "apparel"}:
+                    normalized.extend(["衣物", "衣服", "服装"])
+            else:
+                normalized.append(tok)
+                if len(tok) >= 4:
+                    for kw in ["包", "袋", "帆布袋", "托特", "背包", "衣物", "衣服", "t恤", "短袖", "公益", "可持续", "环保", "捐赠"]:
+                        if kw in tok:
+                            normalized.append(kw)
+            if len(normalized) >= limit:
+                break
+        deduped: List[str] = []
+        for term in normalized:
+            if term not in deduped:
+                deduped.append(term)
+        return deduped[:limit]
+
+    def _resolve_frontend_base_url(self, metadata: Optional[Dict[str, Any]] = None) -> str:
+        base = ""
+        if metadata and isinstance(metadata, dict):
+            origin = metadata.get("frontendOrigin") or metadata.get("origin")
+            if isinstance(origin, str) and origin.startswith(("http://", "https://")):
+                base = origin
+        if not base:
+            base = settings.FRONTEND_URL
+        lowered = base.lower()
+        if "localhost" in lowered or "127.0.0.1" in lowered:
+            base = "http://csi420-02-vm8.ucd.ie"
+        return base.rstrip("/") + "/"
+
+    def _build_product_url(
+        self, product_id: int, is_impact_product: bool, metadata: Optional[Dict[str, Any]] = None
+    ) -> str:
+        base = self._resolve_frontend_base_url(metadata)
+        path = f"impact/shop/{product_id}" if is_impact_product else f"shop/{product_id}"
+        return urljoin(base, path)
+
+    async def _maybe_call_tools(
+        self,
+        messages: List[Dict[str, str]],
+        context: str,
+        metadata: Optional[Dict[str, Any]] = None,
+        catalog_scope: str = "mixed",
+    ) -> str:
         """Detects if a tool call is needed based on the latest user message and returns formatted tool output.
 
         Simple, deterministic triggers are used to avoid unsafe actions. This is a lightweight "tooling" layer
@@ -255,6 +441,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                     out = f"Product ID: {pid}\n"
                     if prod:
                         out += f"Name: {prod.name}\nPrice: {prod.price} {prod.currency}\nIsImpact: {bool(prod.is_impact_product)}\n"
+                        out += f"Product URL: {self._build_product_url(prod.id, bool(prod.is_impact_product), metadata)}\n"
                         if prod.donation_percentage:
                             out += f"Donation Percentage: {prod.donation_percentage}%\n"
                         if prod.description:
@@ -276,12 +463,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                 except Exception as e:
                     logger.error(f"Tool invocation by metadata failed: {e}")
 
-        last_user = ""
-        if messages:
-            for m in reversed(messages):
-                if m.get("role") == "user":
-                    last_user = m.get("content", "").strip()
-                    break
+        last_user = self._get_last_user_message(messages)
 
         if not last_user:
             return ""
@@ -304,6 +486,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                 out = f"Product ID: {pid}\n"
                 if prod:
                     out += f"Name: {prod.name}\nPrice: {prod.price} {prod.currency}\nIsImpact: {bool(prod.is_impact_product)}\n"
+                    out += f"Product URL: {self._build_product_url(prod.id, bool(prod.is_impact_product), metadata)}\n"
                     if prod.donation_percentage:
                         out += f"Donation Percentage: {prod.donation_percentage}%\n"
                     if prod.description:
@@ -323,10 +506,18 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                 out += "\n(Source: supply_chain records, product table)"
                 return out
 
-        # 2) If context is shop/impact and user asked to find impact products, perform a simple keyword search
-        if context in ("shop", "impact", "sustainability") or any(k in last_user.lower() for k in ["公益", "impact", "溯源", "找", "推荐", "商品"]):
-            # pick search terms (words > 2 chars)
-            terms = [t for t in re.split(r"\W+", last_user) if len(t) > 1]
+        # 2) Product recommendation/search routing by surface + sustainability intent.
+        intent_scope = self._determine_catalog_scope(last_user, context, metadata)
+        if intent_scope != "mixed":
+            catalog_scope = intent_scope
+
+        search_trigger = (
+            context in ("shop", "impact", "sustainability")
+            or any(k in last_user.lower() for k in ["impact", "trace", "recommend", "bag", "tote", "sustainable", "charity"])
+            or any(k in last_user for k in ["公益", "溯源", "推荐", "找", "商品", "包", "衣服", "衣物", "t恤", "环保", "可持续"])
+        )
+        if search_trigger:
+            terms = self._extract_search_terms(last_user, limit=6)
             if terms:
                 query_text = " ".join(terms[:3])
                 # simple SQL search
@@ -344,12 +535,16 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                             out += f"- ID:{p.id} Name:{p.name} Price:{p.price} {p.currency} Donation:{p.donation_percentage or 0}%\n"
                         out += "\n(Source: products table)"
                         return out
-                except Exception as e:
-                    logger.error(f"Impact product search failed: {e}")
 
         return ""
 
-    async def _retrieve_rag(self, query: str, context: str) -> str:
+    async def _retrieve_rag(
+        self,
+        query: str,
+        context: str,
+        catalog_scope: str = "mixed",
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> str:
         """Lightweight retrieval over impact product descriptions, campaigns, and supply-chain records.
         Returns a textual list of short snippets with source tags to be injected into the LLM prompt.
         """
@@ -358,7 +553,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
         try:
             from sqlalchemy import select, or_
             results = []
-            terms = [t for t in re.split(r"\W+", query) if len(t) > 1][:6]
+            terms = self._extract_search_terms(query, limit=6)
             if not terms:
                 return ""
 
@@ -409,7 +604,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
             if not results:
                 return ""
 
-            out = f"RAG search results for query: '{query}'\n"
+            out = f"RAG search results for query: '{query}' (catalog_scope={resolved_scope})\n"
             for it in results[:8]:
                 out += f"- [source:{it['source']}] {it['title']} — {it['text']} (url:{it['url']})\n"
             out += "\n(End of retrieval results)\n"
@@ -425,6 +620,22 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
         try:
             if is_helpful:
                 logger.info("AI feedback helpful. user_id=%s", user_id)
+                feedback_details = {
+                    "is_helpful": True,
+                    "reason": reason,
+                    "context": metadata.get("context") if isinstance(metadata, dict) else None,
+                }
+                self.db.add(
+                    AuditLog(
+                        user_id=user_id,
+                        user_name=(metadata or {}).get("user_name") if isinstance(metadata, dict) else None,
+                        action="ai_feedback",
+                        resource="ai_assistant",
+                        resource_id=None,
+                        details=json.dumps(feedback_details, ensure_ascii=False),
+                    )
+                )
+                await self.db.flush()
                 return {"escalated": False}
 
             # Escalate: create contact message so ops/support can follow up
@@ -451,6 +662,24 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
 
             contact = ContactMessage(name=name, email=email, subject=subject, message=contact_message)
             self.db.add(contact)
+            await self.db.flush()
+
+            feedback_details = {
+                "is_helpful": False,
+                "reason": reason,
+                "context": metadata.get("context") if isinstance(metadata, dict) else None,
+                "contact_id": contact.id,
+            }
+            self.db.add(
+                AuditLog(
+                    user_id=user_id,
+                    user_name=name,
+                    action="ai_feedback",
+                    resource="ai_assistant",
+                    resource_id=str(contact.id),
+                    details=json.dumps(feedback_details, ensure_ascii=False),
+                )
+            )
             await self.db.flush()
             logger.info("Created contact message from AI feedback id=%s", contact.id)
             return {"escalated": True, "contact_id": contact.id}

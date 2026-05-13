@@ -20,12 +20,14 @@ import json
 from datetime import datetime, timedelta
 from decimal import Decimal
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import engine, Base, AsyncSessionLocal
 from app.models.user import User, ChildParticipant
 from app.models.artwork import Artwork
 from app.models.campaign import Campaign
+from app.data.campaign_covers import COVER_FUTURE, COVER_HOMETOWN, COVER_SPRING
 from app.models.donation import Donation
 from app.models.product import Product
 from app.models.order import Order, OrderItem
@@ -35,11 +37,19 @@ from app.models.audit import AuditLog
 from app.models.settings import SiteSettings
 from app.models.contact import ContactMessage
 from app.models.editorial import EditorialArticle
+from app.models.country import Country
+from app.models.region import Region
 from app.security import hash_password
 from app.config import settings
 from app.data.default_regular_products import regular_catalog_for_orm
 from app.data.impact_product_images import IMPACT_PRODUCT_IMAGE_BY_NAME as _IMPACT_IMG
 from app.data.impact_supply_chain_seed import extra_impact_supply_records
+from app.data.impact_origin_story_seed import (
+    DEFAULT_IMPACT_TRACE_STORY,
+    IMPACT_TRACE_STORY_BY_NAME,
+    ORIGIN_COUNTRIES,
+    ORIGIN_REGIONS,
+)
 
 
 async def seed():
@@ -166,7 +176,7 @@ async def seed():
             Campaign(
                 title="春天的色彩 — 乡村儿童画展",
                 description="征集来自全国各地乡村小学孩子们的画作，展示他们眼中的春天。优秀作品将在城市美术馆展出，并制成公益明信片义卖。",
-                cover_image="/static/campaigns/campaign1.jpg",
+                cover_image=COVER_SPRING,
                 start_date=datetime(2025, 3, 1),
                 end_date=datetime(2025, 6, 30),
                 goal_amount=Decimal("50000.00"),
@@ -178,7 +188,7 @@ async def seed():
             Campaign(
                 title="我的家乡 — 故土记忆",
                 description="邀请孩子们用画笔记录家乡的山川河流、风土人情。记录正在消失的乡村记忆，唤起社会对乡土文化的关注。",
-                cover_image="/static/campaigns/campaign2.jpg",
+                cover_image=COVER_HOMETOWN,
                 start_date=datetime(2025, 7, 1),
                 end_date=datetime(2025, 10, 31),
                 goal_amount=Decimal("80000.00"),
@@ -190,7 +200,7 @@ async def seed():
             Campaign(
                 title="画出未来 — 科技与梦想",
                 description="以'未来科技'为主题，鼓励孩子们大胆想象未来世界。获奖作品将用于制作可持续时尚 T 恤图案，收益全部用于乡村美育。",
-                cover_image="/static/campaigns/campaign3.jpg",
+                cover_image=COVER_FUTURE,
                 start_date=datetime(2025, 11, 1),
                 end_date=datetime(2026, 2, 28),
                 goal_amount=Decimal("100000.00"),
@@ -246,6 +256,35 @@ async def seed():
             )
         session.add_all(artworks)
         await session.flush()
+
+        # ── Origin Dictionaries ───────────────────────────────────
+        print("Seeding origin dictionaries...")
+        country_id_by_code: dict[str, int] = {}
+        for row in ORIGIN_COUNTRIES:
+            existing_country = (
+                await session.execute(select(Country).where(Country.code == row["code"]))
+            ).scalar_one_or_none()
+            if existing_country is None:
+                existing_country = Country(**row)
+                session.add(existing_country)
+                await session.flush()
+            country_id_by_code[row["code"]] = existing_country.id
+
+        region_id_by_name_zh: dict[str, int] = {}
+        for row in ORIGIN_REGIONS:
+            existing_region = (
+                await session.execute(select(Region).where(Region.name_zh == row["name_zh"]))
+            ).scalar_one_or_none()
+            if existing_region is None:
+                existing_region = Region(
+                    country_id=country_id_by_code[row["country_code"]],
+                    name_zh=row["name_zh"],
+                    name_en=row["name_en"],
+                    region_type=row.get("region_type"),
+                )
+                session.add(existing_region)
+                await session.flush()
+            region_id_by_name_zh[row["name_zh"]] = existing_region.id
 
         # ── Products ─────────────────────────────────────────────
         # 公益商品：is_impact_product=True，配图为可直连的 HTTPS（与上方 artworks.id 一一对应）
@@ -346,6 +385,14 @@ async def seed():
         ]
         session.add_all(products)
         await session.flush()
+        for p in products:
+            if not p.is_impact_product:
+                continue
+            story = IMPACT_TRACE_STORY_BY_NAME.get(p.name, DEFAULT_IMPACT_TRACE_STORY)
+            p.origin_country_id = country_id_by_code.get(story["country_code"])
+            p.origin_region_id = region_id_by_name_zh.get(story["region_name_zh"])
+            p.trace_story_title = story["title"]
+            p.trace_story_content = story["content"]
         product_ids = [p.id for p in products]
 
         # ── Supply Chain Records ─────────────────────────────────
@@ -587,9 +634,15 @@ async def seed():
 
         await session.commit()
         print("Seed complete!")
-
-    await engine.dispose()
+    # 不要在嵌入 FastAPI 进程时 dispose 全局 engine，否则后续请求无法连库。
+    # CLI 单独跑时在 __main__ 里 finally dispose。
 
 
 if __name__ == "__main__":
-    asyncio.run(seed())
+    async def _cli():
+        try:
+            await seed()
+        finally:
+            await engine.dispose()
+
+    asyncio.run(_cli())

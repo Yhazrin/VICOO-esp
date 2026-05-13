@@ -78,7 +78,10 @@ export interface ProductArtworkAttribution {
 export interface Product {
   id: number;
   name: string;
+  /** English name when API provides `name_en` (optional) */
+  nameEn?: string;
   description: string;
+  descriptionEn?: string;
   price: number;
   currency: string;
   image_url: string | null;
@@ -98,6 +101,16 @@ export interface Product {
   campaignId?: number | null;
   /** Percentage of sale price donated to public welfare */
   donationPercentage?: number;
+  /** Origin country dictionary ID */
+  originCountryId?: number | null;
+  /** Origin region dictionary ID */
+  originRegionId?: number | null;
+  /** Product-level traceability story title */
+  traceStoryTitle?: string;
+  /** Product-level traceability story body */
+  traceStoryContent?: string;
+  traceStoryTitleEn?: string;
+  traceStoryContentEn?: string;
   /** Available sizes for this product */
   sizes?: string[];
   /** Available colors for this product (name + hex) */

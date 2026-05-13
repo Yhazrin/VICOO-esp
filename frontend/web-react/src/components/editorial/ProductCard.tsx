@@ -9,6 +9,7 @@ import { VintageInput } from '@/components/editorial/VintageInput';
 import type { Product } from '@/types';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 import { companyProductPath, impactProductPath } from '@/utils/productPaths';
+import { resolveProductLocale } from '@/utils/productLocale';
 import { navigateWithViewTransition, supportsViewTransition } from '@/utils/navigateViewTransition';
 import { productsApi } from '@/services/products';
 
@@ -32,7 +33,8 @@ export default function ProductCard({
   className = '',
   detailContext = 'company',
 }: ProductCardProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const display = resolveProductLocale(product, i18n.language);
   const navigate = useNavigate();
   const prefersReducedMotion = useReducedMotion();
   const [ref, isVisible] = useScrollReveal<HTMLDivElement>();
@@ -86,6 +88,8 @@ export default function ProductCard({
     detailContext === 'impact'
       ? { impactHeroPreview: cardImageSrc || product.image_url?.trim() || '' }
       : undefined;
+
+  const displayName = display.name;
 
   const handleDetailLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (detailContext !== 'impact') return;
@@ -150,7 +154,7 @@ export default function ProductCard({
 
           <img
             src={cardImageSrc || ''}
-            alt={product.name}
+            alt={displayName}
             className={`w-full h-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:scale-105 sepia-[0.1] ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
             loading="lazy"
             onLoad={() => setImageLoaded(true)}
@@ -180,7 +184,7 @@ export default function ProductCard({
         <div className="px-1">
           <div className="flex items-start justify-between gap-2 mb-1">
             <h3 className="font-display text-base md:text-lg font-semibold text-ink group-hover:text-rust transition-colors leading-tight">
-              {product.name}
+              {displayName}
             </h3>
             <span className="font-body text-overline text-sepia-mid uppercase tracking-wider flex-shrink-0 mt-1">
               {product.category}

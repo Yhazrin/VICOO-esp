@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
@@ -11,6 +12,7 @@ import { campaignsApi } from '@/services/campaigns';
 import { donationsApi } from '@/services/donations';
 import { artworksApi } from '@/services/artworks';
 import type { Campaign } from '@/types';
+import { matchesProductSearch } from '@/utils/productSearch';
 
 type Category = 'all' | 'apparel' | 'accessories' | 'stationery' | 'prints' | 'lifestyle' | 'footwear' | 'home' | 'gift_box';
 
@@ -73,6 +75,8 @@ function ImpactPill({ label, value }: { label: string; value: string }) {
 export default function ImpactShop() {
   const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get('search')?.trim() ?? '';
   const [activeCategory, setActiveCategory] = useState<Category>('all');
   const [activeCampaignId, setActiveCampaignId] = useState<number | 'all'>('all');
 
@@ -129,11 +133,14 @@ export default function ImpactShop() {
 
   const filtered = useMemo(() => {
     let list = impactItems;
+    if (searchQuery) {
+      list = list.filter((p) => matchesProductSearch(p, searchQuery));
+    }
     if (activeCampaignId !== 'all') {
       list = list.filter((p) => p.campaignId === activeCampaignId);
     }
     return list;
-  }, [impactItems, activeCampaignId]);
+  }, [impactItems, activeCampaignId, searchQuery]);
 
   const categories: Category[] = useMemo(() => {
     const cats = new Set(impactItems.map((p) => p.category));
@@ -145,7 +152,7 @@ export default function ImpactShop() {
     setActiveCampaignId('all');
   };
 
-  const hasFilters = activeCategory !== 'all' || activeCampaignId !== 'all';
+  const hasFilters = activeCategory !== 'all' || activeCampaignId !== 'all' || Boolean(searchQuery);
 
   return (
     <PageWrapper>

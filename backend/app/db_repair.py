@@ -17,6 +17,8 @@ from app.models.product import Product
 from app.data.default_regular_products import REGULAR_CATALOG, regular_catalog_for_orm
 from app.data.impact_product_images import IMPACT_PRODUCT_IMAGE_BY_NAME
 
+REGULAR_IMAGE_BY_NAME = {r["name"]: r["image_url"] for r in REGULAR_CATALOG}
+
 logger = logging.getLogger("tonghua")
 
 REGULAR_PRODUCT_NAMES = {r["name"] for r in REGULAR_CATALOG}
@@ -71,12 +73,14 @@ def _company_from_title(name: str) -> bool:
 
 
 def _needs_impact_image_refresh(url: str | None) -> bool:
-    """空链接、或仍为 Unsplash 的旧数据，需换成可直连的 Picsum。"""
+    """空链接、Unsplash、或已废弃的 /static/products/*.jpg 占位，需写回 Picsum。"""
     u = (url or "").strip()
     if not u:
         return True
     if "picsum.photos" in u:
         return False
+    if "/static/products/" in u:
+        return True
     if "unsplash.com" in u:
         return True
     return False
@@ -97,6 +101,31 @@ async def repair_impact_product_images(session: AsyncSession) -> int:
         updated += 1
     if updated:
         logger.info("db_repair: refreshed impact product image_url rows: %s", updated)
+    return updated
+
+
+async def repair_legacy_static_product_image_urls(session: AsyncSession) -> int:
+    """
+    旧种子 / 演示里使用了不存在的 /static/products/*.jpg。按商品名对齐公益主图或常规店目录，否则 Picsum。
+    幂等；需在 repair_impact_product_images 之后执行，以便仅处理 is_impact=False 的占位行。
+    """
+    result = await session.execute(select(Product))
+    updated = 0
+    for p in result.scalars().all():
+        u = (p.image_url or "").strip()
+        if "/static/products/" not in u:
+            continue
+        name = (p.name or "").strip()
+        fixed = (
+            IMPACT_PRODUCT_IMAGE_BY_NAME.get(name)
+            or REGULAR_IMAGE_BY_NAME.get(name)
+            or f"https://picsum.photos/seed/vicoo-prod-{p.id}/900/1200"
+        )
+        if fixed != p.image_url:
+            p.image_url = fixed
+            updated += 1
+    if updated:
+        logger.info("db_repair: fixed legacy /static/products/ image_url rows: %s", updated)
     return updated
 
 
@@ -137,6 +166,7 @@ async def repair_product_catalog(session: AsyncSession) -> int:
         logger.info("db_repair: created baseline company SKUs: %s", created)
 
     await repair_impact_product_images(session)
+    await repair_legacy_static_product_image_urls(session)
     return created
 
 

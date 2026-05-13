@@ -22,12 +22,13 @@ const SLIDING_PILL_SPRING = {
  * Mode morph: single duration + cubic-bezier for every driven property.
  * Springs settle at different rates per channel — tween keeps radius/width/margin/x in phase.
  */
-const MODE_MORPH_DURATION = 0.52;
-const MODE_MORPH_EASE = [0.33, 1, 0.68, 1] as const;
+/** 略短于旧 520ms：产品里顶栏形态切换多在 380–450ms，体感更跟手、长任务窗更短 */
+const MODE_MORPH_DURATION = 0.44;
+const MODE_MORPH_EASE = [0.22, 1, 0.36, 1] as const;
 
 /** 与 MODE_MORPH 同步的圆角过渡（避免 class 瞬间切换与容器 motion 不同步） */
 const PILL_CORNER_TRANSITION_CLASS =
-  'transition-[border-radius] duration-[520ms] ease-[cubic-bezier(0.33,1,0.68,1)]';
+  'transition-[border-radius] duration-[440ms] ease-[cubic-bezier(0.22,1,0.36,1)]';
 
 function getModeMorphTransition(reduceMotion: boolean): Transition {
   if (reduceMotion) {
@@ -132,6 +133,11 @@ function PillWindow({
     return () => window.removeEventListener('resize', measure);
   }, [measure]);
 
+  // 公益 ↔ 优衣库切换时外层胶囊宽度依赖 companyW/impactW；仅 mount 时 measure 一次会在模式切换后留下错误宽度（刷新后更明显）
+  useLayoutEffect(() => {
+    measure();
+  }, [impactMode, measure]);
+
   // Re-measure when language changes (text width changes)
   useEffect(() => {
     const id = requestAnimationFrame(measure);
@@ -186,10 +192,17 @@ function PillWindow({
   // the first & last tags have equal breathing room on both sides.
   const PADDING = 16;
   const xOffset = impactMode ? -companyW : 0;
-  const capsuleW = (impactMode ? impactW : companyW) + PADDING;
+  const activeRailW = impactMode ? impactW : companyW;
+  // innerW 为 0 时不要用 0+PADDING 当成真实宽度，否则 Framer 会动画到极窄宽度，切回优衣库后导航条样式像「丢失」
+  const capsuleW = activeRailW > 0 ? activeRailW + PADDING : 0;
 
+  const pillWidthTransition = prefersReducedMotion
+    ? undefined
+    : `width ${MODE_MORPH_DURATION}s cubic-bezier(0.33, 1, 0.68, 1), border-radius ${MODE_MORPH_DURATION}s cubic-bezier(0.33, 1, 0.68, 1)`;
+
+  // 外层不用 motion 驱动 width：Framer 在 width 数字与 "auto" 间切换时，公益↔优衣库偶发卡在中间态；改为 CSS transition + 像素宽度
   return (
-    <motion.div
+    <div
       className={`
         flex items-center overflow-hidden px-2 py-1 shadow-sm
         ${impactMode
@@ -197,11 +210,13 @@ function PillWindow({
           : 'border border-white/30 bg-white/15 backdrop-blur-md'
         }
       `}
-      animate={{
-        width: capsuleW || 'auto',
+      style={{
+        width: capsuleW > 0 ? capsuleW : undefined,
+        maxWidth: '100%',
         borderRadius: impactMode ? 9999 : 4,
+        transition: pillWidthTransition,
+        boxSizing: 'border-box',
       }}
-      transition={modeMorphTransition}
     >
       <motion.div
         className="flex items-center"
@@ -214,7 +229,7 @@ function PillWindow({
           {companyHl && (
             <motion.div
               aria-hidden
-              className={`pointer-events-none absolute z-0 bg-white ${PILL_CORNER_TRANSITION_CLASS} ${impactMode ? 'rounded-full' : 'rounded-sm'}`}
+              className={`pointer-events-none absolute z-0 bg-white ${PILL_CORNER_TRANSITION_CLASS} ${impactMode ? 'rounded-full' : 'rounded-sm'} ${prefersReducedMotion ? '' : 'will-change-[left,top,width,height]'}`}
               initial={false}
               animate={{
                 left: companyHl.x,
@@ -267,7 +282,7 @@ function PillWindow({
           {impactHl && (
             <motion.div
               aria-hidden
-              className={`pointer-events-none absolute z-0 rounded-full bg-ink ${PILL_CORNER_TRANSITION_CLASS}`}
+              className={`pointer-events-none absolute z-0 rounded-full bg-ink ${PILL_CORNER_TRANSITION_CLASS} ${prefersReducedMotion ? '' : 'will-change-[left,top,width,height]'}`}
               initial={false}
               animate={{
                 left: impactHl.x,
@@ -298,13 +313,9 @@ function PillWindow({
                 aria-current={isActive ? 'page' : undefined}
                 onClick={() => {
                   setActiveImpactTab(tab.key);
-                  if (tab.key === 'shop') {
-                    // Stay on `/` + impact shell like other tabs — routing to `/impact/shop` remounts via <Outlet /> and feels like a full refresh.
-                    if (locationPathname !== '/' && locationPathname.startsWith('/impact/shop')) {
-                      navigate('/', { replace: true });
-                    }
-                  } else if (locationPathname.startsWith('/impact/shop')) {
-                    navigate('/');
+                  // 公益内容只能在首页显示，非首页时切换 tab 需要先跳回首页
+                  if (locationPathname !== '/') {
+                    navigate('/', { replace: true });
                   }
                 }}
                 className={`
@@ -325,7 +336,7 @@ function PillWindow({
           })}
         </div>
       </motion.div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -361,6 +372,7 @@ export default function Header() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
   const menuTriggerRef = useRef<HTMLButtonElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -427,11 +439,23 @@ export default function Header() {
     }
   }, [searchOpen]);
 
+  useEffect(() => {
+    if (!searchOpen) return;
+    const onMouseDown = (event: MouseEvent) => {
+      const target = event.target as Node | null;
+      if (target && searchContainerRef.current?.contains(target)) return;
+      setSearchOpen(false);
+    };
+    document.addEventListener('mousedown', onMouseDown);
+    return () => document.removeEventListener('mousedown', onMouseDown);
+  }, [searchOpen]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const q = searchQuery.trim();
     if (q) {
-      navigate(`/shop?search=${encodeURIComponent(q)}`);
+      const basePath = impactMode ? '/impact/shop' : '/shop';
+      navigate(`${basePath}?search=${encodeURIComponent(q)}`);
       setSearchOpen(false);
       setSearchQuery('');
     }
@@ -443,7 +467,7 @@ export default function Header() {
       navigate('/');
     } else {
       setImpactMode(true);
-      setActiveImpactTab('campaigns');
+      setActiveImpactTab('home');
       // 仍在 /shop、/about 等公司路径时，同步 effect 会立刻关掉 impact；先回首页再展示公益壳
       const companySubPaths = COMPANY_NAV.filter((n) => n.path !== '/').map((n) => n.path);
       const onCompanySubRoute = companySubPaths.some(
@@ -456,6 +480,8 @@ export default function Header() {
   };
 
   const modeMorphTransition = getModeMorphTransition(Boolean(prefersReducedMotion));
+  /** 顶栏玻璃+大圆角：blur 与 margin 同帧很吃合成；升层减轻跟手时的掉帧 */
+  const headerBarGpuClass = 'transform-gpu [backface-visibility:hidden] [isolation:isolate]';
 
   const iconDisc = impactMode
     ? 'bg-white text-ink-faded shadow-sm hover:shadow-md border border-warm-gray/15'
@@ -464,7 +490,7 @@ export default function Header() {
   return (
     <header className="pointer-events-none fixed top-0 left-0 right-0 z-50">
       <motion.div
-        className="pointer-events-auto"
+        className={`pointer-events-auto ${headerBarGpuClass}`}
         initial={false}
         animate={{
           marginTop: impactMode ? 10 : 0,
@@ -482,7 +508,9 @@ export default function Header() {
           WebkitBackdropFilter: impactMode ? 'saturate(180%) blur(14px)' : 'none',
           transition: prefersReducedMotion
             ? undefined
-            : `box-shadow ${MODE_MORPH_DURATION}s cubic-bezier(0.33, 1, 0.68, 1), backdrop-filter ${MODE_MORPH_DURATION}s cubic-bezier(0.33, 1, 0.68, 1), -webkit-backdrop-filter ${MODE_MORPH_DURATION}s cubic-bezier(0.33, 1, 0.68, 1)`,
+            : impactMode
+              ? `box-shadow ${MODE_MORPH_DURATION}s cubic-bezier(0.33, 1, 0.68, 1), backdrop-filter ${MODE_MORPH_DURATION}s cubic-bezier(0.33, 1, 0.68, 1), -webkit-backdrop-filter ${MODE_MORPH_DURATION}s cubic-bezier(0.33, 1, 0.68, 1)`
+              : `box-shadow ${MODE_MORPH_DURATION}s cubic-bezier(0.33, 1, 0.68, 1), backdrop-filter 0s linear, -webkit-backdrop-filter 0s linear`,
         }}
       >
         <div className="relative mx-auto flex h-14 max-w-[1400px] items-center justify-between px-6 md:px-10">
@@ -502,10 +530,10 @@ export default function Header() {
             {impactMode && (
               <motion.span
                 key="vicoo-badge"
-                initial={{ opacity: 0, x: -12, filter: 'blur(4px)' }}
-                animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
-                exit={{ opacity: 0, x: -12, filter: 'blur(4px)' }}
-                transition={{ type: 'spring', stiffness: 350, damping: 25, delay: 0.05 }}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -8 }}
+                transition={{ type: 'spring', stiffness: 420, damping: 28, delay: 0.04 }}
                 className="font-display text-sm font-medium tracking-wide whitespace-nowrap text-ink select-none md:text-base"
               >
                 × VICOO
@@ -531,6 +559,7 @@ export default function Header() {
               {/* Impact toggle: UNIQLO = classic red/white; Impact shell = glass card */}
               <button
                 type="button"
+                data-testid="impact-mode-toggle"
                 onClick={handleImpactToggle}
                 aria-pressed={impactMode}
                 className={`
@@ -557,40 +586,41 @@ export default function Header() {
 
           {/* Search — expandable */}
           {!isMobile && (
-            <div className="relative flex items-center">
+            <div ref={searchContainerRef} className="flex items-center gap-2">
               <AnimatePresence>
                 {searchOpen && (
-                  <motion.div
+                  <motion.form
+                    onSubmit={handleSearch}
                     initial={{ width: 0, opacity: 0 }}
                     animate={{ width: 200, opacity: 1 }}
                     exit={{ width: 0, opacity: 0 }}
                     transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
-                    className="absolute right-full mr-2 overflow-hidden"
+                    className="overflow-hidden"
                   >
-                    <form onSubmit={handleSearch} className="w-[200px]">
-                      <input
-                        ref={searchInputRef}
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder={t('search.placeholder', 'Search products...')}
-                        className="w-full px-4 py-1.5 rounded-full bg-white/90 backdrop-blur-xl shadow-sm font-body text-sm text-ink placeholder:text-warm-gray/60 focus:outline-none focus:ring-1 focus:ring-rust/30"
-                        onBlur={() => {
-                          if (!searchQuery) setSearchOpen(false);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Escape') {
-                            setSearchOpen(false);
-                            setSearchQuery('');
-                          }
-                        }}
-                      />
-                    </form>
-                  </motion.div>
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder={t('search.placeholder', 'Search products...')}
+                      className="w-[200px] px-4 py-1.5 rounded-full bg-white/90 backdrop-blur-xl shadow-sm font-body text-sm text-ink placeholder:text-warm-gray/60 focus:outline-none focus:ring-1 focus:ring-rust/30"
+                      onBlur={() => {
+                        if (!searchQuery.trim()) setSearchOpen(false);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Escape') {
+                          setSearchOpen(false);
+                          setSearchQuery('');
+                        }
+                      }}
+                    />
+                  </motion.form>
                 )}
               </AnimatePresence>
               <button
-                onClick={() => setSearchOpen(!searchOpen)}
+                onClick={() => {
+                  setSearchOpen((prev) => !prev);
+                }}
                 className={`flex h-9 w-9 items-center justify-center rounded-full transition-all cursor-pointer ${iconDisc}`}
                 aria-label="Search"
               >

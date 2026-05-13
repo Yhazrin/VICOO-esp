@@ -97,6 +97,7 @@ from app.schemas.supply_chain import (
 )
 
 from app.schemas.circular_commerce import (
+    AIFeedbackRequest,
     AIChatMessage,
     AIChatRequest,
     AIChatResponse,
@@ -219,6 +220,7 @@ __all__ = [
     "AIChatMessage",
     "AIChatRequest",
     "AIChatResponse",
+    "AIFeedbackRequest",
     "ArtworkAnalysisRequest",
     "ArtworkAnalysisResponse",
     "ContentModerationRequest",
