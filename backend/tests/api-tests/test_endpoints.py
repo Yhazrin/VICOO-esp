@@ -400,6 +400,7 @@ class TestDonationEndpoints:
         if response.status_code == 200:
             data = response.json()["data"]
             assert "certificate_url" in data
+            assert "certificate_pdf_url" in data
 
 
 # =============================================================================
