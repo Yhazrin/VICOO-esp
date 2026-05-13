@@ -33,7 +33,15 @@ export default function OrderPage() {
     },
   });
 
-  const getPaymentLabel = (v: string) => v === 'wechat' ? t('order.paymentWechat') : t('order.paymentAlipay');
+  const getPaymentLabel = (v: string) => {
+    const map: Record<string, string> = {
+      wechat: t('order.paymentWechat'),
+      alipay: t('order.paymentAlipay'),
+      stripe: t('order.paymentStripe'),
+      paypal: t('order.paymentPaypal'),
+    };
+    return map[v] || v || '-';
+  };
 
   const columns: Column<Order>[] = [
     { key: 'orderNo', title: t('order.colOrderNo'), width: 130, sorter: true },
@@ -43,7 +51,7 @@ export default function OrderPage() {
     )},
     { key: 'totalAmount', title: t('order.colAmount'), width: 100, sorter: true, render: (v) => <span style={{ fontWeight: 600 }}>\u00a5{v.toLocaleString()}</span> },
     { key: 'paymentMethod', title: t('order.colPaymentMethod'), width: 100, render: (v) => getPaymentLabel(v) },
-    { key: 'status', title: t('order.colStatus'), width: 100, render: (v) => <StatusBadge status={v} /> },
+    { key: 'status', title: t('order.colStatus'), width: 100, render: (v) => <StatusBadge status={v} context="order" /> },
     { key: 'createdAt', title: t('order.colCreatedAt'), width: 160, sorter: true, render: (v) => dayjs(v).format('YYYY-MM-DD HH:mm') },
     {
       key: 'action', title: t('order.colAction'), width: 200,
@@ -106,7 +114,7 @@ export default function OrderPage() {
             <DetailRow label={t('order.detailOrderNo')} value={selectedOrder.orderNo} />
             <DetailRow label={t('order.detailUser')} value={selectedOrder.userName} />
             <DetailRow label={t('order.detailAmount')} value={`\u00a5${selectedOrder.totalAmount.toLocaleString()}`} />
-            <DetailRow label={t('order.detailStatus')} value={<StatusBadge status={selectedOrder.status} />} />
+            <DetailRow label={t('order.detailStatus')} value={<StatusBadge status={selectedOrder.status} context="order" />} />
             <DetailRow label={t('order.detailPaymentMethod')} value={getPaymentLabel(selectedOrder.paymentMethod)} />
             <DetailRow label={t('order.detailShippingAddress')} value={selectedOrder.shippingAddress} />
             {selectedOrder.trackingNo && <DetailRow label={t('order.detailTrackingNo')} value={selectedOrder.trackingNo} />}

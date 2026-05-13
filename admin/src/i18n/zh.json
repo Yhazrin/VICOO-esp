@@ -208,6 +208,8 @@
         "btnConfirmDelivery": "确认送达",
         "paymentWechat": "微信",
         "paymentAlipay": "支付宝",
+        "paymentStripe": "Stripe",
+        "paymentPaypal": "PayPal",
         "modalTitle": "订单详情",
         "detailOrderNo": "订单号",
         "detailUser": "用户",
@@ -537,11 +539,18 @@
             "ended": "已结束"
         },
         "order": {
+            "pending": "待付款",
             "paid": "已支付",
             "shipped": "已发货",
             "delivered": "已送达",
             "cancelled": "已取消",
             "refunded": "已退款"
+        },
+        "donation": {
+            "pending": "待处理"
+        },
+        "campaign": {
+            "pending": "待审核"
         },
         "general": {
             "completed": "已完成",

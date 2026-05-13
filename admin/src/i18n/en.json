@@ -206,8 +206,10 @@
         "btnDetail": "Detail", 
         "btnShip": "Ship", 
         "btnConfirmDelivery": "Confirm Delivery", 
-        "paymentWechat": "WeChat", 
-        "paymentAlipay": "Alipay", 
+        "paymentWechat": "WeChat",
+        "paymentAlipay": "Alipay",
+        "paymentStripe": "Stripe",
+        "paymentPaypal": "PayPal",
         "modalTitle": "Order Detail", 
         "detailOrderNo": "Order No.", 
         "detailUser": "User", 
@@ -537,12 +539,19 @@
             "ended": "Ended"
         }, 
         "order": {
-            "paid": "Paid", 
-            "shipped": "Shipped", 
-            "delivered": "Delivered", 
-            "cancelled": "Cancelled", 
+            "pending": "Pending Payment",
+            "paid": "Paid",
+            "shipped": "Shipped",
+            "delivered": "Delivered",
+            "cancelled": "Cancelled",
             "refunded": "Refunded"
         }, 
+        "donation": {
+            "pending": "Pending"
+        },
+        "campaign": {
+            "pending": "Pending"
+        },
         "general": {
             "completed": "Completed",
             "failed": "Failed",
