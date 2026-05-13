@@ -257,6 +257,12 @@ a:hover {
   text-decoration: underline;
 }
 
+/* ── Animations ── */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
 /* ── Code / Mono ── */
 code, .font-mono {
   font-family: var(--font-mono);

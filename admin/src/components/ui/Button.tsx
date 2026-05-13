@@ -18,8 +18,8 @@ const variants = {
   secondary: {
     background: 'transparent',
     color: 'var(--color-text-2)',
-    border: '1px solid rgba(255,255,255,0.12)',
-    hoverBg: 'rgba(255,255,255,0.06)',
+    border: '1px solid var(--color-border-hi)',
+    hoverBg: 'var(--color-surface)',
     hoverColor: 'var(--color-text)',
   },
   danger: {
@@ -33,7 +33,7 @@ const variants = {
     background: 'transparent',
     color: 'var(--color-text-3)',
     border: '1px solid transparent',
-    hoverBg: 'rgba(255,255,255,0.06)',
+    hoverBg: 'var(--color-surface)',
     hoverColor: 'var(--color-text-2)',
   },
 };
