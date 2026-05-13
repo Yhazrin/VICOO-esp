@@ -18,18 +18,8 @@ import Pagination from '../components/ui/Pagination';
 import StatusBadge from '../components/ui/StatusBadge';
 import Button from '../components/ui/Button';
 import { fetchAfterSales, updateAfterSalesStatus } from '../services/api';
+import type { AfterSalesItem } from '../types';
 import dayjs from 'dayjs';
-
-interface AfterSalesItem {
-  id: string;
-  orderId: string;
-  userId: string;
-  category: string;
-  subject: string;
-  description: string;
-  status: string;
-  createdAt: string;
-}
 
 export default function AfterSalesPage() {
   const { t } = useTranslation();

@@ -196,6 +196,28 @@ export interface TraceMediaItem {
   caption?: string;
 }
 
+export interface AfterSalesItem {
+  id: string;
+  orderId: string;
+  userId: string;
+  category: string;
+  subject: string;
+  description: string;
+  status: string;
+  createdAt: string;
+}
+
+export interface ClothingDonationItem {
+  id: string;
+  garmentTypes: string;
+  quantityEstimate: number | null;
+  pickupAddress: string;
+  contactPhone: string;
+  conditionNotes: string;
+  status: string;
+  createdAt: string;
+}
+
 export interface SupplyChainRecord {
   id: string;
   productId: string;
