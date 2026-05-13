@@ -86,6 +86,7 @@ class CampaignService(BaseService):
             campaign = Campaign(**data)
             self.db.add(campaign)
             await self.db.flush()
+            await self.db.refresh(campaign, ["created_at"])
             # Invalidate listing caches
             await invalidate_cache("campaigns:")
             return campaign
@@ -99,6 +100,7 @@ class CampaignService(BaseService):
         for k, v in data.items():
             setattr(campaign, k, v)
         await self.db.flush()
+        await self.db.refresh(campaign, ["created_at"])
         # Invalidate listing caches
         await invalidate_cache("campaigns:")
         return campaign
