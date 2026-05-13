@@ -27,13 +27,17 @@ export default function CampaignDetail() {
   const prefersReducedMotion = useReducedMotion();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     if (!id) {
       setLoading(false);
+      setLoadError(true);
       return;
     }
     let cancelled = false;
+    setLoadError(false);
+    setLoading(true);
     campaignsApi
       .getById(id)
       .then((data: Campaign) => {
@@ -44,6 +48,8 @@ export default function CampaignDetail() {
       })
       .catch(() => {
         if (!cancelled) {
+          setCampaign(null);
+          setLoadError(true);
           setLoading(false);
         }
       });
@@ -88,12 +94,32 @@ export default function CampaignDetail() {
     },
   });
 
-  if (loading || !campaign) {
+  if (loading) {
     return (
       <PageWrapper>
         <PaperTextureBackground variant="paper" className="py-16 md:py-24">
           <SectionContainer>
             <p className="font-body text-sepia-mid">{t('campaigns.loading', 'Loading campaign...')}</p>
+          </SectionContainer>
+        </PaperTextureBackground>
+      </PageWrapper>
+    );
+  }
+
+  if (loadError || !campaign) {
+    return (
+      <PageWrapper>
+        <PaperTextureBackground variant="paper" className="py-16 md:py-24">
+          <SectionContainer>
+            <p className="font-body text-ink-faded mb-6">
+              {t('campaigns.detailLoadError', 'This campaign could not be loaded. It may have been removed or the link is invalid.')}
+            </p>
+            <Link
+              to="/campaigns"
+              className="font-body text-caption tracking-[0.15em] uppercase text-ink-faded hover:text-rust transition-colors cursor-pointer"
+            >
+              &larr; {t('campaigns.detail.backToAll')}
+            </Link>
           </SectionContainer>
         </PaperTextureBackground>
       </PageWrapper>

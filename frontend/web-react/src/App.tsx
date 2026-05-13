@@ -33,6 +33,8 @@ const AiAssistant = lazy(() => import('@/pages/AiAssistant'));
 const Checkout = lazy(() => import('@/pages/Checkout'));
 const AiDesign = lazy(() => import('@/pages/AiDesign'));
 const SupplyChainStudio = lazy(() => import('@/pages/SupplyChainStudio'));
+const Campaigns = lazy(() => import('@/pages/Campaigns'));
+const CampaignDetail = lazy(() => import('@/pages/CampaignDetail'));
 
 function normalizeLang(code: string | undefined) {
   if (!code) return '';
@@ -77,6 +79,8 @@ function AnimatedRoutes() {
             <Route path="impact/shop" element={<ErrorBoundary><ImpactShop /></ErrorBoundary>} />
             <Route path="impact/shop/:id" element={<ErrorBoundary><ProductDetail /></ErrorBoundary>} />
             <Route path="about" element={<ErrorBoundary><About /></ErrorBoundary>} />
+            <Route path="campaigns" element={<ErrorBoundary><Campaigns /></ErrorBoundary>} />
+            <Route path="campaigns/:id" element={<ErrorBoundary><CampaignDetail /></ErrorBoundary>} />
             <Route path="contact" element={<ErrorBoundary><Contact /></ErrorBoundary>} />
             <Route path="donate" element={<ErrorBoundary><Donate /></ErrorBoundary>} />
             <Route path="donations/:id/certificate" element={<ErrorBoundary><DonationCertificate /></ErrorBoundary>} />
