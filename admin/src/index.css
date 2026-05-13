@@ -31,6 +31,9 @@
   --color-info: #2563EB;
   --color-info-bg: rgba(37, 99, 235, 0.08);
 
+  /* ── Semantic aliases ── */
+  --color-danger: var(--color-error);
+
   /* ── Legacy aliases ── */
   --color-paper: var(--color-bg);
   --color-ink: var(--color-text);

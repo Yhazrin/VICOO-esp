@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../stores/authStore';
 import { useUIStore } from '../../stores/uiStore';
@@ -7,6 +8,8 @@ export default function TopBar() {
   const user = useAuthStore((s: any) => s.user);
   const logout = useAuthStore((s: any) => s.logout);
   const setLocale = useUIStore((s) => s.setLocale);
+  const theme = useUIStore((s) => s.theme);
+  const toggleTheme = useUIStore((s) => s.toggleTheme);
 
   const toggleLanguage = () => {
     const newLang = i18n.language === 'zh' ? 'en' : 'zh';
@@ -14,18 +17,14 @@ export default function TopBar() {
     setLocale(newLang);
   };
 
-  const currentTheme = typeof document !== 'undefined'
-    ? (document.documentElement.getAttribute('data-theme') || '')
-    : '';
-
-  const toggleTheme = () => {
-    const next = currentTheme === 'dark' ? '' : 'dark';
-    if (next) {
-      document.documentElement.setAttribute('data-theme', next);
+  // Sync theme to DOM attribute
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
     } else {
       document.documentElement.removeAttribute('data-theme');
     }
-  };
+  }, [theme]);
 
   return (
     <header style={{
@@ -68,7 +67,7 @@ export default function TopBar() {
             e.currentTarget.style.color = 'var(--color-text-3)';
           }}
         >
-          {currentTheme === 'dark' ? (
+          {theme === 'dark' ? (
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" />
               <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
@@ -80,7 +79,7 @@ export default function TopBar() {
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
             </svg>
           )}
-          {currentTheme === 'dark' ? 'Light' : 'Dark'}
+          {theme === 'dark' ? 'Light' : 'Dark'}
         </button>
 
         {/* Language toggle */}

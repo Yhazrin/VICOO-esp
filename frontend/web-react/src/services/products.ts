@@ -1,5 +1,5 @@
 import api from './api';
-import type { Product, PaginatedResponse, SupplyChainTimelineRecord, TraceMediaItem } from '@/types';
+import type { Product, PaginatedResponse } from '@/types';
 
 const CATEGORY_MAP: Record<string, Product['category']> = {
   apparel: 'apparel',
@@ -51,40 +51,6 @@ function normalizeIsImpactProduct(raw: any): boolean {
     (raw?.artwork_id ?? raw?.artworkId) != null ||
     (raw?.donation_percentage ?? raw?.donationPercentage) != null;
   return Boolean(hasWelfareLink);
-}
-
-function normalizeSupplyTimeline(raw: Record<string, unknown>, index: number): SupplyChainTimelineRecord {
-  const id = Number(raw?.id ?? index);
-  const ts = String(raw?.timestamp ?? raw?.created_at ?? '');
-  const rawGallery = raw?.gallery;
-  let gallery: TraceMediaItem[] | undefined;
-  if (Array.isArray(rawGallery)) {
-    gallery = rawGallery
-      .map((g: unknown) => {
-        const o = g as { type?: string; url?: string; caption?: string };
-        return {
-          type: o?.type === 'video' ? ('video' as const) : ('image' as const),
-          url: String(o?.url ?? '').trim(),
-          caption: o?.caption != null ? String(o.caption) : undefined,
-        };
-      })
-      .filter((x) => x.url);
-  }
-  return {
-    id: Number.isFinite(id) ? id : index,
-    stage: String(raw?.stage ?? ''),
-    description: String(raw?.description ?? ''),
-    location: String(raw?.location ?? ''),
-    date: ts ? ts.split('T')[0] : '',
-    verified: Boolean(raw?.certified ?? raw?.verified),
-    partnerName: String(raw?.partner_name ?? raw?.partnerName ?? ''),
-    carbonFootprint: raw?.carbon_kg != null ? Number(raw.carbon_kg) : undefined,
-    carbon_kg: raw?.carbon_kg != null ? Number(raw.carbon_kg) : undefined,
-    carbon_note: raw?.carbon_note != null ? String(raw.carbon_note) : undefined,
-    latitude: raw?.latitude != null ? Number(raw.latitude) : undefined,
-    longitude: raw?.longitude != null ? Number(raw.longitude) : undefined,
-    ...(gallery?.length ? { gallery } : {}),
-  };
 }
 
 function normalizeProduct(raw: any): Product {
@@ -160,13 +126,6 @@ export const productsApi = {
   getById: async (id: string): Promise<Product> => {
     const response = await api.get(`/products/${id}`);
     return normalizeProduct(response.data.data);
-  },
-
-  getSupplyChain: async (id: string): Promise<SupplyChainTimelineRecord[]> => {
-    const response = await api.get(`/products/${id}/supply-chain`);
-    const rows = response.data?.data;
-    if (!Array.isArray(rows)) return [];
-    return rows.map((row: Record<string, unknown>, i: number) => normalizeSupplyTimeline(row, i));
   },
 
   getFeatured: async (): Promise<Product[]> => {
