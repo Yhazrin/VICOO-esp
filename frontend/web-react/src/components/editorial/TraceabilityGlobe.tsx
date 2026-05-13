@@ -301,7 +301,7 @@ export default function TraceabilityGlobe({
         const file = new File([blob], `${base}.png`, { type: 'image/png' });
         const sharePayload: ShareData = {
           files: [file],
-          title: t('shop.detail.globeShareTitle', '溯源地球仪'),
+          title: t('shop.detail.globeShareTitle'),
         };
         if (typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
           await navigator.share(sharePayload);
@@ -911,7 +911,7 @@ export default function TraceabilityGlobe({
       tabIndex={0}
       role="application"
       data-pin-active={selectedId != null ? 'true' : 'false'}
-      aria-label={t('shop.detail.globeAria', '交互式溯源地球仪，可用方向键微调视角')}
+      aria-label={t('shop.detail.globeAria')}
       onPointerDownCapture={() => containerRef.current?.focus({ preventScroll: true })}
       className={`relative z-0 w-full min-w-0 max-w-none bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-rust/35 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${
         ambientBackdrop

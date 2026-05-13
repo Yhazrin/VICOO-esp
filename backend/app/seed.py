@@ -27,6 +27,7 @@ from app.database import engine, Base, AsyncSessionLocal
 from app.models.user import User, ChildParticipant
 from app.models.artwork import Artwork
 from app.models.campaign import Campaign
+from app.data.campaign_covers import COVER_FUTURE, COVER_HOMETOWN, COVER_SPRING
 from app.models.donation import Donation
 from app.models.product import Product
 from app.models.order import Order, OrderItem
@@ -175,7 +176,7 @@ async def seed():
             Campaign(
                 title="春天的色彩 — 乡村儿童画展",
                 description="征集来自全国各地乡村小学孩子们的画作，展示他们眼中的春天。优秀作品将在城市美术馆展出，并制成公益明信片义卖。",
-                cover_image="/static/campaigns/campaign1.jpg",
+                cover_image=COVER_SPRING,
                 start_date=datetime(2025, 3, 1),
                 end_date=datetime(2025, 6, 30),
                 goal_amount=Decimal("50000.00"),
@@ -187,7 +188,7 @@ async def seed():
             Campaign(
                 title="我的家乡 — 故土记忆",
                 description="邀请孩子们用画笔记录家乡的山川河流、风土人情。记录正在消失的乡村记忆，唤起社会对乡土文化的关注。",
-                cover_image="/static/campaigns/campaign2.jpg",
+                cover_image=COVER_HOMETOWN,
                 start_date=datetime(2025, 7, 1),
                 end_date=datetime(2025, 10, 31),
                 goal_amount=Decimal("80000.00"),
@@ -199,7 +200,7 @@ async def seed():
             Campaign(
                 title="画出未来 — 科技与梦想",
                 description="以'未来科技'为主题，鼓励孩子们大胆想象未来世界。获奖作品将用于制作可持续时尚 T 恤图案，收益全部用于乡村美育。",
-                cover_image="/static/campaigns/campaign3.jpg",
+                cover_image=COVER_FUTURE,
                 start_date=datetime(2025, 11, 1),
                 end_date=datetime(2026, 2, 28),
                 goal_amount=Decimal("100000.00"),
@@ -633,9 +634,15 @@ async def seed():
 
         await session.commit()
         print("Seed complete!")
-
-    await engine.dispose()
+    # 不要在嵌入 FastAPI 进程时 dispose 全局 engine，否则后续请求无法连库。
+    # CLI 单独跑时在 __main__ 里 finally dispose。
 
 
 if __name__ == "__main__":
-    asyncio.run(seed())
+    async def _cli():
+        try:
+            await seed()
+        finally:
+            await engine.dispose()
+
+    asyncio.run(_cli())

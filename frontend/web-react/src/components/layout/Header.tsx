@@ -313,13 +313,9 @@ function PillWindow({
                 aria-current={isActive ? 'page' : undefined}
                 onClick={() => {
                   setActiveImpactTab(tab.key);
-                  if (tab.key === 'shop') {
-                    // Stay on `/` + impact shell like other tabs — routing to `/impact/shop` remounts via <Outlet /> and feels like a full refresh.
-                    if (locationPathname !== '/' && locationPathname.startsWith('/impact/shop')) {
-                      navigate('/', { replace: true });
-                    }
-                  } else if (locationPathname.startsWith('/impact/shop')) {
-                    navigate('/');
+                  // 公益内容只能在首页显示，非首页时切换 tab 需要先跳回首页
+                  if (locationPathname !== '/') {
+                    navigate('/', { replace: true });
                   }
                 }}
                 className={`
