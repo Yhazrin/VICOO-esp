@@ -1,5 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useUIStore } from '../../stores/uiStore';
 
 const ICONS: Record<string, React.ReactNode> = {
   '/': (
