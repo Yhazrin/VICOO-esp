@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
@@ -93,5 +93,11 @@ class ProductOut(BaseModel):
     trace_story_title_en: Optional[str] = None
     trace_story_content_en: Optional[str] = None
     created_at: datetime
+    # SKU options — not DB columns; merged in routers from REGULAR_CATALOG when name matches
+    sizes: Optional[list[str]] = Field(None, description="Available sizes when catalog defines them")
+    colors: Optional[list[dict[str, Any]]] = Field(
+        None,
+        description='Color chips [{"name": str, "hex": str}] when catalog defines them',
+    )
 
     model_config = {"from_attributes": True}

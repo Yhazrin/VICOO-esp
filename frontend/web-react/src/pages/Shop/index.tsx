@@ -19,14 +19,17 @@ type SeasonFilter = 'all' | 'spring-summer' | 'fall-winter';
 type SustainFilter = 'all' | 'good' | 'excellent' | 'exceptional';
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'] as const;
-const COLORS = [
-  { name: 'White', hex: '#F5F0E8' },
-  { name: 'Black', hex: '#1A1A16' },
-  { name: 'Navy', hex: '#1C2841' },
-  { name: 'Rust', hex: '#8B3A2A' },
-  { name: 'Sage', hex: '#3F4F45' },
-  { name: 'Sand', hex: '#C4A45A' },
-] as const;
+
+/** Checkmark contrast on color swatches (dark fills → light stroke) */
+function hexNeedsLightForeground(hex: string): boolean {
+  const h = hex.replace(/^#/, '');
+  if (h.length !== 6) return false;
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  const y = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return y < 130;
+}
 
 const PROMO_INTERVAL = 4;
 type PromoVariant = 'story' | 'sustainability' | 'editorial';
@@ -116,6 +119,21 @@ export default function Shop() {
     () => (data?.items ?? []).filter((p) => !p.isImpactProduct),
     [data?.items]
   );
+
+  /** 颜色筛选项与接口返回的 SKU 一致（避免写死 6 色与 Olive/Mist 等真实颜色不一致） */
+  const filterColorOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const p of companyItems) {
+      for (const c of p.colors ?? []) {
+        if (c?.name && c.hex && !map.has(c.name)) {
+          map.set(c.name, c.hex);
+        }
+      }
+    }
+    return Array.from(map.entries())
+      .map(([name, hex]) => ({ name, hex }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [companyItems]);
 
   const categories: Category[] = useMemo(() => {
     const cats = new Set(companyItems.map((p) => p.category));
@@ -502,44 +520,51 @@ export default function Shop() {
                   {/* Column 2: Color */}
                   <div>
                     <FilterSection title={t('shop.filters.color')}>
-                      <div className="grid grid-cols-3 gap-3">
-                        {COLORS.map((color) => (
-                          <button
-                            key={color.name}
-                            onClick={() => toggleColor(color.name)}
-                            className="flex items-center gap-2.5 py-1 cursor-pointer group/color"
-                            aria-pressed={selectedColors.includes(color.name)}
-                            aria-label={color.name}
-                          >
-                            <span
-                              className={`
+                      {filterColorOptions.length === 0 ? (
+                        <p className="font-body text-caption text-ink-faded leading-relaxed">
+                          {t('shop.filters.noColorData')}
+                        </p>
+                      ) : (
+                        <div className="grid grid-cols-3 gap-3">
+                          {filterColorOptions.map((color) => (
+                            <button
+                              key={color.name}
+                              type="button"
+                              onClick={() => toggleColor(color.name)}
+                              className="flex items-center gap-2.5 py-1 cursor-pointer group/color"
+                              aria-pressed={selectedColors.includes(color.name)}
+                              aria-label={color.name}
+                            >
+                              <span
+                                className={`
                                 w-6 h-6 rounded-full border-2 transition-all flex-shrink-0 flex items-center justify-center
                                 ${selectedColors.includes(color.name)
                                   ? 'border-ink scale-110'
                                   : 'border-warm-gray/25 group-hover/color:border-warm-gray/50'
                                 }
                               `}
-                              style={{ backgroundColor: color.hex }}
-                            >
-                              {selectedColors.includes(color.name) && (
-                                <svg
-                                  className={`w-3 h-3 ${color.name === 'Black' || color.name === 'Navy' ? 'text-paper' : 'text-ink'}`}
-                                  viewBox="0 0 12 12"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  aria-hidden="true"
-                                >
-                                  <path d="M2.5 6.5l2.5 2.5 4.5-5" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                              )}
-                            </span>
-                            <span className="font-body text-caption text-ink-faded group-hover/color:text-ink transition-colors">
-                              {color.name}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
+                                style={{ backgroundColor: color.hex }}
+                              >
+                                {selectedColors.includes(color.name) && (
+                                  <svg
+                                    className={`w-3 h-3 ${hexNeedsLightForeground(color.hex) ? 'text-paper' : 'text-ink'}`}
+                                    viewBox="0 0 12 12"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    aria-hidden="true"
+                                  >
+                                    <path d="M2.5 6.5l2.5 2.5 4.5-5" strokeLinecap="round" strokeLinejoin="round" />
+                                  </svg>
+                                )}
+                              </span>
+                              <span className="font-body text-caption text-ink-faded group-hover/color:text-ink transition-colors">
+                                {color.name}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </FilterSection>
                   </div>
 
@@ -841,32 +866,46 @@ export default function Shop() {
                 </FilterSection>
 
                 <FilterSection title={t('shop.filters.color')} defaultOpen={false}>
-                  <div className="flex flex-wrap gap-3">
-                    {COLORS.map((color) => (
-                      <button
-                        key={color.name}
-                        onClick={() => toggleColor(color.name)}
-                        className="flex items-center gap-2 cursor-pointer"
-                        aria-pressed={selectedColors.includes(color.name)}
-                        aria-label={color.name}
-                      >
-                        <span
-                          className={`
+                  {filterColorOptions.length === 0 ? (
+                    <p className="font-body text-caption text-ink-faded leading-relaxed">
+                      {t('shop.filters.noColorData')}
+                    </p>
+                  ) : (
+                    <div className="flex flex-wrap gap-3">
+                      {filterColorOptions.map((color) => (
+                        <button
+                          key={color.name}
+                          type="button"
+                          onClick={() => toggleColor(color.name)}
+                          className="flex items-center gap-2 cursor-pointer"
+                          aria-pressed={selectedColors.includes(color.name)}
+                          aria-label={color.name}
+                        >
+                          <span
+                            className={`
                             w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center
                             ${selectedColors.includes(color.name) ? 'border-ink' : 'border-warm-gray/25'}
                           `}
-                          style={{ backgroundColor: color.hex }}
-                        >
-                          {selectedColors.includes(color.name) && (
-                            <svg className={`w-3 h-3 ${color.name === 'Black' || color.name === 'Navy' ? 'text-paper' : 'text-ink'}`} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                              <path d="M2.5 6.5l2.5 2.5 4.5-5" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          )}
-                        </span>
-                        <span className="font-body text-caption text-ink-faded">{color.name}</span>
-                      </button>
-                    ))}
-                  </div>
+                            style={{ backgroundColor: color.hex }}
+                          >
+                            {selectedColors.includes(color.name) && (
+                              <svg
+                                className={`w-3 h-3 ${hexNeedsLightForeground(color.hex) ? 'text-paper' : 'text-ink'}`}
+                                viewBox="0 0 12 12"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                aria-hidden="true"
+                              >
+                                <path d="M2.5 6.5l2.5 2.5 4.5-5" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            )}
+                          </span>
+                          <span className="font-body text-caption text-ink-faded">{color.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </FilterSection>
 
                 <FilterSection title={t('shop.filters.sustainability')}>

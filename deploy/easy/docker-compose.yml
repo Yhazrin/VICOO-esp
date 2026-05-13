@@ -19,7 +19,7 @@ services:
       --collation-server=utf8mb4_unicode_ci
       --default-authentication-plugin=mysql_native_password
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
@@ -94,6 +94,8 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      # Docker 内默认不要用 watchfiles 热重载（双进程 + 长 seed 易导致首次 unhealthy）
+      UVICORN_RELOAD: "0"
     env_file:
       - .env
     ports:
@@ -107,8 +109,9 @@ services:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/api/v1/health || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 30s
+      retries: 15
+      # 首次空库时 seed 在 entrypoint 完成；仍保留较长宽限以防慢磁盘
+      start_period: 120s
     networks:
       - vicoo-net
     volumes:
