@@ -117,7 +117,7 @@ export default function ClothingDonationPage() {
         <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 4, fontFamily: 'var(--font-body)' }}>
           {t('clothingDonation.title')}
         </h1>
-        <p style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
+        <p style={{ fontSize: 13, color: 'var(--color-text-2)' }}>
           {t('clothingDonation.description')}
         </p>
       </div>

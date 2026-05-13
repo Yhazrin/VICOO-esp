@@ -185,19 +185,14 @@ async def list_orders(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     status: str | None = Query(None),
+    search: str | None = Query(None),
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """List orders for the current user (or all for admin). (Refactored)"""
     order_service = OrderService(db)
     try:
-        # Check if user is admin
-        user_id_filter = current_user["id"] if current_user.get("role") != "admin" else None
-        
-        # Note: list_orders in service currently only supports user_id. 
-        # For simplicity in this first refactor pass, we use it for owners.
-        # Admin view would need a separate service method or param.
-        orders, total = await order_service.list_orders(current_user["id"], page, page_size)
+        orders, total = await order_service.list_orders(current_user["id"], page, page_size, status=status, keyword=search)
         
         # Batch load items for all orders
         order_ids = [o.id for o in orders]
