@@ -115,7 +115,7 @@ export default function CampaignPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 4, fontFamily: 'var(--font-body)' }}>{t('campaign.title')}</h1>
-          <p style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>{t('campaign.description')}</p>
+          <p style={{ fontSize: 13, color: 'var(--color-text-2)' }}>{t('campaign.description')}</p>
         </div>
         <Button variant="primary" onClick={() => { setShowCreate(true); setForm({ title: '', description: '', startDate: '', endDate: '', targetAmount: '' }); }}>
           {t('campaign.btnCreate')}
