@@ -7,24 +7,18 @@
         "create": "Create", 
         "edit": "Edit", 
         "delete": "Delete", 
-        "submit": "Submit", 
-        "close": "Close", 
-        "back": "Back", 
-        "search": "Search", 
-        "filter": "Filter", 
-        "export": "Export", 
-        "refresh": "Refresh", 
-        "all": "All", 
-        "none": "None", 
-        "yes": "Yes", 
-        "no": "No", 
-        "detail": "Detail", 
-        "operation": "Action", 
-        "viewAll": "View All", 
-        "noData": "No data available", 
-        "success": "Success", 
-        "error": "Error", 
-        "warning": "Warning"
+        "close": "Close",
+        "back": "Back",
+        "search": "Search",
+        "filter": "Filter",
+        "export": "Export",
+        "all": "All",
+        "none": "None",
+        "yes": "Yes",
+        "no": "No",
+        "detail": "Detail",
+        "operation": "Action",
+        "noData": "No data available"
     }, 
     "sidebar": {
         "dashboard": "Dashboard", 
@@ -38,9 +32,7 @@
         "products": "Products", 
         "auditLog": "Audit Log", 
         "settings": "Settings", 
-        "systemName": "Admin System", 
-        "edition": "Edition 2026.03",
-        "allRightsReserved": "All Rights Reserved"
+        "systemName": "Admin System"
     },
     "breadcrumb": {
         "home": "Home",
@@ -67,14 +59,7 @@
         "theme": "Theme"
     }, 
     "login": {
-        "title": "Identify Yourself.", 
-        "volumeLabel": "Vol. 1 — Issue 01", 
-        "securityLabel": "Security & Authorization", 
-        "siteName": "VICOO", 
-        "description": "Internal Access Portal. Authorized personnel only. Please verify your cryptographic credentials to proceed.", 
-        "estLabel": "EST. 2026", 
-        "versionLabel": "ADMIN v1.0.4", 
-        "secureIdLabel": "SECURE_LAYER_ID: 0x7A2", 
+        "title": "Identify Yourself.",
         "emailLabel": "Identification / Email", 
         "emailPlaceholder": "admin@tonghua.org", 
         "passwordLabel": "Security Key / Password", 
@@ -95,10 +80,8 @@
         "metricPending": "Pending: {{count}}", 
         "metricDonations": "Donations", 
         "metricDonationRecords": "{{count}} Records", 
-        "metricOrders": "Orders", 
-        "metricActiveFulfillment": "Active Fulfillment", 
-        "metricUsers": "Authorized Users", 
-        "metricCommunityGrowth": "Community Growth", 
+        "metricOrders": "Orders",
+        "metricUsers": "Authorized Users",
         "sectionArtworksTitle": "Curated Artworks", 
         "sectionArtworksLabel": "01 —", 
         "accessFullArchive": "Access Full Archive →", 
@@ -215,9 +198,7 @@
         "detailUser": "User", 
         "detailAmount": "Amount", 
         "detailStatus": "Status", 
-        "detailPaymentMethod": "Payment Method", 
-        "paymentMethodWechat": "WeChat Pay", 
-        "paymentMethodAlipay": "Alipay", 
+        "detailPaymentMethod": "Payment Method",
         "detailShippingAddress": "Shipping Address", 
         "detailTrackingNo": "Tracking No.", 
         "detailOrderTime": "Order Time", 
@@ -504,9 +485,7 @@
         "labelAppId": "Application Identifier (AppID)", 
         "labelMerchantId": "Merchant Identifier (MCHID)", 
         "labelPublicKey": "Public Validation Key", 
-        "labelClientId": "Client Identifier", 
-        "securityLockLabel": "[SYSTEM_LOCK]", 
-        "securityLockDesc": "Cryptographic and fundamental security parameters are hardcoded within the backend deployment environment variables for compliance reasons. The following values are read-only reflections of the current server state.", 
+        "labelClientId": "Client Identifier",
         "sectionAuthLifecycles": "Authentication Lifecycles", 
         "labelAccessTokenValidity": "Access Token Validity", 
         "labelRefreshTokenValidity": "Refresh Token Validity", 
@@ -582,7 +561,5 @@
         "loading": "Loading...",
         "empty": "No records found."
     },
-    "modal": {
-        "subtitle": "Detail View"
-    }
+    "modal": {}
 }

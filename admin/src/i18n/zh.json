@@ -7,24 +7,18 @@
         "create": "创建",
         "edit": "编辑",
         "delete": "删除",
-        "submit": "提交",
         "close": "关闭",
         "back": "返回",
         "search": "搜索",
         "filter": "筛选",
         "export": "导出",
-        "refresh": "刷新",
         "all": "全部",
         "none": "无",
         "yes": "是",
         "no": "否",
         "detail": "详情",
         "operation": "操作",
-        "viewAll": "查看全部",
-        "noData": "暂无数据",
-        "success": "成功",
-        "error": "错误",
-        "warning": "警告"
+        "noData": "暂无数据"
     },
     "sidebar": {
         "dashboard": "仪表盘",
@@ -38,9 +32,7 @@
         "products": "商品管理",
         "auditLog": "审计日志",
         "settings": "系统设置",
-        "systemName": "管理系统",
-        "edition": "版本 2026.03",
-        "allRightsReserved": "版权所有"
+        "systemName": "管理系统"
     },
     "breadcrumb": {
         "home": "首页",
@@ -68,13 +60,6 @@
     },
     "login": {
         "title": "身份验证",
-        "volumeLabel": "第 1 卷 — 第 1 期",
-        "securityLabel": "安全与授权",
-        "siteName": "VICOO",
-        "description": "内部访问门户。仅限授权人员。请验证您的加密凭证以继续。",
-        "estLabel": "创立于 2026",
-        "versionLabel": "ADMIN v1.0.4",
-        "secureIdLabel": "安全层标识: 0x7A2",
         "emailLabel": "身份标识 / 邮箱",
         "emailPlaceholder": "admin@tonghua.org",
         "passwordLabel": "安全密钥 / 密码",
@@ -96,9 +81,7 @@
         "metricDonations": "捐赠总额",
         "metricDonationRecords": "{{count}} 条记录",
         "metricOrders": "订单总数",
-        "metricActiveFulfillment": "履约中",
         "metricUsers": "授权用户",
-        "metricCommunityGrowth": "社区增长",
         "sectionArtworksTitle": "精选作品",
         "sectionArtworksLabel": "01 —",
         "accessFullArchive": "查看完整档案 →",
@@ -216,8 +199,6 @@
         "detailAmount": "金额",
         "detailStatus": "状态",
         "detailPaymentMethod": "支付方式",
-        "paymentMethodWechat": "微信支付",
-        "paymentMethodAlipay": "支付宝",
         "detailShippingAddress": "收货地址",
         "detailTrackingNo": "快递单号",
         "detailOrderTime": "下单时间",
@@ -505,8 +486,6 @@
         "labelMerchantId": "商户号 (MCHID)",
         "labelPublicKey": "公钥",
         "labelClientId": "客户端标识",
-        "securityLockLabel": "[系统锁定]",
-        "securityLockDesc": "加密和基础安全参数因合规原因硬编码在后端部署环境变量中。以下值为当前服务器状态的只读映射。",
         "sectionAuthLifecycles": "认证生命周期",
         "labelAccessTokenValidity": "访问令牌有效期",
         "labelRefreshTokenValidity": "刷新令牌有效期",
@@ -582,7 +561,5 @@
         "loading": "加载中...",
         "empty": "暂无数据"
     },
-    "modal": {
-        "subtitle": "详情查看"
-    }
+    "modal": {}
 }
