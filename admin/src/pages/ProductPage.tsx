@@ -415,9 +415,9 @@ export default function ProductPage() {
           <div>
             <label style={labelStyle}>{t('product.labelStatus')}</label>
             <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as AdminProduct['status'] })} style={inputStyle}>
-              <option value="active">active</option>
-              <option value="inactive">inactive</option>
-              <option value="sold_out">sold_out</option>
+              <option value="active">{t('product.filterActive')}</option>
+              <option value="inactive">{t('product.filterInactive')}</option>
+              <option value="sold_out">{t('product.filterSoldOut')}</option>
             </select>
           </div>
           <div style={{ gridColumn: '1 / -1' }}>

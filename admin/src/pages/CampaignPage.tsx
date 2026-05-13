@@ -49,7 +49,7 @@ export default function CampaignPage() {
 
   const columns: Column<Campaign>[] = [
     { key: 'title', title: t('campaign.colCampaignName'), sorter: true },
-    { key: 'status', title: t('campaign.colStatus'), width: 100, render: (v) => <StatusBadge status={v} /> },
+    { key: 'status', title: t('campaign.colStatus'), width: 100, render: (v) => <StatusBadge status={v} context="campaign" /> },
     { key: 'targetAmount', title: t('campaign.colTargetAmount'), width: 120, render: (v) => `\u00a5${v.toLocaleString()}` },
     { key: 'raisedAmount', title: t('campaign.colRaisedAmount'), width: 120, render: (v) => <span style={{ color: 'var(--color-success)' }}>\u00a5{v.toLocaleString()}</span> },
     { key: 'participantCount', title: t('campaign.colParticipants'), width: 100 },
