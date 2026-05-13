@@ -2,6 +2,8 @@ import logging
 from typing import List, Dict, Any, Optional
 import re
 import json
+from pathlib import Path
+from functools import lru_cache
 import httpx
 from urllib.parse import urljoin
 from fastapi import HTTPException
@@ -14,6 +16,37 @@ from app.services.supply_chain.service import SupplyChainService
 from app.models.product import Product
 
 logger = logging.getLogger("tonghua.ai_service")
+_SYNONYM_CONFIG_PATH = Path(__file__).resolve().parents[2] / "data" / "ai_search_synonyms.json"
+_DEFAULT_SYNONYM_CONFIG = {
+    "aliases": {},
+    "fragments": [],
+}
+
+
+@lru_cache(maxsize=1)
+def _read_synonym_config() -> Dict[str, Any]:
+    try:
+        with _SYNONYM_CONFIG_PATH.open("r", encoding="utf-8") as fh:
+            loaded = json.load(fh)
+            if isinstance(loaded, dict):
+                return loaded
+    except Exception as exc:
+        logger.warning(f"Failed to load AI synonym config: {exc}")
+    return _DEFAULT_SYNONYM_CONFIG
+
+
+@lru_cache(maxsize=1)
+def _read_alias_map() -> Dict[str, List[str]]:
+    aliases = _read_synonym_config().get("aliases", {})
+    alias_map: Dict[str, List[str]] = {}
+    for canonical, raw_variants in aliases.items():
+        variants = []
+        for entry in [canonical, *(raw_variants or [])]:
+            if isinstance(entry, str) and entry not in variants:
+                variants.append(entry)
+        for entry in variants:
+            alias_map[entry.lower()] = variants
+    return alias_map
 
 SYSTEM_PROMPT = """你是「童画公益 × 可持续时尚」平台助手。语气温暖、克制、专业。
 你需要根据页面语境推荐对应商品，并优先使用站内数据库与检索结果回答：
@@ -364,6 +397,8 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
         """Extract Chinese and Latin keywords for DB matching."""
         if not query:
             return []
+        synonym_config = self._load_synonym_config()
+        alias_map = self._load_alias_map()
         normalized_query = query.lower()
         normalized_query = re.sub(r"\b(t[\s-]?shirt|tee[\s-]?shirt)\b", " tshirt ", normalized_query)
         normalized_query = re.sub(r"\b(back[\s-]?pack)\b", " backpack ", normalized_query)
@@ -374,17 +409,11 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
             if re.fullmatch(r"[A-Za-z0-9]+", tok):
                 if len(tok) < 2:
                     continue
-                normalized.append(tok.lower())
-                if tok.lower() in {"tshirt", "tee"}:
-                    normalized.extend(["t恤", "短袖"])
-                if tok.lower() in {"bag", "bags", "tote", "backpack"}:
-                    normalized.extend(["包", "袋", "帆布包"])
-                if tok.lower() in {"clothing", "clothes", "wear", "apparel"}:
-                    normalized.extend(["衣物", "衣服", "服装"])
+                normalized.extend(alias_map.get(tok.lower(), [tok.lower()]))
             else:
                 normalized.append(tok)
                 if len(tok) >= 4:
-                    for kw in ["包", "袋", "帆布袋", "托特", "背包", "衣物", "衣服", "t恤", "短袖", "公益", "可持续", "环保", "捐赠"]:
+                    for kw in synonym_config.get("fragments", []):
                         if kw in tok:
                             normalized.append(kw)
             if len(normalized) >= limit:
@@ -394,6 +423,12 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
             if term not in deduped:
                 deduped.append(term)
         return deduped[:limit]
+
+    def _load_synonym_config(self) -> Dict[str, Any]:
+        return _read_synonym_config()
+
+    def _load_alias_map(self) -> Dict[str, List[str]]:
+        return _read_alias_map()
 
     def _resolve_frontend_base_url(self, metadata: Optional[Dict[str, Any]] = None) -> str:
         base = ""
@@ -519,20 +554,82 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
         if search_trigger:
             terms = self._extract_search_terms(last_user, limit=6)
             if terms:
-                query_text = " ".join(terms[:3])
-                # simple SQL search
-                from sqlalchemy import select
-                stmt = select(Product).where(Product.is_impact_product)
-                # apply ilike filters for each term
-                for t in terms[:3]:
-                    stmt = stmt.where((Product.name.ilike(f"%{t}%")) | (Product.description.ilike(f"%{t}%")))
-                stmt = stmt.limit(5)
-                try:
-                    res = (await self.db.execute(stmt)).scalars().all()
-                    if res:
-                        out = f"Impact product search results for query: '{query_text}'\n"
-                        for p in res:
-                            out += f"- ID:{p.id} Name:{p.name} Price:{p.price} {p.currency} Donation:{p.donation_percentage or 0}%\n"
+                from sqlalchemy import select, or_
+                scopes = [catalog_scope] if catalog_scope in ("impact", "uniqlo") else ["uniqlo", "impact"]
+                for scope in scopes:
+                    stmt = select(Product).where(Product.status == "active")
+                    stmt = stmt.where(
+                        Product.is_impact_product.is_(True)
+                        if scope == "impact"
+                        else Product.is_impact_product.is_(False)
+                    )
+                    token_filters = []
+                    for t in terms[:4]:
+                        token_filters.extend([
+                            Product.name.ilike(f"%{t}%"),
+                            Product.name_en.ilike(f"%{t}%"),
+                            Product.description.ilike(f"%{t}%"),
+                            Product.description_en.ilike(f"%{t}%"),
+                            Product.category.ilike(f"%{t}%"),
+                        ])
+                    if token_filters:
+                        stmt = stmt.where(or_(*token_filters))
+                    stmt = stmt.limit(5)
+                    try:
+                        res = (await self.db.execute(stmt)).scalars().all()
+                    except Exception as e:
+                        logger.error(f"{scope} product search failed: {e}")
+                        res = []
+                    if not res:
+                        continue
+
+                    out = f"{scope.capitalize()} product search results for query: '{last_user}'\n"
+                    for p in res:
+                        out += (
+                            f"- Name:{p.name} | Price:{p.price} {p.currency} | "
+                            f"Donation:{p.donation_percentage or 0}% | "
+                            f"URL:{self._build_product_url(p.id, bool(p.is_impact_product), metadata)}\n"
+                        )
+                    out += "\n(Source: products table)"
+                    return out
+
+                # Fallback: for bag-related asks, return top active bag-like products from preferred scope
+                lower_q = last_user.lower()
+                bag_intent = ("包" in last_user) or any(k in lower_q for k in ["bag", "tote", "backpack"])
+                if bag_intent:
+                    for scope in scopes:
+                        fallback_stmt = select(Product).where(Product.status == "active")
+                        fallback_stmt = fallback_stmt.where(
+                            Product.is_impact_product.is_(True)
+                            if scope == "impact"
+                            else Product.is_impact_product.is_(False)
+                        )
+                        fallback_stmt = fallback_stmt.where(
+                            Product.name.ilike("%包%")
+                            | Product.name.ilike("%袋%")
+                            | Product.name.ilike("%bag%")
+                            | Product.name_en.ilike("%bag%")
+                            | Product.name_en.ilike("%tote%")
+                            | Product.description.ilike("%包%")
+                            | Product.description.ilike("%bag%")
+                            | Product.description_en.ilike("%bag%")
+                            | Product.category.ilike("%accessories%")
+                        ).limit(5)
+                        try:
+                            fallback_res = (await self.db.execute(fallback_stmt)).scalars().all()
+                        except Exception as e:
+                            logger.error(f"{scope} bag fallback search failed: {e}")
+                            fallback_res = []
+                        if not fallback_res:
+                            continue
+
+                        out = f"{scope.capitalize()} bag recommendations (fallback)\n"
+                        for p in fallback_res:
+                            out += (
+                                f"- Name:{p.name} | Price:{p.price} {p.currency} | "
+                                f"Donation:{p.donation_percentage or 0}% | "
+                                f"URL:{self._build_product_url(p.id, bool(p.is_impact_product), metadata)}\n"
+                            )
                         out += "\n(Source: products table)"
                         return out
 
@@ -557,49 +654,104 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
             if not terms:
                 return ""
 
-            # 1) Product search (impact products)
-            try:
-                stmt = select(Product).where(Product.is_impact_product)
-                for t in terms[:3]:
-                    stmt = stmt.where((Product.name.ilike(f"%{t}%")) | (Product.description.ilike(f"%{t}%")))
-                stmt = stmt.limit(5)
-                prods = (await self.db.execute(stmt)).scalars().all()
-                for p in prods:
-                    snippet = (p.description or "").replace("\n", " ")[:300]
-                    results.append({"source": f"product/{p.id}", "title": p.name, "text": snippet, "url": f"/impact/shop/{p.id}"})
-            except Exception as e:
-                logger.debug(f"RAG product search error: {e}")
+            resolved_scope = catalog_scope
+            if resolved_scope not in ("impact", "uniqlo", "mixed"):
+                resolved_scope = self._determine_catalog_scope(query, context, None)
 
-            # 2) Campaign search
-            try:
-                from app.models.campaign import Campaign
-                stmt = select(Campaign)
-                filters = []
-                for t in terms[:3]:
-                    filters.append(Campaign.title.ilike(f"%{t}%"))
-                    filters.append(Campaign.description.ilike(f"%{t}%"))
-                if filters:
-                    stmt = stmt.where(or_(*filters)).limit(3)
-                    camps = (await self.db.execute(stmt)).scalars().all()
-                    for c in camps:
-                        snippet = (c.description or "").replace("\n", " ")[:300]
-                        results.append({"source": f"campaign/{c.id}", "title": c.title, "text": snippet, "url": f"/campaigns/{c.id}"})
-            except Exception:
-                pass
+            product_scopes = (
+                [resolved_scope]
+                if resolved_scope in ("impact", "uniqlo")
+                else ["uniqlo", "impact"]
+            )
 
-            # 3) Supply chain records
-            try:
-                from app.models.supply_chain import SupplyChainRecord
-                stmt = select(SupplyChainRecord)
-                filters = [SupplyChainRecord.description.ilike(f"%{t}%") for t in terms[:3]]
-                if filters:
-                    stmt = stmt.where(or_(*filters)).limit(5)
-                    recs = (await self.db.execute(stmt)).scalars().all()
-                    for r in recs:
-                        snippet = (r.description or "").replace("\n", " ")[:300]
-                        results.append({"source": f"supply_chain/{r.id}", "title": r.stage or "stage", "text": snippet, "url": f"/supply-chain/records/{r.id}"})
-            except Exception:
-                pass
+            base_url = self._resolve_frontend_base_url(metadata)
+
+            # 1) Product search by selected catalog scope
+            for scope in product_scopes:
+                try:
+                    stmt = select(Product).where(Product.status == "active")
+                    stmt = stmt.where(
+                        Product.is_impact_product.is_(True)
+                        if scope == "impact"
+                        else Product.is_impact_product.is_(False)
+                    )
+                    token_filters = []
+                    for t in terms[:4]:
+                        token_filters.extend([
+                            Product.name.ilike(f"%{t}%"),
+                            Product.name_en.ilike(f"%{t}%"),
+                            Product.description.ilike(f"%{t}%"),
+                            Product.description_en.ilike(f"%{t}%"),
+                            Product.category.ilike(f"%{t}%"),
+                        ])
+                    if token_filters:
+                        stmt = stmt.where(or_(*token_filters))
+                    stmt = stmt.limit(5)
+                    prods = (await self.db.execute(stmt)).scalars().all()
+                    for p in prods:
+                        snippet = (p.description or "").replace("\n", " ")[:260]
+                        results.append(
+                            {
+                                "source": f"product/{p.id}",
+                                "title": p.name,
+                                "text": snippet,
+                                    "url": self._build_product_url(p.id, bool(p.is_impact_product), metadata),
+                                }
+                            )
+                    if prods:
+                        break
+                except Exception as e:
+                    logger.debug(f"RAG {scope} product search error: {e}")
+
+            # 2) Campaign + supply-chain retrieval is mainly relevant to impact/sustainability
+            is_impact_scope = (
+                resolved_scope == "impact"
+                or context in ("impact", "sustainability")
+                or self._contains_sustainability_intent(query)
+            )
+            if is_impact_scope:
+                try:
+                    from app.models.campaign import Campaign
+                    stmt = select(Campaign)
+                    filters = []
+                    for t in terms[:3]:
+                        filters.append(Campaign.title.ilike(f"%{t}%"))
+                        filters.append(Campaign.description.ilike(f"%{t}%"))
+                    if filters:
+                        stmt = stmt.where(or_(*filters)).limit(3)
+                        camps = (await self.db.execute(stmt)).scalars().all()
+                        for c in camps:
+                            snippet = (c.description or "").replace("\n", " ")[:260]
+                            results.append(
+                                {
+                                    "source": f"campaign/{c.id}",
+                                    "title": c.title,
+                                    "text": snippet,
+                                    "url": urljoin(base_url, f"campaigns/{c.id}"),
+                                }
+                            )
+                except Exception:
+                    pass
+
+                try:
+                    from app.models.supply_chain import SupplyChainRecord
+                    stmt = select(SupplyChainRecord)
+                    filters = [SupplyChainRecord.description.ilike(f"%{t}%") for t in terms[:3]]
+                    if filters:
+                        stmt = stmt.where(or_(*filters)).limit(5)
+                        recs = (await self.db.execute(stmt)).scalars().all()
+                        for r in recs:
+                            snippet = (r.description or "").replace("\n", " ")[:260]
+                            results.append(
+                                {
+                                    "source": f"supply_chain/{r.id}",
+                                    "title": r.stage or "stage",
+                                    "text": snippet,
+                                    "url": urljoin(base_url, f"supply-chain/records/{r.id}"),
+                                }
+                            )
+                except Exception:
+                    pass
 
             if not results:
                 return ""
