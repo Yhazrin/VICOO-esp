@@ -143,8 +143,6 @@ export interface SupplyChainTimelineRecord {
   gallery?: TraceMediaItem[];
 }
 
-export interface SupplyChainRecord extends SupplyChainTimelineRecord {}
-
 export interface DonationTier {
   id: number;
   amount: number;
@@ -155,16 +153,41 @@ export interface DonationTier {
 
 export interface Donation {
   id: number;
+  donor_name?: string;
   donor_user_id?: number;
   amount: number;
   currency: string;
+  payment_method?: 'wechat' | 'alipay' | 'stripe' | 'paypal';
   tierId?: number;
-  campaignId?: number;
+  campaign_id?: number;
   message?: string;
   is_anonymous: boolean;
   status: 'pending' | 'completed' | 'failed' | 'refunded';
-  createdAt: string;
+  created_at: string;
   transactionId?: string;
+  donationId?: number;
+  certificate_no?: string;
+  certificate_url?: string;
+  certificate_pdf_url?: string;
+  payment_notice?: string;
+  simulation_mode?: boolean;
+}
+
+export interface DonationCertificate {
+  donation_id: number;
+  donor_name: string;
+  amount: string;
+  amount_display: string;
+  currency: string;
+  date: string;
+  date_display: string;
+  campaign_id?: number | null;
+  campaign_title: string;
+  certificate_no: string;
+  certificate_url: string;
+  certificate_pdf_url: string;
+  summary: string[];
+  share_message: string;
 }
 
 export interface CartItem {

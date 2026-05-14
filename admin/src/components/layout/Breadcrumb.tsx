@@ -11,7 +11,6 @@ const pathToKey: Record<string, string> = {
   products: 'breadcrumb.products',
   'clothing-donations': 'breadcrumb.clothingDonations',
   'after-sales': 'breadcrumb.afterSales',
-  'child-audit': 'breadcrumb.childAudit',
   'audit-log': 'breadcrumb.auditLog',
   settings: 'breadcrumb.settings',
 };

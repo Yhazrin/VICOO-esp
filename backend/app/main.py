@@ -12,6 +12,7 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.gzip import GZipMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 
@@ -90,6 +91,9 @@ if not allowed_hosts:
 
 if settings.APP_ENV != "development":
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)
+
+# GZip compression — reduces API response size by ~60%
+app.add_middleware(GZipMiddleware, minimum_size=500)
 
 # CORS
 app.add_middleware(

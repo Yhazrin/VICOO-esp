@@ -9,7 +9,6 @@ import DonationPage from './pages/DonationPage';
 import OrderPage from './pages/OrderPage';
 import UserPage from './pages/UserPage';
 import ProductPage from './pages/ProductPage';
-import ChildAuditPage from './pages/ChildAuditPage';
 import SettingsPage from './pages/SettingsPage';
 import AuditLogPage from './pages/AuditLogPage';
 import ClothingDonationPage from './pages/ClothingDonationPage';
@@ -34,7 +33,6 @@ export default function App() {
         <Route path="/after-sales" element={<AfterSalesPage />} />
         <Route path="/users" element={<UserPage />} />
         <Route path="/products" element={<ProductPage />} />
-        <Route path="/child-audit" element={<ChildAuditPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/audit-log" element={<AuditLogPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

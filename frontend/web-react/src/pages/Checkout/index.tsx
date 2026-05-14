@@ -5,6 +5,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
+import PaymentQRModal from '@/components/payment/PaymentQRModal';
 import { useCartStore, selectTotalPrice } from '@/stores/cartStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useAuthStore } from '@/stores/authStore';
@@ -63,6 +64,7 @@ export default function Checkout() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderResult, setOrderResult] = useState<{ orderId: string; orderNo: string } | null>(null);
   const [error, setError] = useState('');
+  const [pendingWechatOrder, setPendingWechatOrder] = useState<{ orderId: string; orderNo: string; amount: number } | null>(null);
 
   const { data: savedAddresses = [] } = useQuery({
     queryKey: ['my-addresses'],
@@ -153,39 +155,72 @@ export default function Checkout() {
       };
 
       const order = await ordersApi.create(orderData);
+      const amount = typeof order.total_amount === 'string' ? parseFloat(order.total_amount) : order.total_amount;
 
-      // Initiate payment
+      if (paymentMethod === 'wechat') {
+        // Show QR modal — payment will be confirmed when user clicks success
+        setPendingWechatOrder({ orderId: String(order.id), orderNo: order.order_no, amount });
+        setIsProcessing(false);
+        return;
+      }
+
+      // Non-WeChat: process payment immediately
       await paymentsApi.create({
         order_id: order.id,
-        amount: typeof order.total_amount === 'string' ? parseFloat(order.total_amount) : order.total_amount,
+        amount,
         method: paymentMethod,
       });
 
-      setOrderResult({ orderId: String(order.id), orderNo: order.order_no });
-
-      // Save address to address book if requested
-      if (saveAddress && !selectedAddressId && address.name && address.phone) {
-        try {
-          await addressesApi.create({
-            recipient_name: address.name,
-            phone: address.phone,
-            province: address.province,
-            city: address.city,
-            district: '',
-            detail_address: address.street,
-            postal_code: address.postalCode || undefined,
-            is_default: false,
-          });
-        } catch { /* silent — don't block order flow */ }
-      }
-
-      clearCart();
-      setStep(3);
+      await finalizeOrder({ orderId: String(order.id), orderNo: order.order_no });
     } catch {
       setError(t('checkout.error'));
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const finalizeOrder = async (result: { orderId: string; orderNo: string }) => {
+    setOrderResult(result);
+    // Save address to address book if requested
+    if (saveAddress && !selectedAddressId && address.name && address.phone) {
+      try {
+        await addressesApi.create({
+          recipient_name: address.name,
+          phone: address.phone,
+          province: address.province,
+          city: address.city,
+          district: '',
+          detail_address: address.street,
+          postal_code: address.postalCode || undefined,
+          is_default: false,
+        });
+      } catch { /* silent — don't block order flow */ }
+    }
+    clearCart();
+    setStep(3);
+  };
+
+  const handleWechatSuccess = async () => {
+    if (!pendingWechatOrder) return;
+    setIsProcessing(true);
+    try {
+      await paymentsApi.create({
+        order_id: Number(pendingWechatOrder.orderId),
+        amount: pendingWechatOrder.amount,
+        method: 'wechat',
+      });
+      setPendingWechatOrder(null);
+      await finalizeOrder({ orderId: pendingWechatOrder.orderId, orderNo: pendingWechatOrder.orderNo });
+    } catch {
+      setError(t('checkout.error'));
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleWechatFailure = () => {
+    setPendingWechatOrder(null);
+    setError(t('checkout.paymentFailed'));
   };
 
   return (
@@ -600,6 +635,16 @@ export default function Checkout() {
           )}
         </div>
       </SectionContainer>
+
+      {/* WeChat payment QR modal */}
+      {pendingWechatOrder && (
+        <PaymentQRModal
+          amount={pendingWechatOrder.amount}
+          onSuccess={handleWechatSuccess}
+          onFailure={handleWechatFailure}
+          isProcessing={isProcessing}
+        />
+      )}
     </PageWrapper>
   );
 }

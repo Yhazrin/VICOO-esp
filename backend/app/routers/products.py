@@ -459,3 +459,22 @@ async def update_product(product_id: int, body: ProductUpdate, db: AsyncSession 
     except Exception as e:
         logger.error(f"DB write failed during update_product: {e}", exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+
+
+@router.delete("/{product_id}", response_model=ApiResponse)
+async def delete_product(product_id: int, db: AsyncSession = Depends(get_db), current_user: dict = Depends(require_role("admin"))):
+    """Delete a product (admin only)."""
+    try:
+        stmt = select(Product).where(Product.id == product_id)
+        result = await db.execute(stmt)
+        product = result.scalar_one_or_none()
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+        await db.delete(product)
+        await db.flush()
+        return ApiResponse(data={"deleted": True})
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"DB write failed during delete_product: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")

@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/authStore';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
@@ -14,6 +14,8 @@ import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 import MagneticButton from '@/components/animations/MagneticButton';
 import { donationsApi } from '@/services/donations';
 import { getErrorMessage } from '@/utils/error';
+import { invokeWechatPayment } from '@/utils/payment';
+import toast from 'react-hot-toast';
 
 /* ─── Impact Area Data ─── */
 
@@ -226,6 +228,7 @@ export default function Donate() {
     : 0;
   const totalDonors = impactStats?.total_donors ?? 0;
 
+  const queryClient = useQueryClient();
   const donateMutation = useMutation({
     mutationFn: async (data: {
       amount: number;
@@ -244,11 +247,30 @@ export default function Donate() {
         message: data.message || undefined,
       });
     },
+    onSuccess: async (result, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['impact-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['my-donations'] });
+      // Handle WeChat JSAPI payment if parameters are returned
+      if (variables.paymentMethod === 'wechat' && result && 'appId' in result) {
+        try {
+          await invokeWechatPayment(result as unknown as Record<string, unknown>);
+          toast.success(t('donate.success', 'Thank you for your donation!'));
+        } catch {
+          toast.error(t('donate.paymentFailed', 'Payment was not completed.'));
+        }
+        return;
+      }
+      toast.success(t('donate.success', 'Thank you for your donation!'));
+    },
+    onError: () => {
+      toast.error(t('donate.error', 'Donation failed. Please try again.'));
+    },
   });
 
   const donationErrorMessage = donateMutation.error
     ? getErrorMessage(donateMutation.error, t('donate.error'))
     : null;
+  const createdDonation = donateMutation.data;
 
   const donationStories = [
     {
@@ -293,8 +315,31 @@ export default function Donate() {
             {donateMutation.isSuccess && (
               <div className="p-4 border border-sepia-light bg-paper-warm">
                 <p className="font-body text-body-sm text-ink">
-                  {t('donate.success')}
+                  {createdDonation?.simulation_mode
+                    ? t('donate.successSimulation')
+                    : t('donate.success')}
                 </p>
+                {createdDonation?.payment_notice && (
+                  <p className="mt-2 font-body text-caption text-ink-faded leading-relaxed">
+                    {createdDonation.payment_notice}
+                  </p>
+                )}
+                {createdDonation?.status === 'completed' && createdDonation?.donationId && (
+                  <div className="mt-4 flex flex-col sm:flex-row gap-3">
+                    <Link
+                      to={`/donations/${createdDonation.donationId}/certificate`}
+                      className="px-4 py-3 text-center font-body text-caption tracking-[0.1em] uppercase bg-rust text-paper hover:bg-archive-brown transition-colors"
+                    >
+                      {t('donate.certificate.view')}
+                    </Link>
+                    <a
+                      href="#donate-form"
+                      className="px-4 py-3 text-center font-body text-caption tracking-[0.1em] uppercase border border-warm-gray/35 text-ink hover:border-rust/35 transition-colors"
+                    >
+                      {t('donate.certificate.keepGiving')}
+                    </a>
+                  </div>
+                )}
               </div>
             )}
             {donateMutation.isError && (

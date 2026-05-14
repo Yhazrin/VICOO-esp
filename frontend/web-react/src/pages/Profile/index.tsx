@@ -530,8 +530,8 @@ export default function Profile() {
                   {donations.map((donation, index) => (
                     <EditorialCard
                       key={donation.id}
-                      title={`${donation.currency} ${donation.amount.toFixed(2)}`}
-                      subtitle={new Date(donation.createdAt).toLocaleDateString(i18n.language, {
+                      title={`${donation.currency} ${Number(donation.amount).toFixed(2)}`}
+                      subtitle={new Date(donation.created_at).toLocaleDateString(i18n.language, {
                         year: 'numeric',
                         month: 'short',
                         day: 'numeric',

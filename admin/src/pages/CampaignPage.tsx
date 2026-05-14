@@ -49,7 +49,7 @@ export default function CampaignPage() {
 
   const columns: Column<Campaign>[] = [
     { key: 'title', title: t('campaign.colCampaignName'), sorter: true },
-    { key: 'status', title: t('campaign.colStatus'), width: 100, render: (v) => <StatusBadge status={v} /> },
+    { key: 'status', title: t('campaign.colStatus'), width: 100, render: (v) => <StatusBadge status={v} context="campaign" /> },
     { key: 'targetAmount', title: t('campaign.colTargetAmount'), width: 120, render: (v) => `\u00a5${v.toLocaleString()}` },
     { key: 'raisedAmount', title: t('campaign.colRaisedAmount'), width: 120, render: (v) => <span style={{ color: 'var(--color-success)' }}>\u00a5{v.toLocaleString()}</span> },
     { key: 'participantCount', title: t('campaign.colParticipants'), width: 100 },
@@ -115,7 +115,7 @@ export default function CampaignPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 4, fontFamily: 'var(--font-body)' }}>{t('campaign.title')}</h1>
-          <p style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>{t('campaign.description')}</p>
+          <p style={{ fontSize: 13, color: 'var(--color-text-2)' }}>{t('campaign.description')}</p>
         </div>
         <Button variant="primary" onClick={() => { setShowCreate(true); setForm({ title: '', description: '', startDate: '', endDate: '', targetAmount: '' }); }}>
           {t('campaign.btnCreate')}

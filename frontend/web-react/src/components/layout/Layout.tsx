@@ -1,5 +1,5 @@
 import { Outlet, useMatch, useLocation } from 'react-router-dom';
-import { useEffect, useLayoutEffect } from 'react';
+import { useEffect, useLayoutEffect, lazy, Suspense } from 'react';
 import Header from './Header';
 import ImpactWelfareGlobeLayer from './ImpactWelfareGlobeLayer';
 import EditorialFooter from './EditorialFooter';
@@ -8,23 +8,28 @@ import KeyedRouteContent from '../transitions/KeyedRouteContent';
 import GrainOverlay from '../animations/GrainOverlay';
 import { AIAssistantBall } from './AIAssistantBall';
 import { useUIStore } from '@/stores/uiStore';
-import Home from '@/pages/Home';
-import Campaigns from '@/pages/Campaigns';
-import Donate from '@/pages/Donate';
-import ImpactShop from '@/pages/ImpactShop';
-import ClothingRecycle from '@/pages/ClothingRecycle';
+
+// Lazy-load impact shell pages — these are heavy and only needed in impact mode
+const Home = lazy(() => import('@/pages/Home'));
+const Campaigns = lazy(() => import('@/pages/Campaigns'));
+const Donate = lazy(() => import('@/pages/Donate'));
+const ImpactShop = lazy(() => import('@/pages/ImpactShop'));
+const ClothingRecycle = lazy(() => import('@/pages/ClothingRecycle'));
 
 function ImpactContent() {
   const { activeImpactTab } = useUIStore();
 
-  switch (activeImpactTab) {
-    case 'home': return <Home />;
-    case 'campaigns': return <Campaigns />;
-    case 'donate': return <Donate />;
-    case 'shop': return <ImpactShop />;
-    case 'clothing-recycle': return <ClothingRecycle />;
-    default: return <Home />;
-  }
+  const content = (() => {
+    switch (activeImpactTab) {
+      case 'campaigns': return <Campaigns />;
+      case 'donate': return <Donate />;
+      case 'shop': return <ImpactShop />;
+      case 'clothing-recycle': return <ClothingRecycle />;
+      default: return <Home />;
+    }
+  })();
+
+  return <Suspense fallback={<div style={{ minHeight: '60vh' }} />}>{content}</Suspense>;
 }
 
 export default function Layout() {

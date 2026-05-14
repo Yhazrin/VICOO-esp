@@ -4,7 +4,8 @@ export interface User {
   email: string;
   phone?: string;
   role: 'admin' | 'editor' | 'viewer' | 'auditor';
-  status: 'active' | 'disabled' | 'pending';
+  /** 与后端 users.status 枚举一致：active | banned */
+  status: 'active' | 'banned';
   avatar?: string;
   createdAt: string;
   lastLogin?: string;
@@ -79,23 +80,6 @@ export interface OrderItem {
   quantity: number;
   price: number;
   imageUrl?: string;
-}
-
-export interface ChildParticipant {
-  id: string;
-  childName: string;
-  age: number;
-  guardianName: string;
-  guardianPhone: string;
-  guardianEmail: string;
-  consentGiven: boolean;
-  consentDate: string;
-  region: string;
-  school?: string;
-  artworkCount: number;
-  status: 'active' | 'withdrawn' | 'pending_review';
-  createdAt: string;
-  lastActivity?: string;
 }
 
 export interface AuditLogEntry {
@@ -205,4 +189,49 @@ export interface OriginRegion {
   nameZh: string;
   nameEn: string;
   regionType?: string;
+}
+
+export interface TraceMediaItem {
+  type: 'image' | 'video';
+  url: string;
+  caption?: string;
+}
+
+export interface AfterSalesItem {
+  id: string;
+  orderId: string;
+  userId: string;
+  category: string;
+  subject: string;
+  description: string;
+  status: string;
+  createdAt: string;
+}
+
+export interface ClothingDonationItem {
+  id: string;
+  garmentTypes: string;
+  quantityEstimate: number | null;
+  pickupAddress: string;
+  contactPhone: string;
+  conditionNotes: string;
+  status: string;
+  createdAt: string;
+}
+
+export interface SupplyChainRecord {
+  id: string;
+  productId: string;
+  stage: 'material_sourcing' | 'processing' | 'manufacturing' | 'quality_check' | 'shipping';
+  description: string;
+  location: string;
+  latitude?: number;
+  longitude?: number;
+  certified: boolean;
+  certImageUrl?: string;
+  carbonKg?: number;
+  carbonNote?: string;
+  timestamp: string;
+  gallery: TraceMediaItem[];
+  createdAt: string;
 }
