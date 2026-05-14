@@ -86,6 +86,20 @@ def _apply_product_filters(stmt, category: str | None, status: str | None, is_im
     return stmt
 
 
+def _localize_product_dict(d: dict, locale: str) -> dict:
+    """When locale=en and *_en fields are non-empty, override the primary fields."""
+    if locale == "en":
+        if d.get("name_en"):
+            d["name"] = d["name_en"]
+        if d.get("description_en"):
+            d["description"] = d["description_en"]
+        if d.get("trace_story_title_en"):
+            d["trace_story_title"] = d["trace_story_title_en"]
+        if d.get("trace_story_content_en"):
+            d["trace_story_content"] = d["trace_story_content_en"]
+    return d
+
+
 async def _artwork_image_fallback_map(db: AsyncSession, products: list[Product]) -> dict[int, str]:
     """When product.image_url is empty, use linked artwork image (batch lookup)."""
     need = {p.artwork_id for p in products if p.artwork_id and not (p.image_url and str(p.image_url).strip())}
@@ -95,7 +109,7 @@ async def _artwork_image_fallback_map(db: AsyncSession, products: list[Product])
     return {row[0]: row[1] for row in r.all() if row[1]}
 
 
-async def _products_to_out_dicts(db: AsyncSession, products: list[Product]) -> list[dict]:
+async def _products_to_out_dicts(db: AsyncSession, products: list[Product], *, locale: str = "zh") -> list[dict]:
     fb = await _artwork_image_fallback_map(db, products)
     out: list[dict] = []
     for p in products:
@@ -110,6 +124,7 @@ async def _products_to_out_dicts(db: AsyncSession, products: list[Product]) -> l
                 d["sizes"] = extra["sizes"]
             if extra.get("colors") is not None:
                 d["colors"] = extra["colors"]
+        d = _localize_product_dict(d, locale)
         out.append(d)
     return out
 
@@ -163,6 +178,7 @@ async def list_products(
     category: str | None = Query(None),
     status: str | None = Query(None),
     is_impact_product: bool | None = Query(None),
+    locale: str = Query("zh", pattern="^(zh|en)$"),
     db: AsyncSession = Depends(get_db),
 ):
     """List products with optional filtering."""
@@ -174,7 +190,7 @@ async def list_products(
         result = await db.execute(stmt)
         products = result.scalars().all()
         return PaginatedResponse(
-            data=await _products_to_out_dicts(db, list(products)),
+            data=await _products_to_out_dicts(db, list(products), locale=locale),
             total=total,
             page=page,
             page_size=page_size,
@@ -192,6 +208,8 @@ async def list_products(
             filtered = [p for p in filtered if p["status"] == status]
         if is_impact_product is not None:
             filtered = [p for p in filtered if p.get("is_impact_product", False) == is_impact_product]
+        for p in filtered:
+            _localize_product_dict(p, locale)
         start = (page - 1) * page_size
         return PaginatedResponse(
             data=filtered[start : start + page_size],
@@ -288,19 +306,21 @@ async def list_origin_regions(
 
 
 @router.get("/featured", response_model=ApiResponse)
-async def list_featured_products(db: AsyncSession = Depends(get_db)):
+async def list_featured_products(locale: str = Query("zh", pattern="^(zh|en)$"), db: AsyncSession = Depends(get_db)):
     """List featured products (active with stock, limit 8)."""
     try:
         stmt = select(Product).where(Product.status == "active", Product.stock > 0).limit(8)
         result = await db.execute(stmt)
         products = result.scalars().all()
-        return ApiResponse(data=await _products_to_out_dicts(db, list(products)))
+        return ApiResponse(data=await _products_to_out_dicts(db, list(products), locale=locale))
     except HTTPException:
         raise
     except Exception:
         if not settings.DEMO_MODE:
             raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         featured = [p for p in _mock_products if p["status"] == "active" and p["stock"] > 0][:8]
+        for p in featured:
+            _localize_product_dict(p, locale)
         return ApiResponse(data=featured)
 
 
@@ -367,7 +387,7 @@ async def get_product_artwork(product_id: int, db: AsyncSession = Depends(get_db
 
 
 @router.get("/{product_id}", response_model=ApiResponse)
-async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
+async def get_product(product_id: int, locale: str = Query("zh", pattern="^(zh|en)$"), db: AsyncSession = Depends(get_db)):
     """Get a single product by ID."""
     try:
         stmt = select(Product).where(Product.id == product_id)
@@ -375,7 +395,7 @@ async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
         product = result.scalar_one_or_none()
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
-        data = (await _products_to_out_dicts(db, [product]))[0]
+        data = (await _products_to_out_dicts(db, [product], locale=locale))[0]
         return ApiResponse(data=data)
     except HTTPException:
         raise
