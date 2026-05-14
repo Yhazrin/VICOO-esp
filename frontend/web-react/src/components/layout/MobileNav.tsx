@@ -150,11 +150,13 @@ export default function MobileNav() {
                 ? IMPACT_TABS.map((tab, index) =>
                     renderNavItem(tab.key, t(`nav.${tab.key}`), index, activeImpactTab === tab.key, () => {
                       setActiveImpactTab(tab.key);
-                      if (tab.key === 'shop') {
-                        if (location.pathname !== '/' && location.pathname.startsWith('/impact/shop')) {
-                          navigate('/', { replace: true });
-                        }
-                      } else if (location.pathname.startsWith('/impact/shop')) {
+                      if (location.pathname === '/') {
+                        setMobileNavOpen(false);
+                        return;
+                      }
+                      if (tab.key === 'shop' && location.pathname.startsWith('/impact/shop')) {
+                        navigate('/', { replace: true });
+                      } else {
                         navigate('/');
                       }
                       setMobileNavOpen(false);

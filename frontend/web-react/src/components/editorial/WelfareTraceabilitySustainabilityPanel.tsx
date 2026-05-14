@@ -76,13 +76,13 @@ export default function WelfareTraceabilitySustainabilityPanel() {
 
         <div className="flex flex-wrap gap-4 mt-8">
           <Link
-            to="/impact?tab=traceability"
+            to="/shop"
             className="inline-flex font-body text-label tracking-[0.18em] uppercase px-6 py-3 border-2 border-rust text-rust hover:bg-rust hover:text-paper transition-colors duration-300"
           >
             {t('campaigns.sustainabilityLoop.ctaTraceability')}
           </Link>
           <Link
-            to="/impact?tab=shop"
+            to="/impact/shop"
             className="inline-flex font-body text-label tracking-[0.18em] uppercase px-6 py-3 border border-warm-gray/50 text-ink hover:border-ink transition-colors duration-300"
           >
             {t('campaigns.sustainabilityLoop.ctaShop')}

@@ -18,18 +18,8 @@ import Pagination from '../components/ui/Pagination';
 import StatusBadge from '../components/ui/StatusBadge';
 import Button from '../components/ui/Button';
 import { fetchClothingIntakes, updateClothingIntakeStatus } from '../services/api';
+import type { ClothingDonationItem } from '../types';
 import dayjs from 'dayjs';
-
-interface ClothingDonationItem {
-  id: string;
-  garmentTypes: string;
-  quantityEstimate: number | null;
-  pickupAddress: string;
-  contactPhone: string;
-  conditionNotes: string;
-  status: string;
-  createdAt: string;
-}
 
 export default function ClothingDonationPage() {
   const { t } = useTranslation();
@@ -127,7 +117,7 @@ export default function ClothingDonationPage() {
         <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 4, fontFamily: 'var(--font-body)' }}>
           {t('clothingDonation.title')}
         </h1>
-        <p style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
+        <p style={{ fontSize: 13, color: 'var(--color-text-2)' }}>
           {t('clothingDonation.description')}
         </p>
       </div>

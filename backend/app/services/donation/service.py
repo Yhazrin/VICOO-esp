@@ -11,6 +11,7 @@ from app.models.donation import Donation
 from app.models.campaign import Campaign
 from app.services.base import BaseService
 from app.core.audit import audit_action
+from app.services.donation.certificate import build_certificate_payload
 
 from app.utils.cache import cached
 
@@ -23,11 +24,12 @@ class DonationService(BaseService):
 
     @cached(prefix="donations:list", ttl=60)
     async def list_donations(
-        self, 
-        page: int = 1, 
-        page_size: int = 20, 
-        campaign_id: Optional[int] = None, 
-        status: Optional[str] = None
+        self,
+        page: int = 1,
+        page_size: int = 20,
+        campaign_id: Optional[int] = None,
+        status: Optional[str] = None,
+        keyword: Optional[str] = None
     ) -> Tuple[List[Donation], int]:
         """
         List donations with pagination and filters.
@@ -37,13 +39,19 @@ class DonationService(BaseService):
             stmt = stmt.where(Donation.campaign_id == campaign_id)
         if status:
             stmt = stmt.where(Donation.status == status)
-        
+        if keyword:
+            like = f"%{keyword}%"
+            stmt = stmt.where(Donation.donor_name.ilike(like))
+
         # Count total
         count_stmt = select(func.count(Donation.id))
         if campaign_id is not None:
             count_stmt = count_stmt.where(Donation.campaign_id == campaign_id)
         if status:
             count_stmt = count_stmt.where(Donation.status == status)
+        if keyword:
+            like = f"%{keyword}%"
+            count_stmt = count_stmt.where(Donation.donor_name.ilike(like))
         
         total = (await self.db.execute(count_stmt)).scalar() or 0
         
@@ -121,7 +129,7 @@ class DonationService(BaseService):
         # Format: TH-DON-YYYYMMDD-ID
         date_str = datetime.now().strftime("%Y%m%d")
         donation.certificate_no = f"TH-DON-{date_str}-{donation.id:06d}"
-        donation.certificate_url = f"/api/donations/{donation.id}/certificate"
+        donation.certificate_url = build_certificate_payload(donation)["certificate_url"]
         
         await self.db.flush()
         return donation

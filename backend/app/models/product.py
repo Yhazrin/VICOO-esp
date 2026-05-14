@@ -35,7 +35,7 @@ class Product(Base):
     )
     # Circular commerce: sustainability fields
     source_clothing_intake_id = Column(Integer, ForeignKey("clothing_intakes.id"), nullable=True, index=True)
-    sustainability_score = Column(DECIMAL(3, 2), nullable=True)
+    sustainability_score = Column(DECIMAL(5, 2), nullable=True)
     sustainability_details = Column(JSON, nullable=True)
     # Impact / public welfare fields
     is_impact_product = Column(Boolean, default=False, nullable=False, index=True)

@@ -54,9 +54,6 @@ export default function ScrollNarrative() {
       const rect = container.getBoundingClientRect();
       const vh = window.innerHeight;
       const ch = container.offsetHeight;
-      // rect.top is 0 when the sticky container is pinned at viewport top.
-      // As user scrolls down, rect.top goes negative (container scrolls up).
-      // scrollProgress = how far through the 500vh container we've scrolled.
       const scrolled = -rect.top;
       const total = ch - vh;
       setScrollProgress(Math.max(0, Math.min(1, scrolled / total)));

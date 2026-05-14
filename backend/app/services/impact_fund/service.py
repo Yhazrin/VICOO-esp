@@ -82,6 +82,8 @@ class ImpactFundService(BaseService):
                 if artwork:
                     artist_name = artwork.artist_name
                     child_participant_id = artwork.child_participant_id
+                    if artwork.child_participant:
+                        school_name = artwork.child_participant.school
 
             # 60% to artist
             entries.append(ImpactFundEntry(
