@@ -8,6 +8,7 @@ import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
 import { supplyChainApi } from '@/services/supply-chain';
+import type { TraceMediaItem } from '@/types';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 import { MagazineDivider } from '@/components/editorial/MagazineDivider';
 
@@ -30,6 +31,7 @@ interface EnhancedSupplyChainRecord {
   timestamp?: string;
   created_at?: string;
   materials?: { name: string; origin: string; certified: boolean }[];
+  gallery?: TraceMediaItem[];
 }
 
 function normalizeStageKey(stage: string): string {
@@ -419,7 +421,7 @@ export default function Traceability() {
             stageLabel: stageLabelFromBackend(r.stage || stage, t),
             description: r.description,
             location: r.location,
-            date: r.timestamp ? r.timestamp.split('T')[0] : '',
+            date: r.timestamp?.split('T')[0] || r.created_at?.split('T')[0] || '',
             verified,
             certified: r.certified,
             partnerName: r.artisan?.name ?? r.productName ?? '',
@@ -431,6 +433,7 @@ export default function Traceability() {
             timestamp: r.timestamp,
             created_at: r.created_at,
             materials: r.materials,
+            gallery: r.gallery ?? [],
           };
         });
         setRecords(mapped);
@@ -467,11 +470,11 @@ export default function Traceability() {
       setIsSearching(true);
 
       supplyChainApi
-        .trace(query.trim())
-        .then((traceData) => {
-          if (traceData.records.length > 0) {
-            setTracedProductId(traceData.product_id ?? null);
-            const first = traceData.records[0];
+        .getProductJourney(query.trim())
+        .then((records) => {
+          if (records.length > 0) {
+            const first = records[0];
+            setTracedProductId(first.product_id != null ? Number(first.product_id) : null);
             const stage = normalizeStageKey(first.stage || 'unknown');
             const verified = first.certified ?? (first.certifications?.length ?? 0) > 0;
             const enhanced: EnhancedSupplyChainRecord = {
@@ -480,10 +483,10 @@ export default function Traceability() {
               stageLabel: stageLabelFromBackend(first.stage || stage, t),
               description: first.description,
               location: first.location,
-              date: first.timestamp ? first.timestamp.split('T')[0] : '',
+              date: first.timestamp?.split('T')[0] || first.created_at?.split('T')[0] || '',
               verified,
               certified: first.certified,
-              partnerName: first.artisan?.name ?? traceData.product_name ?? first.productName ?? '',
+              partnerName: first.artisan?.name ?? first.productName ?? '',
               carbonFootprint: first.carbon_kg ?? undefined,
               story: first.description,
               imageUrl: first.artisan?.imageUrl ?? `https://picsum.photos/seed/${stage}/200/200`,
@@ -492,6 +495,7 @@ export default function Traceability() {
               timestamp: first.timestamp,
               created_at: first.created_at,
               materials: first.materials,
+              gallery: first.gallery ?? [],
             };
             setHighlightedId(enhanced.id);
             setSearchResult(enhanced);
@@ -637,13 +641,13 @@ export default function Traceability() {
           </p>
           <div className="flex flex-wrap gap-4 relative z-10">
             <Link
-              to="/impact?tab=campaigns"
+              to="/campaigns"
               className="font-body text-label tracking-[0.15em] uppercase text-rust border-b border-rust/40 pb-0.5 hover:border-rust transition-colors"
             >
               {t('traceability.welfareMaterialBridge.linkCampaigns')}
             </Link>
             <Link
-              to="/impact?tab=shop"
+              to="/impact/shop"
               className="font-body text-label tracking-[0.15em] uppercase text-rust border-b border-rust/40 pb-0.5 hover:border-rust transition-colors"
             >
               {t('traceability.welfareMaterialBridge.linkShop')}

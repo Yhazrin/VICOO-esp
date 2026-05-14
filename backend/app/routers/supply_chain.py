@@ -170,3 +170,26 @@ async def patch_record(
     except Exception as e:
         logger.error(f"Failed to update record: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@router.delete("/records/{record_id}", response_model=ApiResponse)
+async def delete_record(
+    record_id: int,
+    db: AsyncSession = Depends(get_db),
+    _current_user: dict = Depends(require_role("admin", "editor")),
+):
+    """Delete a supply chain record (admin/editor)."""
+    try:
+        stmt = select(SupplyChainRecord).where(SupplyChainRecord.id == record_id)
+        result = await db.execute(stmt)
+        record = result.scalar_one_or_none()
+        if not record:
+            raise HTTPException(status_code=404, detail="Record not found")
+        await db.delete(record)
+        await db.flush()
+        return ApiResponse(data={"deleted": True})
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to delete record: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")

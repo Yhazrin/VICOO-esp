@@ -143,8 +143,6 @@ export interface SupplyChainTimelineRecord {
   gallery?: TraceMediaItem[];
 }
 
-export interface SupplyChainRecord extends SupplyChainTimelineRecord {}
-
 export interface DonationTier {
   id: number;
   amount: number;
@@ -161,11 +159,11 @@ export interface Donation {
   currency: string;
   payment_method?: 'wechat' | 'alipay' | 'stripe' | 'paypal';
   tierId?: number;
-  campaignId?: number;
+  campaign_id?: number;
   message?: string;
   is_anonymous: boolean;
   status: 'pending' | 'completed' | 'failed' | 'refunded';
-  createdAt: string;
+  created_at: string;
   transactionId?: string;
   donationId?: number;
   certificate_no?: string;

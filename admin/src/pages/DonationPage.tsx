@@ -50,7 +50,7 @@ export default function DonationPage() {
     )},
     { key: 'paymentMethod', title: t('donation.colChannel'), width: 120, render: (v) => getPaymentLabel(v) },
     { key: 'campaignTitle', title: t('donation.colAssignedProject'), minWidth: 200, render: (v) => v || '-' },
-    { key: 'status', title: t('donation.colState'), width: 120, render: (v) => <StatusBadge status={v} /> },
+    { key: 'status', title: t('donation.colState'), width: 120, render: (v) => <StatusBadge status={v} context="donation" /> },
     { key: 'isAnonymous', title: t('donation.colAnon'), width: 80, render: (v) => v ? t('common.yes') : t('common.no') },
     { key: 'createdAt', title: t('donation.colRecordedAt'), width: 160, sorter: true, render: (v) => dayjs(v).format('YYYY-MM-DD HH:mm') },
   ];
@@ -121,10 +121,10 @@ export default function DonationPage() {
         </select>
         <select value={paymentFilter} onChange={(e) => setPaymentFilter(e.target.value)} style={filterStyle}>
           <option value="">{t('donation.filterAllChannels')}</option>
-          <option value="wechat">WeChat Pay</option>
-          <option value="alipay">Alipay</option>
-          <option value="stripe">Stripe</option>
-          <option value="paypal">PayPal</option>
+          <option value="wechat">{t('donation.paymentWechat')}</option>
+          <option value="alipay">{t('donation.paymentAlipay')}</option>
+          <option value="stripe">{t('donation.paymentStripe')}</option>
+          <option value="paypal">{t('donation.paymentPaypal')}</option>
         </select>
       </div>
 

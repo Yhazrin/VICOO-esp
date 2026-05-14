@@ -33,8 +33,8 @@ const AiAssistant = lazy(() => import('@/pages/AiAssistant'));
 const Checkout = lazy(() => import('@/pages/Checkout'));
 const AiDesign = lazy(() => import('@/pages/AiDesign'));
 const SupplyChainStudio = lazy(() => import('@/pages/SupplyChainStudio'));
-const Campaigns = lazy(() => import('@/pages/Campaigns'));
-const CampaignDetail = lazy(() => import('@/pages/CampaignDetail'));
+const ClothingRecycle = lazy(() => import('@/pages/ClothingRecycle'));
+const DonateClothing = lazy(() => import('@/pages/DonateClothing'));
 
 function normalizeLang(code: string | undefined) {
   if (!code) return '';
@@ -62,7 +62,12 @@ function AnimatedRoutes() {
 
   return (
     <ErrorBoundary>
-      <Suspense fallback={<div style={{ minHeight: '60vh' }} />}>
+      <Suspense fallback={
+        <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 animate-pulse">
+          <div className="w-10 h-10 rounded-full bg-warm-gray/30" />
+          <div className="w-32 h-3 rounded bg-warm-gray/20" />
+        </div>
+      }>
       <SmoothTransition>
         {/* Do not key Routes by pathname — that remounts Layout/Header on every navigation (feels like a full reload). */}
         <Routes location={location}>
@@ -91,6 +96,8 @@ function AnimatedRoutes() {
             <Route path="support" element={<ErrorBoundary><Support /></ErrorBoundary>} />
             <Route path="ai-design" element={<ErrorBoundary><AiDesign /></ErrorBoundary>} />
             <Route path="studio/supply-chain" element={<ErrorBoundary><SupplyChainStudio /></ErrorBoundary>} />
+            <Route path="clothing-recycle" element={<ErrorBoundary><ClothingRecycle /></ErrorBoundary>} />
+            <Route path="donate-clothing" element={<ErrorBoundary><DonateClothing /></ErrorBoundary>} />
             <Route path="assistant" element={<ErrorBoundary><AiAssistant /></ErrorBoundary>} />
             <Route path="privacy" element={<ErrorBoundary><Privacy /></ErrorBoundary>} />
             <Route path="terms" element={<ErrorBoundary><Terms /></ErrorBoundary>} />

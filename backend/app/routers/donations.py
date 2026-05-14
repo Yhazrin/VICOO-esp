@@ -76,13 +76,14 @@ async def list_donations(
     page_size: int = Query(20, ge=1, le=100),
     campaign_id: int | None = Query(None),
     status: str | None = Query(None),
+    search: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
     current_user: dict | None = Depends(get_optional_current_user),
 ):
     """List donations with optional filters."""
     donation_service = DonationService(db)
     try:
-        donations, total = await donation_service.list_donations(page, page_size, campaign_id, status)
+        donations, total = await donation_service.list_donations(page, page_size, campaign_id, status, keyword=search)
         items = []
         for d in donations:
             item = DonationOut.model_validate(d).model_dump()

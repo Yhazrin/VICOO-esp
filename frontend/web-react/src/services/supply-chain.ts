@@ -57,12 +57,6 @@ export type SupplyChainRecordPatchPayload = Partial<
   Omit<SupplyChainRecordCreatePayload, 'product_id' | 'stage'>
 >;
 
-export interface TraceResponse {
-  product_id: number;
-  product_name: string;
-  records: SupplyChainRecord[];
-}
-
 function normalizeRecordList(data: unknown): SupplyChainRecord[] {
   if (Array.isArray(data)) {
     return data as SupplyChainRecord[];
@@ -116,19 +110,4 @@ export const supplyChainApi = {
     return response.data.data as { url: string; mime: string };
   },
 
-  trace: async (productId: string | number): Promise<TraceResponse> => {
-    const response = await api.get(`/supply-chain/trace/${productId}`);
-    return response.data.data;
-  },
-
-  getStages: (): { key: string; label: string; order: number }[] => {
-    // Static fallback — backend has no /stages endpoint
-    return [
-      { key: 'material_sourcing', label: 'Material Sourcing', order: 1 },
-      { key: 'processing', label: 'Processing', order: 2 },
-      { key: 'manufacturing', label: 'Manufacturing', order: 3 },
-      { key: 'quality_check', label: 'Quality Check', order: 4 },
-      { key: 'shipping', label: 'Shipping', order: 5 },
-    ];
-  },
 };
