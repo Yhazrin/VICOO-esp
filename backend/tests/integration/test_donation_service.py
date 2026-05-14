@@ -3,6 +3,7 @@ from decimal import Decimal
 from app.services.donation.service import DonationService
 from app.services.payment.service import PaymentService
 from app.models.donation import Donation
+from app.services.donation.certificate import build_certificate_payload, generate_certificate_pdf
 
 @pytest.mark.asyncio
 async def test_donation_payment_loop(app):
@@ -52,5 +53,10 @@ async def test_donation_payment_loop(app):
         assert updated_donation.certificate_no is not None
         assert updated_donation.certificate_no.startswith("TH-DON-")
         assert updated_donation.certificate_url is not None
+
+        payload = build_certificate_payload(updated_donation, campaign_title="Test Campaign")
+        pdf_bytes = generate_certificate_pdf(payload)
+        assert pdf_bytes.startswith(b"%PDF-1.4")
+        assert payload["certificate_pdf_url"].endswith("/certificate/pdf")
         
         print(f"Verified loop: Donation {donation.id} -> Certificate {updated_donation.certificate_no}")

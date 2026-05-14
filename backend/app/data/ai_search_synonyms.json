@@ -1,0 +1,26 @@
+{
+  "aliases": {
+    "tshirt": ["tshirt", "tee", "t-shirt", "tee-shirt", "t恤", "短袖", "T-shirt"],
+    "bag": ["bag", "bags", "tote", "tote bag", "backpack", "包", "袋", "帆布包", "帆布袋", "托特", "背包"],
+    "clothing": ["clothing", "clothes", "wear", "apparel", "衣物", "衣服", "服装"],
+    "impact": ["impact", "charity", "donation", "sustainable", "公益", "慈善", "捐赠", "可持续", "环保"],
+    "traceability": ["traceability", "trace", "origin", "supply chain", "溯源", "供应链", "产地"]
+  },
+  "fragments": [
+    "包",
+    "袋",
+    "帆布袋",
+    "托特",
+    "背包",
+    "衣物",
+    "衣服",
+    "服装",
+    "t恤",
+    "短袖",
+    "公益",
+    "可持续",
+    "环保",
+    "捐赠",
+    "溯源"
+  ]
+}

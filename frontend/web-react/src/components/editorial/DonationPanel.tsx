@@ -56,9 +56,12 @@ export default function DonationPanel({
   const [paymentMethod, setPaymentMethod] = useState<'wechat' | 'alipay' | 'stripe' | 'paypal'>('wechat');
   const [anonymous, setAnonymous] = useState(false);
   const [message, setMessage] = useState('');
-  const [error, setError] = useState<string>('');
-
   const activeAmount = customAmount ? Number(customAmount) : selectedAmount;
+  const selectedTier = useMemo(
+    () => apiTiers?.find((tier) => tier.amount === activeAmount) ?? null,
+    [activeAmount, apiTiers]
+  );
+  const [error, setError] = useState<string>('');
 
   const validateAmount = (amount: number): string => {
     if (isNaN(amount) || amount <= 0) {
@@ -173,6 +176,17 @@ export default function DonationPanel({
             </motion.button>
           ))}
         </div>
+
+        {selectedTier && (
+          <div className="mb-8 border border-warm-gray/30 bg-aged-stock p-4">
+            <p className="font-display text-lg font-bold text-ink">
+              {selectedTier.label}
+            </p>
+            <p className="mt-2 font-body text-body-sm text-ink-faded leading-relaxed">
+              {selectedTier.description}
+            </p>
+          </div>
+        )}
 
         {/* Custom Amount */}
         <div className="mb-8">
