@@ -62,7 +62,9 @@ REGULAR_CATALOG: list[dict] = [
     },
     {
         "name": "男士轻盈便携保暖外套",
+        "name_en": "Men's Light Packable Warm Jacket",
         "description": "高蓬松羽绒填充，防泼水面料，可收纳成小袋。应对换季与差旅温差，轻量不臃肿。（风格参考轻型羽绒外套品类）",
+        "description_en": "High-loft down fill, DWR shell, packs into a small pouch. Handles seasonal transitions and travel temperature swings without bulk.",
         "price": Decimal("499.00"),
         "currency": "CNY",
         "image_url": f"{_U}/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=900&q=80",
@@ -74,7 +76,9 @@ REGULAR_CATALOG: list[dict] = [
     },
     {
         "name": "女装凉感速干圆领T恤",
+        "name_en": "Women's Cool-Dry Crew Tee",
         "description": "透气针织结构，吸湿速干，触感清凉。适合叠穿与运动休闲场景。（风格参考凉感功能针织系列）",
+        "description_en": "Breathable knit structure, moisture-wicking and quick-dry, cool touch. Ideal for layering or sports casual.",
         "price": Decimal("79.00"),
         "currency": "CNY",
         "image_url": f"{_U}/photo-1576566588118-864fb183a329?auto=format&fit=crop&w=900&q=80",
@@ -86,7 +90,9 @@ REGULAR_CATALOG: list[dict] = [
     },
     {
         "name": "高性能弹力束脚慢跑裤",
+        "name_en": "High-Performance Stretch Jogger",
         "description": "四向弹力面料，腰部抽绳，裤脚微收。快干透气，从通勤到轻运动一条搞定。（风格参考高弹慢跑裤）",
+        "description_en": "Four-way stretch fabric, drawstring waist, slightly tapered cuffs. Quick-dry and breathable — one pair handles commute to light workout.",
         "price": Decimal("199.00"),
         "currency": "CNY",
         "image_url": f"{_U}/photo-1517438476312-10d79c077509?auto=format&fit=crop&w=900&q=80",
@@ -98,7 +104,9 @@ REGULAR_CATALOG: list[dict] = [
     },
     {
         "name": "免烫通勤弹力卡其裤",
+        "name_en": "Wrinkle-Free Commuter Stretch Chinos",
         "description": "中腰直筒，抗皱处理，久坐不易变形。商务休闲通用。（风格参考易打理弹力长裤）",
+        "description_en": "Mid-rise straight leg, wrinkle-resistant finish, holds shape through long sits. Business casual versatile.",
         "price": Decimal("249.00"),
         "currency": "CNY",
         "image_url": f"{_U}/photo-1624378511005-6ffabeee817f?auto=format&fit=crop&w=900&q=80",
@@ -110,7 +118,9 @@ REGULAR_CATALOG: list[dict] = [
     },
     {
         "name": "美利奴混纺圆领针织衫",
+        "name_en": "Merino Blend Crewneck Knit",
         "description": "美利奴与棉混纺，细腻贴肤，可机洗。春秋单穿、冬季内搭皆宜。",
+        "description_en": "Merino-cotton blend, fine and skin-friendly, machine-washable. Wear alone in spring/autumn or as a base layer in winter.",
         "price": Decimal("299.00"),
         "currency": "CNY",
         "image_url": f"{_U}/photo-1576871337622-98d48c1b874b?auto=format&fit=crop&w=900&q=80",
@@ -122,7 +132,9 @@ REGULAR_CATALOG: list[dict] = [
     },
     {
         "name": "拉链式连帽休闲卫衣",
+        "name_en": "Zip-Up Hoodie",
         "description": "内里轻刷毛，拉链全开方便叠穿。城市骑行与周末散步的默认外套。",
+        "description_en": "Lightly brushed interior, full-zip for easy layering. The default outer layer for city rides and weekend walks.",
         "price": Decimal("249.00"),
         "currency": "CNY",
         "image_url": f"{_U}/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=900&q=80",
@@ -134,7 +146,9 @@ REGULAR_CATALOG: list[dict] = [
     },
     {
         "name": "经典窄口直筒牛仔裤",
+        "name_en": "Classic Slim Straight Jeans",
         "description": "中弹丹宁，窄口直筒修饰腿型。水洗自然，耐穿不易形变。",
+        "description_en": "Mid-stretch denim, slim-straight cut flatters the leg. Natural wash, durable and shape-retaining.",
         "price": Decimal("299.00"),
         "currency": "CNY",
         "image_url": f"{_U}/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=900&q=80",
@@ -146,7 +160,9 @@ REGULAR_CATALOG: list[dict] = [
     },
     {
         "name": "长绒摇粒绒拉链外套",
+        "name_en": "Sherpa Zip Jacket",
         "description": "双面长绒锁温，立领设计防风。居家与户外轻徒步皆可。（风格参考抓绒外套品类）",
+        "description_en": "Double-sided sherpa fleece locks in warmth, stand collar blocks wind. Works for home and light outdoor hiking.",
         "price": Decimal("199.00"),
         "currency": "CNY",
         "image_url": f"{_U}/photo-1591047139829-d91aecb6c9d5?auto=format&fit=crop&w=900&q=80",
@@ -158,7 +174,9 @@ REGULAR_CATALOG: list[dict] = [
     },
     {
         "name": "防泼水连帽功能风衣",
+        "name_en": "Water-Repellent Hooded Utility Jacket",
         "description": "轻量尼龙复合，防泼水涂层，帽檐可调节。折叠体积小，适合雨季与海边风大天气。",
+        "description_en": "Lightweight nylon blend, water-repellent coating, adjustable hood. Packs small — ideal for rainy season and windy coastal days.",
         "price": Decimal("399.00"),
         "currency": "CNY",
         "image_url": f"{_U}/photo-1539533018447-63fcce2678e3?auto=format&fit=crop&w=900&q=80",
@@ -170,7 +188,9 @@ REGULAR_CATALOG: list[dict] = [
     },
     {
         "name": "女式高腰针织直筒半裙",
+        "name_en": "Women's High-Waist Knit Straight Skirt",
         "description": "罗纹针织垂坠感，高腰直筒轮廓。搭配凉感T恤或针织开衫皆可。",
+        "description_en": "Ribbed knit with draped fall, high-waist straight silhouette. Pairs with cool-dry tees or knit cardigans.",
         "price": Decimal("179.00"),
         "currency": "CNY",
         "image_url": f"{_U}/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=900&q=80",
@@ -221,7 +241,9 @@ def regular_catalog_mock_dicts(start_id: int = 20) -> list[dict]:
         d = {
             "id": start_id + i,
             "name": spec["name"],
+            "name_en": spec.get("name_en"),
             "description": spec["description"],
+            "description_en": spec.get("description_en"),
             "price": str(spec["price"]),
             "currency": spec["currency"],
             "image_url": spec["image_url"],

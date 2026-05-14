@@ -146,7 +146,19 @@ _mock_products = [
 
 
 def _merge_product_mock_i18n(rows: list[dict]) -> None:
+    """Merge English translations into mock products.
+
+    For products where REGULAR_CATALOG already provides name_en/description_en
+    (from default_regular_products.py), keep those — don't overwrite with the
+    PRODUCT_I18N_BY_NAME_ZH lookup (which only matches on Chinese names).
+
+    For impact products with Chinese names, fill name_en/description_en from
+    PRODUCT_I18N_BY_NAME_ZH so the locale-based switching works in DEMO_MODE.
+    """
     for p in rows:
+        # Skip if this product already has name_en from REGULAR_CATALOG
+        if p.get("name_en"):
+            continue
         m = PRODUCT_I18N_BY_NAME_ZH.get(str(p.get("name", "")).strip())
         if not m:
             continue
