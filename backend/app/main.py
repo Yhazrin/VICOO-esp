@@ -127,7 +127,7 @@ async def request_size_limit_middleware(request: Request, call_next):
             pass
     return await call_next(request)
 
-# Rate Limiting
+# Rate Limiting — fail-open: let the request through when rate-limit infra is broken
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
     if "/health" in request.url.path:
@@ -140,11 +140,7 @@ async def rate_limit_middleware(request: Request, call_next):
     except HTTPException:
         raise
     except Exception as e:
-        if settings.APP_ENV != "development":
-            return JSONResponse(
-                status_code=503,
-                content={"success": False, "data": None, "message": "Service temporarily unavailable"},
-            )
+        logger.warning("Rate limiting failed, allowing request: %s", e)
     return await call_next(request)
 
 # Security headers

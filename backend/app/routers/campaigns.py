@@ -43,8 +43,6 @@ async def list_campaigns(
         )
     except Exception as e:
         logger.error(f"Failed to list campaigns: {e}")
-        if not settings.DEMO_MODE:
-            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         return PaginatedResponse(data=[], total=0, page=page, page_size=page_size)
 
 @router.get("/active", response_model=ApiResponse)
@@ -55,8 +53,6 @@ async def get_active_campaign(db: AsyncSession = Depends(get_db)):
         campaign = await service.get_active_campaign()
         return ApiResponse(data=CampaignOut.model_validate(campaign).model_dump())
     except Exception:
-        if not settings.DEMO_MODE:
-            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         return ApiResponse(data=_mock_campaigns[0])
 
 @router.get("/{campaign_id}", response_model=ApiResponse)

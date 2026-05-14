@@ -124,21 +124,50 @@ async def list_artworks(
         )
     except HTTPException:
         raise
-    except Exception:
-        if not settings.DEMO_MODE:
-            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
-        filtered = _mock_artworks
-        if status:
-            filtered = [a for a in filtered if a["status"] == status]
-        if campaign_id is not None:
-            filtered = [a for a in filtered if a.get("campaign_id") == campaign_id]
-        start = (page - 1) * page_size
-        return PaginatedResponse(
-            data=filtered[start : start + page_size],
-            total=len(filtered),
-            page=page,
-            page_size=page_size,
-        )
+    except Exception as e:
+        logger.warning("list_artworks primary query failed (%s), retrying without child_participant", e)
+        # Fallback: query without selectinload if child_participants relationship breaks
+        try:
+            stmt = select(Artwork)
+            if status:
+                stmt = stmt.where(Artwork.status == status)
+            if campaign_id is not None:
+                stmt = stmt.where(Artwork.campaign_id == campaign_id)
+            if search:
+                like = f"%{search}%"
+                stmt = stmt.where(Artwork.title.ilike(like) | Artwork.description.ilike(like))
+            count_stmt = select(func.count(Artwork.id))
+            if status:
+                count_stmt = count_stmt.where(Artwork.status == status)
+            if campaign_id is not None:
+                count_stmt = count_stmt.where(Artwork.campaign_id == campaign_id)
+            if search:
+                like = f"%{search}%"
+                count_stmt = count_stmt.where(Artwork.title.ilike(like) | Artwork.description.ilike(like))
+            total = (await db.execute(count_stmt)).scalar() or 0
+            stmt = stmt.offset((page - 1) * page_size).limit(page_size)
+            result = await db.execute(stmt)
+            artworks = result.scalars().all()
+            return PaginatedResponse(
+                data=[_serialize_artwork(a) for a in artworks],
+                total=total,
+                page=page,
+                page_size=page_size,
+            )
+        except Exception as e2:
+            logger.error("list_artworks fallback also failed: %s", e2, exc_info=True)
+            filtered = _mock_artworks
+            if status:
+                filtered = [a for a in filtered if a["status"] == status]
+            if campaign_id is not None:
+                filtered = [a for a in filtered if a.get("campaign_id") == campaign_id]
+            start = (page - 1) * page_size
+            return PaginatedResponse(
+                data=filtered[start : start + page_size],
+                total=len(filtered),
+                page=page,
+                page_size=page_size,
+            )
 
 
 @router.get("/mine", response_model=ApiResponse)
@@ -161,7 +190,7 @@ async def list_my_artworks(
         raise
     except Exception as e:
         logger.error(f"Failed to list user artworks: {e}", exc_info=True)
-        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+        return ApiResponse(data=[])
 
 
 @router.get("/featured", response_model=ApiResponse)
@@ -175,8 +204,6 @@ async def list_featured_artworks(db: AsyncSession = Depends(get_db)):
     except HTTPException:
         raise
     except Exception:
-        if not settings.DEMO_MODE:
-            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         featured = [a for a in _mock_artworks if a["status"] == "featured"][:8]
         return ApiResponse(data=featured)
 
@@ -209,8 +236,6 @@ async def get_artwork(artwork_id: int, db: AsyncSession = Depends(get_db)):
     except HTTPException:
         raise
     except Exception:
-        if not settings.DEMO_MODE:
-            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         for a in _mock_artworks:
             if a["id"] == artwork_id:
                 return ApiResponse(data=a)
@@ -304,8 +329,6 @@ async def get_artwork_status(artwork_id: int, db: AsyncSession = Depends(get_db)
     except HTTPException:
         raise
     except Exception:
-        if not settings.DEMO_MODE:
-            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         for a in _mock_artworks:
             if a["id"] == artwork_id:
                 return ApiResponse(data={"id": a["id"], "status": a["status"]})

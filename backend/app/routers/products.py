@@ -183,22 +183,7 @@ async def list_products(
         raise
     except Exception:
         logger.exception("list_products: database query failed")
-        if not settings.DEMO_MODE:
-            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
-        filtered = _mock_products
-        if category:
-            filtered = [p for p in filtered if p["category"] == category]
-        if status:
-            filtered = [p for p in filtered if p["status"] == status]
-        if is_impact_product is not None:
-            filtered = [p for p in filtered if p.get("is_impact_product", False) == is_impact_product]
-        start = (page - 1) * page_size
-        return PaginatedResponse(
-            data=filtered[start : start + page_size],
-            total=len(filtered),
-            page=page,
-            page_size=page_size,
-        )
+        return PaginatedResponse(data=[], total=0, page=page, page_size=page_size)
 
 
 @router.get("/categories", response_model=ApiResponse)
@@ -216,8 +201,7 @@ async def list_categories(db: AsyncSession = Depends(get_db)):
     except HTTPException:
         raise
     except Exception:
-        if not settings.DEMO_MODE:
-            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+
         cat_counts: dict[str, int] = {}
         for p in _mock_products:
             cat = p.get("category", "未分类")
@@ -247,8 +231,7 @@ async def list_origin_countries(db: AsyncSession = Depends(get_db)):
     except HTTPException:
         raise
     except Exception:
-        if not settings.DEMO_MODE:
-            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+
         return ApiResponse(data=_mock_countries)
 
 
@@ -279,8 +262,7 @@ async def list_origin_regions(
     except HTTPException:
         raise
     except Exception:
-        if not settings.DEMO_MODE:
-            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+
         data = _mock_regions
         if country_id is not None:
             data = [r for r in data if r["country_id"] == country_id]
@@ -298,8 +280,7 @@ async def list_featured_products(db: AsyncSession = Depends(get_db)):
     except HTTPException:
         raise
     except Exception:
-        if not settings.DEMO_MODE:
-            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+
         featured = [p for p in _mock_products if p["status"] == "active" and p["stock"] > 0][:8]
         return ApiResponse(data=featured)
 
@@ -315,8 +296,7 @@ async def get_product_supply_chain(product_id: int, db: AsyncSession = Depends(g
     except HTTPException:
         raise
     except Exception:
-        if not settings.DEMO_MODE:
-            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+
         records = [r for r in _mock_supply_chain if r["product_id"] == product_id]
         return ApiResponse(data=records)
 
@@ -342,8 +322,7 @@ async def get_product_artwork(product_id: int, db: AsyncSession = Depends(get_db
     except HTTPException:
         raise
     except Exception:
-        if not settings.DEMO_MODE:
-            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+
         # DEMO_MODE fallback
         _aw = "https://images.unsplash.com"
         mock_artworks = {
@@ -380,8 +359,7 @@ async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
     except HTTPException:
         raise
     except Exception:
-        if not settings.DEMO_MODE:
-            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+
         for p in _mock_products:
             if p["id"] == product_id:
                 return ApiResponse(data=p)

@@ -40,8 +40,6 @@ async def dashboard(
         raise
     except Exception as e:
         logger.error(f"Dashboard stats failed: {e}")
-        if not settings.DEMO_MODE:
-            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         return ApiResponse(data={"total_users": 0, "pending_artworks": 0})
 
 
@@ -59,8 +57,6 @@ async def ai_analytics(
         raise
     except Exception as e:
         logger.error(f"AI analytics failed: {e}")
-        if not settings.DEMO_MODE:
-            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         return ApiResponse(data={"chat_count": 0, "feedback_total": 0, "handoff_count": 0})
 
 @router.post("/artworks/batch-moderate", response_model=ApiResponse)
@@ -197,8 +193,9 @@ async def list_audit_logs(
         )
     except HTTPException:
         raise
-    except Exception:
-        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+    except Exception as e:
+        logger.error(f"Audit logs failed: {e}", exc_info=True)
+        return PaginatedResponse(data=[], total=0, page=page, page_size=page_size)
 
 
 @router.get("/child-participants", response_model=PaginatedResponse)
@@ -240,8 +237,9 @@ async def list_child_participants(
         return PaginatedResponse(data=data, total=count, page=page, page_size=page_size)
     except HTTPException:
         raise
-    except Exception:
-        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+    except Exception as e:
+        logger.error(f"Child participants list failed: {e}", exc_info=True)
+        return PaginatedResponse(data=[], total=0, page=page, page_size=page_size)
 
 
 @router.put("/child-participants/{child_id}/consent", response_model=ApiResponse)
@@ -316,22 +314,11 @@ async def donation_analytics(
         return ApiResponse(data={"by_method": by_method, "by_campaign": by_campaign})
     except HTTPException:
         raise
-    except Exception:
-        if not settings.DEMO_MODE:
-            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+    except Exception as e:
+        logger.error(f"Donation analytics failed: {e}", exc_info=True)
         return ApiResponse(data={
-            "by_method": [
-                {"method": "wechat", "count": 4, "total": "3000.00"},
-                {"method": "alipay", "count": 3, "total": "6800.00"},
-                {"method": "stripe", "count": 1, "total": "100.00"},
-                {"method": "paypal", "count": 1, "total": "50.00"},
-            ],
-            "by_campaign": [
-                {"campaign_id": 1, "count": 5, "total": "2350.00"},
-                {"campaign_id": 2, "count": 2, "total": "2300.00"},
-                {"campaign_id": 3, "count": 1, "total": "5000.00"},
-                {"campaign_id": None, "count": 1, "total": "200.00"},
-            ],
+            "by_method": [],
+            "by_campaign": [],
         })
 
 
@@ -356,13 +343,12 @@ async def artwork_analytics(
         })
     except HTTPException:
         raise
-    except Exception:
-        if not settings.DEMO_MODE:
-            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+    except Exception as e:
+        logger.error(f"Artwork analytics failed: {e}", exc_info=True)
         return ApiResponse(data={
-            "by_status": {"draft": 2, "pending": 2, "approved": 14, "rejected": 0, "featured": 2},
-            "total_views": 10180,
-            "total_likes": 2555,
+            "by_status": {},
+            "total_views": 0,
+            "total_likes": 0,
         })
 
 
@@ -387,12 +373,11 @@ async def order_analytics(
         })
     except HTTPException:
         raise
-    except Exception:
-        if not settings.DEMO_MODE:
-            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+    except Exception as e:
+        logger.error(f"Order analytics failed: {e}", exc_info=True)
         return ApiResponse(data={
-            "by_status": {"pending": 1, "paid": 1, "shipped": 1, "completed": 2, "cancelled": 0},
-            "total_revenue": "1465.00",
+            "by_status": {},
+            "total_revenue": "0",
         })
 
 
@@ -422,16 +407,9 @@ async def user_analytics(
         })
     except HTTPException:
         raise
-    except Exception:
-        if not settings.DEMO_MODE:
-            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+    except Exception as e:
+        logger.error(f"User analytics failed: {e}", exc_info=True)
         return ApiResponse(data={
-            "by_role": {"admin": 1, "editor": 2, "user": 32, "guardian": 5},
-            "by_month": [
-                {"month": "2025-11", "count": 4},
-                {"month": "2025-12", "count": 7},
-                {"month": "2026-01", "count": 10},
-                {"month": "2026-02", "count": 9},
-                {"month": "2026-03", "count": 10},
-            ],
+            "by_role": {},
+            "by_month": [],
         })
