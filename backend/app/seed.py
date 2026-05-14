@@ -634,9 +634,15 @@ async def seed():
 
         await session.commit()
         print("Seed complete!")
-
-    await engine.dispose()
+    # 不要在嵌入 FastAPI 进程时 dispose 全局 engine，否则后续请求无法连库。
+    # CLI 单独跑时在 __main__ 里 finally dispose。
 
 
 if __name__ == "__main__":
-    asyncio.run(seed())
+    async def _cli():
+        try:
+            await seed()
+        finally:
+            await engine.dispose()
+
+    asyncio.run(_cli())

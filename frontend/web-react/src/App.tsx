@@ -20,6 +20,8 @@ const Login = lazy(() => import('@/pages/Login'));
 const Register = lazy(() => import('@/pages/Register'));
 const AuthCallback = lazy(() => import('@/pages/AuthCallback'));
 const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
+const Donate = lazy(() => import('@/pages/Donate'));
+const DonationCertificate = lazy(() => import('@/pages/DonationCertificate'));
 const Profile = lazy(() => import('@/pages/Profile'));
 const Privacy = lazy(() => import('@/pages/Privacy'));
 const Terms = lazy(() => import('@/pages/Terms'));
@@ -31,9 +33,6 @@ const AiAssistant = lazy(() => import('@/pages/AiAssistant'));
 const Checkout = lazy(() => import('@/pages/Checkout'));
 const AiDesign = lazy(() => import('@/pages/AiDesign'));
 const SupplyChainStudio = lazy(() => import('@/pages/SupplyChainStudio'));
-const Donate = lazy(() => import('@/pages/Donate'));
-const Campaigns = lazy(() => import('@/pages/Campaigns'));
-const CampaignDetail = lazy(() => import('@/pages/CampaignDetail'));
 const ClothingRecycle = lazy(() => import('@/pages/ClothingRecycle'));
 const DonateClothing = lazy(() => import('@/pages/DonateClothing'));
 
@@ -85,7 +84,11 @@ function AnimatedRoutes() {
             <Route path="impact/shop" element={<ErrorBoundary><ImpactShop /></ErrorBoundary>} />
             <Route path="impact/shop/:id" element={<ErrorBoundary><ProductDetail /></ErrorBoundary>} />
             <Route path="about" element={<ErrorBoundary><About /></ErrorBoundary>} />
+            <Route path="campaigns" element={<ErrorBoundary><Campaigns /></ErrorBoundary>} />
+            <Route path="campaigns/:id" element={<ErrorBoundary><CampaignDetail /></ErrorBoundary>} />
             <Route path="contact" element={<ErrorBoundary><Contact /></ErrorBoundary>} />
+            <Route path="donate" element={<ErrorBoundary><Donate /></ErrorBoundary>} />
+            <Route path="donations/:id/certificate" element={<ErrorBoundary><DonationCertificate /></ErrorBoundary>} />
             <Route path="auth/callback" element={<ErrorBoundary><AuthCallback /></ErrorBoundary>} />
             <Route path="profile" element={<ErrorBoundary><Profile /></ErrorBoundary>} />
             <Route path="orders/:id" element={<ErrorBoundary><OrderDetail /></ErrorBoundary>} />
@@ -93,9 +96,6 @@ function AnimatedRoutes() {
             <Route path="support" element={<ErrorBoundary><Support /></ErrorBoundary>} />
             <Route path="ai-design" element={<ErrorBoundary><AiDesign /></ErrorBoundary>} />
             <Route path="studio/supply-chain" element={<ErrorBoundary><SupplyChainStudio /></ErrorBoundary>} />
-            <Route path="donate" element={<ErrorBoundary><Donate /></ErrorBoundary>} />
-            <Route path="campaigns" element={<ErrorBoundary><Campaigns /></ErrorBoundary>} />
-            <Route path="campaigns/:id" element={<ErrorBoundary><CampaignDetail /></ErrorBoundary>} />
             <Route path="clothing-recycle" element={<ErrorBoundary><ClothingRecycle /></ErrorBoundary>} />
             <Route path="donate-clothing" element={<ErrorBoundary><DonateClothing /></ErrorBoundary>} />
             <Route path="assistant" element={<ErrorBoundary><AiAssistant /></ErrorBoundary>} />

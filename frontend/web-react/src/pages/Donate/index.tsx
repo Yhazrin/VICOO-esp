@@ -270,6 +270,7 @@ export default function Donate() {
   const donationErrorMessage = donateMutation.error
     ? getErrorMessage(donateMutation.error, t('donate.error'))
     : null;
+  const createdDonation = donateMutation.data;
 
   const donationStories = [
     {
@@ -314,14 +315,31 @@ export default function Donate() {
             {donateMutation.isSuccess && (
               <div className="p-4 border border-sepia-light bg-paper-warm">
                 <p className="font-body text-body-sm text-ink">
-                  {t('donate.success')}
+                  {createdDonation?.simulation_mode
+                    ? t('donate.successSimulation')
+                    : t('donate.success')}
                 </p>
-                <Link
-                  to="/profile"
-                  className="inline-block mt-2 font-body text-overline tracking-[0.15em] uppercase text-rust hover:text-ink transition-colors"
-                >
-                  {t('donate.viewHistory', 'View donation history')} &rarr;
-                </Link>
+                {createdDonation?.payment_notice && (
+                  <p className="mt-2 font-body text-caption text-ink-faded leading-relaxed">
+                    {createdDonation.payment_notice}
+                  </p>
+                )}
+                {createdDonation?.status === 'completed' && createdDonation?.donationId && (
+                  <div className="mt-4 flex flex-col sm:flex-row gap-3">
+                    <Link
+                      to={`/donations/${createdDonation.donationId}/certificate`}
+                      className="px-4 py-3 text-center font-body text-caption tracking-[0.1em] uppercase bg-rust text-paper hover:bg-archive-brown transition-colors"
+                    >
+                      {t('donate.certificate.view')}
+                    </Link>
+                    <a
+                      href="#donate-form"
+                      className="px-4 py-3 text-center font-body text-caption tracking-[0.1em] uppercase border border-warm-gray/35 text-ink hover:border-rust/35 transition-colors"
+                    >
+                      {t('donate.certificate.keepGiving')}
+                    </a>
+                  </div>
+                )}
               </div>
             )}
             {donateMutation.isError && (
