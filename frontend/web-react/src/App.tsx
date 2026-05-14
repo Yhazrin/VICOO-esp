@@ -33,6 +33,8 @@ const AiAssistant = lazy(() => import('@/pages/AiAssistant'));
 const Checkout = lazy(() => import('@/pages/Checkout'));
 const AiDesign = lazy(() => import('@/pages/AiDesign'));
 const SupplyChainStudio = lazy(() => import('@/pages/SupplyChainStudio'));
+const Campaigns = lazy(() => import('@/pages/Campaigns'));
+const CampaignDetail = lazy(() => import('@/pages/CampaignDetail'));
 const ClothingRecycle = lazy(() => import('@/pages/ClothingRecycle'));
 const DonateClothing = lazy(() => import('@/pages/DonateClothing'));
 
