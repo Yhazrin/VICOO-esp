@@ -24,12 +24,19 @@ export default function UserPage() {
   const roleColors: Record<string, string> = {
     admin: 'var(--color-accent-2)',
     editor: 'var(--color-text-3)',
-    viewer: 'var(--color-text-3)',
-    auditor: 'var(--color-accent-2)',
+    user: 'var(--color-text-3)',
+    guardian: 'var(--color-text-3)',
+    compliance: 'var(--color-accent-2)',
   };
 
   const getRoleLabel = (v: string) => {
-    const map: Record<string, string> = { admin: t('user.roleAdmin'), editor: t('user.roleEditor'), viewer: t('user.roleViewer'), auditor: t('user.roleAuditor') };
+    const map: Record<string, string> = {
+      admin: t('user.roleAdmin'),
+      editor: t('user.roleEditor'),
+      user: t('user.roleViewer'),
+      guardian: t('user.roleGuardian'),
+      compliance: t('user.roleAuditor'),
+    };
     return map[v] || v;
   };
 
@@ -44,6 +51,11 @@ export default function UserPage() {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       toast.success(t('user.toastRoleUpdated'));
       setSelectedUser(null);
+    },
+    onError: (err: unknown) => {
+      const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
+      const msg = typeof detail === 'string' ? detail : t('user.toastRoleFailed');
+      toast.error(msg);
     },
   });
 
@@ -156,8 +168,9 @@ export default function UserPage() {
               >
                 <option value="admin">{t('user.optionAdmin')}</option>
                 <option value="editor">{t('user.optionEditor')}</option>
-                <option value="viewer">{t('user.optionViewer')}</option>
-                <option value="auditor">{t('user.optionAuditor')}</option>
+                <option value="user">{t('user.optionViewer')}</option>
+                <option value="guardian">{t('user.optionGuardian')}</option>
+                <option value="compliance">{t('user.optionAuditor')}</option>
               </select>
             </div>
             <div style={{ fontSize: 12, lineHeight: 1.6, color: 'var(--color-danger)', padding: '12px 16px', background: 'var(--color-error-bg)', border: '1px solid var(--color-danger)20' }}>
