@@ -9,7 +9,7 @@ from app.database import get_db
 from app.config import settings
 from app.models.donation import Donation
 from app.models.campaign import Campaign
-from app.schemas import ApiResponse, DonationCreate, DonationOut, PaginatedResponse
+from app.schemas import ApiResponse, DonationCreate, DonationOut, DonationListPageResponse, DonationListSummaryOut, PaginatedResponse
 from app.deps import get_current_user, get_optional_current_user
 from app.services.payment_service import get_payment_service
 
@@ -48,19 +48,26 @@ def _redact_name(name: str | None, is_anonymous: bool | None = None) -> str:
 from app.services.donation.service import DonationService
 from app.utils.masking import mask_name
 
-@router.get("", response_model=PaginatedResponse)
+@router.get("", response_model=DonationListPageResponse)
 async def list_donations(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     campaign_id: int | None = Query(None),
     status: str | None = Query(None),
+    payment_method: str | None = Query(None, description="wechat | alipay | stripe | paypal"),
+    search: str | None = Query(None, description="Filter by donor name (partial match)"),
     db: AsyncSession = Depends(get_db),
     current_user: dict | None = Depends(get_optional_current_user),
 ):
     """List donations with optional filters."""
     donation_service = DonationService(db)
     try:
-        donations, total = await donation_service.list_donations(page, page_size, campaign_id, status)
+        summary_raw = await donation_service.donation_list_summary(
+            campaign_id, status, payment_method, search
+        )
+        donations, total = await donation_service.list_donations(
+            page, page_size, campaign_id, status, payment_method, search
+        )
         items = []
         for d in donations:
             item = DonationOut.model_validate(d).model_dump()
@@ -69,17 +76,24 @@ async def list_donations(
                 item.pop("message", None)
                 item.pop("donor_user_id", None)
             items.append(item)
-        return PaginatedResponse(
+        return DonationListPageResponse(
             data=items,
             total=total,
             page=page,
             page_size=page_size,
+            summary=DonationListSummaryOut(**summary_raw),
         )
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error listing donations: {e}")
-        return PaginatedResponse(data=[], total=0, page=page, page_size=page_size)
+        return DonationListPageResponse(
+            data=[],
+            total=0,
+            page=page,
+            page_size=page_size,
+            summary=DonationListSummaryOut(),
+        )
 
 @router.get("/stats", response_model=ApiResponse)
 async def donation_stats(db: AsyncSession = Depends(get_db)):

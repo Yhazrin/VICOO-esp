@@ -4,6 +4,7 @@ import type {
   Artwork, Campaign, Donation, Order, User,
   ChildParticipant, AuditLogEntry, DashboardMetrics,
   ChartDataPoint, SystemSettings, FilterParams, PaginatedResponse,
+  DonationListSummary,
   AdminProduct, OriginCountry, OriginRegion,
 } from '../types';
 
@@ -312,13 +313,20 @@ export async function updateOrderStatus(id: string, status: Order['status']): Pr
 // ---------------------------------------------------------------------------
 
 function adaptCampaign(item: any): Campaign {
+  const rawStatus = item.status ?? 'draft';
+  const status =
+    rawStatus === 'completed'
+      ? 'ended'
+      : rawStatus === 'cancelled'
+        ? 'archived'
+        : rawStatus;
   return {
     id: String(item.id),
     title: item.title ?? '',
     description: item.description ?? '',
     startDate: item.start_date ?? '',
     endDate: item.end_date ?? '',
-    status: item.status ?? 'draft',
+    status: status as Campaign['status'],
     targetAmount: parseFloat(item.goal_amount ?? '0') || 0,
     raisedAmount: parseFloat(item.current_amount ?? '0') || 0,
     participantCount: item.participant_count ?? 0,
@@ -329,11 +337,14 @@ function adaptCampaign(item: any): Campaign {
 }
 
 export async function fetchCampaigns(params: FilterParams = {}): Promise<PaginatedResponse<Campaign>> {
+  let status = params.status || undefined;
+  if (status === 'ended') status = 'completed';
+  if (status === 'archived') status = 'cancelled';
   const { data: envelope } = await api.get('/campaigns', {
     params: {
       page: params.page ?? 1,
       page_size: params.pageSize ?? 10,
-      status: params.status || undefined,
+      status: status || undefined,
     },
   });
   const paginated = adaptPaginated<any>(envelope);
@@ -358,9 +369,14 @@ export async function updateCampaign(id: string, data: Partial<Campaign>): Promi
   if (data.description !== undefined) body.description = data.description;
   if (data.startDate !== undefined) body.start_date = data.startDate;
   if (data.endDate !== undefined) body.end_date = data.endDate;
-  if (data.status !== undefined) body.status = data.status;
   if (data.targetAmount !== undefined) body.goal_amount = data.targetAmount;
   if (data.coverImage !== undefined) body.cover_image = data.coverImage;
+  if (data.status !== undefined) {
+    let s = data.status;
+    if (s === 'ended') s = 'completed' as typeof s;
+    if (s === 'archived') s = 'cancelled' as typeof s;
+    body.status = s;
+  }
   const { data: envelope } = await api.put(`/campaigns/${id}`, body);
   return adaptCampaign(envelope.data);
 }
@@ -434,6 +450,10 @@ export async function createProduct(payload: Partial<AdminProduct>): Promise<Adm
   return adaptAdminProduct(envelope.data);
 }
 
+export async function deleteProduct(id: string): Promise<void> {
+  await api.delete(`/products/${id}`);
+}
+
 export async function fetchOriginCountries(): Promise<OriginCountry[]> {
   const { data: envelope } = await api.get('/products/origins/countries');
   return (envelope.data ?? []).map((item: any) => ({
@@ -479,16 +499,42 @@ function adaptDonation(item: any): Donation {
   };
 }
 
-export async function fetchDonations(params: FilterParams = {}): Promise<PaginatedResponse<Donation>> {
+export async function approveDonationAdmin(id: string): Promise<Donation> {
+  const { data: envelope } = await api.post(`/admin/donations/${id}/approve`);
+  return adaptDonation(envelope.data);
+}
+
+export async function fetchDonations(
+  params: FilterParams = {},
+): Promise<PaginatedResponse<Donation> & { summary: DonationListSummary }> {
   const { data: envelope } = await api.get('/donations', {
     params: {
       page: params.page ?? 1,
       page_size: params.pageSize ?? 10,
       status: params.status || undefined,
+      payment_method: params.paymentMethod || undefined,
+      search: params.search || undefined,
     },
   });
   const paginated = adaptPaginated<any>(envelope);
-  return { ...paginated, data: paginated.data.map(adaptDonation) };
+  const s = envelope.summary as
+    | {
+        selection_total: number;
+        completed_count: number;
+        failed_count: number;
+        completed_amount_total: string;
+      }
+    | undefined;
+  return {
+    ...paginated,
+    data: paginated.data.map(adaptDonation),
+    summary: {
+      selectionTotal: s?.selection_total ?? paginated.total,
+      completedCount: s?.completed_count ?? 0,
+      failedCount: s?.failed_count ?? 0,
+      completedAmountTotal: s?.completed_amount_total ?? '0',
+    },
+  };
 }
 
 // ---------------------------------------------------------------------------

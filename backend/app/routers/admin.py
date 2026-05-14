@@ -14,7 +14,7 @@ from app.models.donation import Donation
 from app.models.product import Product
 from app.models.order import Order
 from app.models.audit import AuditLog
-from app.schemas import ApiResponse, AuditLogOut, DashboardMetrics, PaginatedResponse
+from app.schemas import ApiResponse, AuditLogOut, DashboardMetrics, PaginatedResponse, DonationOut
 from app.deps import require_role
 from app.models.settings import SiteSettings
 
@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 from typing import List
 from app.services.admin.service import AdminService
+from app.services.donation.service import DonationService
 
 @router.get("/dashboard", response_model=ApiResponse)
 async def dashboard(
@@ -42,7 +43,33 @@ async def dashboard(
         logger.error(f"Dashboard stats failed: {e}")
         if not settings.DEMO_MODE:
             raise HTTPException(status_code=503, detail="Service temporarily unavailable")
-        return ApiResponse(data={"total_users": 0, "pending_artworks": 0})
+        return ApiResponse(
+            data={
+                "total_donation_amount": "0",
+                "total_donations": 0,
+                "pending_artworks": 0,
+                "active_campaigns": 0,
+                "total_users": 0,
+                "total_artworks": 0,
+                "total_orders": 0,
+                "total_clothing_donations": 0,
+            }
+        )
+
+
+@router.post("/donations/{donation_id}/approve", response_model=ApiResponse)
+async def approve_donation_admin(
+    donation_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(require_role("admin", "editor")),
+):
+    """Manually approve a pending donation after offline / manual payment review."""
+    donation_service = DonationService(db)
+    donation = await donation_service.admin_approve_donation(
+        donation_id, admin_user_id=current_user.get("id")
+    )
+    return ApiResponse(data=DonationOut.model_validate(donation).model_dump(mode="json"))
+
 
 
 @router.get("/analytics/ai", response_model=ApiResponse)

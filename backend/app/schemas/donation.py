@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional
+from typing import Any, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class DonationCreate(BaseModel):
@@ -47,3 +47,27 @@ class DonationOut(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class DonationListSummaryOut(BaseModel):
+    """Aggregates for the current filter set (all pages), for admin ledger cards."""
+
+    selection_total: int = 0
+    completed_count: int = 0
+    failed_count: int = 0
+    completed_amount_total: str = "0.00"
+
+
+class DonationListPageResponse(BaseModel):
+    success: bool = True
+    data: List[Any] = Field(default_factory=list)
+    total: int = 0
+    page: int = 1
+    page_size: int = 20
+    pageSize: int = 20
+    summary: DonationListSummaryOut = Field(default_factory=DonationListSummaryOut)
+
+    @model_validator(mode="after")
+    def sync_page_size_alias(self):
+        self.pageSize = self.page_size
+        return self

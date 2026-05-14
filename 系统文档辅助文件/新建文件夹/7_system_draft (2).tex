@@ -1,0 +1,323 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=2.2cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{setspace}
+\usepackage{caption}
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=blue,citecolor=black}
+\setlength{\headheight}{14pt}
+\setlength{\parindent}{2em}
+\setlength{\parskip}{0.35em}
+\renewcommand{\arraystretch}{1.25}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{VICOO-ESP System Document Draft}
+\fancyhead[R]{\thepage}
+\titleformat{\section}{\Large\bfseries}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{0.6em}{}
+\newcommand{\projectname}{VICOO-ESP}
+\newcommand{\placeholder}[1]{\begin{figure}[H]\centering\fbox{\parbox[c][4.2cm][c]{0.86\linewidth}{\centering #1}}\end{figure}}
+\begin{document}
+
+\begin{center}
+{\LARGE \textbf{Group 7\_system\_draft}}\\[0.5em]
+{\large \projectname{} System Document (Draft)}\\[0.5em]
+Course Project: Sustainable Fashion Traceability and Charity Co-Creation Platform\\
+Group: Group 7 / SixSeven\\
+\end{center}
+
+\section*{Abstract}
+\projectname{} is a course project built around three tightly connected ideas: sustainable fashion, transparent traceability, and charity-oriented co-creation. The project addresses a common weakness in the fashion domain: although brands increasingly claim sustainability, ordinary users often cannot verify where materials come from, how products move through the supply chain, or how charity-related campaigns connect to the actual value of a product. To address this problem, the system combines product storytelling, structured traceability data, and interactive visualization in a unified web-based platform.
+
+The current prototype supports several user groups. Consumers can browse products in a charity store, open product detail pages, inspect supply chain stages through an interactive Traceability Globe, and read timeline, certification, and carbon-related information. Internal staff can maintain product records, update traceability nodes, upload certification assets, and review content before publication. External partners can contribute stage-level supply chain information so that the platform can gradually build a more complete evidence chain.
+
+Technically, the system follows a front-end/back-end separation model. The front end focuses on narrative presentation, interaction, and visual explanation, while the back end provides standardized APIs and a structured data flow for products, traceability nodes, certifications, campaigns, and review actions. At the prototype stage, the project mainly validates three questions: whether complex supply chain data can be transformed into an understandable user experience; whether a unified schema can support consistent rendering across product pages, traceability pages, comparison modules, and certification modules; and whether generative AI can be used as an efficiency tool without replacing human review and factual verification. This document introduces the system goals, architecture, technical implementation, AI usage, team collaboration, and conclusions.
+
+\tableofcontents
+
+\section{Introduction}
+\subsection{Project Background}
+The fashion industry faces a recurring problem beyond design and branding: supply chain information is often fragmented, difficult to verify, and hard for ordinary users to interpret. Even when a company has raw material records, transportation information, or certification documents, these materials are commonly presented as static tables, isolated text blocks, or scattered PDF files. As a result, users must invest substantial effort to understand what a sustainability claim actually means. In many cases, they simply trust the visual message of a campaign rather than the evidence behind it.
+
+A similar issue appears in charity-linked products. Promotional pages may mention donations, co-created collections, or social impact, but users rarely see a clear chain connecting the product itself, the material journey behind it, and the charitable outcome it claims to support. This weakens both transparency and credibility.
+
+Based on these observations, \projectname{} is designed not merely as an e-commerce prototype, but as a system that integrates product storytelling, traceability, sustainability indicators, and charity participation into one coherent digital experience. Instead of showing a product as an isolated commercial object, the platform encourages users to continue exploring the material source, processing stages, logistics flow, certifications, and related social contribution.
+
+\subsection{Project Goals and Planning Logic}
+The planning logic of the project can be summarized by three keywords: \textbf{transparency}, \textbf{interpretability}, and \textbf{engagement}.
+
+First, transparency requires the system to record key stages from raw material to final product, and potentially to charity return or campaign outcome, using structured data rather than vague marketing statements. Second, interpretability requires the information to be expressed in ways users can actually understand. For this reason, the project introduces a zoomable traceability globe, synchronized timelines, certification sections, and carbon-related content rather than relying only on data tables. Third, engagement requires the platform to make users feel that their browsing and consumption choices are connected to broader impact. The charity store, campaign pages, and comparison modules all contribute to this sense of participation.
+
+At the system level, the project follows a staged plan: define the main user journey first, derive the data model and API requirements from that journey, and then integrate visual storytelling into an operational web prototype. At the course-project stage, the priorities are to make the core flows runnable, the page logic explainable, and the main data structure reusable.
+
+\subsection{System Function Overview}
+The current version focuses on the following core functions:
+\begin{enumerate}[leftmargin=2.2em]
+    \item \textbf{Charity store browsing}: users can browse products, read short descriptions, and identify charity-linked items.
+    \item \textbf{Product detail and traceability overview}: each product page aggregates the product story, key labels, impact statements, and entrances to deeper modules.
+    \item \textbf{Traceability Globe}: supply chain stages are represented as interactive nodes on a 3D or 3D-like globe, and each node reveals location, status, and carbon-related information.
+    \item \textbf{Timeline linkage}: while the user scrolls down the page, the currently selected node is synchronized with a structured timeline below it.
+    \item \textbf{Search, carbon comparison, and certification view}: users can continue exploring the system through global search, comparison pages, and certification modules.
+    \item \textbf{Back-office maintenance}: internal staff can maintain product data, update node status, upload supporting materials, review content, and control publication status.
+\end{enumerate}
+
+\placeholder{Suggested Figure 1: overall system overview (consumer flow + staff flow + data flow)}
+
+\section{Technical Implementation}
+\subsection{Overall Architecture Design}
+The system adopts a front-end/back-end separation architecture. The front end is responsible for page presentation, interaction logic, narrative visualization, and user feedback. The back end is responsible for API organization, business-rule validation, data reading and writing, and structured output. The database layer stores products, supply chain nodes, certification records, charity campaigns, and user actions. Generative AI is used only as an auxiliary tool for ideation and content support; it is not allowed to bypass the formal workflow for factual data entry.
+
+This architecture reflects a deliberate division of responsibilities. The front end answers the question \emph{how can the user understand the information?}, while the back end answers the question \emph{how can the information remain consistent, validated, and reusable across pages?} The same logic is maintained throughout this document.
+
+The overall data flow can be described as follows: staff create or update product data through the admin panel; the back end validates and assembles the fields according to Pydantic schemas; the front end renders product cards, detail pages, traceability nodes, timelines, and certification modules using a unified schema; users browse and interact with the content; and staff iterate again according to testing feedback and content updates. All communication between the browser and the server travels over HTTPS, and every state-changing operation requires a valid JWT access token.
+
+\subsection{Technology Stack Summary}
+The platform is built on the following confirmed technologies, chosen to match the team's existing skill set while meeting the requirements for distributed systems, databases, and modern front-end development:
+
+\begin{itemize}[leftmargin=2.2em]
+    \item \textbf{Back end}: FastAPI (Python 3.11+) with Uvicorn as the ASGI server; SQLAlchemy 2.x (fully asynchronous) for ORM and query building; Alembic for schema migration; MySQL 8.0 as the production relational database; SQLite with \texttt{aiosqlite} as the development fallback.
+    \item \textbf{Cache and session}: Redis 7, used for JWT blacklisting, rate-limit counters, and nonce storage for replay attack prevention.
+    \item \textbf{Message queue}: RabbitMQ 3, provisioned in Docker Compose for asynchronous task handling (notification delivery, donation record processing).
+    \item \textbf{Security libraries}: \texttt{python-jose} for JWT encoding/decoding, \texttt{cryptography} for AES-256-GCM symmetric encryption, \texttt{passlib[bcrypt]} for password hashing.
+    \item \textbf{Web front end}: React 18 with Vite 5 as the build tool, TypeScript in strict mode, Tailwind CSS for utility-first styling, CSS Modules for component-scoped styles.
+    \item \textbf{State and data fetching}: Zustand for global client state, TanStack React Query for server state and caching, Axios for HTTP requests.
+    \item \textbf{Animation and 3D}: Framer Motion for page transitions and micro-interactions, GSAP for scroll-driven animations, Three.js for the WebGL-based Traceability Globe.
+    \item \textbf{Internationalization}: \texttt{i18next} with \texttt{react-i18next} for multi-language support.
+    \item \textbf{Deployment}: Docker Compose orchestrating all services; Nginx serving the compiled front-end bundle; Docker secrets for injecting credentials at runtime.
+\end{itemize}
+
+\subsection{Front-End Design and Consumer-Side Implementation}
+\subsubsection{Page Organization and Routing}
+The front end is organized around the user journey rather than around purely technical modules. For an ordinary consumer, the natural sequence is: discover a product, understand its story, verify its origin, inspect its impact, and then form a preference or decision. React Router 6 manages client-side navigation. The main routes cover the home page (editorial-style landing), the Impact Shop (charity product browsing), product detail, the Traceability page, campaign pages, story pages, the donation flow, and the user profile. An additional AI Assistant route gives authenticated users access to a conversational interface for sustainability queries.
+
+This approach makes the system more coherent. The pages are not isolated screens connected only by links; instead, they form a layered narrative. Users first see the product, then gradually uncover the chain behind it, and finally arrive at supporting evidence. All pages share a consistent editorial visual language, including a \texttt{MagazineNav} navigation bar with numbered entries, a \texttt{PaperTextureBackground} component, and a \texttt{GrainOverlay} that reinforces the print-magazine aesthetic throughout.
+
+\subsubsection{Component Architecture and State Management}
+The React codebase is structured into three layers. The first layer consists of editorial design-system components (\texttt{EditorialHero}, \texttt{BleedTitleBlock}, \texttt{TraceabilityTimeline}, \texttt{ProductCard}, \texttt{DonationPanel}), each of which renders a self-contained visual unit and accepts only typed props. The second layer consists of page-level containers that compose multiple design-system components, inject server data via TanStack Query hooks, and manage local interaction state. The third layer is the global state managed through Zustand stores, covering authentication state (\texttt{authStore}), the shopping cart (\texttt{cartStore}), and UI flags such as language and modals (\texttt{uiStore}).
+
+TanStack React Query handles all asynchronous data fetching. Each query specifies a cache key, a stale time, and an Axios-based fetch function. This pattern separates server-state concerns from client-state concerns and makes re-fetching, pagination, and optimistic updates straightforward. Authenticated requests attach the JWT access token from \texttt{authStore} as a \texttt{Bearer} header through an Axios request interceptor; a response interceptor automatically attempts token refresh when a 401 is received, enabling seamless session continuation without forcing the user to log in again.
+
+\subsubsection{Interaction Style and Information Hierarchy}
+Supply chain information is inherently complex and can easily become dry or technical. To reduce this barrier, the front end uses a narrative and visual presentation strategy. The Traceability Globe is the clearest example: instead of showing the supply chain as a plain list, the system turns it into a central interactive object that represents the idea that a product is the result of multiple spatial and procedural stages.
+
+The information hierarchy follows an \emph{overview -- explanation -- verification} pattern. At the upper level, the page shows key cards and summary blocks. In the middle, the globe and the synchronized timeline explain the process. At the lower level, certifications, impact statements, and comparison sections provide additional evidence. This layered structure helps users deepen their understanding step by step without being overwhelmed on the first screen. GSAP-driven scroll animations reveal content progressively as the user scrolls down, reducing cognitive load and guiding attention naturally.
+
+\placeholder{Suggested Figure 2: front-end site map or navigation structure}
+
+\subsubsection{Traceability Globe and Scroll Synchronization}
+The Traceability Globe is the signature interaction module of the project and is built with Three.js. A \texttt{Planar3DScene} component bootstraps a WebGL renderer, camera, and scene graph. Each supply chain stage — \texttt{material\_sourcing}, \texttt{processing}, \texttt{manufacturing}, \texttt{quality\_check}, and \texttt{shipping} — is rendered as an interactive 3D marker positioned at the geographic coordinates stored in the database (\texttt{latitude} and \texttt{longitude} fields on the \texttt{SupplyChainRecord} model). When a user selects a node, the React state propagates the selected stage identifier downward, and the \texttt{TraceabilityTimeline} component filters and highlights the corresponding entry in the linear timeline below the globe.
+
+This design has three main values. First, it transforms an abstract supply chain into an experience that is visible, clickable, and explainable. Second, it reduces the comprehension threshold that would otherwise be imposed by long textual descriptions. Third, it provides a scalable container for future extensions, such as attaching additional quantitative indicators, material percentages, or certification coverage information to each node. Each node also carries a \texttt{carbon\_kg} field and optional \texttt{cert\_image\_url}, enabling the timeline to display a per-stage carbon estimate and a certification badge side by side.
+
+From an implementation perspective, the critical point is not a single animation effect but the consistency between front-end component state and the back-end schema. The supply chain record delivered by the API includes geographic coordinates, a stage enum, carbon data, and a \texttt{gallery\_json} array of multimedia attachments. This single structured response is consumed by three separate UI elements: the globe marker, the timeline entry, and the stage detail panel. No duplication of data fetching is required.
+
+\subsection{Staff-Side and Back-Office Implementation}
+\subsubsection{Back-Office Goals and Technology}
+If the consumer side is about making information understandable, the staff side is about making information maintainable. A visually impressive front end without content maintenance capability cannot operate reliably even as a prototype. For that reason, the project includes a dedicated admin panel (the \texttt{tonghua-admin} application) built with the same React and Vite stack. The admin panel provides product creation and editing, traceability node maintenance, artwork review, donation management, user management, and a summary analytics dashboard powered by \texttt{recharts}.
+
+The admin application uses the same Zustand and TanStack Query patterns as the consumer site but targets a different set of API endpoints under the \texttt{/api/v1/admin/} prefix, which requires the \texttt{admin} or \texttt{editor} role. This role check is enforced at the API layer so that even if an unauthorized user constructs a request manually, the server will reject it with a 403 response.
+
+\subsubsection{Back-Office Workflow}
+A typical back-office workflow for publishing a new traceable product is as follows:
+\begin{enumerate}[leftmargin=2.2em]
+    \item Create a product record, including its basic information, campaign relationship, price, and cover images.
+    \item Bind supply chain records to the product: for each stage, enter the stage type, location name, GPS coordinates, timestamp, carbon estimate, certification status, and optional gallery media.
+    \item Upload certification documents or images and associate them with the relevant stage or the product as a whole.
+    \item Preview the consumer-facing product detail page and confirm that the globe markers, timeline entries, and certification badges render correctly.
+    \item Submit the content for human review. Editors and admins can annotate, request revisions, or approve for publication. AI-generated draft text goes through the same review step before it is stored as factual content.
+    \item After approval, set the product status to active; the consumer site reflects the change immediately through cache invalidation.
+\end{enumerate}
+
+This workflow reflects one of the project's core engineering principles: factual content is maintained through structured workflows, while AI supports expression and drafting only.
+
+\placeholder{Suggested Figure 3: back-office prototype or product maintenance workflow}
+
+\subsection{Back-End Service Design}
+\subsubsection{FastAPI Application Structure}
+The back end is a single FastAPI application served by Uvicorn. At startup, a \texttt{lifespan} context manager handles database engine initialization and optional demo-data seeding for first-run development environments. The application then loads a stack of middleware before registering routers. The middleware stack, from outer to inner, is:
+
+\begin{enumerate}[leftmargin=2.2em]
+    \item \textbf{TrustedHostMiddleware}: rejects requests whose \texttt{Host} header does not match the configured allow-list (disabled in the development environment).
+    \item \textbf{CORSMiddleware}: enforces the configured origin list; wildcard origins are prohibited in production via a Pydantic model validator.
+    \item \textbf{Request size limit}: rejects bodies larger than 10 MB with a 413 response before the body is read into memory.
+    \item \textbf{Rate limiting}: consults Redis counters to enforce three-tier limits described in Section~2.7.
+    \item \textbf{Security headers}: attaches \texttt{Content-Security-Policy}, \texttt{X-Content-Type-Options}, \texttt{X-Frame-Options}, \texttt{Strict-Transport-Security}, and \texttt{Referrer-Policy} to every response.
+    \item \textbf{Request logging}: records method, path, status code, and latency for every request.
+\end{enumerate}
+
+Routers are grouped by domain and mounted under \texttt{/api/v1/}: \texttt{auth}, \texttt{oauth}, \texttt{users}, \texttt{addresses}, \texttt{products}, \texttt{artworks}, \texttt{campaigns}, \texttt{supply\_chain}, \texttt{donations}, \texttt{orders}, \texttt{payments}, \texttt{after\_sales}, \texttt{reviews}, \texttt{contact}, \texttt{editorial}, \texttt{sustainability}, \texttt{clothing\_intakes}, \texttt{ai\_assistant}, and \texttt{admin}. The health check endpoint at \texttt{/health} is excluded from rate limiting to support Docker health checks and load balancer probes.
+
+\subsubsection{Asynchronous Database Layer}
+All database interactions use SQLAlchemy 2.x with the async engine. In production the engine connects to MySQL 8.0 via the \texttt{aiomysql} driver and maintains a connection pool of size 10 with a maximum overflow of 20, providing up to 30 concurrent database connections before queueing. A \texttt{pool\_pre\_ping} option ensures that stale connections are detected and replaced automatically. In development, the engine connects to a local SQLite file via \texttt{aiosqlite}, allowing the project to run without a separate MySQL installation. Database schema evolution is managed with Alembic; migration scripts are version-controlled and applied in order during deployment.
+
+Each HTTP request receives a dedicated \texttt{AsyncSession} through the \texttt{get\_db} dependency. The session is committed at the end of a successful request or rolled back when any non-HTTP exception is raised. HTTP exceptions are treated as control flow rather than data errors, so a 404 or 403 response does not trigger an unnecessary rollback.
+
+\subsubsection{Responsibilities of the API Layer}
+The API layer does not simply expose database tables directly to the front end. Instead, it assembles and validates business-level responses using Pydantic v2 schemas. For example, a product detail endpoint returns basic product information, the ordered list of supply chain records, charity-related description, and certification content in one structured response. A back-office update endpoint validates whether required fields are complete, whether stage ordering is legal, and whether publication constraints are satisfied before committing to the database.
+
+The implemented API groups include:
+\begin{enumerate}[leftmargin=2.2em]
+    \item \textbf{Auth APIs}: email/password login and registration, JWT token refresh, password reset via email (Resend mail service), and WeChat mini-program login using the \texttt{code2Session} flow.
+    \item \textbf{OAuth APIs}: GitHub and Google OAuth2 callback handlers that create or link user accounts.
+    \item \textbf{Product APIs}: list retrieval with filtering and pagination, full detail retrieval, status switching, and edit submission.
+    \item \textbf{Supply Chain APIs}: per-product node list, individual node detail, stage ordering, and update with GPS and carbon data.
+    \item \textbf{Artwork APIs}: submission by authenticated users or guardians, voting, moderation, and association with charity campaigns.
+    \item \textbf{Donation and Order APIs}: donation record creation, order management, payment initiation and callback handling for WeChat Pay and Alipay.
+    \item \textbf{Admin APIs}: user management, content review workflow, analytics aggregation, and bulk operations.
+    \item \textbf{AI Assistant APIs}: authenticated conversational endpoint that proxies requests to OpenAI (GPT-4o-mini) with a system prompt tailored to sustainability and product queries.
+\end{enumerate}
+
+\subsubsection{Structured Data Flow}
+The core idea of a structured data flow is that the same fact should have one authoritative representation in the system and then be consumed in different ways by different pages. For example, the location of a supply chain record can appear both in the globe-side marker and in the timeline entry. A certification image URL stored on a \texttt{SupplyChainRecord} can be rendered as a compact badge on the product card or as a larger verification panel on the detail page. This significantly reduces repetitive data entry and makes later visual extensions easier. When a staff member updates a node's carbon estimate, all consumer-facing views that include that figure are updated the next time the query cache is invalidated, with no additional code changes required.
+
+\subsection{Data Model Design}
+The relational schema covers the full business scope of both Module A (supply chain traceability) and Module B (community co-creation). The confirmed implemented entities are:
+
+\begin{enumerate}[leftmargin=2.2em]
+    \item \textbf{User}: stores email, bcrypt-hashed password (nullable for OAuth-only accounts), nickname, avatar, role (one of \texttt{admin}, \texttt{editor}, \texttt{user}, \texttt{guardian}, \texttt{compliance}), AES-256-GCM encrypted phone number, account status (\texttt{active} or \texttt{banned}), and OAuth identifiers for GitHub and Google. The five-role model provides a fine-grained permission structure: \texttt{admin} has full access, \texttt{editor} can manage content, \texttt{compliance} handles child-protection workflows, \texttt{guardian} is a parent or legal guardian linked to a \texttt{ChildParticipant} record, and \texttt{user} covers ordinary consumers.
+    \item \textbf{ChildParticipant}: stores the participating child's display name (public), AES-256-GCM encrypted real name, age, region, school, and a reference to the guardian user. All guardian contact details (name, phone, email) are also stored encrypted. A \texttt{consent\_given} boolean and \texttt{consent\_date} timestamp record when the guardian provided legal consent for artwork participation, satisfying children's data protection requirements.
+    \item \textbf{Product}: name, description, images, tags, price, charity linkage to a campaign, and publication status.
+    \item \textbf{SupplyChainRecord}: linked to a product via foreign key; stores the stage type (one of \texttt{material\_sourcing}, \texttt{processing}, \texttt{manufacturing}, \texttt{quality\_check}, \texttt{shipping}), free-text description, human-readable location name, GPS latitude and longitude, a \texttt{certified} boolean, an optional certification image URL, a \texttt{carbon\_kg} decimal value with an explanatory note, a stage timestamp, and a \texttt{gallery\_json} column holding an ordered array of image and video attachments with optional captions.
+    \item \textbf{Artwork}: children's submitted images with voting count, moderation status, association with a campaign, and reference to the submitting child participant.
+    \item \textbf{Campaign}: charity or co-creation activity, including theme, start and end dates, participation method, linked products, and donation targets.
+    \item \textbf{Order and Payment}: order header with status machine, line items, shipping address reference, and payment records tracking provider (WeChat Pay or Alipay), transaction identifiers, and callback verification results.
+    \item \textbf{Donation}: standalone donation records with amount, donor reference, campaign association, and status.
+    \item \textbf{AuditLog}: key edit actions, review decisions, role changes, and system events for internal operational traceability.
+\end{enumerate}
+
+One product is associated with multiple \texttt{SupplyChainRecord} rows (one per stage), zero or more \texttt{Artwork} entries through campaigns, and zero or more \texttt{Order} line items. Internal users operate on these entities according to their role permissions. The audit log ensures that every significant data change can be traced back to a specific user and timestamp.
+
+\placeholder{Suggested Figure 4: ER diagram or core table relationship diagram}
+
+\subsection{Security Architecture}
+Security is implemented at multiple layers rather than relying on a single mechanism.
+
+\subsubsection{Authentication: Dual-Token JWT}
+User authentication uses a stateless dual-token scheme. After a successful login, the server issues two tokens: a short-lived access token (15-minute expiry) and a longer-lived refresh token (7-day expiry). Both tokens are signed using HMAC-SHA256 (HS256) by default, with support for RS256 or ES256 when asymmetric key pairs are configured. Each token payload includes a unique \texttt{jti} (JWT ID) claim generated with \texttt{uuid.uuid4()}, which serves as the basis for the token blacklist. When a user logs out, the \texttt{jti} of the current access token is written to Redis with a TTL matching the token's remaining validity. Subsequent requests carrying that token are rejected at the authentication dependency layer, even if the token has not yet expired.
+
+\subsubsection{Sensitive Data Encryption: AES-256-GCM}
+Fields that carry personally identifiable information beyond what is strictly necessary for display are encrypted at rest using AES-256-GCM. Specifically, the \texttt{User.phone\_encrypted}, \texttt{ChildParticipant.child\_name}, \texttt{ChildParticipant.guardian\_name}, and related contact fields are never stored as plaintext. Encryption is performed by the \texttt{aes\_encrypt} helper, which derives a 32-byte key from the \texttt{ENCRYPTION\_KEY} environment variable using SHA-256, generates a 12-byte random nonce for each operation, and returns the base64-encoded concatenation of nonce and ciphertext. Decryption is symmetrically handled by \texttt{aes\_decrypt} and is only called when authorized code paths explicitly request the plaintext value through named Python properties, preventing accidental exposure in serialization.
+
+\subsubsection{Request Integrity: HMAC-SHA256 Signing}
+For high-risk operations, the API supports an optional HMAC-SHA256 request signature scheme. The client sends three additional headers: \texttt{X-Timestamp} (Unix epoch), \texttt{X-Nonce} (a random string), and \texttt{X-Signature} (the HMAC-SHA256 hex digest of a canonical string composed of the HTTP method, path, timestamp, nonce, and raw request body). The server validates the timestamp within a five-minute window to prevent replay attacks; validates the nonce against a Redis key set with a matching TTL; and compares the recomputed signature against the submitted one using \texttt{hmac.compare\_digest} to prevent timing attacks. If any check fails, the request is rejected with a 401 before the handler executes.
+
+\subsubsection{Rate Limiting: Three-Tier Sliding Window}
+Rate limiting is implemented as an HTTP middleware layer using Redis atomic counters organized in a sliding window per 60-second bucket. Three separate limits are enforced:
+\begin{itemize}[leftmargin=2.2em]
+    \item \textbf{Global}: 1,000 requests per minute across all sources, keyed by the current minute bucket. Protects the server from volumetric floods.
+    \item \textbf{Per-authenticated-user}: 60 requests per minute per user ID. Limits abuse by a single compromised account.
+    \item \textbf{Public auth endpoints}: 20 requests per minute per client IP for the login, register, token refresh, and WeChat login routes. Mitigates brute-force credential attacks.
+\end{itemize}
+In development mode, Redis connectivity failures cause the middleware to fail open (allow the request) to avoid blocking local development. In production mode, Redis failures cause the middleware to fail closed (return 503), preventing an unprotected path from being exposed.
+
+\subsubsection{HTTP Security Headers}
+Every response carries a set of security headers injected by a dedicated middleware: \texttt{Content-Security-Policy} restricts resource loading to the same origin and blocks framing; \texttt{X-Content-Type-Options: nosniff} prevents MIME-type sniffing; \texttt{X-Frame-Options: DENY} prevents clickjacking; \texttt{Strict-Transport-Security} with a one-year max-age enforces HTTPS for returning browsers; and \texttt{Referrer-Policy: strict-origin-when-cross-origin} limits referrer leakage to cross-origin requests.
+
+\subsubsection{Role-Based Access Control}
+The dependency injection system exposes a \texttt{require\_role(*roles)} factory that constructs a FastAPI dependency rejecting requests whose token-resolved user role is not in the permitted set. For example, the admin analytics endpoint depends on \texttt{require\_role("admin")}, the content review endpoint depends on \texttt{require\_role("admin", "editor")}, and the guardian artwork submission depends on \texttt{require\_role("guardian", "admin")}. Because the role is resolved by querying the live database record on every request, a role change by an admin takes effect on the next API call without requiring the affected user to re-authenticate.
+
+\subsection{Search, Comparison, and Certification Modules}
+The project does not stop at making a single product page look more informative. It extends the experience to global search, comparison pages, and certification modules. Search allows users to discover products across the platform through parameterized query strings filtered by name, tag, or campaign. Comparison modules help communicate sustainability indicators or relative carbon impact by normalizing the \texttt{carbon\_kg} values stored across supply chain stages. Certification modules provide institutional evidence that strengthens trust by surfacing the \texttt{cert\_image\_url} and \texttt{certified} flag stored on each \texttt{SupplyChainRecord}.
+
+These modules share parts of the same underlying data while presenting them differently. Search relies more heavily on indexed columns and pagination parameters, comparison relies on aggregated numeric indicators, and certification panels emphasize longer textual explanation and image resources. Because the project uses a unified schema at the data level, these modules can be added or extended without restructuring the core data organization.
+
+\subsection{Payment and Donation Integration}
+The platform integrates two domestic payment providers to support the Chinese market. \textbf{WeChat Pay} is used for mini-program in-app purchases and charity donations, following the standard unified-order flow: the backend calls the WeChat Pay API to create a prepay order, returns the signing parameters to the client, and processes the asynchronous payment notification callback after the user completes payment. \textbf{Alipay} is used as an alternative payment channel on the web front end, following a similar page-pay or app-pay flow with PKCS1v15 RSA signature verification on callbacks.
+
+Donation records are created in a two-phase pattern: an intent record is written when the user initiates the donation, and the record is confirmed and the donation amount credited to the campaign total only after the payment callback is verified. This prevents double-counting and ensures that the charity impact figures displayed on campaign pages reflect only completed, verified transactions. Payment credentials (API keys, private keys) are never embedded in environment files committed to version control; they are injected at runtime through Docker secrets.
+
+\subsection{AI Assistant Integration}
+An AI assistant feature, accessible to authenticated users, provides a conversational interface for sustainability queries, product provenance questions, and campaign information. Requests from the front end are forwarded through the \texttt{/api/v1/ai-assistant/} endpoint to the OpenAI API (model: GPT-4o-mini) with a system prompt that constrains the assistant to the VICOO context. The endpoint enforces authentication so that the AI feature cannot be accessed anonymously, and all AI-generated responses are explicitly labeled in the UI as AI-assisted content requiring user judgment. No AI-generated content is automatically written back to the product database; all AI suggestions that a staff member wishes to use must be manually copied and submitted through the normal content review workflow.
+
+\subsection{Deployment Architecture}
+\subsubsection{Docker Compose Service Topology}
+The entire platform is containerized with Docker Compose. Six services are defined in a shared internal network (\texttt{tonghua-network}), with only the Nginx front-end container exposing an external port (80). The service topology is:
+
+\begin{itemize}[leftmargin=2.2em]
+    \item \textbf{mysql}: MySQL 8.0 with UTF-8mb4 character set, a 256 MB InnoDB buffer pool, and a 200-connection limit. Initialized from SQL scripts in \texttt{/docker-entrypoint-initdb.d}. Health-checked with \texttt{mysqladmin ping}.
+    \item \textbf{redis}: Redis 7 Alpine with AOF persistence, a 128 MB memory limit, and the \texttt{allkeys-lru} eviction policy. Password-protected; health-checked with \texttt{redis-cli ping}.
+    \item \textbf{rabbitmq}: RabbitMQ 3.12 with the management plugin for operator visibility. Accessible only within the internal network; health-checked with \texttt{rabbitmq-diagnostics check\_running}.
+    \item \textbf{backend}: FastAPI application container. Depends on MySQL, Redis, and RabbitMQ reaching their healthy state before starting. Health-checked by polling \texttt{/health} via Python's \texttt{urllib}.
+    \item \textbf{frontend}: Nginx container serving the pre-built React bundle and reverse-proxying \texttt{/api/} requests to the backend container. Depends on the backend reaching its healthy state.
+\end{itemize}
+
+\subsubsection{Secrets Management}
+All credentials are injected through Docker secrets rather than environment variable files. Secrets defined in the Compose file include the MySQL root password, MySQL application password, Redis password, RabbitMQ password, JWT secret key, AES encryption key, WeChat Pay API key, Alipay private key, Stripe secret key (reserved), PayPal client secret (reserved), SMTP password, and the application secret key. Each secret is a separate file under a \texttt{secrets/} directory that is excluded from version control. The application reads secret values from \texttt{/run/secrets/} paths at startup, ensuring that credentials are never visible in environment variable listings or container inspection output.
+
+\subsubsection{Development and Production Environments}
+Two deployment environments are maintained. The development environment uses SQLite in place of MySQL, disables TrustedHostMiddleware and most rate-limit enforcement, enables the demo-data seeder on first run, and allows wildcard CORS origins. The production environment enforces all security constraints, requires valid secret files, connects to MySQL and Redis, and sets \texttt{APP\_ENV=production} which triggers stricter validation in Pydantic settings validators. This separation allows rapid local iteration without weakening the security posture of the deployed instance.
+
+\subsection{Quality Control and Testing}
+Although \projectname{} is a course prototype, the system document reflects basic software engineering discipline in testing. The test suite uses \texttt{pytest} with \texttt{pytest-asyncio} to cover asynchronous API handlers. Test categories include:
+
+\begin{enumerate}[leftmargin=2.2em]
+    \item \textbf{API contract tests}: verify that every endpoint returns the expected HTTP status code and response schema for both valid and invalid inputs, including boundary conditions and missing required fields.
+    \item \textbf{Security tests}: verify that unauthenticated requests to protected endpoints return 401, role-insufficient requests return 403, and oversized requests return 413.
+    \item \textbf{End-to-end flow tests}: simulate the full consumer path from product browsing through order placement and the full staff path from product creation to publication.
+    \item \textbf{Front-end integration}: Playwright is included as a dependency to support browser-level end-to-end testing of key consumer flows.
+\end{enumerate}
+
+Any AI-generated wording, visual suggestion, or code snippet must be reviewed by a human team member before acceptance, especially when it concerns facts, certifications, or charity statements. File upload endpoints enforce MIME-type allow-lists and a maximum file size to reduce stability and security risks. Important fields are validated on both the front end (TypeScript types and form validation) and the back end (Pydantic schemas) to prevent invalid data from reaching the database.
+
+\section{Use of Generative AI}
+\subsection{Where AI Was Used}
+Generative AI was used in this project as a supporting tool rather than an autonomous decision-maker. Its role can be divided into four main areas. The first area is \textbf{concept exploration}, such as brainstorming branding expression, homepage narrative style, icon directions, and interaction concepts. The second area is \textbf{drafting support}, for example producing first-pass page copy, campaign descriptions, presentation scripts, or document outlines. The third area is \textbf{coding assistance}, such as suggesting component structures, API field drafts, styling ideas, or debugging directions. The fourth area is \textbf{prompt assistance for visual assets}, where AI helped the team explore image directions and demo visuals more efficiently.
+
+It is important to emphasize that AI acts as an accelerator in this workflow. It improves efficiency in organization and drafting, but it does not replace factual verification, business judgment, or software testing.
+
+\subsection{Review and Revision Mechanism}
+To prevent AI output from introducing factual mistakes, style inconsistency, or implementation errors, the team applies a human review process:
+\begin{enumerate}[leftmargin=2.2em]
+    \item AI-generated text is manually reviewed, vague phrasing is removed, and facts are aligned with the actual project.
+    \item AI-generated coding suggestions are tested locally before they are accepted.
+    \item Visual ideas and script-like content are reviewed inside the group to maintain a consistent design language.
+    \item Any content related to charity destination, supply chain nodes, or certification evidence must be confirmed manually and stored as structured data before display.
+    \item Final deliverables are reformatted and cross-checked so that the writing style remains coherent and duplicated AI-like phrasing is eliminated.
+\end{enumerate}
+
+This approach allows the team to benefit from AI efficiency gains while still meeting expectations for academic integrity and engineering responsibility.
+
+\section{Team Work}
+According to the current project materials, the group members include Li Jinhao, Yang Haoze, Wang Jundi, Ma Qingchun, and Huang Tian. The following role descriptions are written as editable draft paragraphs and should be fine-tuned before final submission so that they match each member's actual contribution precisely.
+
+\subsection*{Yang Haoze}
+Responsible for overall solution integration, core product-path design, and part of the front-end interaction direction. The work includes organizing the narrative chain from the charity store to the product detail page, and then to the Traceability Globe and timeline synchronization; participating in overall information architecture design; coordinating front-end and back-end discussion around a unified data structure; and helping express the system value, page logic, and project goals in presentation and documentation materials.
+
+\subsection*{Li Jinhao}
+Mainly responsible for back-end service and interface design. The work focuses on organizing the basic API structure around FastAPI, defining data transmission patterns, and implementing parts of the business validation logic. A major contribution is maintaining relatively clear response structures for the front end and promoting the structured data flow across products, traceability nodes, certifications, and campaigns.
+
+\subsection*{Wang Jundi}
+Mainly responsible for front-end page implementation and interaction landing. The work includes turning design ideas into operational web interfaces, splitting pages into reusable components, organizing navigation and content areas, implementing product detail display, coordinating some interaction effects, and continuously adjusting visual hierarchy for demonstration and usability purposes.
+
+\subsection*{Ma Qingchuan}
+Mainly contributes to content organization, data completion, testing support, and documentation assistance. The work includes organizing product information, traceability node descriptions, charity activity materials, and presentation content, helping establish clearer correspondence between system data and presentation logic, and participating in functional testing, bug feedback, and supporting material preparation.
+
+\subsection*{Huang Tian}
+Mainly contributes to visual expression, interface-detail optimization, and presentation support. The work includes helping refine the brand style, visual language, and presentation materials so that the system remains aligned with the themes of sustainability, charity, and verifiability, and supporting final presentation preparation and document polishing.
+
+\section{Conclusion}
+Overall, \projectname{} is not simply an e-commerce page prototype. It is an attempt to present sustainable fashion, supply chain transparency, and charity participation within one coherent system. The value of the project lies not only in the number of pages it shows, but in the systemic design logic behind those pages: narrative front-end interaction lowers the barrier to understanding; structured back-end data flow ensures consistency across modules; back-office maintenance and human review support credibility; and generative AI is used as a productivity tool rather than a factual source.
+
+From the perspective of a software engineering course project, the system already demonstrates a relatively complete structure. It has a clearly defined problem, an explainable user journey, a visible separation of front-end and back-end responsibilities, and an explicit statement about the boundaries of AI use and team collaboration. There is still significant room for future development, such as partner-side submission workflows, stronger quantitative modeling, review-state tracking, and mobile adaptation. Even at the prototype stage, however, \projectname{} validates an important direction: when structured data, interactive visualization, and narrative design are integrated systematically, sustainability information can move from being a difficult explanatory appendix to becoming something users can perceive, compare, and trust.
+
+\section*{References}
+\begin{enumerate}[leftmargin=2.2em]
+    \item FastAPI. \emph{FastAPI Documentation}. Available at: \url{https://fastapi.tiangolo.com/}.
+    \item React Team. \emph{React Documentation}. Available at: \url{https://react.dev/}.
+    \item Three.js Authors. \emph{Three.js Documentation}. Available at: \url{https://threejs.org/docs/}.
+    \item Replace this item with the actual documentation for the generative AI tools used by your team.
+    \item Add the actual course handouts, sustainability references, supply chain transparency cases, and design references used in the final report.
+\end{enumerate}
+
+\end{document}

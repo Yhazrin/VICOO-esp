@@ -50,8 +50,10 @@ export default function CampaignPage() {
   const columns: Column<Campaign>[] = [
     { key: 'title', title: t('campaign.colCampaignName'), sorter: true },
     { key: 'status', title: t('campaign.colStatus'), width: 100, render: (v) => <StatusBadge status={v} /> },
-    { key: 'targetAmount', title: t('campaign.colTargetAmount'), width: 120, render: (v) => `\u00a5${v.toLocaleString()}` },
-    { key: 'raisedAmount', title: t('campaign.colRaisedAmount'), width: 120, render: (v) => <span style={{ color: 'var(--color-success)' }}>\u00a5{v.toLocaleString()}</span> },
+    { key: 'targetAmount', title: t('campaign.colTargetAmount'), width: 120, render: (v) => `¥${v.toLocaleString('zh-CN')}` },
+    { key: 'raisedAmount', title: t('campaign.colRaisedAmount'), width: 120, render: (v) => (
+      <span style={{ color: 'var(--color-success)' }}>¥{v.toLocaleString('zh-CN')}</span>
+    ) },
     { key: 'participantCount', title: t('campaign.colParticipants'), width: 100 },
     { key: 'artworkCount', title: t('campaign.colArtworks'), width: 80 },
     { key: 'startDate', title: t('campaign.colStartDate'), width: 110 },

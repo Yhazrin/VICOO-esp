@@ -535,6 +535,8 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                             out += f"- ID:{p.id} Name:{p.name} Price:{p.price} {p.currency} Donation:{p.donation_percentage or 0}%\n"
                         out += "\n(Source: products table)"
                         return out
+                except Exception as e:
+                    logger.debug(f"Impact product search error: {e}")
 
         return ""
 

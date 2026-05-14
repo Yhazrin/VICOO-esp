@@ -1,0 +1,374 @@
+% =============================================================================
+% VICOO — System Documentation (COMP3030J) — Overleaf-ready LaTeX
+% -----------------------------------------------------------------------------
+% Overleaf: New Project > Upload Project > upload this .tex (and optional files).
+%   Compiler: pdfLaTeX (Menu > Compiler) — or XeLaTeX; all packages are standard.
+%   "Main document" in Menu must point to this file if the project has others.
+% Table of contents: built-in; recompile twice if page refs look wrong.
+% =============================================================================
+\documentclass[11pt,a4paper]{article}
+
+% --- Encoding & language ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+
+% --- Page layout & typography ---
+\usepackage{geometry}
+\geometry{
+  a4paper,
+  left=2.4cm,
+  right=2.4cm,
+  top=2.4cm,
+  bottom=2.6cm,
+  headheight=14pt
+}
+\usepackage{microtype}
+\usepackage{setspace}
+\setstretch{1.12}
+\usepackage{xcolor}
+\usepackage{parskip}
+\setlength{\parskip}{0.55\baselineskip}
+
+% --- Math & symbols ---
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% --- Lists ---
+\usepackage{enumitem}
+\setlist[itemize]{itemsep=0.25em, topsep=0.35em, parsep=0pt}
+\setlist[enumerate]{itemsep=0.25em, topsep=0.35em, parsep=0pt}
+
+% --- Headings: hierarchy (section / subsection / subsubsection) ---
+\usepackage{titlesec}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+\titleformat{\section}
+  {\normalfont\Large\bfseries}
+  {\thesection.}{0.55em}{}
+\titleformat{\subsection}
+  {\normalfont\large\bfseries}
+  {\thesubsection}{0.5em}{}
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\bfseries\itshape}
+  {\thesubsubsection}{0.45em}{}
+\titlespacing*{\section}{0pt}{1.3ex plus 0.3ex}{0.75ex}
+\titlespacing*{\subsection}{0pt}{1.0ex plus 0.2ex}{0.55ex}
+\titlespacing*{\subsubsection}{0pt}{0.9ex}{0.45ex}
+
+% --- URL & file paths (compile paths without breaking spaces) ---
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!35!black,
+  urlcolor=blue!50!black,
+  citecolor=blue!40!black,
+  pdfauthor={Group 7 SixSeven},
+  pdftitle={VICOO System Documentation COMP3030J},
+  pdfsubject={Sustainable software -- VICOO platform}
+}
+\usepackage{xurl} % break long \url{...} across lines
+\makeatletter
+\g@addto@macro\UrlBreaks{\do/\_\do-\do.\do1\do2\do3\do4\do5\do6\do7\do8\do9\do0}
+\makeatother
+
+% --- Title block ---
+\title{%
+  \vspace{-1.2em}
+  {\Large\sffamily\bfseries VICOO --- System Documentation\par}
+  \vspace{0.4em}
+  {\large\mdseries COMP3030J: Sustainable Software for Business\par}
+}
+\author{%
+  \normalsize
+  \textbf{Group 7:} \textit{SixSeven}\\[0.35em]
+  \small
+  \begin{tabular}{rl}
+    \textbf{Version:}    & 1.0 (April 2026) \\
+    \textbf{Language:}   & English
+  \end{tabular}
+}
+\date{}
+
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+\vspace{-0.8em}
+\begin{center}
+  \small\emph{Visual $\cdot$ Circle} --- sustainable fashion, transparency, and community co-creation.
+\end{center}
+\vspace{0.8em}
+\hrule
+\vspace{0.8em}
+
+% Optional: comment out the next two lines if you do not need a table of contents
+\tableofcontents
+\newpage
+
+% ---------------------------------------------------------------------------
+\begin{abstract}
+\noindent
+\textbf{VICOO (Visual $\cdot$ Circle)} is a full-stack, remotely testable software platform that supports a client's move from ``fast fashion'' marketing toward \emph{verifiable} sustainability. The system links \textbf{responsible production and consumption} (UN \textbf{SDG~12} \emph{Responsible Consumption and Production}), with secondary alignment to \textbf{SDG~1} (no poverty / inclusive opportunity for rural children), \textbf{SDG~13} (climate action via transparency and circular flows), and \textbf{SDG~17} (partnerships and traceable social impact). End users browse an editorial \textbf{React} web experience, purchase sustainable products, submit and vote on \textbf{children's artwork} in campaigns, follow \textbf{donation} and \textbf{impact} flows, and inspect \textbf{supply-chain} and \textbf{sustainability} records where implemented. \textbf{Staff} operate a separate \textbf{admin} web application to manage users, content, products, and operational data.
+
+\medskip
+\noindent
+Technically, the product is delivered as a \textbf{monolithic yet modular FastAPI} backend (Python~3.11) with \textbf{SQLAlchemy (async)}, \textbf{MySQL~8}, \textbf{Redis~7}, \textbf{RabbitMQ~3.12}, and containerised deployment through \path{deploy/easy} \textbf{(Docker~Compose)} with \textbf{Nginx} fronting the user site and API. The repository also contains \textbf{WeChat Mini Program} and \textbf{Android (Kotlin, Jetpack~Compose)} clients sharing the same API philosophy; the \textbf{primary remote demo path} for the course is the Dockerised web + API + admin stack.
+
+\medskip
+\noindent
+This document follows the project specification: system purpose and planning (\textbf{Introduction}), a structured \textbf{technical implementation} (user vs.\ staff, frontend vs.\ backend, data and deployment), a \textbf{Generative~AI} section aligned with \textbf{UCD College of Science ``Level~3: AI Collaboration''} (as stated in the module problem statement: discuss use, and show \textbf{critical evaluation and modification} of AI output), \textbf{team contributions} (one subsection per member), and a \textbf{Conclusion}.
+
+\medskip
+\noindent
+\textbf{Keywords:} sustainable fashion, supply chain transparency, charitable traceability, FastAPI, React, Docker, SDG~12.
+\end{abstract}
+
+\newpage
+
+% ===========================================================================
+\section{Introduction (1--2 pages)}
+
+\subsection{System purpose and client need}
+The global fashion industry has a large \textbf{environmental footprint}; ``sustainability'' is often communicated as a \textbf{narrative} without verifiable data. The client in our project proposal (Group~7) is a brand moving toward \textbf{responsible} practices under \textbf{consumer and ESG pressure}. The software's job is to turn sustainability into \textbf{transparent, testable} behaviour: \textbf{traceability} in the value chain, \textbf{circular} commerce flows where supported, and \textbf{auditable} social impact (e.g.\ donations and campaigns tied to real records).
+
+VICOO addresses that need with two conceptual pillars, consistent with the project proposal and the implemented codebase:
+\begin{enumerate}[label=\textbf{\arabic*}, leftmargin=1.4em]
+  \item \textbf{Transparency \& traceability} --- product and supply-chain related records, sustainability messaging backed by structured data, and user-facing flows to inspect that information.
+  \item \textbf{Community co-creation \& social impact} --- campaigns, artwork submission and voting, editorial storytelling, and donation/impact views that can be connected to purchase and project narratives.
+\end{enumerate}
+
+The implementation brand name in the repository is \textbf{VICOO} (\emph{Visual $\cdot$ Circle}): children's visual creativity as \textbf{Visual}, and \textbf{Circle} as circularity and return --- aligned with the sustainability framing of the product.
+
+\subsection{Planning approach (high level)}
+
+\paragraph{Requirements \& architecture.}
+The team used a \textbf{proposal-first} model (client problem, UN SDG mapping, success criteria, stack, and remote testing strategy) and refined it into \textbf{incremental development}: backend API and data model, web frontends (user + admin), and deployment that examiners and TAs can run \textbf{remotely} (Ireland) --- matching the \textbf{Problem Statement} emphasis on \emph{remote testability} and \emph{straightforward} access.
+
+\paragraph{Stack choice (as implemented; note on proposal).}
+The written proposal listed \textbf{Flask} for the server; the delivered system standardises on \textbf{FastAPI} with async SQLAlchemy and Uvicorn, with \textbf{MySQL/Redis/RabbitMQ} and \textbf{Docker~Compose} in \path{deploy/easy}. This is a deliberate engineering choice for \textbf{async~I/O}, \textbf{OpenAPI} documentation, and \textbf{typed} API contracts, while still matching the course guidance to use \textbf{familiar} web and database skills.
+
+\paragraph{SDG focus.}
+\textbf{SDG~12} is the primary story: \emph{ensure sustainable consumption and production patterns} --- the platform makes \emph{consumption} (shopping, participation) and \emph{production} (supply records, product narratives) more \textbf{legible and accountable} to the user. \textbf{SDG~1} appears in the \emph{social} track (opportunity and visibility for children's work). \textbf{SDG~13} is supported by \emph{transparency} and \emph{circular} narratives rather than a single ``carbon app.'' \textbf{SDG~17} is reflected in \emph{partnership} and \emph{traceable} donation and campaign flows.
+
+\paragraph{Testing accounts (non-registration-only testing).}
+The module requires \textbf{pre-provisioned} usernames/passwords. For the Docker ``easy'' deployment, the repository documents demo and seed accounts (see \path{README.md} and \path{deploy/easy/README.md}), including admin-style access for the \textbf{admin dashboard} (e.g.\ \texttt{admin@tonghua.org} with the documented test password) so that assessment does not rely on ad-hoc self-registration only.
+
+% ===========================================================================
+\section{Technical implementation (10--12 pages)}
+
+This section is organised by \textbf{User vs.\ Staff (employee) surfaces} and by \textbf{frontend vs.\ backend and infrastructure}, consistent with the assignment outline.
+
+\subsection{System context and main components}
+
+A typical deployment of the \emph{web} product consists of:
+\begin{itemize}
+  \item \textbf{User-facing website} (\path{frontend/web-react}) --- React~18, TypeScript, Vite, Tailwind, Zustand, Framer Motion; editorial, magazine-style UI.
+  \item \textbf{Admin / staff dashboard} (\path{admin/}) --- React-based back-office for operations and moderation.
+  \item \textbf{API} (\path{backend/}) --- FastAPI application under \path{app/}, with routers in \path{app/routers/}, Pydantic schemas, SQLAlchemy models, and services.
+  \item \textbf{Data and middleware} --- MySQL, Redis, RabbitMQ; file/media handling as per implementation.
+  \item \textbf{Reverse proxy and packaging} --- Nginx and Dockerfiles in \path{deploy/easy}, \texttt{docker compose} to run the stack.
+\end{itemize}
+
+\noindent
+\textbf{Additional client code} in the monorepo (WeChat, Android) shares API concepts with the same backend; where not deployed for the course VM, they still demonstrate \textbf{multi-channel} skills from other modules (mobile, mini program).
+
+\subsection{User-facing web application (customer)}
+
+\paragraph{Role.}
+Discover campaigns and editorial content, browse products, place orders, participate in artwork/campaign flows, view donations/sustainability content, and use contact/assistant features as enabled.
+
+\paragraph{Front end (\path{frontend/web-react}).}
+\begin{itemize}
+  \item \textbf{Stack:} React, TypeScript, Vite, client-side routing, TanStack Query for server state, Axios for HTTP, i18n support, motion (Framer / GSAP) and a consistent \textbf{1990s editorial} visual language.
+  \item \textbf{User journey:} The UI is page-based with magazine-style layout and \textbf{navigation} patterns that bind marketing, story, and shop into one language --- not a generic e-commerce skin.
+  \item \textbf{API integration:} Calls the \textbf{REST} API under a versioned base path (e.g.\ \path{/api/v1/...} as configured); CORS and environment-specific API bases are set for local dev and Docker.
+  \item \textbf{Resilience:} The client separates \textbf{rendering} from \textbf{data fetching}; errors and loading states are handled at feature level.
+\end{itemize}
+
+\paragraph{Back end (customer-relevant API surface).}
+Representative \textbf{router modules} in \path{backend/app/routers/} that primarily serve the public and logged-in \emph{customer} experience include, among others: \texttt{auth}, \texttt{users}, \texttt{campaigns}, \texttt{artworks}, \texttt{products}, \texttt{orders}, \texttt{payments}, \texttt{donations}, \texttt{supply\_chain}, \texttt{sustainability}, \texttt{reviews}, \texttt{clothing\_intakes} (circular / intake flows), \texttt{contact}, and \texttt{ai\_assistant} (if the feature is enabled in deployment). The \textbf{OpenAPI} definition is served by FastAPI (e.g.\ \path{/docs} in development) for \textbf{contract review} and \textbf{remote testing} with known credentials.
+
+\paragraph{Security and privacy (user side) --- high level}
+\begin{itemize}
+  \item \textbf{Authentication} uses JWT-style access/refresh patterns as implemented in \path{security} and \path{auth} flows; sensitive fields may be encrypted at rest per architecture documents.
+  \item \textbf{Child-related data} is treated with stricter policy (consent, minimisation) as described in \path{docs/architecture} and \path{docs/security} --- relevant for artwork campaigns.
+\end{itemize}
+
+\subsection{Staff and administrative surfaces (employee)}
+
+\paragraph{Role.}
+Onboard and manage \textbf{users} (within policy), \textbf{campaigns}, \textbf{artworks} moderation pipeline, \textbf{products} and merchandising, \textbf{orders} and \textbf{after-sales}, \textbf{payments} configuration at integration level, \textbf{editorial} and \textbf{content} where applicable, and \textbf{admin} analytics/operations. This corresponds to the proposal's \emph{Admin Panel} and \textbf{Module~A/B} operational controls (traceability + community pipeline).
+
+\paragraph{Admin frontend (\path{admin/}).}
+\begin{itemize}
+  \item Separate build and deployment, often on a distinct port in Docker (see \path{deploy/easy} README: e.g.\ admin on \textbf{8080} in the documented mapping).
+  \item \textbf{Employee workflows} focus on \emph{efficiency} and \emph{auditability}: list/detail views, forms, and actions that call \textbf{admin} or privileged endpoints.
+\end{itemize}
+
+\paragraph{Back end (staff-oriented).}
+\begin{itemize}
+  \item The \texttt{admin} router and related \textbf{privilege} checks implement \textbf{role-based} operations (e.g.\ campaign approval, product lifecycle, user support).
+  \item \textbf{Operational} modules (\texttt{orders}, \texttt{after\_sales}, \texttt{payments} callbacks, \texttt{supply\_chain} maintenance) are primarily \emph{staff} concerns but may expose limited read data to the customer.
+\end{itemize}
+
+\subsection{Backend implementation (depth)}
+
+\paragraph{Framework and structure}
+\begin{itemize}
+  \item \textbf{Entry:} \path{app/main.py} wires middleware, CORS, exception handling, and includes routers.
+  \item \textbf{Routers:} Feature slices under \path{routers/*.py} --- keeps HTTP layer thin; delegates to \path{services/}.
+  \item \textbf{Models \& DB:} SQLAlchemy models under \path{app/models/}, \textbf{Alembic} migrations for schema evolution.
+  \item \textbf{Schemas:} Pydantic schemas for \textbf{validation} and \textbf{documentation}.
+\end{itemize}
+
+\paragraph{Cross-cutting concerns}
+\begin{itemize}
+  \item \textbf{Configuration:} \path{config.py} and environment variables (Docker \path{.env} in \path{deploy/easy}).
+  \item \textbf{Resilience \& messaging:} RabbitMQ for asynchronous jobs (e.g.\ payment/donation/notification style workloads --- exact bindings per \path{services/}).
+  \item \textbf{Caching and rate limits:} Redis for \textbf{sessions}, \textbf{rate limiting}, and hot \textbf{cache} keys.
+  \item \textbf{Observability:} Structured logging and health endpoint(s) (see deployment docs for the exact \textbf{health} path used by Docker health checks).
+\end{itemize}
+
+\paragraph{API design}
+\begin{itemize}
+  \item \textbf{REST} resources grouped by domain (\path{/users}, \path{/artworks}, \path{/products}, \ldots) with \textbf{pagination} and \textbf{filtering} where needed.
+  \item \textbf{Payments:} Multiple provider hooks (e.g.\ WeChat Pay, Alipay, Stripe, PayPal) with \textbf{idempotent} handling and \textbf{callback} security --- as implemented in \path{payments} and related services.
+  \item \textbf{AI assistant:} A dedicated \texttt{ai\_assistant} router for optional LLM-style features; in production, this should be \textbf{rate-limited}, \textbf{logged}, and \textbf{aligned} with the Generative~AI policy in Section~\ref{sec:genai}.
+\end{itemize}
+
+\subsection{Data layer and information architecture}
+\begin{itemize}
+  \item \textbf{RDBMS:} MySQL~8 stores \textbf{users}, \textbf{orders}, \textbf{products}, \textbf{artworks}, \textbf{campaigns}, \textbf{donation} records, \textbf{supply\_chain} nodes, and related \textbf{review} and \textbf{sustainability} fields.
+  \item \textbf{ER modelling} and field-level design were a group responsibility (see \textbf{Team} section --- Database lead). Migrations in \path{backend/alembic} are the \textbf{source of truth} for schema history.
+  \item \textbf{Consistency:} Use of \textbf{transactions} for checkout and payment flows; \textbf{soft deletes} or status fields where business rules require history.
+\end{itemize}
+
+\subsection{Distributed systems, network, and deployment}
+\begin{itemize}
+  \item \textbf{Course alignment:} The \textbf{Problem Statement} requests skills from \textbf{distributed systems, networking, databases, and information systems} --- this project demonstrates:
+  \begin{itemize}
+    \item \textbf{Multi-container} architecture (Compose services: \texttt{frontend}, \texttt{admin}, \texttt{backend}, \texttt{mysql}, \texttt{redis}, \texttt{rabbitmq}, etc.).
+    \item \textbf{Nginx} as an \textbf{edge} reverse proxy, TLS termination in production, path routing to API vs.\ static.
+    \item \textbf{Message queue} for \textbf{async} work --- classic \textbf{loose coupling} between web requests and long-running or retryable tasks.
+  \end{itemize}
+  \item \textbf{Remote access:} The stack exposes standard \textbf{HTTP} ports; documentation in \path{README.md} / \path{deploy/easy} explains \textbf{localhost} URLs; on the \textbf{VM}, public DNS or port forwarding is configured per course instructions.
+\end{itemize}
+
+\subsection{Engineering documentation in-repo}
+\begin{itemize}
+  \item \textbf{Architecture:} \path{docs/architecture/system-architecture.md} (logical decomposition, data layer, security).
+  \item \textbf{API:} \path{docs/api/api-reference.md} (endpoint-level description).
+  \item \textbf{Deployment:} \path{docs/deployment/deployment-guide.md} (note: new deployments should follow \path{deploy/easy} as per migration notes).
+  \item \textbf{Security:} \path{docs/security/} (policies, threat model elements, child protection).
+\end{itemize}
+
+\noindent
+This internal documentation is what the team uses to keep \textbf{AI-assisted} and \textbf{human} changes consistent (see Section~\ref{sec:genai}).
+
+\subsection{Known drift from the original proposal (transparency to markers)}
+\begin{itemize}
+  \item \textbf{Backend framework:} Proposal mentioned \textbf{Flask}; the repository standardises on \textbf{FastAPI} --- \emph{better match} for \textbf{async} workloads and \textbf{automatic OpenAPI} for remote testers.
+  \item \textbf{Microservice diagram vs.\ deployment:} The architecture document may describe a \textbf{gateway / microservice} \emph{logical} view; the \textbf{shipped} easy-deploy stack is often a \textbf{modular monolith} inside one API process for \textbf{simpler} course deployment --- a common engineering trade-off.
+\end{itemize}
+
+% ===========================================================================
+\section{Generative AI use (1--2 pages)}
+\label{sec:genai}
+
+\subsection{Module policy (UCD, Level~3: ``AI Collaboration'')}
+The \textbf{Problem Statement (Problem\_Statement.docx.pdf)} states that the module uses \textbf{UCD College of Science} expectations at \textbf{Level~3: \emph{AI Collaboration}}. In plain terms, students are expected to \textbf{discuss} how they used generative~AI and to show how they \textbf{critically evaluated and modified} AI-generated content --- not to submit raw, unchecked model output as final work.
+
+We apply that policy in three layers: \textbf{(1) code and configuration}, \textbf{(2) product and UX text}, \textbf{(3) documentation and deliverables} (including this system document).
+
+\subsection{Where generative AI was useful in the VICOO project}
+
+Typical, responsible uses across the team include:
+\begin{itemize}
+  \item \textbf{Scaffolding and exploration} --- boilerplate for \textbf{React} components, \textbf{FastAPI} routes, and \textbf{SQLAlchemy} models; \emph{proposals} for folder layout or naming.
+  \item \textbf{Draft documentation} --- first drafts of README sections, ADR-style notes, or test cases; \emph{never} the sole source of truth.
+  \item \textbf{Text assistance} --- marketing copy, in-app strings, and report language --- always checked against \textbf{brand}, \textbf{compliance} (PIPL/GDPR/child safety), and \textbf{accuracy} of technical claims.
+  \item \textbf{Code explanation} --- understanding errors from logs and stack traces, suggesting \emph{hypotheses} for bugs (verified by \textbf{tests} and \textbf{reproduction}).
+\end{itemize}
+
+The repository may include an \texttt{ai\_assistant} feature on the product side; that is \emph{user-facing}~AI and is separate from \textbf{development-time} use. Both are governed by \textbf{review} and \textbf{logging} where enabled.
+
+\subsection{How we review and modify AI content (concrete process)}
+\begin{enumerate}[leftmargin=1.4em]
+  \item \textbf{Human ownership:} Every commit has a \textbf{named author}; AI output is not anonymous ``team work'' --- a developer \textbf{integrates} and \textbf{signs off} on changes.
+  \item \textbf{Correctness \& security review:} For code, we run \textbf{linters}, \textbf{type checks}, and \textbf{tests}; we read \textbf{SQL} and \textbf{auth} code paths for \textbf{injection} and \textbf{IDOR} issues --- models are bad at \emph{security without humans}.
+  \item \textbf{Architecture alignment:} AI suggestions that violate \textbf{our} Nginx, Compose, and API versioning are \textbf{rejected} or \textbf{adapted} to the actual repo layout.
+  \item \textbf{Fact checking:} For sustainability, legal, and SDG claims in user-visible text, we \textbf{verify} against \textbf{cited} sources; we avoid unverifiable statistics.
+  \item \textbf{Plagiarism and licensing:} We do not paste large chunks of \textbf{unknown} provenance; dependencies remain \textbf{licence-audited} in \path{package.json} / \path{requirements.txt}.
+  \item \textbf{This document:} Sections describing the \textbf{stack} and \textbf{routers} were \textbf{cross-checked} against the \textbf{repository}; proposal PDF text (e.g.\ Flask) was \textbf{corrected} where the product uses \textbf{FastAPI}.
+\end{enumerate}
+
+\subsection{Positioning for assessment}
+We treat generative~AI as a \textbf{productivity tool under human judgment}, consistent with \textbf{Level~3 --- AI Collaboration}: transparent use, \textbf{critical} editing, and \textbf{traceability} in Git history and team practices --- analogous to the platform's own promise of \textbf{traceability} in sustainability storytelling.
+
+% ===========================================================================
+\section{Team work (3--4 pages) --- individual responsibilities}
+
+\smallskip
+\noindent\emph{The role titles below are taken from the \textbf{Group~7 --- SixSeven} project proposal (\texttt{Group\_7\_SixSeven.pdf}) and the sample \textbf{Weekly Update} in \texttt{Weekly\ Update\ Template.pdf}. Wording is expanded to match the \emph{delivered} codebase and workflow.}
+
+\subsection{Huang Tian --- Backend Lead \& Technical Coordinator}
+\textbf{Proposal role:} Lead backend \textbf{MVC-style} structure and \textbf{API} specifications.
+
+\textbf{Delivery alignment:} The backend is \textbf{FastAPI-centric} (not classic Django MVC) but preserves \textbf{separation of concerns} --- \path{routers} $\rightarrow$ \path{services} $\rightarrow$ \path{models}. Huang coordinates \textbf{interface contracts} (OpenAPI), \textbf{versioning} with the frontends, and \textbf{integration} checkpoints (e.g.\ auth, payments) so that \textbf{user} and \textbf{admin} clients stay compatible. The role includes resolving \textbf{cross-module} issues (CORS, env vars, health checks) for \textbf{Docker} deployments.
+
+\subsection{Yang Haoze --- Product Designer \& System Architect}
+\textbf{Proposal role:} Prototyping, \textbf{UI/UX} specifications, and \textbf{functional} flows.
+
+\textbf{Delivery alignment:} VICOO's \textbf{editorial} look-and-feel and \textbf{information architecture} (campaign $\rightarrow$ artwork $\rightarrow$ shop $\rightarrow$ impact) are design-led. Yang bridges \textbf{Figma}-level intent and \textbf{React} page structure, defines \textbf{design tokens} and motion affordances, and ensures \textbf{user} and \textbf{staff} interfaces remain \textbf{on-brand} while staying implementable on \textbf{Vite} and \textbf{Tailwind}.
+
+\subsection{Li Jinhao --- Database Lead}
+\textbf{Proposal role:} \textbf{ER modelling}, table design, and \textbf{query} optimisation.
+
+\textbf{Delivery alignment:} Owns the \textbf{MySQL} schema, \textbf{indices}, and \textbf{migration} quality with \textbf{Alembic}; works with backend developers to avoid \textbf{N+1} issues and to keep \textbf{financial} and \textbf{order} data \textbf{ACID-consistent}; reviews \textbf{reporting} queries for the admin side. The role is critical where \textbf{artworks} and \textbf{orders} must stay \textbf{linkable} for \textbf{audit} stories.
+
+\subsection{Wang Jundi --- Backend Developer \& System Integration}
+\textbf{Proposal role:} Feature modules and \textbf{third-party} integrations.
+
+\textbf{Delivery alignment:} Implements domain routers and \textbf{services} (e.g.\ \textbf{payments}, \textbf{webhooks}, \textbf{supply} records), and wires \textbf{RabbitMQ}-backed jobs where the design calls for \textbf{asynchronous} behaviour. Contributes to \textbf{integration testing} of \textbf{endpoints} with real \textbf{Docker} services (MySQL, Redis, MQ).
+
+\subsection{Liu Honghao --- Frontend Developer}
+\textbf{Proposal role:} \textbf{Full-page} development for \textbf{client} and \textbf{admin} with \textbf{interactive} effects.
+
+\textbf{Delivery alignment:} Builds \textbf{React} features for listing/detail flows, state with \textbf{Zustand} and \textbf{TanStack~Query}, and high-polish \textbf{motion} and \textbf{layout} in the user site; contributes to the \textbf{admin} app where staff workflows require \textbf{dense} tables and \textbf{forms} with validation feedback.
+
+\subsection{Ma Qingchuan --- Test Engineer \& Documentation Lead}
+\textbf{Proposal role:} \textbf{End-to-end} testing, test reports, and \textbf{user} operation manuals.
+
+\textbf{Delivery alignment:} Organises \textbf{manual test} matrices for \textbf{core flows} (login, browse, cart, payment stubs, admin moderation), \textbf{API} checks against \path{/docs}, and \textbf{Docker} ``happy path'' validation for \textbf{remote} examiners. Owns \textbf{consolidation} of \textbf{developer} and \textbf{operator} documentation (including alignment with this \textbf{system document} and weekly communication norms from the \textbf{Weekly Update Template}).
+
+\subsection{Collaboration and weekly process}
+Early weekly updates (see the template) document \textbf{formation}, \textbf{team agreement}, \textbf{topic reading}, and \textbf{even contribution} to updates --- practices that we carried forward as \textbf{sprint-style} check-ins, \textbf{code review}, and \textbf{shared} Definition of Done (tests + docs + deployability).
+
+% ===========================================================================
+\section{Conclusion (maximum 1 page)}
+
+VICOO implements a \textbf{credible, remotely testable} path for a fashion-adjacent client to connect \textbf{sustainable consumption and production (SDG~12)} with \textbf{transparent} product stories, \textbf{circular} and \textbf{welfare} flows, and \textbf{community} co-creation around children's art. The \textbf{user} web, \textbf{admin} web, and \textbf{FastAPI} backend, backed by \textbf{MySQL/Redis/RabbitMQ} and packaged with \textbf{Docker~Compose}, reflect \textbf{distributed systems} and \textbf{IS} course goals while remaining \textbf{practical} for the semester.
+
+We explicitly align \textbf{Generative~AI} with \textbf{UCD Level~3 (AI Collaboration)}: AI assists, humans \textbf{authorise}, and all outputs that affect \textbf{code}, \textbf{UX}, and \textbf{compliance} pass \textbf{review} and \textbf{verification} --- a workflow we also try to \emph{embody} in the product's own promises of \textbf{traceability}.
+
+Future work (beyond the course) could include \textbf{harder} LCA integrations, \textbf{stronger} mobile shipping paths, and \textbf{deeper} external audit of supply data --- the architecture already \textbf{modularises} these concerns at API and data layers.
+
+% ---------------------------------------------------------------------------
+\section*{References (informative)}
+\addcontentsline{toc}{section}{References (informative)}
+
+\begin{itemize}[label=---, leftmargin=1.2em, itemsep=0.35em]
+  \item United Nations, \emph{The 17 Goals} --- \url{https://sdgs.un.org/goals}
+  \item UCD / COMP3030J \textbf{Problem Statement} --- \texttt{Problem\_Statement.docx.pdf} (module).
+  \item Group~7 proposal --- \texttt{Group\_7\_SixSeven.pdf}.
+  \item Repository: \path{README.md}, \path{docs/architecture/system-architecture.md}, \path{docs/api/api-reference.md}, \path{deploy/easy/README.md}.
+\end{itemize}
+
+\vspace{1.2em}
+\hrule
+\vspace{0.5em}
+\begin{center}
+\small\emph{End of system document.}
+\end{center}
+
+\end{document}

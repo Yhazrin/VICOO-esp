@@ -9,7 +9,7 @@ import Pagination from '../components/ui/Pagination';
 import Modal from '../components/ui/Modal';
 import Button from '../components/ui/Button';
 import type { AdminProduct } from '../types';
-import { createProduct, fetchOriginCountries, fetchOriginRegions, fetchProducts } from '../services/api';
+import { createProduct, deleteProduct, fetchOriginCountries, fetchOriginRegions, fetchProducts } from '../services/api';
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
@@ -27,6 +27,7 @@ export default function ProductPage() {
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState('');
   const [open, setOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<AdminProduct | null>(null);
   const [form, setForm] = useState({
     name: '',
     description: '',
@@ -106,6 +107,19 @@ export default function ProductPage() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteProduct(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+      toast.success(t('product.toastDeleted'));
+      setDeleteTarget(null);
+    },
+    onError: (e: any) => {
+      const d = e?.response?.data?.detail;
+      toast.error(typeof d === 'string' ? d : t('product.toastDeleteFailed'));
+    },
+  });
+
   const columns: Column<AdminProduct>[] = [
     { key: 'name', title: t('product.colName'), minWidth: 160 },
     {
@@ -128,6 +142,16 @@ export default function ProductPage() {
       title: t('product.colCreatedAt'),
       width: 150,
       render: (v) => dayjs(v).format('YYYY-MM-DD HH:mm'),
+    },
+    {
+      key: 'actions',
+      title: t('product.colActions'),
+      width: 120,
+      render: (_: unknown, record: AdminProduct) => (
+        <Button size="sm" variant="danger" onClick={(e) => { e.stopPropagation(); setDeleteTarget(record); }}>
+          {t('product.btnDelete')}
+        </Button>
+      ),
     },
   ];
 
@@ -306,6 +330,33 @@ export default function ProductPage() {
             <textarea value={form.traceStoryContentEn} onChange={(e) => setForm({ ...form, traceStoryContentEn: e.target.value })} style={{ ...inputStyle, height: 88 }} />
           </div>
         </form>
+      </Modal>
+
+      <Modal
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        title={t('product.modalDeleteTitle')}
+        width={440}
+        footer={(
+          <>
+            <Button variant="secondary" onClick={() => setDeleteTarget(null)}>{t('common.cancel')}</Button>
+            <Button
+              variant="danger"
+              loading={deleteMutation.isPending}
+              onClick={() => {
+                if (deleteTarget) deleteMutation.mutate(deleteTarget.id);
+              }}
+            >
+              {t('product.btnDeleteConfirm')}
+            </Button>
+          </>
+        )}
+      >
+        {deleteTarget && (
+          <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-text)' }}>
+            {t('product.modalDeleteBody', { name: deleteTarget.name })}
+          </p>
+        )}
       </Modal>
     </div>
   );

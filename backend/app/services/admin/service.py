@@ -57,31 +57,41 @@ class AdminService(BaseService):
     async def get_dashboard_stats(self) -> Dict[str, Any]:
         """
         Aggregate real-time metrics for the admin dashboard.
+        Keys align with admin frontend fetchDashboardMetrics (snake_case in JSON).
         """
-        # 1. Total Donation Amount
         donation_total = (await self.db.execute(
-            select(func.sum(Donation.amount)).where(Donation.status == "completed")
+            select(func.coalesce(func.sum(Donation.amount), 0)).where(Donation.status == "completed")
         )).scalar() or 0
 
-        # 2. Pending Artworks Count
+        total_donations = (await self.db.execute(select(func.count(Donation.id)))).scalar() or 0
+
         pending_artworks = (await self.db.execute(
             select(func.count(Artwork.id)).where(Artwork.status == "pending")
         )).scalar() or 0
 
-        # 3. Active Campaigns Count
         active_campaigns = (await self.db.execute(
             select(func.count(Campaign.id)).where(Campaign.status == "active")
         )).scalar() or 0
 
-        # 4. Total Users Count
         total_users = (await self.db.execute(select(func.count(User.id)))).scalar() or 0
+
+        total_artworks = (await self.db.execute(select(func.count(Artwork.id)))).scalar() or 0
+
+        total_orders = (await self.db.execute(select(func.count(Order.id)))).scalar() or 0
+
+        total_clothing_donations = (
+            await self.db.execute(select(func.count(ChildParticipant.id)))
+        ).scalar() or 0
 
         return {
             "total_donation_amount": str(donation_total),
-            "pending_artworks_count": pending_artworks,
-            "active_campaigns_count": active_campaigns,
-            "total_users_count": total_users,
-            "currency": "CNY"
+            "total_donations": total_donations,
+            "pending_artworks": pending_artworks,
+            "active_campaigns": active_campaigns,
+            "total_users": total_users,
+            "total_artworks": total_artworks,
+            "total_orders": total_orders,
+            "total_clothing_donations": total_clothing_donations,
         }
 
     async def get_ai_rollout_metrics(self) -> Dict[str, Any]:

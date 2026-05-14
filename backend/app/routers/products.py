@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select, func
+from sqlalchemy import select, func, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from decimal import Decimal
 import logging
@@ -8,6 +8,10 @@ from app.config import settings
 from app.database import get_db
 from app.models.product import Product
 from app.models.supply_chain import SupplyChainRecord
+from app.models.order import OrderItem
+from app.models.impact_fund import ImpactFundEntry
+from app.models.circular_commerce import ProductReview, ClothingIntake
+from app.models.design_draft import DesignDraft
 from app.models.artwork import Artwork
 from app.models.country import Country
 from app.models.region import Region
@@ -403,6 +407,7 @@ async def create_product(body: ProductCreate, db: AsyncSession = Depends(get_db)
         product = Product(**payload)
         db.add(product)
         await db.flush()
+        await db.refresh(product, ["created_at"])
         return ApiResponse(data=ProductOut.model_validate(product).model_dump())
     except HTTPException:
         raise
@@ -433,9 +438,55 @@ async def update_product(product_id: int, body: ProductUpdate, db: AsyncSession 
         for k, v in payload.items():
             setattr(product, k, v)
         await db.flush()
+        await db.refresh(product, ["created_at"])
         return ApiResponse(data=ProductOut.model_validate(product).model_dump())
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"DB write failed during update_product: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+
+
+@router.delete("/{product_id}", response_model=ApiResponse)
+async def delete_product(
+    product_id: int,
+    db: AsyncSession = Depends(get_db),
+    _current_user: dict = Depends(require_role("admin", "editor")),
+):
+    """Delete a product when it has no order or impact-fund linkage."""
+    try:
+        stmt = select(Product).where(Product.id == product_id)
+        result = await db.execute(stmt)
+        product = result.scalar_one_or_none()
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+
+        n_items = (
+            await db.execute(select(func.count()).select_from(OrderItem).where(OrderItem.product_id == product_id))
+        ).scalar() or 0
+        n_fund = (
+            await db.execute(
+                select(func.count()).select_from(ImpactFundEntry).where(ImpactFundEntry.product_id == product_id)
+            )
+        ).scalar() or 0
+        if n_items or n_fund:
+            raise HTTPException(
+                status_code=409,
+                detail="Product has orders or fund entries; set status to inactive instead of deleting.",
+            )
+
+        await db.execute(delete(SupplyChainRecord).where(SupplyChainRecord.product_id == product_id))
+        await db.execute(delete(ProductReview).where(ProductReview.product_id == product_id))
+        await db.execute(
+            update(ClothingIntake).where(ClothingIntake.product_id == product_id).values(product_id=None)
+        )
+        await db.execute(
+            update(DesignDraft).where(DesignDraft.product_id == product_id).values(product_id=None)
+        )
+        await db.delete(product)
+        return ApiResponse(data={"id": product_id, "deleted": True})
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"DB write failed during delete_product: {e}", exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")

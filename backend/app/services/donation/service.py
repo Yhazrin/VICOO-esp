@@ -12,8 +12,6 @@ from app.models.campaign import Campaign
 from app.services.base import BaseService
 from app.core.audit import audit_action
 
-from app.utils.cache import cached
-
 logger = logging.getLogger("tonghua.donation_service")
 
 class DonationService(BaseService):
@@ -21,33 +19,82 @@ class DonationService(BaseService):
     Service handling donation creation, listing, and statistics.
     """
 
-    @cached(prefix="donations:list", ttl=60)
+    def _donation_filter_conditions(
+        self,
+        campaign_id: Optional[int] = None,
+        status: Optional[str] = None,
+        payment_method: Optional[str] = None,
+        search: Optional[str] = None,
+    ) -> List[Any]:
+        conds: List[Any] = []
+        if campaign_id is not None:
+            conds.append(Donation.campaign_id == campaign_id)
+        if status:
+            conds.append(Donation.status == status)
+        if payment_method:
+            conds.append(Donation.payment_method == payment_method)
+        if search and search.strip():
+            conds.append(Donation.donor_name.ilike(f"%{search.strip()}%"))
+        return conds
+
+    async def donation_list_summary(
+        self,
+        campaign_id: Optional[int] = None,
+        status: Optional[str] = None,
+        payment_method: Optional[str] = None,
+        search: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Counts and completed sum for the current filter set (all pages)."""
+        conds = self._donation_filter_conditions(campaign_id, status, payment_method, search)
+
+        base_count = select(func.count(Donation.id))
+        for c in conds:
+            base_count = base_count.where(c)
+        selection_total = (await self.db.execute(base_count)).scalar() or 0
+
+        completed_conds = [*conds, Donation.status == "completed"]
+        cc = select(func.count(Donation.id))
+        for c in completed_conds:
+            cc = cc.where(c)
+        completed_count = (await self.db.execute(cc)).scalar() or 0
+
+        failed_conds = [*conds, Donation.status == "failed"]
+        fc = select(func.count(Donation.id))
+        for c in failed_conds:
+            fc = fc.where(c)
+        failed_count = (await self.db.execute(fc)).scalar() or 0
+
+        amt = select(func.coalesce(func.sum(Donation.amount), 0))
+        for c in completed_conds:
+            amt = amt.where(c)
+        amount_sum = (await self.db.execute(amt)).scalar() or 0
+
+        return {
+            "selection_total": selection_total,
+            "completed_count": completed_count,
+            "failed_count": failed_count,
+            "completed_amount_total": str(amount_sum),
+        }
+
     async def list_donations(
-        self, 
-        page: int = 1, 
-        page_size: int = 20, 
-        campaign_id: Optional[int] = None, 
-        status: Optional[str] = None
+        self,
+        page: int = 1,
+        page_size: int = 20,
+        campaign_id: Optional[int] = None,
+        status: Optional[str] = None,
+        payment_method: Optional[str] = None,
+        search: Optional[str] = None,
     ) -> Tuple[List[Donation], int]:
         """
         List donations with pagination and filters.
         """
-        stmt = select(Donation)
-        if campaign_id is not None:
-            stmt = stmt.where(Donation.campaign_id == campaign_id)
-        if status:
-            stmt = stmt.where(Donation.status == status)
-        
-        # Count total
+        conds = self._donation_filter_conditions(campaign_id, status, payment_method, search)
         count_stmt = select(func.count(Donation.id))
-        if campaign_id is not None:
-            count_stmt = count_stmt.where(Donation.campaign_id == campaign_id)
-        if status:
-            count_stmt = count_stmt.where(Donation.status == status)
-        
+        stmt = select(Donation)
+        for c in conds:
+            count_stmt = count_stmt.where(c)
+            stmt = stmt.where(c)
         total = (await self.db.execute(count_stmt)).scalar() or 0
-        
-        # Get data
         stmt = stmt.order_by(Donation.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
         result = await self.db.execute(stmt)
         return result.scalars().all(), total
@@ -123,6 +170,30 @@ class DonationService(BaseService):
         donation.certificate_no = f"TH-DON-{date_str}-{donation.id:06d}"
         donation.certificate_url = f"/api/donations/{donation.id}/certificate"
         
+        await self.db.flush()
+        return donation
+
+    async def admin_approve_donation(
+        self, donation_id: int, admin_user_id: Optional[int] = None
+    ) -> Donation:
+        """
+        Admin manual approval: pending -> completed.
+        Campaign current_amount is already updated at create time; do not add again.
+        """
+        donation = await self.get_donation_by_id(donation_id)
+        if donation.status == "completed":
+            return donation
+        if donation.status != "pending":
+            raise HTTPException(
+                status_code=400,
+                detail=f"Only pending donations can be approved; current status is '{donation.status}'",
+            )
+        donation.status = "completed"
+        if not donation.payment_id:
+            donation.payment_id = f"admin_approved:{admin_user_id or 0}"
+        date_str = datetime.now().strftime("%Y%m%d")
+        donation.certificate_no = f"TH-DON-{date_str}-{donation.id:06d}"
+        donation.certificate_url = f"/api/donations/{donation.id}/certificate"
         await self.db.flush()
         return donation
 
