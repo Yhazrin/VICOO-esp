@@ -632,8 +632,6 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                             )
                         out += "\n(Source: products table)"
                         return out
-                except Exception as e:
-                    logger.debug(f"Impact product search error: {e}")
 
         return ""
 
