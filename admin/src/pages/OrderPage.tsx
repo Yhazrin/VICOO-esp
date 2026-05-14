@@ -33,7 +33,15 @@ export default function OrderPage() {
     },
   });
 
-  const getPaymentLabel = (v: string) => v === 'wechat' ? t('order.paymentWechat') : t('order.paymentAlipay');
+  const getPaymentLabel = (v: string) => {
+    const map: Record<string, string> = {
+      wechat: t('order.paymentWechat'),
+      alipay: t('order.paymentAlipay'),
+      stripe: t('order.paymentStripe'),
+      paypal: t('order.paymentPaypal'),
+    };
+    return map[v] || v || '-';
+  };
 
   const columns: Column<Order>[] = [
     { key: 'orderNo', title: t('order.colOrderNo'), width: 130, sorter: true },
@@ -43,7 +51,7 @@ export default function OrderPage() {
     )},
     { key: 'totalAmount', title: t('order.colAmount'), width: 100, sorter: true, render: (v) => <span style={{ fontWeight: 600 }}>\u00a5{v.toLocaleString()}</span> },
     { key: 'paymentMethod', title: t('order.colPaymentMethod'), width: 100, render: (v) => getPaymentLabel(v) },
-    { key: 'status', title: t('order.colStatus'), width: 100, render: (v) => <StatusBadge status={v} /> },
+    { key: 'status', title: t('order.colStatus'), width: 100, render: (v) => <StatusBadge status={v} context="order" /> },
     { key: 'createdAt', title: t('order.colCreatedAt'), width: 160, sorter: true, render: (v) => dayjs(v).format('YYYY-MM-DD HH:mm') },
     {
       key: 'action', title: t('order.colAction'), width: 200,
@@ -77,7 +85,7 @@ export default function OrderPage() {
     <div>
       <div style={{ marginBottom: 20 }}>
         <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 4, fontFamily: 'var(--font-body)' }}>{t('order.title')}</h1>
-        <p style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>{t('order.description')}</p>
+        <p style={{ fontSize: 13, color: 'var(--color-text-2)' }}>{t('order.description')}</p>
       </div>
 
       <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
@@ -106,7 +114,7 @@ export default function OrderPage() {
             <DetailRow label={t('order.detailOrderNo')} value={selectedOrder.orderNo} />
             <DetailRow label={t('order.detailUser')} value={selectedOrder.userName} />
             <DetailRow label={t('order.detailAmount')} value={`\u00a5${selectedOrder.totalAmount.toLocaleString()}`} />
-            <DetailRow label={t('order.detailStatus')} value={<StatusBadge status={selectedOrder.status} />} />
+            <DetailRow label={t('order.detailStatus')} value={<StatusBadge status={selectedOrder.status} context="order" />} />
             <DetailRow label={t('order.detailPaymentMethod')} value={getPaymentLabel(selectedOrder.paymentMethod)} />
             <DetailRow label={t('order.detailShippingAddress')} value={selectedOrder.shippingAddress} />
             {selectedOrder.trackingNo && <DetailRow label={t('order.detailTrackingNo')} value={selectedOrder.trackingNo} />}
@@ -114,7 +122,7 @@ export default function OrderPage() {
             {selectedOrder.paidAt && <DetailRow label={t('order.detailPayTime')} value={dayjs(selectedOrder.paidAt).format('YYYY-MM-DD HH:mm:ss')} />}
             {selectedOrder.shippedAt && <DetailRow label={t('order.detailShipTime')} value={dayjs(selectedOrder.shippedAt).format('YYYY-MM-DD HH:mm:ss')} />}
             <div style={{ marginTop: 8 }}>
-              <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 8 }}>{t('order.detailItemsLabel')}</div>
+              <div style={{ fontSize: 12, color: 'var(--color-text-2)', marginBottom: 8 }}>{t('order.detailItemsLabel')}</div>
               {selectedOrder.items.map((item, i) => (
                 <div key={i} style={{
                   display: 'flex', justifyContent: 'space-between', padding: '8px 0',
@@ -135,7 +143,7 @@ export default function OrderPage() {
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-      <span style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>{label}</span>
+      <span style={{ fontSize: 13, color: 'var(--color-text-2)' }}>{label}</span>
       <span style={{ fontSize: 13, fontWeight: 500 }}>{value}</span>
     </div>
   );

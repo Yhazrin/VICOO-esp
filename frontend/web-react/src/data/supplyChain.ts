@@ -8,7 +8,7 @@ export interface SupplyChainNode {
   lng: number;
   labelEn: string;
   labelZh: string;
-  stage: 'raw' | 'fabric' | 'garment';
+  stage: 'material_sourcing' | 'processing' | 'manufacturing' | 'quality_check' | 'shipping';
 }
 
 export interface SupplyChainRoute {
@@ -37,9 +37,11 @@ export const SUPPLY_CHAIN_ROUTES: SupplyChainRoute[] = [
     co2: 8.2,
     co2Traditional: 33.4,
     nodes: [
-      { id: 'raw-001', lat: 41.1684, lng: 80.2636, labelEn: 'Xinjiang Cotton', labelZh: '新疆棉花', stage: 'raw' },
-      { id: 'fabric-001', lat: 37.4500, lng: 116.3000, labelEn: 'Shandong Textile', labelZh: '山东纺织', stage: 'fabric' },
-      { id: 'garment-001', lat: 23.1291, lng: 113.2644, labelEn: 'Guangzhou Mfg.', labelZh: '广州制造', stage: 'garment' },
+      { id: 'raw-001', lat: 41.1684, lng: 80.2636, labelEn: 'Xinjiang Cotton', labelZh: '新疆棉花', stage: 'material_sourcing' },
+      { id: 'fabric-001', lat: 37.4500, lng: 116.3000, labelEn: 'Shandong Textile', labelZh: '山东纺织', stage: 'processing' },
+      { id: 'garment-001', lat: 23.1291, lng: 113.2644, labelEn: 'Guangzhou Mfg.', labelZh: '广州制造', stage: 'manufacturing' },
+      { id: 'qc-001', lat: 22.5431, lng: 114.0579, labelEn: 'Shenzhen QC Lab', labelZh: '深圳质检', stage: 'quality_check' },
+      { id: 'ship-001', lat: 22.3193, lng: 114.1694, labelEn: 'HK Port', labelZh: '香港港口', stage: 'shipping' },
     ],
   },
   {
@@ -50,9 +52,11 @@ export const SUPPLY_CHAIN_ROUTES: SupplyChainRoute[] = [
     co2: 10.5,
     co2Traditional: 42.0,
     nodes: [
-      { id: 'raw-002', lat: 37.3826, lng: 117.9711, labelEn: 'Shandong Cotton', labelZh: '山东棉花', stage: 'raw' },
-      { id: 'fabric-002', lat: 32.0603, lng: 120.8700, labelEn: 'Jiangsu Textile', labelZh: '江苏纺织', stage: 'fabric' },
-      { id: 'garment-002', lat: 30.2741, lng: 120.1551, labelEn: 'Zhejiang Mfg.', labelZh: '浙江制造', stage: 'garment' },
+      { id: 'raw-002', lat: 37.3826, lng: 117.9711, labelEn: 'Shandong Cotton', labelZh: '山东棉花', stage: 'material_sourcing' },
+      { id: 'fabric-002', lat: 32.0603, lng: 120.8700, labelEn: 'Jiangsu Textile', labelZh: '江苏纺织', stage: 'processing' },
+      { id: 'garment-002', lat: 30.2741, lng: 120.1551, labelEn: 'Zhejiang Mfg.', labelZh: '浙江制造', stage: 'manufacturing' },
+      { id: 'qc-002', lat: 28.6920, lng: 121.3480, labelEn: 'Taizhou QC', labelZh: '台州质检', stage: 'quality_check' },
+      { id: 'ship-002', lat: 29.8683, lng: 121.5440, labelEn: 'Ningbo Port', labelZh: '宁波港口', stage: 'shipping' },
     ],
   },
   {
@@ -63,9 +67,11 @@ export const SUPPLY_CHAIN_ROUTES: SupplyChainRoute[] = [
     co2: 6.8,
     co2Traditional: 28.0,
     nodes: [
-      { id: 'raw-003', lat: 25.6065, lng: 100.2679, labelEn: 'Yunnan Hemp', labelZh: '云南大麻', stage: 'raw' },
-      { id: 'fabric-003', lat: 25.0389, lng: 102.7183, labelEn: 'Yunnan Textile', labelZh: '云南纺织', stage: 'fabric' },
-      { id: 'garment-003', lat: 30.5728, lng: 104.0668, labelEn: 'Chengdu Workshop', labelZh: '成都工坊', stage: 'garment' },
+      { id: 'raw-003', lat: 25.6065, lng: 100.2679, labelEn: 'Yunnan Hemp', labelZh: '云南大麻', stage: 'material_sourcing' },
+      { id: 'fabric-003', lat: 25.0389, lng: 102.7183, labelEn: 'Yunnan Textile', labelZh: '云南纺织', stage: 'processing' },
+      { id: 'garment-003', lat: 30.5728, lng: 104.0668, labelEn: 'Chengdu Workshop', labelZh: '成都工坊', stage: 'manufacturing' },
+      { id: 'qc-003', lat: 29.5630, lng: 106.5516, labelEn: 'Chongqing QC', labelZh: '重庆质检', stage: 'quality_check' },
+      { id: 'ship-003', lat: 28.9645, lng: 121.6488, labelEn: 'Ningbo Port', labelZh: '宁波港口', stage: 'shipping' },
     ],
   },
 ];

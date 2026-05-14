@@ -18,6 +18,7 @@ import { campaignsApi } from '@/services/campaigns';
 import { getLocalizedCampaignCopy } from '@/utils/campaignLocale';
 import { artworksApi } from '@/services/artworks';
 import { donationsApi } from '@/services/donations';
+import { invokeWechatPayment } from '@/utils/payment';
 import { useAuthStore } from '@/stores/authStore';
 import type { Campaign } from '@/types';
 
@@ -85,8 +86,17 @@ export default function CampaignDetail() {
         message: data.message || undefined,
       });
     },
-    onSuccess: () => {
+    onSuccess: async (result, variables) => {
       queryClient.invalidateQueries({ queryKey: ['campaign', id] });
+      if (variables.paymentMethod === 'wechat' && result && 'appId' in result) {
+        try {
+          await invokeWechatPayment(result as unknown as Record<string, unknown>);
+          toast.success(t('donate.success', 'Thank you for your donation!'));
+        } catch {
+          toast.error(t('donate.paymentFailed', 'Payment was not completed.'));
+        }
+        return;
+      }
       toast.success(t('donate.success', 'Thank you for your donation!'));
     },
     onError: () => {

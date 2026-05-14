@@ -91,6 +91,7 @@ async def list_artworks(
     page_size: int = Query(20, ge=1, le=100),
     status: str | None = Query(None),
     campaign_id: int | None = Query(None),
+    search: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
     """List artworks with optional filtering and pagination."""
@@ -100,11 +101,17 @@ async def list_artworks(
             stmt = stmt.where(Artwork.status == status)
         if campaign_id is not None:
             stmt = stmt.where(Artwork.campaign_id == campaign_id)
+        if search:
+            like = f"%{search}%"
+            stmt = stmt.where(Artwork.title.ilike(like) | Artwork.description.ilike(like))
         count_stmt = select(func.count(Artwork.id))
         if status:
             count_stmt = count_stmt.where(Artwork.status == status)
         if campaign_id is not None:
             count_stmt = count_stmt.where(Artwork.campaign_id == campaign_id)
+        if search:
+            like = f"%{search}%"
+            count_stmt = count_stmt.where(Artwork.title.ilike(like) | Artwork.description.ilike(like))
         total = (await db.execute(count_stmt)).scalar() or 0
         stmt = stmt.offset((page - 1) * page_size).limit(page_size)
         result = await db.execute(stmt)

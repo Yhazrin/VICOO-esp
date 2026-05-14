@@ -5,7 +5,7 @@ import { useReducedMotion } from 'framer-motion';
 import type { SupplyChainRoute } from '@/data/supplyChain';
 import { createRouteVisuals, latLngToVector3 } from './globeUtils';
 import {
-  buildLandOutlinesFromGeoJson,
+  createLandOutlinesGroup,
   landOutlineRadius,
   LAND_OUTLINE_WIDTH_SUPPLY_CHAIN_PX,
   syncLandOutlineLine2Resolution,
@@ -156,10 +156,8 @@ export default function SupplyChainGlobe({
     globeGroup.add(gridGroup);
 
     const landColor = new THREE.Color(COLORS.ink).lerp(new THREE.Color(COLORS.wireframe), 0.42);
-    void import('@/data/world-land-110m.json').then((mod) => {
-      if (cancelled) return;
-      const g = buildLandOutlinesFromGeoJson(
-        mod.default as { features: { geometry?: { type: string; coordinates: unknown } }[] },
+    if (!cancelled) {
+      const g = createLandOutlinesGroup(
         landOutlineRadius(GLOBE_RADIUS),
         landColor,
         0.52,
@@ -173,7 +171,7 @@ export default function SupplyChainGlobe({
         container.clientWidth,
         Math.max(container.clientHeight, 1),
       );
-    });
+    }
 
     /* ── Route visuals ── */
     const particles: ParticleState[] = [];
