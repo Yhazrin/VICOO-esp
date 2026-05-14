@@ -158,15 +158,15 @@ function RecordGalleryEditor({
 }
 
 export default function SupplyChainStudio() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const qc = useQueryClient();
   const { user, isAuthenticated } = useAuthStore();
   const isStaff = user?.role === 'admin' || user?.role === 'editor';
   const [productId, setProductId] = useState<string>('');
 
   const { data: productPage } = useQuery({
-    queryKey: ['products-all-studio'],
-    queryFn: () => productsApi.getAll({ page_size: 200 }),
+    queryKey: ['products-all-studio', i18n.language],
+    queryFn: () => productsApi.getAll({ page_size: 200, locale: i18n.language }),
     enabled: isAuthenticated && isStaff,
   });
   const products = productPage?.items ?? [];

@@ -404,6 +404,7 @@ async def get_product(product_id: int, locale: str = Query("zh", pattern="^(zh|e
             raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         for p in _mock_products:
             if p["id"] == product_id:
+                _localize_product_dict(p, locale)
                 return ApiResponse(data=p)
         raise HTTPException(status_code=404, detail="Product not found")
 

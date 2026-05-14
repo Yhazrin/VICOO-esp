@@ -104,6 +104,8 @@ export const productsApi = {
     category?: string;
     /** 与公益商店分流；务必传给后端。部分 HTTP 客户端会丢弃布尔 false，故序列化为字符串。 */
     isImpactProduct?: boolean;
+    /** 语言区域，传给后端以返回对应语言的产品名称。默认取 i18n.language */
+    locale?: string;
   }): Promise<PaginatedResponse<Product>> => {
     const query: Record<string, string | number> = {};
     if (params?.page != null) query.page = params.page;
@@ -112,6 +114,7 @@ export const productsApi = {
     if (params?.isImpactProduct !== undefined) {
       query.is_impact_product = params.isImpactProduct ? 'true' : 'false';
     }
+    if (params?.locale != null) query.locale = params.locale;
     const response = await api.get('/products', { params: query });
     const d = response.data;
     return {
@@ -123,18 +126,24 @@ export const productsApi = {
     };
   },
 
-  getById: async (id: string): Promise<Product> => {
-    const response = await api.get(`/products/${id}`);
+  getById: async (id: string, locale?: string): Promise<Product> => {
+    const query: Record<string, string> = {};
+    if (locale != null) query.locale = locale;
+    const response = await api.get(`/products/${id}`, { params: query });
     return normalizeProduct(response.data.data);
   },
 
-  getFeatured: async (): Promise<Product[]> => {
-    const response = await api.get('/products/featured');
+  getFeatured: async (locale?: string): Promise<Product[]> => {
+    const query: Record<string, string> = {};
+    if (locale != null) query.locale = locale;
+    const response = await api.get('/products/featured', { params: query });
     return (response.data.data ?? []).map(normalizeProduct);
   },
 
-  getByCategory: async (category: string): Promise<PaginatedResponse<Product>> => {
-    const response = await api.get('/products', { params: { category } });
+  getByCategory: async (category: string, locale?: string): Promise<PaginatedResponse<Product>> => {
+    const query: Record<string, string> = { category };
+    if (locale != null) query.locale = locale;
+    const response = await api.get('/products', { params: query });
     const d = response.data;
     return {
       items: (d.data ?? []).map(normalizeProduct),
