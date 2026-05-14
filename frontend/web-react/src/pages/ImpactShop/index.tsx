@@ -73,7 +73,7 @@ function ImpactPill({ label, value }: { label: string; value: string }) {
 /* ─── Impact Shop Page ─── */
 
 export default function ImpactShop() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('search')?.trim() ?? '';
@@ -82,11 +82,12 @@ export default function ImpactShop() {
 
   // Fetch impact products
   const { data, isLoading, error: productsError } = useQuery({
-    queryKey: ['products', 'impact', { category: activeCategory, isImpactProduct: true }],
+    queryKey: ['products', 'impact', { category: activeCategory, isImpactProduct: true, locale: i18n.language }],
     queryFn: async () => {
       const result = await productsApi.getAll({
         category: activeCategory === 'all' ? undefined : activeCategory,
         isImpactProduct: true,
+        locale: i18n.language,
       });
       return result;
     },

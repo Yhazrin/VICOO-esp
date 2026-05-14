@@ -85,8 +85,8 @@ export default function ProductDetail() {
   const [reviewTitle, setReviewTitle] = useState('');
   const [reviewBody, setReviewBody] = useState('');
   const { data: product, isLoading: loading } = useQuery({
-    queryKey: ['product', id],
-    queryFn: () => productsApi.getById(id!),
+    queryKey: ['product', id, i18n.language],
+    queryFn: () => productsApi.getById(id!, i18n.language),
     enabled: !!id,
     retry: false,
   });

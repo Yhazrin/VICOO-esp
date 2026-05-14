@@ -86,7 +86,7 @@ function FilterSection({ title, children, defaultOpen = true }: { title: string;
 }
 
 export default function Shop() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('search')?.trim() ?? '';
@@ -103,11 +103,12 @@ export default function Shop() {
   const [filtersExpanded, setFiltersExpanded] = useState(false);
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['products', 'company', { category: activeCategory, isImpactProduct: false }],
+    queryKey: ['products', 'company', { category: activeCategory, isImpactProduct: false, locale: i18n.language }],
     queryFn: async () => {
       const result = await productsApi.getAll({
         category: activeCategory === 'all' ? undefined : activeCategory,
         isImpactProduct: false,
+        locale: i18n.language,
       });
       return result;
     },

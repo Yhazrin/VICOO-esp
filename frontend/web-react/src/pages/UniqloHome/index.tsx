@@ -35,8 +35,8 @@ const BANNER_ITEMS = [
 export default function UniqloHome() {
   const { i18n } = useTranslation();
   const { data: products } = useQuery({
-    queryKey: ['uniqlo-home-products', 'company'],
-    queryFn: () => productsApi.getAll({ page_size: 16, isImpactProduct: false }),
+    queryKey: ['uniqlo-home-products', 'company', i18n.language],
+    queryFn: () => productsApi.getAll({ page_size: 16, isImpactProduct: false, locale: i18n.language }),
     staleTime: 5 * 60 * 1000,
   });
 
