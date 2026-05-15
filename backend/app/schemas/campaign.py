@@ -4,7 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class CampaignCreate(BaseModel):
@@ -23,7 +23,23 @@ class CampaignUpdate(BaseModel):
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
     goal_amount: Optional[Decimal] = Field(None, gt=0)
-    status: Optional[str] = Field(None, pattern="^(draft|active|completed|cancelled)$")
+    status: Optional[str] = None
+
+    @field_validator("status", mode="before")
+    @classmethod
+    def normalize_status(cls, v: object) -> Optional[str]:
+        """Admin UI uses ended/archived; DB + API use completed/cancelled."""
+        if v is None or v == "":
+            return None
+        if not isinstance(v, str):
+            raise ValueError("status must be a string")
+        key = v.strip().lower()
+        aliases = {"ended": "completed", "archived": "cancelled"}
+        normalized = aliases.get(key, key)
+        allowed = frozenset({"draft", "active", "completed", "cancelled"})
+        if normalized not in allowed:
+            raise ValueError(f"Invalid status: {v!r}")
+        return normalized
 
 
 class CampaignListItem(BaseModel):

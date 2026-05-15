@@ -373,7 +373,10 @@ export async function updateCampaign(id: string, data: Partial<Campaign>): Promi
   if (data.description !== undefined) body.description = data.description;
   if (data.startDate !== undefined) body.start_date = data.startDate;
   if (data.endDate !== undefined) body.end_date = data.endDate;
-  if (data.targetAmount !== undefined) body.goal_amount = data.targetAmount;
+  if (data.targetAmount !== undefined) {
+    const g = Number(data.targetAmount);
+    if (Number.isFinite(g) && g > 0) body.goal_amount = g;
+  }
   if (data.coverImage !== undefined) body.cover_image = data.coverImage;
   if (data.status !== undefined) {
     let s = data.status;

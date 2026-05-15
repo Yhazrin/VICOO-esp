@@ -62,12 +62,14 @@ function PillWindow({
   impactMode,
   activeImpactTab,
   setActiveImpactTab,
+  setImpactMode,
   locationPathname,
   modeMorphTransition,
 }: {
   impactMode: boolean;
   activeImpactTab: string;
   setActiveImpactTab: (tab: string) => void;
+  setImpactMode: (on: boolean) => void;
   locationPathname: string;
   modeMorphTransition: Transition;
 }) {
@@ -258,18 +260,22 @@ function PillWindow({
                   else companyItemRefs.current.delete(item.key);
                 }}
                 to={item.path}
+                onClick={() => {
+                  // `/` 是公益壳与优衣库首页共用 URL：仅依赖 pathname 的 effect 不会在点「首页」时关闭公益模式。
+                  // 无条件设 false：即使其他公司路径已经被 useEffect 处理过，重复 set 是无副作用同步操作，
+                  // 反而能避免 zustand persist hydrate 与本地刷新带来的瞬时 stale closure。
+                  setImpactMode(false);
+                }}
                 aria-current={isActive ? 'page' : undefined}
                 className={`
                   relative z-10 cursor-pointer whitespace-nowrap px-5 py-1 font-body text-label tracking-wide
                   ${PILL_CORNER_TRANSITION_CLASS}
                   ${impactMode ? 'rounded-full' : 'rounded-sm'}
                   ${isActive
-                    ? impactMode
-                      ? 'font-medium text-paper'
-                      : 'font-medium text-[#E60012]'
+                    ? 'font-medium bg-white text-[#E60012] shadow-sm ring-1 ring-black/10'
                     : impactMode
                       ? 'text-ink-faded hover:text-ink'
-                      : 'text-white/85 hover:text-white'
+                      : 'text-white/90 hover:bg-white/10 hover:text-white'
                   }
                 `}
               >
@@ -324,7 +330,7 @@ function PillWindow({
                   ${PILL_CORNER_TRANSITION_CLASS}
                   ${impactMode ? 'rounded-full' : 'rounded-sm'}
                   ${isActive
-                    ? 'font-medium text-paper'
+                    ? 'font-medium bg-ink text-paper shadow-sm ring-1 ring-black/10'
                     : impactMode
                       ? 'text-ink-faded hover:text-ink'
                       : 'text-white/40'
@@ -553,6 +559,7 @@ export default function Header() {
                 impactMode={impactMode}
                 activeImpactTab={activeImpactTab}
                 setActiveImpactTab={setActiveImpactTab}
+                setImpactMode={setImpactMode}
                 locationPathname={location.pathname}
                 modeMorphTransition={modeMorphTransition}
               />
