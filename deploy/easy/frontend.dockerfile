@@ -32,6 +32,9 @@ RUN npx vite build
 # ---- Stage 2: Serve with Nginx ----
 FROM nginx:alpine AS production
 
+# curl：比 busybox wget 在各 CI/宿主机上一致性更好（避免 HEALTHCHECK 报 unhealthy）
+RUN apk add --no-cache curl
+
 # Remove default nginx config
 RUN rm /etc/nginx/conf.d/default.conf
 
@@ -50,7 +53,7 @@ RUN mkdir -p /var/cache/nginx/client_temp \
 
 EXPOSE 80
 
-HEALTHCHECK --interval=15s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --spider -q http://localhost:80 || exit 1
+HEALTHCHECK --interval=15s --timeout=5s --start-period=15s --retries=5 \
+    CMD curl -fsS http://127.0.0.1/ >/dev/null || exit 1
 
 CMD ["nginx", "-g", "daemon off;"]
