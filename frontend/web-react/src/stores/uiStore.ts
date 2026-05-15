@@ -94,6 +94,21 @@ function applyLocale(locale: Locale) {
   document.documentElement.lang = locale;
 }
 
+/**
+ * 与 Layout 中 useLayoutEffect 同步：把 `data-welfare-vivid` 直接挂到 <html> 上。
+ * 关键点：在 store 创建（模块加载）期、`setImpactMode` 调用时都同步刷新，
+ * 防止首屏 / 模式切换的当帧出现「Header className 已切公益、但 CSS 变量仍是优衣库」
+ * 这种「公益胶囊套优衣库色」的半套样式（用户报告的"部分按钮仍保持慈善格式"）。
+ */
+function applyWelfareVivid(on: boolean) {
+  if (typeof document === 'undefined') return;
+  if (on) {
+    document.documentElement.setAttribute('data-welfare-vivid', '');
+  } else {
+    document.documentElement.removeAttribute('data-welfare-vivid');
+  }
+}
+
 const IMPACT_TAB_KEYS = new Set([
   'home',
   'campaigns',
@@ -181,7 +196,10 @@ export const useUIStore = create<UIState>()(
       setSettingsMenuOpen: (settingsMenuOpen) => set({ settingsMenuOpen }),
       toggleSettingsMenu: () =>
         set((state) => ({ settingsMenuOpen: !state.settingsMenuOpen })),
-      setImpactMode: (impactMode) => set({ impactMode }),
+      setImpactMode: (impactMode) => {
+        applyWelfareVivid(impactMode);
+        set({ impactMode });
+      },
       setActiveImpactTab: (activeImpactTab) => set({ activeImpactTab }),
     }),
     {
@@ -215,6 +233,10 @@ export const useUIStore = create<UIState>()(
         if (state?.currentLocale) {
           applyLocale(state.currentLocale);
         }
+        // 与首屏同步设过的属性再校准一次，避免 merge / 异步 hydrate 后 attribute 与内存 impactMode 错位
+        if (state) {
+          applyWelfareVivid(Boolean(state.impactMode));
+        }
       },
     }
   )
@@ -223,3 +245,4 @@ export const useUIStore = create<UIState>()(
 // Apply theme + document lang on first load (before hydration) to prevent flash
 applyTheme(initialUI.currentTheme);
 applyLocale(initialUI.currentLocale);
+applyWelfareVivid(initialUI.impactMode);
