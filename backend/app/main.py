@@ -54,6 +54,14 @@ async def lifespan(app: FastAPI):
         except Exception:
             logger.warning("Demo data seeding failed (non-critical)", exc_info=True)
 
+    # Backfill product i18n fields on every startup (idempotent — only updates rows where name_en is null)
+    try:
+        from app.backfill_product_i18n import run as backfill_i18n
+        await backfill_i18n()
+        logger.info("Product i18n backfill complete.")
+    except Exception:
+        logger.warning("Product i18n backfill failed (non-critical)", exc_info=True)
+
     # 修复旧库：中文类目、is_impact_product 未维护时，公益 / 优衣库常规分流错误（幂等，全环境执行）
     try:
         from app.db_repair import repair_product_catalog

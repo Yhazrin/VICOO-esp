@@ -1,5 +1,5 @@
 import { Outlet, useMatch, useLocation } from 'react-router-dom';
-import { useEffect, useLayoutEffect, lazy, Suspense } from 'react';
+import { useEffect, useLayoutEffect, lazy, Suspense, useRef } from 'react';
 import Header from './Header';
 import ImpactWelfareGlobeLayer from './ImpactWelfareGlobeLayer';
 import EditorialFooter from './EditorialFooter';
@@ -8,6 +8,7 @@ import KeyedRouteContent from '../transitions/KeyedRouteContent';
 import GrainOverlay from '../animations/GrainOverlay';
 import { AIAssistantBall } from './AIAssistantBall';
 import { useUIStore } from '@/stores/uiStore';
+import { COMPANY_NAV } from '@/constants/companyNav';
 
 // Lazy-load impact shell pages — these are heavy and only needed in impact mode
 const Home = lazy(() => import('@/pages/Home'));
@@ -57,12 +58,37 @@ export default function Layout() {
     (renderImpactShell && activeImpactTab === 'shop');
   const mountKey: string = impactShopUnifiedKey ? 'impact-shop-route' : 'company-outlet';
 
+  // Use a ref to prevent the auto-enable effect from triggering right after handleImpactToggle
+  // This avoids the race condition where the Layout effect re-enables impactMode immediately after
+  // the user toggled it off via handleImpactToggle.
+  const isManualImpactToggle = useRef(false);
+
   useEffect(() => {
     if (isImpactShopRoute) {
+      isManualImpactToggle.current = true;
       setImpactMode(true);
       setActiveImpactTab('shop');
     }
   }, [isImpactShopRoute, setImpactMode, setActiveImpactTab]);
+
+  useEffect(() => {
+    // Only auto-disable when navigating to company routes via internal link clicks,
+    // not when coming from the impact toggle button (which handles its own navigate).
+    // Skip if this route change was triggered by handleImpactToggle.
+    if (!impactMode || isManualImpactToggle.current) {
+      if (isManualImpactToggle.current) {
+        isManualImpactToggle.current = false;
+      }
+      return;
+    }
+    const nonRootCompanyPaths = COMPANY_NAV.filter((n) => n.path !== '/').map((n) => n.path);
+    const isCompanyRoute = nonRootCompanyPaths.some(
+      (p) => location.pathname === p || location.pathname.startsWith(p + '/')
+    );
+    if (isCompanyRoute) {
+      setImpactMode(false);
+    }
+  }, [location.pathname, impactMode, setImpactMode]);
 
   // 与顶栏公益↔优衣库切换同一帧同步，避免 paint 后再改 html 变量导致 header 上仍用旧的 --color-*（看起来像样式丢失）
   useLayoutEffect(() => {

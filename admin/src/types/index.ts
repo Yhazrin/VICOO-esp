@@ -3,7 +3,8 @@ export interface User {
   username: string;
   email: string;
   phone?: string;
-  role: 'admin' | 'editor' | 'viewer' | 'auditor';
+  /** 与后端 users.role 枚举一致 */
+  role: 'admin' | 'editor' | 'user' | 'guardian' | 'compliance';
   /** 与后端 users.status 枚举一致：active | banned */
   status: 'active' | 'banned';
   avatar?: string;
@@ -112,6 +113,13 @@ export interface ChartDataPoint {
   [key: string]: string | number;
 }
 
+export interface DonationListSummary {
+  selectionTotal: number;
+  completedCount: number;
+  failedCount: number;
+  completedAmountTotal: string;
+}
+
 export interface PaginatedResponse<T> {
   data: T[];
   total: number;
@@ -125,6 +133,7 @@ export interface FilterParams {
   pageSize?: number;
   search?: string;
   status?: string;
+  paymentMethod?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
   startDate?: string;

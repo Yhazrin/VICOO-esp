@@ -49,7 +49,9 @@ export default function OrderPage() {
     { key: 'items', title: t('order.colProduct'), width: 200, render: (items: Order['items']) => (
       <span>{items.map((i) => `${i.productName} x${i.quantity}`).join(', ')}</span>
     )},
-    { key: 'totalAmount', title: t('order.colAmount'), width: 100, sorter: true, render: (v) => <span style={{ fontWeight: 600 }}>\u00a5{v.toLocaleString()}</span> },
+    { key: 'totalAmount', title: t('order.colAmount'), width: 100, sorter: true, render: (v) => (
+      <span style={{ fontWeight: 600 }}>¥{Number(v).toLocaleString('zh-CN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span>
+    ) },
     { key: 'paymentMethod', title: t('order.colPaymentMethod'), width: 100, render: (v) => getPaymentLabel(v) },
     { key: 'status', title: t('order.colStatus'), width: 100, render: (v) => <StatusBadge status={v} context="order" /> },
     { key: 'createdAt', title: t('order.colCreatedAt'), width: 160, sorter: true, render: (v) => dayjs(v).format('YYYY-MM-DD HH:mm') },
@@ -113,7 +115,7 @@ export default function OrderPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <DetailRow label={t('order.detailOrderNo')} value={selectedOrder.orderNo} />
             <DetailRow label={t('order.detailUser')} value={selectedOrder.userName} />
-            <DetailRow label={t('order.detailAmount')} value={`\u00a5${selectedOrder.totalAmount.toLocaleString()}`} />
+            <DetailRow label={t('order.detailAmount')} value={`¥${selectedOrder.totalAmount.toLocaleString('zh-CN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`} />
             <DetailRow label={t('order.detailStatus')} value={<StatusBadge status={selectedOrder.status} context="order" />} />
             <DetailRow label={t('order.detailPaymentMethod')} value={getPaymentLabel(selectedOrder.paymentMethod)} />
             <DetailRow label={t('order.detailShippingAddress')} value={selectedOrder.shippingAddress} />
@@ -129,7 +131,7 @@ export default function OrderPage() {
                   borderBottom: '1px solid var(--color-border)',
                 }}>
                   <span style={{ fontSize: 13 }}>{item.productName} x{item.quantity}</span>
-                  <span style={{ fontSize: 13, fontWeight: 500 }}>\u00a5{item.price * item.quantity}</span>
+                  <span style={{ fontSize: 13, fontWeight: 500 }}>¥{(item.price * item.quantity).toLocaleString('zh-CN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span>
                 </div>
               ))}
             </div>

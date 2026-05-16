@@ -70,7 +70,7 @@ export default function DashboardPage() {
           {
             label: t('dashboard.metricDonations'),
             value: metrics
-              ? `¥ ${metrics.totalDonationAmount.toLocaleString()}`
+              ? `¥ ${metrics.totalDonationAmount.toLocaleString('zh-CN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`
               : '—',
             color: 'var(--color-success)',
             icon: (
@@ -91,7 +91,7 @@ export default function DashboardPage() {
           },
           {
             label: t('dashboard.metricOrders'),
-            value: metrics ? String(metrics.activeCampaigns) : '—',
+            value: metrics ? String(metrics.totalOrders) : '—',
             color: 'var(--color-info)',
             icon: (
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
