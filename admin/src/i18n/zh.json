@@ -251,7 +251,10 @@
         "btnCreateSubmit": "创建",
         "toastCreated": "活动创建成功",
         "toastUpdated": "活动更新成功",
-        "errorRequiredFields": "请填写必填字段"
+        "errorRequiredFields": "请填写必填字段",
+        "errorGoalAmount": "目标金额必须大于0",
+        "errorCreateFailed": "活动创建失败",
+        "errorUpdateFailed": "活动更新失败"
     },
     "product": {
         "title": "商品管理",
