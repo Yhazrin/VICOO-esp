@@ -24,7 +24,7 @@ if (typeof window !== 'undefined') {
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <BrowserRouter window={window}>
         <App />
       </BrowserRouter>
     </QueryClientProvider>
