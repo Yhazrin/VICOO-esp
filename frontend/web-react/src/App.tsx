@@ -61,9 +61,9 @@ function AppLocaleSync() {
 function ScrollToTop() {
   const { pathname } = useLocation();
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0 });
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    });
   }, [pathname]);
   return null;
 }
