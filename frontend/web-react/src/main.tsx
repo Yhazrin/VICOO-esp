@@ -16,6 +16,11 @@ const queryClient = new QueryClient({
   },
 });
 
+// Prevent browser from restoring scroll position on navigation
+if (typeof window !== 'undefined') {
+  window.history.scrollRestoration = 'manual';
+}
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
