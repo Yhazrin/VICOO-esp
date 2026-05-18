@@ -58,12 +58,23 @@ function AppLocaleSync() {
   return null;
 }
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0 });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [pathname]);
+  return null;
+}
+
 function AnimatedRoutes() {
   const location = useLocation();
   useSessionRestore(); // Restore session on app load
 
   return (
     <ErrorBoundary>
+      <ScrollToTop />
       <Suspense fallback={
         <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 animate-pulse">
           <div className="w-10 h-10 rounded-full bg-warm-gray/30" />
