@@ -129,7 +129,8 @@ class OrderService(BaseService):
             order_no=order_no,
             total_amount=total_amount,
             status="pending",
-            shipping_address=order_data.get("shipping_address")
+            shipping_address=order_data.get("shipping_address"),
+            payment_method=order_data.get("payment_method"),
         )
         
         self.db.add(order)

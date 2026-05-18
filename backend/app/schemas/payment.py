@@ -45,3 +45,20 @@ class PaymentOut(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class MockPayConfirmBody(BaseModel):
+    token: str = Field(..., min_length=10, description="Signed token from order create response")
+
+
+class MockPayPreviewOut(BaseModel):
+    order_no: str
+    total_amount: str
+    status: str
+    payment_method: Optional[str] = None
+
+
+class MockPayConfirmOut(BaseModel):
+    order_no: str
+    status: str
+    already_paid: bool = False

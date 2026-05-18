@@ -16,6 +16,7 @@
     "framer-motion": "^11.0.3",
     "i18next": "^23.8.2",
     "i18next-http-backend": "^4.0.0",
+    "qrcode": "^1.5.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.6.0",
@@ -29,6 +30,7 @@
   "devDependencies": {
     "@playwright/test": "^1.59.1",
     "@types/node": "^20.11.0",
+    "@types/qrcode": "^1.5.5",
     "@types/react": "^18.2.55",
     "@types/react-dom": "^18.2.19",
     "@types/three": "^0.183.1",
