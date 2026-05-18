@@ -24,6 +24,8 @@ export interface OrderDetail {
   order_no: string;
   total_amount: string | number;
   status: string;
+  /** Signed token for demo QR payment (create order response only). */
+  mock_pay_token?: string;
   shipping_address?: string | null;
   payment_method?: string | null;
   payment_id?: string | null;

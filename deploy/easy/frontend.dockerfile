@@ -19,6 +19,14 @@ COPY frontend/web-react/ .
 ARG VITE_API_BASE_URL=/api/v1
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
+# 扫码支付二维码中的站点根（无尾斜杠）。与 docker-compose / CI build-arg 一致；留空则运行时用 window.location.origin
+ARG VITE_PUBLIC_SITE_ORIGIN=
+ENV VITE_PUBLIC_SITE_ORIGIN=$VITE_PUBLIC_SITE_ORIGIN
+
+# 支付确认页 ?apiBase= 允许指向的主机模式（逗号分隔）。生产必须配置，例：192.168.,10.,127.0.0.1,localhost,.ngrok-free.app
+ARG VITE_PAY_API_BASE_ALLOW_HOSTS=
+ENV VITE_PAY_API_BASE_ALLOW_HOSTS=$VITE_PAY_API_BASE_ALLOW_HOSTS
+
 # Skip tsc type-checking to avoid TS errors in dev code
 RUN npx vite build
 

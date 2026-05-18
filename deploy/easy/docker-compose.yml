@@ -126,6 +126,10 @@ services:
     build:
       context: ../..
       dockerfile: deploy/easy/frontend.dockerfile
+      args:
+        VITE_API_BASE_URL: /api/v1
+        VITE_PUBLIC_SITE_ORIGIN: ${VITE_PUBLIC_SITE_ORIGIN:-}
+        VITE_PAY_API_BASE_ALLOW_HOSTS: ${VITE_PAY_API_BASE_ALLOW_HOSTS:-}
     container_name: vicoo-frontend
     restart: unless-stopped
     environment:

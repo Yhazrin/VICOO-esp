@@ -42,6 +42,7 @@ async def create_intake(
     )
     db.add(row)
     await db.flush()
+    await db.refresh(row)
     return ApiResponse(data=ClothingIntakeOut.model_validate(row).model_dump())
 
 
@@ -96,6 +97,7 @@ async def update_intake_status(
     if body.admin_note is not None:
         row.admin_note = body.admin_note
     await db.flush()
+    await db.refresh(row)
     return ApiResponse(data=ClothingIntakeOut.model_validate(row).model_dump())
 
 
@@ -132,6 +134,8 @@ async def publish_product_from_intake(
     intake.product_id = product.id
     intake.status = "listed"
     await db.flush()
+    await db.refresh(intake)
+    await db.refresh(product)
     return ApiResponse(
         data={
             "intake": ClothingIntakeOut.model_validate(intake).model_dump(),
