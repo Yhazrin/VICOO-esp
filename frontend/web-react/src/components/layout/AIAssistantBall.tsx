@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, lazy, Suspense } from 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { aiAssistantApi, type AIChatMessage } from '@/services/aiAssistant';
+import { useLocation } from 'react-router-dom';
 import { useUIStore } from '@/stores/uiStore';
 import { getAIAssistantMetadata, getAIAssistantSuggestions } from '@/config/aiAssistantScenarios';
 import { sanitizeAssistantContent } from '@/utils/aiContent';
@@ -76,7 +77,7 @@ export const AIAssistantBall: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [feedbackMap, setFeedbackMap] = useState<Record<string, 'idle' | 'submitting' | 'sent' | 'escalated'>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
-  const route = window.location.pathname;
+  const route = useLocation().pathname;
   const isImpactSurface = impactMode || route.startsWith('/impact');
   const suggestions = getAIAssistantSuggestions(isImpactSurface, route);
   const assistantMetadata = getAIAssistantMetadata(isImpactSurface, route);
@@ -184,7 +185,7 @@ export const AIAssistantBall: React.FC = () => {
         content: m.content,
       }));
       const result = await aiAssistantApi.chat(chatMessages, 'general', assistantMetadata);
-      const reply = result.reply || t('aiAssistant.replyError');
+      const reply = result?.reply || t('aiAssistant.replyError');
       setMessages(prev => [...prev, { id: nextMsgId(), role: 'assistant', content: reply }]);
     } catch {
       setMessages(prev => [...prev, { id: nextMsgId(), role: 'system', content: t('aiAssistant.connectionError') }]);
@@ -256,17 +257,20 @@ export const AIAssistantBall: React.FC = () => {
                     {t('aiAssistant.emptyQuote')}
                   </p>
                   <p className="mt-3 text-xs" style={{ color: '#342317' }}>{t('aiAssistant.greeting')}</p>
-                  <div className="mt-3 flex flex-wrap justify-center gap-1.5">
+                  <div className="mt-4 flex flex-wrap justify-center gap-2">
                     {suggestions.map((item) => (
                       <button
                         key={item.id}
                         type="button"
                         onClick={() => void handleSend(t(`aiAssistant.suggestions.${item.id}.prompt`))}
-                        className="text-[10px] px-2.5 py-1 transition-colors"
+                        className="text-[11px] px-3.5 py-1.5 rounded-full transition-all duration-200 hover:scale-[1.04]"
                         style={{
-                          color: '#4a2d1d',
-                          border: '1px solid rgba(155,100,63,0.35)',
-                          background: 'rgba(255,244,223,0.7)',
+                          fontFamily: '"Source Sans Pro", "Noto Serif SC", serif',
+                          color: '#8B3A2A',
+                          border: '1px solid #D4CFC4',
+                          background: 'rgba(250,246,238,0.85)',
+                          backdropFilter: 'blur(4px)',
+                          letterSpacing: '0.03em',
                         }}
                       >
                         {t(`aiAssistant.suggestions.${item.id}.label`)}
@@ -326,12 +330,14 @@ export const AIAssistantBall: React.FC = () => {
                     key={cap.id}
                     type="button"
                     onClick={() => void handleSend(t(cap.promptKey))}
-                    className="flex-shrink-0 text-[10px] px-2.5 py-1.5 rounded-full transition-all hover:scale-105"
+                    className="flex-shrink-0 text-[11px] px-3 py-1.5 rounded-full transition-all duration-200 hover:scale-[1.04]"
                     style={{
-                      color: '#4a2d1d',
-                      border: '1px solid rgba(155,100,63,0.3)',
-                      background: 'rgba(255,244,223,0.8)',
+                      fontFamily: '"Source Sans Pro", "Noto Serif SC", serif',
+                      color: '#8B3A2A',
+                      border: '1px solid #D4CFC4',
+                      background: 'rgba(250,246,238,0.85)',
                       backdropFilter: 'blur(4px)',
+                      letterSpacing: '0.02em',
                     }}
                   >
                     {cap.icon} {t(cap.labelKey)}

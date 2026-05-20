@@ -74,7 +74,7 @@ export default function AiAssistant() {
             metadata,
             controller.signal
           );
-          setMessages([...nextMsgs, { id: nextChatMsgId(), role: 'assistant', content: res.reply }]);
+          setMessages([...nextMsgs, { id: nextChatMsgId(), role: 'assistant', content: res?.reply ?? t('aiAssistant.error') }]);
         } catch (err) {
           if (axios.isCancel(err)) return;
           setMessages([...nextMsgs, { id: nextChatMsgId(), role: 'assistant', content: t('aiAssistant.error') }]);
@@ -107,7 +107,7 @@ export default function AiAssistant() {
         baseMetadata,
         controller.signal
       );
-      setMessages([...next, { id: nextChatMsgId(), role: 'assistant', content: res.reply }]);
+      setMessages([...next, { id: nextChatMsgId(), role: 'assistant', content: res?.reply ?? t('aiAssistant.error') }]);
     } catch (err) {
       if (axios.isCancel(err)) return;
       setMessages([
