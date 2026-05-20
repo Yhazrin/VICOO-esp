@@ -6,6 +6,7 @@ import json
 import random
 import logging
 
+from app.config import settings
 from app.database import get_db
 from app.models.order import Order, OrderItem
 from app.models.product import Product
@@ -20,7 +21,7 @@ from app.schemas import (
 from app.schemas.order import ReturnRequestCreate
 from app.deps import get_current_user, require_role
 from app.security import generate_order_no
-from app.services.payment_service import get_payment_service
+from app.utils.mock_pay_token import issue_mock_pay_token
 from app.data.impact_product_images import IMPACT_PRODUCT_IMAGE_BY_NAME
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
@@ -42,7 +43,13 @@ def _parse_logistics_events(raw: str | None) -> list:
         return []
 
 
-def order_to_out_dict(order: Order, items: list, product_map: dict | None = None) -> dict:
+def order_to_out_dict(
+    order: Order,
+    items: list,
+    product_map: dict | None = None,
+    *,
+    mock_pay_token: str | None = None,
+) -> dict:
     """Build OrderOut-compatible dict (logistics_events 为列表)."""
     base = {
         "id": order.id,
@@ -69,6 +76,7 @@ def order_to_out_dict(order: Order, items: list, product_map: dict | None = None
         ],
         "created_at": order.created_at,
         "updated_at": order.updated_at,
+        "mock_pay_token": mock_pay_token,
     }
     return OrderOut.model_validate(base).model_dump()
 
@@ -284,24 +292,35 @@ async def create_order(
         item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
         items = (await db.execute(item_stmt)).scalars().all()
         product_map = await _build_product_map(db, items)
-        response_data = order_to_out_dict(order, list(items), product_map)
+        # Avoid MissingGreenlet: after further queries the Order instance may be expired;
+        # touching order.created_at would trigger implicit sync reload (invalid in async).
+        await db.refresh(order)
 
-        # Add WeChat payment parameters
-        if body.payment_method == "wechat":
-            payment_params = get_payment_service().create_unified_order(
-                order_no=order.order_no,
-                amount=order.total_amount,
-                description=f"商品订单 {order.order_no}",
-                trade_type="JSAPI"
-            )
-            response_data.update(payment_params)
+        secret_key = settings.APP_SECRET_KEY
+        if isinstance(secret_key, bytes):
+            secret_key = secret_key.decode("utf-8", errors="replace")
+        elif secret_key is None:
+            secret_key = ""
+
+        response_data = order_to_out_dict(
+            order,
+            list(items),
+            product_map,
+            mock_pay_token=issue_mock_pay_token(
+                order.id,
+                order.order_no,
+                int(current_user["id"]),
+                secret_key,
+            ),
+        )
 
         return ApiResponse(data=response_data)
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Order placement failed: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        logger.exception("Order placement failed: %s", e)
+        detail = str(e) if settings.DEBUG else "Internal server error"
+        raise HTTPException(status_code=500, detail=detail)
 
 @router.get("/{order_id}", response_model=ApiResponse)
 async def get_order(

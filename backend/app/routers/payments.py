@@ -16,7 +16,9 @@ from app.models.payment import PaymentTransaction
 from app.models.order import Order
 from app.models.donation import Donation
 from app.schemas import ApiResponse, PaymentCreate, PaymentOut, PaginatedResponse, WeChatPaymentParams
+from app.schemas.payment import MockPayConfirmBody, MockPayPreviewOut, MockPayConfirmOut
 from app.deps import get_current_user
+from app.utils.mock_pay_token import parse_mock_pay_token
 from app.services.payment_service import get_payment_service
 from app.routers.orders import _mock_orders
 _mock_donations: list = []
@@ -264,6 +266,65 @@ async def payment_webhook(request: Request, body: dict):
     # Process webhook payload
     # In production: update payment status, trigger order/donation fulfillment
     return ApiResponse(data={"message": "Webhook processed successfully"})
+
+
+@router.get("/mock-preview", response_model=ApiResponse)
+async def mock_pay_preview(token: str = Query(..., min_length=10), db: AsyncSession = Depends(get_db)):
+    """Demo: load order summary for mobile pay page (token-signed, no auth)."""
+    payload = parse_mock_pay_token(token, settings.APP_SECRET_KEY)
+    if not payload:
+        raise HTTPException(status_code=400, detail="无效或已过期的支付链接")
+    order = (
+        await db.execute(select(Order).where(Order.id == int(payload["oid"])))
+    ).scalar_one_or_none()
+    if not order or order.order_no != payload["ono"] or order.user_id != int(payload["uid"]):
+        raise HTTPException(status_code=404, detail="订单不存在")
+    out = MockPayPreviewOut(
+        order_no=order.order_no,
+        total_amount=str(order.total_amount),
+        status=order.status,
+        payment_method=order.payment_method,
+    )
+    return ApiResponse(data=out.model_dump())
+
+
+@router.post("/mock-confirm", response_model=ApiResponse)
+async def mock_pay_confirm(body: MockPayConfirmBody, db: AsyncSession = Depends(get_db)):
+    """Demo: mark order paid after user taps confirm on the mobile page."""
+    payload = parse_mock_pay_token(body.token.strip(), settings.APP_SECRET_KEY)
+    if not payload:
+        raise HTTPException(status_code=400, detail="无效或已过期的支付链接")
+    order = (
+        await db.execute(select(Order).where(Order.id == int(payload["oid"])))
+    ).scalar_one_or_none()
+    if not order or order.order_no != payload["ono"] or order.user_id != int(payload["uid"]):
+        raise HTTPException(status_code=404, detail="订单不存在")
+    if order.status == "paid":
+        return ApiResponse(
+            data=MockPayConfirmOut(
+                order_no=order.order_no, status=order.status, already_paid=True
+            ).model_dump()
+        )
+    if order.status != "pending":
+        raise HTTPException(status_code=400, detail="订单状态不允许支付")
+
+    payment_service = PaymentService(db)
+    provider_id = f"mock-{secrets.token_hex(16)}"
+    method = (order.payment_method or "wechat").strip().lower() or "wechat"
+    if method not in ("wechat", "alipay", "stripe", "paypal"):
+        method = "wechat"
+    await payment_service.process_successful_payment(
+        provider_tx_id=provider_id,
+        amount=Decimal(str(order.total_amount)),
+        method=method,
+        order_no=order.order_no,
+        raw_data={"demo": True, "mock_pay": True},
+    )
+    return ApiResponse(
+        data=MockPayConfirmOut(
+            order_no=order.order_no, status="paid", already_paid=False
+        ).model_dump()
+    )
 
 
 @router.get("/test-wechat-params", response_model=ApiResponse)

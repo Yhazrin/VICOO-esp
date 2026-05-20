@@ -1,4 +1,6 @@
+import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useUIStore } from '@/stores/uiStore';
 
 /**
  * KeyedRouteContent — Remounts children on route changes via React key.
@@ -12,6 +14,12 @@ import { useLocation } from 'react-router-dom';
  */
 export default function KeyedRouteContent({ children, mountKey }: { children: React.ReactNode; mountKey?: string }) {
   const location = useLocation();
+  const activeImpactTab = useUIStore((s) => s.activeImpactTab);
+
+  // Scroll to top when pathname, mountKey, or impact tab changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [location.pathname, mountKey, activeImpactTab]);
 
   return (
     <div key={mountKey ?? location.pathname}>

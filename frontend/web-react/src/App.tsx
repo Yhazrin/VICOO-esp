@@ -31,6 +31,7 @@ const OrderDetail = lazy(() => import('@/pages/OrderDetail'));
 const Support = lazy(() => import('@/pages/Support'));
 const AiAssistant = lazy(() => import('@/pages/AiAssistant'));
 const Checkout = lazy(() => import('@/pages/Checkout'));
+const PaymentConfirm = lazy(() => import('@/pages/PaymentConfirm'));
 const AiDesign = lazy(() => import('@/pages/AiDesign'));
 const SupplyChainStudio = lazy(() => import('@/pages/SupplyChainStudio'));
 const Campaigns = lazy(() => import('@/pages/Campaigns'));
@@ -58,12 +59,23 @@ function AppLocaleSync() {
   return null;
 }
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    });
+  }, [pathname]);
+  return null;
+}
+
 function AnimatedRoutes() {
   const location = useLocation();
   useSessionRestore(); // Restore session on app load
 
   return (
     <ErrorBoundary>
+      <ScrollToTop />
       <Suspense fallback={
         <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 animate-pulse">
           <div className="w-10 h-10 rounded-full bg-warm-gray/30" />
@@ -95,6 +107,7 @@ function AnimatedRoutes() {
             <Route path="profile" element={<ErrorBoundary><Profile /></ErrorBoundary>} />
             <Route path="orders/:id" element={<ErrorBoundary><OrderDetail /></ErrorBoundary>} />
             <Route path="checkout" element={<ErrorBoundary><Checkout /></ErrorBoundary>} />
+            <Route path="payment/confirm" element={<ErrorBoundary><PaymentConfirm /></ErrorBoundary>} />
             <Route path="support" element={<ErrorBoundary><Support /></ErrorBoundary>} />
             <Route path="ai-design" element={<ErrorBoundary><AiDesign /></ErrorBoundary>} />
             <Route path="studio/supply-chain" element={<ErrorBoundary><SupplyChainStudio /></ErrorBoundary>} />

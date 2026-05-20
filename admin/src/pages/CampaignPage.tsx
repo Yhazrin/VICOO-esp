@@ -36,6 +36,10 @@ export default function CampaignPage() {
       setShowCreate(false);
       setForm({ title: '', description: '', startDate: '', endDate: '', targetAmount: '' });
     },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.detail || err?.message || t('campaign.errorCreateFailed');
+      toast.error(msg);
+    },
   });
 
   const updateMutation = useMutation({
@@ -44,6 +48,10 @@ export default function CampaignPage() {
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
       toast.success(t('campaign.toastUpdated'));
       setEditCampaign(null);
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.detail || err?.message || t('campaign.errorUpdateFailed');
+      toast.error(msg);
     },
   });
 
@@ -56,8 +64,8 @@ export default function CampaignPage() {
     ) },
     { key: 'participantCount', title: t('campaign.colParticipants'), width: 100 },
     { key: 'artworkCount', title: t('campaign.colArtworks'), width: 80 },
-    { key: 'startDate', title: t('campaign.colStartDate'), width: 110 },
-    { key: 'endDate', title: t('campaign.colEndDate'), width: 110 },
+    { key: 'startDate', title: t('campaign.colStartDate'), width: 110, render: (v) => v ? dayjs(v).format('YYYY-MM-DD') : '-' },
+    { key: 'endDate', title: t('campaign.colEndDate'), width: 110, render: (v) => v ? dayjs(v).format('YYYY-MM-DD') : '-' },
     {
       key: 'action', title: t('campaign.colAction'), width: 180,
       render: (_: any, record: Campaign) => (
@@ -92,12 +100,17 @@ export default function CampaignPage() {
       toast.error(t('campaign.errorRequiredFields'));
       return;
     }
+    const goalAmount = Number(form.targetAmount);
+    if (!form.targetAmount || isNaN(goalAmount) || goalAmount <= 0) {
+      toast.error(t('campaign.errorGoalAmount'));
+      return;
+    }
     createMutation.mutate({
       title: form.title,
       description: form.description,
       startDate: form.startDate,
       endDate: form.endDate,
-      targetAmount: Number(form.targetAmount) || 0,
+      targetAmount: goalAmount,
     });
   };
 

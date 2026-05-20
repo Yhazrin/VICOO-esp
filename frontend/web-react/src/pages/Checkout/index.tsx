@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
@@ -14,6 +14,8 @@ import { paymentsApi } from '@/services/payments';
 import { addressesApi, type Address } from '@/services/addresses';
 import type { CreateOrderRequest } from '@/types';
 import { resolveProductLocale } from '@/utils/productLocale';
+import { getPublicSiteOrigin } from '@/utils/publicSiteUrl';
+import { getPayApiBaseForQr } from '@/utils/payApiBaseOverride';
 
 type PaymentMethod = 'wechat' | 'alipay' | 'stripe' | 'paypal';
 
@@ -29,11 +31,11 @@ interface AddressForm {
 
 const STEPS = ['step1', 'step2', 'step3', 'step4'] as const;
 
-const PAYMENT_OPTIONS: { key: PaymentMethod; icon: string }[] = [
-  { key: 'wechat', icon: '  ' },
-  { key: 'alipay', icon: '  ' },
-  { key: 'stripe', icon: '  ' },
-  { key: 'paypal', icon: '  ' },
+const PAYMENT_OPTIONS: { key: PaymentMethod }[] = [
+  { key: 'wechat' },
+  { key: 'alipay' },
+  { key: 'stripe' },
+  { key: 'paypal' },
 ];
 
 export default function Checkout() {
@@ -64,7 +66,13 @@ export default function Checkout() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderResult, setOrderResult] = useState<{ orderId: string; orderNo: string } | null>(null);
   const [error, setError] = useState('');
-  const [pendingWechatOrder, setPendingWechatOrder] = useState<{ orderId: string; orderNo: string; amount: number } | null>(null);
+  const [pendingPayOrder, setPendingPayOrder] = useState<{
+    orderId: string;
+    orderNo: string;
+    amount: number;
+    mockPayToken: string;
+    payUrl: string;
+  } | null>(null);
 
   const { data: savedAddresses = [] } = useQuery({
     queryKey: ['my-addresses'],
@@ -93,10 +101,71 @@ export default function Checkout() {
       case 0: return 'step1';
       case 1: return 'step2';
       case 2: return 'step3';
-      case 3: return 'step4';
+      case 3: return 'step4-success';
       default: return 'step1';
     }
   }, [step]);
+
+  const showLocalhostQrWarning =
+    !import.meta.env.VITE_PUBLIC_SITE_ORIGIN?.trim() &&
+    typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+  const finalizeOrder = useCallback(async (result: { orderId: string; orderNo: string }) => {
+    setOrderResult(result);
+    if (saveAddress && !selectedAddressId && address.name && address.phone) {
+      try {
+        await addressesApi.create({
+          recipient_name: address.name,
+          phone: address.phone,
+          province: address.province,
+          city: address.city,
+          district: '',
+          detail_address: address.street,
+          postal_code: address.postalCode || undefined,
+          is_default: false,
+        });
+      } catch {
+        /* silent — don't block order flow */
+      }
+    }
+    clearCart();
+    setStep(3);
+  }, [
+    saveAddress,
+    selectedAddressId,
+    address.name,
+    address.phone,
+    address.province,
+    address.city,
+    address.street,
+    address.postalCode,
+    clearCart,
+  ]);
+
+  useEffect(() => {
+    if (!pendingPayOrder) return;
+    const { orderId } = pendingPayOrder;
+    let cancelled = false;
+    const tick = async () => {
+      try {
+        const o = await ordersApi.getById(orderId);
+        if (cancelled) return;
+        if (o.status === 'paid') {
+          setPendingPayOrder(null);
+          await finalizeOrder({ orderId, orderNo: o.order_no });
+        }
+      } catch {
+        /* ignore transient polling errors */
+      }
+    };
+    const id = window.setInterval(tick, 2000);
+    void tick();
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+    };
+  }, [pendingPayOrder, finalizeOrder]);
 
   if (!isAuthenticated) {
     return (
@@ -156,22 +225,24 @@ export default function Checkout() {
 
       const order = await ordersApi.create(orderData);
       const amount = typeof order.total_amount === 'string' ? parseFloat(order.total_amount) : order.total_amount;
-
-      if (paymentMethod === 'wechat') {
-        // Show QR modal — payment will be confirmed when user clicks success
-        setPendingWechatOrder({ orderId: String(order.id), orderNo: order.order_no, amount });
-        setIsProcessing(false);
+      const token = order.mock_pay_token;
+      if (!token) {
+        setError(t('checkout.error'));
         return;
       }
 
-      // Non-WeChat: process payment immediately
-      await paymentsApi.create({
-        order_id: order.id,
+      const origin = getPublicSiteOrigin();
+      const devApi = getPayApiBaseForQr();
+      const qs = new URLSearchParams({ t: token });
+      if (devApi) qs.set('apiBase', devApi);
+      const payUrl = `${origin}/payment/confirm?${qs.toString()}`;
+      setPendingPayOrder({
+        orderId: String(order.id),
+        orderNo: order.order_no,
         amount,
-        method: paymentMethod,
+        mockPayToken: token,
+        payUrl,
       });
-
-      await finalizeOrder({ orderId: String(order.id), orderNo: order.order_no });
     } catch {
       setError(t('checkout.error'));
     } finally {
@@ -179,38 +250,16 @@ export default function Checkout() {
     }
   };
 
-  const finalizeOrder = async (result: { orderId: string; orderNo: string }) => {
-    setOrderResult(result);
-    // Save address to address book if requested
-    if (saveAddress && !selectedAddressId && address.name && address.phone) {
-      try {
-        await addressesApi.create({
-          recipient_name: address.name,
-          phone: address.phone,
-          province: address.province,
-          city: address.city,
-          district: '',
-          detail_address: address.street,
-          postal_code: address.postalCode || undefined,
-          is_default: false,
-        });
-      } catch { /* silent — don't block order flow */ }
-    }
-    clearCart();
-    setStep(3);
-  };
-
-  const handleWechatSuccess = async () => {
-    if (!pendingWechatOrder) return;
+  const handleSimulatePaid = async () => {
+    if (!pendingPayOrder) return;
     setIsProcessing(true);
     try {
-      await paymentsApi.create({
-        order_id: Number(pendingWechatOrder.orderId),
-        amount: pendingWechatOrder.amount,
-        method: 'wechat',
-      });
-      setPendingWechatOrder(null);
-      await finalizeOrder({ orderId: pendingWechatOrder.orderId, orderNo: pendingWechatOrder.orderNo });
+      await paymentsApi.mockConfirm(pendingPayOrder.mockPayToken);
+      const o = await ordersApi.getById(pendingPayOrder.orderId);
+      if (o.status === 'paid') {
+        setPendingPayOrder(null);
+        await finalizeOrder({ orderId: pendingPayOrder.orderId, orderNo: o.order_no });
+      }
     } catch {
       setError(t('checkout.error'));
     } finally {
@@ -218,8 +267,8 @@ export default function Checkout() {
     }
   };
 
-  const handleWechatFailure = () => {
-    setPendingWechatOrder(null);
+  const handlePayModalClose = () => {
+    setPendingPayOrder(null);
     setError(t('checkout.paymentFailed'));
   };
 
@@ -238,15 +287,17 @@ export default function Checkout() {
                 <div
                   className={`
                     w-7 h-7 rounded-full flex items-center justify-center font-mono text-[11px] transition-all duration-300
-                    ${i < step
+                    ${orderResult
                       ? 'bg-sage text-paper'
-                      : i === step
-                        ? 'bg-ink text-paper'
-                        : 'border border-warm-gray/30 text-sepia-mid'
+                      : i < step
+                        ? 'bg-sage text-paper'
+                        : i === step
+                          ? 'bg-ink text-paper'
+                          : 'border border-warm-gray/30 text-sepia-mid'
                     }
                   `}
                 >
-                  {i < step ? (
+                  {orderResult || i < step ? (
                     <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                       <path d="M3 8l3.5 3.5L13 5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
@@ -254,11 +305,11 @@ export default function Checkout() {
                     i + 1
                   )}
                 </div>
-                <span className={`font-body text-caption hidden sm:block ${i === step ? 'text-ink' : 'text-sepia-mid'}`}>
+                <span className={`font-body text-caption hidden sm:block ${orderResult || i === step ? 'text-ink' : 'text-sepia-mid'}`}>
                   {t(`checkout.${s}`)}
                 </span>
                 {i < STEPS.length - 1 && (
-                  <div className={`w-8 h-px ${i < step ? 'bg-sage' : 'bg-warm-gray/25'}`} />
+                  <div className={`w-8 h-px ${orderResult || i < step ? 'bg-sage' : 'bg-warm-gray/25'}`} />
                 )}
               </div>
             ))}
@@ -416,14 +467,16 @@ export default function Checkout() {
                   </div>
                 )}
 
-                {/* Step 2: Payment Method */}
+                {/* Step 2: Payment method (actual checkout is always scan-to-pay) */}
                 {step === 1 && (
                   <div>
                     <h2 className="font-display text-h3 font-semibold text-ink mb-6">{t('checkout.step2')}</h2>
+                    <p className="font-body text-caption text-ink-faded mb-6">{t('checkout.allMethodsScanNote')}</p>
                     <div className="space-y-3">
                       {PAYMENT_OPTIONS.map(({ key }) => (
                         <button
                           key={key}
+                          type="button"
                           onClick={() => setPaymentMethod(key)}
                           className={`
                             w-full flex items-center gap-4 px-5 py-4 border transition-all duration-200 cursor-pointer text-left
@@ -456,7 +509,7 @@ export default function Checkout() {
                   </div>
                 )}
 
-                {/* Step 3: Review Order */}
+                {/* Step 3: Review order */}
                 {step === 2 && (
                   <div>
                     <h2 className="font-display text-h3 font-semibold text-ink mb-6">{t('checkout.step3')}</h2>
@@ -465,7 +518,7 @@ export default function Checkout() {
                     <div className="border border-warm-gray/20 p-5 mb-6">
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-body text-overline text-sepia-mid tracking-wider uppercase">{t('checkout.step1')}</span>
-                        <button onClick={() => setStep(0)} className="font-body text-caption text-rust hover:text-rust-light cursor-pointer transition-colors">
+                        <button type="button" onClick={() => setStep(0)} className="font-body text-caption text-rust hover:text-rust-light cursor-pointer transition-colors">
                           {t('checkout.back')}
                         </button>
                       </div>
@@ -473,11 +526,11 @@ export default function Checkout() {
                       <p className="font-body text-body-sm text-ink-faded mt-1">{address.street}, {address.city}, {address.province} {address.postalCode}</p>
                     </div>
 
-                    {/* Payment method summary */}
+                    {/* Payment choice + scan note */}
                     <div className="border border-warm-gray/20 p-5 mb-6">
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-body text-overline text-sepia-mid tracking-wider uppercase">{t('checkout.step2')}</span>
-                        <button onClick={() => setStep(1)} className="font-body text-caption text-rust hover:text-rust-light cursor-pointer transition-colors">
+                        <button type="button" onClick={() => setStep(1)} className="font-body text-caption text-rust hover:text-rust-light cursor-pointer transition-colors">
                           {t('checkout.back')}
                         </button>
                       </div>
@@ -487,6 +540,8 @@ export default function Checkout() {
                         {paymentMethod === 'stripe' && t('checkout.stripe')}
                         {paymentMethod === 'paypal' && t('checkout.paypal')}
                       </p>
+                      <p className="font-body text-caption text-ink-faded mt-2">{t('checkout.scanPaySummary')}</p>
+                      <p className="font-body text-caption text-sepia-mid mt-1">{t('checkout.scanPayHint')}</p>
                     </div>
 
                     {/* Items */}
@@ -556,10 +611,11 @@ export default function Checkout() {
             </AnimatePresence>
 
             {/* Navigation buttons */}
-            {step < 3 && (
+            {step <= 2 && !orderResult && (
               <div className="flex items-center gap-4 mt-8">
                 {step > 0 && (
                   <button
+                    type="button"
                     onClick={() => setStep(step - 1)}
                     className="font-body text-label tracking-wide text-ink-faded hover:text-ink transition-colors cursor-pointer"
                   >
@@ -569,6 +625,7 @@ export default function Checkout() {
 
                 {step < 2 ? (
                   <button
+                    type="button"
                     onClick={() => setStep(step + 1)}
                     disabled={step === 0 && !canProceedStep1}
                     className="font-body text-label tracking-[0.1em] uppercase bg-ink text-paper px-8 py-3 hover:bg-rust transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
@@ -577,6 +634,7 @@ export default function Checkout() {
                   </button>
                 ) : (
                   <button
+                    type="button"
                     onClick={handlePlaceOrder}
                     disabled={isProcessing}
                     className="font-body text-label tracking-[0.1em] uppercase bg-ink text-paper px-8 py-3 hover:bg-rust transition-colors cursor-pointer disabled:opacity-60"
@@ -589,7 +647,7 @@ export default function Checkout() {
           </div>
 
           {/* Order summary sidebar */}
-          {step < 3 && (
+          {step <= 2 && !orderResult && (
             <div className="lg:col-span-5">
               <div className="sticky top-20 border border-warm-gray/20 p-6">
                 <h3 className="font-display text-base font-semibold text-ink mb-4">{t('checkout.orderSummary')}</h3>
@@ -636,13 +694,15 @@ export default function Checkout() {
         </div>
       </SectionContainer>
 
-      {/* WeChat payment QR modal */}
-      {pendingWechatOrder && (
+      {/* Scan-to-pay modal */}
+      {pendingPayOrder && (
         <PaymentQRModal
-          amount={pendingWechatOrder.amount}
-          onSuccess={handleWechatSuccess}
-          onFailure={handleWechatFailure}
+          payUrl={pendingPayOrder.payUrl}
+          amount={pendingPayOrder.amount}
+          onSuccess={handleSimulatePaid}
+          onFailure={handlePayModalClose}
           isProcessing={isProcessing}
+          showLocalhostWarning={showLocalhostQrWarning}
         />
       )}
     </PageWrapper>

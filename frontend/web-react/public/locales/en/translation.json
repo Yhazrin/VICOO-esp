@@ -1393,6 +1393,18 @@
     "addedToBag": "Added to bag",
     "viewBag": "View Bag"
   },
+  "paymentConfirm": {
+    "title": "Confirm payment",
+    "subtitle": "Demo only · no real charge",
+    "confirm": "Confirm payment",
+    "success": "Payment successful",
+    "backHome": "Back to home",
+    "invalidLink": "Invalid or missing payment link",
+    "loadFailed": "Could not load order. Please scan again from checkout.",
+    "confirmFailed": "Could not confirm payment. Please try again.",
+    "notPending": "This order is not awaiting payment",
+    "alreadyPaid": "This order is already paid"
+  },
   "checkout": {
     "title": "Checkout",
     "step1": "Shipping Address",
@@ -1430,10 +1442,22 @@
     "savedAddresses": "Saved Addresses",
     "enterNewAddress": "Enter a new address",
     "saveAddress": "Save to address book",
-    "paymentQRTitle": "WeChat Pay",
-    "paymentQRHint": "Scan the QR code below to complete payment",
+    "paymentQRTitle": "Scan to pay",
+    "paymentQRHint": "Scan the QR code with your phone and confirm payment in the browser",
     "paymentSuccess": "Payment Success",
-    "paymentFailed": "Payment Failed"
+    "paymentFailed": "Payment Failed",
+    "simulatePaid": "Simulate paid (this device)",
+    "qrLoading": "Generating QR code…",
+    "qrError": "Could not generate QR code",
+    "scanPayLabel": "Payment",
+    "scanPaySummary": "Scan to pay (demo — no real charge)",
+    "scanPayHint": "After you place the order, scan the QR code in the dialog and tap confirm on the payment page.",
+    "allMethodsScanNote": "Choose a preferred method below; checkout still completes via the same scan-to-pay demo flow.",
+    "copyPaymentLink": "Copy payment link",
+    "linkCopied": "Link copied",
+    "copyFailed": "Copy failed — select the link manually",
+    "qrFallbackHint": "If scanning fails, open the link above on your phone (browser or chat).",
+    "localhostQrWarning": "You are on localhost — phones cannot open it. Set VITE_PUBLIC_SITE_ORIGIN in .env to your LAN or public site URL (e.g. http://192.168.x.x:9111)."
   },
   "submitArtwork": {
     "loginRequired": "Please log in to submit artwork",

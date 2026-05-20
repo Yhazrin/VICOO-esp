@@ -229,6 +229,11 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # 与 deploy/easy/.env 中 VITE_PUBLIC_SITE_ORIGIN 一致（Repository variables：VICOO_PUBLIC_SITE_ORIGIN）
+          build-args: |
+            VITE_API_BASE_URL=/api/v1
+            VITE_PUBLIC_SITE_ORIGIN=${{ vars.VICOO_PUBLIC_SITE_ORIGIN }}
+            VITE_PAY_API_BASE_ALLOW_HOSTS=${{ vars.VITE_PAY_API_BASE_ALLOW_HOSTS }}
 
   # ==================== Admin Dashboard ====================
   admin-build:

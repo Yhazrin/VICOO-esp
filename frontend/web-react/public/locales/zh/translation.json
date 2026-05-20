@@ -1366,6 +1366,18 @@
     "addedToBag": "已加入购物袋",
     "viewBag": "查看购物袋"
   },
+  "paymentConfirm": {
+    "title": "确认支付",
+    "subtitle": "演示环境 · 不会产生真实扣款",
+    "confirm": "确认支付",
+    "success": "支付成功",
+    "backHome": "返回首页",
+    "invalidLink": "支付链接无效或缺失参数",
+    "loadFailed": "无法加载订单信息，请从结算页重新扫码",
+    "confirmFailed": "确认支付失败，请重试",
+    "notPending": "该订单已不在待支付状态",
+    "alreadyPaid": "该订单已支付成功"
+  },
   "checkout": {
     "title": "结算",
     "step1": "收货地址",
@@ -1403,10 +1415,22 @@
     "savedAddresses": "已保存的地址",
     "enterNewAddress": "输入新地址",
     "saveAddress": "保存到地址簿",
-    "paymentQRTitle": "微信支付",
-    "paymentQRHint": "请扫描下方二维码完成支付",
+    "paymentQRTitle": "扫码支付",
+    "paymentQRHint": "使用手机扫描下方二维码，在打开的页面中确认支付即可完成订单",
     "paymentSuccess": "支付成功",
-    "paymentFailed": "支付失败"
+    "paymentFailed": "支付失败",
+    "simulatePaid": "本机模拟已支付",
+    "qrLoading": "正在生成二维码…",
+    "qrError": "二维码生成失败",
+    "scanPayLabel": "支付方式",
+    "scanPaySummary": "扫码支付（演示环境，不产生真实扣款）",
+    "scanPayHint": "提交订单后请用手机扫描弹窗中的二维码，在确认页点击「确认支付」即可。",
+    "allMethodsScanNote": "以下为意向支付方式，实际付款均为扫码完成（演示）。",
+    "copyPaymentLink": "复制支付链接",
+    "linkCopied": "链接已复制",
+    "copyFailed": "复制失败，请手动选中链接复制",
+    "qrFallbackHint": "若扫码无反应，可把上方链接发到手机微信或浏览器打开。",
+    "localhostQrWarning": "当前为 localhost，手机无法打开。请在 .env 中设置 VITE_PUBLIC_SITE_ORIGIN 为本机局域网或公网前端地址（如 http://192.168.x.x:9111）。"
   },
   "submitArtwork": {
     "loginRequired": "请先登录以提交画作",

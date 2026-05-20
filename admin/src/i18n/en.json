@@ -251,7 +251,10 @@
         "btnCreateSubmit": "Create", 
         "toastCreated": "Campaign created successfully", 
         "toastUpdated": "Campaign updated successfully", 
-        "errorRequiredFields": "Please fill in required fields"
+        "errorRequiredFields": "Please fill in required fields",
+        "errorGoalAmount": "Goal amount must be greater than 0",
+        "errorCreateFailed": "Failed to create campaign",
+        "errorUpdateFailed": "Failed to update campaign"
     },
     "product": {
         "title": "Product Management",

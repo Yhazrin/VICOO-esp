@@ -75,6 +75,9 @@ class OrderOut(BaseModel):
     logistics_events: List[Any] = []
     created_at: datetime
     updated_at: datetime
+    mock_pay_token: Optional[str] = Field(
+        None, description="Demo scan-pay token; only set on order create response"
+    )
 
     model_config = {"from_attributes": True}
 
