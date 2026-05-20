@@ -1,4 +1,4 @@
-"""Tonghua API Schemas — re-exports from individual schema modules."""
+"""VICOO API Schemas — re-exports from individual schema modules."""
 
 # Common / base schemas
 from app.schemas.common import (

@@ -1,6 +1,6 @@
 # Editorial Style Guide
 
-## Tonghua Public Welfare x Sustainable Fashion
+## Uniqlo × VICOO Welfare · Welfare Action
 
 **Version:** 1.0.0
 **Last Updated:** 2026-03-19
@@ -431,8 +431,8 @@ const sectionVariants = {
 
 ```
 +------------------------------------------------------------+
-|  TONGHUA              01 Home    02 About    03 Campaigns  |
-|  公益 可持续时尚        04 Stories  05 Donate   06 Shop      |
+|  VICOO                01 Home    02 About    03 Campaigns  |
+|  公益·公益行动          04 Stories  05 Donate   06 Shop      |
 |                       07 Traceability   08 Contact         |
 +------------------------------------------------------------+
 ```
@@ -454,7 +454,7 @@ Full-screen overlay with editorial layout:
 |  07 Traceability            |
 |  08 Contact                 |
 |                             |
-|  TONGHUA 公益 可持续时尚    |
+|  VICOO 公益·公益行动        |
 +-----------------------------+
 ```
 

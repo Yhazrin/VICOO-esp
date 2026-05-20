@@ -1,5 +1,5 @@
 """
-Main API test suite for Tonghua Public Welfare platform.
+Main API test suite for Uniqlo x VICOO Welfare platform.
 
 Covers all 28 API endpoints with positive and negative test cases,
 plus security-focused tests for SQL injection, XSS, IDOR, and payment tampering.

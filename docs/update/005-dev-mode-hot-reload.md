@@ -133,7 +133,7 @@ CORS_ORIGINS=http://localhost,http://localhost:80,http://localhost:8080,http://l
 ### 4. 登录账号配置
 
 **测试账号**（开发模式 mock 用户）：
-- 邮箱：`admin@tonghua.org` 或 `editor@tonghua.org`
+- 邮箱：`admin@vicoo.org` 或 `editor@vicoo.org`
 - 密码：`vicoo-mock`（由 `MOCK_USER_PASSWORD` 环境变量设置）
 
 **密码配置**：
@@ -216,7 +216,7 @@ npm run dev
 > 注意：后端已配置 CORS 允许 http://localhost:9111 和 http://localhost:5173 请求 API。
 
 **测试账号**（开发模式 mock 用户）：
-- 邮箱：admin@tonghua.org
+- 邮箱：admin@vicoo.org
 - 密码：vicoo-mock（由 MOCK_USER_PASSWORD 环境变量设置）
 ```
 
@@ -383,7 +383,7 @@ docker compose restart backend
 
 ### Q：登录 401
 
-- 使用正确的 mock 账号：`admin@tonghua.org` / `vicoo-mock`
+- 使用正确的 mock 账号：`admin@vicoo.org` / `vicoo-mock`
 - 查看后端日志：`docker compose logs backend`
 
 ### Q：迁移失败

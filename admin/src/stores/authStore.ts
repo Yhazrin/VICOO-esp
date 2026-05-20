@@ -36,7 +36,7 @@ export const useAuthStore = create<AuthState>()(
         })),
     }),
     {
-      name: 'tonghua-admin-auth',
+      name: 'vicoo-admin-auth',
       partialize: (state) => ({
         user: state.user,
         token: state.token,

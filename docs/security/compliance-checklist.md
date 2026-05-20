@@ -2,7 +2,7 @@
 
 **Document Version:** 1.0
 **Last Updated:** 2026-03-19
-**Applicable Entities:** Tonghua Public Welfare x Sustainable Fashion ("the Platform", "本平台")
+**Applicable Entities:** Uniqlo × VICOO Welfare · Welfare Action ("the Platform", "本平台")
 **Owner:** Legal & Compliance Officer (legal-compl) + Security Engineer (security-eng)
 **Review Cycle:** Quarterly + Pre-launch mandatory gate
 

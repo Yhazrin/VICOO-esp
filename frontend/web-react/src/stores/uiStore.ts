@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import type { Locale } from '@/types';
 
 export type ThemeId = 'editorial' | 'morandi' | 'sepia' | 'monochrome' | 'ink' | 'forest' | 'autumn' | 'mist-blue' | 'deep-sea' | 'dopamine';
+export type AIBallStyle = 'orb' | 'particles';
 
 export interface ThemeConfig {
   id: ThemeId;
@@ -122,19 +123,23 @@ function getStoredUISettings(): {
   currentLocale: Locale;
   impactMode: boolean;
   activeImpactTab: string;
+  aiBallStyle: AIBallStyle;
 } {
   try {
-    const stored = localStorage.getItem('tonghua-ui-settings');
+    const stored = localStorage.getItem('vicoo-ui-settings');
     if (stored) {
       const parsed = JSON.parse(stored);
       const rawTab = parsed.state?.activeImpactTab;
       const activeImpactTab =
         typeof rawTab === 'string' && IMPACT_TAB_KEYS.has(rawTab) ? rawTab : 'home';
+      const rawBallStyle = parsed.state?.aiBallStyle;
+      const aiBallStyle = rawBallStyle === 'particles' ? 'particles' : 'orb';
       return {
         currentTheme: (parsed.state?.currentTheme as ThemeId) || 'editorial',
         currentLocale: (parsed.state?.currentLocale as Locale) || 'en',
         impactMode: typeof parsed.state?.impactMode === 'boolean' ? parsed.state.impactMode : false,
         activeImpactTab,
+        aiBallStyle,
       };
     }
   } catch {
@@ -146,6 +151,7 @@ function getStoredUISettings(): {
     currentLocale: 'en',
     impactMode: false,
     activeImpactTab: 'home',
+    aiBallStyle: 'orb',
   };
 }
 
@@ -157,6 +163,7 @@ interface UIState {
   settingsMenuOpen: boolean;
   impactMode: boolean;
   activeImpactTab: string;
+  aiBallStyle: AIBallStyle;
   setMobileNavOpen: (open: boolean) => void;
   toggleMobileNav: () => void;
   setLocale: (locale: Locale) => void;
@@ -166,6 +173,7 @@ interface UIState {
   toggleSettingsMenu: () => void;
   setImpactMode: (on: boolean) => void;
   setActiveImpactTab: (tab: string) => void;
+  setAIBallStyle: (style: AIBallStyle) => void;
 }
 
 const initialUI = getStoredUISettings();
@@ -180,6 +188,7 @@ export const useUIStore = create<UIState>()(
       settingsMenuOpen: false,
       impactMode: initialUI.impactMode,
       activeImpactTab: initialUI.activeImpactTab,
+      aiBallStyle: initialUI.aiBallStyle,
 
       setMobileNavOpen: (mobileNavOpen) => set({ mobileNavOpen }),
       toggleMobileNav: () =>
@@ -201,14 +210,16 @@ export const useUIStore = create<UIState>()(
         set({ impactMode });
       },
       setActiveImpactTab: (activeImpactTab) => set({ activeImpactTab }),
+      setAIBallStyle: (aiBallStyle) => set({ aiBallStyle }),
     }),
     {
-      name: 'tonghua-ui-settings',
+      name: 'vicoo-ui-settings',
       partialize: (state) => ({
         currentTheme: state.currentTheme,
         currentLocale: state.currentLocale,
         impactMode: state.impactMode,
         activeImpactTab: state.activeImpactTab,
+        aiBallStyle: state.aiBallStyle,
       }),
       /**
        * persist 的 hydrate 是异步的：用户可能在 getItem 完成前已切回优衣库。

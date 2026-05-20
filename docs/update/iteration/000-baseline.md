@@ -6,7 +6,7 @@
 
 - [ ] **代码审计 (Baseline Audit)**
   - [ ] 盘点现有 `routers/`, `models/`, `schemas/`, `migrations/`
-  - [ ] 输出当前接口与 `docs/tonghua-project-plan.md` 的映射表
+  - [ ] 输出当前接口与 `docs/vicoo-project-plan.md` 的映射表
 - [ ] **高风险模块标记**
   - [ ] `auth`: 认证与会话管理
   - [ ] `payments`: 支付回调与幂等

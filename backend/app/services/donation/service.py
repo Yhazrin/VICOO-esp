@@ -13,7 +13,7 @@ from app.services.base import BaseService
 from app.core.audit import audit_action
 from app.services.donation.certificate import build_certificate_payload
 
-logger = logging.getLogger("tonghua.donation_service")
+logger = logging.getLogger("vicoo.donation_service")
 
 class DonationService(BaseService):
     """

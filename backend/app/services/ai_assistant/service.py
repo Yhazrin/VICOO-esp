@@ -15,7 +15,7 @@ from app.models.audit import AuditLog
 from app.services.supply_chain.service import SupplyChainService
 from app.models.product import Product
 
-logger = logging.getLogger("tonghua.ai_service")
+logger = logging.getLogger("vicoo.ai_service")
 _SYNONYM_CONFIG_PATH = Path(__file__).resolve().parents[2] / "data" / "ai_search_synonyms.json"
 _DEFAULT_SYNONYM_CONFIG = {
     "aliases": {},
@@ -48,17 +48,29 @@ def _read_alias_map() -> Dict[str, List[str]]:
             alias_map[entry.lower()] = variants
     return alias_map
 
-SYSTEM_PROMPT = """你是「童画公益 × 可持续时尚」平台助手。语气温暖、克制、专业。
+SYSTEM_PROMPT = """你是「Uniqlo × VICOO 公益」平台助手，也是「Uniqlo × VICOO 公益」的专属公益智能体。语气温暖、克制、专业。
 你需要根据页面语境推荐对应商品，并优先使用站内数据库与检索结果回答：
 1) 如果当前是 Uniqlo/常规商城语境，默认优先推荐常规商品（/shop/{id}）。
 2) 如果当前是 Impact/公益语境，默认优先推荐公益商品（/impact/shop/{id}）。
-3) 但当用户明确强调“可持续/公益/捐赠/环保/sustainable/impact/charity”时，即使在 Uniqlo 页面也要优先推荐 Impact 商品。
-4) 如果用户表达“推荐/找商品/包/衣物”等需求但没有明确 Uniqlo 或 Impact，先追问其偏好（Uniqlo 还是 Impact），再给推荐。
+3) 但当用户明确强调"可持续/公益/捐赠/环保/sustainable/impact/charity"时，即使在 Uniqlo 页面也要优先推荐 Impact 商品。
+4) 如果用户表达"推荐/找商品/包/衣物"等需求但没有明确 Uniqlo 或 Impact，先追问其偏好（Uniqlo 还是 Impact），再给推荐。
 5) 进行商品推荐时，尽量返回可点击链接，并给出推荐理由（材质、价格、公益比例、溯源等）。
 6) 需要同时理解中英文同义词（如 T-shirt/T恤、bag/包、clothes/衣物）并做匹配推荐。
 7) 优先基于站内数据库内容回答，不要编造站外商品或链接。
 8) 如果用户问到订单、支付、隐私，请只给基础状态说明，不泄露敏感信息。
-9) 涉及儿童信息、支付与法律问题，提醒以站内条款与客服为准。"""
+9) 涉及儿童信息、支付与法律问题，提醒以站内条款与客服为准。
+10) 引导用户了解和参与捐赠（解释捐赠档位、流程、证书）。
+11) 查询并报告公益活动的筹款进度和影响力数据。
+12) 帮助用户查询个人捐赠记录和历史。
+13) 介绍旧衣回收流程和意义。
+14) 查询公益商品的供应链溯源信息。
+15) 解释影响力基金的分配机制（60% 艺术家 / 30% 学校 / 10% 慈善池）。
+当用户表达公益相关意图时，主动调用对应工具获取实时数据，给出温暖、专业的回复。
+回复中如果包含捐赠记录、活动进度、影响力基金等结构化数据，请使用以下格式标记，以便前端渲染为可视化卡片：
+:::action-card[donation-list]{...json_data}
+:::action-card[campaign-progress]{...json_data}
+:::action-card[impact-fund]{...json_data}
+其中 json_data 为对应数据的 JSON 字符串。"""
 
 class AIAssistantService(BaseService):
     """
@@ -295,6 +307,87 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
             logger.error(f"Failed to fetch business context for AI: {e}")
             return "[Business context unavailable]"
 
+    async def _get_donation_context(self, user_id: Optional[int] = None) -> str:
+        """Fetch donation stats and user donation history for AI context."""
+        from app.services.donation.service import DonationService
+        from app.models.donation import Donation
+        from sqlalchemy import select, and_
+        try:
+            svc = DonationService(self.db)
+            stats = await svc.get_stats()
+            ctx = f"平台捐赠统计: 总金额 {stats.get('total_amount', 0)} {stats.get('currency', 'CNY')}, 总捐赠人次 {stats.get('total_donors', 0)}\n"
+            tiers = [
+                {"name": "铜牌 Bronze", "amount": 50},
+                {"name": "银牌 Silver", "amount": 200},
+                {"name": "金牌 Gold", "amount": 500},
+                {"name": "铂金 Platinum", "amount": 2000},
+            ]
+            ctx += "捐赠档位: " + ", ".join(f"{t['name']}({t['amount']}元)" for t in tiers) + "\n"
+            ctx += "捐赠流程: 选择档位 → 支付 → 自动生成电子证书\n"
+            if user_id:
+                stmt = select(Donation).where(
+                    and_(Donation.donor_user_id == user_id, Donation.status == "completed")
+                ).order_by(Donation.created_at.desc()).limit(5)
+                donations = (await self.db.execute(stmt)).scalars().all()
+                if donations:
+                    ctx += f"用户最近捐赠记录:\n"
+                    for d in donations:
+                        ts = d.created_at.strftime("%Y-%m-%d") if d.created_at else "N/A"
+                        ctx += f"  - {ts} | {d.amount} {d.currency} | {d.payment_method or 'N/A'} | {d.status}\n"
+                else:
+                    ctx += "该用户暂无捐赠记录。\n"
+            return ctx
+        except Exception as e:
+            logger.error(f"Failed to get donation context: {e}")
+            return ""
+
+    async def _get_campaign_context(self) -> str:
+        """Fetch active campaign progress for AI context."""
+        from app.services.campaign.service import CampaignService
+        try:
+            svc = CampaignService(self.db)
+            campaign = await svc.get_active_campaign()
+            if campaign:
+                progress = (campaign.current_amount / campaign.goal_amount * 100) if campaign.goal_amount else 0
+                ctx = f"当前活动: {campaign.title}\n"
+                ctx += f"筹款目标: {campaign.goal_amount} CNY, 当前已筹: {campaign.current_amount} CNY ({progress:.1f}%)\n"
+                if campaign.description:
+                    ctx += f"活动简介: {campaign.description[:200]}\n"
+                return ctx
+            return "当前暂无进行中的筹款活动。\n"
+        except Exception as e:
+            logger.error(f"Failed to get campaign context: {e}")
+            return ""
+
+    async def _get_impact_fund_context(self) -> str:
+        """Fetch impact fund summary for AI context."""
+        from app.services.impact_fund.service import ImpactFundService
+        try:
+            svc = ImpactFundService(self.db)
+            summary = await svc.get_fund_summary()
+            ctx = f"影响力基金总分配: {summary.get('total_amount', 0)} CNY, 共 {summary.get('total_entries', 0)} 笔\n"
+            by_type = summary.get("by_type", {})
+            for t in by_type:
+                ctx += f"  - {t.get('type', 'N/A')}: {t.get('amount', 0)} CNY ({t.get('count', 0)} 笔)\n"
+            ctx += "分配机制: 每笔公益商品销售额的捐赠比例 → 60% 艺术家 / 30% 学校 / 10% 慈善池\n"
+            return ctx
+        except Exception as e:
+            logger.error(f"Failed to get impact fund context: {e}")
+            return ""
+
+    def _get_clothing_recycle_context(self) -> str:
+        """Return clothing recycle flow info for AI context."""
+        base_url = self._resolve_frontend_base_url()
+        return (
+            "旧衣回收流程:\n"
+            "1. 用户在「旧衣回收」页面提交回收申请\n"
+            "2. 平台安排上门取件或用户自行寄送\n"
+            "3. 旧衣经过分拣、清洗、消毒处理\n"
+            "4. 可穿用衣物捐赠给需要的儿童，不可穿用的进行环保再生\n"
+            f"入口: {urljoin(base_url, 'clothing-recycle')}\n"
+            f"旧衣捐赠入口: {urljoin(base_url, 'donate-clothing')}\n"
+        )
+
     def _get_last_user_message(self, messages: List[Dict[str, str]]) -> str:
         if not messages:
             return ""
@@ -502,6 +595,49 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
 
         if not last_user:
             return ""
+
+        # 0) Welfare / public good intent detection — query real-time data from welfare services
+        welfare_keywords_cn = ["捐赠", "捐款", "捐了", "筹款", "活动进度", "影响力", "公益基金", "旧衣回收", "回收", "捐衣服", "溯源", "供应链", "怎么捐", "想捐"]
+        welfare_keywords_en = ["donate", "donation", "fundraising", "campaign progress", "impact fund", "recycle", "clothing recycle", "traceability", "supply chain"]
+        lower_user = last_user.lower()
+        is_welfare_intent = any(k in last_user for k in welfare_keywords_cn) or any(k in lower_user for k in welfare_keywords_en)
+
+        if is_welfare_intent:
+            welfare_parts: List[str] = []
+            # Donation query
+            if any(k in last_user for k in ["我的捐赠", "捐款记录", "我捐了多少", "my donation", "donation history"]):
+                uid = metadata.get("user_id") if metadata else None
+                ctx = await self._get_donation_context(uid)
+                if ctx:
+                    welfare_parts.append(ctx)
+            # Donation guide
+            elif any(k in last_user for k in ["想捐", "怎么捐", "捐赠流程", "捐赠入口", "want to donate", "how to donate"]):
+                ctx = await self._get_donation_context()
+                if ctx:
+                    welfare_parts.append(ctx)
+            # Campaign progress
+            if any(k in last_user for k in ["活动", "筹款", "进度", "目标", "campaign", "fundraising", "progress"]):
+                ctx = await self._get_campaign_context()
+                if ctx:
+                    welfare_parts.append(ctx)
+            # Impact fund
+            if any(k in last_user for k in ["影响力", "公益基金", "帮助", "impact fund", "impact data"]):
+                ctx = await self._get_impact_fund_context()
+                if ctx:
+                    welfare_parts.append(ctx)
+            # Clothing recycle
+            if any(k in last_user for k in ["旧衣", "回收", "捐衣服", "recycle", "clothing recycle"]):
+                ctx = self._get_clothing_recycle_context()
+                if ctx:
+                    welfare_parts.append(ctx)
+            # Supply chain trace
+            if any(k in last_user for k in ["溯源", "供应链", "从哪来", "traceability", "supply chain"]):
+                base_url = self._resolve_frontend_base_url(metadata)
+                welfare_parts.append(f"商品溯源功能: 每件公益商品均可查看完整供应链时间线（原材料→加工→制造→质检→物流）。入口: {urljoin(base_url, 'supply-chain')}")
+
+            if welfare_parts:
+                welfare_output = "[Welfare Tool Output]\n" + "\n".join(welfare_parts) + "\n(Source: welfare services)\n"
+                return welfare_output
 
         # 1) Check for explicit product id patterns (e.g., "product id: 123", "商品id:123", "商品 123")
         pid_patterns = [r"product\s*id[:#\s]*(\d+)", r"商品(?:id)?[:：#\s]*(\d+)", r"商品\s+(\d{2,})"]

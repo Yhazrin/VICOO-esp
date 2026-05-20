@@ -3,7 +3,7 @@
 **Document Version:** 1.0
 **Effective Date:** [To be determined upon launch]
 **Last Updated:** 2026-03-19
-**Applicable Entities:** Tonghua Public Welfare x Sustainable Fashion ("the Platform", "本平台")
+**Applicable Entities:** Uniqlo × VICOO Welfare · Welfare Action ("the Platform", "本平台")
 
 ---
 
@@ -17,7 +17,7 @@
 
 ### 第一条 总则
 
-1.1 本协议是童画公益 x 可持续时尚平台（以下简称"本平台"）与捐赠人之间就公益捐赠事项所订立的协议。
+1.1 本协议是 Uniqlo × VICOO 公益·公益行动平台（以下简称"本平台"）与捐赠人之间就公益捐赠事项所订立的协议。
 
 1.2 本平台承诺按照《中华人民共和国慈善法》、《中华人民共和国公益事业捐赠法》及相关法律法规的规定，规范管理和使用捐赠资金。
 
@@ -38,7 +38,7 @@
 - 资助社区艺术工作坊和创意课程
 - 聘请艺术教育志愿者和专业教师
 
-**(b) 可持续时尚产业扶持**
+**(b) 公益产业扶持**
 - 支持可持续纺织材料的研发和推广
 - 资助环保生产工艺的培训项目
 - 支持传统手工艺的保护和传承
@@ -55,7 +55,7 @@
 | 资金用途 | 分配比例 | 说明 |
 |---------|---------|------|
 | 直接受益项目（儿童艺术教育） | 不低于60% | 直接用于受助儿童 |
-| 可持续时尚产业扶持 | 不超过20% | 产业扶持项目 |
+| 公益产业扶持 | 不超过20% | 产业扶持项目 |
 | 平台运营管理费 | 不超过15% | 含技术维护、人员工资、办公费用 |
 | 风险储备金 | 不超过5% | 用于应急和不可预见支出 |
 
@@ -173,7 +173,7 @@
 
 6.2.1 捐赠人可通过以下方式申请退款：
 - 在"我的捐赠"页面点击"申请退款"
-- 发送邮件至 donation@tonghua-project.org
+- 发送邮件至 donation@vicoo-project.org
 - 拨打捐赠人服务热线 [待公布]
 
 6.2.2 收到退款申请后，我们将在**5个工作日**内完成审核。审核通过后：
@@ -258,7 +258,7 @@
 
 ### Article 1 General Provisions
 
-1.1 This Donation Agreement ("Agreement") is entered into between Tonghua Public Welfare x Sustainable Fashion Platform ("the Platform") and the Donor regarding charitable donations.
+1.1 This Donation Agreement ("Agreement") is entered into between Uniqlo × VICOO Welfare · Welfare Action Platform ("the Platform") and the Donor regarding charitable donations.
 
 1.2 The Platform commits to managing and utilizing donated funds in accordance with the Charity Law of the PRC, the Law of the PRC on Donations for Public Welfare, and other applicable laws and regulations.
 
@@ -272,7 +272,7 @@
 
 Donations support:
 - **(a) Children's Art Education:** Art supplies, community workshops, and professional instructors for children in underserved areas.
-- **(b) Sustainable Fashion Industry Support:** Sustainable textile R&D, eco-friendly production training, and traditional craft preservation.
+- **(b) Welfare Action Industry Support:** Sustainable textile R&D, eco-friendly production training, and traditional craft preservation.
 - **(c) Platform Operations:** Maintenance, project planning, execution, and beneficiary evaluation.
 
 #### 2.2 Allocation Ratios
@@ -280,7 +280,7 @@ Donations support:
 | Purpose | Ratio | Notes |
 |---------|-------|-------|
 | Direct Beneficiary Programs | >= 60% | Direct aid to children |
-| Sustainable Fashion Support | <= 20% | Industry programs |
+| Welfare Action Support | <= 20% | Industry programs |
 | Platform Operations | <= 15% | Technology, staff, office |
 | Risk Reserve | <= 5% | Emergency and unforeseen |
 

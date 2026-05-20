@@ -1,6 +1,6 @@
-# Tonghua Public Welfare — Deployment Guide
+# Uniqlo × VICOO Welfare — Deployment Guide
 
-> 童画公益 x 可持续时尚 平台部署文档
+> Uniqlo × VICOO 公益 x 公益行动 平台部署文档
 
 > **WARNING**: This document references the legacy `deploy/docker` path, which is
 > frozen as of 2026-04-08. All new deployments should use **`deploy/easy`**.
@@ -55,8 +55,8 @@
 ### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/<your-org>/tonghua-project.git
-cd tonghua-project
+git clone https://github.com/<your-org>/vicoo-project.git
+cd vicoo-project
 ```
 
 ### Step 2: Configure Environment Variables
@@ -82,9 +82,9 @@ ENCRYPTION_KEY=<64-char-hex-string>
 CHILD_DATA_ENCRYPTION_KEY=<64-char-hex-string>
 
 # Optional but recommended
-MYSQL_USER=tonghua
-MYSQL_DATABASE=tonghua_db
-RABBITMQ_USER=tonghua
+MYSQL_USER=vicoo
+MYSQL_DATABASE=vicoo_db
+RABBITMQ_USER=vicoo
 ```
 
 Generate secure random values:
@@ -108,11 +108,11 @@ This starts the full stack:
 
 | Service    | Container           | Port  | Access                                |
 |-----------|---------------------|-------|---------------------------------------|
-| MySQL 8.0 | tonghua-mysql       | 3306  | `mysql -h localhost -u tonghua -p`    |
-| Redis 7   | tonghua-redis       | 6379  | `redis-cli -h localhost -a <pass>`    |
-| RabbitMQ  | tonghua-rabbitmq    | 5672  | Management UI: `http://localhost:15672` |
-| Backend   | tonghua-backend     | 8000  | API: `http://localhost:8000`          |
-| Frontend  | tonghua-frontend    | 80    | App: `http://localhost`               |
+| MySQL 8.0 | vicoo-mysql       | 3306  | `mysql -h localhost -u vicoo -p`    |
+| Redis 7   | vicoo-redis       | 6379  | `redis-cli -h localhost -a <pass>`    |
+| RabbitMQ  | vicoo-rabbitmq    | 5672  | Management UI: `http://localhost:15672` |
+| Backend   | vicoo-backend     | 8000  | API: `http://localhost:8000`          |
+| Frontend  | vicoo-frontend    | 80    | App: `http://localhost`               |
 
 ### Step 4: Initialize the Database
 
@@ -128,7 +128,7 @@ deploy/docker/init-db/
 To manually run migrations after the initial startup:
 
 ```bash
-docker exec -i tonghua-mysql mysql -u tonghua -p tonghua_db < path/to/migration.sql
+docker exec -i vicoo-mysql mysql -u vicoo -p vicoo_db < path/to/migration.sql
 ```
 
 ### Step 5: Verify Services
@@ -168,8 +168,8 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
 # Set environment variables (or use a .env file)
-export DATABASE_URL="mysql+aiomysql://tonghua:tonghua_dev_pass@localhost:3306/tonghua_db"
-export REDIS_URL="redis://:tonghua_redis_pass@localhost:6379/0"
+export DATABASE_URL="mysql+aiomysql://vicoo:vicoo_dev_pass@localhost:3306/vicoo_db"
+export REDIS_URL="redis://:vicoo_redis_pass@localhost:6379/0"
 
 # Run with auto-reload
 uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
@@ -219,7 +219,7 @@ uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
 #### Backend (FastAPI)
 
 - Multi-stage Docker build (Python 3.11-slim)
-- Runs as non-root user `tonghua`
+- Runs as non-root user `vicoo`
 - 4 uvicorn worker processes
 - Health check endpoint: `/health`
 
@@ -256,8 +256,8 @@ docker compose logs -f --tail=100 backend
 docker compose up -d --scale backend=3
 
 # Enter a running container
-docker exec -it tonghua-backend /bin/bash
-docker exec -it tonghua-mysql mysql -u tonghua -p tonghua_db
+docker exec -it vicoo-backend /bin/bash
+docker exec -it vicoo-mysql mysql -u vicoo -p vicoo_db
 ```
 
 ---
@@ -270,7 +270,7 @@ All variables are defined in `deploy/docker/.env.example`. Copy to `.env` and cu
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `APP_NAME` | `tonghua-public-welfare` | Application identifier |
+| `APP_NAME` | `vicoo-public-welfare` | Application identifier |
 | `APP_ENV` | `development` | Environment: `development`, `staging`, `production` |
 | `APP_DEBUG` | `true` | Enable debug mode (disable in production) |
 | `APP_SECRET_KEY` | `change-me` | Application secret for signing (generate with `openssl rand -hex 32`) |
@@ -282,9 +282,9 @@ All variables are defined in `deploy/docker/.env.example`. Copy to `.env` and cu
 |----------|---------|-------------|
 | `MYSQL_HOST` | `mysql` | Database hostname (Docker service name) |
 | `MYSQL_PORT` | `3306` | Database port |
-| `MYSQL_USER` | `tonghua` | Database user |
+| `MYSQL_USER` | `vicoo` | Database user |
 | `MYSQL_PASSWORD` | `change-me` | Database password |
-| `MYSQL_DATABASE` | `tonghua_db` | Database name |
+| `MYSQL_DATABASE` | `vicoo_db` | Database name |
 | `DATABASE_URL` | (composed) | Full SQLAlchemy connection URL |
 
 ### Redis
@@ -303,7 +303,7 @@ All variables are defined in `deploy/docker/.env.example`. Copy to `.env` and cu
 |----------|---------|-------------|
 | `RABBITMQ_HOST` | `rabbitmq` | RabbitMQ hostname |
 | `RABBITMQ_PORT` | `5672` | RabbitMQ AMQP port |
-| `RABBITMQ_USER` | `tonghua` | RabbitMQ user |
+| `RABBITMQ_USER` | `vicoo` | RabbitMQ user |
 | `RABBITMQ_PASSWORD` | `change-me` | RabbitMQ password |
 | `RABBITMQ_URL` | (composed) | Full AMQP connection URL |
 
@@ -405,10 +405,10 @@ Push to main/develop
 Images are pushed to GitHub Container Registry (ghcr.io):
 
 ```
-ghcr.io/<org>/tonghua-project/backend:latest
-ghcr.io/<org>/tonghua-project/backend:<commit-sha>
-ghcr.io/<org>/tonghua-project/frontend:latest
-ghcr.io/<org>/tonghua-project/frontend:<commit-sha>
+ghcr.io/<org>/vicoo-project/backend:latest
+ghcr.io/<org>/vicoo-project/backend:<commit-sha>
+ghcr.io/<org>/vicoo-project/frontend:latest
+ghcr.io/<org>/vicoo-project/frontend:<commit-sha>
 ```
 
 ### Required GitHub Secrets
@@ -521,8 +521,8 @@ Nginx writes logs inside the container:
 To access them:
 
 ```bash
-docker exec tonghua-frontend cat /var/log/nginx/access.log
-docker exec tonghua-frontend cat /var/log/nginx/error.log
+docker exec vicoo-frontend cat /var/log/nginx/access.log
+docker exec vicoo-frontend cat /var/log/nginx/error.log
 ```
 
 ### Recommended Monitoring Stack
@@ -559,7 +559,7 @@ Create `deploy/monitoring/alert-rules.yml`:
 
 ```yaml
 groups:
-  - name: tonghua-api
+  - name: vicoo-api
     rules:
       - alert: HighApiLatency
         expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 0.5
@@ -586,7 +586,7 @@ groups:
         annotations:
           summary: "5xx error rate above 1%"
 
-  - name: tonghua-resources
+  - name: vicoo-resources
     rules:
       - alert: HighCpuUsage
         expr: 100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 70
@@ -612,7 +612,7 @@ groups:
         annotations:
           summary: "Disk usage above 75%"
 
-  - name: tonghua-database
+  - name: vicoo-database
     rules:
       - alert: MysqlConnectionsHigh
         expr: mysql_global_status_threads_connected / mysql_global_variables_max_connections * 100 > 70
@@ -699,14 +699,14 @@ docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\
 
 # MySQL data size
 echo "--- MySQL Data ---"
-docker exec tonghua-mysql du -sh /var/lib/mysql 2>/dev/null || echo "N/A"
+docker exec vicoo-mysql du -sh /var/lib/mysql 2>/dev/null || echo "N/A"
 
 # Redis memory
 echo "--- Redis Memory ---"
-docker exec tonghua-redis redis-cli -a "${REDIS_PASSWORD}" INFO memory 2>/dev/null | grep used_memory_human
+docker exec vicoo-redis redis-cli -a "${REDIS_PASSWORD}" INFO memory 2>/dev/null | grep used_memory_human
 
 # OSS bucket size (requires ossutil configured)
-# ossutil du oss://tonghua-bucket/ 2>/dev/null || echo "OSS check skipped"
+# ossutil du oss://vicoo-bucket/ 2>/dev/null || echo "OSS check skipped"
 ```
 
 #### Cost Optimization Tips
@@ -726,25 +726,25 @@ docker exec tonghua-redis redis-cli -a "${REDIS_PASSWORD}" INFO memory 2>/dev/nu
 
 ```bash
 # Create a backup
-docker exec tonghua-mysql mysqldump \
-  -u tonghua -p \
+docker exec vicoo-mysql mysqldump \
+  -u vicoo -p \
   --single-transaction \
   --routines \
   --triggers \
-  tonghua_db > backup_$(date +%Y%m%d_%H%M%S).sql
+  vicoo_db > backup_$(date +%Y%m%d_%H%M%S).sql
 
 # Automated daily backup (add to crontab)
-0 2 * * * docker exec tonghua-mysql mysqldump -u tonghua -pYOUR_PASS --single-transaction tonghua_db | gzip > /backups/tonghua_$(date +\%Y\%m\%d).sql.gz
+0 2 * * * docker exec vicoo-mysql mysqldump -u vicoo -pYOUR_PASS --single-transaction vicoo_db | gzip > /backups/vicoo_$(date +\%Y\%m\%d).sql.gz
 ```
 
 ### MySQL Restore
 
 ```bash
 # Restore from backup
-docker exec -i tonghua-mysql mysql -u tonghua -p tonghua_db < backup_20260319_120000.sql
+docker exec -i vicoo-mysql mysql -u vicoo -p vicoo_db < backup_20260319_120000.sql
 
 # Restore from compressed backup
-gunzip -c backup_20260319_120000.sql.gz | docker exec -i tonghua-mysql mysql -u tonghua -p tonghua_db
+gunzip -c backup_20260319_120000.sql.gz | docker exec -i vicoo-mysql mysql -u vicoo -p vicoo_db
 ```
 
 ### Redis Backup
@@ -753,17 +753,17 @@ Redis AOF persistence is enabled. The AOF file is stored in the `redis_data` vol
 
 ```bash
 # Trigger a manual save
-docker exec tonghua-redis redis-cli -a ${REDIS_PASSWORD} BGSAVE
+docker exec vicoo-redis redis-cli -a ${REDIS_PASSWORD} BGSAVE
 
 # Copy the dump file out
-docker cp tonghua-redis:/data/dump.rdb ./redis_backup_$(date +%Y%m%d).rdb
+docker cp vicoo-redis:/data/dump.rdb ./redis_backup_$(date +%Y%m%d).rdb
 ```
 
 ### Volume Backup
 
 ```bash
 # Backup all volumes
-docker run --rm -v tonghua-project_mysql_data:/data -v $(pwd):/backup alpine \
+docker run --rm -v vicoo-project_mysql_data:/data -v $(pwd):/backup alpine \
   tar czf /backup/mysql_data_$(date +%Y%m%d).tar.gz -C /data .
 ```
 
@@ -828,8 +828,8 @@ The Nginx frontend proxy cannot reach the backend.
 
 1. Check backend is running and healthy: `docker compose ps backend`
 2. Test backend directly: `curl http://localhost:8000/health`
-3. Check Nginx config inside the container: `docker exec tonghua-frontend cat /etc/nginx/conf.d/tonghua.conf`
-4. Check both containers share the `tonghua-net` network
+3. Check Nginx config inside the container: `docker exec vicoo-frontend cat /etc/nginx/conf.d/vicoo.conf`
+4. Check both containers share the `vicoo-net` network
 
 ### Database Migrations Fail
 
@@ -858,7 +858,7 @@ docker system df
 
 ### Permission Denied Errors
 
-The backend runs as non-root user `tonghua` (UID mapped inside the container). If you mount local volumes for development:
+The backend runs as non-root user `vicoo` (UID mapped inside the container). If you mount local volumes for development:
 
 ```bash
 # Fix ownership of mounted directories
@@ -871,7 +871,7 @@ Symptoms: containers restarting unexpectedly, `OOMKilled` in `docker inspect`.
 
 ```
 # Check if a container was OOM-killed
-docker inspect --format='{{.State.OOMKilled}}' tonghua-backend
+docker inspect --format='{{.State.OOMKilled}}' vicoo-backend
 # Check container restart count
 docker compose ps
 ```
@@ -899,17 +899,17 @@ Symptoms: p95 latency > 1s, frontend timeouts.
 
 ```bash
 # Check if the backend is under heavy load
-docker stats tonghua-backend
+docker stats vicoo-backend
 
 # Check MySQL slow query log
-docker exec tonghua-mysql mysql -u tonghua -p -e "SHOW VARIABLES LIKE 'slow_query%';"
-docker exec tonghua-mysql mysql -u tonghua -p -e "SHOW GLOBAL STATUS LIKE 'Slow_queries';"
+docker exec vicoo-mysql mysql -u vicoo -p -e "SHOW VARIABLES LIKE 'slow_query%';"
+docker exec vicoo-mysql mysql -u vicoo -p -e "SHOW GLOBAL STATUS LIKE 'Slow_queries';"
 
 # Check Redis latency
-docker exec tonghua-redis redis-cli -a "${REDIS_PASSWORD}" --latency
+docker exec vicoo-redis redis-cli -a "${REDIS_PASSWORD}" --latency
 
 # Check if RabbitMQ queues are backing up
-docker exec tonghua-rabbitmq rabbitmqctl list_queues messages consumers
+docker exec vicoo-rabbitmq rabbitmqctl list_queues messages consumers
 ```
 
 **Solutions:**
@@ -954,7 +954,7 @@ Symptoms: orders stuck in `pending`, payment callbacks not arriving.
 curl -X POST https://your-domain.com/api/payments/wechat/notify
 
 # Check Nginx is forwarding the request
-docker exec tonghua-frontend cat /var/log/nginx/access.log | grep "wechat/notify"
+docker exec vicoo-frontend cat /var/log/nginx/access.log | grep "wechat/notify"
 
 # Verify WeChat Pay certificate is loaded
 docker compose logs backend | grep -i "wechat"
@@ -995,7 +995,7 @@ pika.exceptions.AMQPConnectionError: Connection refused
 4. Clear RabbitMQ data if corrupted (WARNING: loses all queued messages):
    ```bash
    docker compose down
-   docker volume rm tonghua-project_rabbitmq_data
+   docker volume rm vicoo-project_rabbitmq_data
    docker compose up -d rabbitmq
    ```
 
@@ -1051,7 +1051,7 @@ Symptoms: occasional 503 Service Unavailable in the browser.
 docker compose ps backend
 
 # Check Nginx error log for upstream errors
-docker exec tonghua-frontend cat /var/log/nginx/error.log | grep "upstream"
+docker exec vicoo-frontend cat /var/log/nginx/error.log | grep "upstream"
 
 # Check if uvicorn workers are crashing
 docker compose logs backend | grep -i "worker\|killed\|restart"
@@ -1075,7 +1075,7 @@ For production, terminate TLS at Nginx. Add the following to `nginx.conf`:
 ```nginx
 server {
     listen 443 ssl http2;
-    server_name tonghua.org www.tonghua.org;
+    server_name vicoo.org www.vicoo.org;
 
     ssl_certificate     /etc/nginx/ssl/fullchain.pem;
     ssl_certificate_key /etc/nginx/ssl/privkey.pem;
@@ -1092,7 +1092,7 @@ server {
 
 server {
     listen 80;
-    server_name tonghua.org www.tonghua.org;
+    server_name vicoo.org www.vicoo.org;
     return 301 https://$host$request_uri;
 }
 ```
@@ -1118,13 +1118,13 @@ Or use Let's Encrypt with certbot for automated certificate management.
 ### Container Security
 
 - All containers run as non-root users where possible
-- Backend Dockerfile creates and switches to user `tonghua`
+- Backend Dockerfile creates and switches to user `vicoo`
 - Base images use `slim` or `alpine` variants to minimize attack surface
 - No unnecessary packages installed in production images
 
 ### Network Security
 
-- All inter-service communication is on the internal `tonghua-net` bridge network
+- All inter-service communication is on the internal `vicoo-net` bridge network
 - Only necessary ports are exposed to the host
 - In production, expose only ports 80 and 443
 - Block direct access to MySQL (3306), Redis (6379), and RabbitMQ (5672) from the public internet

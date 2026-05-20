@@ -67,11 +67,11 @@ npm run dev
 
 | 服务 | 角色 | 邮箱 | 密码 |
 |------|------|------|------|
-| 用户网站 | 管理员 | admin@tonghua.org | (由 SEED_ADMIN_PASSWORD 环境变量设置) |
-| 用户网站 | 编辑 | editor@tonghua.org | (由 SEED_EDITOR_PASSWORD 环境变量设置) |
+| 用户网站 | 管理员 | admin@vicoo.org | (由 SEED_ADMIN_PASSWORD 环境变量设置) |
+| 用户网站 | 编辑 | editor@vicoo.org | (由 SEED_EDITOR_PASSWORD 环境变量设置) |
 | 用户网站 | 普通用户 | lihua@example.com | (由 SEED_USER_PASSWORD 环境变量设置) |
-| 管理后台 | 管理员 | admin@tonghua.org | vicoo-admin |
-| 管理后台 | 编辑 | editor@tonghua.org | vicoo-editor |
+| 管理后台 | 管理员 | admin@vicoo.org | vicoo-admin |
+| 管理后台 | 编辑 | editor@vicoo.org | vicoo-editor |
 
 > **注意**：用户网站和管理后台使用不同的密码体系。用户网站密码由 `.env` 中的 `SEED_*_PASSWORD` 设置；管理后台使用固定的测试密码 `vicoo-admin` / `vicoo-editor`（仅用于本地开发环境）。
 
@@ -325,8 +325,8 @@ docker compose up -d --build frontend
 1. 确认后端已启动并 healthy：`docker compose ps backend`
 2. 检查后端日志：`docker compose logs backend`
 3. 确认使用的是管理后台专用测试账号：
-   - 管理员：admin@tonghua.org / vicoo-admin
-   - 编辑：editor@tonghua.org / vicoo-editor
+   - 管理员：admin@vicoo.org / vicoo-admin
+   - 编辑：editor@vicoo.org / vicoo-editor
 
 ### 清理重装
 

@@ -1,5 +1,5 @@
 # ============================================
-# Tonghua Public Welfare — Backend Dockerfile
+# Uniqlo × VICOO Welfare — Backend Dockerfile
 # Multi-stage build for FastAPI application
 # ============================================
 
@@ -25,8 +25,8 @@ RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 # ---- Stage 2: Production image ----
 FROM python:3.11-slim AS production
 
-LABEL maintainer="Tonghua Public Welfare Team"
-LABEL description="Backend API service for Tonghua Public Welfare platform"
+LABEL maintainer="VICOO Welfare Team"
+LABEL description="Backend API service for Uniqlo × VICOO Welfare platform"
 
 # Install runtime dependencies only
 RUN apt-get update && \
@@ -38,7 +38,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
-RUN groupadd -r tonghua && useradd -r -g tonghua -d /app -s /sbin/nologin tonghua
+RUN groupadd -r vicoo && useradd -r -g vicoo -d /app -s /sbin/nologin vicoo
 
 WORKDIR /app
 
@@ -49,10 +49,10 @@ COPY --from=builder /install /usr/local
 COPY backend/ ./backend/
 
 # Set ownership
-RUN chown -R tonghua:tonghua /app
+RUN chown -R vicoo:vicoo /app
 
 # Switch to non-root user
-USER tonghua
+USER vicoo
 
 # Expose port
 EXPOSE 8000

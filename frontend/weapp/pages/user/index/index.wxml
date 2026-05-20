@@ -5,7 +5,7 @@
         <image class="user-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill" alt="User avatar" />
       </view>
       <view class="user-name">{{userInfo.nickName}}</view>
-      <view class="user-subtitle">Tonghua Volunteer</view>
+      <view class="user-subtitle">VICOO Volunteer</view>
     </block>
     <block wx:else>
       <view class="user-avatar-wrap">

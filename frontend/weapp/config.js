@@ -12,12 +12,12 @@ const ENV_CONFIG = {
   },
   // 测试环境
   test: {
-    baseUrl: 'https://test-api.tonghua.org/api/v1',
+    baseUrl: 'https://test-api.vicoo.org/api/v1',
     description: '测试环境'
   },
   // 生产环境
   production: {
-    baseUrl: 'https://api.tonghua.org/api/v1',
+    baseUrl: 'https://api.vicoo.org/api/v1',
     description: '生产环境'
   }
 };

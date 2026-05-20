@@ -1,6 +1,6 @@
 # Database Design Document
 
-## Tonghua Public Welfare x Sustainable Fashion Platform
+## Uniqlo × VICOO Welfare · Welfare Action Platform
 
 **Version:** 1.0.0
 **Last Updated:** 2026-03-19

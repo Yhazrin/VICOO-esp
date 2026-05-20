@@ -1,6 +1,6 @@
 # 请求签名验证机制
 
-本文档说明如何在 tonghua-project 项目中使用 HMAC-SHA256 请求签名验证机制。
+本文档说明如何在 vicoo-project 项目中使用 HMAC-SHA256 请求签名验证机制。
 
 ## 概述
 

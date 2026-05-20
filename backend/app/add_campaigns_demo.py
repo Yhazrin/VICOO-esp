@@ -66,7 +66,7 @@ def _rows() -> list[dict]:
             "title": "画出未来 — 科技与梦想",
             "description": (
                 "以「未来科技」为主题，鼓励孩子们大胆想象未来世界。"
-                "获奖作品将用于制作可持续时尚 T 恤图案，收益全部用于乡村美育。"
+                "获奖作品将用于制作公益行动 T 恤图案，收益全部用于乡村美育。"
             ),
             "cover_image": COVER_FUTURE,
             "start_date": datetime(2025, 11, 1),

@@ -37,7 +37,7 @@ const U2_TARGET =
 
 /** Vite 在部分环境下只监听 localhost（IPv6） */
 const ADMIN_ORIGIN = process.env.MANUAL_ADMIN_ORIGIN ?? 'http://localhost:5173';
-const ADMIN_EMAIL = process.env.MANUAL_ADMIN_EMAIL ?? 'admin@tonghua.org';
+const ADMIN_EMAIL = process.env.MANUAL_ADMIN_EMAIL ?? 'admin@vicoo.org';
 const ADMIN_PASSWORD = process.env.MANUAL_ADMIN_PASSWORD ?? 'vicoo-admin';
 
 test.describe.configure({ mode: 'serial' });

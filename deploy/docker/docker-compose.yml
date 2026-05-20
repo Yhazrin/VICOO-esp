@@ -1,7 +1,7 @@
 version: "3.9"
 
 # ============================================
-# Tonghua Public Welfare — Docker Compose
+# Uniqlo × VICOO Welfare — Docker Compose
 # Development & Staging Environment
 # ============================================
 #
@@ -18,7 +18,7 @@ services:
   # ---- MySQL 8.0 ----
   mysql:
     image: mysql:8.0
-    container_name: tonghua-mysql
+    container_name: vicoo-mysql
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
@@ -48,12 +48,12 @@ services:
       - mysql_root_password
       - mysql_password
     networks:
-      - tonghua-net
+      - vicoo-net
 
   # ---- Redis 7 ----
   redis:
     image: redis:7-alpine
-    container_name: tonghua-redis
+    container_name: vicoo-redis
     restart: unless-stopped
     environment:
       REDIS_PASSWORD_FILE: /run/secrets/redis_password
@@ -75,15 +75,15 @@ services:
     secrets:
       - redis_password
     networks:
-      - tonghua-net
+      - vicoo-net
 
   # ---- RabbitMQ 3 ----
   rabbitmq:
     image: rabbitmq:3.12-management-alpine
-    container_name: tonghua-rabbitmq
+    container_name: vicoo-rabbitmq
     restart: unless-stopped
     environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-tonghua}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-vicoo}
       RABBITMQ_DEFAULT_PASS_FILE: /run/secrets/rabbitmq_password
       RABBITMQ_DEFAULT_VHOST: /
     # Ports removed to prevent external access (internal network only)
@@ -98,14 +98,14 @@ services:
     secrets:
       - rabbitmq_password
     networks:
-      - tonghua-net
+      - vicoo-net
 
   # ---- Backend (FastAPI) ----
   backend:
     build:
       context: ../../
       dockerfile: deploy/docker/Dockerfiles/backend.Dockerfile
-    container_name: tonghua-backend
+    container_name: vicoo-backend
     restart: unless-stopped
     environment:
       APP_ENV: ${APP_ENV}
@@ -194,14 +194,14 @@ services:
       retries: 5
       start_period: 20s
     networks:
-      - tonghua-net
+      - vicoo-net
 
   # ---- Frontend (React + Nginx) ----
   frontend:
     build:
       context: ../../frontend/web-react
       dockerfile: ../../deploy/docker/Dockerfiles/frontend.Dockerfile
-    container_name: tonghua-frontend
+    container_name: vicoo-frontend
     restart: unless-stopped
     ports:
       - "80:80"
@@ -214,7 +214,7 @@ services:
       timeout: 5s
       retries: 3
     networks:
-      - tonghua-net
+      - vicoo-net
 
 volumes:
   mysql_data:
@@ -253,6 +253,6 @@ secrets:
     file: ./secrets/app_secret_key.txt
 
 networks:
-  tonghua-net:
+  vicoo-net:
     driver: bridge
-    name: tonghua-network
+    name: vicoo-network

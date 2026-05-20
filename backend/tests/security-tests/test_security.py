@@ -1,5 +1,5 @@
 """
-Security test scenarios for Tonghua Public Welfare platform.
+Security test scenarios for Uniqlo × VICOO Welfare platform.
 Covers OWASP Top 10, authentication bypass, authorization escalation,
 input validation, and child data protection.
 """
@@ -431,7 +431,7 @@ class TestGuardianConsent:
             "child_display_name": "Little Star",
             "age": 8,
             "guardian_consent": True,
-            "consent_document_url": "https://cdn.tonghua.org/consent/signed-form.pdf",
+            "consent_document_url": "https://cdn.vicoo.org/consent/signed-form.pdf",
         }
         response = await client.post(
             "/api/v1/admin/child-participants",

@@ -9,7 +9,7 @@ from app.models.supply_chain import SupplyChainRecord
 from app.services.base import BaseService
 from app.core.audit import audit_action
 
-logger = logging.getLogger("tonghua.supply_chain_service")
+logger = logging.getLogger("vicoo.supply_chain_service")
 
 
 class SupplyChainService(BaseService):

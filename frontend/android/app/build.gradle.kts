@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "org.tonghua.app"
+    namespace = "org.vicoo.app"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.tonghua.app"
+        applicationId = "com.vicoo.app"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
@@ -22,7 +22,7 @@ android {
         }
 
         // Build Config Fields for API URL
-        buildConfigField("String", "API_BASE_URL", "\"https://api.tonghua.org/api/v1/\"")
+        buildConfigField("String", "API_BASE_URL", "\"https://api.vicoo.org/api/v1/\"")
     }
 
     buildTypes {
@@ -32,7 +32,7 @@ android {
         }
         register("staging") {
             initWith(getByName("debug"))
-            val stagingUrl = findProperty("API_BASE_URL_STAGING") as String? ?: "https://staging-api.tonghua.org/api/v1/"
+            val stagingUrl = findProperty("API_BASE_URL_STAGING") as String? ?: "https://staging-api.vicoo.org/api/v1/"
             buildConfigField("String", "API_BASE_URL", "\"$stagingUrl\"")
         }
         release {
@@ -41,7 +41,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            val prodUrl = findProperty("API_BASE_URL_PROD") as String? ?: "https://api.tonghua.org/api/v1/"
+            val prodUrl = findProperty("API_BASE_URL_PROD") as String? ?: "https://api.vicoo.org/api/v1/"
             buildConfigField("String", "API_BASE_URL", "\"$prodUrl\"")
         }
     }

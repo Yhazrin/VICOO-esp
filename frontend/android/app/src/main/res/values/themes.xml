@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.TonghuaApp" parent="android:Theme.Material.Light.NoActionBar">
+    <style name="Theme.VICOOApp" parent="android:Theme.Material.Light.NoActionBar">
         <!-- Status bar & nav bar colors handled by enableEdgeToEdge() in MainActivity -->
     </style>
 </resources>

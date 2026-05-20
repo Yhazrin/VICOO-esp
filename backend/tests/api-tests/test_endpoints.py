@@ -1,5 +1,5 @@
 """
-Comprehensive API endpoint tests for Tonghua Public Welfare platform.
+Comprehensive API endpoint tests for Uniqlo x VICOO Welfare platform.
 Covers all endpoints from api-reference.md with valid and error scenarios.
 """
 

@@ -40,7 +40,7 @@ The implementation brand name in the repository is **VICOO** (*Visual · Circle*
 
 **SDG focus:** **SDG 12** is the primary story: *ensure sustainable consumption and production patterns* — the platform makes *consumption* (shopping, participation) and *production* (supply records, product narratives) more **legible and accountable** to the user. **SDG 1** appears in the *social* track (opportunity and visibility for children’s work). **SDG 13** is supported by *transparency* and *circular* narratives rather than a single “carbon app.” **SDG 17** is reflected in *partnership* and *traceable* donation and campaign flows.
 
-**Testing accounts (non-registration-only testing):** The module requires **pre-provisioned** usernames/passwords. For the Docker “easy” deployment, the repository documents demo and seed accounts (see `README.md` and `deploy/easy/README.md`), including admin-style access for the **admin dashboard** (e.g. `admin@tonghua.org` with the documented test password) so that assessment does not rely on ad-hoc self-registration only.
+**Testing accounts (non-registration-only testing):** The module requires **pre-provisioned** usernames/passwords. For the Docker “easy” deployment, the repository documents demo and seed accounts (see `README.md` and `deploy/easy/README.md`), including admin-style access for the **admin dashboard** (e.g. `admin@vicoo.org` with the documented test password) so that assessment does not rely on ad-hoc self-registration only.
 
 ---
 

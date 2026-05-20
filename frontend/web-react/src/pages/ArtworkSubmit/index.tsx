@@ -33,7 +33,7 @@ const MOCK_CAMPAIGNS = [
   {
     id: 2,
     titleKey: 'artworkSubmit.campaigns.ocean.title',
-    titleFallback: 'Ocean Guardian \u2014 Sustainable Fashion Illustration',
+    titleFallback: 'Ocean Guardian \u2014 Welfare Illustration',
     descKey: 'artworkSubmit.campaigns.ocean.description',
     descFallback: 'Focus on ocean conservation themes and express your care for marine ecosystems through color. Selected artworks will be applied to a recycled-fabric clothing line.',
     hue: 200,
@@ -59,7 +59,7 @@ const REVIEW_STEPS = [
   { key: 'pending', label: 'Pending Review', description: 'Our team is reviewing your submission' },
   { key: 'result', label: 'Approved / Rejected', description: 'You will be notified of the review result via message' },
   { key: 'voting', label: 'Public Voting', description: 'Approved artworks will enter public voting' },
-  { key: 'commercialize', label: 'Commercialized', description: 'Outstanding artworks will be applied to sustainable fashion products' },
+  { key: 'commercialize', label: 'Commercialized', description: 'Outstanding artworks will be applied to welfare products' },
 ];
 
 /* ─── Age Group Options ─── */
@@ -187,7 +187,7 @@ export default function ArtworkSubmitPage() {
               {t('artworkSubmit.heroTitle', 'Change Fashion with Your Brush')}
             </h1>
             <p className="font-body text-body-sm md:text-body text-ink-faded leading-relaxed max-w-lg">
-              {t('artworkSubmit.heroDescription', 'Choose a campaign and submit your original artwork. Once approved, your art may be featured on sustainable fashion products.')}
+              {t('artworkSubmit.heroDescription', 'Choose a campaign and submit your original artwork. Once approved, your art may be featured on welfare products.')}
             </p>
           </motion.div>
         </SectionContainer>

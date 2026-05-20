@@ -118,7 +118,7 @@ VICOO-esp/
 │   │   ├── utils/                  # Auth, request, encryption
 │   │   └── app.json               # App configuration
 │   └── android/                    # Kotlin + Jetpack Compose
-│       └── app/src/main/java/org/tonghua/app/
+│       └── app/src/main/java/org/vicoo/app/
 │           ├── ui/                 # Compose screens & theme
 │           ├── data/               # API, models, repositories
 │           ├── di/                 # Hilt dependency injection

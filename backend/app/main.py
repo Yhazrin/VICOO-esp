@@ -23,15 +23,15 @@ from app.deps import rate_limit_check, get_current_user_from_request
 # Maximum allowed request body size (10 MB)
 MAX_REQUEST_BODY_SIZE = 10 * 1024 * 1024
 
-logger = logging.getLogger("tonghua")
+logger = logging.getLogger("vicoo")
 _log_level = logging.DEBUG if settings.APP_ENV == "development" else logging.INFO
 logging.basicConfig(
     level=_log_level,
     format="%(asctime)s %(levelname)s %(name)s - %(message)s",
 )
-# Ensure all "tonghua" loggers propagate and use the same level
-logging.getLogger("tonghua").setLevel(_log_level)
-logging.getLogger("tonghua.auth").setLevel(_log_level)
+# Ensure all "vicoo" loggers propagate and use the same level
+logging.getLogger("vicoo").setLevel(_log_level)
+logging.getLogger("vicoo.auth").setLevel(_log_level)
 
 
 @asynccontextmanager
@@ -78,7 +78,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
-    description="Tonghua Public Welfare x Sustainable Fashion — Backend API",
+    description="Uniqlo × VICOO Welfare — Backend API",
     lifespan=lifespan,
 )
 

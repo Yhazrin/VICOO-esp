@@ -126,7 +126,7 @@ def generate_certificate_pdf(payload: Dict[str, Any]) -> bytes:
     story.append(Paragraph(cert_no, _style_center))
     story.append(Spacer(1, 3 * mm))
 
-    story.append(Paragraph("CCFS - Child Welfare x Sustainable Fashion", _style_subtitle))
+    story.append(Paragraph("Uniqlo × VICOO Welfare", _style_subtitle))
     story.append(Paragraph("Donation Certificate", _style_title))
     story.append(Spacer(1, 8 * mm))
 

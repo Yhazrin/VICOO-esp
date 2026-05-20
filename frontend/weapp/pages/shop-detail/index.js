@@ -85,7 +85,7 @@ Page({
   onShareAppMessage: function () {
     var p = this.data.product
     return {
-      title: p ? p.title : '童画公益商店',
+      title: p ? p.title : 'Uniqlo × VICOO 公益商店',
       path: '/pages/shop-detail/index?id=' + (p ? p.id : 1)
     }
   }

@@ -69,7 +69,7 @@ async def send_welcome_email(to_email: str, nickname: str, locale: str = "en"):
                                     VICOO
                                 </h1>
                                 <p style="font-size: 12px; margin-top: 10px; text-transform: uppercase; letter-spacing: 0.4em; color: #5C4033;">
-                                    Public Welfare · Sustainable Fashion
+                                    Uniqlo × VICOO Welfare
                                 </p>
                             </td>
                         </tr>
@@ -121,7 +121,7 @@ async def send_welcome_email(to_email: str, nickname: str, locale: str = "en"):
                                 </p>
                                 <p style="margin: 0; color: #7A6A58;">
                                     This edition was sent to {to_email}. <br>
-                                    Sustainable Fashion for a Better World.
+                                    Welfare Action for a Better World.
                                 </p>
                             </td>
                         </tr>

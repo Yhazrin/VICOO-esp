@@ -26,7 +26,7 @@ from sqlalchemy.engine import Connection
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    DATABASE_URL: str = "sqlite:///./tonghua.db"
+    DATABASE_URL: str = "sqlite:///./vicoo.db"
 
     class Config:
         env_file = "../.env"

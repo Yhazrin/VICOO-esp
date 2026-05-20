@@ -13,7 +13,7 @@ from app.models.product import Product
 from app.services.base import BaseService
 from app.core.audit import audit_action
 
-logger = logging.getLogger("tonghua.order_service")
+logger = logging.getLogger("vicoo.order_service")
 
 class OrderService(BaseService):
     """

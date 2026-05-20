@@ -1,5 +1,5 @@
 # ============================================
-# Tonghua Public Welfare — Frontend Dockerfile
+# Uniqlo × VICOO Welfare — Frontend Dockerfile
 # Multi-stage build for React SPA
 # ============================================
 
@@ -23,8 +23,8 @@ RUN npm run build
 # ---- Stage 2: Serve with Nginx ----
 FROM nginx:alpine AS production
 
-LABEL maintainer="Tonghua Public Welfare Team"
-LABEL description="Frontend SPA for Tonghua Public Welfare platform"
+LABEL maintainer="VICOO Welfare Team"
+LABEL description="Frontend SPA for Uniqlo × VICOO Welfare platform"
 
 # Remove default nginx config
 RUN rm /etc/nginx/conf.d/default.conf
@@ -33,7 +33,7 @@ RUN rm /etc/nginx/conf.d/default.conf
 RUN apk add --no-cache gettext
 
 # Copy custom nginx configuration template
-COPY ../../deploy/docker/nginx/nginx.conf /etc/nginx/conf.d/tonghua.conf.template
+COPY ../../deploy/docker/nginx/nginx.conf /etc/nginx/conf.d/vicoo.conf.template
 
 # Copy built React app from builder stage
 COPY --from=builder /build/dist /usr/share/nginx/html
@@ -56,4 +56,4 @@ HEALTHCHECK --interval=15s --timeout=3s --start-period=5s --retries=3 \
 
 # Start nginx with environment variable substitution
 # API_URL defaults to empty (only same-origin requests allowed) if not set
-CMD ["sh", "-c", "envsubst '${API_URL}' < /etc/nginx/conf.d/tonghua.conf.template > /etc/nginx/conf.d/tonghua.conf && nginx -g 'daemon off;'"]
+CMD ["sh", "-c", "envsubst '${API_URL}' < /etc/nginx/conf.d/vicoo.conf.template > /etc/nginx/conf.d/vicoo.conf && nginx -g 'daemon off;'"]

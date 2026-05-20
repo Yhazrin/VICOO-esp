@@ -15,7 +15,7 @@ from app.core.audit import audit_action
 from app.models.audit import AuditLog
 from app.utils.cache import cached
 
-logger = logging.getLogger("tonghua.admin_service")
+logger = logging.getLogger("vicoo.admin_service")
 
 class AdminService(BaseService):
     """

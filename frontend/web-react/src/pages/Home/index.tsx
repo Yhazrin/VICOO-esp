@@ -198,7 +198,7 @@ export default function Home() {
       {/* Editorial Marquee — continuous motion strip */}
       <KineticTextMarquee
         items={[
-          t('home.marquee.sustainableFashion', 'Sustainable Fashion'),
+          t('home.marquee.sustainableFashion', 'Welfare Action'),
           t('home.marquee.childrenArt', "Children's Art"),
           t('home.marquee.traceableImpact', 'Traceable Impact'),
           t('home.marquee.community', 'Community'),

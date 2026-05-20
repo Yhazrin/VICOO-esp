@@ -94,7 +94,7 @@
 
     <view class="editorial-footer">
       <view class="editorial-footer__divider"></view>
-      <text class="editorial-footer__copy">童画公益 &times; 可持续时尚</text>
+      <text class="editorial-footer__copy">Uniqlo &times; VICOO 公益</text>
     </view>
   </view>
 </scroll-view>

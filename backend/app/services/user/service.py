@@ -11,7 +11,7 @@ from app.services.base import BaseService
 from app.core.audit import audit_action
 from app.security import aes_encrypt
 
-logger = logging.getLogger("tonghua.user_service")
+logger = logging.getLogger("vicoo.user_service")
 
 class UserService(BaseService):
     """

@@ -12,7 +12,7 @@ from app.models.artwork import Artwork
 from app.services.base import BaseService
 from app.core.audit import audit_action
 
-logger = logging.getLogger("tonghua.impact_fund")
+logger = logging.getLogger("vicoo.impact_fund")
 
 # Revenue split ratios
 ARTIST_RATIO = Decimal("0.60")

@@ -3,7 +3,7 @@
 **Document Version:** 1.0
 **Effective Date:** [To be determined upon launch]
 **Last Updated:** 2026-03-19
-**Applicable Entities:** Tonghua Public Welfare x Sustainable Fashion ("the Platform", "本平台")
+**Applicable Entities:** Uniqlo × VICOO Welfare · Welfare Action ("the Platform", "本平台")
 
 ---
 
@@ -17,7 +17,7 @@
 
 ### 第一条 总则
 
-1.1 童画公益 x 可持续时尚平台（以下简称"本平台"或"我们"）深知个人信息对用户的重要性，并将严格遵守《中华人民共和国个人信息保护法》（以下简称"《个保法》"）、《中华人民共和国网络安全法》、《中华人民共和国数据安全法》、《中华人民共和国未成年人保护法》以及《儿童个人信息网络保护规定》等相关法律法规，保护用户的个人信息安全。
+1.1 Uniqlo × VICOO 公益·公益行动平台（以下简称"本平台"或"我们"）深知个人信息对用户的重要性，并将严格遵守《中华人民共和国个人信息保护法》（以下简称"《个保法》"）、《中华人民共和国网络安全法》、《中华人民共和国数据安全法》、《中华人民共和国未成年人保护法》以及《儿童个人信息网络保护规定》等相关法律法规，保护用户的个人信息安全。
 
 1.2 本隐私政策适用于本平台通过网站（React Web端）、微信小程序、Android移动应用程序等全部渠道向用户提供的服务。
 
@@ -371,7 +371,7 @@
 
 12.1 如您对本隐私政策有任何疑问、意见或建议，或希望行使您的个人信息权利，您可以通过以下方式联系我们：
 
-- **个人信息保护负责人邮箱：** privacy@tonghua-project.org
+- **个人信息保护负责人邮箱：** privacy@vicoo-project.org
 - **个人信息保护负责人电话：** [待公布]
 - **通信地址：** [待公布]
 - **在线客服：** 通过本平台"联系我们"页面提交
@@ -384,7 +384,7 @@
 
 ### Article 1 General Provisions
 
-1.1 Tonghua Public Welfare x Sustainable Fashion Platform ("the Platform", "we", "us", or "our") recognizes the importance of personal information to our users. We are committed to protecting your personal information in accordance with applicable data protection laws and regulations, including but not limited to the Personal Information Protection Law of the People's Republic of China (PIPL), the Cybersecurity Law, the Data Security Law, the Law on the Protection of Minors, and the Provisions on the Network Protection of Children's Personal Information.
+1.1 Uniqlo × VICOO Welfare · Welfare Action Platform ("the Platform", "we", "us", or "our") recognizes the importance of personal information to our users. We are committed to protecting your personal information in accordance with applicable data protection laws and regulations, including but not limited to the Personal Information Protection Law of the People's Republic of China (PIPL), the Cybersecurity Law, the Data Security Law, the Law on the Protection of Minors, and the Provisions on the Network Protection of Children's Personal Information.
 
 1.2 This Privacy Policy applies to all services provided by the Platform through its website (React Web), WeChat Mini Program, and Android mobile application.
 
@@ -588,7 +588,7 @@ We may update this Privacy Policy from time to time. Material changes will be co
 
 For questions, concerns, or to exercise your rights:
 
-- **Data Protection Email:** privacy@tonghua-project.org
+- **Data Protection Email:** privacy@vicoo-project.org
 - **Data Protection Phone:** [To be announced]
 - **Mailing Address:** [To be announced]
 - **Online Support:** Via the "Contact Us" page on the Platform

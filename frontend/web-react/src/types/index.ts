@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────
-// Tonghua Public Welfare × Sustainable Fashion — Type Definitions
+// Uniqlo × VICOO Welfare — Type Definitions
 // ─────────────────────────────────────────────────────────────
 
 export interface User {

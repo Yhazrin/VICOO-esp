@@ -107,7 +107,7 @@ Page({
   onShareAppMessage: function () {
     var c = this.data.campaign
     return {
-      title: c ? c.name : '童画公益活动',
+      title: c ? c.name : 'Uniqlo × VICOO 公益活动',
       path: '/pages/campaign-detail/index?id=' + (c ? c.id : 1)
     }
   }

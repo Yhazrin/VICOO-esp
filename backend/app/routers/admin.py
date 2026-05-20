@@ -153,8 +153,8 @@ async def get_settings(
         settings_dict[row.key] = row.value
     # Defaults if no settings exist yet
     defaults = {
-        "site_name": "童画公益",
-        "site_tagline": "Sustainable Fashion for a Better World",
+        "site_name": "Uniqlo × VICOO 公益",
+        "site_tagline": "Welfare Action for a Better World",
         "contact_email": "admin@vicoo.test",
         "donation_enabled": True,
         "shop_enabled": True,

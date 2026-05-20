@@ -51,7 +51,7 @@ const SECTIONS = [
   {
     key: 'contact',
     title: 'Contact Us',
-    body: 'For privacy-related questions, data requests, or complaints, contact our Data Protection Officer at: Email: privacy@vicoo.org. Address: VICOO Data Protection Office, Tonghua Public Welfare Foundation, Shanghai, China. If you are not satisfied with our response, you have the right to lodge a complaint with the relevant data protection authority. For urgent matters related to children\'s safety or data breaches, please use the subject line "URGENT" in your email for priority handling.',
+    body: 'For privacy-related questions, data requests, or complaints, contact our Data Protection Officer at: Email: privacy@vicoo.org. Address: VICOO Data Protection Office, Uniqlo × VICOO Welfare Foundation, Shanghai, China. If you are not satisfied with our response, you have the right to lodge a complaint with the relevant data protection authority. For urgent matters related to children\'s safety or data breaches, please use the subject line "URGENT" in your email for priority handling.',
   },
 ];
 

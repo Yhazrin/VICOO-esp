@@ -6,7 +6,7 @@
 ## 前端 API 调用映射
 
 ### 前端 services 目录
-路径: `tonghua-project/frontend/web-react/src/services/`
+路径: `vicoo-project/frontend/web-react/src/services/`
 
 | Service 文件 | 调用的 API 方法 | 后端端点状态 |
 |-------------|----------------|-------------|

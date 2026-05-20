@@ -28,7 +28,7 @@ from app.services.auth.service import AuthService
 from app.services.mailer import send_welcome_email, send_password_recovery_email
 from app.core.errors import ServiceUnavailableException
 
-logger = logging.getLogger("tonghua.auth")
+logger = logging.getLogger("vicoo.auth")
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -184,7 +184,7 @@ async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depend
     is_mock = False
     mock_password = None
 
-    if settings.DEMO_MODE and (body.email.endswith("@vicoo.test") or body.email.endswith("@tonghua.org") or body.email.startswith("vicoo-")):
+    if settings.DEMO_MODE and (body.email.endswith("@vicoo.test") or body.email.endswith("@vicoo.org") or body.email.startswith("vicoo-")):
         is_mock = True
         if "admin" in body.email: mock_password = "vicoo-admin"
         elif "editor" in body.email: mock_password = "vicoo-editor"

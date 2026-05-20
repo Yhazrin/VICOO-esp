@@ -19,7 +19,7 @@ from app.data.impact_product_images import IMPACT_PRODUCT_IMAGE_BY_NAME
 
 REGULAR_IMAGE_BY_NAME = {r["name"]: r["image_url"] for r in REGULAR_CATALOG}
 
-logger = logging.getLogger("tonghua")
+logger = logging.getLogger("vicoo")
 
 REGULAR_PRODUCT_NAMES = {r["name"] for r in REGULAR_CATALOG}
 

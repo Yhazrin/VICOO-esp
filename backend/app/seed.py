@@ -1,5 +1,5 @@
 """
-Database seed script for Tonghua Public Welfare x Sustainable Fashion.
+Database seed script for Uniqlo x VICOO Welfare.
 
 Usage:
     python -m app.seed
@@ -63,14 +63,14 @@ async def seed():
         print("Seeding users...")
         users = [
             User(
-                email="admin@tonghua.org",
+                email="admin@vicoo.org",
                 password_hash=hash_password(settings.SEED_ADMIN_PASSWORD),
                 nickname="管理员",
                 role="admin",
                 status="active",
             ),
             User(
-                email="editor@tonghua.org",
+                email="editor@vicoo.org",
                 password_hash=hash_password(settings.SEED_EDITOR_PASSWORD),
                 nickname="编辑小王",
                 role="editor",
@@ -199,7 +199,7 @@ async def seed():
             ),
             Campaign(
                 title="画出未来 — 科技与梦想",
-                description="以'未来科技'为主题，鼓励孩子们大胆想象未来世界。获奖作品将用于制作可持续时尚 T 恤图案，收益全部用于乡村美育。",
+                description="以'未来科技'为主题，鼓励孩子们大胆想象未来世界。获奖作品将用于制作公益行动 T 恤图案，收益全部用于乡村美育。",
                 cover_image=COVER_FUTURE,
                 start_date=datetime(2025, 11, 1),
                 end_date=datetime(2026, 2, 28),
@@ -306,7 +306,7 @@ async def seed():
             Product(
                 name="星星之夜帆布袋",
                 name_en="Starry Night Tote Bag",
-                description="再生帆布材质，印有《星星之夜》星空画作。环保材质，可持续时尚。",
+                description="再生帆布材质，印有《星星之夜》星空画作。环保材质，公益行动。",
                 description_en="Recycled canvas printed with the \"Starry Night\" painting. Sustainable materials, everyday carry.",
                 price=Decimal("89.00"), currency="CNY",
                 image_url=_IMPACT_IMG["星星之夜帆布袋"],
@@ -624,8 +624,8 @@ async def seed():
         # ── Site Settings ──────────────────────────────────────
         print("Seeding site settings...")
         settings_data = [
-            SiteSettings(key="site_name", value="童画公益"),
-            SiteSettings(key="site_tagline", value="Sustainable Fashion for a Better World"),
+            SiteSettings(key="site_name", value="Uniqlo × VICOO 公益"),
+            SiteSettings(key="site_tagline", value="Welfare Action for a Better World"),
             SiteSettings(key="contact_email", value="admin@vicoo.test"),
             SiteSettings(key="donation_enabled", value=True),
             SiteSettings(key="shop_enabled", value=True),
@@ -646,7 +646,7 @@ async def seed():
         print("Seeding editorial articles...")
         from datetime import datetime as dt
         articles = [
-            EditorialArticle(title="From Classroom Sketch to Circular Fashion", excerpt="How a village art class became a traceable apparel capsule that funds art supplies.", pull_quote="Every stitch carries a child's imagination forward.", cover_image="https://picsum.photos/seed/editorial-1/1200/800", author="Tonghua Editorial", published_at=dt(2026, 3, 12), read_time_minutes=7, category="impact", status="published"),
+            EditorialArticle(title="From Classroom Sketch to Circular Fashion", excerpt="How a village art class became a traceable apparel capsule that funds art supplies.", pull_quote="Every stitch carries a child's imagination forward.", cover_image="https://picsum.photos/seed/editorial-1/1200/800", author="VICOO Editorial", published_at=dt(2026, 3, 12), read_time_minutes=7, category="impact", status="published"),
             EditorialArticle(title="Why Recycled Cotton Matters for Rural Communities", excerpt="A field report on material sourcing, artisan income, and lower footprint fulfillment.", pull_quote="Sustainability is strongest when it is measurable and shared.", cover_image="https://picsum.photos/seed/editorial-2/1200/800", author="Sustainability Desk", published_at=dt(2026, 2, 24), read_time_minutes=9, category="fashion", status="published"),
             EditorialArticle(title="Meet the Families Behind the Artwork", excerpt="Guardians and teachers discuss confidence growth after children see their work in public.", pull_quote="Our child started believing their voice mattered.", cover_image="https://picsum.photos/seed/editorial-3/1200/800", author="Community Team", published_at=dt(2026, 2, 8), read_time_minutes=6, category="community", status="published"),
         ]

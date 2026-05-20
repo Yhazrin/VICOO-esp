@@ -28,7 +28,7 @@ function normalizeCategory(raw: unknown): Product['category'] {
 
 /**
  * 后端若未返回 is_impact_product（本地旧库常见），仅靠「关联字段」不够；
- * 用童画公益 SKU 常见名称/文案识别，避免与优衣库常规店混列。
+ * 用 VICOO 公益 SKU 常见名称/文案识别，避免与优衣库常规店混列。
  * 若接口显式返回 false，以接口为准。
  */
 function normalizeIsImpactProduct(raw: any): boolean {

@@ -3,7 +3,7 @@
 **Document Version:** 1.0
 **Effective Date:** [To be determined upon launch]
 **Last Updated:** 2026-03-19
-**Applicable Entities:** Tonghua Public Welfare x Sustainable Fashion ("the Platform", "本平台", "we", "us")
+**Applicable Entities:** Uniqlo × VICOO Welfare · Welfare Action ("the Platform", "本平台", "we", "us")
 
 ---
 
@@ -17,7 +17,7 @@
 
 ### 第一条 总则
 
-1.1 欢迎使用童画公益 x 可持续时尚平台（以下简称"本平台"）。本协议是您（以下简称"用户"）与本平台之间关于使用本平台服务的法律协议。
+1.1 欢迎使用 Uniqlo × VICOO 公益·公益行动平台（以下简称"本平台"）。本协议是您（以下简称"用户"）与本平台之间关于使用本平台服务的法律协议。
 
 1.2 本平台通过网站（React Web端）、微信小程序和Android移动应用程序提供服务。
 
@@ -73,8 +73,8 @@
 - 捐赠记录查询
 - 捐赠凭证生成
 
-**(c) 可持续时尚商城**
-- 浏览和购买可持续时尚商品
+**(c) 公益商城**
+- 浏览和购买公益商品
 - 商品溯源信息查询
 - 订单管理
 
@@ -301,7 +301,7 @@
 
 ### Article 1 General Provisions
 
-1.1 This User Agreement ("Agreement") is a legally binding contract between you ("User") and Tonghua Public Welfare x Sustainable Fashion Platform ("the Platform").
+1.1 This User Agreement ("Agreement") is a legally binding contract between you ("User") and Uniqlo × VICOO Welfare · Welfare Action Platform ("the Platform").
 
 1.2 By registering an account, logging in, or using the Platform's services, you acknowledge that you have read, understood, and agree to be bound by this Agreement.
 

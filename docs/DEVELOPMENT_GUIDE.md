@@ -1,4 +1,4 @@
-# 童花公益 · 开发启动指南
+# Uniqlo × VICOO 公益 · 开发启动指南
 
 > **注意**：本文档中引用的 `deploy/docker` 路径已冻结（2026-04-08）。
 > 所有 Docker 部署请改用 **`deploy/easy`**。
@@ -19,7 +19,7 @@
 ## 项目结构
 
 ```
-tonghua-project/
+vicoo-project/
 ├── admin/                     # 管理后台 (React)
 ├── backend/                  # FastAPI 后端
 │   ├── app/                  # 应用代码
@@ -54,7 +54,7 @@ tonghua-project/
 ### 1. 进入 Docker 配置目录
 
 ```bash
-cd /Users/yanghaoze/Desktop/PROJECT/tonghua-project/deploy/docker
+cd /Users/yanghaoze/Desktop/PROJECT/vicoo-project/deploy/docker
 ```
 
 ### 2. 启动所有 Docker 服务（MySQL + Redis）
@@ -78,8 +78,8 @@ docker ps --format "table {{.Names}}\t{{.Status}}"
 预期输出：
 ```
 NAMES              STATUS
-tonghua-redis      Up (healthy)
-tonghua-mysql      Up (healthy)
+vicoo-redis      Up (healthy)
+vicoo-mysql      Up (healthy)
 ```
 
 ### 4. 确认端口已映射到主机
@@ -96,7 +96,7 @@ nc -z localhost 6379 && echo "Redis OK" || echo "Redis FAIL"
 ### 1. 进入后端目录
 
 ```bash
-cd /Users/yanghaoze/Desktop/PROJECT/tonghua-project/backend
+cd /Users/yanghaoze/Desktop/PROJECT/vicoo-project/backend
 ```
 
 ### 2. 激活虚拟环境
@@ -151,7 +151,7 @@ curl -s http://localhost:8000/api/v1/products | python3 -m json.tool | head -5
 ### React 网页端
 
 ```bash
-cd /Users/yanghaoze/Desktop/PROJECT/tonghua-project/frontend/web-react
+cd /Users/yanghaoze/Desktop/PROJECT/vicoo-project/frontend/web-react
 npm install       # 首次运行或依赖变更后
 npm run dev       # 启动开发服务器
 ```
@@ -161,7 +161,7 @@ npm run dev       # 启动开发服务器
 ### 微信小程序
 
 ```bash
-cd /Users/yanghaoze/Desktop/PROJECT/tonghua-project/frontend/weapp
+cd /Users/yanghaoze/Desktop/PROJECT/vicoo-project/frontend/weapp
 npm install       # 首次运行
 ```
 
@@ -170,7 +170,7 @@ npm install       # 首次运行
 ### Android 应用
 
 ```bash
-cd /Users/yanghaoze/Desktop/PROJECT/tonghua-project/frontend/android
+cd /Users/yanghaoze/Desktop/PROJECT/vicoo-project/frontend/android
 ./gradlew assembleDebug
 ```
 
@@ -183,7 +183,7 @@ APK 输出在 `app/build/outputs/apk/debug/`。
 ### 一键检查所有服务
 
 ```bash
-echo "=== Docker ===" && docker ps --filter "name=tonghua" --format "{{.Names}}: {{.Status}}" && \
+echo "=== Docker ===" && docker ps --filter "name=vicoo" --format "{{.Names}}: {{.Status}}" && \
 echo "=== Backend ===" && curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/api/v1/products && echo " (8000)" && \
 echo "=== Frontend ===" && curl -s -o /dev/null -w "%{http_code}" http://localhost:9111 && echo " (9111)"
 ```
@@ -209,7 +209,7 @@ curl -X POST http://localhost:8000/api/v1/auth/login \
 ### 1. Docker 容器冲突（container name already in use）
 
 ```bash
-docker rm -f tonghua-mysql tonghua-redis tonghua-rabbitmq
+docker rm -f vicoo-mysql vicoo-redis vicoo-rabbitmq
 docker compose up -d
 ```
 
@@ -250,16 +250,16 @@ docker compose up -d     # 重新创建并启动
 
 ```bash
 # 1. 启动 Docker 数据库
-cd /Users/yanghaoze/Desktop/PROJECT/tonghua-project/deploy/docker
+cd /Users/yanghaoze/Desktop/PROJECT/vicoo-project/deploy/docker
 docker compose up -d
 
 # 2. 启动后端
-cd /Users/yanghaoze/Desktop/PROJECT/tonghua-project/backend
+cd /Users/yanghaoze/Desktop/PROJECT/vicoo-project/backend
 source .venv/bin/activate
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 
 # 3. 启动前端（新终端）
-cd /Users/yanghaoze/Desktop/PROJECT/tonghua-project/frontend/web-react
+cd /Users/yanghaoze/Desktop/PROJECT/vicoo-project/frontend/web-react
 npm run dev
 ```
 

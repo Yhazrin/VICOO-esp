@@ -1,8 +1,8 @@
 # API Reference
 
-## Tonghua Public Welfare x Sustainable Fashion
+## Uniqlo × VICOO Welfare · Welfare Action
 
-**Base URL:** `https://api.tonghua.org/api/v1`
+**Base URL:** `https://api.vicoo.org/api/v1`
 **Version:** 1.0.0
 **Last Updated:** 2026-03-21
 
@@ -191,7 +191,7 @@ Content-Type: application/json
       "email": "user@example.com",
       "display_name": "Jane Doe",
       "role": "registered",
-      "avatar_url": "https://cdn.tonghua.org/avatars/usr_abc123.jpg"
+      "avatar_url": "https://cdn.vicoo.org/avatars/usr_abc123.jpg"
     }
   }
 }
@@ -234,7 +234,7 @@ Content-Type: application/json
 **Example curl:**
 
 ```bash
-curl -X POST https://api.tonghua.org/api/v1/auth/login \
+curl -X POST https://api.vicoo.org/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
@@ -294,7 +294,7 @@ Refresh an expired access token using a valid refresh token.
 **Example curl:**
 
 ```bash
-curl -X POST https://api.tonghua.org/api/v1/auth/refresh \
+curl -X POST https://api.vicoo.org/api/v1/auth/refresh \
   -H "Content-Type: application/json" \
   -d '{
     "refresh_token": "dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4..."
@@ -341,7 +341,7 @@ Authorization: Bearer <access_token>
 **Example curl:**
 
 ```bash
-curl -X POST https://api.tonghua.org/api/v1/auth/logout \
+curl -X POST https://api.vicoo.org/api/v1/auth/logout \
   -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIs..."
 ```
 
@@ -375,8 +375,8 @@ List published artworks with pagination and optional filtering.
     {
       "id": "art_789xyz",
       "title": "Rainbow Village",
-      "image_url": "https://cdn.tonghua.org/artworks/art_789xyz.jpg",
-      "thumbnail_url": "https://cdn.tonghua.org/artworks/thumb_art_789xyz.jpg",
+      "image_url": "https://cdn.vicoo.org/artworks/art_789xyz.jpg",
+      "thumbnail_url": "https://cdn.vicoo.org/artworks/thumb_art_789xyz.jpg",
       "display_name": "Xiao M**",
       "campaign_title": "Spring 2026: Colors of Home",
       "vote_count": 342,
@@ -397,7 +397,7 @@ List published artworks with pagination and optional filtering.
 **Example curl:**
 
 ```bash
-curl "https://api.tonghua.org/api/v1/artworks?page=1&per_page=10&sort=-vote_count"
+curl "https://api.vicoo.org/api/v1/artworks?page=1&per_page=10&sort=-vote_count"
 ```
 
 ---
@@ -463,7 +463,7 @@ Submit a new artwork for moderation. Requires authentication and guardian consen
 **Example curl:**
 
 ```bash
-curl -X POST https://api.tonghua.org/api/v1/artworks \
+curl -X POST https://api.vicoo.org/api/v1/artworks \
   -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIs..." \
   -F "title=Rainbow Village" \
   -F "description=A colorful village scene" \
@@ -496,7 +496,7 @@ Get detailed information about a specific artwork.
   "data": {
     "id": "art_789xyz",
     "title": "Rainbow Village",
-    "image_url": "https://cdn.tonghua.org/artworks/art_789xyz.jpg",
+    "image_url": "https://cdn.vicoo.org/artworks/art_789xyz.jpg",
     "description": "A colorful depiction of our hometown",
     "display_name": "Xiao M**",
     "campaign": {
@@ -510,7 +510,7 @@ Get detailed information about a specific artwork.
         "id": "prod_tshirt001",
         "title": "Rainbow Tote Bag",
         "price": 128.00,
-        "image_url": "https://cdn.tonghua.org/products/prod_tshirt001.jpg"
+        "image_url": "https://cdn.vicoo.org/products/prod_tshirt001.jpg"
       }
     ],
     "created_at": "2026-02-15T10:30:00Z"
@@ -537,7 +537,7 @@ Get detailed information about a specific artwork.
 **Example curl:**
 
 ```bash
-curl "https://api.tonghua.org/api/v1/artworks/art_789xyz"
+curl "https://api.vicoo.org/api/v1/artworks/art_789xyz"
 ```
 
 ---
@@ -596,7 +596,7 @@ Cast a vote for an artwork. One vote per user per artwork.
 **Example curl:**
 
 ```bash
-curl -X POST https://api.tonghua.org/api/v1/artworks/art_789xyz/vote \
+curl -X POST https://api.vicoo.org/api/v1/artworks/art_789xyz/vote \
   -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIs..."
 ```
 
@@ -647,7 +647,7 @@ Check the moderation status of an artwork. Only available to the artwork submitt
 **Example curl:**
 
 ```bash
-curl "https://api.tonghua.org/api/v1/artworks/art_new123abc/status" \
+curl "https://api.vicoo.org/api/v1/artworks/art_new123abc/status" \
   -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIs..."
 ```
 
@@ -679,7 +679,7 @@ List all campaigns with pagination.
       "id": "cmp_spring2026",
       "title": "Spring 2026: Colors of Home",
       "theme": "Paint your hopes for the future",
-      "cover_image_url": "https://cdn.tonghua.org/campaigns/cmp_spring2026.jpg",
+      "cover_image_url": "https://cdn.vicoo.org/campaigns/cmp_spring2026.jpg",
       "start_date": "2026-03-01",
       "end_date": "2026-05-31",
       "status": "active",
@@ -699,7 +699,7 @@ List all campaigns with pagination.
 **Example curl:**
 
 ```bash
-curl "https://api.tonghua.org/api/v1/campaigns?page=1&status=active"
+curl "https://api.vicoo.org/api/v1/campaigns?page=1&status=active"
 ```
 
 ---
@@ -721,7 +721,7 @@ Get the currently active campaign (convenience endpoint).
     "title": "Spring 2026: Colors of Home",
     "theme": "Paint your hopes for the future",
     "description": "Celebrate the vibrant colors of rural communities through children's art.",
-    "cover_image_url": "https://cdn.tonghua.org/campaigns/cmp_spring2026.jpg",
+    "cover_image_url": "https://cdn.vicoo.org/campaigns/cmp_spring2026.jpg",
     "start_date": "2026-03-01",
     "end_date": "2026-05-31",
     "status": "active",
@@ -749,7 +749,7 @@ Get the currently active campaign (convenience endpoint).
 **Example curl:**
 
 ```bash
-curl "https://api.tonghua.org/api/v1/campaigns/active"
+curl "https://api.vicoo.org/api/v1/campaigns/active"
 ```
 
 ---
@@ -777,7 +777,7 @@ Get detailed information about a specific campaign, including featured artworks.
     "title": "Spring 2026: Colors of Home",
     "theme": "Paint your hopes for the future",
     "description": "Celebrate the vibrant colors of rural communities...",
-    "cover_image_url": "https://cdn.tonghua.org/campaigns/cmp_spring2026.jpg",
+    "cover_image_url": "https://cdn.vicoo.org/campaigns/cmp_spring2026.jpg",
     "start_date": "2026-03-01",
     "end_date": "2026-05-31",
     "status": "active",
@@ -788,7 +788,7 @@ Get detailed information about a specific campaign, including featured artworks.
       {
         "id": "art_789xyz",
         "title": "Rainbow Village",
-        "image_url": "https://cdn.tonghua.org/artworks/thumb_art_789xyz.jpg",
+        "image_url": "https://cdn.vicoo.org/artworks/thumb_art_789xyz.jpg",
         "vote_count": 342
       }
     ]
@@ -813,7 +813,7 @@ Get detailed information about a specific campaign, including featured artworks.
 **Example curl:**
 
 ```bash
-curl "https://api.tonghua.org/api/v1/campaigns/cmp_spring2026"
+curl "https://api.vicoo.org/api/v1/campaigns/cmp_spring2026"
 ```
 
 ---
@@ -877,7 +877,7 @@ Initiate a charitable donation.
 **Example curl:**
 
 ```bash
-curl -X POST https://api.tonghua.org/api/v1/donations/initiate \
+curl -X POST https://api.vicoo.org/api/v1/donations/initiate \
   -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIs..." \
   -H "Content-Type: application/json" \
   -d '{
@@ -939,7 +939,7 @@ Get details of a specific donation.
 **Example curl:**
 
 ```bash
-curl "https://api.tonghua.org/api/v1/donations/don_qwerty123" \
+curl "https://api.vicoo.org/api/v1/donations/don_qwerty123" \
   -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIs..."
 ```
 
@@ -963,7 +963,7 @@ Retrieve the donation certificate download URL.
 {
   "success": true,
   "data": {
-    "certificate_url": "https://cdn.tonghua.org/certs/don_qwerty123.pdf",
+    "certificate_url": "https://cdn.vicoo.org/certs/don_qwerty123.pdf",
     "generated_at": "2026-03-15T11:00:00Z"
   }
 }
@@ -986,7 +986,7 @@ Retrieve the donation certificate download URL.
 **Example curl:**
 
 ```bash
-curl "https://api.tonghua.org/api/v1/donations/don_qwerty123/certificate" \
+curl "https://api.vicoo.org/api/v1/donations/don_qwerty123/certificate" \
   -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIs..."
 ```
 
@@ -1026,7 +1026,7 @@ List products in the sustainable fashion catalog.
       "materials": "100% organic cotton, natural dyes",
       "sustainability_info": "GOTS certified, carbon neutral shipping",
       "welfare_contribution": 15.00,
-      "image_urls": ["https://cdn.tonghua.org/products/prod_tshirt001_1.jpg"],
+      "image_urls": ["https://cdn.vicoo.org/products/prod_tshirt001_1.jpg"],
       "source_artwork": {
         "id": "art_789xyz",
         "title": "Rainbow Village",
@@ -1048,7 +1048,7 @@ List products in the sustainable fashion catalog.
 **Example curl:**
 
 ```bash
-curl "https://api.tonghua.org/api/v1/products?category=bags&sort=-created_at"
+curl "https://api.vicoo.org/api/v1/products?category=bags&sort=-created_at"
 ```
 
 ---
@@ -1080,14 +1080,14 @@ Get detailed information about a product, including source artwork info.
     "sustainability_info": "GOTS certified, carbon neutral shipping",
     "welfare_contribution": 15.00,
     "image_urls": [
-      "https://cdn.tonghua.org/products/prod_tshirt001_1.jpg",
-      "https://cdn.tonghua.org/products/prod_tshirt001_2.jpg"
+      "https://cdn.vicoo.org/products/prod_tshirt001_1.jpg",
+      "https://cdn.vicoo.org/products/prod_tshirt001_2.jpg"
     ],
     "source_artwork": {
       "id": "art_789xyz",
       "title": "Rainbow Village",
       "display_name": "Xiao M**",
-      "image_url": "https://cdn.tonghua.org/artworks/art_789xyz.jpg"
+      "image_url": "https://cdn.vicoo.org/artworks/art_789xyz.jpg"
     },
     "stock": 45,
     "category": "bags",
@@ -1099,7 +1099,7 @@ Get detailed information about a product, including source artwork info.
 **Example curl:**
 
 ```bash
-curl "https://api.tonghua.org/api/v1/products/prod_tshirt001"
+curl "https://api.vicoo.org/api/v1/products/prod_tshirt001"
 ```
 
 ---
@@ -1149,7 +1149,7 @@ Get the supply chain traceability data for a product.
 **Example curl:**
 
 ```bash
-curl "https://api.tonghua.org/api/v1/products/prod_tshirt001/traceability"
+curl "https://api.vicoo.org/api/v1/products/prod_tshirt001/traceability"
 ```
 
 ---
@@ -1234,7 +1234,7 @@ Create a new order.
 **Example curl:**
 
 ```bash
-curl -X POST https://api.tonghua.org/api/v1/orders \
+curl -X POST https://api.vicoo.org/api/v1/orders \
   -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIs..." \
   -H "Content-Type: application/json" \
   -d '{
@@ -1269,7 +1269,7 @@ Get details of a specific order with status timeline.
     "product": {
       "id": "prod_tshirt001",
       "title": "Rainbow Tote Bag",
-      "image_url": "https://cdn.tonghua.org/products/prod_tshirt001_1.jpg"
+      "image_url": "https://cdn.vicoo.org/products/prod_tshirt001_1.jpg"
     },
     "quantity": 2,
     "unit_price": 128.00,
@@ -1298,7 +1298,7 @@ Get details of a specific order with status timeline.
 **Example curl:**
 
 ```bash
-curl "https://api.tonghua.org/api/v1/orders/ord_abc123def" \
+curl "https://api.vicoo.org/api/v1/orders/ord_abc123def" \
   -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIs..."
 ```
 
@@ -1343,7 +1343,7 @@ Get all supply chain records for a product.
 **Example curl:**
 
 ```bash
-curl "https://api.tonghua.org/api/v1/supply-chain/prod_tshirt001"
+curl "https://api.vicoo.org/api/v1/supply-chain/prod_tshirt001"
 ```
 
 ---
@@ -1391,7 +1391,7 @@ Get supply chain records formatted as a chronological timeline for visualization
 **Example curl:**
 
 ```bash
-curl "https://api.tonghua.org/api/v1/supply-chain/prod_tshirt001/timeline"
+curl "https://api.vicoo.org/api/v1/supply-chain/prod_tshirt001/timeline"
 ```
 
 ---
@@ -1456,7 +1456,7 @@ Create a payment session/intent. Used internally by donation and order flows.
 **Example curl:**
 
 ```bash
-curl -X POST https://api.tonghua.org/api/v1/payments/create \
+curl -X POST https://api.vicoo.org/api/v1/payments/create \
   -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIs..." \
   -H "Content-Type: application/json" \
   -d '{
@@ -1584,7 +1584,7 @@ Submit a contact form message.
 **Example curl:**
 
 ```bash
-curl -X POST https://api.tonghua.org/api/v1/contact \
+curl -X POST https://api.vicoo.org/api/v1/contact \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Jane Doe",
@@ -1625,7 +1625,7 @@ List all contact form messages. Admin only in production.
 **Example curl:**
 
 ```bash
-curl "https://api.tonghua.org/api/v1/contact/messages" \
+curl "https://api.vicoo.org/api/v1/contact/messages" \
   -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIs..."
 ```
 
@@ -1685,7 +1685,7 @@ Query audit logs with filtering.
 **Example curl:**
 
 ```bash
-curl "https://api.tonghua.org/api/v1/admin/audit?resource_type=artwork&start_date=2026-03-01" \
+curl "https://api.vicoo.org/api/v1/admin/audit?resource_type=artwork&start_date=2026-03-01" \
   -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIs..."
 ```
 
@@ -1729,7 +1729,7 @@ Get platform analytics and statistics for the dashboard.
 **Example curl:**
 
 ```bash
-curl "https://api.tonghua.org/api/v1/admin/analytics" \
+curl "https://api.vicoo.org/api/v1/admin/analytics" \
   -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIs..."
 ```
 
@@ -1805,7 +1805,7 @@ Update campaign details (admin only).
 **Example curl:**
 
 ```bash
-curl -X PUT https://api.tonghua.org/api/v1/admin/campaigns/cmp_spring2026 \
+curl -X PUT https://api.vicoo.org/api/v1/admin/campaigns/cmp_spring2026 \
   -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIs..." \
   -H "Content-Type: application/json" \
   -d '{

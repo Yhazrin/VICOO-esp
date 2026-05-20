@@ -162,7 +162,7 @@
       "sectionTitle": "Featured Campaigns",
       "viewAll": "View All Campaigns",
       "heading": "Where Little Hands Shape Big Ideas",
-      "body": "Each campaign begins in a classroom, a community center, a shelter. We collect children's artwork — raw, honest, unfiltered — and transform it into sustainable fashion that funds their future.",
+      "body": "Each campaign begins in a classroom, a community center, a shelter. We collect children's artwork — raw, honest, unfiltered — and transform it into welfare that funds their future.",
       "imageAlt": "Children creating art in a community workshop",
       "caption": "Spring Campaign 2026 — Artwork Collection Phase"
     },
@@ -194,7 +194,7 @@
       "products": "Products Sold"
     },
     "marquee": {
-      "sustainableFashion": "Sustainable Fashion",
+      "sustainableFashion": "Welfare Action",
       "childrenArt": "Children's Art",
       "traceableImpact": "Traceable Impact",
       "community": "Community"
@@ -244,7 +244,7 @@
     },
     "mission": {
       "title": "Our Mission",
-      "body": "Tonghua Public Welfare bridges the raw, unfiltered imagination of children with the world of sustainable fashion. We believe that the most honest art comes from the youngest hands — and that fashion can be a force for good when it carries those stories forward."
+      "body": "Uniqlo × VICOO Welfare bridges the raw, unfiltered imagination of children with the world of welfare. We believe that the most honest art comes from the youngest hands — and that fashion can be a force for good when it carries those stories forward."
     },
     "values": {
       "title": "What We Stand For",
@@ -293,7 +293,7 @@
   "campaigns": {
     "hero": {
       "title": "Campaigns",
-      "subtitle": "Each campaign is a chapter — a focused effort to connect children's art with sustainable fashion that funds real change."
+      "subtitle": "Each campaign is a chapter — a focused effort to connect children's art with welfare that funds real change."
     },
     "status": {
       "active": "Active",
@@ -362,7 +362,7 @@
       "futureAndDreams": {
         "title": "Drawing the Future — Technology and Dreams",
         "subtitle": "A “future technology” theme: winning art on sustainable tees; all proceeds fund rural art education.",
-        "description": "With “future technology” as the theme, we encourage children to imagine tomorrow’s world boldly. Winning works are used for sustainable fashion T-shirt prints; proceeds go entirely to rural arts education."
+        "description": "With “future technology” as the theme, we encourage children to imagine tomorrow’s world boldly. Winning works are used for welfare T-shirt prints; proceeds go entirely to rural arts education."
       },
       "sustainableWorkshop": {
         "title": "Woven from Innocence — Sustainable Materials Workshop",
@@ -580,7 +580,7 @@
       "q2": "Can I donate anonymously?",
       "a2": "Yes, you can choose to make your donation anonymous. Your privacy is important to us, and we respect your choice.",
       "q3": "Is my donation tax-deductible?",
-      "a3": "Yes, all donations to Tonghua Public Welfare are tax-deductible. You will receive an official receipt for your records.",
+      "a3": "Yes, all donations to Uniqlo × VICOO Welfare are tax-deductible. You will receive an official receipt for your records.",
       "q4": "How can I track my donation impact?",
       "a4": "You will receive updates on how your donation is making a difference. We also publish quarterly financial reports showing the impact of all donations."
     }
@@ -912,7 +912,7 @@
     "quote": {
       "text": "If you can trace it, you can trust it. Every stitch tells a story worth knowing.",
       "author": "Supply Chain Manifesto",
-      "role": "Tonghua Public Welfare, 2025"
+      "role": "Uniqlo × VICOO Welfare, 2025"
     },
     "howItWorks": {
       "title": "How Traceability Works",
@@ -961,7 +961,7 @@
       "items": [
         {
           "question": "How can I make a donation?",
-          "answer": "You can donate through our secure online platform, WeChat Pay, or bank transfer. Every contribution directly supports children's art programs and sustainable fashion initiatives."
+          "answer": "You can donate through our secure online platform, WeChat Pay, or bank transfer. Every contribution directly supports children's art programs and welfare initiatives."
         },
         {
           "question": "How do I submit my child's artwork?",
@@ -1008,9 +1008,9 @@
     "formTitle": "Send Us a Message",
     "info": {
       "title": "Other Ways to Reach Us",
-      "email": "hello@tonghua.org",
+      "email": "hello@vicoo.org",
       "emailLabel": "Email",
-      "wechat": "TonghuaOfficial",
+      "wechat": "VICOOOfficial",
       "wechatLabel": "WeChat",
       "address": "Shanghai, China",
       "locationLabel": "Location",
@@ -1061,7 +1061,7 @@
       "terms": "Terms of Use",
       "children": "Children's Protection"
     },
-    "copyright": "© 2026 Tonghua Public Welfare. All rights reserved.",
+    "copyright": "© 2026 Uniqlo × VICOO Welfare. All rights reserved.",
     "issueNo": "Issue No. 01 — Inaugural Edition",
     "newsletter": {
       "title": "Newsletter",
@@ -1156,7 +1156,7 @@
     "submit": "Submit Registration",
     "submitError": "Submission failed, please try again",
     "disclaimer": "You can check progress in your profile after submission; personal information is used only for logistics coordination.",
-    "clothingHint": "Idle clothing can also be donated, processed into sustainable fashion products, with proceeds supporting rural arts education.",
+    "clothingHint": "Idle clothing can also be donated, processed into welfare products, with proceeds supporting rural arts education.",
     "clothingHintShort": "Clothing reuse program",
     "donateLink": "Donate Clothing →",
     "heroTitle": "Circular Fashion",
@@ -1275,7 +1275,7 @@
     "placeholder": "e.g.: How long until donated clothing is listed?",
     "send": "Send",
     "stopGenerating": "Stop generating",
-    "greeting": "Hello! I am VICOO AI Assistant. Feel free to ask about donation processes, art activities, or sustainable fashion.",
+    "greeting": "Hello! I am VICOO AI Assistant. Feel free to ask about donation processes, art activities, or welfare.",
     "replyError": "Sorry, I cannot answer right now.",
     "connectionError": "Failed to connect to assistant, please try again later.",
     "general": "General",
@@ -1288,6 +1288,7 @@
     "userLabel": "You",
     "assistantLabel": "Assistant",
     "ballTitle": "VICOO Assistant",
+    "ballTitleImpact": "Uniqlo × VICOO Welfare Agent",
     "ballSubtitle": "Vol. 1 — Issue 01 — AI Edition",
     "typing": "... Typing ...",
     "emptyQuote": "\"Art is the most intense mode of individualism that the world has known.\"",
@@ -1347,6 +1348,20 @@
         "label": "Welfare & sustainability",
         "prompt": "Introduce the platform's welfare work and sustainability practices."
       }
+    },
+    "cap": {
+      "donate": "Donate",
+      "donate.prompt": "I'd like to know about the donation process and tiers",
+      "campaign": "Campaign Progress",
+      "campaign.prompt": "How is the current welfare fundraising campaign going?",
+      "impact": "Impact Data",
+      "impact.prompt": "What is the platform's welfare impact data?",
+      "myDonations": "My Records",
+      "myDonations.prompt": "Show my donation history",
+      "recycle": "Clothing Recycle",
+      "recycle.prompt": "How can I participate in clothing recycling?",
+      "trace": "Product Trace",
+      "trace.prompt": "How can I check a welfare product's supply chain traceability?"
     }
   },
   "orderDetail": {
@@ -1507,7 +1522,7 @@
   "artworkSubmit": {
     "badge": "Artwork Submission & Review",
     "heroTitle": "Change Fashion with Your Brush",
-    "heroDescription": "Choose a campaign and submit your original artwork. Once approved, your art may be featured on sustainable fashion products.",
+    "heroDescription": "Choose a campaign and submit your original artwork. Once approved, your art may be featured on welfare products.",
     "section01Title": "Select a Campaign",
     "section01Subtitle": "Choose the campaign you want to participate in. Each campaign has a different theme and deadline.",
     "section02Title": "Submit Artwork",
@@ -1549,7 +1564,7 @@
     "step_voting": "Public Voting",
     "step_voting_desc": "Approved artworks will enter public voting",
     "step_commercialize": "Commercialized",
-    "step_commercialize_desc": "Outstanding artworks will be applied to sustainable fashion products",
+    "step_commercialize_desc": "Outstanding artworks will be applied to welfare products",
     "currentStatus": "Current Status",
     "campaigns": {
       "spring": {
@@ -1557,7 +1572,7 @@
         "description": "Inspired by spring flowers, young artists are invited to paint their dream gardens. Outstanding works will be printed on limited-edition eco-friendly scarves."
       },
       "ocean": {
-        "title": "Ocean Guardian — Sustainable Fashion Illustration",
+        "title": "Ocean Guardian — Welfare Action Illustration",
         "description": "Focus on ocean conservation themes and express your care for marine ecosystems through color. Selected artworks will be applied to a recycled-fabric clothing line."
       },
       "forest": {

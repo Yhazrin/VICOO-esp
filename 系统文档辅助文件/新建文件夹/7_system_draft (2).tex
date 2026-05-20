@@ -33,7 +33,7 @@
 \begin{center}
 {\LARGE \textbf{Group 7\_system\_draft}}\\[0.5em]
 {\large \projectname{} System Document (Draft)}\\[0.5em]
-Course Project: Sustainable Fashion Traceability and Charity Co-Creation Platform\\
+Course Project: Welfare Action Traceability and Charity Co-Creation Platform\\
 Group: Group 7 / SixSeven\\
 \end{center}
 
@@ -124,7 +124,7 @@ From an implementation perspective, the critical point is not a single animation
 
 \subsection{Staff-Side and Back-Office Implementation}
 \subsubsection{Back-Office Goals and Technology}
-If the consumer side is about making information understandable, the staff side is about making information maintainable. A visually impressive front end without content maintenance capability cannot operate reliably even as a prototype. For that reason, the project includes a dedicated admin panel (the \texttt{tonghua-admin} application) built with the same React and Vite stack. The admin panel provides product creation and editing, traceability node maintenance, artwork review, donation management, user management, and a summary analytics dashboard powered by \texttt{recharts}.
+If the consumer side is about making information understandable, the staff side is about making information maintainable. A visually impressive front end without content maintenance capability cannot operate reliably even as a prototype. For that reason, the project includes a dedicated admin panel (the \texttt{vicoo-admin} application) built with the same React and Vite stack. The admin panel provides product creation and editing, traceability node maintenance, artwork review, donation management, user management, and a summary analytics dashboard powered by \texttt{recharts}.
 
 The admin application uses the same Zustand and TanStack Query patterns as the consumer site but targets a different set of API endpoints under the \texttt{/api/v1/admin/} prefix, which requires the \texttt{admin} or \texttt{editor} role. This role check is enforced at the API layer so that even if an unauthorized user constructs a request manually, the server will reject it with a 403 response.
 
@@ -242,7 +242,7 @@ An AI assistant feature, accessible to authenticated users, provides a conversat
 
 \subsection{Deployment Architecture}
 \subsubsection{Docker Compose Service Topology}
-The entire platform is containerized with Docker Compose. Six services are defined in a shared internal network (\texttt{tonghua-network}), with only the Nginx front-end container exposing an external port (80). The service topology is:
+The entire platform is containerized with Docker Compose. Six services are defined in a shared internal network (\texttt{vicoo-network}), with only the Nginx front-end container exposing an external port (80). The service topology is:
 
 \begin{itemize}[leftmargin=2.2em]
     \item \textbf{mysql}: MySQL 8.0 with UTF-8mb4 character set, a 256 MB InnoDB buffer pool, and a 200-connection limit. Initialized from SQL scripts in \texttt{/docker-entrypoint-initdb.d}. Health-checked with \texttt{mysqladmin ping}.

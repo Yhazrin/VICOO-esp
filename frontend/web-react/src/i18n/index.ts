@@ -4,7 +4,7 @@ import HttpBackend from 'i18next-http-backend';
 
 const getInitialLanguage = () => {
   try {
-    const stored = localStorage.getItem('tonghua-ui-settings');
+    const stored = localStorage.getItem('vicoo-ui-settings');
     if (stored) {
       const parsed = JSON.parse(stored);
       if (parsed.state?.currentLocale) {

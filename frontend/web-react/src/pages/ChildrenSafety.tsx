@@ -11,7 +11,7 @@ const SECTIONS = [
   {
     key: 'commitment',
     title: 'Our Commitment',
-    body: 'VICOO (Tonghua Public Welfare) is dedicated to creating a safe, nurturing environment where children can express themselves through art. We recognize that children are uniquely vulnerable and require the highest standards of protection. Every program we operate, every workshop we run, and every piece of data we collect is governed by our unwavering commitment to child safety and privacy. We comply fully with China\'s Personal Information Protection Law (PIPL), the Children\'s Online Privacy Protection principles, and GDPR for international visitors.',
+    body: 'VICOO (Uniqlo × VICOO Welfare) is dedicated to creating a safe, nurturing environment where children can express themselves through art. We recognize that children are uniquely vulnerable and require the highest standards of protection. Every program we operate, every workshop we run, and every piece of data we collect is governed by our unwavering commitment to child safety and privacy. We comply fully with China\'s Personal Information Protection Law (PIPL), the Children\'s Online Privacy Protection principles, and GDPR for international visitors.',
   },
   {
     key: 'collection',
@@ -46,7 +46,7 @@ const SECTIONS = [
   {
     key: 'contact',
     title: 'Contact Us',
-    body: 'If you have any questions or concerns about how we protect children\'s information, please contact our Child Protection Officer at children@vicoo.org, or write to us at: VICOO Child Protection Office, Tonghua Public Welfare Foundation, Shanghai, China. We aim to respond to all inquiries within 3 business days. If you believe a child\'s safety or privacy has been compromised, please contact us immediately — we treat such reports with the highest urgency.',
+    body: 'If you have any questions or concerns about how we protect children\'s information, please contact our Child Protection Officer at children@vicoo.org, or write to us at: VICOO Child Protection Office, Uniqlo × VICOO Welfare Foundation, Shanghai, China. We aim to respond to all inquiries within 3 business days. If you believe a child\'s safety or privacy has been compromised, please contact us immediately — we treat such reports with the highest urgency.',
   },
 ];
 
@@ -78,7 +78,7 @@ export default function ChildrenSafety() {
               {t('legal.children.title', { defaultValue: "Children's Safety" })}
             </h1>
             <p className="font-body text-sm text-ink-faded leading-[1.8] max-w-[65ch] mb-4">
-              {t('legal.children.intro', { defaultValue: 'Tonghua is committed to protecting the privacy and safety of every child who participates in our programs. This policy outlines how we collect, use, and safeguard children\'s personal information in compliance with applicable laws and regulations.' })}
+              {t('legal.children.intro', { defaultValue: 'VICOO is committed to protecting the privacy and safety of every child who participates in our programs. This policy outlines how we collect, use, and safeguard children\'s personal information in compliance with applicable laws and regulations.' })}
             </p>
             <p className="font-body text-xs text-sepia-mid tracking-wide mb-12">
               {t('legal.children.lastUpdated', { defaultValue: 'Last updated: March 2026' })}

@@ -1,6 +1,6 @@
 # Security Test Scenarios
 
-## Tonghua Public Welfare x Sustainable Fashion
+## Uniqlo × VICOO Welfare x Welfare Action
 
 **Version:** 1.0.0
 **Last Updated:** 2026-03-19
@@ -28,7 +28,7 @@
 
 ### Purpose
 
-This document defines security test scenarios for the Tonghua Public Welfare platform. Every scenario includes a unique ID, severity level, affected endpoint, attack vector, expected behavior, and pass/fail criteria.
+This document defines security test scenarios for the Uniqlo × VICOO Welfare platform. Every scenario includes a unique ID, severity level, affected endpoint, attack vector, expected behavior, and pass/fail criteria.
 
 ### Severity Levels
 
@@ -41,8 +41,8 @@ This document defines security test scenarios for the Tonghua Public Welfare pla
 
 ### Test Environment
 
-- **Base URL:** `https://api.tonghua.org/api/v1`
-- **Staging URL:** `https://staging-api.tonghua.org/api/v1`
+- **Base URL:** `https://api.vicoo.org/api/v1`
+- **Staging URL:** `https://staging-api.vicoo.org/api/v1`
 - **Auth:** JWT RS256 (access 15min, refresh 7d)
 - **Rate Limits:** 1000 QPS global, 60 QPM per user
 - **Encryption:** AES-256-GCM for child data, TLS 1.3 transport
@@ -585,7 +585,7 @@ This document defines security test scenarios for the Tonghua Public Welfare pla
 
   async def spam():
       async with httpx.AsyncClient() as client:
-          tasks = [client.get("https://api.tonghua.org/api/v1/artworks") for _ in range(1500)]
+          tasks = [client.get("https://api.vicoo.org/api/v1/artworks") for _ in range(1500)]
           responses = await asyncio.gather(*tasks, return_exceptions=True)
           return [r.status_code for r in responses if hasattr(r, 'status_code')]
 
@@ -767,7 +767,7 @@ This document defines security test scenarios for the Tonghua Public Welfare pla
   Valid JWT from "other-service.com" with matching RS256 algorithm
   but different "iss" claim
   ```
-- **Expected Behavior:** Server validates the `iss` (issuer) claim matches `https://api.tonghua.org`.
+- **Expected Behavior:** Server validates the `iss` (issuer) claim matches `https://api.vicoo.org`.
 - **Pass Criteria:** Token rejected due to issuer mismatch.
 
 ### JWT-008: Kid Header Injection
@@ -843,11 +843,11 @@ This document defines security test scenarios for the Tonghua Public Welfare pla
 - **Description:** Attacker controls a subdomain of an allowed domain.
 - **Attack Vector:**
   ```
-  Origin: https://evil.tonghua.org
+  Origin: https://evil.vicoo.org
   ```
-  If CORS allows `*.tonghua.org`.
-- **Expected Behavior:** CORS allows only specific subdomains: `www.tonghua.org`, `api.tonghua.org`. Not `*.tonghua.org`.
-- **Pass Criteria:** `evil.tonghua.org` is NOT in the allowed origins. Only explicitly listed subdomains allowed.
+  If CORS allows `*.vicoo.org`.
+- **Expected Behavior:** CORS allows only specific subdomains: `www.vicoo.org`, `api.vicoo.org`. Not `*.vicoo.org`.
+- **Pass Criteria:** `evil.vicoo.org` is NOT in the allowed origins. Only explicitly listed subdomains allowed.
 
 ### CORS-005: Preflight Method Bypass
 

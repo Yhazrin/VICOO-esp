@@ -69,9 +69,9 @@ docker compose ps
 NAME           IMAGE                  STATUS                    PORTS
 vicoo-mysql    mysql:8.0              Up (healthy)             0.0.0.0:3306->3306/tcp
 vicoo-redis    redis:7-alpine         Up (healthy)             0.0.0.0:6379->6379/tcp
-vicoo-backend  tonghua-backend        Up (healthy)             0.0.0.0:8000->8000/tcp
-vicoo-frontend tonghua-frontend       Up (healthy)             0.0.0.0:80->80/tcp
-vicoo-admin    tonghua-admin          Up (healthy)             0.0.0.0:8080->80/tcp
+vicoo-backend  vicoo-backend        Up (healthy)             0.0.0.0:8000->8000/tcp
+vicoo-frontend vicoo-frontend       Up (healthy)             0.0.0.0:80->80/tcp
+vicoo-admin    vicoo-admin          Up (healthy)             0.0.0.0:8080->80/tcp
 ```
 
 ✅ 所有服务显示 `Up (healthy)` 即为正常！
@@ -122,9 +122,9 @@ vicoo-admin    tonghua-admin          Up (healthy)             0.0.0.0:8080->80/
 |--------|------|------|---------|-----------|
 | **mysql** | mysql:8.0 | 3306 | 关系型数据库，存储业务数据 | ✅ mysql_data volume |
 | **redis** | redis:7-alpine | 6379 | 缓存和会话存储 | ✅ redis_data volume |
-| **backend** | tonghua-backend | 8000 | FastAPI RESTful API 服务 | ❌ （代码挂载） |
-| **frontend** | tonghua-frontend | 80 | React 用户前端（Nginx） | ❌ |
-| **admin** | tonghua-admin | 8080 | React 管理后台（Nginx） | ❌ |
+| **backend** | vicoo-backend | 8000 | FastAPI RESTful API 服务 | ❌ （代码挂载） |
+| **frontend** | vicoo-frontend | 80 | React 用户前端（Nginx） | ❌ |
+| **admin** | vicoo-admin | 8080 | React 管理后台（Nginx） | ❌ |
 
 ### 2.3 数据流向
 
@@ -199,7 +199,7 @@ GITHUB_CLIENT_SECRET=
 **邮件服务 (Resend)：**
 ```bash
 RESEND_API_KEY=re_xxxxxxxxxxxx
-MAIL_FROM=noreply@tonghua.org
+MAIL_FROM=noreply@vicoo.org
 ```
 
 **支付服务：**
@@ -252,7 +252,7 @@ GITHUB_CLIENT_SECRET=
 
 # ---- 邮件服务（可选）----
 RESEND_API_KEY=
-MAIL_FROM=noreply@tonghua.org
+MAIL_FROM=noreply@vicoo.org
 
 # ---- 种子账户密码 ----
 SEED_ADMIN_PASSWORD=admin123
@@ -945,13 +945,13 @@ docker compose ps backend
 docker compose logs --tail=50 backend
 
 # 3. 确认使用正确的测试账号：
-#    管理员：admin@tonghua.org / vicoo-admin
-#    编辑：  editor@tonghua.org / vicoo-editor
+#    管理员：admin@vicoo.org / vicoo-admin
+#    编辑：  editor@vicoo.org / vicoo-editor
 
 # 4. 测试 Backend API 是否响应
 curl -X POST http://localhost:8000/api/v1/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@tonghua.org","password":"vicoo-admin"}'
+  -d '{"email":"admin@vicoo.org","password":"vicoo-admin"}'
 ```
 
 #### **❌ 问题 7：磁盘空间不足**
@@ -1109,8 +1109,8 @@ deploy/easy/
 
 | 角色 | 邮箱 | 密码 | 用途 |
 |------|------|------|------|
-| 管理员 | admin@tonghua.org | admin123 (用户网站)<br>vicoo-admin (管理后台) | 全权限管理 |
-| 编辑 | editor@tonghua.org | editor123 (用户网站)<br>vicoo-editor (管理后台) | 内容审核 |
+| 管理员 | admin@vicoo.org | admin123 (用户网站)<br>vicoo-admin (管理后台) | 全权限管理 |
+| 编辑 | editor@vicoo.org | editor123 (用户网站)<br>vicoo-editor (管理后台) | 内容审核 |
 | 普通用户 | lihua@example.com | user123 | 正常浏览购物 |
 | 测试用户 | test@vicoo.test | test123 | 功能测试 |
 

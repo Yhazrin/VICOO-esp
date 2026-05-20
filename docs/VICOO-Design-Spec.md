@@ -1,7 +1,7 @@
 # VICOO — Design System Spec
 
 > Stitch Design Token Reference
-> 1990s Editorial / Print-Inspired / Sustainable Fashion
+> 1990s Editorial / Print-Inspired / Welfare Action
 
 ---
 

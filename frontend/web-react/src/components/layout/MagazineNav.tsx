@@ -77,7 +77,7 @@ export default function MagazineNav() {
           className="relative font-display text-ink text-xl md:text-2xl font-medium tracking-wide group cursor-pointer"
           onClick={() => setMobileNavOpen(false)}
         >
-          <span className="relative z-10">TONGHUA</span>
+          <span className="relative z-10">VICOO</span>
           <motion.span
             className="absolute inset-0 bg-rust/10 opacity-0 group-hover:opacity-100 transition-opacity"
             initial={false}

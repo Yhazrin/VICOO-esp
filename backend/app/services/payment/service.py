@@ -16,7 +16,7 @@ from app.services.impact_fund.service import ImpactFundService
 from app.core.audit import audit_action
 from app.config import settings
 
-logger = logging.getLogger("tonghua.payment_service")
+logger = logging.getLogger("vicoo.payment_service")
 
 class PaymentService(BaseService):
     """

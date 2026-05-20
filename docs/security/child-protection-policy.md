@@ -3,7 +3,7 @@
 **Document Version:** 1.0
 **Effective Date:** [To be determined upon launch]
 **Last Updated:** 2026-03-19
-**Applicable Entities:** Tonghua Public Welfare x Sustainable Fashion ("the Platform", "本平台")
+**Applicable Entities:** Uniqlo × VICOO Welfare · Welfare Action ("the Platform", "本平台")
 **Supplementary to:** [Privacy Policy](./privacy-policy.md)
 
 ---
@@ -72,7 +72,7 @@
 
 2.2.2 撤回同意的方式：
 - 在本平台"儿童信息管理"模块中操作
-- 发送邮件至 child-privacy@tonghua-project.org
+- 发送邮件至 child-privacy@vicoo-project.org
 - 拨打儿童信息保护专线 [待公布]
 - 书面邮寄至本平台通信地址
 
@@ -332,7 +332,7 @@
 - 其他违反本政策或法律法规的行为
 
 9.2 投诉举报渠道：
-- **邮箱：** child-privacy@tonghua-project.org
+- **邮箱：** child-privacy@vicoo-project.org
 - **电话：** [待公布]
 - **在线平台：** 通过本平台"联系我们"页面提交
 - **书面邮寄：** [待公布]
@@ -485,7 +485,7 @@ Guardians may request deletion at any time; completed within **15 business days*
 ### Article 9 Complaints and Reports
 
 Anyone may report concerns about our handling of children's information through:
-- **Email:** child-privacy@tonghua-project.org
+- **Email:** child-privacy@vicoo-project.org
 - **Phone:** [To be announced]
 - **Online:** Via the "Contact Us" page
 

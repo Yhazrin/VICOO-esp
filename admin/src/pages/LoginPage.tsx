@@ -120,7 +120,7 @@ export default function LoginPage() {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="admin@tonghua.org"
+              placeholder="admin@vicoo.org"
               autoComplete="username"
               style={inputStyle}
               onFocus={(e) => { e.target.style.borderColor = 'var(--color-border-hi)'; }}

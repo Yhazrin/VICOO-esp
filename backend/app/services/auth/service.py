@@ -19,7 +19,7 @@ from app.services.base import BaseService
 from app.config import settings
 from app.core.audit import audit_action
 
-logger = logging.getLogger("tonghua.auth_service")
+logger = logging.getLogger("vicoo.auth_service")
 
 class AuthService(BaseService):
     """

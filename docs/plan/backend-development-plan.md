@@ -1,6 +1,6 @@
 # 后端开发规划文档
 
-## Tonghua / VICOO 后端下一阶段实施计划
+## VICOO 后端下一阶段实施计划
 
 **版本**: 1.0  
 **创建日期**: 2026-03-31  
@@ -26,7 +26,7 @@
 
 ## 2. 当前现状评估
 
-结合 `docs/tonghua-project-plan.md`、`docs/architecture/system-architecture.md`、`docs/architecture/database-design.md` 和当前仓库代码，现状如下。
+结合 `docs/vicoo-project-plan.md`、`docs/architecture/system-architecture.md`、`docs/architecture/database-design.md` 和当前仓库代码，现状如下。
 
 ### 2.1 已有基础
 

@@ -12,7 +12,7 @@ from app.core.audit import audit_action
 
 from app.utils.cache import cached, invalidate_cache
 
-logger = logging.getLogger("tonghua.artwork_service")
+logger = logging.getLogger("vicoo.artwork_service")
 
 class ArtworkService(BaseService):
     """

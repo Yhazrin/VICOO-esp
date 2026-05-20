@@ -11,7 +11,7 @@ from app.models.product import Product
 from app.services.base import BaseService
 from app.core.audit import audit_action
 
-logger = logging.getLogger("tonghua.design_draft")
+logger = logging.getLogger("vicoo.design_draft")
 
 
 class DesignDraftService(BaseService):
@@ -50,7 +50,7 @@ class DesignDraftService(BaseService):
         prompt = (
             f"Create a commercial product design for '{draft.target_category or 'apparel'}' "
             f"inspired by the artwork '{draft.title}'. "
-            f"Style: vibrant, child-friendly, sustainable fashion aesthetic."
+            f"Style: vibrant, child-friendly, welfare aesthetic."
         )
 
         draft.prompt_used = prompt

@@ -11,7 +11,7 @@ from app.services.base import BaseService
 from app.core.audit import audit_action
 from app.utils.masking import mask_name, mask_phone, mask_email
 
-logger = logging.getLogger("tonghua.child_service")
+logger = logging.getLogger("vicoo.child_service")
 
 class ChildService(BaseService):
     """

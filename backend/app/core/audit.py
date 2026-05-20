@@ -7,7 +7,7 @@ from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.audit import AuditLog
 
-logger = logging.getLogger("tonghua.audit")
+logger = logging.getLogger("vicoo.audit")
 
 
 async def log_audit(
@@ -34,7 +34,6 @@ async def log_audit(
             ip_address=ip_address,
         )
         db.add(audit_entry)
-        await db.commit()
     except Exception as e:
         logger.error(f"Failed to write audit log: {e}", exc_info=True)
 

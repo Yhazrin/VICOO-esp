@@ -6,7 +6,7 @@
 - **问题根源**：`frontend/web-react/src/i18n/index.ts` 和 `admin/src/i18n/index.ts` 在初始化 i18next 时，硬编码了初始语言。虽然页面提供了语言切换功能，但刷新后状态会重置。
 - **修复方案**：
     1. 为 `admin` 的 `uiStore` 引入了 `persist` 中间件，并添加 `currentLocale` 状态。
-    2. 修改两端的 `i18n/index.ts`，增加 `getInitialLanguage` 函数，在初始化前分别从对应的 `localStorage` (`tonghua-ui-settings` / `vicoo-admin-settings`) 中读取语言偏好。
+    2. 修改两端的 `i18n/index.ts`，增加 `getInitialLanguage` 函数，在初始化前分别从对应的 `localStorage` (`vicoo-ui-settings` / `vicoo-admin-settings`) 中读取语言偏好。
     3. 确保在切换语言时同步更新 Zustand Store。
 - **验证结果**：通过。两端页面在刷新后中文/英文状态均能正确保留。
 
@@ -38,9 +38,9 @@
     1. 前端 `ForgotPassword/index.tsx` 页面硬编码了成功提示语，且未处理后端返回的实际数据或错误状态（如 404）。
     2. 后端 `auth.py` 之前的接口只是 Stub（桩代码），缺乏对 Mock 账户的特殊处理逻辑，也未集成 `Resend` 邮件服务。
 - **修复方案**：
-    1. **后端**：重构 `forgot-password` 接口。识别以 `@vicoo.test`、`@tonghua.org` 或 `vicoo-` 开头的邮箱为测试账户，在响应中直接返回密码提示。对真实邮箱，通过 `send_password_recovery_email` 服务投递包含临时访问凭证的邮件。
+    1. **后端**：重构 `forgot-password` 接口。识别以 `@vicoo.test`、`@vicoo.org` 或 `vicoo-` 开头的邮箱为测试账户，在响应中直接返回密码提示。对真实邮箱，通过 `send_password_recovery_email` 服务投递包含临时访问凭证的邮件。
     2. **前端**：修改提交逻辑，根据后端返回的 `is_mock` 状态动态展示内容：测试账户直接在 UI 的虚线方框中显示密码，真实账户显示“邮件已发送”提示。同时捕获 404 错误，显示“该邮箱未在记录中找到”。
-- **验证结果**：通过。输入 `admin@tonghua.org` 能够立即看到密码提示，输入无效邮箱会正确报错。
+- **验证结果**：通过。输入 `admin@vicoo.org` 能够立即看到密码提示，输入无效邮箱会正确报错。
 
 ### 1.6 管理后台（Admin）功能修复与视觉重构
 - **问题根源**：

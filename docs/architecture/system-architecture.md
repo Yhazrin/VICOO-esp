@@ -1,6 +1,6 @@
 # System Architecture Document
 
-## Tonghua Public Welfare x Sustainable Fashion
+## Uniqlo × VICOO Welfare · Welfare Action
 
 **Version:** 1.0.0
 **Last Updated:** 2026-03-19
@@ -23,7 +23,7 @@
 
 ## 1. System Overview
 
-The Tonghua Public Welfare platform is a multi-channel (Web, WeChat Mini Program, Android) application that connects children's art creation with sustainable fashion. The system enables charitable donations, artwork submissions with community voting, supply chain transparency tracking, and an e-commerce shop for sustainable products.
+The Uniqlo × VICOO Welfare platform is a multi-channel (Web, WeChat Mini Program, Android) application that connects children's art creation with welfare action. The system enables charitable donations, artwork submissions with community voting, supply chain transparency tracking, and an e-commerce shop for welfare products.
 
 **Core Principles:**
 

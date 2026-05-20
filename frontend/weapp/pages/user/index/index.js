@@ -84,7 +84,7 @@ Page({
 
   onShareAppMessage: function () {
     return {
-      title: "Tonghua Public Welfare",
+      title: "Uniqlo × VICOO Welfare",
       path: "/pages/index/index"
     };
   }

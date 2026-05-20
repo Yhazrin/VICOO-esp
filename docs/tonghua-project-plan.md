@@ -1,4 +1,4 @@
-# Tonghua Public Welfare · Sustainable Fashion Project
+# Uniqlo × VICOO Welfare · Welfare Action Project
 ## Comprehensive Technical & Design Planning Document
 
 > *A cross-platform initiative uniting children's artwork, sustainable fashion, and transparent philanthropy — built for global audiences, grounded in editorial integrity.*
@@ -28,7 +28,7 @@
 
 | Field | Detail |
 |---|---|
-| **Project Name** | Tonghua Public Welfare · Sustainable Fashion Project（童画公益·可持续时尚） |
+| **Project Name** | Uniqlo × VICOO Welfare · Welfare Action Project（Uniqlo × VICOO 公益·公益行动） |
 | **Platform Types** | WeChat Mini Program · Android App · React Web · Backend API |
 | **Core Business** | Children's artwork collection · Sustainable fashion product sales · Supply chain traceability |
 | **Security Level** | **HIGH** — Involves children's personal data, donation funds, and payment transactions |
@@ -52,7 +52,7 @@ This distinction must be maintained across **every page**, not just the homepage
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                  TONGHUA PLATFORM                    │
+│                  VICOO PLATFORM                      │
 ├───────────────┬──────────────┬──────────────────────┤
 │ WeChat Mini   │   Android    │    React Web          │
 │  Program      │     App      │    (English / Intl.)  │
@@ -352,8 +352,8 @@ All images must follow these rendering rules without exception:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  TONGHUA              01 Home  02 About  03 Campaigns   │
-│  公益·可持续时尚        04 Stories  05 Donate  06 Shop    │
+│  VICOO                01 Home  02 About  03 Campaigns   │
+│  公益·公益行动          04 Stories  05 Donate  06 Shop    │
 │                       07 Traceability  08 Contact       │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -396,7 +396,7 @@ All images must follow these rendering rules without exception:
 |---|---|
 | **Origin Story** | Narrative editorial block — why this project was founded, by whom |
 | **Why Children's Art?** | Pull quote + supporting body copy |
-| **Why Sustainable Fashion?** | Policy context, material ethics, environmental reasoning |
+| **Why Welfare Action?** | Policy context, material ethics, environmental reasoning |
 | **How Welfare + Commerce Align** | Diagram or editorial layout showing the value flow |
 | **Partners & Institutions** | Logo strip + brief descriptions, archival styling |
 
@@ -745,7 +745,7 @@ This is the highest-priority compliance domain in the entire project.
 ## 11. Project Directory Structure
 
 ```
-tonghua-project/
+vicoo-project/
 ├── backend/
 │   ├── gateway-service/
 │   ├── user-service/

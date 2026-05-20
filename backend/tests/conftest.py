@@ -1,5 +1,5 @@
 """
-Shared test fixtures for Tonghua Public Welfare test suite.
+Shared test fixtures for VICOO Welfare test suite.
 Provides test database, auth helpers, and mock data factories.
 """
 
@@ -118,7 +118,7 @@ async def test_db():
     We mock the database layer for isolated API-level testing.
     """
     # Placeholder: in production, create SQLite engine and run migrations
-    # engine = create_async_engine("sqlite+aiosqlite:///test_tonghua.db")
+    # engine = create_async_engine("sqlite+aiosqlite:///test_vicoo.db")
     # async with engine.begin() as conn:
     #     await conn.run_sync(Base.metadata.create_all)
     yield None
@@ -154,7 +154,7 @@ async def app():
         # Fallback: create a minimal FastAPI app for testing
         print(f"Warning: Could not import backend app: {e}")
         from fastapi import FastAPI
-        application = FastAPI(title="Tonghua Test API")
+        application = FastAPI(title="VICOO Test API")
 
     # Seed the database with a test user for authentication tests
     try:
@@ -228,12 +228,12 @@ async def app():
                 await db.commit()
                 print("Test user seeded successfully.")
 
-            stmt_admin = select(User).where(User.email == "admin@tonghua.test")
+            stmt_admin = select(User).where(User.email == "admin@vicoo.test")
             result_admin = await db.execute(stmt_admin)
             admin_user = result_admin.scalar_one_or_none()
             if not admin_user:
                 admin_user = User(
-                    email="admin@tonghua.test",
+                    email="admin@vicoo.test",
                     password_hash=hash_password("adminpass123"),
                     nickname="Test Admin",
                     role="admin",
@@ -243,12 +243,12 @@ async def app():
                 await db.commit()
                 print("Test admin user seeded successfully.")
 
-            stmt_guardian = select(User).where(User.email == "guardian@tonghua.test")
+            stmt_guardian = select(User).where(User.email == "guardian@vicoo.test")
             result_guardian = await db.execute(stmt_guardian)
             guardian_user = result_guardian.scalar_one_or_none()
             if not guardian_user:
                 guardian_user = User(
-                    email="guardian@tonghua.test",
+                    email="guardian@vicoo.test",
                     password_hash=hash_password("guardianpass123"),
                     nickname="Test Guardian",
                     role="guardian",
@@ -440,7 +440,7 @@ class MockUserFactory:
     def admin(user_id: Optional[str] = None) -> dict:
         return MockUserFactory.create(
             user_id=user_id,
-            email="admin@tonghua.org",
+            email="admin@vicoo.org",
             display_name="Admin User",
             role="super_admin",
         )
@@ -469,8 +469,8 @@ class MockArtworkFactory:
         return {
             "id": artwork_id or generate_uuid(),
             "title": title,
-            "image_url": f"https://cdn.tonghua.org/artworks/{artwork_id or 'test'}.jpg",
-            "thumbnail_url": f"https://cdn.tonghua.org/artworks/{artwork_id or 'test'}_thumb.jpg",
+            "image_url": f"https://cdn.vicoo.org/artworks/{artwork_id or 'test'}.jpg",
+            "thumbnail_url": f"https://cdn.vicoo.org/artworks/{artwork_id or 'test'}_thumb.jpg",
             "display_name": "Little Star",
             "campaign_id": campaign_id or generate_uuid(),
             "campaign_title": "Colors of Hope",
@@ -495,7 +495,7 @@ class MockCampaignFactory:
             "title": title,
             "theme": "Paint your hopes for the future",
             "description": "A campaign celebrating children's creativity",
-            "cover_image_url": "https://cdn.tonghua.org/campaigns/test.jpg",
+            "cover_image_url": "https://cdn.vicoo.org/campaigns/test.jpg",
             "start_date": (now - timedelta(days=30)).strftime("%Y-%m-%d"),
             "end_date": (now + timedelta(days=60)).strftime("%Y-%m-%d"),
             "status": status,
@@ -547,8 +547,8 @@ class MockProductFactory:
             "sustainability_info": "GOTS certified, carbon neutral shipping",
             "welfare_contribution": 15.00,
             "image_urls": [
-                f"https://cdn.tonghua.org/products/{product_id or 'test'}_1.jpg",
-                f"https://cdn.tonghua.org/products/{product_id or 'test'}_2.jpg",
+                f"https://cdn.vicoo.org/products/{product_id or 'test'}_1.jpg",
+                f"https://cdn.vicoo.org/products/{product_id or 'test'}_2.jpg",
             ],
             "category": category,
             "stock": 45,

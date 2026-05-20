@@ -62,7 +62,7 @@ def main() -> int:
         default=os.environ.get("VICOO_API_BASE", "http://localhost/api/v1"),
         help="API root including /api/v1",
     )
-    p.add_argument("--email", default=os.environ.get("VICOO_ADMIN_EMAIL", "admin@tonghua.org"))
+    p.add_argument("--email", default=os.environ.get("VICOO_ADMIN_EMAIL", "admin@vicoo.org"))
     p.add_argument("--password", default=os.environ.get("VICOO_ADMIN_PASSWORD", "vicoo-admin"))
     p.add_argument("--target-id", type=int, default=None)
     args = p.parse_args()

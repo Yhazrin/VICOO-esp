@@ -63,7 +63,7 @@
     "login": {
         "title": "Identify Yourself.",
         "emailLabel": "Identification / Email", 
-        "emailPlaceholder": "admin@tonghua.org", 
+        "emailPlaceholder": "admin@vicoo.org", 
         "passwordLabel": "Security Key / Password", 
         "passwordPlaceholder": "••••••••", 
         "loginButton": "Authorize Access", 

@@ -1,4 +1,4 @@
-# 童画公益 × 可持续时尚 — 智能体团队编排
+# Uniqlo × VICOO 公益 × 公益行动 — 智能体团队编排
 
 > 本文档定义了项目的智能体团队组成、角色职责、协作流程与调度规则。
 > Claude Code 将根据本文档自动选择合适的智能体执行任务。
@@ -7,7 +7,7 @@
 
 ## 项目概要
 
-- **项目名称**：Tonghua Public Welfare · Sustainable Fashion
+- **项目名称**：Uniqlo × VICOO Welfare · Welfare Action
 - **技术栈**：React 18 / 微信小程序 / Kotlin Android / FastAPI / MySQL / Redis
 - **设计风格**：1990 年代印刷杂志美学（Editorial / Print-inspired / Humanistic）
 - **安全等级**：高（涉及儿童信息、捐赠资金、支付交易）
@@ -459,7 +459,7 @@
 ## 项目目录约定
 
 ```
-tonghua-project/
+vicoo-project/
 ├── CLAUDE.md                    ← 本文件（智能体编排）
 ├── backend/
 │   ├── gateway-service/

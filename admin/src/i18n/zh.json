@@ -63,7 +63,7 @@
     "login": {
         "title": "身份验证",
         "emailLabel": "身份标识 / 邮箱",
-        "emailPlaceholder": "admin@tonghua.org",
+        "emailPlaceholder": "admin@vicoo.org",
         "passwordLabel": "安全密钥 / 密码",
         "passwordPlaceholder": "••••••••",
         "loginButton": "授权登录",

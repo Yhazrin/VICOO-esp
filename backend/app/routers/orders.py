@@ -356,17 +356,19 @@ async def cancel_order(
         order = await order_service.get_order_detail(order_id)
         if order.user_id != current_user["id"] and current_user.get("role") != "admin":
             raise HTTPException(status_code=403, detail="Access denied")
-            
+
         cancelled_order = await order_service.cancel_order(order_id)
+        await db.refresh(cancelled_order)
 
         item_stmt = select(OrderItem).where(OrderItem.order_id == order_id)
         items = (await db.execute(item_stmt)).scalars().all()
         product_map = await _build_product_map(db, items)
-        return ApiResponse(data=order_to_out_dict(cancelled_order, list(items), product_map))
+        out = order_to_out_dict(cancelled_order, list(items), product_map)
+        return ApiResponse(data=out)
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Cancellation failed: {e}")
+        logger.error(f"Cancellation failed: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
