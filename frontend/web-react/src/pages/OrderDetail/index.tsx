@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, Navigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useAuthStore } from '@/stores/authStore';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
@@ -27,6 +28,11 @@ export default function OrderDetail() {
   const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
   const queryClient = useQueryClient();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: `/orders/${id}` }} replace />;
+  }
 
   // Return/exchange modal state
   const [showReturnModal, setShowReturnModal] = useState(false);

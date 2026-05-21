@@ -1,5 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useAuthStore } from '@/stores/authStore';
 import { useQuery } from '@tanstack/react-query';
 import { motion, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
@@ -92,6 +94,8 @@ function ArtworkVoteCard({
 
 export default function Vote() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const [voteError, setVoteError] = useState('');
 
   // Fetch featured artworks for voting
@@ -109,13 +113,17 @@ export default function Vote() {
   }, [artworksData]);
 
   const handleVote = useCallback(async (artworkId: number) => {
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: '/vote' } });
+      return;
+    }
     try {
       await artworksApi.vote(String(artworkId));
     } catch (err) {
       setVoteError(t('vote.error', '投票失败，请重试'));
       throw err; // Re-throw so ArtworkVoteCard can rollback optimistic state
     }
-  }, [t]);
+  }, [t, isAuthenticated, navigate]);
 
   return (
     <PageWrapper>

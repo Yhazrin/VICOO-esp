@@ -236,6 +236,10 @@ export default function ProductDetail() {
 
   const handleAddToCart = () => {
     if (!product) return;
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: location.pathname } });
+      return;
+    }
     addItem(product, quantity, selectedSize || undefined, selectedColor || undefined);
     setAdded(true);
     setCartOpen(true);

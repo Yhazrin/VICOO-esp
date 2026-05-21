@@ -1,8 +1,9 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useCartStore, selectTotalItems, selectTotalPrice } from '@/stores/cartStore';
 import { useUIStore } from '@/stores/uiStore';
+import { useAuthStore } from '@/stores/authStore';
 import { resolveProductLocale } from '@/utils/productLocale';
 
 export default function CartDrawer() {
@@ -16,6 +17,8 @@ export default function CartDrawer() {
   const totalItems = useCartStore(selectTotalItems);
   const totalPrice = useCartStore(selectTotalPrice);
   const impactMode = useUIStore((s) => s.impactMode);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const navigate = useNavigate();
   const continueShoppingPath = impactMode ? '/impact/shop' : '/shop';
 
   return (
@@ -194,6 +197,7 @@ export default function CartDrawer() {
                 <p className="font-body text-caption text-sepia-mid mb-4">
                   {t('checkout.freeShipping')}
                 </p>
+                {isAuthenticated ? (
                 <Link
                   to="/checkout"
                   onClick={() => setCartOpen(false)}
@@ -201,6 +205,14 @@ export default function CartDrawer() {
                 >
                   {t('cart.checkout')}
                 </Link>
+                ) : (
+                <button
+                  onClick={() => { setCartOpen(false); navigate('/login', { state: { from: '/checkout' } }); }}
+                  className="block w-full text-center font-body text-label tracking-[0.15em] uppercase bg-ink text-paper py-3.5 hover:bg-rust transition-colors cursor-pointer"
+                >
+                  {t('cart.loginToCheckout', '登录后结算')}
+                </button>
+                )}
               </div>
             )}
           </motion.aside>
