@@ -384,6 +384,7 @@ export default function Profile() {
                   value={orderKeyword}
                   onChange={(e) => setOrderKeyword(e.target.value)}
                   placeholder={t('profile.orders.searchPlaceholder', 'Search order number...')}
+                  aria-label={t('profile.orders.searchPlaceholder', 'Search order number...')}
                   className="ml-auto px-3 py-1.5 border border-warm-gray/25 bg-transparent font-body text-caption text-ink focus:outline-none focus:border-rust/50 transition-colors w-48"
                 />
               </div>

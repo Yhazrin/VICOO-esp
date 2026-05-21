@@ -428,7 +428,7 @@ export default function Stories() {
                             </p>
 
                             {/* Pull quote / key stat */}
-                            <p className="font-body text-caption text-rust/80 italic mb-4 pl-3 border-l-2 border-rust/30">
+                            <p className="font-body text-caption text-rust italic mb-4 pl-3 border-l-2 border-rust/30">
                               {story.pullQuote}
                             </p>
 

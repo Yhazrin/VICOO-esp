@@ -151,7 +151,7 @@ export default function About() {
             <h2 className="font-display text-h2 text-paper mb-4">
               Join Us
             </h2>
-            <p className="font-body text-body-sm text-paper/60 mb-8">
+            <p className="font-body text-body-sm text-paper/80 mb-8">
               Discover our latest collections and learn how we&apos;re building a more sustainable future.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">

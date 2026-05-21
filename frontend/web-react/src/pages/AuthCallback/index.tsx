@@ -54,7 +54,7 @@ export default function AuthCallback() {
     // Redirect to home after a brief moment
     const timer = setTimeout(() => navigate('/', { replace: true }), 500);
     return () => clearTimeout(timer);
-  }, [searchParams, navigate, restoreSession]);
+  }, [searchParams, navigate, restoreSession, t]);
 
   return (
     <PageWrapper>

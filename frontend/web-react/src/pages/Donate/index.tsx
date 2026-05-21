@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -229,6 +229,7 @@ export default function Donate() {
   const totalDonors = impactStats?.total_donors ?? 0;
 
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const donateMutation = useMutation({
     mutationFn: async (data: {
       amount: number;
@@ -237,7 +238,11 @@ export default function Donate() {
       message: string;
       paymentMethod: 'wechat' | 'alipay' | 'stripe' | 'paypal';
     }) => {
-      const { user } = useAuthStore.getState();
+      const { user, isAuthenticated } = useAuthStore.getState();
+      if (!isAuthenticated) {
+        navigate('/login', { state: { from: '/donate' } });
+        throw new Error('not authenticated');
+      }
       return donationsApi.create({
         donor_name: data.anonymous ? t('donate.anonymousName') : (user?.nickname || user?.email || t('donate.guestName')),
         amount: data.amount,
@@ -262,8 +267,10 @@ export default function Donate() {
       }
       toast.success(t('donate.success', 'Thank you for your donation!'));
     },
-    onError: () => {
-      toast.error(t('donate.error', 'Donation failed. Please try again.'));
+    onError: (err) => {
+      if (err.message !== 'not authenticated') {
+        toast.error(t('donate.error', 'Donation failed. Please try again.'));
+      }
     },
   });
 

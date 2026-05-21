@@ -496,7 +496,7 @@ export default function ProductDetail() {
                       </p>
                       <p className="font-display text-3xl md:text-4xl text-ink tabular-nums leading-none tracking-tight">
                         {safeProduct.sustainabilityScore}
-                        <span className="font-body text-sm text-sepia-mid/80 font-normal">/100</span>
+                        <span className="font-body text-sm text-sepia-mid font-normal">/100</span>
                       </p>
                     </div>
                     <div
@@ -705,12 +705,14 @@ export default function ProductDetail() {
               <input
                 className="w-full rounded-full border border-warm-gray/25 bg-paper px-4 py-2.5 font-body text-body-sm text-ink placeholder:text-ink-faded/60 focus:border-warm-gray/50 outline-none transition-colors"
                 placeholder={t('shop.detail.reviewTitle')}
+                aria-label={t('shop.detail.reviewTitle')}
                 value={reviewTitle}
                 onChange={(e) => setReviewTitle(e.target.value)}
               />
               <textarea
                 className="w-full rounded-xl border border-warm-gray/25 bg-paper p-3 font-body text-body-sm text-ink min-h-[100px] placeholder:text-ink-faded/60 focus:border-warm-gray/45 outline-none transition-colors"
                 placeholder={t('shop.detail.reviewBody')}
+                aria-label={t('shop.detail.reviewBody')}
                 value={reviewBody}
                 onChange={(e) => setReviewBody(e.target.value)}
               />

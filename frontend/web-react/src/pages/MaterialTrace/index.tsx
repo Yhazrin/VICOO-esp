@@ -443,11 +443,10 @@ const BADGE_COLORS: Record<TimelineNode['status'], string> = {
 /*  Timeline Node Component                                            */
 /* ------------------------------------------------------------------ */
 
-function TimelineNodeCard({ node, index }: { node: TimelineNode; index: number }) {
+function TimelineNodeCard({ node, index, prefersReducedMotion }: { node: TimelineNode; index: number; prefersReducedMotion: boolean }) {
   const [expanded, setExpanded] = useState(index === 0);
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: '-60px' });
-  const prefersReducedMotion = useReducedMotion();
 
   const dotColor = DOT_COLORS[node.status];
   const badgeColor = BADGE_COLORS[node.status];
@@ -756,7 +755,7 @@ export default function MaterialTracePage() {
             />
 
             {timeline.map((node, idx) => (
-              <TimelineNodeCard key={`${activeProduct}-${node.id}`} node={node} index={idx} />
+              <TimelineNodeCard key={`${activeProduct}-${node.id}`} node={node} index={idx} prefersReducedMotion={Boolean(prefersReducedMotion)} />
             ))}
           </div>
         </div>
@@ -784,7 +783,7 @@ export default function MaterialTracePage() {
               <h3 className="font-display text-h3 text-ink mb-3">
                 {integrityHeading}
               </h3>
-              <p className="font-body text-body-sm text-ink/80 leading-relaxed mb-4">
+              <p className="font-body text-body-sm text-ink/90 leading-relaxed mb-4">
                 {integrityExplanation}
               </p>
               <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-sage/10 border border-sage/30 rounded-sm text-sage font-body text-overline tracking-wider">
@@ -815,7 +814,7 @@ export default function MaterialTracePage() {
                     {item.title}{' '}
                     {item.secondary && <span className="font-body text-sepia-mid font-normal">{item.secondary}</span>}
                   </p>
-                  <p className="font-body text-caption text-ink/70 mt-0.5">{item.desc}</p>
+                  <p className="font-body text-caption text-ink/80 mt-0.5">{item.desc}</p>
                 </div>
               </motion.div>
             ))}
@@ -912,20 +911,20 @@ export default function MaterialTracePage() {
               <p className="font-display text-h1 font-bold text-sage leading-none mb-2">
                 -{reductionPercent}%
               </p>
-              <p className="font-body text-caption text-ink/60">
+              <p className="font-body text-caption text-ink/75">
                 {t('materialTrace.carbon.vsTraditional', 'vs traditional supply chain')}
               </p>
 
               <div className="mt-6 pt-4 border-t border-sage/20 space-y-2">
-                <div className="flex justify-between font-body text-caption text-ink/70">
+                <div className="flex justify-between font-body text-caption text-ink/80">
                   <span>{t('materialTrace.carbon.sustainable', 'Sustainable')}</span>
                   <span className="font-semibold text-sage">{carbonTotal} kg</span>
                 </div>
-                <div className="flex justify-between font-body text-caption text-ink/70">
+                <div className="flex justify-between font-body text-caption text-ink/80">
                   <span>{t('materialTrace.carbon.traditional', 'Traditional')}</span>
                   <span className="line-through">{carbonTraditional} kg</span>
                 </div>
-                <div className="flex justify-between font-body text-caption text-ink/70">
+                <div className="flex justify-between font-body text-caption text-ink/80">
                   <span>{t('materialTrace.carbon.saved', 'Saved')}</span>
                   <span className="font-semibold text-sage">{(carbonTraditional - carbonTotal).toFixed(1)} kg</span>
                 </div>
