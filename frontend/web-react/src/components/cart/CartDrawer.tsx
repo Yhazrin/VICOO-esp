@@ -191,7 +191,7 @@ export default function CartDrawer() {
                     {t('cart.subtotal')}
                   </span>
                   <span className="font-display text-xl font-bold text-ink">
-                    {items[0]?.product.currency === 'CNY' ? '¥' : '$'}{totalPrice.toFixed(2)}
+                    {items[0]?.product.currency === 'USD' ? '$' : '¥'}{totalPrice.toFixed(2)}
                   </span>
                 </div>
                 <p className="font-body text-caption text-sepia-mid mb-4">

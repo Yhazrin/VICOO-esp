@@ -65,6 +65,7 @@ export default function Profile() {
 
   // Inline error message for user feedback
   const [errorMessage, setErrorMessage] = useState('');
+  const [cancellingOrderId, setCancellingOrderId] = useState<number | null>(null);
 
   const tabs: TabKey[] = ['orders', 'donations', 'clothing', 'support', 'addresses'];
 
@@ -474,19 +475,24 @@ export default function Profile() {
                         <div className="flex items-center gap-3">
                           {order.status === 'pending' && (
                             <button
+                              disabled={cancellingOrderId === order.id}
                               onClick={async (e) => {
                                 e.preventDefault();
+                                if (cancellingOrderId === order.id) return;
+                                setCancellingOrderId(order.id);
                                 try {
                                   setErrorMessage('');
                                   await ordersApi.cancel(String(order.id));
                                   queryClient.invalidateQueries({ queryKey: ['my-orders'] });
                                 } catch {
                                   setErrorMessage(t('profile.cancelOrderError', '取消订单失败，请重试'));
+                                } finally {
+                                  setCancellingOrderId(null);
                                 }
                               }}
-                              className="font-body text-caption text-rust hover:text-rust-light transition-colors cursor-pointer"
+                              className="font-body text-caption text-rust hover:text-rust-light transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              {t('profile.cancelOrder', '取消订单')}
+                              {cancellingOrderId === order.id ? t('common.loading', '处理中...') : t('profile.cancelOrder', '取消订单')}
                             </button>
                           )}
                           <Link

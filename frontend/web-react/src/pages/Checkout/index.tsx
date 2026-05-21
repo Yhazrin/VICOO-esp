@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
@@ -18,6 +18,10 @@ import { getPublicSiteOrigin } from '@/utils/publicSiteUrl';
 import { getPayApiBaseForQr } from '@/utils/payApiBaseOverride';
 
 type PaymentMethod = 'wechat' | 'alipay' | 'stripe' | 'paypal';
+
+function currencySymbol(currency?: string) {
+  return currency === 'USD' ? '$' : '¥';
+}
 
 interface AddressForm {
   name: string;
@@ -64,6 +68,7 @@ export default function Checkout() {
   const [saveAddress, setSaveAddress] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('wechat');
   const [isProcessing, setIsProcessing] = useState(false);
+  const placingRef = useRef(false);
   const [orderResult, setOrderResult] = useState<{ orderId: string; orderNo: string } | null>(null);
   const [error, setError] = useState('');
   const [pendingPayOrder, setPendingPayOrder] = useState<{
@@ -80,7 +85,7 @@ export default function Checkout() {
     enabled: isAuthenticated,
   });
 
-  const canProceedStep1 = selectedAddressId || (address.name && address.phone && address.street && address.city && address.province);
+  const canProceedStep1 = selectedAddressId || (address.name.trim() && address.phone.trim() && address.street.trim() && address.city.trim() && address.province.trim());
 
   const selectSavedAddress = (addr: Address) => {
     setSelectedAddressId(addr.id);
@@ -147,7 +152,16 @@ export default function Checkout() {
     if (!pendingPayOrder) return;
     const { orderId } = pendingPayOrder;
     let cancelled = false;
+    let attempts = 0;
+    const maxAttempts = 90; // 3 minutes at 2s intervals
     const tick = async () => {
+      if (cancelled) return;
+      attempts++;
+      if (attempts > maxAttempts) {
+        setPendingPayOrder(null);
+        setError(t('checkout.paymentTimeout', '支付超时，请重新下单'));
+        return;
+      }
       try {
         const o = await ordersApi.getById(orderId);
         if (cancelled) return;
@@ -165,7 +179,7 @@ export default function Checkout() {
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [pendingPayOrder, finalizeOrder]);
+  }, [pendingPayOrder, finalizeOrder, t]);
 
   if (!isAuthenticated) {
     return (
@@ -210,6 +224,8 @@ export default function Checkout() {
   }
 
   const handlePlaceOrder = async () => {
+    if (placingRef.current) return;
+    placingRef.current = true;
     setIsProcessing(true);
     setError('');
     try {
@@ -243,10 +259,16 @@ export default function Checkout() {
         mockPayToken: token,
         payUrl,
       });
-    } catch {
-      setError(t('checkout.error'));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : '';
+      if (msg.includes('422') || msg.includes('stock')) {
+        setError(t('checkout.outOfStock', '部分商品库存不足，请修改购物车'));
+      } else {
+        setError(t('checkout.error'));
+      }
     } finally {
       setIsProcessing(false);
+      placingRef.current = false;
     }
   };
 
@@ -259,6 +281,8 @@ export default function Checkout() {
       if (o.status === 'paid') {
         setPendingPayOrder(null);
         await finalizeOrder({ orderId: pendingPayOrder.orderId, orderNo: o.order_no });
+      } else {
+        setError(t('checkout.paymentFailed', '支付未完成，请重试'));
       }
     } catch {
       setError(t('checkout.error'));
@@ -267,9 +291,13 @@ export default function Checkout() {
     }
   };
 
-  const handlePayModalClose = () => {
+  const handlePayModalClose = async () => {
+    const orderId = pendingPayOrder?.orderId;
     setPendingPayOrder(null);
     setError(t('checkout.paymentFailed'));
+    if (orderId) {
+      try { await ordersApi.cancel(orderId); } catch { /* best-effort cleanup */ }
+    }
   };
 
   return (
@@ -562,7 +590,7 @@ export default function Checkout() {
                               <p className="font-mono text-[11px] text-sepia-mid">x{item.quantity}</p>
                             </div>
                             <span className="font-mono text-sm text-ink">
-                              ¥{(item.product.price * item.quantity).toFixed(2)}
+                              {currencySymbol(item.product.currency)}{(item.product.price * item.quantity).toFixed(2)}
                             </span>
                           </li>
                         );
@@ -667,7 +695,7 @@ export default function Checkout() {
                         <p className="font-mono text-[10px] text-sepia-mid">x{item.quantity}</p>
                       </div>
                       <span className="font-mono text-xs text-ink">
-                        ¥{(item.product.price * item.quantity).toFixed(2)}
+                        {currencySymbol(item.product.currency)}{(item.product.price * item.quantity).toFixed(2)}
                       </span>
                     </li>
                   );
@@ -677,7 +705,7 @@ export default function Checkout() {
                 <div className="border-t border-warm-gray/20 pt-4 space-y-2">
                   <div className="flex justify-between">
                     <span className="font-body text-caption text-sepia-mid">{t('checkout.subtotal')}</span>
-                    <span className="font-mono text-sm text-ink">¥{totalPrice.toFixed(2)}</span>
+                    <span className="font-mono text-sm text-ink">{currencySymbol(items[0]?.product.currency)}{totalPrice.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-body text-caption text-sepia-mid">{t('checkout.shipping')}</span>
@@ -685,7 +713,7 @@ export default function Checkout() {
                   </div>
                   <div className="flex justify-between pt-2 border-t border-warm-gray/15">
                     <span className="font-body text-label text-ink font-medium">{t('checkout.total')}</span>
-                    <span className="font-display text-lg font-bold text-ink">¥{totalPrice.toFixed(2)}</span>
+                    <span className="font-display text-lg font-bold text-ink">{currencySymbol(items[0]?.product.currency)}{totalPrice.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
