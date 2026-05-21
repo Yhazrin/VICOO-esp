@@ -45,7 +45,7 @@ function ThumbnailButton({
     <button
       onClick={onSelect}
       aria-label={ariaLabel}
-      className={`w-16 h-16 overflow-hidden border transition-all duration-300 relative cursor-pointer ${
+      className={`w-16 h-16 overflow-hidden rounded-lg border transition-all duration-300 relative cursor-pointer ${
         selected
           ? 'border-ink/90 ring-1 ring-ink/20 ring-offset-2 ring-offset-paper'
           : 'border-warm-gray/20 hover:border-warm-gray/45'
@@ -361,9 +361,9 @@ export default function ProductDetail() {
               <div className="flex flex-col md:flex-1 md:min-h-0 md:h-full">
                 <div className="space-y-7 md:space-y-9">
                   <header className="space-y-4">
-                    <p className="font-body text-[10px] md:text-[11px] tracking-[0.38em] uppercase text-sepia-mid">
+                    <span className="inline-block font-body text-[10px] md:text-[11px] tracking-[0.38em] uppercase text-sepia-mid px-3 py-1 rounded-full border border-warm-gray/20 bg-warm-gray/5">
                       {safeProduct.category}
-                    </p>
+                    </span>
                     <h1 className="font-display text-[clamp(1.85rem,3.6vw,2.85rem)] text-ink font-semibold leading-[1.05] tracking-[-0.03em]">
                       {safeProduct.name}
                     </h1>
@@ -382,7 +382,7 @@ export default function ProductDetail() {
                   </div>
 
                   {safeProduct.description.trim() && (
-                    <div className="relative max-w-[32rem] pl-5 border-l-[3px] border-sage/40">
+                    <div className="max-w-[32rem] rounded-xl border border-warm-gray/15 bg-warm-gray/5 px-5 py-4">
                       <p className="font-body text-base md:text-[1.0625rem] text-ink/92 leading-[1.78]">
                         {safeProduct.description}
                       </p>
@@ -390,7 +390,7 @@ export default function ProductDetail() {
                   )}
 
                   {linkedArtwork && (
-                    <div className="rounded-sm border border-warm-gray/22 bg-gradient-to-br from-paper/90 to-aged-stock/50 px-5 py-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.45),0_12px_36px_-24px_rgba(26,26,22,0.14)]">
+                    <div className="rounded-xl border border-warm-gray/20 bg-gradient-to-br from-paper/90 to-aged-stock/50 px-5 py-5 shadow-sm">
                       <p className="font-body text-[10px] tracking-[0.24em] uppercase text-sepia-mid mb-3">
                         {t('shop.detail.artwork')}
                       </p>
@@ -408,7 +408,7 @@ export default function ProductDetail() {
                   )}
 
                   {hasTraceStory && (
-                    <div className="rounded-sm border border-warm-gray/20 bg-aged-stock/30 px-5 py-5 md:px-6 md:py-6">
+                    <div className="rounded-xl border border-warm-gray/20 bg-aged-stock/30 px-5 py-5 md:px-6 md:py-6">
                       <p className="font-body text-[10px] tracking-[0.24em] uppercase text-sepia-mid mb-3">
                         {t('shop.detail.traceStory')}
                       </p>
@@ -439,7 +439,7 @@ export default function ProductDetail() {
                             type="button"
                             onClick={() => setSelectedSize(selectedSize === size ? '' : size)}
                             className={`
-                          min-w-[44px] h-10 px-3 font-mono text-xs flex items-center justify-center transition-colors duration-300 cursor-pointer
+                          min-w-[44px] h-10 px-4 rounded-full font-mono text-xs flex items-center justify-center transition-colors duration-300 cursor-pointer
                           ${selectedSize === size
                             ? 'bg-ink text-paper border border-ink'
                             : 'bg-transparent text-ink border border-warm-gray/25 hover:border-warm-gray/50'
@@ -485,7 +485,7 @@ export default function ProductDetail() {
                     </div>
                   )}
 
-                  <div className="rounded-sm border border-warm-gray/18 bg-paper/35 px-4 py-4 md:px-5 md:py-5">
+                  <div className="rounded-xl border border-warm-gray/18 bg-paper/35 px-4 py-4 md:px-5 md:py-5">
                     <div className="flex flex-wrap items-end justify-between gap-3 mb-3">
                       <p className="font-body text-[10px] tracking-[0.22em] uppercase text-sepia-mid">
                         {t('shop.detail.sustainability')}
@@ -520,12 +520,12 @@ export default function ProductDetail() {
                     <label className="font-body text-[10px] tracking-[0.22em] uppercase text-sepia-mid sm:min-w-[5rem]">
                       {t('shop.detail.quantity')}
                     </label>
-                    <div className="inline-flex items-center border border-warm-gray/25 bg-paper/30">
+                    <div className="inline-flex items-center rounded-full border border-warm-gray/25 bg-warm-gray/5">
                       <button
                         type="button"
                         onClick={() => setQuantity(Math.max(1, quantity - 1))}
                         aria-label={t('cart.decreaseQuantity')}
-                        className="min-w-[44px] min-h-[44px] px-3 py-2 text-ink hover:bg-warm-gray/15 transition-colors duration-300 cursor-pointer"
+                        className="min-w-[44px] min-h-[44px] px-3 py-2 text-ink hover:bg-warm-gray/15 transition-colors duration-300 cursor-pointer rounded-l-full"
                       >
                         −
                       </button>
@@ -536,7 +536,7 @@ export default function ProductDetail() {
                         type="button"
                         onClick={() => setQuantity(quantity + 1)}
                         aria-label={t('cart.increaseQuantity')}
-                        className="min-w-[44px] min-h-[44px] px-3 py-2 text-ink hover:bg-warm-gray/15 transition-colors duration-300 cursor-pointer"
+                        className="min-w-[44px] min-h-[44px] px-3 py-2 text-ink hover:bg-warm-gray/15 transition-colors duration-300 cursor-pointer rounded-r-full"
                       >
                         +
                       </button>
@@ -551,7 +551,7 @@ export default function ProductDetail() {
                         transition={{ type: 'spring', stiffness: 520, damping: 28 }}
                         onClick={handleAddToCart}
                         disabled={!safeProduct.inStock}
-                        className={`flex-1 sm:flex-none font-body text-[11px] md:text-body-sm tracking-[0.22em] uppercase py-4 md:py-[1.125rem] shadow-[0_14px_40px_-22px_rgba(18,17,14,0.55)] transition-colors duration-500 ${
+                        className={`flex-1 sm:flex-none font-body text-[11px] md:text-body-sm tracking-[0.22em] uppercase py-4 md:py-[1.125rem] rounded-full shadow-[0_14px_40px_-22px_rgba(18,17,14,0.55)] transition-colors duration-500 ${
                           added
                             ? 'bg-sage text-paper'
                             : safeProduct.inStock
@@ -572,7 +572,7 @@ export default function ProductDetail() {
                           metadata: { product_id: Number(id), impactMode: product.isImpactProduct },
                           prefill: t('aiAssistant.productPrefill', { id }),
                         }}
-                        className="flex-1 sm:flex-none inline-flex items-center justify-center border border-warm-gray/25 bg-paper px-4 py-3 text-ink text-[11px] tracking-[0.12em] uppercase hover:bg-aged-stock transition-colors"
+                        className="flex-1 sm:flex-none inline-flex items-center justify-center rounded-full border border-warm-gray/25 bg-paper px-4 py-3 text-ink text-[11px] tracking-[0.12em] uppercase hover:bg-aged-stock transition-colors"
                       >
                         {t('aiAssistant.askAboutProduct')}
                       </Link>
@@ -658,7 +658,7 @@ export default function ProductDetail() {
             {(reviewsResult?.data ?? []).map((r) => (
               <li
                 key={r.id}
-                className="border border-warm-gray/18 bg-paper/50 px-5 py-5 shadow-[0_12px_40px_-28px_rgba(26,26,22,0.12)]"
+                className="rounded-xl border border-warm-gray/18 bg-paper/50 px-5 py-5 shadow-sm"
               >
                 <p className="font-mono text-[10px] tracking-[0.12em] uppercase text-sepia-mid">
                   {t('shop.detail.rating')} {r.rating}/5 · {r.created_at?.slice(0, 10)}
@@ -674,7 +674,7 @@ export default function ProductDetail() {
           </ul>
           {isAuthenticated && (
             <form
-              className="max-w-lg border border-warm-gray/20 bg-paper/30 px-6 py-7 space-y-5 shadow-[0_1px_0_rgba(26,26,22,0.05)]"
+              className="max-w-lg rounded-xl border border-warm-gray/20 bg-warm-gray/5 px-6 py-7 space-y-5"
               onSubmit={(e) => {
                 e.preventDefault();
                 reviewMutation.mutate();
@@ -695,13 +695,13 @@ export default function ProductDetail() {
                 />
               </label>
               <input
-                className="w-full border-b border-warm-gray/35 bg-transparent py-2.5 font-body text-body-sm text-ink placeholder:text-ink-faded/60 focus:border-warm-gray/60 outline-none transition-colors"
+                className="w-full rounded-full border border-warm-gray/25 bg-paper px-4 py-2.5 font-body text-body-sm text-ink placeholder:text-ink-faded/60 focus:border-warm-gray/50 outline-none transition-colors"
                 placeholder={t('shop.detail.reviewTitle')}
                 value={reviewTitle}
                 onChange={(e) => setReviewTitle(e.target.value)}
               />
               <textarea
-                className="w-full border border-warm-gray/25 bg-transparent p-3 font-body text-body-sm text-ink min-h-[100px] placeholder:text-ink-faded/60 focus:border-warm-gray/45 outline-none transition-colors"
+                className="w-full rounded-xl border border-warm-gray/25 bg-paper p-3 font-body text-body-sm text-ink min-h-[100px] placeholder:text-ink-faded/60 focus:border-warm-gray/45 outline-none transition-colors"
                 placeholder={t('shop.detail.reviewBody')}
                 value={reviewBody}
                 onChange={(e) => setReviewBody(e.target.value)}
@@ -714,7 +714,7 @@ export default function ProductDetail() {
               <button
                 type="submit"
                 disabled={reviewMutation.isPending}
-                className="font-body text-[10px] tracking-[0.22em] uppercase bg-ink text-paper px-6 py-3.5 hover:bg-ink-faded cursor-pointer disabled:opacity-50 transition-colors duration-500"
+                className="font-body text-[10px] tracking-[0.22em] uppercase bg-ink text-paper px-6 py-3.5 rounded-full hover:bg-ink-faded cursor-pointer disabled:opacity-50 transition-colors duration-500"
               >
                 {reviewMutation.isPending ? t('common.loading') : t('shop.detail.submitReview')}
               </button>
@@ -729,7 +729,7 @@ export default function ProductDetail() {
           to={isImpactProductDetail ? '/impact/shop' : '/shop'}
           onClick={handleBackToImpactShopClick}
           onMouseEnter={isImpactProductDetail ? () => void import('@/pages/ImpactShop') : undefined}
-          className="font-body text-[10px] tracking-[0.22em] uppercase text-sepia-mid hover:text-ink transition-colors duration-300 cursor-pointer"
+          className="inline-flex items-center gap-2 font-body text-[10px] tracking-[0.22em] uppercase text-sepia-mid hover:text-ink transition-colors duration-300 cursor-pointer px-4 py-2 rounded-full border border-warm-gray/20 hover:border-warm-gray/40"
         >
           &larr;{' '}
           {isImpactProductDetail
