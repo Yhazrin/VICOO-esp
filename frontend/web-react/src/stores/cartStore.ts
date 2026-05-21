@@ -27,6 +27,7 @@ export const useCartStore = create<CartState>()(
 
       addItem: (product, quantity = 1, selectedSize, selectedColor) =>
         set((state) => {
+          const qty = Math.max(1, quantity);
           const existing = state.items.find(
             (item) => matchesItem(item, product.id, selectedSize, selectedColor)
           );
@@ -34,12 +35,12 @@ export const useCartStore = create<CartState>()(
             return {
               items: state.items.map((item) =>
                 matchesItem(item, product.id, selectedSize, selectedColor)
-                  ? { ...item, quantity: item.quantity + quantity }
+                  ? { ...item, quantity: Math.min(99, item.quantity + qty) }
                   : item
               ),
             };
           }
-          return { items: [...state.items, { product, quantity, selectedSize, selectedColor }] };
+          return { items: [...state.items, { product, quantity: Math.min(99, qty), selectedSize, selectedColor }] };
         }),
 
       removeItem: (productId, selectedSize, selectedColor) =>
@@ -56,7 +57,7 @@ export const useCartStore = create<CartState>()(
           }
           return {
             items: state.items.map((item) =>
-              matchesItem(item, productId, selectedSize, selectedColor) ? { ...item, quantity } : item
+              matchesItem(item, productId, selectedSize, selectedColor) ? { ...item, quantity: Math.min(99, quantity) } : item
             ),
           };
         }),

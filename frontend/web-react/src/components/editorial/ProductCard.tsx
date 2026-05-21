@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
@@ -27,7 +27,7 @@ function getSustainabilityTier(score: number): { labelKey: string; colorClass: s
   return { labelKey: 'shop.card.good', colorClass: 'text-sepia-mid', barColor: 'bg-sepia-mid' };
 }
 
-export default function ProductCard({
+function ProductCard({
   product,
   index = 0,
   className = '',
@@ -327,3 +327,5 @@ export default function ProductCard({
     </TiltCard>
   );
 }
+
+export default memo(ProductCard);

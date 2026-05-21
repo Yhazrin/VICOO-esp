@@ -65,6 +65,7 @@ export default function Profile() {
 
   // Inline error message for user feedback
   const [errorMessage, setErrorMessage] = useState('');
+  const [cancellingOrderId, setCancellingOrderId] = useState<number | null>(null);
 
   const tabs: TabKey[] = ['orders', 'donations', 'clothing', 'support', 'addresses'];
 
@@ -96,6 +97,7 @@ export default function Profile() {
     queryKey: ['my-donations'],
     queryFn: () => donationsApi.getMyDonations(),
     enabled: isAuthenticated,
+    staleTime: 10 * 60 * 1000,
   });
 
   const { data: intakes = [], isLoading: loadingIntakes, isError: errorIntakes } = useQuery({
@@ -114,6 +116,7 @@ export default function Profile() {
     queryKey: ['my-addresses'],
     queryFn: () => addressesApi.getAll(),
     enabled: isAuthenticated,
+    staleTime: 15 * 60 * 1000,
   });
 
   const handleLogout = () => {
@@ -382,6 +385,7 @@ export default function Profile() {
                   value={orderKeyword}
                   onChange={(e) => setOrderKeyword(e.target.value)}
                   placeholder={t('profile.orders.searchPlaceholder', 'Search order number...')}
+                  aria-label={t('profile.orders.searchPlaceholder', 'Search order number...')}
                   className="ml-auto px-3 py-1.5 border border-warm-gray/25 bg-transparent font-body text-caption text-ink focus:outline-none focus:border-rust/50 transition-colors w-48"
                 />
               </div>
@@ -471,19 +475,24 @@ export default function Profile() {
                         <div className="flex items-center gap-3">
                           {order.status === 'pending' && (
                             <button
+                              disabled={cancellingOrderId === order.id}
                               onClick={async (e) => {
                                 e.preventDefault();
+                                if (cancellingOrderId === order.id) return;
+                                setCancellingOrderId(order.id);
                                 try {
                                   setErrorMessage('');
                                   await ordersApi.cancel(String(order.id));
                                   queryClient.invalidateQueries({ queryKey: ['my-orders'] });
                                 } catch {
                                   setErrorMessage(t('profile.cancelOrderError', '取消订单失败，请重试'));
+                                } finally {
+                                  setCancellingOrderId(null);
                                 }
                               }}
-                              className="font-body text-caption text-rust hover:text-rust-light transition-colors cursor-pointer"
+                              className="font-body text-caption text-rust hover:text-rust-light transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              {t('profile.cancelOrder', '取消订单')}
+                              {cancellingOrderId === order.id ? t('common.loading', '处理中...') : t('profile.cancelOrder', '取消订单')}
                             </button>
                           )}
                           <Link

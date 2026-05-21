@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useAuthStore } from '@/stores/authStore';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PageWrapper from '@/components/layout/PageWrapper';
@@ -15,6 +16,8 @@ export default function ArtworkDetail() {
   const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   const { data: artwork, isLoading: loading, error: queryError } = useQuery({
     queryKey: ['artwork', id],
@@ -25,12 +28,22 @@ export default function ArtworkDetail() {
   const [voteError, setVoteError] = useState('');
 
   const voteMutation = useMutation({
-    mutationFn: () => artworksApi.vote(id!),
+    mutationFn: () => {
+      if (!isAuthenticated) {
+        navigate('/login', { state: { from: `/stories/${id}` } });
+        return Promise.reject(new Error('not authenticated'));
+      }
+      return artworksApi.vote(id!);
+    },
     onSuccess: () => {
       setVoteError('');
       queryClient.invalidateQueries({ queryKey: ['artwork', id] });
     },
-    onError: () => setVoteError(t('vote.error', '投票失败，请重试')),
+    onError: (err) => {
+      if (err.message !== 'not authenticated') {
+        setVoteError(t('vote.error', '投票失败，请重试'));
+      }
+    },
   });
 
   if (loading) {

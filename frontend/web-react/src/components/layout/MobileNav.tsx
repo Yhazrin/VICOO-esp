@@ -20,7 +20,13 @@ export default function MobileNav() {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
-  const { mobileNavOpen, setMobileNavOpen, menuTriggerRef, impactMode, setImpactMode, activeImpactTab, setActiveImpactTab } = useUIStore();
+  const mobileNavOpen = useUIStore((s) => s.mobileNavOpen);
+  const setMobileNavOpen = useUIStore((s) => s.setMobileNavOpen);
+  const menuTriggerRef = useUIStore((s) => s.menuTriggerRef);
+  const impactMode = useUIStore((s) => s.impactMode);
+  const setImpactMode = useUIStore((s) => s.setImpactMode);
+  const activeImpactTab = useUIStore((s) => s.activeImpactTab);
+  const setActiveImpactTab = useUIStore((s) => s.setActiveImpactTab);
   const { user, isAuthenticated } = useAuthStore();
   const { logout } = useAuth();
   const [_userMenuOpen, setUserMenuOpen] = useState(false);

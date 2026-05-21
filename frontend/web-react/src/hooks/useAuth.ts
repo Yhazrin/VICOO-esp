@@ -7,7 +7,11 @@ import { useTranslation } from 'react-i18next';
 import { getErrorMessage } from '@/utils/error';
 
 export function useAuth() {
-  const { user, isAuthenticated, login, logout, setLoading } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const login = useAuthStore((s) => s.login);
+  const logout = useAuthStore((s) => s.logout);
+  const setLoading = useAuthStore((s) => s.setLoading);
   const queryClient = useQueryClient();
   const { t } = useTranslation();
 

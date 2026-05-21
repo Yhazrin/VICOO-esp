@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, Navigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useAuthStore } from '@/stores/authStore';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
@@ -27,6 +28,11 @@ export default function OrderDetail() {
   const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
   const queryClient = useQueryClient();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: `/orders/${id}` }} replace />;
+  }
 
   // Return/exchange modal state
   const [showReturnModal, setShowReturnModal] = useState(false);
@@ -36,6 +42,7 @@ export default function OrderDetail() {
   const [isSubmittingReturn, setIsSubmittingReturn] = useState(false);
   const [returnSuccess, setReturnSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const { data: order, isLoading, isError } = useQuery({
     queryKey: ['order', id],
@@ -67,13 +74,16 @@ export default function OrderDetail() {
     : -1;
 
   const handleCancel = async () => {
-    if (!order) return;
+    if (!order || isCancelling) return;
+    setIsCancelling(true);
     try {
       setErrorMessage('');
       await ordersApi.cancel(String(order.id));
       queryClient.invalidateQueries({ queryKey: ['order', id] });
     } catch {
       setErrorMessage(t('orderDetail.cancelError', '取消订单失败，请重试'));
+    } finally {
+      setIsCancelling(false);
     }
   };
 
@@ -274,9 +284,10 @@ export default function OrderDetail() {
                 {order.status === 'pending' && (
                   <button
                     onClick={handleCancel}
-                    className="font-body text-label tracking-wide text-rust hover:text-rust-light transition-colors cursor-pointer border border-rust/30 px-6 py-2.5 hover:bg-rust/5"
+                    disabled={isCancelling}
+                    className="font-body text-label tracking-wide text-rust hover:text-rust-light transition-colors cursor-pointer border border-rust/30 px-6 py-2.5 hover:bg-rust/5 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {t('profile.cancelOrder', '取消订单')}
+                    {isCancelling ? t('common.loading', '处理中...') : t('profile.cancelOrder', '取消订单')}
                   </button>
                 )}
                 {order.status === 'completed' && (

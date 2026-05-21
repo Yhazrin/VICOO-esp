@@ -1,7 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
-import SmoothTransition from '@/components/transitions/SmoothTransition';
 import ErrorBoundary from '@/components/editorial/ErrorBoundary';
 import CartDrawer from '@/components/cart/CartDrawer';
 import { useSessionRestore } from '@/hooks/useSessionRestore';
@@ -81,7 +80,6 @@ function AnimatedRoutes() {
           <div className="w-32 h-3 rounded bg-warm-gray/20" />
         </div>
       }>
-      <SmoothTransition>
         {/* Do not key Routes by pathname — that remounts Layout/Header on every navigation (feels like a full reload). */}
         <Routes location={location}>
           {/* Auth pages — standalone, no header/footer */}
@@ -118,7 +116,6 @@ function AnimatedRoutes() {
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
-      </SmoothTransition>
       </Suspense>
     </ErrorBoundary>
   );

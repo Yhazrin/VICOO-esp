@@ -643,7 +643,7 @@ export default function Shop() {
           {filtered.length === 0 ? (
             <EmptyState onClear={clearAllFilters} hasFilters={activeFilterCount > 0} />
           ) : (
-            <AnimatePresence mode="wait">
+            <AnimatePresence>
               <motion.div
                 key={`${activeCategory}-${sortBy}-${activeFilterCount}`}
                 initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}

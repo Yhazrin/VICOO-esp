@@ -12,7 +12,10 @@ import api from '@/services/api';
  * If refresh succeeds, the new access token is stored in memory and we fetch the user profile.
  */
 export function useSessionRestore() {
-  const { restoreSession, setLoading, isAuthenticated, setAccessToken } = useAuthStore();
+  const restoreSession = useAuthStore((s) => s.restoreSession);
+  const setLoading = useAuthStore((s) => s.setLoading);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const setAccessToken = useAuthStore((s) => s.setAccessToken);
   const location = useLocation();
   const [isInitialized, setIsInitialized] = useState(false);
   const [refreshToken, setRefreshToken] = useState<string | null>(null);

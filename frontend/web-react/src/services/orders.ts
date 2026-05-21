@@ -72,8 +72,8 @@ export const ordersApi = {
     if (filters?.keyword) params.append('keyword', filters.keyword);
     if (filters?.date_from) params.append('date_from', filters.date_from);
     if (filters?.date_to) params.append('date_to', filters.date_to);
-    if (filters?.page) params.append('page', String(filters.page));
-    if (filters?.page_size) params.append('page_size', String(filters.page_size));
+    if (filters?.page != null) params.append('page', String(filters.page));
+    if (filters?.page_size != null) params.append('page_size', String(filters.page_size));
     const qs = params.toString();
     const response = await api.get(`/orders/mine${qs ? `?${qs}` : ''}`);
     return response.data.data;

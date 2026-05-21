@@ -13,19 +13,22 @@ const BANNER_ITEMS = [
     title: 'LIFEWEAR',
     subtitle: '服の新しいカタチ。すべての人のために。',
     cta: { label: 'Shop Now', path: '/shop' },
-    bgClass: 'bg-warm-gray/5',
+    bg: '#F5F5F5',
+    accent: '#FF0000',
   },
   {
     title: 'SPRING / SUMMER 2026',
     subtitle: 'Light layers for everyday comfort.',
     cta: { label: 'Explore', path: '/shop' },
-    bgClass: 'bg-aged-stock/40',
+    bg: '#F0EFEB',
+    accent: '#FF0000',
   },
   {
     title: 'SUSTAINABILITY',
     subtitle: 'Making good clothes for a better world.',
     cta: { label: 'Learn More', path: '/about' },
-    bgClass: 'bg-aged-stock/60',
+    bg: '#E8E6E1',
+    accent: '#FF0000',
   },
 ];
 
@@ -42,14 +45,15 @@ export default function UniqloHome() {
   return (
     <PageWrapper>
       {/* ── Hero Banner ── */}
-      <section className={`relative w-full ${BANNER_ITEMS[0].bgClass}`}>
+      <section className="relative w-full" style={{ background: BANNER_ITEMS[0].bg }}>
         <SectionContainer>
-          <div className="flex flex-col items-center justify-center text-center pt-16 md:pt-24 pb-20 md:pb-28">
+          <div className="flex flex-col items-center justify-center text-center py-20 md:py-32">
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="font-display text-h1 md:text-[clamp(3rem,8vw,6rem)] font-bold tracking-tight text-ink"
+              className="font-sans text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight"
+              style={{ color: '#1A1A1A' }}
             >
               {BANNER_ITEMS[0].title}
             </motion.h1>
@@ -57,7 +61,8 @@ export default function UniqloHome() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.15 }}
-              className="mt-4 md:mt-6 font-body text-body md:text-body-lg text-ink-faded tracking-wide"
+              className="mt-4 md:mt-6 font-sans text-base md:text-lg tracking-wide"
+              style={{ color: '#666' }}
             >
               {BANNER_ITEMS[0].subtitle}
             </motion.p>
@@ -68,7 +73,8 @@ export default function UniqloHome() {
             >
               <Link
                 to={BANNER_ITEMS[0].cta.path}
-                className="inline-block mt-8 px-10 py-3 font-body text-caption tracking-[0.15em] uppercase bg-rust text-paper rounded-full hover:bg-rust/90 transition-colors"
+                className="inline-block mt-8 px-10 py-3 font-sans text-sm font-semibold tracking-widest uppercase text-white transition-colors duration-200 hover:opacity-90"
+                style={{ background: BANNER_ITEMS[0].accent }}
               >
                 {BANNER_ITEMS[0].cta.label}
               </Link>
@@ -82,17 +88,19 @@ export default function UniqloHome() {
         {BANNER_ITEMS.slice(1).map((item, i) => (
           <div
             key={i}
-            className={`flex flex-col items-center justify-center text-center py-16 md:py-20 border border-warm-gray/10 ${item.bgClass}`}
+            className="flex flex-col items-center justify-center text-center py-16 md:py-20 border border-gray-100"
+            style={{ background: item.bg }}
           >
-            <h2 className="font-display text-h3 md:text-h2 font-bold tracking-tight text-ink">
+            <h2 className="font-sans text-2xl md:text-3xl font-bold tracking-tight" style={{ color: '#1A1A1A' }}>
               {item.title}
             </h2>
-            <p className="mt-3 font-body text-body-sm text-ink-faded tracking-wide">
+            <p className="mt-3 font-sans text-sm tracking-wide" style={{ color: '#888' }}>
               {item.subtitle}
             </p>
             <Link
               to={item.cta.path}
-              className="inline-block mt-6 px-8 py-2.5 font-body text-caption tracking-[0.15em] uppercase border border-ink text-ink rounded-full hover:bg-ink hover:text-paper transition-colors"
+              className="inline-block mt-6 px-8 py-2.5 font-sans text-xs font-semibold tracking-widest uppercase border transition-colors duration-200"
+              style={{ borderColor: '#1A1A1A', color: '#1A1A1A' }}
             >
               {item.cta.label}
             </Link>
@@ -101,15 +109,16 @@ export default function UniqloHome() {
       </section>
 
       {/* ── Featured Products ── */}
-      <section className="section-spacing">
+      <section className="bg-white">
         <SectionContainer>
           <div className="flex items-baseline justify-between mb-8">
-            <h2 className="font-display text-h3 md:text-h2 font-bold tracking-tight text-ink">
+            <h2 className="font-sans text-xl md:text-2xl font-bold tracking-tight" style={{ color: '#1A1A1A' }}>
               PICK UP
             </h2>
             <Link
               to="/shop"
-              className="font-body text-caption tracking-[0.15em] uppercase text-sepia-mid hover:text-ink transition-colors"
+              className="font-sans text-xs tracking-widest uppercase"
+              style={{ color: '#999' }}
             >
               View All &rarr;
             </Link>
@@ -124,7 +133,9 @@ export default function UniqloHome() {
                 to={productDetailPath(product.id, product)}
                 className="group block"
               >
-                <div className="aspect-[3/4] bg-warm-gray/5 flex items-center justify-center overflow-hidden rounded-sm">
+                <div
+                  className="aspect-[3/4] bg-gray-50 flex items-center justify-center overflow-hidden"
+                >
                   {product.image_url ? (
                     <img
                       src={product.image_url}
@@ -132,16 +143,16 @@ export default function UniqloHome() {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-warm-gray/10">
-                      <span className="font-body text-caption text-sepia-mid">No Image</span>
+                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                      <span className="font-sans text-xs" style={{ color: '#ccc' }}>No Image</span>
                     </div>
                   )}
                 </div>
                 <div className="mt-2 md:mt-3">
-                  <p className="font-body text-body-sm truncate text-ink">
+                  <p className="font-sans text-xs md:text-sm truncate" style={{ color: '#1A1A1A' }}>
                     {pn}
                   </p>
-                  <p className="font-body text-caption font-semibold mt-1 text-ink">
+                  <p className="font-sans text-xs font-semibold mt-1" style={{ color: '#1A1A1A' }}>
                     &yen;{product.price.toLocaleString()}
                   </p>
                 </div>
@@ -153,13 +164,13 @@ export default function UniqloHome() {
       </section>
 
       {/* ── Brand Message ── */}
-      <section className="section-spacing">
+      <section className="bg-white py-16 md:py-24">
         <SectionContainer>
           <div className="text-center max-w-2xl mx-auto">
-            <h2 className="font-display text-h2 md:text-h1 font-bold tracking-tight text-ink">
+            <h2 className="font-sans text-3xl md:text-4xl font-bold tracking-tight" style={{ color: '#1A1A1A' }}>
               MADE FOR ALL
             </h2>
-            <p className="mt-4 font-body text-body text-ink-faded leading-relaxed">
+            <p className="mt-4 font-sans text-sm md:text-base leading-relaxed" style={{ color: '#666' }}>
               Simple, high-quality everyday clothes with a universal design and supreme functionality.
               LifeWear is constantly evolving to bring more comfort and joy to people&apos;s lives.
             </p>
@@ -168,22 +179,24 @@ export default function UniqloHome() {
       </section>
 
       {/* ── Footer CTA ── */}
-      <section className="py-12 md:py-16 border-t border-warm-gray/15">
+      <section className="py-12 md:py-16 border-t border-gray-100">
         <SectionContainer>
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="font-body text-caption tracking-[0.15em] uppercase text-sepia-mid">
+            <p className="font-sans text-xs tracking-widest uppercase" style={{ color: '#999' }}>
               Free shipping on orders over &yen;5,000
             </p>
             <div className="flex gap-4">
               <Link
                 to="/shop"
-                className="font-body text-caption tracking-[0.15em] uppercase px-6 py-2 bg-rust text-paper rounded-full hover:bg-rust/90 transition-colors"
+                className="font-sans text-xs tracking-widest uppercase px-6 py-2 transition-colors duration-200 hover:opacity-90"
+                style={{ background: '#FF0000', color: '#fff' }}
               >
                 Shop
               </Link>
               <Link
                 to="/about"
-                className="font-body text-caption tracking-[0.15em] uppercase px-6 py-2 border border-ink text-ink rounded-full hover:bg-ink hover:text-paper transition-colors"
+                className="font-sans text-xs tracking-widest uppercase px-6 py-2 border transition-colors duration-200"
+                style={{ borderColor: '#1A1A1A', color: '#1A1A1A' }}
               >
                 About
               </Link>

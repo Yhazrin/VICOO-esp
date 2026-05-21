@@ -27,8 +27,11 @@ export default function MagazineNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const { mobileNavOpen, toggleMobileNav, setMobileNavOpen, currentLocale, setLocale } =
-    useUIStore();
+  const mobileNavOpen = useUIStore((s) => s.mobileNavOpen);
+  const toggleMobileNav = useUIStore((s) => s.toggleMobileNav);
+  const setMobileNavOpen = useUIStore((s) => s.setMobileNavOpen);
+  const currentLocale = useUIStore((s) => s.currentLocale);
+  const setLocale = useUIStore((s) => s.setLocale);
   const { user, isAuthenticated } = useAuthStore();
   const { logout } = useAuth();
   const [userMenuOpen, setUserMenuOpen] = useState(false);

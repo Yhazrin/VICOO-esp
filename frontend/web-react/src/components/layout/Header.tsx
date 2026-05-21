@@ -159,12 +159,18 @@ function PillWindow({
     return () => ro.disconnect();
   }, [updateHighlights]);
 
-  // After capsule / rail motion settles, pill geometry may shift slightly
+  // After capsule / rail motion settles, re-measure widths AND highlights.
+  // Width re-measurement is critical: without it, companyW/impactW can be stale
+  // after the mode morph, causing capsuleW to be wrong and the pill to "disappear"
+  // when switching back from Impact to Uniqlo mode.
   useEffect(() => {
-    const ms = prefersReducedMotion ? 220 : Math.round(MODE_MORPH_DURATION * 1000) + 40;
-    const t1 = window.setTimeout(updateHighlights, ms);
+    const ms = prefersReducedMotion ? 220 : Math.round(MODE_MORPH_DURATION * 1000) + 60;
+    const t1 = window.setTimeout(() => {
+      measure();
+      updateHighlights();
+    }, ms);
     return () => clearTimeout(t1);
-  }, [impactMode, updateHighlights, prefersReducedMotion]);
+  }, [impactMode, measure, updateHighlights, prefersReducedMotion]);
 
   // Company tabs: remeasure after client navigation so the sliding pill matches (Outlet paint can lag one frame).
   useEffect(() => {
@@ -198,9 +204,10 @@ function PillWindow({
   // innerW 为 0 时不要用 0+PADDING 当成真实宽度，否则 Framer 会动画到极窄宽度，切回优衣库后导航条样式像「丢失」
   const capsuleW = activeRailW > 0 ? activeRailW + PADDING : 0;
 
+  // Easing must match MODE_MORPH_EASE so width and x-offset stay in phase during the morph.
   const pillWidthTransition = prefersReducedMotion
     ? undefined
-    : `width ${MODE_MORPH_DURATION}s cubic-bezier(0.33, 1, 0.68, 1), border-radius ${MODE_MORPH_DURATION}s cubic-bezier(0.33, 1, 0.68, 1)`;
+    : `width ${MODE_MORPH_DURATION}s cubic-bezier(${MODE_MORPH_EASE.join(',')}), border-radius ${MODE_MORPH_DURATION}s cubic-bezier(${MODE_MORPH_EASE.join(',')})`;
 
   // 外层不用 motion 驱动 width：Framer 在 width 数字与 "auto" 间切换时，公益↔优衣库偶发卡在中间态；改为 CSS transition + 像素宽度
   return (
@@ -354,23 +361,21 @@ export default function Header() {
   const isMobile = useIsMobile();
   const prefersReducedMotion = useReducedMotion();
 
-  const {
-    mobileNavOpen,
-    toggleMobileNav,
-    setMobileNavOpen,
-    currentLocale,
-    setLocale,
-    setMenuTriggerRef,
-    currentTheme,
-    setTheme,
-    setSettingsMenuOpen,
-    impactMode,
-    setImpactMode,
-    activeImpactTab,
-    setActiveImpactTab,
-    aiBallStyle,
-    setAIBallStyle,
-  } = useUIStore();
+  const mobileNavOpen = useUIStore((s) => s.mobileNavOpen);
+  const toggleMobileNav = useUIStore((s) => s.toggleMobileNav);
+  const setMobileNavOpen = useUIStore((s) => s.setMobileNavOpen);
+  const currentLocale = useUIStore((s) => s.currentLocale);
+  const setLocale = useUIStore((s) => s.setLocale);
+  const setMenuTriggerRef = useUIStore((s) => s.setMenuTriggerRef);
+  const currentTheme = useUIStore((s) => s.currentTheme);
+  const setTheme = useUIStore((s) => s.setTheme);
+  const setSettingsMenuOpen = useUIStore((s) => s.setSettingsMenuOpen);
+  const impactMode = useUIStore((s) => s.impactMode);
+  const setImpactMode = useUIStore((s) => s.setImpactMode);
+  const activeImpactTab = useUIStore((s) => s.activeImpactTab);
+  const setActiveImpactTab = useUIStore((s) => s.setActiveImpactTab);
+  const aiBallStyle = useUIStore((s) => s.aiBallStyle);
+  const setAIBallStyle = useUIStore((s) => s.setAIBallStyle);
 
   const { user, isAuthenticated } = useAuthStore();
   const { logout } = useAuth();
@@ -518,8 +523,8 @@ export default function Header() {
           transition: prefersReducedMotion
             ? undefined
             : impactMode
-              ? `box-shadow ${MODE_MORPH_DURATION}s cubic-bezier(0.33, 1, 0.68, 1), backdrop-filter ${MODE_MORPH_DURATION}s cubic-bezier(0.33, 1, 0.68, 1), -webkit-backdrop-filter ${MODE_MORPH_DURATION}s cubic-bezier(0.33, 1, 0.68, 1)`
-              : `box-shadow ${MODE_MORPH_DURATION}s cubic-bezier(0.33, 1, 0.68, 1), backdrop-filter 0s linear, -webkit-backdrop-filter 0s linear`,
+              ? `box-shadow ${MODE_MORPH_DURATION}s cubic-bezier(${MODE_MORPH_EASE.join(',')}), backdrop-filter ${MODE_MORPH_DURATION}s cubic-bezier(${MODE_MORPH_EASE.join(',')}), -webkit-backdrop-filter ${MODE_MORPH_DURATION}s cubic-bezier(${MODE_MORPH_EASE.join(',')})`
+              : `box-shadow ${MODE_MORPH_DURATION}s cubic-bezier(${MODE_MORPH_EASE.join(',')}), backdrop-filter 0s linear, -webkit-backdrop-filter 0s linear`,
         }}
       >
         <div className="relative mx-auto flex h-14 max-w-[1400px] items-center justify-between px-6 md:px-10">

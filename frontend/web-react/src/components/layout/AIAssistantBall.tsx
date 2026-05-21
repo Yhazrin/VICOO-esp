@@ -118,7 +118,7 @@ const welfareCapabilities = [
 
 export const AIAssistantBall: React.FC = () => {
   const { t } = useTranslation();
-  const { impactMode } = useUIStore();
+  const impactMode = useUIStore((s) => s.impactMode);
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
