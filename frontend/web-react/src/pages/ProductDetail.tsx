@@ -551,7 +551,7 @@ export default function ProductDetail() {
                         transition={{ type: 'spring', stiffness: 520, damping: 28 }}
                         onClick={handleAddToCart}
                         disabled={!safeProduct.inStock}
-                        className={`flex-1 sm:flex-none font-body text-[11px] md:text-body-sm tracking-[0.22em] uppercase py-4 md:py-[1.125rem] rounded-full shadow-[0_14px_40px_-22px_rgba(18,17,14,0.55)] transition-colors duration-500 ${
+                        className={`flex-1 sm:flex-none font-body text-[11px] md:text-body-sm tracking-[0.22em] uppercase px-8 py-4 md:py-[1.125rem] rounded-full shadow-[0_14px_40px_-22px_rgba(18,17,14,0.55)] transition-colors duration-500 ${
                           added
                             ? 'bg-sage text-paper'
                             : safeProduct.inStock
