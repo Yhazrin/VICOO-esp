@@ -3,7 +3,7 @@
    Paper texture, grain overlay, sepia treatment, editorial layout
    ───────────────────────────────────────────────────────────── */
 
-@import './tokens.css';
+/* tokens.css already imported by index.css BEFORE themes.css — do NOT re-import here */
 @import './typography.css';
 
 /* ── Tailwind Layers ── */
@@ -50,32 +50,79 @@ body::before {
     radial-gradient(ellipse at 70% 60%, var(--paper-texture-4, rgba(212, 207, 196, 0.08)) 0%, transparent 50%);
 }
 
-/* ── 公益壳：提高对比、减弱灰雾感（与常规店 editorial 低饱和区分） ── */
+/* ── 公益壳：现代玻璃质感（与常规店 editorial 低饱和区分） ── */
 html[data-welfare-vivid] {
-  --color-paper: #fcfaf7;
-  --color-aged-stock: #f5f2eb;
-  --color-warm-gray: #c8c0b0;
-  --color-muted-gray: #9a9285;
-  --color-ink: #12110e;
-  --color-ink-faded: #3a362f;
-  --color-ink-light: #585246;
-  --color-sepia-dark: #2e261e;
-  --color-sepia-mid: #4a3d30;
-  --color-sepia-light: #6a5a48;
-  --color-sage: #2a382f;
-  --color-sage-light: #445548;
-  --color-sage-lighter: #5f7164;
-  --color-sage-muted: #7d8a80;
-  --color-sage-pale: #b8c4bb;
-  --color-sage-dark: #1e2822;
+  --color-paper: #ffffff;
+  --color-aged-stock: #f8f9fa;
+  --color-warm-gray: #e2e5e9;
+  --color-muted-gray: #9ca3af;
+  --color-ink: #111827;
+  --color-ink-faded: #4b5563;
+  --color-ink-light: #6b7280;
+  --color-sepia-dark: #1f2937;
+  --color-sepia-mid: #6b7280;
+  --color-sepia-light: #9ca3af;
+  --color-rust: #ef4444;
+  --color-rust-light: #f87171;
+  --color-rust-dark: #dc2626;
+  --color-sage: #059669;
+  --color-sage-light: #34d399;
+  --color-sage-lighter: #6ee7b7;
+  --color-sage-muted: #a7f3d0;
+  --color-sage-pale: #d1fae5;
+  --color-sage-dark: #047857;
 }
 
 html[data-welfare-vivid] body::before {
   background:
-    radial-gradient(ellipse at 15% 30%, rgba(180, 140, 70, 0.045) 0%, transparent 45%),
-    radial-gradient(ellipse at 85% 15%, rgba(120, 48, 36, 0.035) 0%, transparent 40%),
-    radial-gradient(ellipse at 50% 85%, rgba(72, 52, 40, 0.028) 0%, transparent 55%),
-    radial-gradient(ellipse at 70% 60%, rgba(210, 205, 196, 0.06) 0%, transparent 50%);
+    radial-gradient(ellipse at 20% 20%, rgba(5, 150, 105, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(239, 68, 68, 0.02) 0%, transparent 50%),
+    linear-gradient(135deg, rgba(248, 249, 250, 0.5) 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+/* 公益壳 — 现代玻璃质感覆盖 */
+html[data-welfare-vivid] {
+  --img-filter: none;
+  --img-filter-hover: none;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.06), 0 4px 10px rgba(0, 0, 0, 0.04);
+}
+
+/* 公益壳 — 卡片玻璃化 */
+html[data-welfare-vivid] .vintage-card,
+html[data-welfare-vivid] .editorial-card {
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.85);
+}
+
+html[data-welfare-vivid] .vintage-card::before,
+html[data-welfare-vivid] .vintage-card::after {
+  display: none;
+}
+
+/* 公益壳 — 图片去掉 sepia 滤镜 */
+html[data-welfare-vivid] img {
+  filter: none;
+}
+html[data-welfare-vivid] img:hover {
+  filter: none;
+}
+
+/* 公益壳 — 滚动条现代化 */
+html[data-welfare-vivid] ::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 8px;
+  border: 2px solid #f8f9fa;
+}
+html[data-welfare-vivid] ::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
 }
 
 /* ── Scrollbar — Editorial Style ── */
@@ -814,6 +861,11 @@ input, textarea, select {
   to   { opacity: 1; transform: translateX(0); }
 }
 
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 .animate-fade-in-up {
   animation: fade-in-up 0.5s ease-out both;
 }
@@ -854,3 +906,46 @@ input, textarea, select {
   content-visibility: auto;
   contain-intrinsic-size: auto 500px;
 }
+
+/* ── Scrollbar hidden utility ── */
+.scrollbar-none {
+  scrollbar-width: none;          /* Firefox */
+  -ms-overflow-style: none;       /* IE/Edge */
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;                  /* Chrome/Safari */
+}
+
+/* AI chat user message — force white text on all children (overrides typography.css p/h color) */
+.ai-user-msg,
+.ai-user-msg p,
+.ai-user-msg h1, .ai-user-msg h2, .ai-user-msg h3,
+.ai-user-msg h4, .ai-user-msg h5, .ai-user-msg h6,
+.ai-user-msg li, .ai-user-msg span, .ai-user-msg strong,
+.ai-user-msg em, .ai-user-msg code, .ai-user-msg pre,
+.ai-user-msg a {
+  color: #ffffff !important;
+}
+
+/* AI chat markdown — isolate from typography.css editorial styles */
+.ai-chat-md p {
+  font-family: "Source Sans Pro", "Noto Serif SC", sans-serif;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--color-ink);
+  max-width: none;
+  margin: 0 0 8px;
+}
+.ai-chat-md h1, .ai-chat-md h2, .ai-chat-md h3,
+.ai-chat-md h4, .ai-chat-md h5, .ai-chat-md h6 {
+  font-family: "Source Sans Pro", "Noto Serif SC", sans-serif;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: 0;
+  color: var(--color-ink);
+  margin: 10px 0 4px;
+}
+.ai-chat-md h1 { font-size: 17px; }
+.ai-chat-md h2 { font-size: 15px; }
+.ai-chat-md h3 { font-size: 14px; }
+.ai-chat-md h4, .ai-chat-md h5, .ai-chat-md h6 { font-size: 13px; }

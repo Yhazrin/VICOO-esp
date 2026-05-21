@@ -1204,6 +1204,18 @@
     "recycleBadge": "♻ 再生",
     "viewDetail": "查看详情",
     "browseMore": "浏览更多再生商品",
+    "tipsTitle": "回收小贴士",
+    "tip1": "清洁的衣物更容易通过审核。",
+    "tip2": "附上照片可以加快处理速度，也便于评估衣物状态。",
+    "tip3": "所有类型的衣物均可回收，包括破损的衣物。",
+    "tip4": "通过审核的衣物将带有回收标识上架循环商店。",
+    "processTitle": "接下来会发生什么？",
+    "processStep1": "运营团队将在 1-3 个工作日内审核您的提交。",
+    "processStep2": "通过审核的衣物将安排上门取件。",
+    "processStep3": "衣物经过分拣、清洁后上架循环商店。",
+    "processStep4": "您可以在订单历史中追踪完整流程。",
+    "showcaseDescription": "每件商品都带有回收标识和完整的供应链溯源。浏览循环商店发现独特的单品。",
+    "submitFirst": "提交您的第一份回收申请",
     "types": {
       "tshirt": "T 恤",
       "pants": "裤装",
@@ -1256,7 +1268,16 @@
     "exchange": "换货",
     "quality": "质量问题",
     "logistics": "物流",
-    "other": "其他"
+    "other": "其他",
+    "submitError": "提交失败，请重试",
+    "tipsTitle": "提交前须知",
+    "tip1": "准备好订单 ID —— 可在订单历史中找到。",
+    "tip2": "质量问题请附照片，可加快处理速度。",
+    "tip3": "大部分工单会在 2 个工作日内处理完毕。",
+    "contactTitle": "其他渠道",
+    "contactEmail": "邮箱：support@vicoo.com",
+    "contactHours": "周一至周五 9:00–18:00",
+    "descriptionPlaceholder": "详细描述问题"
   },
   "aiAssistant": {
     "title": "智能助手",
@@ -1339,6 +1360,18 @@
         "label": "公益了解",
         "prompt": "请介绍一下平台的公益和可持续实践。"
       }
+    },
+    "productCard": {
+      "donated": "{{percentage}}% 将捐赠"
+    },
+    "campaignCard": {
+      "raised": "已筹 {{amount}}",
+      "participants": "{{count}} 人参与"
+    },
+    "actionCard": {
+      "donationList": "捐赠记录",
+      "campaignProgress": "活动进度",
+      "impactFund": "影响力基金"
     }
   },
   "orderDetail": {
@@ -1717,6 +1750,18 @@
       "tieDyeTee": "扎染复兴T恤",
       "handPaintedJeans": "手绘牛仔裤",
       "patchworkDress": "拼布夏日连衣裙"
-    }
+    },
+    "tipsTitle": "回收小贴士",
+    "tip1": "清洁的衣物更容易通过审核。",
+    "tip2": "附上照片可以加快处理速度，也便于评估衣物状态。",
+    "tip3": "所有类型的衣物均可回收，包括破损的衣物。",
+    "tip4": "通过审核的衣物将带有回收标识上架循环商店。",
+    "processTitle": "接下来会发生什么？",
+    "processStep1": "我们的团队将在 1-3 个工作日内审核您的提交。",
+    "processStep2": "通过审核的衣物将安排上门取件。",
+    "processStep3": "衣物经过分拣、清洁后上架循环商店。",
+    "processStep4": "您可以在回收记录中追踪完整流程。",
+    "showcaseDescription": "每件商品都带有回收标识和完整的供应链溯源。浏览循环商店发现独特的单品。",
+    "submitFirst": "提交您的第一份回收申请"
   }
 }

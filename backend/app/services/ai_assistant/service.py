@@ -1,5 +1,5 @@
 import logging
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, AsyncGenerator
 import re
 import json
 from pathlib import Path
@@ -49,6 +49,7 @@ def _read_alias_map() -> Dict[str, List[str]]:
     return alias_map
 
 SYSTEM_PROMPT = """你是「Uniqlo × VICOO 公益」平台助手，也是「Uniqlo × VICOO 公益」的专属公益智能体。语气温暖、克制、专业。
+⚠️ 严禁在回复中使用任何 emoji 表情符号（如 💝 🌟 🎨 ✨ 👕 😊 等）。保持文字干净克制。
 你需要根据页面语境推荐对应商品，并优先使用站内数据库与检索结果回答：
 1) 如果当前是 Uniqlo/常规商城语境，默认优先推荐常规商品（/shop/{id}）。
 2) 如果当前是 Impact/公益语境，默认优先推荐公益商品（/impact/shop/{id}）。
@@ -66,11 +67,22 @@ SYSTEM_PROMPT = """你是「Uniqlo × VICOO 公益」平台助手，也是「Uni
 14) 查询公益商品的供应链溯源信息。
 15) 解释影响力基金的分配机制（60% 艺术家 / 30% 学校 / 10% 慈善池）。
 当用户表达公益相关意图时，主动调用对应工具获取实时数据，给出温暖、专业的回复。
-回复中如果包含捐赠记录、活动进度、影响力基金等结构化数据，请使用以下格式标记，以便前端渲染为可视化卡片：
-:::action-card[donation-list]{...json_data}
-:::action-card[campaign-progress]{...json_data}
-:::action-card[impact-fund]{...json_data}
-其中 json_data 为对应数据的 JSON 字符串。"""
+回复中如果包含捐赠记录、活动进度、影响力基金等结构化数据，请严格使用以下格式标记，以便前端渲染为可视化卡片。【注意：必须把整块 JSON 完整包裹在 :::action-card 内，不要把 JSON 裸露在外面】
+
+活动进度示例：
+:::action-card[campaign-progress]{"items":[{"name":"春日花语","raised":25000,"goal":50000,"participants":128},{"name":"海洋守护者","raised":18000,"goal":40000,"participants":95}]}
+
+捐赠记录示例：
+:::action-card[donation-list]{"items":[{"name":"张三","amount":200,"date":"2025-03-15"},{"name":"李四","amount":100,"date":"2025-03-14"}]}
+
+影响力基金示例：
+:::action-card[impact-fund]{"artistShare":6000,"schoolShare":3000,"charityShare":1000,"total":10000}
+
+重要规则：
+1. 一个 :::action-card 块内只放一个 JSON 对象
+2. JSON 必须合法（双引号、无尾逗号）
+3. 不要在 :::action-card 外面再重复输出同样的 JSON 数据
+4. 活动进度数据中 items 数组包含所有活动，每个活动有 name/raised/goal/participants 字段"""
 
 class AIAssistantService(BaseService):
     """
@@ -180,6 +192,126 @@ class AIAssistantService(BaseService):
         except Exception as e:
             logger.error(f"AI call failed: {e}")
             raise HTTPException(status_code=502, detail="AI Assistant is temporarily unavailable")
+
+    async def get_chat_completion_stream(
+        self,
+        messages: List[Dict[str, str]],
+        context: str = "general",
+        user_id: Optional[int] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> AsyncGenerator[str, None]:
+        """Stream AI completion using MiniMax Anthropic-compatible API (SSE)."""
+        last_user = self._get_last_user_message(messages)
+
+        if self._should_ask_catalog_clarification(last_user):
+            reply = (
+                "当然可以，我先确认一下：你想要 **Uniqlo** 还是 **Impact（公益线）** 的推荐？\n\n"
+                "Sure — would you like recommendations from **Uniqlo** or **Impact**?"
+            )
+            yield f"data: {json.dumps({'type': 'content_block_delta', 'text': reply})}\n\n"
+            yield f"data: {json.dumps({'type': 'message_stop', 'model': 'rule-based-clarifier', 'source': 'tooling'})}\n\n"
+            return
+
+        catalog_scope = self._determine_catalog_scope(last_user, context, metadata)
+        business_context = await self._get_business_context(user_id)
+        context_hint = f"\n[Platform Context: {context}]\n{business_context}"
+        full_system_prompt = (
+            SYSTEM_PROMPT + context_hint
+            + f"\n[Catalog Routing]\nSelected catalog scope: {catalog_scope}\n"
+        )
+
+        tool_output = await self._maybe_call_tools(messages, context, metadata, catalog_scope)
+        if tool_output:
+            full_system_prompt += f"\n\n[Tool Output]\n{tool_output}\n[End Tool Output]\n\nPlease use the above factual tool output to ground your answer and cite sources."
+
+        use_rag = False
+        if metadata and isinstance(metadata, dict):
+            if metadata.get("use_rag") is True:
+                use_rag = True
+        if not use_rag:
+            if context in ("impact", "sustainability", "shop") or (metadata and metadata.get("impactMode")):
+                use_rag = True
+        if use_rag and last_user:
+            rag_output = await self._retrieve_rag(last_user, context, catalog_scope, metadata)
+            if rag_output:
+                full_system_prompt += f"\n\n[Retrieval Results]\n{rag_output}\n[End Retrieval]\n\nPlease use the above retrieval snippets to ground your answer and cite sources."
+
+        if not settings.OPENAI_API_KEY:
+            grounded = tool_output or ""
+            reply = grounded or f"您好，我是您的公益助手。目前我正处于演示模式（Context: {context}）。配置 API Key 后我可以为您提供更智能的回复。"
+            yield f"data: {json.dumps({'type': 'content_block_delta', 'text': reply})}\n\n"
+            yield f"data: {json.dumps({'type': 'message_stop', 'model': 'simulation-mode', 'source': 'local-stub'})}\n\n"
+            return
+
+        # Use Anthropic-compatible endpoint: https://api.minimax.chat/anthropic/v1/messages
+        # OPENAI_API_BASE is https://api.minimax.chat/v1 — strip the trailing /v1
+        base = settings.OPENAI_API_BASE.rstrip('/')
+        if base.endswith('/v1'):
+            base = base[:-3]
+        url = f"{base}/anthropic/v1/messages"
+        headers = {
+            "X-Api-Key": settings.OPENAI_API_KEY,
+            "Content-Type": "application/json",
+        }
+
+        anthropic_messages = []
+        for m in messages:
+            anthropic_messages.append({"role": m["role"], "content": m["content"]})
+
+        payload = {
+            "model": settings.OPENAI_MODEL,
+            "system": full_system_prompt,
+            "messages": anthropic_messages,
+            "max_tokens": 800,
+            "temperature": 0.7,
+            "stream": True,
+        }
+
+        try:
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                async with client.stream("POST", url, headers=headers, json=payload) as response:
+                    if response.status_code != 200:
+                        body = await response.aread()
+                        logger.error(f"Anthropic stream error {response.status_code}: {body.decode()[:300]}")
+                        yield f"data: {json.dumps({'type': 'error', 'error': f'Upstream returned {response.status_code}'})}\n\n"
+                        return
+
+                    buffer = ""
+                    async for chunk in response.aiter_text():
+                        buffer += chunk
+                        while "\n" in buffer:
+                            line, buffer = buffer.split("\n", 1)
+                            line = line.strip()
+                            if not line or line.startswith(":"):
+                                continue
+                            if line.startswith("event:"):
+                                continue
+                            if line.startswith("data:"):
+                                data_str = line[5:].strip()
+                                if data_str == "[DONE]":
+                                    yield f"data: {json.dumps({'type': 'message_stop', 'model': settings.OPENAI_MODEL, 'source': 'anthropic-stream'})}\n\n"
+                                    return
+                                try:
+                                    evt = json.loads(data_str)
+                                    evt_type = evt.get("type", "")
+
+                                    if evt_type == "content_block_delta":
+                                        delta = evt.get("delta", {})
+                                        text = delta.get("text", "")
+                                        if text:
+                                            yield f"data: {json.dumps({'type': 'content_block_delta', 'text': text})}\n\n"
+                                    elif evt_type == "message_stop":
+                                        yield f"data: {json.dumps({'type': 'message_stop', 'model': settings.OPENAI_MODEL, 'source': 'anthropic-stream'})}\n\n"
+                                        return
+                                except json.JSONDecodeError:
+                                    continue
+
+                    # If we exit the loop without explicit stop
+                    yield f"data: {json.dumps({'type': 'message_stop', 'model': settings.OPENAI_MODEL, 'source': 'anthropic-stream'})}\n\n"
+
+        except Exception as e:
+            logger.error(f"Anthropic stream failed: {e}")
+            yield f"data: {json.dumps({'type': 'error', 'error': str(e)})}\n\n"
 
     async def moderate_content(self, text: str) -> Dict[str, Any]:
         """

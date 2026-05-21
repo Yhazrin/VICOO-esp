@@ -1,22 +1,101 @@
-import React, { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { aiAssistantApi, type AIChatMessage } from '@/services/aiAssistant';
 import { useLocation } from 'react-router-dom';
 import { useUIStore } from '@/stores/uiStore';
 import { getAIAssistantMetadata, getAIAssistantSuggestions } from '@/config/aiAssistantScenarios';
-import { sanitizeAssistantContent } from '@/utils/aiContent';
-import AIBallVisual from './AIBallVisual';
+import { sanitizeAssistantContentWithCards } from '@/utils/aiContent';
+import { ChatProductCard, extractProductId } from './ChatProductCard';
+import { ChatCampaignCard, extractCampaignId } from './ChatCampaignCard';
+import { ChatActionCard } from './ChatActionCard';
 
-// Lazy-load markdown parser (~80KB) — only needed when chat is open
-const ReactMarkdown = lazy(() => import('react-markdown'));
-const remarkGfmPromise = import('remark-gfm').then(m => m.default);
+// ── Markdown components (module-level — stable reference across renders) ──
+const markdownComponents = {
+  a: ({ href, children, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement> & { children?: React.ReactNode }) => {
+    if (!href) return <a {...props}>{children}</a>;
+    const fallbackName = typeof children === 'string' ? children : '';
+    // Product link
+    const pid = extractProductId(href);
+    if (pid != null) {
+      return <div style={{ display: 'block', width: '100%' }}><ChatProductCard productId={pid} fallbackName={fallbackName} /></div>;
+    }
+    // Campaign link
+    const cid = extractCampaignId(href);
+    if (cid != null) {
+      return <div style={{ display: 'block', width: '100%' }}><ChatCampaignCard campaignId={cid} fallbackName={fallbackName} /></div>;
+    }
+    // Other link
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ color: 'var(--color-rust)', textDecoration: 'underline', textUnderlineOffset: 2 }}
+        {...props}
+      >
+        {children}
+      </a>
+    );
+  },
+  ul: ({ children, ...props }: React.HTMLAttributes<HTMLUListElement>) => (
+    <ul style={{ margin: '4px 0 8px', paddingLeft: 18, listStyleType: 'disc' }} {...props}>{children}</ul>
+  ),
+  ol: ({ children, ...props }: React.HTMLAttributes<HTMLOListElement>) => (
+    <ol style={{ margin: '4px 0 8px', paddingLeft: 18 }} {...props}>{children}</ol>
+  ),
+  li: ({ children, ...props }: React.HTMLAttributes<HTMLLIElement>) => (
+    <li style={{ margin: '2px 0', lineHeight: 1.65 }} {...props}>{children}</li>
+  ),
+  table: ({ children, ...props }: React.HTMLAttributes<HTMLTableElement>) => (
+    <div style={{ overflowX: 'auto', margin: '8px 0', borderRadius: 8, border: '1px solid rgba(0,0,0,0.06)' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }} {...props}>{children}</table>
+    </div>
+  ),
+  thead: ({ children, ...props }: React.HTMLAttributes<HTMLTableSectionElement>) => (
+    <thead style={{ background: 'rgba(0,0,0,0.03)' }} {...props}>{children}</thead>
+  ),
+  th: ({ children, ...props }: React.ThHTMLAttributes<HTMLTableCellElement>) => (
+    <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 600, borderBottom: '1px solid rgba(0,0,0,0.08)' }} {...props}>{children}</th>
+  ),
+  td: ({ children, ...props }: React.TdHTMLAttributes<HTMLTableCellElement>) => (
+    <td style={{ padding: '6px 10px', borderBottom: '1px solid rgba(0,0,0,0.04)' }} {...props}>{children}</td>
+  ),
+  code: ({ children, className, ...props }: React.HTMLAttributes<HTMLElement>) => {
+    if (className?.includes('language-')) return <code className={className} {...props}>{children}</code>;
+    return (
+      <code style={{ background: 'rgba(0,0,0,0.06)', padding: '1px 5px', borderRadius: 4, fontSize: 12, fontFamily: 'monospace' }} {...props}>
+        {children}
+      </code>
+    );
+  },
+  pre: ({ children, ...props }: React.HTMLAttributes<HTMLPreElement>) => (
+    <pre style={{ background: 'rgba(0,0,0,0.05)', borderRadius: 8, padding: '10px 14px', overflowX: 'auto', fontSize: 12, margin: '8px 0' }} {...props}>
+      {children}
+    </pre>
+  ),
+  blockquote: ({ children, ...props }: React.HTMLAttributes<HTMLQuoteElement>) => (
+    <blockquote style={{ borderLeft: '3px solid var(--color-rust)', background: 'rgba(0,0,0,0.03)', padding: '8px 12px', margin: '8px 0', borderRadius: '0 8px 8px 0', fontSize: 13 }} {...props}>
+      {children}
+    </blockquote>
+  ),
+  hr: ({ ...props }: React.HTMLAttributes<HTMLHRElement>) => (
+    <hr style={{ border: 'none', borderTop: '1px solid rgba(0,0,0,0.08)', margin: '12px 0' }} {...props} />
+  ),
+  strong: ({ children, ...props }: React.HTMLAttributes<HTMLElement>) => (
+    <strong style={{ fontWeight: 600, color: 'var(--color-ink)' }} {...props}>{children}</strong>
+  ),
+};
 
-function MarkdownRenderer({ content }: { content: string }) {
-  const [plugin, setPlugin] = useState<unknown>(null);
-  useEffect(() => { remarkGfmPromise.then(setPlugin); }, []);
-  return <ReactMarkdown remarkPlugins={plugin ? [plugin] : []}>{content}</ReactMarkdown>;
-}
+const MarkdownRenderer = React.memo(function MarkdownRenderer({ content }: { content: string }) {
+  return (
+    <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+      {content}
+    </ReactMarkdown>
+  );
+});
 
 interface Message {
   id: string;
@@ -27,143 +106,31 @@ interface Message {
 let _msgId = 0;
 const nextMsgId = () => `msg-${++_msgId}`;
 
-// ── Ball position persistence ──
-const POS_KEY = 'vicoo-ai-ball-pos';
-const BALL_SIZE = 56;
-const SNAP_THRESHOLD = 5; // px — below this, treat as click not drag
-
-function loadBallPos(): { x: number; y: number } {
-  try {
-    const raw = localStorage.getItem(POS_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (typeof parsed.x === 'number' && typeof parsed.y === 'number') return parsed;
-    }
-  } catch { /* ignore */ }
-  // Default: bottom-right corner
-  return { x: window.innerWidth - BALL_SIZE - 32, y: window.innerHeight - BALL_SIZE - 32 };
-}
-
-function saveBallPos(x: number, y: number) {
-  try { localStorage.setItem(POS_KEY, JSON.stringify({ x, y })); } catch { /* ignore */ }
-}
-
-// Snap to nearest horizontal edge
-function snapX(x: number): number {
-  const mid = window.innerWidth / 2;
-  return x < mid ? 24 : window.innerWidth - BALL_SIZE - 24;
-}
-
-function clampY(y: number): number {
-  return Math.max(24, Math.min(y, window.innerHeight - BALL_SIZE - 24));
-}
-
 // ── Welfare capability tags ──
 const welfareCapabilities = [
-  { id: 'donate', icon: '💝', labelKey: 'aiAssistant.cap.donate', promptKey: 'aiAssistant.cap.donate.prompt' },
-  { id: 'campaign', icon: '🎯', labelKey: 'aiAssistant.cap.campaign', promptKey: 'aiAssistant.cap.campaign.prompt' },
-  { id: 'impact', icon: '🌍', labelKey: 'aiAssistant.cap.impact', promptKey: 'aiAssistant.cap.impact.prompt' },
-  { id: 'myDonations', icon: '📋', labelKey: 'aiAssistant.cap.myDonations', promptKey: 'aiAssistant.cap.myDonations.prompt' },
-  { id: 'recycle', icon: '♻️', labelKey: 'aiAssistant.cap.recycle', promptKey: 'aiAssistant.cap.recycle.prompt' },
-  { id: 'trace', icon: '🔍', labelKey: 'aiAssistant.cap.trace', promptKey: 'aiAssistant.cap.trace.prompt' },
+  { id: 'donate', labelKey: 'aiAssistant.cap.donate', promptKey: 'aiAssistant.cap.donate.prompt' },
+  { id: 'campaign', labelKey: 'aiAssistant.cap.campaign', promptKey: 'aiAssistant.cap.campaign.prompt' },
+  { id: 'impact', labelKey: 'aiAssistant.cap.impact', promptKey: 'aiAssistant.cap.impact.prompt' },
+  { id: 'myDonations', labelKey: 'aiAssistant.cap.myDonations', promptKey: 'aiAssistant.cap.myDonations.prompt' },
+  { id: 'recycle', labelKey: 'aiAssistant.cap.recycle', promptKey: 'aiAssistant.cap.recycle.prompt' },
+  { id: 'trace', labelKey: 'aiAssistant.cap.trace', promptKey: 'aiAssistant.cap.trace.prompt' },
 ];
 
 export const AIAssistantBall: React.FC = () => {
   const { t } = useTranslation();
-  const { impactMode, aiBallStyle } = useUIStore();
+  const { impactMode } = useUIStore();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [feedbackMap, setFeedbackMap] = useState<Record<string, 'idle' | 'submitting' | 'sent' | 'escalated'>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
+  const handleSendRef = useRef<(text?: string) => void>(() => {});
   const route = useLocation().pathname;
   const isImpactSurface = impactMode || route.startsWith('/impact');
   const suggestions = getAIAssistantSuggestions(isImpactSurface, route);
   const assistantMetadata = getAIAssistantMetadata(isImpactSurface, route);
 
-  // ── Drag state ──
-  const [ballPos, setBallPos] = useState(loadBallPos);
-  const [isDragging, setIsDragging] = useState(false);
-  const dragStartRef = useRef<{ x: number; y: number; bx: number; by: number } | null>(null);
-  const hasMovedRef = useRef(false);
-
-  // ── Panel position: above ball, auto-adjust ──
-  const panelWidth = 420;
-  const panelHeight = 560;
-  const getPanelPos = useCallback(() => {
-    const bw = window.innerWidth;
-    const bh = window.innerHeight;
-    let left = ballPos.x + BALL_SIZE / 2 - panelWidth / 2;
-    let top = ballPos.y - panelHeight - 16;
-    // Clamp horizontal
-    left = Math.max(16, Math.min(left, bw - panelWidth - 16));
-    // If not enough space above, put below
-    if (top < 16) top = ballPos.y + BALL_SIZE + 16;
-    // Clamp vertical
-    top = Math.max(16, Math.min(top, bh - panelHeight - 16));
-    return { left, top };
-  }, [ballPos]);
-
-  // ── Drag handlers ──
-  const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    e.preventDefault();
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
-    dragStartRef.current = { x: e.clientX, y: e.clientY, bx: ballPos.x, by: ballPos.y };
-    hasMovedRef.current = false;
-  }, [ballPos]);
-
-  const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    if (!dragStartRef.current) return;
-    const dx = e.clientX - dragStartRef.current.x;
-    const dy = e.clientY - dragStartRef.current.y;
-    if (!hasMovedRef.current && Math.abs(dx) < SNAP_THRESHOLD && Math.abs(dy) < SNAP_THRESHOLD) return;
-    hasMovedRef.current = true;
-    setIsDragging(true);
-    const newX = Math.max(0, Math.min(dragStartRef.current.bx + dx, window.innerWidth - BALL_SIZE));
-    const newY = clampY(dragStartRef.current.by + dy);
-    setBallPos({ x: newX, y: newY });
-  }, []);
-
-  const handlePointerUp = useCallback(() => {
-    dragStartRef.current = null;
-    if (hasMovedRef.current) {
-      // Snap to edge
-      setBallPos(prev => {
-        const snapped = { x: snapX(prev.x), y: prev.y };
-        saveBallPos(snapped.x, snapped.y);
-        return snapped;
-      });
-      // Delay resetting isDragging so click doesn't fire
-      setTimeout(() => setIsDragging(false), 100);
-    } else {
-      setIsDragging(false);
-      setIsOpen(prev => !prev);
-    }
-  }, []);
-
   // ── Chat logic ──
-  const handleFeedback = async (messageId: string, isHelpful: boolean) => {
-    if (feedbackMap[messageId] === 'submitting') return;
-    setFeedbackMap(prev => ({ ...prev, [messageId]: 'submitting' }));
-    try {
-      const chatMessages: AIChatMessage[] = messages.map(m => ({ role: m.role as AIChatMessage['role'], content: m.content }));
-      const res = await aiAssistantApi.feedback(
-        isHelpful,
-        chatMessages,
-        assistantMetadata,
-        isHelpful ? undefined : t('aiAssistant.feedbackNotHelpfulNote')
-      );
-      if (isHelpful) {
-        setFeedbackMap(prev => ({ ...prev, [messageId]: 'sent' }));
-      } else {
-        setFeedbackMap(prev => ({ ...prev, [messageId]: res && res.escalated ? 'escalated' : 'sent' }));
-      }
-    } catch {
-      setFeedbackMap(prev => ({ ...prev, [messageId]: 'sent' }));
-    }
-  };
-
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -179,98 +146,100 @@ export const AIAssistantBall: React.FC = () => {
     setInput('');
     setIsLoading(true);
 
+    const assistantId = nextMsgId();
+    // Insert an empty assistant message that will be updated as tokens stream in
+    setMessages(prev => [...prev, { id: assistantId, role: 'assistant', content: '' }]);
+
     try {
       const chatMessages: AIChatMessage[] = [...messages, userMsg].map((m) => ({
         role: m.role as AIChatMessage['role'],
         content: m.content,
       }));
-      const result = await aiAssistantApi.chat(chatMessages, 'general', assistantMetadata);
-      const reply = result?.reply || t('aiAssistant.replyError');
-      setMessages(prev => [...prev, { id: nextMsgId(), role: 'assistant', content: reply }]);
+      await aiAssistantApi.chatStream(
+        chatMessages,
+        'general',
+        assistantMetadata,
+        (fullText) => {
+          setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, content: fullText } : m));
+        },
+      );
     } catch {
-      setMessages(prev => [...prev, { id: nextMsgId(), role: 'system', content: t('aiAssistant.connectionError') }]);
+      // Replace the empty assistant message with an error
+      setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, role: 'system', content: t('aiAssistant.connectionError') } : m));
     } finally {
       setIsLoading(false);
     }
   };
 
-  // ── Frosted glass theme ──
-  const panelPos = getPanelPos();
+  handleSendRef.current = handleSend;
+
+  // ── Prefill from external components (e.g. ProductDetail) ──
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { text?: string; metadata?: Record<string, unknown> } | undefined;
+      if (!detail?.text) return;
+      setIsOpen(true);
+      // Slight delay so the panel mounts before sending
+      setTimeout(() => handleSendRef.current(detail.text), 100);
+    };
+    window.addEventListener('ai-assistant-prefill', handler as EventListener);
+    return () => window.removeEventListener('ai-assistant-prefill', handler as EventListener);
+  }, []);
 
   return (
     <>
-      {/* Chat Panel (portal-like, positioned absolute to viewport) */}
+      {/* Chat Panel — fixed bottom-right */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.85, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.85, y: 20 }}
-            transition={{ type: 'spring', damping: 28, stiffness: 220 }}
-            className="fixed z-50 flex flex-col overflow-hidden"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 16 }}
+            transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+            className="fixed z-[60] flex flex-col overflow-hidden"
             style={{
-              left: panelPos.left,
-              top: panelPos.top,
-              width: panelWidth,
-              height: panelHeight,
-              borderRadius: 20,
+              right: 24,
+              bottom: 4,
+              width: 420,
+              height: 560,
+              borderRadius: 36,
+              background: 'rgba(255, 255, 255, 0.82)',
               backdropFilter: 'blur(24px) saturate(1.4)',
               WebkitBackdropFilter: 'blur(24px) saturate(1.4)',
-              background: isImpactSurface
-                ? 'linear-gradient(135deg, rgba(248,240,225,0.82) 0%, rgba(245,230,204,0.78) 50%, rgba(238,213,175,0.75) 100%)'
-                : 'linear-gradient(135deg, rgba(251,242,227,0.82) 0%, rgba(247,228,197,0.78) 50%, rgba(240,204,164,0.75) 100%)',
-              border: '1px solid rgba(255,255,255,0.35)',
-              boxShadow: '0 25px 80px rgba(0,0,0,0.15), 0 8px 32px rgba(139,58,42,0.08)',
-              fontFamily: '"Smiley Sans", "Source Sans Pro", "Noto Serif SC", serif',
+              border: '1px solid rgba(0, 0, 0, 0.08)',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1), 0 4px 16px rgba(0, 0, 0, 0.04)',
+              fontFamily: '"Source Sans Pro", "Noto Serif SC", sans-serif',
             }}
           >
-            {/* Header */}
-            <div
-              className="px-5 py-3.5 flex justify-between items-center"
-              style={{
-                background: isImpactSurface
-                  ? 'linear-gradient(135deg, rgba(107,50,26,0.88) 0%, rgba(143,74,35,0.85) 100%)'
-                  : 'linear-gradient(135deg, rgba(94,45,27,0.88) 0%, rgba(122,64,34,0.85) 100%)',
-                borderBottom: '1px solid rgba(183,119,73,0.3)',
-              }}
-            >
-              <div>
-                <h3 className="text-xs uppercase font-bold tracking-[0.14em] text-[#fff7ea]">
-                  {isImpactSurface ? t('aiAssistant.ballTitleImpact') : t('aiAssistant.ballTitle')}
-                </h3>
-                <p className="text-[10px] text-[#ffe9cc]">
-                  {isImpactSurface ? `Impact · ${t('aiAssistant.ballSubtitle')}` : `Uniqlo · ${t('aiAssistant.ballSubtitle')}`}
-                </p>
-              </div>
-              <button onClick={() => setIsOpen(false)} className="text-xl text-[#fff7ea] hover:opacity-70 transition-opacity">×</button>
-            </div>
-
             {/* Chat Content */}
             <div
               ref={scrollRef}
-              className="flex-1 overflow-y-auto px-5 py-4 space-y-3 scrollbar-thin"
-              style={{ color: '#332217' }}
+              className="flex-1 overflow-y-auto relative z-10 px-4 pt-4 pb-4 space-y-4 scrollbar-none"
+              style={{ color: 'var(--color-ink)' }}
             >
               {messages.length === 0 && (
-                <div className="text-center py-8 px-3">
-                  <p className="text-sm italic" style={{ color: isImpactSurface ? '#7f4f2a' : '#6e4b35' }}>
-                    {t('aiAssistant.emptyQuote')}
+                <div className="py-6 px-2">
+                  <p
+                    className="text-sm leading-relaxed"
+                    style={{ color: 'var(--color-ink-faded)', fontFamily: '"Source Sans Pro", sans-serif' }}
+                  >
+                    {t('aiAssistant.greeting')}
                   </p>
-                  <p className="mt-3 text-xs" style={{ color: '#342317' }}>{t('aiAssistant.greeting')}</p>
-                  <div className="mt-4 flex flex-wrap justify-center gap-2">
+                  <div className="mt-4 mb-5" style={{ borderTop: '1px solid var(--color-warm-gray)', width: 40, opacity: 0.4 }} />
+                  <div className="flex flex-wrap gap-2">
                     {suggestions.map((item) => (
                       <button
                         key={item.id}
                         type="button"
                         onClick={() => void handleSend(t(`aiAssistant.suggestions.${item.id}.prompt`))}
-                        className="text-[11px] px-3.5 py-1.5 rounded-full transition-all duration-200 hover:scale-[1.04]"
+                        className="text-[11px] px-3.5 py-1.5 rounded-full transition-all duration-200 cursor-pointer hover:shadow-sm"
                         style={{
-                          fontFamily: '"Source Sans Pro", "Noto Serif SC", serif',
-                          color: '#8B3A2A',
-                          border: '1px solid #D4CFC4',
-                          background: 'rgba(250,246,238,0.85)',
-                          backdropFilter: 'blur(4px)',
-                          letterSpacing: '0.03em',
+                          fontFamily: '"Source Sans Pro", sans-serif',
+                          color: 'var(--color-ink-faded)',
+                          border: '1px solid rgba(0, 0, 0, 0.1)',
+                          background: 'rgba(255, 255, 255, 0.7)',
+                          backdropFilter: 'blur(8px)',
+                          letterSpacing: '0.02em',
                         }}
                       >
                         {t(`aiAssistant.suggestions.${item.id}.label`)}
@@ -282,39 +251,33 @@ export const AIAssistantBall: React.FC = () => {
               {messages.map((m) => (
                 <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                   <div
-                    className={`max-w-[85%] p-3 text-xs leading-relaxed rounded-xl ${
+                    className={`text-[13px] leading-relaxed ${
                       m.role === 'user'
-                        ? 'rounded-br-sm'
-                        : 'rounded-bl-sm'
-                    } ${m.role === 'system' ? 'opacity-70 italic border-none bg-transparent' : ''}`}
+                        ? 'ai-user-msg max-w-[75%] px-4 py-2.5 rounded-2xl rounded-br-md'
+                        : 'ai-chat-md max-w-[88%] px-4 py-2.5 rounded-2xl rounded-bl-md'
+                    } ${m.role === 'system' ? 'opacity-60 italic text-[12px]' : ''}`}
                     style={{
-                      background: m.role === 'user'
-                        ? (isImpactSurface ? 'rgba(181,95,52,0.85)' : 'rgba(158,79,45,0.85)')
-                        : 'rgba(255,247,234,0.8)',
-                      border: m.role === 'system' ? 'none' : `1px solid ${m.role === 'user' ? 'rgba(140,68,35,0.4)' : 'rgba(200,139,88,0.35)'}`,
-                      color: m.role === 'user' ? '#fff7ec' : '#3b2718',
-                      backdropFilter: m.role !== 'user' ? 'blur(8px)' : undefined,
+                      background: m.role === 'user' ? 'var(--color-ink)' : 'rgba(0, 0, 0, 0.04)',
+                      color: m.role === 'user' ? '#ffffff' : 'var(--color-ink)',
                     }}
                   >
-                    <Suspense fallback={<span className="opacity-50">...</span>}>
-                      <MarkdownRenderer content={m.role === 'assistant' ? sanitizeAssistantContent(m.content) : m.content} />
-                    </Suspense>
+                    {m.role === 'assistant' ? (() => {
+                      const { cleanedText, actionCards } = sanitizeAssistantContentWithCards(m.content);
+                      return (
+                        <>
+                          <MarkdownRenderer content={cleanedText} />
+                          {actionCards.map((card, i) => <ChatActionCard key={i} card={card} />)}
+                        </>
+                      );
+                    })() : <MarkdownRenderer content={m.content} />}
                   </div>
-
-                  {m.role === 'assistant' && (
-                    <div className="flex items-center gap-1.5 ml-1.5 self-start mt-1">
-                      <button onClick={() => handleFeedback(m.id, true)} aria-label={t('aiAssistant.feedbackHelpfulAria')} className="text-green-600 text-[10px] hover:scale-110 transition-transform">👍</button>
-                      <button onClick={() => handleFeedback(m.id, false)} aria-label={t('aiAssistant.feedbackNotHelpfulAria')} className="text-red-500 text-[10px] hover:scale-110 transition-transform">👎</button>
-                      {feedbackMap[m.id] === 'submitting' && <span className="text-[9px] ml-1">...</span>}
-                      {feedbackMap[m.id] === 'sent' && <span className="text-[9px] ml-1 text-[#5b6a2d]">{t('aiAssistant.feedbackSubmitted')}</span>}
-                      {feedbackMap[m.id] === 'escalated' && <span className="text-[9px] ml-1 text-[#8B3A2A]">{t('aiAssistant.feedbackEscalated')}</span>}
-                    </div>
-                  )}
                 </div>
               ))}
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="p-3 text-xs animate-pulse" style={{ color: '#6f4a34' }}>{t('aiAssistant.typing')}</div>
+                  <div className="px-4 py-2.5 rounded-2xl rounded-bl-md text-[12px]" style={{ color: 'var(--color-ink-light)', background: 'rgba(0, 0, 0, 0.04)' }}>
+                    {t('aiAssistant.typing')}
+                  </div>
                 </div>
               )}
             </div>
@@ -322,102 +285,104 @@ export const AIAssistantBall: React.FC = () => {
             {/* Welfare Capability Tags */}
             {isImpactSurface && (
               <div
-                className="px-4 py-2 flex gap-1.5 overflow-x-auto scrollbar-none"
-                style={{ borderTop: '1px solid rgba(155,100,63,0.2)', background: 'rgba(248,236,217,0.5)' }}
+                className="relative z-10 px-4 py-2.5 flex gap-2 overflow-x-auto overflow-y-hidden scrollbar-none"
               >
                 {welfareCapabilities.map((cap) => (
                   <button
                     key={cap.id}
                     type="button"
                     onClick={() => void handleSend(t(cap.promptKey))}
-                    className="flex-shrink-0 text-[11px] px-3 py-1.5 rounded-full transition-all duration-200 hover:scale-[1.04]"
+                    className="flex-shrink-0 text-[11px] px-3 py-1.5 rounded-full transition-all duration-200 cursor-pointer hover:shadow-sm"
                     style={{
-                      fontFamily: '"Source Sans Pro", "Noto Serif SC", serif',
-                      color: '#8B3A2A',
-                      border: '1px solid #D4CFC4',
-                      background: 'rgba(250,246,238,0.85)',
-                      backdropFilter: 'blur(4px)',
+                      fontFamily: '"Source Sans Pro", sans-serif',
+                      color: 'var(--color-ink-faded)',
+                      border: '1px solid rgba(0, 0, 0, 0.08)',
+                      background: 'rgba(255, 255, 255, 0.7)',
                       letterSpacing: '0.02em',
                     }}
                   >
-                    {cap.icon} {t(cap.labelKey)}
+                    {t(cap.labelKey)}
                   </button>
                 ))}
               </div>
             )}
 
-            {/* Input Area */}
-            <div
-              className="px-4 py-3"
-              style={{ borderTop: '1px solid rgba(155,100,63,0.25)', background: 'rgba(248,236,213,0.6)' }}
-            >
-              <div className="flex gap-2">
+            {/* Input Area — capsule bar */}
+            <div className="relative z-10 px-4 pb-4">
+              <div
+                className="flex items-center p-1"
+                style={{
+                  borderRadius: 999,
+                  background: 'rgba(255, 255, 255, 0.6)',
+                  border: '1px solid rgba(0, 0, 0, 0.08)',
+                }}
+              >
                 <input
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
                   placeholder={t('aiAssistant.placeholder')}
-                  className="flex-1 px-3 py-2 text-xs focus:outline-none rounded-lg"
+                  className="flex-1 px-4 py-2.5 text-[13px] bg-transparent focus:outline-none"
                   style={{
-                    background: 'rgba(255,248,236,0.8)',
-                    border: '1px solid rgba(155,100,63,0.4)',
-                    color: '#2d1e14',
-                    backdropFilter: 'blur(4px)',
+                    color: 'var(--color-ink)',
+                    fontFamily: '"Source Sans Pro", sans-serif',
                   }}
                 />
-                <button
+                {/* Close button — morphs from trigger */}
+                <motion.button
+                  layoutId="ai-trigger"
                   type="button"
-                  onClick={() => void handleSend()}
-                  disabled={isLoading}
-                  className="px-4 py-2 text-[10px] uppercase tracking-widest transition-colors rounded-lg"
+                  onClick={() => setIsOpen(false)}
+                  className="flex-shrink-0 flex items-center justify-center cursor-pointer"
                   style={{
-                    background: isImpactSurface ? 'rgba(127,60,32,0.9)' : 'rgba(112,53,28,0.9)',
-                    color: '#fff4e3',
+                    width: 48,
+                    height: 48,
+                    borderRadius: '50%',
+                    background: 'var(--color-ink)',
+                    color: '#ffffff',
+                    border: 'none',
+                    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)',
                   }}
+                  whileHover={{ scale: 1.08 }}
+                  whileTap={{ scale: 0.92 }}
                 >
-                  {t('aiAssistant.send')}
-                </button>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </motion.button>
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Floating Ball */}
-      <motion.div
-        className="fixed z-50"
-        style={{
-          left: ballPos.x,
-          top: ballPos.y,
-          width: BALL_SIZE,
-          height: BALL_SIZE,
-          touchAction: 'none',
-          cursor: isDragging ? 'grabbing' : 'grab',
-        }}
-        animate={{
-          scale: isDragging ? 1.12 : 1,
-          filter: isDragging ? 'drop-shadow(0 8px 20px rgba(0,0,0,0.25))' : 'drop-shadow(0 4px 12px rgba(0,0,0,0.15))',
-        }}
-        transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-      >
-        {/* Breathing pulse ring */}
-        <motion.div
-          className="absolute inset-0 rounded-full"
+      {/* Trigger Button — morphs into send button when panel opens */}
+      {!isOpen && (
+        <motion.button
+          layoutId="ai-trigger"
+          type="button"
+          onClick={() => setIsOpen(true)}
+          className="fixed z-50 flex items-center justify-center cursor-pointer"
           style={{
-            border: `2px solid ${isImpactSurface ? 'rgba(232,137,74,0.3)' : 'rgba(139,58,42,0.2)'}`,
+            right: 24,
+            bottom: 24,
+            width: 48,
+            height: 48,
+            borderRadius: '50%',
+            background: 'var(--color-ink)',
+            color: '#ffffff',
+            border: 'none',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)',
           }}
-          animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0, 0.6] }}
-          transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        {/* Ball body */}
-        <div className="absolute inset-0 rounded-full overflow-hidden">
-          <AIBallVisual style={aiBallStyle} isImpact={isImpactSurface} />
-        </div>
-      </motion.div>
+          whileHover={{ scale: 1.08, boxShadow: '0 6px 24px rgba(0, 0, 0, 0.2)' }}
+          whileTap={{ scale: 0.92 }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+        </motion.button>
+      )}
     </>
   );
 };

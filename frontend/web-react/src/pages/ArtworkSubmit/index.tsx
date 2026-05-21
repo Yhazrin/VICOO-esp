@@ -175,23 +175,27 @@ export default function ArtworkSubmitPage() {
 
   return (
     <PageWrapper>
-      {/* Hero */}
-      <PaperTextureBackground variant="paper" className="py-20 md:py-32 relative">
-        <GrainOverlay />
-        <SectionContainer>
-          <motion.div {...fadeUp()} className="max-w-2xl">
-            <span className="font-body text-overline text-rust tracking-[0.25em] uppercase block mb-4">
-              {t('artworkSubmit.badge', 'Artwork Submission & Review')}
-            </span>
-            <h1 className="font-display text-h1 font-bold leading-[0.95] tracking-[-0.025em] text-ink mb-6">
-              {t('artworkSubmit.heroTitle', 'Change Fashion with Your Brush')}
-            </h1>
-            <p className="font-body text-body-sm md:text-body text-ink-faded leading-relaxed max-w-lg">
-              {t('artworkSubmit.heroDescription', 'Choose a campaign and submit your original artwork. Once approved, your art may be featured on welfare products.')}
-            </p>
-          </motion.div>
-        </SectionContainer>
-      </PaperTextureBackground>
+      {/* Compact header */}
+      <SectionContainer noTopSpacing>
+        <div className="pt-12 md:pt-16 pb-6">
+          <motion.h1
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0, 0, 0.2, 1] }}
+            className="font-display text-h2 md:text-h1 text-ink mb-2"
+          >
+            {t('artworkSubmit.heroTitle', 'Change Fashion with Your Brush')}
+          </motion.h1>
+          <motion.p
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0, 0, 0.2, 1], delay: 0.08 }}
+            className="font-body text-body text-ink-faded max-w-2xl"
+          >
+            {t('artworkSubmit.heroDescription', 'Choose a campaign and submit your original artwork. Once approved, your art may be featured on welfare products.')}
+          </motion.p>
+        </div>
+      </SectionContainer>
 
       <MagazineDivider variant="decorative" />
 
