@@ -17,7 +17,6 @@ const NAV_ITEMS = [
   { key: 'donateClothing', path: '/donate-clothing' },
   { key: 'shop', path: '/shop' },
   { key: 'traceability', path: '/traceability' },
-  { key: 'assistant', path: '/assistant' },
   { key: 'support', path: '/support' },
   { key: 'contact', path: '/contact' },
 ];

@@ -566,16 +566,20 @@ export default function ProductDetail() {
                             : t('shop.detail.addToCart')}
                       </motion.button>
 
-                      <Link
-                        to="/assistant"
-                        state={{
-                          metadata: { product_id: Number(id), impactMode: product.isImpactProduct },
-                          prefill: t('aiAssistant.productPrefill', { id }),
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('ai-assistant-prefill', {
+                            detail: {
+                              text: t('aiAssistant.productPrefill', { id }),
+                              metadata: { product_id: Number(id), impactMode: product.isImpactProduct },
+                            },
+                          }));
                         }}
-                        className="flex-1 sm:flex-none inline-flex items-center justify-center rounded-full border border-warm-gray/25 bg-paper px-4 py-3 text-ink text-[11px] tracking-[0.12em] uppercase hover:bg-aged-stock transition-colors"
+                        className="flex-1 sm:flex-none inline-flex items-center justify-center rounded-full border border-warm-gray/25 bg-paper px-4 py-3 text-ink text-[11px] tracking-[0.12em] uppercase hover:bg-aged-stock transition-colors cursor-pointer"
                       >
                         {t('aiAssistant.askAboutProduct')}
-                      </Link>
+                      </button>
                     </div>
                   </div>
               </div>

@@ -29,7 +29,6 @@ const ChildrenSafety = lazy(() => import('@/pages/ChildrenSafety'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 const OrderDetail = lazy(() => import('@/pages/OrderDetail'));
 const Support = lazy(() => import('@/pages/Support'));
-const AiAssistant = lazy(() => import('@/pages/AiAssistant'));
 const Checkout = lazy(() => import('@/pages/Checkout'));
 const PaymentConfirm = lazy(() => import('@/pages/PaymentConfirm'));
 const AiDesign = lazy(() => import('@/pages/AiDesign'));
@@ -113,7 +112,6 @@ function AnimatedRoutes() {
             <Route path="studio/supply-chain" element={<ErrorBoundary><SupplyChainStudio /></ErrorBoundary>} />
             <Route path="clothing-recycle" element={<ErrorBoundary><ClothingRecycle /></ErrorBoundary>} />
             <Route path="donate-clothing" element={<ErrorBoundary><DonateClothing /></ErrorBoundary>} />
-            <Route path="assistant" element={<ErrorBoundary><AiAssistant /></ErrorBoundary>} />
             <Route path="privacy" element={<ErrorBoundary><Privacy /></ErrorBoundary>} />
             <Route path="terms" element={<ErrorBoundary><Terms /></ErrorBoundary>} />
             <Route path="children-safety" element={<ErrorBoundary><ChildrenSafety /></ErrorBoundary>} />

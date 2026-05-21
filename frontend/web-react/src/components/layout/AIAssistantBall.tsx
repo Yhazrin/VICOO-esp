@@ -124,6 +124,7 @@ export const AIAssistantBall: React.FC = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const handleSendRef = useRef<(text?: string) => void>(() => {});
   const route = useLocation().pathname;
   const isImpactSurface = impactMode || route.startsWith('/impact');
   const suggestions = getAIAssistantSuggestions(isImpactSurface, route);
@@ -169,6 +170,21 @@ export const AIAssistantBall: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  handleSendRef.current = handleSend;
+
+  // ── Prefill from external components (e.g. ProductDetail) ──
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { text?: string; metadata?: Record<string, unknown> } | undefined;
+      if (!detail?.text) return;
+      setIsOpen(true);
+      // Slight delay so the panel mounts before sending
+      setTimeout(() => handleSendRef.current(detail.text), 100);
+    };
+    window.addEventListener('ai-assistant-prefill', handler as EventListener);
+    return () => window.removeEventListener('ai-assistant-prefill', handler as EventListener);
+  }, []);
 
   return (
     <>
