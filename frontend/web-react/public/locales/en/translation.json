@@ -1212,6 +1212,18 @@
     "recycleBadge": "♻ Recrafted",
     "viewDetail": "View Details",
     "browseMore": "Browse More Recrafted Items",
+    "tipsTitle": "Recycling Tips",
+    "tip1": "Clean garments are more likely to be approved for recycling.",
+    "tip2": "Include photos for faster processing and better condition assessment.",
+    "tip3": "All types of clothing are accepted, including damaged items.",
+    "tip4": "Approved items will be listed in the circular shop with a recycle badge.",
+    "processTitle": "What Happens Next?",
+    "processStep1": "Our team reviews your submission within 1-3 business days.",
+    "processStep2": "Approved items are picked up from your address.",
+    "processStep3": "Items are sorted, cleaned, and listed in the circular shop.",
+    "processStep4": "You can track the full journey from your order history.",
+    "showcaseDescription": "Each item carries a recycle badge and full supply chain traceability. Browse the circular shop to discover unique pieces.",
+    "submitFirst": "Submit your first recycling request",
     "types": {
       "tshirt": "T-Shirt",
       "pants": "Pants",
@@ -1264,7 +1276,16 @@
     "exchange": "Exchange",
     "quality": "Quality Issue",
     "logistics": "Logistics",
-    "other": "Other"
+    "other": "Other",
+    "submitError": "Submission failed, please try again",
+    "tipsTitle": "Before Submitting",
+    "tip1": "Have your order ID ready — find it in your order history.",
+    "tip2": "For quality issues, include photos for faster resolution.",
+    "tip3": "Most tickets are resolved within 2 business days.",
+    "contactTitle": "Other Channels",
+    "contactEmail": "Email: support@vicoo.com",
+    "contactHours": "Mon–Fri, 9:00–18:00 CST",
+    "descriptionPlaceholder": "Describe the issue in detail"
   },
   "aiAssistant": {
     "title": "AI Assistant",
@@ -1362,6 +1383,18 @@
       "recycle.prompt": "How can I participate in clothing recycling?",
       "trace": "Product Trace",
       "trace.prompt": "How can I check a welfare product's supply chain traceability?"
+    },
+    "productCard": {
+      "donated": "{{percentage}}% donated"
+    },
+    "campaignCard": {
+      "raised": "{{amount}} raised",
+      "participants": "{{count}} participants"
+    },
+    "actionCard": {
+      "donationList": "Donation Records",
+      "campaignProgress": "Campaign Progress",
+      "impactFund": "Impact Fund"
     }
   },
   "orderDetail": {
@@ -1764,6 +1797,18 @@
       "tieDyeTee": "Tie-Dye Revival Tee",
       "handPaintedJeans": "Hand-Painted Jeans",
       "patchworkDress": "Patchwork Summer Dress"
-    }
+    },
+    "tipsTitle": "Recycling Tips",
+    "tip1": "Clean garments are more likely to be approved for recycling.",
+    "tip2": "Include photos for faster processing and better condition assessment.",
+    "tip3": "All types of clothing are accepted, including damaged items.",
+    "tip4": "Approved items will be listed in the circular shop with a recycle badge.",
+    "processTitle": "What Happens Next?",
+    "processStep1": "Our team reviews your submission within 1-3 business days.",
+    "processStep2": "Approved items are picked up from your address.",
+    "processStep3": "Items are sorted, cleaned, and listed in the circular shop.",
+    "processStep4": "You can track the full journey from your order history.",
+    "showcaseDescription": "Each item carries a recycle badge and full supply chain traceability. Browse the circular shop to discover unique pieces.",
+    "submitFirst": "Submit your first recycling request"
   }
 }

@@ -7,8 +7,10 @@
    ═══════════════════════════════════════════════════════════════════════════════ */
 
 /* ── Editorial Theme (Default) ── */
-[data-theme="editorial"],
+/*  :root provides un-themed defaults; html[...] gives (0,1,1) so
+    other themes always beat tokens.css :root at (0,1,0).            */
 :root,
+html[data-theme="editorial"],
 .theme-editorial {
   --theme-bg: #F7F5F2;
   --theme-bg-elevated: #EFECEA;
@@ -50,7 +52,7 @@
 }
 
 /* ── Morandi Theme ── */
-[data-theme="morandi"],
+html[data-theme="morandi"],
 .theme-morandi {
   --theme-bg: #F2F0ED;
   --theme-bg-elevated: #E8E4DE;
@@ -92,7 +94,7 @@
 }
 
 /* ── Sepia Theme ── */
-[data-theme="sepia"],
+html[data-theme="sepia"],
 .theme-sepia {
   --theme-bg: #F5F0E8;
   --theme-bg-elevated: #EDE6D8;
@@ -134,7 +136,7 @@
 }
 
 /* ── Monochrome Theme ── */
-[data-theme="monochrome"],
+html[data-theme="monochrome"],
 .theme-monochrome {
   --theme-bg: #FAFAFA;
   --theme-bg-elevated: #F0F0F0;
@@ -176,7 +178,7 @@
 }
 
 /* ── Ink Wash Theme ── */
-[data-theme="ink"],
+html[data-theme="ink"],
 .theme-ink {
   --theme-bg: #F0EDE8;
   --theme-bg-elevated: #E5E0D8;
@@ -218,7 +220,7 @@
 }
 
 /* ── Forest Theme ── */
-[data-theme="forest"],
+html[data-theme="forest"],
 .theme-forest {
   --theme-bg: #F0F3EE;
   --theme-bg-elevated: #E2E8E0;
@@ -265,7 +267,7 @@
 }
 
 /* ── Autumn Theme ── */
-[data-theme="autumn"],
+html[data-theme="autumn"],
 .theme-autumn {
   --theme-bg: #F8F4F0;
   --theme-bg-elevated: #EDE6DC;
@@ -309,7 +311,7 @@
 }
 
 /* ── Mist Blue Theme ── */
-[data-theme="mist-blue"],
+html[data-theme="mist-blue"],
 .theme-mist-blue {
   --theme-bg: #EDF2F4;
   --theme-bg-elevated: #E2E8EC;
@@ -351,7 +353,7 @@
 }
 
 /* ── Deep Sea Theme ── */
-[data-theme="deep-sea"],
+html[data-theme="deep-sea"],
 .theme-deep-sea {
   --theme-bg: #E4E9ED;
   --theme-bg-elevated: #D9E1E7;
@@ -393,7 +395,7 @@
 }
 
 /* ── Dopamine Theme — Vibrant red-blue-white ── */
-[data-theme="dopamine"],
+html[data-theme="dopamine"],
 .theme-dopamine {
   --theme-bg: #FFFFFF;
   --theme-bg-elevated: #F8F9FF;

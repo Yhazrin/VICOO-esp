@@ -2,6 +2,7 @@
 
 import logging
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -54,6 +55,36 @@ async def ai_chat(
                 source="system"
             ).model_dump()
         )
+
+
+@router.post("/chat/stream")
+async def ai_chat_stream(
+    body: AIChatRequest,
+    current_user: dict | None = Depends(get_optional_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Stream AI completion as Server-Sent Events (Anthropic-compatible upstream)."""
+    ai_service = AIAssistantService(db)
+    messages = [m.model_dump() for m in body.messages]
+    user_id = current_user.get("id") if current_user else None
+
+    async def event_generator():
+        async for chunk in ai_service.get_chat_completion_stream(
+            messages=messages,
+            context=body.context or "general",
+            user_id=user_id,
+            metadata=getattr(body, 'metadata', None),
+        ):
+            yield chunk
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @router.post("/analyze-artwork", response_model=ApiResponse)
