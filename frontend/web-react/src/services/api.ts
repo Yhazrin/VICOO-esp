@@ -66,7 +66,10 @@ api.interceptors.response.use(
         // Wait for the in-flight refresh to complete
         return new Promise((resolve, reject) => {
           refreshSubscribers.push({
-            resolve: () => resolve(api(originalRequest)),
+            resolve: () => {
+              originalRequest._retry = true;
+              resolve(api(originalRequest));
+            },
             reject,
           });
         });

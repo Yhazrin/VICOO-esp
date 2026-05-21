@@ -145,8 +145,9 @@ export default function Planar3DScene() {
       });
     };
 
-    /* ─── Animation Loop ─── */
+    /* ─── Animation Loop with visibility check ─── */
     let time = 0;
+    let visible = true;
     const animate = () => {
       if (!sceneRef.current) return;
       time += 0.01;
@@ -161,13 +162,38 @@ export default function Planar3DScene() {
         }
       });
 
-      s.animationId = requestAnimationFrame(animate);
       s.renderer.render(s.scene, s.camera);
+      if (visible) {
+        s.animationId = requestAnimationFrame(animate);
+      }
+    };
+
+    // IntersectionObserver — pause when off-screen
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        visible = entry.isIntersecting;
+        if (visible && sceneRef.current) {
+          sceneRef.current.animationId = requestAnimationFrame(animate);
+        }
+      },
+      { threshold: 0.05 }
+    );
+    observer.observe(container);
+
+    // Throttled scroll handler
+    let ticking = false;
+    const throttledScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        handleScroll();
+        ticking = false;
+      });
     };
 
     animate();
     handleScroll();
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('scroll', throttledScroll, { passive: true });
 
     /* ─── Resize Handler ─── */
     const handleResize = () => {
@@ -183,10 +209,11 @@ export default function Planar3DScene() {
 
     // Cleanup
     return () => {
+      observer.disconnect();
       if (sceneRef.current) {
         cancelAnimationFrame(sceneRef.current.animationId);
       }
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('scroll', throttledScroll);
       window.removeEventListener('resize', handleResize);
       renderer.dispose();
       sceneRef.current = null;

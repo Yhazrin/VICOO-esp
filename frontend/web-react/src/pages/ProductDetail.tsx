@@ -101,7 +101,7 @@ export default function ProductDetail() {
   const { data: supplyChainRaw = [] } = useQuery({
     queryKey: ['product-supply-chain', id],
     queryFn: () => supplyChainApi.getProductJourney(id!),
-    enabled: !!id,
+    enabled: !!id && !!product,
     retry: false,
   });
 
@@ -140,7 +140,7 @@ export default function ProductDetail() {
   const { data: reviewsResult } = useQuery({
     queryKey: ['reviews', id],
     queryFn: () => reviewsApi.listByProduct(Number(id)),
-    enabled: !!id,
+    enabled: !!id && !!product,
     retry: false,
   });
 

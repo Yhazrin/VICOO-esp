@@ -18,7 +18,7 @@ const ImpactShop = lazy(() => import('@/pages/ImpactShop'));
 const ClothingRecycle = lazy(() => import('@/pages/ClothingRecycle'));
 
 function ImpactContent() {
-  const { activeImpactTab } = useUIStore();
+  const activeImpactTab = useUIStore((s) => s.activeImpactTab);
 
   const content = (() => {
     switch (activeImpactTab) {
@@ -34,7 +34,10 @@ function ImpactContent() {
 }
 
 export default function Layout() {
-  const { impactMode, activeImpactTab, setImpactMode, setActiveImpactTab } = useUIStore();
+  const impactMode = useUIStore((s) => s.impactMode);
+  const activeImpactTab = useUIStore((s) => s.activeImpactTab);
+  const setImpactMode = useUIStore((s) => s.setImpactMode);
+  const setActiveImpactTab = useUIStore((s) => s.setActiveImpactTab);
   const location = useLocation();
   const isImpactShopRoute = Boolean(useMatch({ path: '/impact/shop', end: false }));
   /** 仅在首页 `/` 且开启公益壳时用 tab 内容；`/shop`、`/about` 等必须走 `<Outlet />`，否则常规店被挡住 */

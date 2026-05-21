@@ -354,23 +354,21 @@ export default function Header() {
   const isMobile = useIsMobile();
   const prefersReducedMotion = useReducedMotion();
 
-  const {
-    mobileNavOpen,
-    toggleMobileNav,
-    setMobileNavOpen,
-    currentLocale,
-    setLocale,
-    setMenuTriggerRef,
-    currentTheme,
-    setTheme,
-    setSettingsMenuOpen,
-    impactMode,
-    setImpactMode,
-    activeImpactTab,
-    setActiveImpactTab,
-    aiBallStyle,
-    setAIBallStyle,
-  } = useUIStore();
+  const mobileNavOpen = useUIStore((s) => s.mobileNavOpen);
+  const toggleMobileNav = useUIStore((s) => s.toggleMobileNav);
+  const setMobileNavOpen = useUIStore((s) => s.setMobileNavOpen);
+  const currentLocale = useUIStore((s) => s.currentLocale);
+  const setLocale = useUIStore((s) => s.setLocale);
+  const setMenuTriggerRef = useUIStore((s) => s.setMenuTriggerRef);
+  const currentTheme = useUIStore((s) => s.currentTheme);
+  const setTheme = useUIStore((s) => s.setTheme);
+  const setSettingsMenuOpen = useUIStore((s) => s.setSettingsMenuOpen);
+  const impactMode = useUIStore((s) => s.impactMode);
+  const setImpactMode = useUIStore((s) => s.setImpactMode);
+  const activeImpactTab = useUIStore((s) => s.activeImpactTab);
+  const setActiveImpactTab = useUIStore((s) => s.setActiveImpactTab);
+  const aiBallStyle = useUIStore((s) => s.aiBallStyle);
+  const setAIBallStyle = useUIStore((s) => s.setAIBallStyle);
 
   const { user, isAuthenticated } = useAuthStore();
   const { logout } = useAuth();

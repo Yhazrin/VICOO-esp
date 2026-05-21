@@ -96,6 +96,7 @@ export default function Profile() {
     queryKey: ['my-donations'],
     queryFn: () => donationsApi.getMyDonations(),
     enabled: isAuthenticated,
+    staleTime: 10 * 60 * 1000,
   });
 
   const { data: intakes = [], isLoading: loadingIntakes, isError: errorIntakes } = useQuery({
@@ -114,6 +115,7 @@ export default function Profile() {
     queryKey: ['my-addresses'],
     queryFn: () => addressesApi.getAll(),
     enabled: isAuthenticated,
+    staleTime: 15 * 60 * 1000,
   });
 
   const handleLogout = () => {
