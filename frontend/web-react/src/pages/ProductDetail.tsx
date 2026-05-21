@@ -263,7 +263,7 @@ export default function ProductDetail() {
     if (isImpactProductDetail && impactHeroPreview && id) {
       return (
         <PageWrapper>
-          <PaperTextureBackground variant="paper" className="py-20 md:py-28">
+          <PaperTextureBackground variant="paper" className="pt-12 md:pt-16 pb-16 md:pb-24">
             <SectionContainer>
               <div className="grid grid-cols-1 md:grid-cols-12 gap-14 md:gap-20 lg:gap-24 items-start">
                 <div className="md:col-span-6 lg:col-span-7">
@@ -301,9 +301,9 @@ export default function ProductDetail() {
   return (
     <PageWrapper>
       {/* Product section */}
-      <PaperTextureBackground variant="paper" className="py-20 md:py-28">
+      <PaperTextureBackground variant="paper" className="pt-12 md:pt-16 pb-16 md:pb-24">
         <SectionContainer>
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-16 lg:gap-20 items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-14 lg:gap-16 items-stretch">
             {/* Images */}
             <div className="md:col-span-6 lg:col-span-7 flex flex-col">
               <motion.div
@@ -643,7 +643,7 @@ export default function ProductDetail() {
       </PaperTextureBackground>
 
       {/* Reviews */}
-      <PaperTextureBackground variant="paper" className="py-20 md:py-28">
+      <PaperTextureBackground variant="paper" className="py-16 md:py-24">
         <SectionContainer>
           <h2 className="font-display text-h3 font-semibold text-ink mb-3 tracking-[-0.02em]">
             {t('shop.detail.reviews')}
