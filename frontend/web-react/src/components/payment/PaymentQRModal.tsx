@@ -72,9 +72,6 @@ export default function PaymentQRModal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onFailure();
-      }}
     >
       <div ref={dialogRef} role="dialog" aria-modal="true" aria-label={t('checkout.paymentQRTitle')} tabIndex={-1} className="bg-paper border border-warm-gray/20 w-[380px] max-w-[95vw] max-h-[90vh] overflow-y-auto outline-none">
         <div className="px-6 pt-6 pb-4 text-center border-b border-warm-gray/15">
