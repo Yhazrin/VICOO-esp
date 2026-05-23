@@ -30,11 +30,58 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+let isRefreshing = false;
+let refreshQueue: Array<{ resolve: (token: string) => void; reject: (err: unknown) => void }> = [];
+
+function onRefreshed(newToken: string) {
+  refreshQueue.forEach((sub) => sub.resolve(newToken));
+  refreshQueue = [];
+}
+
+function onRefreshFailed(err: unknown) {
+  refreshQueue.forEach((sub) => sub.reject(err));
+  refreshQueue = [];
+}
+
 api.interceptors.response.use(
   (res) => res,
-  (err) => {
-    if (err.response?.status === 401) {
-      useAuthStore.getState().logout();
+  async (err) => {
+    const originalRequest = err.config;
+    if (err.response?.status === 401 && originalRequest && !originalRequest._retry) {
+      // Don't retry the refresh request itself
+      if (originalRequest.url?.includes('/auth/refresh')) {
+        useAuthStore.getState().logout();
+        return Promise.reject(err);
+      }
+
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          refreshQueue.push({
+            resolve: () => {
+              originalRequest._retry = true;
+              resolve(api(originalRequest));
+            },
+            reject,
+          });
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const refreshRes = await axios.post('/api/v1/auth/refresh', {}, { withCredentials: true });
+        const { access_token } = refreshRes.data.data;
+        useAuthStore.getState().setAccessToken(access_token);
+        isRefreshing = false;
+        onRefreshed(access_token);
+        return api(originalRequest);
+      } catch (refreshErr) {
+        isRefreshing = false;
+        onRefreshFailed(refreshErr);
+        useAuthStore.getState().logout();
+        return Promise.reject(refreshErr);
+      }
     }
     return Promise.reject(err);
   }

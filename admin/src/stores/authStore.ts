@@ -15,6 +15,7 @@ interface AuthState {
   isAuthenticated: boolean;
   login: (user: AuthUser, token: string) => void;
   logout: () => void;
+  setAccessToken: (token: string) => void;
   updateUser: (user: Partial<AuthUser>) => void;
 }
 
@@ -31,6 +32,9 @@ export const useAuthStore = create<AuthState>()(
         set({ user: null, token: null, isAuthenticated: false });
         // Invalidate server-side session
         fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => {});
+      },
+      setAccessToken: (token) => {
+        set({ token });
       },
       updateUser: (updates) =>
         set((state) => ({
