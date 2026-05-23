@@ -31,7 +31,10 @@ Page({
       wx.showToast({ title: '\u4ECA\u65E5\u6295\u7968\u5DF2\u8FBE\u4E0A\u9650', icon: 'none' });
       return;
     }
-    auth.ensureLogin().then(function() {
+    auth.ensureLogin().catch(function(err) {
+      wx.showToast({ title: err.message || '登录失败', icon: 'none' });
+      return Promise.reject(err);
+    }).then(function() {
       http.post('/artworks/' + id + '/vote').then(function() {
         var ids = self.data.votedIds.concat([id]);
         var artworks = self.data.artworks.map(function(a) {

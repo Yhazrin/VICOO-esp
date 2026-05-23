@@ -117,10 +117,17 @@ export default function DonationPage() {
     },
   ];
 
+  const csvEscape = (val: string) => {
+    if (val.includes(',') || val.includes('"') || val.includes('\n')) {
+      return `"${val.replace(/"/g, '""')}"`;
+    }
+    return val;
+  };
+
   const handleExport = () => {
     const csvHeader = t('donation.csvHeader');
     const csvRows = filteredData.map((d) =>
-      `${d.id},${d.donorName},${d.amount},${d.currency},${getPaymentLabel(d.paymentMethod)},${d.campaignTitle || ''},${d.status},${d.isAnonymous ? t('donation.csvYes') : t('donation.csvNo')},${dayjs(d.createdAt).format('YYYY-MM-DD HH:mm')}`
+      `${d.id},${csvEscape(d.donorName)},${d.amount},${d.currency},${csvEscape(getPaymentLabel(d.paymentMethod))},${csvEscape(d.campaignTitle || '')},${d.status},${d.isAnonymous ? t('donation.csvYes') : t('donation.csvNo')},${dayjs(d.createdAt).format('YYYY-MM-DD HH:mm')}`
     ).join('\n');
     const blob = new Blob(['\ufeff' + csvHeader + csvRows], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);

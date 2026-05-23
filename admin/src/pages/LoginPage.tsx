@@ -35,6 +35,9 @@ export default function LoginPage() {
       const userData = data.data?.user || data.user;
       const tokenData = data.data?.token || data.token || data;
       const accessToken = tokenData.access_token || tokenData.accessToken;
+      if (!accessToken) {
+        throw new Error(t('login.errorLoginFailed'));
+      }
       login(userData, accessToken);
       toast.success(t('login.toastSuccess'));
     } catch (err: unknown) {

@@ -680,6 +680,7 @@ export async function fetchUsers(params: FilterParams = {}): Promise<PaginatedRe
     params: {
       page: params.page ?? 1,
       page_size: params.pageSize ?? 10,
+      ...(params.search ? { search: params.search } : {}),
     },
   });
   const paginated = adaptPaginated<any>(envelope);

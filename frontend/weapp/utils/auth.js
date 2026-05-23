@@ -34,12 +34,14 @@ function ensureLogin() {
         // If unauthorized (401), try logging in
         if (err.statusCode === 401 || (err.message && err.message.includes('401'))) {
           doLogin()
-            .then(function(loginRes) {
-              // doLogin resolves with the response from /auth/wx-login
-              // Usually /auth/wx-login returns user info or we need to fetch it again?
-              // Assuming loginRes contains user info.
-              app.globalData.userInfo = loginRes.data || loginRes;
-              resolve(app.globalData.userInfo);
+            .then(function() {
+              // After login, fetch the actual user profile
+              return http.get('/api/v1/user/me');
+            })
+            .then(function(profileRes) {
+              var userData = profileRes.data || profileRes;
+              app.globalData.userInfo = userData;
+              resolve(userData);
             })
             .catch(reject);
         } else {
@@ -69,10 +71,9 @@ function doLogin() {
 }
 
 function logout() {
-  // Clear local user info.
-  // Note: /auth/logout endpoint should be called to clear server-side session/cookie.
+  // Clear local user info and invalidate server-side session.
   getApp().globalData.userInfo = null;
-  // No token to clear locally as it's httpOnly cookie
+  http.post('/auth/logout').catch(function() {});
 }
 
 function getToken() {
