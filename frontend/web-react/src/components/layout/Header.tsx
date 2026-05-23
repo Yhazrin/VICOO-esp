@@ -377,7 +377,8 @@ export default function Header() {
   const aiBallStyle = useUIStore((s) => s.aiBallStyle);
   const setAIBallStyle = useUIStore((s) => s.setAIBallStyle);
 
-  const { user, isAuthenticated } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const { logout } = useAuth();
   const toggleCart = useCartStore((s) => s.toggleCart);
   const totalCartItems = useCartStore(selectTotalItems);

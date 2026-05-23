@@ -173,6 +173,7 @@ export default function Planar3DScene() {
       ([entry]) => {
         visible = entry.isIntersecting;
         if (visible && sceneRef.current) {
+          cancelAnimationFrame(sceneRef.current.animationId);
           sceneRef.current.animationId = requestAnimationFrame(animate);
         }
       },

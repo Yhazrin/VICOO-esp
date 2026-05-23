@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
 
 export default function Footer() {
   const { t } = useTranslation();
@@ -86,7 +87,14 @@ export default function Footer() {
               {t('footer.newsletter.description')}
             </p>
             <form
-              onSubmit={(e) => e.preventDefault()}
+              onSubmit={(e) => {
+                e.preventDefault();
+                const input = e.currentTarget.querySelector('input[type="email"]') as HTMLInputElement | null;
+                if (input?.value.trim()) {
+                  toast.success(t('footer.newsletter.subscribed', 'Subscribed! Thank you.'));
+                  input.value = '';
+                }
+              }}
               className="flex flex-col gap-2"
             >
               <label htmlFor="footer-newsletter-email" className="sr-only">

@@ -67,7 +67,7 @@ export const TextScramble = memo(function TextScramble({
     } else {
       setDisplayedText(text);
     }
-  }, [text, duration, characters, getRandomCharacter]);
+  }, [text, duration, getRandomCharacter]);
 
   const startAnimation = useCallback(() => {
     if (hasTriggeredRef.current) return;

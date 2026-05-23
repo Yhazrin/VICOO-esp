@@ -20,12 +20,13 @@ export function extractProductId(href: string): number | null {
 }
 
 // ── Module-level cache ──
-const productCache = new Map<number, Product>();
+const productCache = new Map<string, Product>();
 
 async function fetchProductCached(id: number, locale?: string): Promise<Product> {
-  if (productCache.has(id)) return productCache.get(id)!;
+  const cacheKey = `${id}:${locale ?? ''}`;
+  if (productCache.has(cacheKey)) return productCache.get(cacheKey)!;
   const product = await productsApi.getById(String(id), locale);
-  productCache.set(id, product);
+  productCache.set(cacheKey, product);
   return product;
 }
 

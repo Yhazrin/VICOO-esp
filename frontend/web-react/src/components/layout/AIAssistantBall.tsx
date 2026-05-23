@@ -104,7 +104,7 @@ interface Message {
 }
 
 let _msgId = 0;
-const nextMsgId = () => `msg-${++_msgId}`;
+const nextMsgId = () => `msg-${++_msgId}-${crypto.randomUUID().slice(0, 8)}`;
 
 // ── Welfare capability tags ──
 const welfareCapabilities = [

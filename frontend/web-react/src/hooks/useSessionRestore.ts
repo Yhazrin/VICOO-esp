@@ -18,7 +18,7 @@ export function useSessionRestore() {
   const setAccessToken = useAuthStore((s) => s.setAccessToken);
   const location = useLocation();
   const [isInitialized, setIsInitialized] = useState(false);
-  const [refreshToken, setRefreshToken] = useState<string | null>(null);
+  const [accessToken, setAccessTokenState] = useState<string | null>(null);
 
   // Don't attempt refresh on auth pages (login/register) to avoid redirect loops
   const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
@@ -36,7 +36,7 @@ export function useSessionRestore() {
         const { access_token } = refreshResponse.data.data;
         if (!cancelled) {
           setAccessToken(access_token);
-          setRefreshToken(access_token);
+          setAccessTokenState(access_token);
         }
       } catch {
         // No valid refresh cookie — user is not logged in. This is expected.
@@ -58,16 +58,16 @@ export function useSessionRestore() {
   const { data: user, isLoading, error } = useQuery({
     queryKey: ['session'],
     queryFn: authApi.getProfile,
-    enabled: isInitialized && !isAuthenticated && !isAuthPage && !!refreshToken,
+    enabled: isInitialized && !isAuthenticated && !isAuthPage && !!accessToken,
     retry: false,
     staleTime: 5 * 60 * 1000,
   });
 
   useEffect(() => {
     if (user && !isAuthenticated) {
-      restoreSession(user, refreshToken || undefined);
+      restoreSession(user, accessToken || undefined);
     }
-  }, [user, isAuthenticated, restoreSession, refreshToken]);
+  }, [user, isAuthenticated, restoreSession, accessToken]);
 
   useEffect(() => {
     setLoading(isLoading);

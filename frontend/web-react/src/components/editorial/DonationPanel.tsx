@@ -46,9 +46,10 @@ export default function DonationPanel({
   const [selectedAmount, setSelectedAmount] = useState<number>(0);
   const [customAmount, setCustomAmount] = useState<string>('');
 
-  // Default to first preset when tiers load
+  // Default to first preset when tiers load, or reset if current selection is no longer valid
   useEffect(() => {
-    if (selectedAmount === 0 && !customAmount && amountPresets.length > 0) {
+    if (customAmount) return;
+    if (amountPresets.length > 0 && !amountPresets.includes(selectedAmount)) {
       setSelectedAmount(amountPresets[0]);
     }
   }, [amountPresets, selectedAmount, customAmount]);

@@ -116,18 +116,28 @@ export default function Checkout() {
     typeof window !== 'undefined' &&
     (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
+  const addressRef = useRef(address);
+  addressRef.current = address;
+  const saveAddressRef = useRef(saveAddress);
+  saveAddressRef.current = saveAddress;
+  const selectedAddressIdRef = useRef(selectedAddressId);
+  selectedAddressIdRef.current = selectedAddressId;
+
   const finalizeOrder = useCallback(async (result: { orderId: string; orderNo: string }) => {
     setOrderResult(result);
-    if (saveAddress && !selectedAddressId && address.name && address.phone) {
+    const addr = addressRef.current;
+    const shouldSave = saveAddressRef.current;
+    const selId = selectedAddressIdRef.current;
+    if (shouldSave && !selId && addr.name && addr.phone) {
       try {
         await addressesApi.create({
-          recipient_name: address.name,
-          phone: address.phone,
-          province: address.province,
-          city: address.city,
+          recipient_name: addr.name,
+          phone: addr.phone,
+          province: addr.province,
+          city: addr.city,
           district: '',
-          detail_address: address.street,
-          postal_code: address.postalCode || undefined,
+          detail_address: addr.street,
+          postal_code: addr.postalCode || undefined,
           is_default: false,
         });
       } catch {
@@ -136,17 +146,7 @@ export default function Checkout() {
     }
     clearCart();
     setStep(3);
-  }, [
-    saveAddress,
-    selectedAddressId,
-    address.name,
-    address.phone,
-    address.province,
-    address.city,
-    address.street,
-    address.postalCode,
-    clearCart,
-  ]);
+  }, [clearCart]);
 
   useEffect(() => {
     if (!pendingPayOrder) return;
@@ -158,8 +158,10 @@ export default function Checkout() {
       if (cancelled) return;
       attempts++;
       if (attempts > maxAttempts) {
-        setPendingPayOrder(null);
-        setError(t('checkout.paymentTimeout', '支付超时，请重新下单'));
+        if (!cancelled) {
+          setPendingPayOrder(null);
+          setError(t('checkout.paymentTimeout', '支付超时，请重新下单'));
+        }
         return;
       }
       try {
@@ -174,7 +176,6 @@ export default function Checkout() {
       }
     };
     const id = window.setInterval(tick, 2000);
-    void tick();
     return () => {
       cancelled = true;
       window.clearInterval(id);
@@ -411,6 +412,7 @@ export default function Checkout() {
                         </label>
                         <input
                           type="text"
+                          required
                           value={address.name}
                           onChange={(e) => setAddress({ ...address, name: e.target.value })}
                           className="w-full px-4 py-3 border border-warm-gray/30 bg-transparent font-body text-body text-ink focus:outline-none focus:border-rust/50 transition-colors"
@@ -423,6 +425,7 @@ export default function Checkout() {
                         </label>
                         <input
                           type="tel"
+                          required
                           value={address.phone}
                           onChange={(e) => setAddress({ ...address, phone: e.target.value })}
                           className="w-full px-4 py-3 border border-warm-gray/30 bg-transparent font-body text-body text-ink focus:outline-none focus:border-rust/50 transition-colors"
@@ -437,6 +440,7 @@ export default function Checkout() {
                       </label>
                       <input
                         type="text"
+                        required
                         value={address.street}
                         onChange={(e) => setAddress({ ...address, street: e.target.value })}
                         className="w-full px-4 py-3 border border-warm-gray/30 bg-transparent font-body text-body text-ink focus:outline-none focus:border-rust/50 transition-colors"
@@ -451,6 +455,7 @@ export default function Checkout() {
                         </label>
                         <input
                           type="text"
+                          required
                           value={address.city}
                           onChange={(e) => setAddress({ ...address, city: e.target.value })}
                           className="w-full px-4 py-3 border border-warm-gray/30 bg-transparent font-body text-body text-ink focus:outline-none focus:border-rust/50 transition-colors"
@@ -463,6 +468,7 @@ export default function Checkout() {
                         </label>
                         <input
                           type="text"
+                          required
                           value={address.province}
                           onChange={(e) => setAddress({ ...address, province: e.target.value })}
                           className="w-full px-4 py-3 border border-warm-gray/30 bg-transparent font-body text-body text-ink focus:outline-none focus:border-rust/50 transition-colors"
