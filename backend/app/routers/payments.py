@@ -421,7 +421,8 @@ async def get_payment(payment_id: int, db: AsyncSession = Depends(get_db), curre
         raise ValueError("Payment not found in DB, checking mock data")
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
+        logger.debug("Payment %d not in DB, checking mock data: %s", payment_id, e)
         for p in _mock_payments:
             if p["id"] == payment_id:
                 # IDOR prevention for mock data

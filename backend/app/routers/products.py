@@ -249,7 +249,8 @@ async def list_categories(db: AsyncSession = Depends(get_db)):
         return ApiResponse(data=categories)
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
+        logger.exception("Product query failed: %s", e)
         if settings.APP_ENV != "demo":
             raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         cat_counts: dict[str, int] = {}
@@ -280,7 +281,8 @@ async def list_origin_countries(db: AsyncSession = Depends(get_db)):
         )
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
+        logger.exception("Product query failed: %s", e)
         if settings.APP_ENV != "demo":
             raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         return ApiResponse(data=_mock_countries)
@@ -312,7 +314,8 @@ async def list_origin_regions(
         )
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
+        logger.exception("Product query failed: %s", e)
         if settings.APP_ENV != "demo":
             raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         data = _mock_regions
@@ -331,7 +334,8 @@ async def list_featured_products(locale: str = Query("zh", pattern="^(zh|en)$"),
         return ApiResponse(data=await _products_to_out_dicts(db, list(products), locale=locale))
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
+        logger.exception("Product query failed: %s", e)
         if settings.APP_ENV != "demo":
             raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         featured = [p for p in _mock_products if p["status"] == "active" and p["stock"] > 0][:8]
@@ -350,7 +354,8 @@ async def get_product_supply_chain(product_id: int, db: AsyncSession = Depends(g
         return ApiResponse(data=[supply_chain_record_to_out(r).model_dump() for r in records])
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
+        logger.exception("Product query failed: %s", e)
         if settings.APP_ENV != "demo":
             raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         records = [r for r in _mock_supply_chain if r["product_id"] == product_id]
@@ -377,7 +382,8 @@ async def get_product_artwork(product_id: int, db: AsyncSession = Depends(get_db
         return ApiResponse(data=ArtworkOut.model_validate(artwork).model_dump())
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
+        logger.exception("Product artwork query failed: %s", e)
         # DEMO_MODE fallback
         _aw = "https://images.unsplash.com"
         mock_artworks = {
@@ -413,7 +419,8 @@ async def get_product(product_id: int, locale: str = Query("zh", pattern="^(zh|e
         return ApiResponse(data=data)
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
+        logger.exception("Product query failed: %s", e)
         if settings.APP_ENV != "demo":
             raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         for p in _mock_products:

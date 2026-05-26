@@ -55,7 +55,8 @@ class SupplyChainService(BaseService):
             if r.gallery_json:
                 try:
                     row["gallery"] = json.loads(r.gallery_json)
-                except Exception:
+                except Exception as e:
+                    logger.warning("Failed to parse gallery_json for record %s: %s", r.id, e)
                     row["gallery"] = []
             else:
                 row["gallery"] = []

@@ -129,7 +129,8 @@ async def donation_stats(db: AsyncSession = Depends(get_db)):
         return ApiResponse(data=stats)
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
+        logger.error("Donation stats query failed: %s", e)
         return ApiResponse(data={"total_amount": "0.00", "total_donors": 0, "currency": "CNY"})
 
 @router.get("/tiers", response_model=ApiResponse)

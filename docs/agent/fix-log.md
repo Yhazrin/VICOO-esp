@@ -1592,3 +1592,15 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Added fix entries 191–194
 - **Verification**: Fix log now covers all changes through Round 59
 - **New issues**: None
+
+## Fix 196 — Remaining except Exception blocks missing error logging
+- **Date**: 2026-05-27 (Round 59)
+- **Files**: `backend/app/routers/products.py`, `backend/app/routers/donations.py`, `backend/app/routers/payments.py`, `backend/app/services/supply_chain/service.py`
+- **Reason**: P2: Multiple `except Exception:` blocks in products.py (7 locations), donations.py (stats endpoint), payments.py (get_payment), and supply_chain service (gallery JSON parsing) silently swallowed errors without logging, making debugging difficult in production.
+- **Change**: Added `as e` + `logger.exception/error/warning/debug(...)` to all remaining bare `except Exception:` blocks:
+  - `products.py`: 7 demo-fallback endpoints now log before raising 503
+  - `donations.py`: stats endpoint logs before returning zeros
+  - `payments.py`: get_payment mock fallback logs at debug level
+  - `supply_chain/service.py`: gallery_json parse failure logs warning with record ID
+- **Verification**: All exception paths now have logging; no silent error swallowing remains in routers
+- **New issues**: None
