@@ -846,3 +846,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Wrapped Redis ping in `try/finally` with `await r.aclose()` to ensure connection is closed after each health check
 - **Verification**: `python -c "import ast; ast.parse(open('backend/app/main.py').read())"` pass
 - **New issues**: None
+
+## Fix 104 — WeChat Pay blocks event loop with synchronous HTTP client
+- **Date**: 2026-05-27 (Round 47)
+- **Files**: `backend/app/services/payment_service.py`, `backend/app/routers/donations.py`, `backend/app/routers/payments.py`
+- **Reason**: P2: `WeChatPayService._call_unified_order_api` used `httpx.SyncClient()` inside methods called from async FastAPI handlers. This blocks the event loop during the 30-second HTTP timeout, preventing all other requests from being processed.
+- **Change**: Changed `_call_unified_order_api` and `create_unified_order` to async methods using `httpx.AsyncClient()` with `await`. Updated all callers in donations.py and payments.py to use `await`.
+- **Verification**: `python -c "import ast; ..."` pass for all 3 files
+- **New issues**: None

@@ -76,7 +76,7 @@ class WeChatPayService:
 
         return hashlib.sha256(sign_str.encode('utf-8')).hexdigest().upper()
 
-    def _call_unified_order_api(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def _call_unified_order_api(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """
         Call WeChat Pay unified order API.
 
@@ -103,9 +103,8 @@ class WeChatPayService:
         logger.info(f"Calling WeChat Unified Order API for order: {params['out_trade_no']}")
 
         try:
-            # Make synchronous HTTP request to WeChat API
-            with httpx.SyncClient() as client:
-                response = client.post(
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
                     "https://api.mch.weixin.qq.com/pay/unifiedorder",
                     content=xml_body,
                     headers={"Content-Type": "application/xml"},
@@ -156,7 +155,7 @@ class WeChatPayService:
             logger.error(f"WeChat API call failed: {str(e)}")
             raise
 
-    def create_unified_order(self, order_no: str, amount: Decimal, description: str, trade_type: str = "JSAPI", openid: Optional[str] = None, donation_id: Optional[int] = None) -> Dict[str, Any]:
+    async def create_unified_order(self, order_no: str, amount: Decimal, description: str, trade_type: str = "JSAPI", openid: Optional[str] = None, donation_id: Optional[int] = None) -> Dict[str, Any]:
         """
         Create WeChat Pay unified order.
 
@@ -211,7 +210,7 @@ class WeChatPayService:
 
         # Call real WeChat API to get prepay_id
         try:
-            api_response = self._call_unified_order_api(params)
+            api_response = await self._call_unified_order_api(params)
             prepay_id = api_response["prepay_id"]
         except Exception as e:
             if is_non_production:

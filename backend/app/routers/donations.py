@@ -197,7 +197,7 @@ async def create_donation(body: DonationCreate, db: AsyncSession = Depends(get_d
 
         if body.payment_method == "wechat":
             try:
-                payment_params = get_payment_service().create_unified_order(
+                payment_params = await get_payment_service().create_unified_order(
                     order_no=f"DON{donation.id}",
                     amount=body.amount,
                     description="公益捐赠" if body.is_anonymous else f"公益捐赠 - {body.donor_name}",

@@ -319,7 +319,7 @@ async def test_wechat_params(current_user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Admin only")
     """Test endpoint to verify WeChat payment parameter generation."""
     try:
-        payment_params = get_payment_service().create_unified_order(
+        payment_params = await get_payment_service().create_unified_order(
             order_no="TEST123",
             amount=Decimal("100.00"),
             description="Test Donation",
