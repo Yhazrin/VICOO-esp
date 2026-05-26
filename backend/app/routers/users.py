@@ -14,11 +14,11 @@ router = APIRouter(prefix="/users", tags=["Users"])
 logger = logging.getLogger(__name__)
 
 _mock_users = [
-    {"id": 1, "email": "admin@vicoo.org", "nickname": "管理员", "avatar": None, "role": "admin", "status": "active", "created_at": "2025-01-01T00:00:00", "updated_at": "2025-01-01T00:00:00"},
-    {"id": 2, "email": "editor@vicoo.org", "nickname": "编辑小王", "avatar": None, "role": "editor", "status": "active", "created_at": "2025-02-01T00:00:00", "updated_at": "2025-02-01T00:00:00"},
-    {"id": 3, "email": "lihua@example.com", "nickname": "李华", "avatar": None, "role": "user", "status": "active", "created_at": "2025-03-01T00:00:00", "updated_at": "2025-03-01T00:00:00"},
-    {"id": 4, "email": "zhangwei@example.com", "nickname": "张伟", "avatar": None, "role": "user", "status": "active", "created_at": "2025-04-01T00:00:00", "updated_at": "2025-04-01T00:00:00"},
-    {"id": 5, "email": "wangfang@example.com", "nickname": "王芳", "avatar": None, "role": "user", "status": "active", "created_at": "2025-05-01T00:00:00", "updated_at": "2025-05-01T00:00:00"},
+    {"id": 1, "email": "admin@vicoo.org", "nickname": "Admin", "avatar": None, "role": "admin", "status": "active", "created_at": "2025-01-01T00:00:00", "updated_at": "2025-01-01T00:00:00"},
+    {"id": 2, "email": "editor@vicoo.org", "nickname": "Editor Wang", "avatar": None, "role": "editor", "status": "active", "created_at": "2025-02-01T00:00:00", "updated_at": "2025-02-01T00:00:00"},
+    {"id": 3, "email": "lihua@example.com", "nickname": "Li Hua", "avatar": None, "role": "user", "status": "active", "created_at": "2025-03-01T00:00:00", "updated_at": "2025-03-01T00:00:00"},
+    {"id": 4, "email": "zhangwei@example.com", "nickname": "Zhang Wei", "avatar": None, "role": "user", "status": "active", "created_at": "2025-04-01T00:00:00", "updated_at": "2025-04-01T00:00:00"},
+    {"id": 5, "email": "wangfang@example.com", "nickname": "Wang Fang", "avatar": None, "role": "user", "status": "active", "created_at": "2025-05-01T00:00:00", "updated_at": "2025-05-01T00:00:00"},
 ]
 
 

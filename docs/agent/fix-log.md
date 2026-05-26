@@ -1888,3 +1888,13 @@ _Round 2: No new fixes needed. All core flows verified via API._
   - Catalog clarification: Removed duplicate Chinese line, kept English only
 - **Verification**: All AI responses now use consistent English; AI can still respond in Chinese when users write in Chinese
 - **New issues**: None
+
+## Fix 227 — Mock user and artwork data to English
+- **Date**: 2026-05-27 (Round 68)
+- **Files**: `backend/app/routers/users.py`, `backend/app/routers/artworks.py`
+- **Reason**: P3: Demo-mode fallback mock data contained Chinese nicknames and artwork titles returned in API responses
+- **Change**:
+  - `users.py`: Translated 5 mock user nicknames (管理员→Admin, 编辑小王→Editor Wang, 李华→Li Hua, 张伟→Zhang Wei, 王芳→Wang Fang)
+  - `artworks.py`: Translated 20 mock artwork titles and descriptions from Chinese to English
+- **Verification**: All mock API responses now use consistent English
+- **New issues**: None
