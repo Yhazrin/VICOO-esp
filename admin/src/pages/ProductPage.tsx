@@ -652,10 +652,11 @@ export default function ProductPage() {
                   {item.type === 'video' ? (
                     <video src={item.url} style={{ width: 80, height: 60, objectFit: 'cover', borderRadius: 4 }} muted />
                   ) : (
-                    <img src={item.url} alt="" style={{ width: 80, height: 60, objectFit: 'cover', borderRadius: 4 }} />
+                    <img src={item.url} alt={`Gallery item ${idx + 1}`} style={{ width: 80, height: 60, objectFit: 'cover', borderRadius: 4 }} />
                   )}
                   <button
                     type="button"
+                    aria-label={`Remove gallery item ${idx + 1}`}
                     onClick={() => removeGalleryItem(idx)}
                     style={{
                       position: 'absolute', top: -6, right: -6, width: 18, height: 18,

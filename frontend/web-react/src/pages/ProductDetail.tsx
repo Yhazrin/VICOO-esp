@@ -275,7 +275,7 @@ export default function ProductDetail() {
                   <motion.div initial={{ opacity: 1 }} animate={{ opacity: 1 }} transition={{ duration: 0 }}>
                     <SepiaImageFrame
                       src={impactHeroPreview}
-                      alt=""
+                      alt={safeProduct.name}
                       aspectRatio="portrait"
                       size="full"
                       viewTransitionName={`impact-product-${id}`}
