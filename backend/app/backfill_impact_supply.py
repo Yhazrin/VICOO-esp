@@ -1,7 +1,8 @@
 """
-为已有数据库中「前 10 个公益商品（按 id 升序）」补写优衣库式溯源（若该商品尚无任一条 supply_chain 记录则跳过整组，避免重复）。
+Backfill supply chain trace records for the first 10 impact products (by id).
+Skips products that already have any supply_chain records to avoid duplicates.
 
-用法: cd backend && python -m app.backfill_impact_supply
+Usage: cd backend && python -m app.backfill_impact_supply
 """
 
 from __future__ import annotations
@@ -26,7 +27,7 @@ async def main() -> None:
         )
         ids = [row[0] for row in r.all()]
         if len(ids) < 10:
-            print(f"公益商品不足 10 条（当前 {len(ids)}），跳过。请先保证种子或商品数据完整。")
+            print(f"Fewer than 10 impact products found ({len(ids)}) — skipping. Ensure seed data is complete.")
             return
 
         candidates = extra_impact_supply_records(ids)
@@ -45,7 +46,7 @@ async def main() -> None:
             session.add(rec)
             added += 1
         await session.commit()
-        print(f"backfill_impact_supply: 新增 {added} 条溯源记录（已存在同品同阶段则跳过）。")
+        print(f"backfill_impact_supply: added {added} trace records (existing product+stage pairs skipped).")
     await engine.dispose()
 
 

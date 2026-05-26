@@ -2008,3 +2008,33 @@ _Round 2: No new fixes needed. All core flows verified via API._
   - `fix_impact_supply_chain_coordinates.py`: Translated docstring and print statement
 - **Verification**: All demo data inserted into database now uses English strings
 - **New issues**: None
+
+## Fix 238 — ENCRYPTION_KEY production validation gate
+- **Date**: 2026-05-27 (Round 73)
+- **Files**: `backend/app/config.py`
+- **Reason**: P1: `ENCRYPTION_KEY` auto-generates a new random value on each restart if not set in `.env`. Unlike `APP_SECRET_KEY` (which has a production validation gate), `ENCRYPTION_KEY` had no guard — any data previously encrypted via `aes_encrypt()` becomes permanently undecryptable after a restart.
+- **Change**: Added `validate_encryption_key_env` model_validator that raises `ValueError` in production if `ENCRYPTION_KEY` is not explicitly set, and logs a warning in development. Pattern matches existing `validate_secret_key_env`.
+- **Verification**: Production deployments without `ENCRYPTION_KEY` in `.env` will now fail fast with a clear error message
+- **New issues**: None
+
+## Fix 239 — Redis singleton race condition + parse_gallery_json logging
+- **Date**: 2026-05-27 (Round 73)
+- **Files**: `backend/app/deps.py`, `backend/app/schemas/supply_chain.py`
+- **Reason**: P2: `get_redis_client()` had a TOCTOU race — concurrent requests could create multiple Redis clients, leaking connections. Also, `parse_gallery_json` silently swallowed all exceptions with no logging.
+- **Change**:
+  - `deps.py`: Added `asyncio.Lock` with double-checked locking pattern to `get_redis_client()`
+  - `supply_chain.py`: Added `logger.debug()` to `parse_gallery_json` exception handler
+- **Verification**: Redis client creation is now thread-safe; gallery parse failures are logged at debug level
+- **New issues**: None
+
+## Fix 240 — Translate remaining utility script Chinese (backfill, db_repair, main)
+- **Date**: 2026-05-27 (Round 73)
+- **Files**: `backend/app/backfill_impact_supply.py`, `backend/app/backfill_impact_origin_story.py`, `backend/app/db_repair.py`, `backend/app/main.py`
+- **Reason**: P3: Utility scripts and main.py contained Chinese docstrings, print statements, and code comments.
+- **Change**:
+  - `backfill_impact_supply.py`: Translated docstring and 2 print statements
+  - `backfill_impact_origin_story.py`: Translated docstring
+  - `db_repair.py`: Translated docstring
+  - `main.py`: Translated 3 code comments
+- **Verification**: All utility scripts now use English for user-facing output
+- **New issues**: None

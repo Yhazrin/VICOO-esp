@@ -1,7 +1,7 @@
 """
-Idempotent catalog repair: 中文类目 → 英文枚举、公益 / 优衣库常规 SKU 分流。
+Idempotent catalog repair: Chinese category names → English enum, impact / regular SKU routing.
 
-开发环境在 lifespan 中自动执行；生产可运行:
+Auto-runs in development lifespan; production can run:
   cd backend && python -m app.db_repair
 """
 

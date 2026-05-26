@@ -138,6 +138,22 @@ class Settings(BaseSettings):
         return self
 
     @model_validator(mode="after")
+    def validate_encryption_key_env(self):
+        """Warn if ENCRYPTION_KEY was auto-generated (not set via env/.env)."""
+        if "ENCRYPTION_KEY" not in self.model_fields_set:
+            if self.APP_ENV == "production":
+                raise ValueError(
+                    "ENCRYPTION_KEY must be explicitly set in production. "
+                    "Auto-generated keys make previously encrypted data permanently undecryptable after restart."
+                )
+            _config_logger.warning(
+                "ENCRYPTION_KEY not set via env — using auto-generated key. "
+                "Encrypted data (phone numbers, etc.) will be lost on restart. "
+                "Set ENCRYPTION_KEY in .env for persistent encryption."
+            )
+        return self
+
+    @model_validator(mode="after")
     def validate_cors_security(self):
         if "*" in self.CORS_ORIGINS:
             if self.APP_ENV == "production":

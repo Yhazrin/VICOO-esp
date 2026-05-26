@@ -36,7 +36,7 @@ logging.getLogger("vicoo.auth").setLevel(_log_level)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Auto-seed demo data：development 默认执行；production/staging 需 SEED_IF_EMPTY=true 且库中无用户时执行
+    # Auto-seed demo data: runs by default in development; in production/staging requires SEED_IF_EMPTY=true and empty user table
     _seed_if_empty = settings.APP_ENV == "development" or getattr(
         settings, "SEED_IF_EMPTY", False
     )
@@ -62,7 +62,7 @@ async def lifespan(app: FastAPI):
     except Exception:
         logger.warning("Product i18n backfill failed (non-critical)", exc_info=True)
 
-    # 修复旧库：中文类目、is_impact_product 未维护时，公益 / 优衣库常规分流错误（幂等，全环境执行）
+    # Repair legacy data: Chinese categories and misclassified impact/regular products (idempotent, all environments)
     try:
         from app.db_repair import repair_product_catalog
 
@@ -322,7 +322,7 @@ app.add_middleware(
 for router in routers:
     app.include_router(router, prefix="/api/v1")
 
-# 静态资源：溯源媒体上传、证书图等（/static/...）
+# Static assets: trace media uploads, certificate images, etc. (/static/...)
 _STATIC_ROOT = Path(__file__).resolve().parent.parent / "static"
 _STATIC_ROOT.mkdir(parents=True, exist_ok=True)
 (_STATIC_ROOT / "uploads" / "traceability").mkdir(parents=True, exist_ok=True)

@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import json
+import logging
 from datetime import datetime
 from decimal import Decimal
 from typing import Any, List, Literal, Optional
 
 from pydantic import BaseModel, Field
+
+logger = logging.getLogger(__name__)
 
 
 class TraceMediaItem(BaseModel):
@@ -24,7 +27,8 @@ def parse_gallery_json(raw: Optional[str]) -> List[TraceMediaItem]:
         if not isinstance(data, list):
             return []
         return [TraceMediaItem.model_validate(x) for x in data]
-    except Exception:
+    except Exception as e:
+        logger.debug("parse_gallery_json failed: %s", e)
         return []
 
 

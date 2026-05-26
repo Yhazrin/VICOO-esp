@@ -1,4 +1,5 @@
 from typing import Optional
+import asyncio
 import logging
 import hmac
 import hashlib
@@ -19,13 +20,16 @@ logger = logging.getLogger(__name__)
 
 # Redis client for rate limiting
 redis_client = None
+_redis_lock = asyncio.Lock()
 
 
 async def get_redis_client():
     """Get or create Redis client for rate limiting."""
     global redis_client
     if redis_client is None:
-        redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
+        async with _redis_lock:
+            if redis_client is None:
+                redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
     return redis_client
 
 
