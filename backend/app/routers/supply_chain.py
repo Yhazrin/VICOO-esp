@@ -46,7 +46,7 @@ async def upload_trace_media(
     file: UploadFile = File(...),
     _current_user: dict = Depends(require_role("admin", "editor")),
 ):
-    """上传溯源节点图片/视频至本地 static，返回可供写入 gallery 的相对 URL（/static/...）。"""
+    """Upload traceability node image/video to local static, returns relative URL for gallery (/static/...)."""
     body = await file.read()
     if len(body) > _MAX_TRACE_UPLOAD:
         raise HTTPException(status_code=413, detail="File too large (max 10MB)")

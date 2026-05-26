@@ -1,4 +1,4 @@
-"""售后服务工单。"""
+"""After-sales service tickets."""
 
 import logging
 

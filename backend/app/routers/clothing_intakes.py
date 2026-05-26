@@ -140,7 +140,7 @@ async def publish_product_from_intake(
     _staff: dict = Depends(require_role("admin", "editor")),
     db: AsyncSession = Depends(get_db),
 ):
-    """将受理单关联为已上架商品（完成 捐献→商品 闭环）。"""
+    """Link intake record to a listed product (completing the donation-to-product loop)."""
     try:
         stmt = select(ClothingIntake).where(ClothingIntake.id == intake_id)
         intake = (await db.execute(stmt)).scalar_one_or_none()

@@ -2612,3 +2612,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Added `isError` to all 13 queries. Added error rendering in ProductDetail (reviews section), CampaignDetail (artworks grid). Other queries use safe fallbacks (empty arrays, `--` values) so error state is tracked but doesn't need explicit UI.
 - **Verification**: All useQuery calls now track error state; user-visible errors shown where data is primary content
 - **New issues**: None
+
+## Fix 312 — Remaining Chinese docstrings in API-facing code
+- **Date**: 2026-05-27 (Round 84)
+- **Files**: `backend/app/routers/supply_chain.py`, `backend/app/routers/clothing_intakes.py`, `backend/app/routers/orders.py`, `backend/app/routers/after_sales.py`, `backend/app/schemas/circular_commerce.py`, `backend/app/data/default_regular_products.py`
+- **Reason**: P3: 7 Chinese docstrings in non-exempt API-facing files. Inconsistent with codebase convention where all docstrings were translated to English in Fixes 240-244, 304.
+- **Change**: Translated all 7 docstrings to English. Exempt files (`db_repair.py` data mapping) left unchanged.
+- **Verification**: `grep -rP '"""[^\x00-\x7F]' backend/app/` only shows exempt files (db_repair.py)
+- **New issues**: None

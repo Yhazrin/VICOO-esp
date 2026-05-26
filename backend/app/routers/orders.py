@@ -432,7 +432,7 @@ async def update_order_logistics(
     _admin: dict = Depends(require_role("admin")),
     db: AsyncSession = Depends(get_db),
 ):
-    """后台更新承运商、运单号并追加物流节点（仅管理员）。"""
+    """Admin: update carrier, tracking number, and append logistics event."""
     try:
         stmt = select(Order).where(Order.id == order_id)
         result = await db.execute(stmt)

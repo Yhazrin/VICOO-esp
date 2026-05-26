@@ -43,7 +43,7 @@ class ClothingIntakeOut(BaseModel):
 
 
 class PublishFromIntakeBody(BaseModel):
-    """由衣物受理单生成上架商品（运营/编辑）。"""
+    """Create a listed product from a clothing intake record (admin/editor)."""
 
     name: str = Field(..., min_length=1, max_length=300)
     description: Optional[str] = Field(None, max_length=10000)
