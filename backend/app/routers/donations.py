@@ -58,7 +58,7 @@ def _serialize_donation(donation: Donation) -> dict:
 def _redact_name(name: str | None, is_anonymous: bool | None = None) -> str:
     """Redact donor name for unauthenticated viewers."""
     if is_anonymous or not name:
-        return "匿名爱心人士"
+        return "Anonymous Donor"
     # Show first character only, rest as asterisks
     if len(name) <= 1:
         return "*"
@@ -95,7 +95,7 @@ async def list_donations(
             if not is_admin:
                 is_owner = current_user and item.get("donor_user_id") == current_user.get("id")
                 if not is_owner:
-                    item["donor_name"] = mask_name(item.get("donor_name")) if not item.get("is_anonymous") else "匿名爱心人士"
+                    item["donor_name"] = mask_name(item.get("donor_name")) if not item.get("is_anonymous") else "Anonymous Donor"
                     item.pop("message", None)
                     item.pop("donor_user_id", None)
             items.append(item)
@@ -199,7 +199,7 @@ async def create_donation(body: DonationCreate, db: AsyncSession = Depends(get_d
                 payment_params = await get_payment_service().create_unified_order(
                     order_no=f"DON{donation.id}",
                     amount=body.amount,
-                    description="公益捐赠" if body.is_anonymous else f"公益捐赠 - {body.donor_name}",
+                    description="Charitable Donation" if body.is_anonymous else f"Charitable Donation - {body.donor_name}",
                     trade_type="JSAPI",
                     donation_id=donation.id
                 )

@@ -492,7 +492,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                 if campaign.description:
                     ctx += f"活动简介: {campaign.description[:200]}\n"
                 return ctx
-            return "当前暂无进行中的筹款活动。\n"
+            return "No active fundraising campaigns at the moment.\n"
         except Exception as e:
             logger.error(f"Failed to get campaign context: {e}")
             return ""

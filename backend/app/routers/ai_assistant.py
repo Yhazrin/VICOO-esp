@@ -50,7 +50,7 @@ async def ai_chat(
         logger.error(f"Chat failed: {e}")
         return ApiResponse(
             data=AIChatResponse(
-                reply="智能助手暂时不可用，请稍后再试或通过联系页提交问题。",
+                reply="The AI assistant is temporarily unavailable. Please try again later or submit a question via the contact page.",
                 model="error",
                 source="system"
             ).model_dump()

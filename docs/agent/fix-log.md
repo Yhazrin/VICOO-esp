@@ -1812,3 +1812,15 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Removed all 4 unused imports
 - **Verification**: No functional change; cleaner import lists
 - **New issues**: None
+
+## Fix 221 — Remaining Chinese strings in English-facing API responses
+- **Date**: 2026-05-27 (Round 67)
+- **Files**: `backend/app/routers/ai_assistant.py`, `backend/app/routers/sustainability.py`, `backend/app/routers/donations.py`, `backend/app/services/ai_assistant/service.py`
+- **Reason**: P3: Several API endpoints still contained Chinese strings while the rest of the codebase uses English for all user-facing messages
+- **Change**:
+  - `ai_assistant.py`: `"AI助手暂时不可用，请稍后再试或通过联系方式提交问题。"` → `"The AI assistant is temporarily unavailable. Please try again later or submit a question via the contact page."`
+  - `sustainability.py`: `"指标基于可验证的供应链和运营数据。上线后以审计报告为准。"` → `"Metrics are derived from verifiable supply chain and operational data. Post-launch, audited reports should be treated as authoritative."` (success + fallback)
+  - `donations.py`: `"匿名爱心人士"` → `"Anonymous Donor"`, `"公益捐赠"` → `"Charitable Donation"`
+  - `ai_assistant/service.py`: campaign context fallback translated from Chinese to English
+- **Verification**: All API responses now use consistent English
+- **New issues**: None

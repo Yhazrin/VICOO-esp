@@ -53,7 +53,7 @@ async def sustainability_summary(db: AsyncSession = Depends(get_db)):
                 "supply_chain_certified_nodes": certified_nodes,
                 "supply_chain_verification_rate_percent": verification_rate,
                 "methodology_url": "/traceability",
-                "notes": "指标来自可核验的链路与运营数据；上线后请以审计报告为准。",
+                "notes": "Metrics are derived from verifiable supply chain and operational data. Post-launch, audited reports should be treated as authoritative.",
             }
         )
     except HTTPException:
@@ -69,6 +69,6 @@ async def sustainability_summary(db: AsyncSession = Depends(get_db)):
                 "supply_chain_certified_nodes": 0,
                 "supply_chain_verification_rate_percent": 0.0,
                 "methodology_url": "/traceability",
-                "notes": "数据服务暂不可用，返回占位指标。",
+                "notes": "Data service temporarily unavailable. Placeholder metrics returned.",
             }
         )
