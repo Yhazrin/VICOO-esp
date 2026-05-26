@@ -991,8 +991,9 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                     stmt = select(Campaign)
                     filters = []
                     for t in terms[:3]:
-                        filters.append(Campaign.title.ilike(f"%{t}%"))
-                        filters.append(Campaign.description.ilike(f"%{t}%"))
+                        et = _escape_like(t)
+                        filters.append(Campaign.title.ilike(f"%{et}%", escape="\\"))
+                        filters.append(Campaign.description.ilike(f"%{et}%", escape="\\"))
                     if filters:
                         stmt = stmt.where(or_(*filters)).limit(3)
                         camps = (await self.db.execute(stmt)).scalars().all()
@@ -1012,7 +1013,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                 try:
                     from app.models.supply_chain import SupplyChainRecord
                     stmt = select(SupplyChainRecord)
-                    filters = [SupplyChainRecord.description.ilike(f"%{t}%") for t in terms[:3]]
+                    filters = [SupplyChainRecord.description.ilike(f"%{_escape_like(t)}%", escape="\\") for t in terms[:3]]
                     if filters:
                         stmt = stmt.where(or_(*filters)).limit(5)
                         recs = (await self.db.execute(stmt)).scalars().all()
