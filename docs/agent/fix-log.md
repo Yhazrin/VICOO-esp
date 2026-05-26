@@ -1957,3 +1957,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
   - `ChildParticipantCreate` schema: Added `max_length=20, pattern` to `guardian_phone`, changed `guardian_email` to `EmailStr`
 - **Verification**: All schemas now enforce consistent validation; CampaignService field lists match model columns
 - **New issues**: None
+
+## Fix 233 — Profile address form accessibility (label/input association)
+- **Date**: 2026-05-27 (Round 70)
+- **Files**: `frontend/web-react/src/pages/Profile/index.tsx`
+- **Reason**: P2: All 8 address form label/input pairs lacked `htmlFor`/`id` association, breaking screen reader navigation. Labels and inputs were siblings (not wrapping), so assistive technology could not associate them.
+- **Change**: Added `htmlFor` to all 8 `<label>` elements and matching `id` to all 8 `<input>` elements: `addr-label`, `addr-recipient`, `addr-phone`, `addr-province`, `addr-city`, `addr-district`, `addr-detail`, `addr-postal`. Also translated Chinese fallback strings in the address form to English.
+- **Verification**: Screen readers can now announce which label belongs to which input
+- **New issues**: None
