@@ -45,7 +45,7 @@ async def is_token_blacklisted(jti: str) -> bool:
         client = await get_redis_client()
         return await client.exists(f"blacklist:{jti}")
     except Exception as e:
-        logger.error(f"Redis error during blacklist check: {e}")
+        logger.error("Redis error during blacklist check: %s", e)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
@@ -153,9 +153,9 @@ async def rate_limit_check(request: Request, current_user: Optional[dict] = None
         except redis.RedisError as e:
             # Fail open in development mode, fail closed in production
             if is_development:
-                logger.warning(f"Redis connection failed during global rate limiting (development mode): {e}")
+                logger.warning("Redis connection failed during global rate limiting (development mode): %s", e)
             else:
-                logger.error(f"Redis connection failed during global rate limiting: {e}")
+                logger.error("Redis connection failed during global rate limiting: %s", e)
                 raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
         # Public endpoint rate limit: 20 requests per minute per IP for auth endpoints
@@ -185,9 +185,9 @@ async def rate_limit_check(request: Request, current_user: Optional[dict] = None
             except redis.RedisError as e:
                 # Fail open in development mode, fail closed in production
                 if is_development:
-                    logger.warning(f"Redis connection failed during public endpoint rate limiting (development mode): {e}")
+                    logger.warning("Redis connection failed during public endpoint rate limiting (development mode): %s", e)
                 else:
-                    logger.error(f"Redis connection failed during public endpoint rate limiting: {e}")
+                    logger.error("Redis connection failed during public endpoint rate limiting: %s", e)
                     raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
         # User-specific rate limit: 60 requests per minute (if authenticated)
@@ -206,9 +206,9 @@ async def rate_limit_check(request: Request, current_user: Optional[dict] = None
             except redis.RedisError as e:
                 # Fail open in development mode, fail closed in production
                 if is_development:
-                    logger.warning(f"Redis connection failed during user rate limiting (development mode): {e}")
+                    logger.warning("Redis connection failed during user rate limiting (development mode): %s", e)
                 else:
-                    logger.error(f"Redis connection failed during user rate limiting: {e}")
+                    logger.error("Redis connection failed during user rate limiting: %s", e)
                     raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
         return True
@@ -217,9 +217,9 @@ async def rate_limit_check(request: Request, current_user: Optional[dict] = None
     except Exception as e:
         # Fail closed in production: deny request when rate limiting is broken
         if is_development:
-            logger.warning(f"Rate limiting error (development mode, failing open): {e}", exc_info=True)
+            logger.warning("Rate limiting error (development mode, failing open): %s", e, exc_info=True)
             return True
-        logger.error(f"Rate limiting error (failing closed): {e}", exc_info=True)
+        logger.error("Rate limiting error (failing closed): %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 

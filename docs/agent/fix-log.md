@@ -2412,3 +2412,35 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Added `.order_by(SupplyChainRecord.timestamp.asc())` to the query.
 - **Verification**: Supply chain timeline now displays stages in chronological order
 - **New issues**: None
+
+## Fix 287 — Artwork upload accepts any content-type without validation
+- **Date**: 2026-05-27 (Round 81)
+- **Files**: `backend/app/routers/artworks.py`
+- **Reason**: P2: `create_artwork` accepted `UploadFile` without validating `content_type`. An attacker could upload `.exe`, `.html` (XSS), or `.svg` (XXE) files disguised as artwork images. Compare with `supply_chain.py` which correctly validates against an allowlist.
+- **Change**: Added `_ALLOWED_IMAGE_TYPES` allowlist (`jpeg/png/webp/gif`) and reject unsupported types with HTTP 400.
+- **Verification**: Non-image uploads now rejected with clear error message
+- **New issues**: None
+
+## Fix 288 — deps.py f-string logging leaks Redis connection details
+- **Date**: 2026-05-27 (Round 81)
+- **Files**: `backend/app/deps.py`
+- **Reason**: P2: Nine `logger.error/warning(f"...")` calls used f-string interpolation. Redis errors can include connection URLs with passwords (e.g., `redis://:password@host:6379`). Same pattern fixed in Fix 276 for payments.py.
+- **Change**: All nine log calls changed to `logger.error("...: %s", e)` format for consistency and safety.
+- **Verification**: Log format now matches codebase convention, no f-string interpolation
+- **New issues**: None
+
+## Fix 289 — PaymentConfirm page hardcodes CNY currency symbol
+- **Date**: 2026-05-27 (Round 81)
+- **Files**: `frontend/web-react/src/pages/PaymentConfirm/index.tsx`
+- **Reason**: P2: Payment confirmation page hardcoded `¥` symbol. If a USD-denominated order reaches this page, the user sees `¥100.00` instead of `$100.00`, misrepresenting the payment amount. Checkout and CartDrawer already use locale-aware currency display.
+- **Change**: Currency symbol now derived from `payment_method` field (paypal/stripe → $, others → ¥).
+- **Verification**: Payment amount displays correct currency symbol based on payment method
+- **New issues**: None
+
+## Fix 290 — Audit log flush creates entries for rolled-back operations
+- **Date**: 2026-05-27 (Round 81)
+- **Files**: `backend/app/core/audit.py`
+- **Reason**: P2: `log_audit` called `await db.flush()` after `db.add(audit_entry)`, persisting audit entries independently of the caller's transaction. If the caller's transaction later rolled back (e.g., concurrent IntegrityError), the audit entry persisted — creating log entries for operations that did not actually complete.
+- **Change**: Removed `await db.flush()` from `log_audit`. Audit entries now participate in the caller's transaction scope and only persist when the caller commits. Also fixed f-string logging in the same function.
+- **Verification**: Audit entries now roll back with the caller's transaction on failure
+- **New issues**: None

@@ -263,9 +263,13 @@ async def create_artwork(
     current_user: dict = Depends(get_current_user)
 ):
     """Create a new artwork (multipart/form-data support)."""
+    # Validate image content-type
+    _ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+    ct = (image.content_type or "").split(";")[0].strip().lower()
+    if ct not in _ALLOWED_IMAGE_TYPES:
+        raise HTTPException(status_code=400, detail="Unsupported image type; use jpeg/png/webp/gif")
+
     # Check for guardian consent if child participant is involved
-    # For this test scenario, if child_display_name is provided, consent is required
-    # Handle string boolean values like "true"/"false"
     consent_given = guardian_consent and guardian_consent.lower() not in ["false", "0", "no"]
     if child_display_name and not consent_given:
         raise HTTPException(status_code=403, detail="Guardian consent is required for child participants")

@@ -108,7 +108,7 @@ export default function PaymentConfirm() {
                   {t('checkout.total')}
                 </span>
                 <p className="font-display text-xl font-bold text-ink mt-1">
-                  ¥{Number(preview.total_amount).toFixed(2)}
+                  {preview.payment_method === 'paypal' || preview.payment_method === 'stripe' ? '$' : '¥'}{Number(preview.total_amount).toFixed(2)}
                 </p>
               </div>
               <button
