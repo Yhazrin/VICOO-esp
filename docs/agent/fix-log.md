@@ -1422,3 +1422,83 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Added `logger.debug()` with error details for both campaign and supply chain retrieval paths
 - **Verification**: RAG retrieval failures now logged for debugging
 - **New issues**: None
+
+## Fix 176 — DesignDraftCreate.title accepts unbounded strings
+- **Date**: 2026-05-27 (Round 57)
+- **Files**: `backend/app/schemas/design_draft.py`
+- **Reason**: P0: `title: str` had zero validation — arbitrarily large strings could be submitted, risking DB truncation (VARCHAR(300)) or memory abuse.
+- **Change**: Added `Field(..., min_length=1, max_length=300)` to title; added max_length to description (5000), review_note (2000), prompt_used (5000), design_image_url (500)
+- **Verification**: Oversized payloads now rejected at schema validation
+- **New issues**: None
+
+## Fix 177 — AddressCreate/Update.detail_address has no length limit
+- **Date**: 2026-05-27 (Round 57)
+- **Files**: `backend/app/schemas/address.py`
+- **Reason**: P0: `detail_address` accepted unlimited-length strings. Physical addresses should not exceed 500 chars.
+- **Change**: Added `max_length=500` to both AddressCreate and AddressUpdate
+- **Verification**: Oversized address payloads now rejected
+- **New issues**: None
+
+## Fix 178 — SettingsBulkUpdate accepts arbitrary key/value pairs
+- **Date**: 2026-05-27 (Round 57)
+- **Files**: `backend/app/schemas/settings.py`
+- **Reason**: P0: Schema accepted any `dict[str, Any]` with no key restriction. Could write to sensitive env-like keys if endpoint is misused.
+- **Change**: Added `field_validator` with `_ALLOWED_SETTING_KEYS` whitelist
+- **Verification**: Unknown setting keys now rejected
+- **New issues**: None
+
+## Fix 179 — DonationService.complete_donation transaction gap
+- **Date**: 2026-05-27 (Round 57)
+- **Files**: `backend/app/services/donation/service.py`
+- **Reason**: P0: Campaign `current_amount` UPDATE and certificate generation were not wrapped in a savepoint. If final flush fails, campaign amount is incremented but donation status/cert are lost.
+- **Change**: Wrapped campaign update + cert generation + flush in `begin_nested()` savepoint
+- **Verification**: Partial failures now roll back consistently
+- **New issues**: None
+
+## Fix 180 — Product/Campaign/Artwork description fields lack max_length
+- **Date**: 2026-05-27 (Round 57)
+- **Files**: `backend/app/schemas/product.py`, `backend/app/schemas/campaign.py`, `backend/app/schemas/artwork.py`
+- **Reason**: P1: Multiple Text fields (description, description_en, trace_story_content, review_note) had no upper bound in Pydantic schemas, allowing arbitrarily large payloads.
+- **Change**: Added `max_length=10000` to product/campaign descriptions, `max_length=5000` to artwork descriptions
+- **Verification**: Oversized text payloads now rejected at validation
+- **New issues**: None
+
+## Fix 181 — Missing indexes on payment_id columns
+- **Date**: 2026-05-27 (Round 57)
+- **Files**: `backend/app/models/order.py`, `backend/app/models/donation.py`
+- **Reason**: P1: `Order.payment_id` and `Donation.payment_id` are queried during payment callbacks but lack indexes, causing full table scans under load.
+- **Change**: Added `index=True` to both columns
+- **Verification**: Payment callback lookups now use index
+- **New issues**: None
+
+## Fix 182 — ProductDetail impact hero image missing alt text
+- **Date**: 2026-05-27 (Round 57)
+- **Files**: `frontend/web-react/src/pages/ProductDetail.tsx`
+- **Reason**: P2: `alt=""` on a meaningful product hero image. Screen readers get no description.
+- **Change**: Changed to `alt={safeProduct.name}`
+- **Verification**: Screen readers now announce product name
+- **New issues**: None
+
+## Fix 183 — Admin LoginPage password toggle missing aria-label
+- **Date**: 2026-05-27 (Round 57)
+- **Files**: `admin/src/pages/LoginPage.tsx`
+- **Reason**: P2: Password show/hide button rendered only an SVG icon with no aria-label. Screen readers announce it as empty button.
+- **Change**: Added `aria-label={showPassword ? 'Hide password' : 'Show password'}`
+- **Verification**: Screen readers now announce button purpose
+- **New issues**: None
+
+## Fix 184 — Admin ProductPage gallery items missing alt text and remove aria-label
+- **Date**: 2026-05-27 (Round 57)
+- **Files**: `admin/src/pages/ProductPage.tsx`
+- **Reason**: P2: Gallery preview images had `alt=""`, remove buttons had no aria-label.
+- **Change**: Added `alt={Gallery item N}` on images, `aria-label={Remove gallery item N}` on buttons
+- **Verification**: Screen readers now describe gallery items
+- **New issues**: None
+
+## Fix 185 — Admin DashboardPage artwork thumbnails missing alt text
+- **Date**: 2026-05-27 (Round 57)
+- **Files**: `admin/src/pages/DashboardPage.tsx`
+- **Reason**: P2: Artwork thumbnail images had `alt=""` despite displaying meaningful content.
+- **Change**: Changed to `alt={artwork.title || 'Artwork'}`
+- **Verification**: Screen readers now announce artwork titles
+- **New issues**: None
