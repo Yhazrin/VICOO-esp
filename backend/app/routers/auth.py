@@ -186,14 +186,11 @@ async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depend
 
     if settings.DEMO_MODE and (body.email.endswith("@vicoo.test") or body.email.endswith("@vicoo.org") or body.email.startswith("vicoo-")):
         is_mock = True
-        if "admin" in body.email: mock_password = "vicoo-admin"
-        elif "editor" in body.email: mock_password = "vicoo-editor"
-        else: mock_password = "vicoo-user"
 
     if is_mock:
         return ApiResponse(
-            message="Recovery successful (Mock Mode)",
-            data={"password_hint": mock_password, "is_mock": True}
+            message="Recovery email sent (Demo Mode — check .env for seed passwords)",
+            data={"is_mock": True}
         )
 
     # 2. Logic for Real accounts

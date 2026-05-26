@@ -129,16 +129,6 @@ class DonationService(BaseService):
         
         donation = Donation(**donation_data)
         self.db.add(donation)
-
-        if donation.campaign_id:
-            # Atomic update for campaign current_amount
-            stmt = (
-                update(Campaign)
-                .where(Campaign.id == donation.campaign_id)
-                .values(current_amount=Campaign.current_amount + amount)
-            )
-            await self.db.execute(stmt)
-        
         await self.db.flush()
         return donation
 
@@ -175,6 +165,14 @@ class DonationService(BaseService):
             return donation
 
         await self.db.refresh(donation)
+
+        # Update campaign amount now that payment is confirmed
+        if donation.campaign_id:
+            await self.db.execute(
+                update(Campaign)
+                .where(Campaign.id == donation.campaign_id)
+                .values(current_amount=Campaign.current_amount + donation.amount)
+            )
 
         # Automatic certificate generation logic
         date_str = datetime.now().strftime("%Y%m%d")

@@ -390,6 +390,19 @@ async def update_order_status(
         # Non-admin users can only cancel their own orders
         if current_user.get("role") != "admin" and body.status != "cancelled":
             raise HTTPException(status_code=403, detail="Only admins can change order status to non-cancelled states")
+        # Enforce valid state transitions
+        _VALID_TRANSITIONS = {
+            "pending": {"cancelled"},
+            "paid": {"shipped", "refunded"},
+            "shipped": {"completed"},
+        }
+        allowed = _VALID_TRANSITIONS.get(order.status, set())
+        if body.status not in allowed:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Cannot transition from '{order.status}' to '{body.status}'. Allowed: {', '.join(sorted(allowed)) or 'none'}",
+            )
+
         # Use cancel_order service to properly restore stock
         if body.status == "cancelled":
             order_service = OrderService(db)
@@ -399,11 +412,11 @@ async def update_order_status(
             from sqlalchemy import update as sql_update
             result = await db.execute(
                 sql_update(Order)
-                .where(Order.id == order_id)
+                .where(Order.id == order_id, Order.status == order.status)
                 .values(status=body.status)
             )
             if result.rowcount == 0:
-                raise HTTPException(status_code=400, detail="Order status update failed")
+                raise HTTPException(status_code=400, detail="Order status changed concurrently, please retry")
             await db.refresh(order)
         item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
         items = (await db.execute(item_stmt)).scalars().all()
