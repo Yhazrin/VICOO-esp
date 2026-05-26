@@ -798,3 +798,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: (a) Added `unique=True, index=True` to `provider_transaction_id` column; (b) Added `UniqueConstraint("order_id", "order_item_id", "beneficiary_type")` to ImpactFundEntry; (c) Wrapped `process_successful_payment` flush in `try/except IntegrityError` to gracefully handle concurrent webhook race
 - **Verification**: `python -c "ast.parse(...)"` pass for all 3 files
 - **New issues**: None
+
+## Fix 98 — Payment session safety, donation PII leak, duplicate-pending prevention
+- **Date**: 2026-05-27 (Round 45)
+- **Files**: `backend/app/services/payment/service.py`, `backend/app/routers/donations.py`
+- **Reason**: (a) P0: `process_successful_payment` caught IntegrityError from impact fund allocation but left the session in a corrupted state — subsequent operations on the damaged session could silently no-op or produce inconsistent data; (b) P1: `GET /donations` list endpoint leaked `donor_name`, `donor_user_id`, `message` to all authenticated users, not just admins/owners; (c) P1: `create_payment_transaction` had no duplicate-pending check — double-clicking pay button created two pending transactions, risking double-charge
+- **Change**: (a) Replaced bare `try/except` with `async with self.db.begin_nested()` savepoint for impact fund allocation, so IntegrityError rolls back only the savepoint, not the entire session; (b) Added admin/owner check — non-admin users only see masked donor data for donations they don't own; (c) Added SELECT check for existing pending payment on same order/donation before creating new one
+- **Verification**: `python -c "ast.parse(...)"` pass for both files
+- **New issues**: None
