@@ -94,7 +94,7 @@ export default function CampaignPage() {
     },
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent | React.MouseEvent) => {
     e.preventDefault();
     if (!form.title || !form.startDate || !form.endDate) {
       toast.error(t('campaign.errorRequiredFields'));
@@ -179,7 +179,7 @@ export default function CampaignPage() {
                 if (editCampaign) {
                   updateMutation.mutate({ id: editCampaign.id, data: { title: form.title, description: form.description, startDate: form.startDate, endDate: form.endDate, targetAmount: Number(form.targetAmount) || 0 } });
                 } else {
-                  handleSubmit(e as any);
+                  handleSubmit(e);
                 }
               }}
             >

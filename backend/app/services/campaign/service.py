@@ -94,11 +94,14 @@ class CampaignService(BaseService):
             logger.error(f"Error creating campaign: {e}")
             raise ServiceUnavailableException()
 
+    _UPDATABLE_FIELDS = {"title", "description", "goal_amount", "start_date", "end_date", "status", "image_url"}
+
     async def update_campaign(self, campaign_id: int, data: Dict[str, Any]) -> Campaign:
         """Update a campaign and invalidate cache."""
         campaign = await self.get_campaign_by_id(campaign_id)
         for k, v in data.items():
-            setattr(campaign, k, v)
+            if k in self._UPDATABLE_FIELDS:
+                setattr(campaign, k, v)
         await self.db.flush()
         await self.db.refresh(campaign, ["created_at"])
         # Invalidate listing caches

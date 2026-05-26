@@ -263,7 +263,7 @@ export default function ProductPage() {
     }));
   }
 
-  function submitForm(e: React.FormEvent) {
+  function submitForm(e: React.FormEvent | React.MouseEvent) {
     e.preventDefault();
     if (!form.name || !form.price) {
       toast.error(t('product.errorRequired'));
@@ -289,7 +289,7 @@ export default function ProductPage() {
     }
   }
 
-  function submitNode(e: React.FormEvent) {
+  function submitNode(e: React.FormEvent | React.MouseEvent) {
     e.preventDefault();
     if (!traceProduct) return;
     if (editingNode) {
@@ -332,7 +332,7 @@ export default function ProductPage() {
       render: (v) => dayjs(v).format('YYYY-MM-DD HH:mm'),
     },
     {
-      key: 'id' as any, title: t('product.colActions'), width: 220,
+      key: 'id', title: t('product.colActions'), width: 220,
       render: (_v, row) => (
         <div style={{ display: 'flex', gap: 6 }}>
           <button
@@ -394,7 +394,7 @@ export default function ProductPage() {
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>{t('common.cancel')}</Button>
-            <Button variant="primary" loading={createMut.isPending || updateMut.isPending} onClick={(e) => submitForm(e as any)}>
+            <Button variant="primary" loading={createMut.isPending || updateMut.isPending} onClick={(e) => submitForm(e)}>
               {editingId ? t('product.btnSave') : t('product.btnCreateSubmit')}
             </Button>
           </>
@@ -582,7 +582,7 @@ export default function ProductPage() {
         footer={
           <>
             <Button variant="secondary" onClick={closeNodeModal}>{t('common.cancel')}</Button>
-            <Button variant="primary" loading={createNodeMut.isPending || updateNodeMut.isPending} onClick={(e) => submitNode(e as any)}>
+            <Button variant="primary" loading={createNodeMut.isPending || updateNodeMut.isPending} onClick={(e) => submitNode(e)}>
               {t('product.btnSaveNode')}
             </Button>
           </>
@@ -593,7 +593,7 @@ export default function ProductPage() {
             <label style={labelStyle}>{t('product.nodeStage')}</label>
             <select
               value={nodeForm.stage}
-              onChange={(e) => setNodeForm({ ...nodeForm, stage: e.target.value as any })}
+              onChange={(e) => setNodeForm({ ...nodeForm, stage: e.target.value as SupplyChainRecord['stage'] })}
               style={inputStyle}
             >
               {STAGES.map((s) => (

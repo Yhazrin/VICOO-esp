@@ -93,6 +93,8 @@ class SupplyChainService(BaseService):
     @audit_action(action="update_traceability_record", resource_type="supply_chain")
     async def update_record(self, record_id: int, data: Dict[str, Any]) -> Optional[SupplyChainRecord]:
         """Partial update (admin/editor)."""
+        _UPDATABLE_FIELDS = {"stage", "description", "location", "latitude", "longitude", "certified", "timestamp"}
+
         record = await self.db.get(SupplyChainRecord, record_id)
         if not record:
             return None
@@ -102,9 +104,8 @@ class SupplyChainService(BaseService):
             record.gallery_json = json.dumps(g) if g else None
 
         for key, val in data.items():
-            if not hasattr(record, key):
-                continue
-            setattr(record, key, val)
+            if key in _UPDATABLE_FIELDS:
+                setattr(record, key, val)
 
         await self.db.flush()
         return record
