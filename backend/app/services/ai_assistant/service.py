@@ -784,7 +784,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
             if m:
                 try:
                     pid = int(m.group(1))
-                except Exception:
+                except (ValueError, TypeError):
                     continue
 
                 # fetch product and supply chain timeline

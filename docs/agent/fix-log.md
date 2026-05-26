@@ -1675,3 +1675,35 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Removed `= None` default from `request` and `= ""` default from `state` on both callbacks
 - **Verification**: FastAPI still injects Request; state is now required, matching CSRF protection intent
 - **New issues**: None
+
+## Fix 205 — CORS middleware not outermost, preflight/error responses lack CORS headers
+- **Date**: 2026-05-27 (Round 62)
+- **Files**: `backend/app/main.py`
+- **Reason**: P1: In Starlette, middleware wraps in reverse addition order. CORS was added 6th, meaning rate-limit 429, request-size 413, and other error responses lacked CORS headers. Browser showed CORS error instead of the actual error. OPTIONS preflight traversed 5 middleware layers unnecessarily.
+- **Change**: Moved `app.add_middleware(CORSMiddleware, ...)` to after all `@app.middleware("http")` decorators, making it outermost (first to run on every request).
+- **Verification**: All responses now carry CORS headers; OPTIONS preflight handled immediately
+- **New issues**: None
+
+## Fix 206 — Admin panel has no ErrorBoundary
+- **Date**: 2026-05-27 (Round 62)
+- **Files**: `admin/src/components/ui/ErrorBoundary.tsx` (new), `admin/src/App.tsx`
+- **Reason**: P1: The admin panel had zero ErrorBoundary coverage. Any uncaught render error crashed the entire admin interface to a blank white screen with no recovery. The consumer frontend already had ErrorBoundary on every route.
+- **Change**: Created `ErrorBoundary` component for admin (simple version without frontend i18n dependencies). Wrapped all routes in `<ErrorBoundary>` in App.tsx.
+- **Verification**: Admin panel now catches render errors and shows recovery UI
+- **New issues**: None
+
+## Fix 207 — Validation error handler bare except:pass
+- **Date**: 2026-05-27 (Round 62)
+- **Files**: `backend/app/main.py`
+- **Reason**: P3: `validation_exception_handler` had `except Exception: pass` when extracting the first error message. If extraction failed for unexpected reasons, the failure was completely invisible.
+- **Change**: Added `as e` + `logger.debug(...)` to log the failure reason
+- **Verification**: Validation error extraction failures are now visible in debug logs
+- **New issues**: None
+
+## Fix 208 — AI service catches overly broad exceptions
+- **Date**: 2026-05-27 (Round 62)
+- **Files**: `backend/app/services/ai_assistant/service.py`
+- **Reason**: P3: `int(m.group(1))` conversion caught `except Exception: continue`, masking any unexpected error (encoding issues, etc.) as a silent skip.
+- **Change**: Narrowed to `except (ValueError, TypeError): continue`
+- **Verification**: Only expected conversion failures are caught; unexpected errors propagate
+- **New issues**: None

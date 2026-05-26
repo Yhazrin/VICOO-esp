@@ -103,22 +103,6 @@ if settings.APP_ENV != "development":
 # GZip compression — reduces API response size by ~60%
 app.add_middleware(GZipMiddleware, minimum_size=500)
 
-# CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=[
-        "Authorization",
-        "Content-Type",
-        "X-Requested-With",
-        "X-Signature",
-        "X-Timestamp",
-        "X-Nonce",
-    ],
-)
-
 # Request size limit
 @app.middleware("http")
 async def request_size_limit_middleware(request: Request, call_next):
@@ -210,8 +194,8 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             err = errors[0]
             if "msg" in err:
                 message = err["msg"]
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("Could not extract validation error message: %s", e)
 
     # Sanitize errors to ensure JSON serializability
     sanitized_errors = jsonable_encoder(_serialize_error(exc.errors()))
@@ -316,6 +300,22 @@ async def legacy_api_redirect_middleware(request: Request, call_next):
         if "raw_path" in request.scope:
             request.scope["raw_path"] = new_path.encode("utf-8")
     return await call_next(request)
+
+# CORS — must be outermost (last added) so preflight and error responses carry CORS headers
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+        "X-Requested-With",
+        "X-Signature",
+        "X-Timestamp",
+        "X-Nonce",
+    ],
+)
 
 for router in routers:
     app.include_router(router, prefix="/api/v1")
