@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface ModalProps {
@@ -12,11 +12,13 @@ interface ModalProps {
 
 export default function Modal({ open, onClose, title, children, footer, width = 500 }: ModalProps) {
   const { t } = useTranslation();
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') onCloseRef.current();
     };
     document.addEventListener('keydown', onKeyDown);
     const prev = document.body.style.overflow;
@@ -25,7 +27,7 @@ export default function Modal({ open, onClose, title, children, footer, width = 
       document.removeEventListener('keydown', onKeyDown);
       document.body.style.overflow = prev;
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 

@@ -313,18 +313,18 @@ async def get_optional_current_user(
 
 
 async def verify_request_signature(request: Request) -> tuple[bool, Optional[str]]:
-    """验证请求签名 (HMAC-SHA256) 和防重放攻击。
+    """Verify request signature (HMAC-SHA256) and prevent replay attacks.
 
-    验证步骤：
-    1. 检查必需的请求头：X-Signature, X-Timestamp, X-Nonce
-    2. 验证时间戳（5分钟窗口）
-    3. 验证 nonce（防重放）
-    4. 验证 HMAC-SHA256 签名
+    Steps:
+    1. Check required headers: X-Signature, X-Timestamp, X-Nonce
+    2. Validate timestamp (5-minute window)
+    3. Validate nonce (replay prevention)
+    4. Verify HMAC-SHA256 signature
 
     Returns:
-        tuple[bool, Optional[str]]: (是否验证通过, 失败原因 message)
+        tuple[bool, Optional[str]]: (passed, failure reason message)
     """
-    # 检查必需的请求头
+    # Check required headers
     signature = request.headers.get("X-Signature")
     timestamp_str = request.headers.get("X-Timestamp")
     nonce = request.headers.get("X-Nonce")
@@ -336,11 +336,11 @@ async def verify_request_signature(request: Request) -> tuple[bool, Optional[str
     if not nonce:
         return False, "Missing X-Nonce header"
 
-    # 1. 验证时间戳 (防重放窗口：5分钟)
+    # 1. Validate timestamp (anti-replay window: 5 minutes)
     try:
         timestamp = int(timestamp_str)
         current_time = int(time.time())
-        if abs(current_time - timestamp) > 300:  # 5分钟窗口
+        if abs(current_time - timestamp) > 300:  # 5-minute window
             logger.warning(
                 f"Signature timestamp expired: {timestamp}, current: {current_time}, "
                 f"path: {request.method} {request.url.path}"
@@ -350,35 +350,35 @@ async def verify_request_signature(request: Request) -> tuple[bool, Optional[str
         logger.warning(f"Invalid timestamp format: {timestamp_str}")
         return False, "Invalid timestamp format"
 
-    # 2. 验证 Nonce (防重放攻击)
+    # 2. Validate nonce (replay attack prevention)
     try:
         redis_client = await get_redis_client()
         nonce_key = f"nonce:{nonce}"
 
-        # 检查 nonce 是否已存在（重放攻击）
+        # Check if nonce already exists (replay attack)
         if await redis_client.exists(nonce_key):
             logger.warning(f"Duplicate nonce detected: {nonce}, path: {request.method} {request.url.path}")
             return False, "Duplicate request (replay attack detected)"
 
-        # 设置 nonce 过期时间（与时间戳窗口一致）
+        # Set nonce expiry (matches timestamp window)
         await redis_client.setex(nonce_key, 300, "1")
     except Exception as e:
         logger.error(f"Redis error during nonce check: {e}")
-        # Redis 不可用时，为了安全起见拒绝请求
+        # Reject request when Redis is unavailable for safety
         return False, "Service temporarily unavailable"
 
-    # 3. 验证签名 (HMAC-SHA256)
+    # 3. Verify signature (HMAC-SHA256)
     try:
         body_bytes = await request.body()
         body = body_bytes.decode("utf-8")
     except UnicodeDecodeError:
-        # 如果 body 不是 UTF-8，使用空字符串（对于二进制数据需特殊处理）
+        # Use empty string for non-UTF-8 bodies (binary data needs special handling)
         body = ""
 
-    # 构建签名字符串：method + "\n" + path + "\n" + timestamp + "\n" + nonce + "\n" + body
+    # Build signing string: method + "\n" + path + "\n" + timestamp + "\n" + nonce + "\n" + body
     string_to_sign = f"{request.method}\n{request.url.path}\n{timestamp_str}\n{nonce}\n{body}"
 
-    # HMAC-SHA256 计算
+    # HMAC-SHA256 computation
     secret_key = settings.APP_SECRET_KEY
     if isinstance(secret_key, str):
         secret_key = secret_key.encode('utf-8')
@@ -389,7 +389,7 @@ async def verify_request_signature(request: Request) -> tuple[bool, Optional[str
         hashlib.sha256
     ).hexdigest()
 
-    # 使用 constant-time comparison 防止时序攻击
+    # Use constant-time comparison to prevent timing attacks
     if not hmac.compare_digest(expected_signature, signature):
         logger.warning(
             f"Invalid signature for {request.method} {request.url.path}"

@@ -2038,3 +2038,19 @@ _Round 2: No new fixes needed. All core flows verified via API._
   - `main.py`: Translated 3 code comments
 - **Verification**: All utility scripts now use English for user-facing output
 - **New issues**: None
+
+## Fix 241 — deps.py Chinese comments translation
+- **Date**: 2026-05-27 (Round 73)
+- **Files**: `backend/app/deps.py`
+- **Reason**: P3: `verify_request_signature` function had Chinese docstring and inline comments.
+- **Change**: Translated docstring and 8 inline comments to English
+- **Verification**: No Chinese strings remain in deps.py
+- **New issues**: None
+
+## Fix 242 — Admin Modal onClose ref pattern to prevent effect churn
+- **Date**: 2026-05-27 (Round 73)
+- **Files**: `admin/src/components/ui/Modal.tsx`
+- **Reason**: P2: `useEffect` listed `onClose` in its dependency array. If the parent passes an inline arrow function (not memoized with `useCallback`), the effect re-runs on every parent render, toggling `document.body.style.overflow` between `'hidden'` and the previous value, causing layout flashes.
+- **Change**: Used `useRef` pattern for `onClose` callback — `onCloseRef.current` is updated on every render, but `useEffect` only depends on `[open]`. This matches the pattern already used in `PaymentQRModal.tsx`.
+- **Verification**: Modal Escape key handler and scroll lock no longer re-run on parent re-renders
+- **New issues**: None
