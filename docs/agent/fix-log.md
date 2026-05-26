@@ -638,3 +638,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: (a) Added `isError: productError` to ProductDetail main query + error UI fallback; (b) Added `onError` with `toast.error()` to SubmitArtwork and ArtworkSubmit create mutations; (c) Added `onError` with `toast.error()` to DonateForm and RecycleForm intake mutations; (d) Added `import toast from 'react-hot-toast'` to 4 files
 - **Verification**: `tsc --noEmit` pass for frontend (0 errors)
 - **New issues**: None
+
+## Fix 78 — AiDesign modal backdrop missing aria-hidden
+- **Date**: 2026-05-26 (Round 25)
+- **Files**: `frontend/web-react/src/pages/AiDesign/index.tsx`
+- **Reason**: Modal backdrop `<div>` was a decorative overlay but not hidden from screen readers — screen reader users could interact with a non-functional element
+- **Change**: Added `aria-hidden="true"` to the backdrop div
+- **Verification**: `tsc --noEmit` pass for frontend
+- **New issues**: None
