@@ -37,7 +37,7 @@ class AuthService(BaseService):
         user = result.scalar_one_or_none()
 
         if user:
-            if verify_password(password, user.password_hash):
+            if user.password_hash and verify_password(password, user.password_hash):
                 if user.status == "banned":
                     raise HTTPException(status_code=403, detail="Account is banned")
                 

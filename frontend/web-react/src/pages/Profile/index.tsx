@@ -591,7 +591,7 @@ export default function Profile() {
                   {intakes.map((row: ClothingIntake, index: number) => (
                     <EditorialCard
                       key={row.id}
-                      title={row.summary.slice(0, 48) + (row.summary.length > 48 ? '…' : '')}
+                      title={(row.summary ?? '').slice(0, 48) + ((row.summary?.length ?? 0) > 48 ? '…' : '')}
                       subtitle={row.created_at}
                       index={index}
                       hoverEffect="border"

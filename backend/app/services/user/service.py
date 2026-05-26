@@ -24,12 +24,13 @@ class UserService(BaseService):
         stmt = select(User)
 
         if search:
-            like = f"%{search}%"
+            safe = search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+            like = f"%{safe}%"
             count_stmt = count_stmt.where(
-                User.nickname.ilike(like) | User.email.ilike(like)
+                User.nickname.ilike(like, escape="\\") | User.email.ilike(like, escape="\\")
             )
             stmt = stmt.where(
-                User.nickname.ilike(like) | User.email.ilike(like)
+                User.nickname.ilike(like, escape="\\") | User.email.ilike(like, escape="\\")
             )
 
         total = (await self.db.execute(count_stmt)).scalar() or 0

@@ -110,6 +110,8 @@ def _build_auth_redirect(user: User) -> RedirectResponse:
 
     response = RedirectResponse(url=redirect_url, status_code=302)
     _set_auth_cookies(response, access, refresh)
+    # Clear the one-time CSRF state cookie
+    response.delete_cookie("oauth_state")
     return response
 
 

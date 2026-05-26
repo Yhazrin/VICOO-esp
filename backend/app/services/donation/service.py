@@ -35,7 +35,8 @@ class DonationService(BaseService):
         if payment_method:
             conds.append(Donation.payment_method == payment_method)
         if search and search.strip():
-            conds.append(Donation.donor_name.ilike(f"%{search.strip()}%"))
+            safe = search.strip().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+            conds.append(Donation.donor_name.ilike(f"%{safe}%", escape="\\"))
         return conds
 
     async def donation_list_summary(

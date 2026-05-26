@@ -854,3 +854,43 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Changed `_call_unified_order_api` and `create_unified_order` to async methods using `httpx.AsyncClient()` with `await`. Updated all callers in donations.py and payments.py to use `await`.
 - **Verification**: `python -c "import ast; ..."` pass for all 3 files
 - **New issues**: None
+
+## Fix 105 — React Hooks violation in OrderDetail (runtime crash)
+- **Date**: 2026-05-27 (Round 48)
+- **Files**: `frontend/web-react/src/pages/OrderDetail/index.tsx`
+- **Reason**: P0: 8 `useState` hooks were called after a conditional `if (!isAuthenticated) return <Navigate/>` at line 33. React requires hooks to be called in the same order on every render; an early return before hooks causes "Rendered fewer hooks than expected" crash.
+- **Change**: Moved all 8 `useState` declarations above the conditional authentication check
+- **Verification**: Build passes
+- **New issues**: None
+
+## Fix 106 — Profile page null summary crash
+- **Date**: 2026-05-27 (Round 48)
+- **Files**: `frontend/web-react/src/pages/Profile/index.tsx`
+- **Reason**: P0: `row.summary.slice(0, 48)` throws TypeError when `summary` is null/undefined
+- **Change**: Added null coalescing: `(row.summary ?? '').slice(0, 48)`
+- **Verification**: Build passes
+- **New issues**: None
+
+## Fix 107 — Role type mismatch in auth dependency variants
+- **Date**: 2026-05-27 (Round 48)
+- **Files**: `backend/app/deps.py`
+- **Reason**: P1: `get_current_user_from_request` and `get_optional_current_user` returned raw SQLAlchemy Enum for `role`, while `get_current_user` normalized to string. Comparisons like `role in ("admin", "editor")` silently fail for Enum values, causing admin users to see redacted data.
+- **Change**: Added `.value` normalization to both functions, matching `get_current_user` behavior
+- **Verification**: `python -c "import ast; ..."` pass
+- **New issues**: None
+
+## Fix 108 — OAuth empty password hash check and state cookie cleanup
+- **Date**: 2026-05-27 (Round 48)
+- **Files**: `backend/app/services/auth/service.py`, `backend/app/routers/oauth.py`
+- **Reason**: (a) P2: `verify_password(password, "")` called for OAuth users with empty password_hash — behavior depends on library version; (b) P2: `oauth_state` CSRF cookie not deleted after verification, persisting for 600s
+- **Change**: (a) Added `user.password_hash and` guard before `verify_password`; (b) Added `response.delete_cookie("oauth_state")` in `_build_auth_redirect`
+- **Verification**: `python -c "import ast; ..."` pass for both files
+- **New issues**: None
+
+## Fix 109 — Dead code and LIKE wildcard escape in search inputs
+- **Date**: 2026-05-27 (Round 48)
+- **Files**: `backend/app/routers/payments.py`, `backend/app/services/donation/service.py`, `backend/app/services/user/service.py`
+- **Reason**: (a) P2: Unreachable `raise` after `raise ValueError` in payments.py line 373; (b) P2: LIKE wildcards `%` and `_` in search inputs not escaped — searching for `%` matches all rows, bypassing search filtering
+- **Change**: (a) Removed dead `raise` line; (b) Added LIKE wildcard escaping (`%` → `\%`, `_` → `\_`) with `escape="\\"` parameter in donation and user service search queries
+- **Verification**: `python -c "import ast; ..."` pass for all 3 files
+- **New issues**: None

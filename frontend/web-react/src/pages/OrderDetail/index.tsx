@@ -30,11 +30,7 @@ export default function OrderDetail() {
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: `/orders/${id}` }} replace />;
-  }
-
-  // Return/exchange modal state
+  // Return/exchange modal state — hooks must be called before any conditional return
   const [showReturnModal, setShowReturnModal] = useState(false);
   const [returnType, setReturnType] = useState<'return' | 'exchange'>('return');
   const [selectedItems, setSelectedItems] = useState<Record<number, number>>({});
@@ -43,6 +39,10 @@ export default function OrderDetail() {
   const [returnSuccess, setReturnSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isCancelling, setIsCancelling] = useState(false);
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: `/orders/${id}` }} replace />;
+  }
 
   const { data: order, isLoading, isError } = useQuery({
     queryKey: ['order', id],

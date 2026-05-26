@@ -255,7 +255,8 @@ async def get_current_user_from_request(request: Request, db: AsyncSession) -> O
             if user and user.status == "banned":
                 return None
             if user:
-                return {"id": user.id, "email": user.email, "role": user.role, "nickname": user.nickname}
+                role_value = user.role.value if hasattr(user.role, "value") else str(user.role)
+                return {"id": user.id, "email": user.email, "role": role_value, "nickname": user.nickname}
         except Exception:
             # Fail closed: do not fall back to token payload when DB is unavailable
             return None
@@ -296,7 +297,8 @@ async def get_optional_current_user(
         if user and user.status == "banned":
             return None
         if user:
-            return {"id": user.id, "email": user.email, "role": user.role, "nickname": user.nickname}
+            role_value = user.role.value if hasattr(user.role, "value") else str(user.role)
+            return {"id": user.id, "email": user.email, "role": role_value, "nickname": user.nickname}
     except Exception:
         return None
     return None
