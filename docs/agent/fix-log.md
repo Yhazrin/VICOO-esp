@@ -694,3 +694,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: (a) Added `DesignPublish` Pydantic schema with required `price` field and typed optional fields; replaced `body: dict` with `body: DesignPublish` in router; (b) Added `_ADDRESS_UPDATABLE` set (9 fields) as explicit allowlist for addresses setattr loop
 - **Verification**: `python -c "ast.parse(...)"` pass for all backend files
 - **New issues**: None
+
+## Fix 85 — Admin settings endpoint: typed Pydantic schema
+- **Date**: 2026-05-26 (Round 32)
+- **Files**: `backend/app/routers/admin.py`, `backend/app/schemas/common.py`
+- **Reason**: `update_settings` endpoint accepted `body: dict[str, Any]` with manual `_ALLOWED_SETTINGS_KEYS` allowlist — no type validation on individual fields, and the allowlist could drift from actual settings
+- **Change**: (a) Replaced old `SettingsUpdate` (`Dict[str, Any]` wrapper) with proper typed Pydantic schema containing 7 optional typed fields with length constraints; (b) Replaced `body: dict[str, Any]` with `body: SettingsUpdate` in admin.py; (c) Removed manual `_ALLOWED_SETTINGS_KEYS` set; (d) Used `body.model_dump(exclude_unset=True)` for iteration; (e) Removed unused `Any` import
+- **Verification**: `python -c "ast.parse(...)"` pass for all backend files
+- **New issues**: None
