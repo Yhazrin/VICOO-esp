@@ -27,7 +27,7 @@ class I18nManager:
                 try:
                     with open(os.path.join(LOCALES_DIR, filename), "r", encoding="utf-8") as f:
                         cls._translations[locale] = json.load(f)
-                        logger.debug(f"Loaded translations for: {locale}")
+                        logger.debug("Loaded translations for: %s", locale)
                 except Exception as e:
                     logger.error("Failed to load translations for %s: %s", locale, e)
         cls._loaded = True

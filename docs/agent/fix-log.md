@@ -2580,3 +2580,35 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Added optional `currency` prop (`'CNY' | 'USD' | string`, defaults to `'CNY'`) to PaymentQRModal. Checkout now passes `currency={paymentMethod === 'paypal' || paymentMethod === 'stripe' ? 'USD' : 'CNY'}`. Modal displays `$` for USD, `¥` otherwise.
 - **Verification**: QR payment modal now shows correct currency symbol
 - **New issues**: None
+
+## Fix 308 — Last 6 f-string logger.debug calls converted to %s format
+- **Date**: 2026-05-27 (Round 84)
+- **Files**: `backend/app/utils/i18n.py`, `backend/app/utils/cache.py`, `backend/app/services/ai_assistant/service.py`
+- **Reason**: P3: 6 remaining `logger.debug(f"...")` calls in 3 files. While debug-level, these still violate the logging format convention established in Fixes 296-297.
+- **Change**: Converted all 6 to `logger.debug("...", arg)` format.
+- **Verification**: `grep -r 'logger\.\w\+(f["\x27]' backend/app/` returns 0 matches
+- **New issues**: None
+
+## Fix 309 — ai_assistant service Chinese context strings translated to English
+- **Date**: 2026-05-27 (Round 84)
+- **Files**: `backend/app/services/ai_assistant/service.py`
+- **Reason**: P2: AI context assembly methods (`_get_donation_context`, `_get_campaign_context`, `_get_impact_fund_context`, `_get_clothing_recycle_context`) used Chinese strings in data summaries fed to the LLM. The AI should receive English context for consistency. Chinese NLP keywords for intent detection are intentionally kept.
+- **Change**: Translated all context assembly strings to English (donation stats, tiers, flow, campaign info, impact fund summary, clothing recycle flow, supply chain trace). Kept Chinese keywords in `_is_sustainability_focused`, `_mentions_catalog_preference`, `_has_product_recommendation_intent`, and welfare keyword lists — these are NLP patterns for matching Chinese user input.
+- **Verification**: Context assembly methods now output English; intent detection still handles Chinese queries
+- **New issues**: None
+
+## Fix 310 — Missing @audit_action on ai_assistant record_feedback
+- **Date**: 2026-05-27 (Round 84)
+- **Files**: `backend/app/services/ai_assistant/service.py`
+- **Reason**: P2: `record_feedback` writes `AuditLog` and `ContactMessage` rows via `self.db.add()` but lacked `@audit_action` decorator. Other write methods in the same service (`chat`) already had it.
+- **Change**: Added `@audit_action(action="ai_feedback", resource_type="ai_assistant")` decorator.
+- **Verification**: All write methods in ai_assistant service now have audit decorators
+- **New issues**: None
+
+## Fix 311 — 13 useQuery calls missing isError destructuring
+- **Date**: 2026-05-27 (Round 84)
+- **Files**: `frontend/web-react/src/pages/ProductDetail.tsx`, `frontend/web-react/src/pages/CampaignDetail.tsx`, `frontend/web-react/src/pages/ImpactShop/index.tsx`, `frontend/web-react/src/pages/OrderDetail/index.tsx`, `frontend/web-react/src/pages/Home/index.tsx`, `frontend/web-react/src/pages/SupplyChainStudio/index.tsx`, `frontend/web-react/src/components/scroll/ScrollNarrative.tsx`, `frontend/web-react/src/components/editorial/DonationPanel.tsx`
+- **Reason**: P3: 13 `useQuery` calls across 8 files did not destructure `isError`. On API failure, user sees no data with no error indication. Skipped UniqloHome per feedback memory.
+- **Change**: Added `isError` to all 13 queries. Added error rendering in ProductDetail (reviews section), CampaignDetail (artworks grid). Other queries use safe fallbacks (empty arrays, `--` values) so error state is tracked but doesn't need explicit UI.
+- **Verification**: All useQuery calls now track error state; user-visible errors shown where data is primary content
+- **New issues**: None

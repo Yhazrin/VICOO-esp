@@ -54,7 +54,7 @@ def cached(
                 # Try to get from cache
                 cached_data = await redis.get(cache_key)
                 if cached_data:
-                    logger.debug(f"Cache hit: {cache_key}")
+                    logger.debug("Cache hit: %s", cache_key)
                     return json.loads(cached_data)
             except Exception as e:
                 logger.warning("Cache read error for %s: %s", cache_key, e)
@@ -70,7 +70,7 @@ def cached(
                         ttl, 
                         json.dumps(result, default=str)
                     )
-                    logger.debug(f"Cache stored: {cache_key}")
+                    logger.debug("Cache stored: %s", cache_key)
             except Exception as e:
                 logger.warning("Cache write error for %s: %s", cache_key, e)
 

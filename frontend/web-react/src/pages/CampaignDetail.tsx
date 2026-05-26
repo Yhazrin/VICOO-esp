@@ -57,7 +57,7 @@ export default function CampaignDetail() {
     return () => { cancelled = true; };
   }, [id]);
 
-  const { data: campaignArtworks } = useQuery({
+  const { data: campaignArtworks, isError: artworksError } = useQuery({
     queryKey: ['campaign-artworks', id],
     queryFn: () => artworksApi.getByCampaign(id!),
     enabled: !!id,
@@ -273,6 +273,9 @@ export default function CampaignDetail() {
             {t('campaigns.detail.artworks')}
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+            {artworksError && (
+              <p className="col-span-full font-body text-caption text-rust">{t('common.loadError', 'Failed to load artworks.')}</p>
+            )}
             {(campaignArtworks ?? []).map((artwork, index) => (
               <ArtworkCard key={artwork.id} artwork={artwork} index={index} />
             ))}

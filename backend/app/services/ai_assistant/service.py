@@ -451,27 +451,27 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
         try:
             svc = DonationService(self.db)
             stats = await svc.get_stats()
-            ctx = f"平台捐赠统计: 总金额 {stats.get('total_amount', 0)} {stats.get('currency', 'CNY')}, 总捐赠人次 {stats.get('total_donors', 0)}\n"
+            ctx = f"Platform donation stats: total {stats.get('total_amount', 0)} {stats.get('currency', 'CNY')}, {stats.get('total_donors', 0)} donors\n"
             tiers = [
-                {"name": "铜牌 Bronze", "amount": 50},
-                {"name": "银牌 Silver", "amount": 200},
-                {"name": "金牌 Gold", "amount": 500},
-                {"name": "铂金 Platinum", "amount": 2000},
+                {"name": "Bronze", "amount": 50},
+                {"name": "Silver", "amount": 200},
+                {"name": "Gold", "amount": 500},
+                {"name": "Platinum", "amount": 2000},
             ]
-            ctx += "捐赠档位: " + ", ".join(f"{t['name']}({t['amount']}元)" for t in tiers) + "\n"
-            ctx += "捐赠流程: 选择档位 → 支付 → 自动生成电子证书\n"
+            ctx += "Donation tiers: " + ", ".join(f"{t['name']}({t['amount']} CNY)" for t in tiers) + "\n"
+            ctx += "Donation flow: select tier → pay → auto-generate e-certificate\n"
             if user_id:
                 stmt = select(Donation).where(
                     and_(Donation.donor_user_id == user_id, Donation.status == "completed")
                 ).order_by(Donation.created_at.desc()).limit(5)
                 donations = (await self.db.execute(stmt)).scalars().all()
                 if donations:
-                    ctx += f"用户最近捐赠记录:\n"
+                    ctx += f"User recent donation history:\n"
                     for d in donations:
                         ts = d.created_at.strftime("%Y-%m-%d") if d.created_at else "N/A"
                         ctx += f"  - {ts} | {d.amount} {d.currency} | {d.payment_method or 'N/A'} | {d.status}\n"
                 else:
-                    ctx += "该用户暂无捐赠记录。\n"
+                    ctx += "No donation history for this user.\n"
             return ctx
         except Exception as e:
             logger.error("Failed to get donation context: %s", e)
@@ -485,10 +485,10 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
             campaign = await svc.get_active_campaign()
             if campaign:
                 progress = (campaign.current_amount / campaign.goal_amount * 100) if campaign.goal_amount else 0
-                ctx = f"当前活动: {campaign.title}\n"
-                ctx += f"筹款目标: {campaign.goal_amount} CNY, 当前已筹: {campaign.current_amount} CNY ({progress:.1f}%)\n"
+                ctx = f"Active campaign: {campaign.title}\n"
+                ctx += f"Goal: {campaign.goal_amount} CNY, Raised: {campaign.current_amount} CNY ({progress:.1f}%)\n"
                 if campaign.description:
-                    ctx += f"活动简介: {campaign.description[:200]}\n"
+                    ctx += f"Description: {campaign.description[:200]}\n"
                 return ctx
             return "No active fundraising campaigns at the moment.\n"
         except Exception as e:
@@ -501,11 +501,11 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
         try:
             svc = ImpactFundService(self.db)
             summary = await svc.get_fund_summary()
-            ctx = f"影响力基金总分配: {summary.get('total_amount', 0)} CNY, 共 {summary.get('total_entries', 0)} 笔\n"
+            ctx = f"Impact fund total allocated: {summary.get('total_amount', 0)} CNY, {summary.get('total_entries', 0)} entries\n"
             by_type = summary.get("by_type", {})
             for t in by_type:
-                ctx += f"  - {t.get('type', 'N/A')}: {t.get('amount', 0)} CNY ({t.get('count', 0)} 笔)\n"
-            ctx += "分配机制: 每笔公益商品销售额的捐赠比例 → 60% 艺术家 / 30% 学校 / 10% 慈善池\n"
+                ctx += f"  - {t.get('type', 'N/A')}: {t.get('amount', 0)} CNY ({t.get('count', 0)} entries)\n"
+            ctx += "Allocation: each impact product sale → 60% artist / 30% school / 10% charity pool\n"
             return ctx
         except Exception as e:
             logger.error("Failed to get impact fund context: %s", e)
@@ -515,13 +515,13 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
         """Return clothing recycle flow info for AI context."""
         base_url = self._resolve_frontend_base_url()
         return (
-            "旧衣回收流程:\n"
-            "1. 用户在「旧衣回收」页面提交回收申请\n"
-            "2. 平台安排上门取件或用户自行寄送\n"
-            "3. 旧衣经过分拣、清洗、消毒处理\n"
-            "4. 可穿用衣物捐赠给需要的儿童，不可穿用的进行环保再生\n"
-            f"入口: {urljoin(base_url, 'clothing-recycle')}\n"
-            f"旧衣捐赠入口: {urljoin(base_url, 'donate-clothing')}\n"
+            "Clothing recycling flow:\n"
+            "1. User submits recycling request on the Clothing Recycle page\n"
+            "2. Platform arranges pickup or user ships items\n"
+            "3. Items go through sorting, cleaning, and sanitization\n"
+            "4. Wearable items donated to children; non-wearable recycled sustainably\n"
+            f"Recycle entry: {urljoin(base_url, 'clothing-recycle')}\n"
+            f"Donate clothing entry: {urljoin(base_url, 'donate-clothing')}\n"
         )
 
     def _get_last_user_message(self, messages: List[Dict[str, str]]) -> str:
@@ -769,7 +769,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
             # Supply chain trace
             if any(k in last_user for k in ["溯源", "供应链", "从哪来", "traceability", "supply chain"]):
                 base_url = self._resolve_frontend_base_url(metadata)
-                welfare_parts.append(f"商品溯源功能: 每件公益商品均可查看完整供应链时间线（原材料→加工→制造→质检→物流）。入口: {urljoin(base_url, 'supply-chain')}")
+                welfare_parts.append(f"Product traceability: each impact product has a full supply chain timeline (materials → processing → manufacturing → QC → logistics). Entry: {urljoin(base_url, 'supply-chain')}")
 
             if welfare_parts:
                 welfare_output = "[Welfare Tool Output]\n" + "\n".join(welfare_parts) + "\n(Source: welfare services)\n"
@@ -975,7 +975,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                     if prods:
                         break
                 except Exception as e:
-                    logger.debug(f"RAG {scope} product search error: {e}")
+                    logger.debug("RAG %s product search error: %s", scope, e)
 
             # 2) Campaign + supply-chain retrieval is mainly relevant to impact/sustainability
             is_impact_scope = (
@@ -1006,7 +1006,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                                 }
                             )
                 except Exception as e:
-                    logger.debug(f"RAG campaign retrieval error: {e}")
+                    logger.debug("RAG campaign retrieval error: %s", e)
 
                 try:
                     from app.models.supply_chain import SupplyChainRecord
@@ -1026,7 +1026,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                                 }
                             )
                 except Exception as e:
-                    logger.debug(f"RAG supply chain retrieval error: {e}")
+                    logger.debug("RAG supply chain retrieval error: %s", e)
 
             if not results:
                 return ""
@@ -1040,6 +1040,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
             logger.error("RAG retrieval failed: %s", e)
             return ""
 
+    @audit_action(action="ai_feedback", resource_type="ai_assistant")
     async def record_feedback(self, is_helpful: bool, messages: List[Dict[str, Any]], metadata: Optional[Dict[str, Any]] = None, user_id: Optional[int] = None, reason: Optional[str] = None) -> Dict[str, Any]:
         """Record user feedback. If not helpful, escalate by creating a ContactMessage for follow-up.
         Returns a dict describing whether an escalation/contact was created.

@@ -92,14 +92,14 @@ export default function ProductDetail() {
     retry: false,
   });
 
-  const { data: linkedArtwork } = useQuery({
+  const { data: linkedArtwork, isError: artworkError } = useQuery({
     queryKey: ['product-artwork', id],
     queryFn: () => productsApi.getArtwork(id!),
     enabled: !!id && !!product?.artworkId,
     retry: false,
   });
 
-  const { data: supplyChainRaw = [] } = useQuery({
+  const { data: supplyChainRaw = [], isError: supplyChainError } = useQuery({
     queryKey: ['product-supply-chain', id],
     queryFn: () => supplyChainApi.getProductJourney(id!),
     enabled: !!id && !!product,
@@ -138,7 +138,7 @@ export default function ProductDetail() {
     [supplyChainRaw]
   );
 
-  const { data: reviewsResult } = useQuery({
+  const { data: reviewsResult, isError: reviewsError } = useQuery({
     queryKey: ['reviews', id],
     queryFn: () => reviewsApi.listByProduct(Number(id)),
     enabled: !!id && !!product,
@@ -673,7 +673,10 @@ export default function ProductDetail() {
             {t('shop.detail.reviewsLead')}
           </p>
           <ul className="space-y-5 mb-12">
-            {(reviewsResult?.data ?? []).length === 0 && (
+            {reviewsError && (
+              <li className="font-body text-caption text-rust">{t('common.loadError', 'Failed to load reviews.')}</li>
+            )}
+            {!reviewsError && (reviewsResult?.data ?? []).length === 0 && (
               <li className="font-body text-caption text-ink-faded">{t('shop.detail.noReviews')}</li>
             )}
             {(reviewsResult?.data ?? []).map((r) => (

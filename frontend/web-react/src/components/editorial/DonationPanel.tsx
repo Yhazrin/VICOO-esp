@@ -30,7 +30,7 @@ export default function DonationPanel({
   const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
 
-  const { data: apiTiers } = useQuery({
+  const { data: apiTiers, isError: tiersError } = useQuery({
     queryKey: ['donation-tiers'],
     queryFn: () => donationsApi.getTiers(),
     staleTime: 10 * 60 * 1000,

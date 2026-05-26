@@ -101,7 +101,7 @@ export default function ImpactShop() {
   );
 
   // Fetch campaigns for filter
-  const { data: campaignsData } = useQuery({
+  const { data: campaignsData, isError: campaignsError } = useQuery({
     queryKey: ['campaigns-list'],
     queryFn: async () => {
       const result = await campaignsApi.getAll();
@@ -111,7 +111,7 @@ export default function ImpactShop() {
   });
 
   // Fetch live impact stats
-  const { data: impactStats } = useQuery({
+  const { data: impactStats, isError: impactStatsError } = useQuery({
     queryKey: ['impact-shop-stats'],
     queryFn: async () => {
       const [stats, artworks] = await Promise.all([

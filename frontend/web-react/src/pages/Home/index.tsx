@@ -62,7 +62,7 @@ export default function Home() {
     return () => clearTimeout(id);
   }, []);
   const { scrollYProgress } = useScroll();
-  const { data: homeLiveStats } = useQuery({
+  const { data: homeLiveStats, isError: statsError } = useQuery({
     queryKey: ['home-live-stats'],
     queryFn: async () => {
       const [artworks, donations] = await Promise.all([

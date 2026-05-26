@@ -50,7 +50,7 @@ export default function OrderDetail() {
     enabled: !!id && isAuthenticated,
   });
 
-  const { data: impactEntries = [] } = useQuery({
+  const { data: impactEntries = [], isError: impactError } = useQuery({
     queryKey: ['impact-fund', id],
     queryFn: () => impactFundApi.getOrderEntries(id!),
     enabled: !!id && isAuthenticated && (order?.status === 'paid' || order?.status === 'completed' || order?.status === 'shipped'),

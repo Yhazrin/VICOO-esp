@@ -33,7 +33,7 @@ export default function ScrollNarrative() {
   const { t } = useTranslation();
 
   // Fetch real artworks for the gallery scene
-  const { data: artworksData } = useQuery({
+  const { data: artworksData, isError: artworksError } = useQuery({
     queryKey: ['scroll-narrative-artworks'],
     queryFn: () => artworksApi.getAll({ page_size: 5 }),
     staleTime: 10 * 60 * 1000,

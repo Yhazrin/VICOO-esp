@@ -164,7 +164,7 @@ export default function SupplyChainStudio() {
   const isStaff = user?.role === 'admin' || user?.role === 'editor';
   const [productId, setProductId] = useState<string>('');
 
-  const { data: productPage } = useQuery({
+  const { data: productPage, isError: productsError } = useQuery({
     queryKey: ['products-all-studio', i18n.language],
     queryFn: () => productsApi.getAll({ page_size: 200, locale: i18n.language }),
     enabled: isAuthenticated && isStaff,
@@ -173,7 +173,7 @@ export default function SupplyChainStudio() {
 
   const pid = Number(productId);
 
-  const { data: records = [], isLoading } = useQuery({
+  const { data: records = [], isLoading, isError: recordsError } = useQuery({
     queryKey: ['supply-chain-records', pid],
     queryFn: () => supplyChainApi.getRecords({ product_id: pid, page_size: 100 }),
     enabled: isAuthenticated && isStaff && pid > 0,
