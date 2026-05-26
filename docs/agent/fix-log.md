@@ -766,3 +766,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: (a) Atomic `UPDATE WHERE status != 'completed'` / `WHERE status = 'pending'` with rowcount check in both donation methods; (b) Refactored Alipay callback to delegate to `PaymentService.process_successful_payment` (atomic + impact funds); (c) Added `validate_secret_key_env` validator: require explicit env in production, warn in dev; (d) Added `Product.status != "inactive"` guard in cancel_order stock restore; (e) Only send welcome email when `is_new_user` flag is true; (f) Added `sql_update(Order).where(Order.id)` for admin status changes; (g) Replaced `artwork.like_count += 1` with atomic `update(Artwork).values(like_count=Artwork.like_count + 1)`
 - **Verification**: `python -c "ast.parse(...)"` pass for all 7 backend files
 - **New issues**: None
+
+## Fix 94 — Admin upload bug, campaign validation, user search, product updatable fields
+- **Date**: 2026-05-27 (Round 41)
+- **Files**: `admin/src/services/api.ts`, `admin/src/pages/CampaignPage.tsx`, `frontend/web-react/src/pages/CampaignDetail.tsx`, `backend/app/routers/products.py`, `backend/app/routers/users.py`, `backend/app/services/user/service.py`
+- **Reason**: (a) P0: `uploadTraceMedia` returned full API envelope instead of `envelope.data` — media gallery uploads silently failed to populate URLs; (b) P1: Campaign edit button bypassed all form validation (empty title, missing dates, zero goal accepted); (c) P1: `adaptPaginated` could produce `Infinity` totalPages when pageSize=0; (d) P1: CampaignDetail rendered `<img src={undefined}>` when no cover image; (e) P2: `_PRODUCT_UPDATABLE` was missing `trace_story_*` fields — admin edits to trace story silently discarded; (f) P2: Admin user search sent `search` param but backend ignored it
+- **Change**: (a) Return `envelope.data` from `uploadTraceMedia`; (b) Extracted `validateForm()` and called it from both create and edit paths; (c) Added `Math.max(1, pageSize)` guard; (d) Added `|| undefined` fallback for coverImageUrl; (e) Added 4 trace_story fields to `_PRODUCT_UPDATABLE`; (f) Added `search` query parameter with `ilike` filter on nickname/email to `list_users` service and router
+- **Verification**: `python -c "ast.parse(...)"` pass for backend; `tsc --noEmit` pass for admin
+- **New issues**: None
