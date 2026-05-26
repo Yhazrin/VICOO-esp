@@ -61,7 +61,7 @@ class CampaignService(BaseService):
             
             return campaigns, total
         except Exception as e:
-            logger.error(f"Error in list_campaigns: {e}")
+            logger.error("Error in list_campaigns: %s", e)
             raise ServiceUnavailableException(message="Database query failed")
 
     async def get_active_campaign(self) -> Campaign:
@@ -97,7 +97,7 @@ class CampaignService(BaseService):
             await invalidate_cache("campaigns:")
             return campaign
         except Exception as e:
-            logger.error(f"Error creating campaign: {e}")
+            logger.error("Error creating campaign: %s", e)
             raise ServiceUnavailableException()
 
     _UPDATABLE_FIELDS = {"title", "description", "goal_amount", "start_date", "end_date", "status", "cover_image"}

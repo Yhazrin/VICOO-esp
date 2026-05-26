@@ -41,21 +41,8 @@ async def dashboard(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Dashboard stats failed: {e}")
-        if not settings.DEMO_MODE:
-            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
-        return ApiResponse(
-            data={
-                "total_donation_amount": "0",
-                "total_donations": 0,
-                "pending_artworks": 0,
-                "active_campaigns": 0,
-                "total_users": 0,
-                "total_artworks": 0,
-                "total_orders": 0,
-                "total_clothing_donations": 0,
-            }
-        )
+        logger.error("Dashboard stats failed: %s", e)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.post("/donations/{donation_id}/approve", response_model=ApiResponse)
@@ -91,7 +78,7 @@ async def ai_analytics(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"AI analytics failed: {e}")
+        logger.error("AI analytics failed: %s", e)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 _VALID_ARTWORK_STATUSES = {"draft", "pending", "approved", "rejected", "featured"}
@@ -117,7 +104,7 @@ async def batch_moderate_artworks(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Batch moderation failed: {e}")
+        logger.error("Batch moderation failed: %s", e)
         raise HTTPException(status_code=500, detail="Batch operation failed")
 
 @router.post("/children/batch-moderate", response_model=ApiResponse)
@@ -139,7 +126,7 @@ async def batch_moderate_children(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Batch child moderation failed: {e}")
+        logger.error("Batch child moderation failed: %s", e)
         raise HTTPException(status_code=500, detail="Batch operation failed")
 
 
@@ -249,7 +236,7 @@ async def list_audit_logs(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Audit logs failed: {e}", exc_info=True)
+        logger.error("Audit logs failed: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
@@ -294,7 +281,7 @@ async def list_child_participants(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Child participants list failed: {e}", exc_info=True)
+        logger.error("Child participants list failed: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
@@ -332,7 +319,7 @@ async def approve_child_consent(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"DB write failed during approve_child_consent: {e}", exc_info=True)
+        logger.error("DB write failed during approve_child_consent: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
@@ -371,7 +358,7 @@ async def donation_analytics(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Donation analytics failed: {e}", exc_info=True)
+        logger.error("Donation analytics failed: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
@@ -397,7 +384,7 @@ async def artwork_analytics(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Artwork analytics failed: {e}", exc_info=True)
+        logger.error("Artwork analytics failed: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
@@ -423,7 +410,7 @@ async def order_analytics(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Order analytics failed: {e}", exc_info=True)
+        logger.error("Order analytics failed: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
@@ -459,5 +446,5 @@ async def user_analytics(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"User analytics failed: {e}", exc_info=True)
+        logger.error("User analytics failed: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")

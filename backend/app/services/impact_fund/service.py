@@ -35,7 +35,7 @@ class ImpactFundService(BaseService):
         existing_stmt = select(ImpactFundEntry).where(ImpactFundEntry.order_id == order_id)
         existing = (await self.db.execute(existing_stmt)).scalars().all()
         if existing:
-            logger.info(f"Impact fund already allocated for order {order_id}, skipping.")
+            logger.info("Impact fund already allocated for order %s, skipping.", order_id)
             return existing
 
         # Get order items
@@ -134,7 +134,7 @@ class ImpactFundService(BaseService):
             self.db.add(entry)
         await self.db.flush()
 
-        logger.info(f"Allocated {len(entries)} impact fund entries for order {order_id}")
+        logger.info("Allocated %s impact fund entries for order %s", len(entries), order_id)
         return entries
 
     async def get_entries_for_order(self, order_id: int) -> list[ImpactFundEntry]:

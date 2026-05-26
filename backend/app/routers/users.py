@@ -45,7 +45,7 @@ async def list_users(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error listing users: {e}")
+        logger.error("Error listing users: %s", e)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 @router.get("/me", response_model=ApiResponse)
@@ -61,7 +61,7 @@ async def get_me(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to load user profile: {e}")
+        logger.error("Failed to load user profile: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.put("/me", response_model=ApiResponse)
@@ -78,7 +78,7 @@ async def update_me(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to update profile: {e}")
+        logger.error("Failed to update profile: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.get("/{user_id}", response_model=ApiResponse)
@@ -94,7 +94,7 @@ async def get_user(user_id: int, db: AsyncSession = Depends(get_db), current_use
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error fetching user: {e}")
+        logger.error("Error fetching user: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.put("/{user_id}/role", response_model=ApiResponse)
@@ -115,7 +115,7 @@ async def update_user_role(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to update user role: {e}")
+        logger.error("Failed to update user role: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.put("/{user_id}/status", response_model=ApiResponse)
@@ -136,5 +136,5 @@ async def update_user_status(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to update user status: {e}")
+        logger.error("Failed to update user status: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error")

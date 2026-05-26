@@ -219,7 +219,7 @@ async def list_orders(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error listing orders: {e}")
+        logger.error("Error listing orders: %s", e)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 @router.get("/mine", response_model=PaginatedResponse)
@@ -258,7 +258,7 @@ async def my_orders(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error listing user orders: {e}")
+        logger.error("Error listing user orders: %s", e)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
@@ -366,7 +366,7 @@ async def cancel_order(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Cancellation failed: {e}", exc_info=True)
+        logger.error("Cancellation failed: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
@@ -421,7 +421,7 @@ async def update_order_status(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"DB write failed during update_order_status: {e}", exc_info=True)
+        logger.error("DB write failed during update_order_status: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 

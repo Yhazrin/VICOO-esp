@@ -13,6 +13,6 @@ class EditorialArticle(Base):
     author = Column(String(100), nullable=True)
     published_at = Column(DateTime, nullable=True, index=True)
     read_time_minutes = Column(Integer, nullable=True)
-    category = Column(Enum("impact", "fashion", "community", "education", name="editorial_category"), default="impact", nullable=False)
+    category = Column(Enum("impact", "fashion", "community", "education", name="editorial_category"), default="impact", nullable=False, index=True)
     status = Column(Enum("draft", "published", "archived", name="editorial_status"), default="draft", nullable=False, index=True)
     created_at = Column(DateTime, server_default=func.now(), nullable=False)

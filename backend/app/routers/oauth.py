@@ -85,21 +85,21 @@ async def _find_or_create_oauth_user(
         db.add(user)
         await db.flush()
         is_new_user = True
-        logger.info(f"New OAuth user created: {user.email}")
+        logger.info("New OAuth user created: %s", user.email)
     else:
-        logger.info(f"Existing OAuth user logged in: {user.email}")
+        logger.info("Existing OAuth user logged in: %s", user.email)
 
     # 4. Trigger welcome email only for new users
     if is_new_user and user.email and not user.email.endswith("@oauth.vicoo.org"):
         import asyncio
         from app.services.mailer import send_welcome_email
-        logger.info(f"Triggering welcome email for new user {user.email}")
+        logger.info("Triggering welcome email for new user %s", user.email)
 
         async def _safe_welcome_email(email: str, nickname: str):
             try:
                 await send_welcome_email(email, nickname)
             except Exception as e:
-                logger.error(f"Welcome email failed for {email}: {e}")
+                logger.error("Welcome email failed for %s: %s", email, e)
 
         asyncio.create_task(_safe_welcome_email(user.email, user.nickname))
 
@@ -172,13 +172,13 @@ async def github_callback(code: str, state: str, request: Request, db: AsyncSess
         )
 
         if token_resp.status_code != 200:
-            logger.error(f"GitHub token exchange failed: {token_resp.status_code}")
+            logger.error("GitHub token exchange failed: %s", token_resp.status_code)
             raise HTTPException(status_code=401, detail="GitHub authentication failed")
 
         token_data = token_resp.json()
         gh_access_token = token_data.get("access_token")
         if not gh_access_token:
-            logger.error(f"GitHub token missing: {token_data}")
+            logger.error("GitHub token missing: %s", token_data)
             raise HTTPException(status_code=401, detail="GitHub authentication failed")
 
         # Fetch user profile
@@ -226,7 +226,7 @@ async def github_callback(code: str, state: str, request: Request, db: AsyncSess
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"GitHub OAuth DB error: {e}", exc_info=True)
+        logger.error("GitHub OAuth DB error: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Authentication service unavailable")
 
 
@@ -282,7 +282,7 @@ async def google_callback(code: str, state: str, request: Request, db: AsyncSess
         )
 
         if token_resp.status_code != 200:
-            logger.error(f"Google token exchange failed: {token_resp.status_code}")
+            logger.error("Google token exchange failed: %s", token_resp.status_code)
             raise HTTPException(status_code=401, detail="Google authentication failed")
 
         token_data = token_resp.json()
@@ -316,5 +316,5 @@ async def google_callback(code: str, state: str, request: Request, db: AsyncSess
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Google OAuth DB error: {e}", exc_info=True)
+        logger.error("Google OAuth DB error: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Authentication service unavailable")

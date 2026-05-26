@@ -70,6 +70,7 @@ class AfterSaleTicket(Base):
     category = Column(
         Enum("return", "exchange", "quality", "logistics", "other", name="after_sale_category"),
         nullable=False,
+        index=True,
     )
     status = Column(
         Enum("open", "in_progress", "resolved", "closed", name="after_sale_status"),

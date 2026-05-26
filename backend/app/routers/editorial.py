@@ -31,7 +31,7 @@ async def get_editorial_feed(limit: int = Query(10, ge=1, le=20), db: AsyncSessi
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to get editorial feed: {e}", exc_info=True)
+        logger.error("Failed to get editorial feed: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 

@@ -449,7 +449,7 @@ async def create_product(body: ProductCreate, db: AsyncSession = Depends(get_db)
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"DB write failed during create_product: {e}", exc_info=True)
+        logger.error("DB write failed during create_product: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
@@ -487,7 +487,7 @@ async def update_product(product_id: int, body: ProductUpdate, db: AsyncSession 
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"DB write failed during update_product: {e}", exc_info=True)
+        logger.error("DB write failed during update_product: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
@@ -532,5 +532,5 @@ async def delete_product(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"DB write failed during delete_product: {e}", exc_info=True)
+        logger.error("DB write failed during delete_product: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")

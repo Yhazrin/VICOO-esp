@@ -69,6 +69,6 @@ class AnomalyDetectionService(BaseService):
         """
         Logs an anomaly for further manual review by admins.
         """
-        logger.error(f"ANOMALY: User {user_id} - {activity_type}: {details}")
+        logger.error("ANOMALY: User %s - %s: %s", user_id, activity_type, details)
         # In the future, we would write this to an 'anomalies' table for a dashboard.
         pass

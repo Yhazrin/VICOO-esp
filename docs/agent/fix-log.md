@@ -2444,3 +2444,59 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Removed `await db.flush()` from `log_audit`. Audit entries now participate in the caller's transaction scope and only persist when the caller commits. Also fixed f-string logging in the same function.
 - **Verification**: Audit entries now roll back with the caller's transaction on failure
 - **New issues**: None
+
+## Fix 291 — Admin dashboard returns HTTP 200 with zeroed data in demo mode
+- **Date**: 2026-05-27 (Round 82)
+- **Files**: `backend/app/routers/admin.py`
+- **Reason**: P2: `/dashboard` endpoint returned HTTP 200 with all-zero metrics when `DEMO_MODE` is true and the database query fails. Same pattern fixed in Fix 273 for analytics endpoints, but the main dashboard was missed.
+- **Change**: Removed demo-mode conditional fallback. Dashboard now always returns HTTP 503 on error.
+- **Verification**: Dashboard returns 503 on database failures regardless of demo mode
+- **New issues**: None
+
+## Fix 292 — ChildParticipant.status column missing database index
+- **Date**: 2026-05-27 (Round 82)
+- **Files**: `backend/app/models/user.py`
+- **Reason**: P3: `ChildParticipant.status` Enum column used in WHERE clauses (admin list with status filter, batch moderate) had no `index=True`. Fix 261 added indexes to Product.status, PaymentTransaction.status, User.role but missed this.
+- **Change**: Added `index=True` to `ChildParticipant.status` column.
+- **Verification**: Status-filtered queries on child participants now use index
+- **New issues**: None
+
+## Fix 293 — EditorialArticle.category column missing database index
+- **Date**: 2026-05-27 (Round 82)
+- **Files**: `backend/app/models/editorial.py`
+- **Reason**: P3: `category` Enum column had no `index=True`, inconsistent with `status` column on the same model which is indexed.
+- **Change**: Added `index=True` to `EditorialArticle.category` column.
+- **Verification**: Category column now indexed for future filtering
+- **New issues**: None
+
+## Fix 294 — Donation.payment_method column missing database index
+- **Date**: 2026-05-27 (Round 82)
+- **Files**: `backend/app/models/donation.py`
+- **Reason**: P3: `payment_method` column used in WHERE (donation list filter) and GROUP BY (admin analytics) had no index.
+- **Change**: Added `index=True` to `Donation.payment_method` column.
+- **Verification**: Payment method filtered/grouped queries now use index
+- **New issues**: None
+
+## Fix 295 — AfterSaleTicket.category column missing database index
+- **Date**: 2026-05-27 (Round 82)
+- **Files**: `backend/app/models/circular_commerce.py`
+- **Reason**: P3: `category` Enum column had no `index=True`, inconsistent with `status` column on the same model which is indexed.
+- **Change**: Added `index=True` to `AfterSaleTicket.category` column.
+- **Verification**: Category column now indexed for future filtering
+- **New issues**: None
+
+## Fix 296 — Systemic f-string logging across all backend routers (84 call sites)
+- **Date**: 2026-05-27 (Round 82)
+- **Files**: `backend/app/routers/*.py` (15 files)
+- **Reason**: P2: 84 `logger.error/warning(f"...")` calls used f-string interpolation across all router files. Database exceptions can contain connection strings, table names, and constraint details. Fixes 276/288 only addressed payments.py and deps.py.
+- **Change**: Batch-converted all 84 f-string logger calls to `logger.error("...: %s", e)` format using automated script.
+- **Verification**: Zero f-string logger calls remaining in routers
+- **New issues**: None
+
+## Fix 297 — Systemic f-string logging across all backend services and utilities (41 call sites)
+- **Date**: 2026-05-27 (Round 82)
+- **Files**: `backend/app/services/**/*.py`, `backend/app/utils/*.py`, `backend/app/deps.py` (11 files)
+- **Reason**: P2: 41 additional f-string logger calls in services (payment_service, ai_assistant, mailer, etc.) and utilities (i18n, cache). WeChat API errors can contain merchant IDs; Anthropic API errors can contain model config; Redis errors can contain connection URLs with passwords.
+- **Change**: Batch-converted all 41 f-string logger calls to %s format. Total: 125 f-string logger calls eliminated across 26 files.
+- **Verification**: Zero f-string logger calls remaining in entire backend
+- **New issues**: None

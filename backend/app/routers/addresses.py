@@ -34,7 +34,7 @@ async def list_addresses(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to list addresses: {e}", exc_info=True)
+        logger.error("Failed to list addresses: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 

@@ -50,6 +50,7 @@ class ChildParticipant(Base):
         Enum("active", "withdrawn", "pending_review", name="child_status"),
         default="pending_review",
         nullable=False,
+        index=True,
     )
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
 

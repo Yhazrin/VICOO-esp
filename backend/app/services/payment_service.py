@@ -100,7 +100,7 @@ class WeChatPayService:
         xml_elements.append("</xml>")
         xml_body = "".join(xml_elements).encode("utf-8")
 
-        logger.info(f"Calling WeChat Unified Order API for order: {params['out_trade_no']}")
+        logger.info("Calling WeChat Unified Order API for order: %s", params['out_trade_no'])
 
         try:
             async with httpx.AsyncClient() as client:
@@ -122,7 +122,7 @@ class WeChatPayService:
 
             if return_code_elem is None or return_code_elem.text != "SUCCESS":
                 err_msg = return_msg_elem.text if return_msg_elem is not None else "Unknown error"
-                logger.error(f"WeChat API return failure: {err_msg}")
+                logger.error("WeChat API return failure: %s", err_msg)
                 raise Exception(f"WeChat API error: {err_msg}")
 
             if result_code_elem is None or result_code_elem.text != "SUCCESS":
@@ -130,7 +130,7 @@ class WeChatPayService:
                 err_msg_elem = root.find("err_code_des")
                 err_code = err_code_elem.text if err_code_elem is not None else "UNKNOWN"
                 err_msg = err_msg_elem.text if err_msg_elem is not None else "Unknown error"
-                logger.error(f"WeChat unified order failure: {err_code} - {err_msg}")
+                logger.error("WeChat unified order failure: %s - %s", err_code, err_msg)
                 raise Exception(f"WeChat unified order error: {err_msg}")
 
             prepay_id_elem = root.find("prepay_id")
@@ -138,7 +138,7 @@ class WeChatPayService:
                 raise Exception("WeChat API returned no prepay_id")
 
             prepay_id = prepay_id_elem.text
-            logger.info(f"Successfully obtained prepay_id: {prepay_id}")
+            logger.info("Successfully obtained prepay_id: %s", prepay_id)
 
             return {
                 "prepay_id": prepay_id,
@@ -146,13 +146,13 @@ class WeChatPayService:
             }
 
         except httpx.RequestError as e:
-            logger.error(f"WeChat API HTTP request failed: {str(e)}")
+            logger.error("WeChat API HTTP request failed: %s", str(e))
             raise Exception("WeChat API connection failed")
         except ET.ParseError as e:
-            logger.error(f"Failed to parse WeChat API response: {str(e)}")
+            logger.error("Failed to parse WeChat API response: %s", str(e))
             raise Exception("Invalid response from WeChat API")
         except Exception as e:
-            logger.error(f"WeChat API call failed: {str(e)}")
+            logger.error("WeChat API call failed: %s", str(e))
             raise
 
     async def create_unified_order(self, order_no: str, amount: Decimal, description: str, trade_type: str = "JSAPI", openid: Optional[str] = None, donation_id: Optional[int] = None) -> Dict[str, Any]:
@@ -221,7 +221,7 @@ class WeChatPayService:
                     str(e),
                 )
                 return self._generate_wx_payment_params(order_no, amount, description, donation_id)
-            logger.error(f"Failed to create unified order: {str(e)}")
+            logger.error("Failed to create unified order: %s", str(e))
             raise
 
         # Generate frontend payment parameters for wx.requestPayment

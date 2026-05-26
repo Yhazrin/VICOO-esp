@@ -102,7 +102,7 @@ async def list_records(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error listing records: {e}")
+        logger.error("Error listing records: %s", e)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 @router.get("/trace/{product_id}", response_model=ApiResponse)
@@ -124,7 +124,7 @@ async def trace_product(product_id: int, db: AsyncSession = Depends(get_db)):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Tracing failed: {e}")
+        logger.error("Tracing failed: %s", e)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 @router.post("/records", response_model=ApiResponse, status_code=201)
@@ -145,7 +145,7 @@ async def create_record(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to create record: {e}")
+        logger.error("Failed to create record: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
@@ -167,7 +167,7 @@ async def patch_record(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to update record: {e}")
+        logger.error("Failed to update record: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
@@ -187,5 +187,5 @@ async def delete_record(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to delete record: {e}")
+        logger.error("Failed to delete record: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error")

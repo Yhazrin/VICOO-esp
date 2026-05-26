@@ -41,7 +41,7 @@ async def list_campaigns(
             page_size=page_size,
         )
     except Exception as e:
-        logger.error(f"Failed to list campaigns: {e}")
+        logger.error("Failed to list campaigns: %s", e)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 @router.get("/active", response_model=ApiResponse)
@@ -52,7 +52,7 @@ async def get_active_campaign(db: AsyncSession = Depends(get_db)):
         campaign = await service.get_active_campaign()
         return ApiResponse(data=CampaignOut.model_validate(campaign).model_dump())
     except Exception as e:
-        logger.error(f"Failed to get active campaign: {e}")
+        logger.error("Failed to get active campaign: %s", e)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 @router.get("/{campaign_id}", response_model=ApiResponse)
@@ -96,7 +96,7 @@ async def update_campaign(
         campaign = await service.update_campaign(campaign_id, body.model_dump(exclude_unset=True))
         return ApiResponse(data=CampaignOut.model_validate(campaign).model_dump())
     except Exception as e:
-        logger.error(f"Update failed: {e}")
+        logger.error("Update failed: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.delete("/{campaign_id}", response_model=ApiResponse)
@@ -111,5 +111,5 @@ async def delete_campaign(
         await service.delete_campaign(campaign_id)
         return ApiResponse(data={"deleted": campaign_id})
     except Exception as e:
-        logger.error(f"Delete failed: {e}")
+        logger.error("Delete failed: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error")

@@ -47,7 +47,7 @@ async def ai_chat(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Chat failed: {e}")
+        logger.error("Chat failed: %s", e)
         return ApiResponse(
             data=AIChatResponse(
                 reply="The AI assistant is temporarily unavailable. Please try again later or submit a question via the contact page.",
@@ -104,7 +104,7 @@ async def analyze_artwork(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Artwork analysis failed: {e}", exc_info=True)
+        logger.error("Artwork analysis failed: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="AI service temporarily unavailable")
 
 
@@ -122,7 +122,7 @@ async def moderate_content(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Content moderation failed: {e}", exc_info=True)
+        logger.error("Content moderation failed: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="AI service temporarily unavailable")
 
 
@@ -149,5 +149,5 @@ async def ai_feedback(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to record AI feedback: {e}")
+        logger.error("Failed to record AI feedback: %s", e)
         return ApiResponse(data={"escalated": False, "error": "feedback_failed"})

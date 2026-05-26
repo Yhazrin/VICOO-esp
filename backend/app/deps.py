@@ -345,7 +345,7 @@ async def verify_request_signature(request: Request) -> tuple[bool, Optional[str
             )
             return False, "Request expired"
     except ValueError:
-        logger.warning(f"Invalid timestamp format: {timestamp_str}")
+        logger.warning("Invalid timestamp format: %s", timestamp_str)
         return False, "Invalid timestamp format"
 
     # 2. Validate nonce (replay attack prevention)
@@ -355,13 +355,13 @@ async def verify_request_signature(request: Request) -> tuple[bool, Optional[str
 
         # Check if nonce already exists (replay attack)
         if await redis_client.exists(nonce_key):
-            logger.warning(f"Duplicate nonce detected: {nonce}, path: {request.method} {request.url.path}")
+            logger.warning("Duplicate nonce detected: %s, path: %s %s", nonce, request.method, request.url.path)
             return False, "Duplicate request (replay attack detected)"
 
         # Set nonce expiry (matches timestamp window)
         await redis_client.setex(nonce_key, 300, "1")
     except Exception as e:
-        logger.error(f"Redis error during nonce check: {e}")
+        logger.error("Redis error during nonce check: %s", e)
         # Reject request when Redis is unavailable for safety
         return False, "Service temporarily unavailable"
 
@@ -395,5 +395,5 @@ async def verify_request_signature(request: Request) -> tuple[bool, Optional[str
         return False, "Invalid signature"
 
     # All checks passed
-    logger.info(f"Signature verified successfully for {request.method} {request.url.path}")
+    logger.info("Signature verified successfully for %s %s", request.method, request.url.path)
     return True, None

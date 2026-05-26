@@ -17,7 +17,7 @@ def get_redis():
             import redis.asyncio as redis
             _redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
         except Exception as e:
-            logger.error(f"Failed to connect to Redis: {e}")
+            logger.error("Failed to connect to Redis: %s", e)
     return _redis_client
 
 def cached(
@@ -57,7 +57,7 @@ def cached(
                     logger.debug(f"Cache hit: {cache_key}")
                     return json.loads(cached_data)
             except Exception as e:
-                logger.warning(f"Cache read error for {cache_key}: {e}")
+                logger.warning("Cache read error for %s: %s", cache_key, e)
 
             # Execute function
             result = await func(*args, **kwargs)
@@ -72,7 +72,7 @@ def cached(
                     )
                     logger.debug(f"Cache stored: {cache_key}")
             except Exception as e:
-                logger.warning(f"Cache write error for {cache_key}: {e}")
+                logger.warning("Cache write error for %s: %s", cache_key, e)
 
             return result
         return wrapper
@@ -88,6 +88,6 @@ async def invalidate_cache(pattern: str):
         keys = await redis.keys(f"{pattern}*")
         if keys:
             await redis.delete(*keys)
-            logger.info(f"Invalidated {len(keys)} keys with pattern: {pattern}")
+            logger.info("Invalidated %s keys with pattern: %s", len(keys), pattern)
     except Exception as e:
-        logger.error(f"Failed to invalidate cache: {e}")
+        logger.error("Failed to invalidate cache: %s", e)

@@ -50,7 +50,7 @@ class PaymentService(BaseService):
                 existing_stmt.order_by(PaymentTransaction.created_at.desc())
             )).scalar_one_or_none()
             if existing_tx:
-                logger.info(f"Reusing existing pending payment {existing_tx.id} for order={order_id} donation={donation_id}")
+                logger.info("Reusing existing pending payment %s for order=%s donation=%s", existing_tx.id, order_id, donation_id)
                 return existing_tx
 
         # Set expiry time
@@ -88,7 +88,7 @@ class PaymentService(BaseService):
         existing_tx = (await self.db.execute(existing_stmt)).scalar_one_or_none()
 
         if existing_tx:
-            logger.info(f"Payment {provider_tx_id} already processed.")
+            logger.info("Payment %s already processed.", provider_tx_id)
             return existing_tx
 
         order_id = None
@@ -109,9 +109,9 @@ class PaymentService(BaseService):
                         impact_service = ImpactFundService(self.db)
                         await impact_service.allocate_for_order(order_id)
                 except IntegrityError:
-                    logger.info(f"Impact fund already allocated for order {order_id} (concurrent webhook).")
+                    logger.info("Impact fund already allocated for order %s (concurrent webhook).", order_id)
                 except Exception as e:
-                    logger.error(f"Impact fund allocation failed for order {order_id}: {e}", exc_info=True)
+                    logger.error("Impact fund allocation failed for order %s: %s", order_id, e, exc_info=True)
 
         # 2. Handle Donation
         if donation_id:
@@ -139,9 +139,9 @@ class PaymentService(BaseService):
                     select(PaymentTransaction).where(PaymentTransaction.provider_transaction_id == provider_tx_id)
                 )).scalar_one_or_none()
                 if existing:
-                    logger.info(f"Payment {provider_tx_id} already created by concurrent webhook, returning existing.")
+                    logger.info("Payment %s already created by concurrent webhook, returning existing.", provider_tx_id)
                     return existing
-                logger.warning(f"Payment {provider_tx_id} IntegrityError but no existing record found")
+                logger.warning("Payment %s IntegrityError but no existing record found", provider_tx_id)
                 raise
         return payment_tx
 

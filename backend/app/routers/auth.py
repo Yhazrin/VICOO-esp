@@ -89,7 +89,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Login error: {e}")
+        logger.error("Login error: %s", e)
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
 
@@ -115,7 +115,7 @@ async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Register error: {e}")
+        logger.error("Register error: %s", e)
         raise HTTPException(status_code=400, detail="Registration failed")
 
 
@@ -156,7 +156,7 @@ async def refresh(request: Request, db: AsyncSession = Depends(get_db)):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Refresh error: {e}")
+        logger.error("Refresh error: %s", e)
         raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
 
 
@@ -201,7 +201,7 @@ async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depend
             locale="zh"
         )
     except Exception as e:
-        logger.error(f"Recovery mail failed: {e}")
+        logger.error("Recovery mail failed: %s", e)
     # Always return success regardless of email send outcome
     return ApiResponse(message=_generic_msg, data={"email": body.email})
 
@@ -230,7 +230,7 @@ async def logout(request: Request):
                     ttl = max(int(exp - time.time()), 60)
                     await redis.setex(f"blacklist:{jti}", ttl, "1")
             except Exception as e:
-                logger.warning(f"Failed to blacklist token during logout: {e}")
+                logger.warning("Failed to blacklist token during logout: %s", e)
 
     json_response = JSONResponse(
         status_code=200,

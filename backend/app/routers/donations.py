@@ -109,7 +109,7 @@ async def list_donations(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error listing donations: {e}")
+        logger.error("Error listing donations: %s", e)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 @router.get("/stats", response_model=ApiResponse)
@@ -158,7 +158,7 @@ async def my_donations(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to list user donations: {e}", exc_info=True)
+        logger.error("Failed to list user donations: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
@@ -207,7 +207,7 @@ async def create_donation(body: DonationCreate, db: AsyncSession = Depends(get_d
             except HTTPException:
                 raise
             except Exception as pay_error:
-                logger.error(f"Payment parameter generation failed: {pay_error}")
+                logger.error("Payment parameter generation failed: %s", pay_error)
                 if settings.APP_ENV == "development":
                     response_data["payment_error"] = "Payment configuration error"
                     response_data["simulation_mode"] = True
@@ -239,7 +239,7 @@ async def create_donation(body: DonationCreate, db: AsyncSession = Depends(get_d
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Donation creation failed: {e}")
+        logger.error("Donation creation failed: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
@@ -279,5 +279,5 @@ async def download_donation_certificate_pdf(
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error(f"Certificate PDF generation failed for donation {donation_id}: {exc}")
+        logger.error("Certificate PDF generation failed for donation %s: %s", donation_id, exc)
         raise HTTPException(status_code=500, detail="Certificate PDF generation failed")

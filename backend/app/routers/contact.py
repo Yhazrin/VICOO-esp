@@ -43,9 +43,9 @@ async def submit_contact_form(body: ContactForm, request: Request, db: AsyncSess
         raise
     except Exception as e:
         if settings.APP_ENV == "production":
-            logger.error(f"Redis rate limit check failed in production, rejecting request: {e}")
+            logger.error("Redis rate limit check failed in production, rejecting request: %s", e)
             raise HTTPException(status_code=503, detail="Service temporarily unavailable")
-        logger.warning(f"Redis rate limit check failed for contact form, allowing request: {e}")
+        logger.warning("Redis rate limit check failed for contact form, allowing request: %s", e)
 
     try:
         msg = ContactMessage(

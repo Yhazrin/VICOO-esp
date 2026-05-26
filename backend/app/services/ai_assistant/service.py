@@ -38,7 +38,7 @@ def _read_synonym_config() -> Dict[str, Any]:
             if isinstance(loaded, dict):
                 return loaded
     except Exception as exc:
-        logger.warning(f"Failed to load AI synonym config: {exc}")
+        logger.warning("Failed to load AI synonym config: %s", exc)
     return _DEFAULT_SYNONYM_CONFIG
 
 
@@ -196,7 +196,7 @@ class AIAssistantService(BaseService):
                     "source": "openai-compatible"
                 }
         except Exception as e:
-            logger.error(f"AI call failed: {e}")
+            logger.error("AI call failed: %s", e)
             raise HTTPException(status_code=502, detail="AI Assistant is temporarily unavailable")
 
     async def get_chat_completion_stream(
@@ -277,7 +277,7 @@ class AIAssistantService(BaseService):
                 async with client.stream("POST", url, headers=headers, json=payload) as response:
                     if response.status_code != 200:
                         body = await response.aread()
-                        logger.error(f"Anthropic stream error {response.status_code}: {body.decode()[:300]}")
+                        logger.error("Anthropic stream error %s: %s", response.status_code, body.decode()[:300])
                         yield f"data: {json.dumps({'type': 'error', 'error': f'Upstream returned {response.status_code}'})}\n\n"
                         return
 
@@ -315,7 +315,7 @@ class AIAssistantService(BaseService):
                     yield f"data: {json.dumps({'type': 'message_stop', 'model': settings.OPENAI_MODEL, 'source': 'anthropic-stream'})}\n\n"
 
         except Exception as e:
-            logger.error(f"Anthropic stream failed: {e}")
+            logger.error("Anthropic stream failed: %s", e)
             yield f"data: {json.dumps({'type': 'error', 'error': 'Stream processing failed'})}\n\n"
 
     async def moderate_content(self, text: str) -> Dict[str, Any]:
@@ -400,7 +400,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                 analysis = json.loads(data["choices"][0]["message"]["content"])
                 return analysis
         except Exception as e:
-            logger.error(f"Artwork analysis failed: {e}")
+            logger.error("Artwork analysis failed: %s", e)
             return {
                 "suggested_title": None,
                 "suggested_tags": [],
@@ -440,7 +440,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
             
             return context
         except Exception as e:
-            logger.error(f"Failed to fetch business context for AI: {e}")
+            logger.error("Failed to fetch business context for AI: %s", e)
             return "[Business context unavailable]"
 
     async def _get_donation_context(self, user_id: Optional[int] = None) -> str:
@@ -474,7 +474,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                     ctx += "该用户暂无捐赠记录。\n"
             return ctx
         except Exception as e:
-            logger.error(f"Failed to get donation context: {e}")
+            logger.error("Failed to get donation context: %s", e)
             return ""
 
     async def _get_campaign_context(self) -> str:
@@ -492,7 +492,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                 return ctx
             return "No active fundraising campaigns at the moment.\n"
         except Exception as e:
-            logger.error(f"Failed to get campaign context: {e}")
+            logger.error("Failed to get campaign context: %s", e)
             return ""
 
     async def _get_impact_fund_context(self) -> str:
@@ -508,7 +508,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
             ctx += "分配机制: 每笔公益商品销售额的捐赠比例 → 60% 艺术家 / 30% 学校 / 10% 慈善池\n"
             return ctx
         except Exception as e:
-            logger.error(f"Failed to get impact fund context: {e}")
+            logger.error("Failed to get impact fund context: %s", e)
             return ""
 
     def _get_clothing_recycle_context(self) -> str:
@@ -725,7 +725,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                     out += "\n(Source: supply_chain records, product table)"
                     return out
                 except Exception as e:
-                    logger.error(f"Tool invocation by metadata failed: {e}")
+                    logger.error("Tool invocation by metadata failed: %s", e)
 
         last_user = self._get_last_user_message(messages)
 
@@ -851,7 +851,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                     try:
                         res = (await self.db.execute(stmt)).scalars().all()
                     except Exception as e:
-                        logger.error(f"{scope} product search failed: {e}")
+                        logger.error("%s product search failed: %s", scope, e)
                         res = []
                     if not res:
                         continue
@@ -891,7 +891,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                         try:
                             fallback_res = (await self.db.execute(fallback_stmt)).scalars().all()
                         except Exception as e:
-                            logger.error(f"{scope} bag fallback search failed: {e}")
+                            logger.error("%s bag fallback search failed: %s", scope, e)
                             fallback_res = []
                         if not fallback_res:
                             continue
@@ -1037,7 +1037,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
             out += "\n(End of retrieval results)\n"
             return out
         except Exception as e:
-            logger.error(f"RAG retrieval failed: {e}")
+            logger.error("RAG retrieval failed: %s", e)
             return ""
 
     async def record_feedback(self, is_helpful: bool, messages: List[Dict[str, Any]], metadata: Optional[Dict[str, Any]] = None, user_id: Optional[int] = None, reason: Optional[str] = None) -> Dict[str, Any]:
@@ -1111,7 +1111,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
             logger.info("Created contact message from AI feedback id=%s", contact.id)
             return {"escalated": True, "contact_id": contact.id}
         except Exception as e:
-            logger.error(f"Failed to record AI feedback: {e}")
+            logger.error("Failed to record AI feedback: %s", e)
             return {"escalated": False, "error": "Failed to record feedback"}
 
     # End of class

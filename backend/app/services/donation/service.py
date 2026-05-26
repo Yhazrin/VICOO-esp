@@ -116,7 +116,7 @@ class DonationService(BaseService):
         # Security: Anomaly Detection
         if user_id:
             if await anomaly_service.is_transaction_risky(user_id, float(amount_val)):
-                logger.warning(f"Blocking potentially risky donation from User {user_id}")
+                logger.warning("Blocking potentially risky donation from User %s", user_id)
                 await anomaly_service.log_anomaly(
                     user_id, "RISKY_DONATION", f"Frequent small donations or unusual activity. Amount: {amount_val}"
                 )

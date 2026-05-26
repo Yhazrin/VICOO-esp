@@ -74,7 +74,7 @@ async def create_payment(body: PaymentCreate, db: AsyncSession = Depends(get_db)
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Payment creation failed: {e}")
+        logger.error("Payment creation failed: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.post("/wechat-notify")
@@ -109,20 +109,20 @@ async def wechat_notify(request: Request, db: AsyncSession = Depends(get_db)):
                 from sqlalchemy import select
                 donation = (await db.execute(select(Donation).where(Donation.id == donation_id))).scalar_one_or_none()
                 if not donation:
-                    logger.warning(f"WeChat callback for non-existent donation {donation_id}")
+                    logger.warning("WeChat callback for non-existent donation %s", donation_id)
                     return Response(content="<xml><return_code>FAIL</return_code></xml>", media_type="application/xml")
                 if donation.amount != amount_cny:
-                    logger.warning(f"WeChat callback amount mismatch: callback={amount_cny}, db={donation.amount} for donation {donation_id}")
+                    logger.warning("WeChat callback amount mismatch: callback=%s, db=%s for donation %s", amount_cny, donation.amount, donation_id)
                     return Response(content="<xml><return_code>FAIL</return_code></xml>", media_type="application/xml")
             elif out_trade_no:
                 from app.models.order import Order
                 from sqlalchemy import select
                 order = (await db.execute(select(Order).where(Order.order_no == out_trade_no))).scalar_one_or_none()
                 if not order:
-                    logger.warning(f"WeChat callback for non-existent order {out_trade_no}")
+                    logger.warning("WeChat callback for non-existent order %s", out_trade_no)
                     return Response(content="<xml><return_code>FAIL</return_code></xml>", media_type="application/xml")
                 if order.total_amount != amount_cny:
-                    logger.warning(f"WeChat callback amount mismatch: callback={amount_cny}, db={order.total_amount} for order {out_trade_no}")
+                    logger.warning("WeChat callback amount mismatch: callback=%s, db=%s for order %s", amount_cny, order.total_amount, out_trade_no)
                     return Response(content="<xml><return_code>FAIL</return_code></xml>", media_type="application/xml")
 
             await payment_service.process_successful_payment(
@@ -138,11 +138,11 @@ async def wechat_notify(request: Request, db: AsyncSession = Depends(get_db)):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"WeChat notify error: {e}")
+        logger.error("WeChat notify error: %s", e)
         try:
             await db.rollback()
         except Exception as rb_err:
-            logger.error(f"Rollback after WeChat notify error failed: {rb_err}")
+            logger.error("Rollback after WeChat notify error failed: %s", rb_err)
         return Response(content="<xml><return_code>FAIL</return_code></xml>", media_type="application/xml")
 
 
@@ -158,7 +158,7 @@ async def alipay_notify(request: Request, db: AsyncSession = Depends(get_db)):
         form_data = await request.form()
         params = {key: form_data[key] for key in form_data.keys()}
 
-        logger.info(f"Alipay callback received for trade_no: {params.get('out_trade_no')}")
+        logger.info("Alipay callback received for trade_no: %s", params.get('out_trade_no'))
 
         # --- RSA2 Signature Verification ---
         sign = params.get("sign", "")
@@ -197,11 +197,11 @@ async def alipay_notify(request: Request, db: AsyncSession = Depends(get_db)):
                     padding.PKCS1v15(),
                     hashes.SHA256(),
                 )
-                logger.info(f"Alipay signature verified for trade_no: {params.get('out_trade_no')}")
+                logger.info("Alipay signature verified for trade_no: %s", params.get('out_trade_no'))
             except HTTPException:
                 raise
             except Exception as verify_error:
-                logger.error(f"Alipay signature verification failed: {verify_error}")
+                logger.error("Alipay signature verification failed: %s", verify_error)
                 return PlainTextResponse("failure")
         else:
             logger.error("ALIPAY_PUBLIC_KEY not configured, rejecting Alipay callback")
@@ -210,7 +210,7 @@ async def alipay_notify(request: Request, db: AsyncSession = Depends(get_db)):
         # --- Check trade status ---
         trade_status = params.get("trade_status", "")
         if trade_status not in ("TRADE_SUCCESS", "TRADE_FINISHED"):
-            logger.info(f"Alipay trade status is {trade_status}, ignoring")
+            logger.info("Alipay trade status is %s, ignoring", trade_status)
             return PlainTextResponse("success")
 
         # --- Extract transaction details ---
@@ -236,20 +236,20 @@ async def alipay_notify(request: Request, db: AsyncSession = Depends(get_db)):
             from sqlalchemy import select
             donation = (await db.execute(select(Donation).where(Donation.id == donation_id))).scalar_one_or_none()
             if not donation:
-                logger.warning(f"Alipay callback for non-existent donation {donation_id}")
+                logger.warning("Alipay callback for non-existent donation %s", donation_id)
                 return PlainTextResponse("failure")
             if donation.amount != total_amount:
-                logger.warning(f"Alipay callback amount mismatch: callback={total_amount}, db={donation.amount} for donation {donation_id}")
+                logger.warning("Alipay callback amount mismatch: callback=%s, db=%s for donation %s", total_amount, donation.amount, donation_id)
                 return PlainTextResponse("failure")
         elif out_trade_no:
             from app.models.order import Order
             from sqlalchemy import select
             order = (await db.execute(select(Order).where(Order.order_no == out_trade_no))).scalar_one_or_none()
             if not order:
-                logger.warning(f"Alipay callback for non-existent order {out_trade_no}")
+                logger.warning("Alipay callback for non-existent order %s", out_trade_no)
                 return PlainTextResponse("failure")
             if order.total_amount != total_amount:
-                logger.warning(f"Alipay callback amount mismatch: callback={total_amount}, db={order.total_amount} for order {out_trade_no}")
+                logger.warning("Alipay callback amount mismatch: callback=%s, db=%s for order %s", total_amount, order.total_amount, out_trade_no)
                 return PlainTextResponse("failure")
 
         # --- Delegate to PaymentService (atomic status guard + impact fund allocation) ---
@@ -262,7 +262,7 @@ async def alipay_notify(request: Request, db: AsyncSession = Depends(get_db)):
             donation_id=donation_id,
             raw_data=params,
         )
-        logger.info(f"Alipay payment processed: TX={trade_no}")
+        logger.info("Alipay payment processed: TX=%s", trade_no)
 
         return PlainTextResponse("success")
     except HTTPException:

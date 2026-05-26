@@ -200,7 +200,7 @@ async def list_my_artworks(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to list user artworks: {e}", exc_info=True)
+        logger.error("Failed to list user artworks: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
@@ -215,7 +215,7 @@ async def list_featured_artworks(db: AsyncSession = Depends(get_db)):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to list featured artworks: {e}")
+        logger.error("Failed to list featured artworks: %s", e)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
@@ -247,7 +247,7 @@ async def get_artwork(artwork_id: int, db: AsyncSession = Depends(get_db)):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to get artwork {artwork_id}: {e}")
+        logger.error("Failed to get artwork %s: %s", artwork_id, e)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
@@ -304,7 +304,7 @@ async def create_artwork(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"DB write failed during create_artwork: {e}", exc_info=True)
+        logger.error("DB write failed during create_artwork: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
@@ -327,7 +327,7 @@ async def update_artwork(artwork_id: int, body: ArtworkUpdate, db: AsyncSession 
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"DB write failed during update_artwork: {e}", exc_info=True)
+        logger.error("DB write failed during update_artwork: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
@@ -344,7 +344,7 @@ async def get_artwork_status(artwork_id: int, db: AsyncSession = Depends(get_db)
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to get artwork status {artwork_id}: {e}")
+        logger.error("Failed to get artwork status %s: %s", artwork_id, e)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
@@ -364,7 +364,7 @@ async def update_artwork_status(artwork_id: int, body: ArtworkStatusUpdate, db: 
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"DB write failed during update_artwork_status: {e}", exc_info=True)
+        logger.error("DB write failed during update_artwork_status: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
@@ -407,7 +407,7 @@ async def vote_artwork(artwork_id: int, db: AsyncSession = Depends(get_db), redi
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"DB write failed during vote_artwork: {e}", exc_info=True)
+        logger.error("DB write failed during vote_artwork: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
@@ -426,5 +426,5 @@ async def delete_artwork(artwork_id: int, db: AsyncSession = Depends(get_db), _a
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"DB write failed during delete_artwork: {e}", exc_info=True)
+        logger.error("DB write failed during delete_artwork: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
