@@ -966,3 +966,19 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Removed unused `sortBy` and `sortOrder` params from the DashboardPage call
 - **Verification**: Build passes
 - **New issues**: None
+
+## Fix 119 — Redis healthcheck missing authentication password
+- **Date**: 2026-05-27 (Round 50)
+- **Files**: `deploy/easy/docker-compose.yml`
+- **Reason**: P2: Redis container configured with `--requirepass` but healthcheck used `redis-cli ping` without `-a` flag. The healthcheck would always fail because Redis rejects unauthenticated connections, causing the backend to never start (it depends on Redis being healthy).
+- **Change**: Added `-a ${REDIS_PASSWORD:-vicoo_redis_2026}` to the Redis healthcheck command
+- **Verification**: YAML syntax valid
+- **New issues**: None
+
+## Fix 120 — Duplicate vite.config.js file (dead code)
+- **Date**: 2026-05-27 (Round 50)
+- **Files**: `frontend/web-react/vite.config.js` (removed)
+- **Reason**: P2: Both `vite.config.js` and `vite.config.ts` existed and were tracked in git. Vite uses `.ts` over `.js` when both exist, making the `.js` file dead code that could cause confusion during maintenance.
+- **Change**: Removed `vite.config.js` from git tracking
+- **Verification**: `git ls-files` confirms only `.ts` remains
+- **New issues**: None
