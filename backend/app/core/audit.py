@@ -80,7 +80,7 @@ def audit_action(action: str, resource_type: str):
                         resource=resource_type,
                         resource_id=None,
                         status="failed",
-                        details={"error": str(e)},
+                        details={"error": "Operation failed"},
                     )
                 raise e
 

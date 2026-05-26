@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useParams, useNavigate, useLocation, matchPath } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import { motion, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
@@ -157,7 +158,7 @@ export default function ProductDetail() {
       setReviewTitle('');
       setReviewBody('');
     },
-    onError: () => {}, // error state handled by reviewMutation.isError below
+    onError: () => toast.error(t('review.error', 'Failed to submit review')),
   });
 
   const [selectedImage, setSelectedImage] = useState(0);
