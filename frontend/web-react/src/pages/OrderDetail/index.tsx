@@ -477,9 +477,9 @@ export default function OrderDetail() {
                         </div>
                         {selectedItems[item.id] !== undefined && (
                           <div className="flex items-center gap-1">
-                            <button onClick={() => updateItemQty(item.id, selectedItems[item.id] - 1, item.quantity)} className="w-6 h-6 border border-warm-gray/25 flex items-center justify-center text-sepia-mid hover:text-ink cursor-pointer">−</button>
+                            <button aria-label="Decrease quantity" onClick={() => updateItemQty(item.id, selectedItems[item.id] - 1, item.quantity)} className="w-6 h-6 border border-warm-gray/25 flex items-center justify-center text-sepia-mid hover:text-ink cursor-pointer">−</button>
                             <span className="font-mono text-xs w-6 text-center">{selectedItems[item.id]}</span>
-                            <button onClick={() => updateItemQty(item.id, selectedItems[item.id] + 1, item.quantity)} className="w-6 h-6 border border-warm-gray/25 flex items-center justify-center text-sepia-mid hover:text-ink cursor-pointer">+</button>
+                            <button aria-label="Increase quantity" onClick={() => updateItemQty(item.id, selectedItems[item.id] + 1, item.quantity)} className="w-6 h-6 border border-warm-gray/25 flex items-center justify-center text-sepia-mid hover:text-ink cursor-pointer">+</button>
                           </div>
                         )}
                       </div>

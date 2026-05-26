@@ -277,7 +277,8 @@ async def health():
                 health_data["services"]["redis"] = "healthy"
             finally:
                 await r.aclose()
-        except Exception:
+        except Exception as e:
+            logger.debug("Redis health check failed: %s", e)
             health_data["services"]["redis"] = "unhealthy"
     return health_data
 

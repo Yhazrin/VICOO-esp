@@ -7,13 +7,13 @@ from urllib.parse import urlencode
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse, JSONResponse
-from sqlalchemy import select, or_
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.database import get_db
 from app.models.user import User
-from app.schemas import ApiResponse, TokenResponse
+from app.schemas import ApiResponse
 from app.security import create_access_token, create_refresh_token
 
 logger = logging.getLogger("vicoo.oauth")

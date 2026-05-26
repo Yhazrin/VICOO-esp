@@ -291,6 +291,12 @@ export default function SupplyChainGlobe({
     const st = sceneRef.current;
     if (st.animationId !== 0) return;
     st.animationId = requestAnimationFrame(tickRef.current);
+    return () => {
+      if (st.animationId) {
+        cancelAnimationFrame(st.animationId);
+        st.animationId = 0;
+      }
+    };
   }, [suspended]);
 
   useEffect(() => {

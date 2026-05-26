@@ -18,15 +18,21 @@ from app.models.donation import Donation
 
 API_PREFIX = "/api/v1"
 
+import logging as _logging
+
+_cert_logger = _logging.getLogger(__name__)
+
 try:
     pdfmetrics.registerFont(TTFont("SimHei", "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc"))
     pdfmetrics.registerFont(TTFont("SimSun", "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc"))
     _CHINESE_FONT = "SimHei"
-except Exception:
+except Exception as _e:
+    _cert_logger.debug("SimHei font not available (%s), trying Arial fallback", _e)
     try:
         pdfmetrics.registerFont(TTFont("Arial", "/System/Library/Fonts/Arial.ttf"))
         _CHINESE_FONT = "Arial"
-    except Exception:
+    except Exception as _e2:
+        _cert_logger.debug("Arial font not available (%s), using Helvetica fallback", _e2)
         _CHINESE_FONT = "Helvetica"
 
 _styles = getSampleStyleSheet()

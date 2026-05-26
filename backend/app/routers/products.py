@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from decimal import Decimal
 import logging
 
 from app.config import settings
@@ -255,7 +254,7 @@ async def list_categories(db: AsyncSession = Depends(get_db)):
             raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         cat_counts: dict[str, int] = {}
         for p in _mock_products:
-            cat = p.get("category", "未分类")
+            cat = p.get("category", "Uncategorized")
             cat_counts[cat] = cat_counts.get(cat, 0) + 1
         categories = [{"name": k, "count": v} for k, v in cat_counts.items()]
         return ApiResponse(data=categories)

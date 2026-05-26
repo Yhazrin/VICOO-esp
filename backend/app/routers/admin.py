@@ -11,12 +11,10 @@ from app.config import settings
 from app.database import get_db
 from app.models.user import User, ChildParticipant
 from app.models.artwork import Artwork
-from app.models.campaign import Campaign
 from app.models.donation import Donation
-from app.models.product import Product
 from app.models.order import Order
 from app.models.audit import AuditLog
-from app.schemas import ApiResponse, AuditLogOut, DashboardMetrics, PaginatedResponse, DonationOut, SettingsUpdate, VerifyAccessRequest
+from app.schemas import ApiResponse, AuditLogOut, PaginatedResponse, DonationOut, SettingsUpdate, VerifyAccessRequest
 from app.deps import require_role
 from app.models.settings import SiteSettings
 
@@ -168,7 +166,7 @@ async def get_settings(
             settings_dict[row.key] = row.value
         # Defaults if no settings exist yet
         defaults = {
-            "site_name": "Uniqlo × VICOO 公益",
+            "site_name": "Uniqlo × VICOO Charity",
             "site_tagline": "Welfare Action for a Better World",
             "contact_email": "admin@vicoo.test",
             "donation_enabled": True,

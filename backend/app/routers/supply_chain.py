@@ -14,7 +14,6 @@ from app.schemas import (
     ApiResponse,
     SupplyChainRecordCreate,
     SupplyChainRecordUpdate,
-    SupplyChainTrace,
     PaginatedResponse,
     supply_chain_record_to_out,
 )

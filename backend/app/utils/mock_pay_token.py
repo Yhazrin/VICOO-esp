@@ -5,8 +5,11 @@ import base64
 import hashlib
 import hmac
 import json
+import logging
 import time
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 _PADDING = "="
 
@@ -56,5 +59,6 @@ def parse_mock_pay_token(token: str, secret: str | bytes | None) -> dict[str, An
         if int(time.time()) > int(payload.get("exp", 0)):
             return None
         return payload
-    except Exception:
+    except Exception as e:
+        logger.debug("Mock pay token parse failed: %s", e)
         return None

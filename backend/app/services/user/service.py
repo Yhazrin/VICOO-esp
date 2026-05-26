@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, List, Dict, Any, Tuple
+from typing import Optional, Dict, Any
 
 from fastapi import HTTPException
 from sqlalchemy import select, func

@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 import logging
@@ -8,7 +7,7 @@ from app.database import get_db
 from app.models.user import User
 from app.schemas import ApiResponse, PaginatedResponse, UserOut, UserUpdate, UserRoleUpdate, UserStatusUpdate
 from app.deps import get_current_user, require_role
-from app.security import aes_encrypt, hash_password
+from app.security import aes_encrypt, hash_password  # noqa: F401 — re-exported for service layer
 
 router = APIRouter(prefix="/users", tags=["Users"])
 

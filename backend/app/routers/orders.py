@@ -18,7 +18,6 @@ from app.schemas import (
 )
 from app.schemas.order import ReturnRequestCreate
 from app.deps import get_current_user, require_role
-from app.security import generate_order_no
 from app.utils.mock_pay_token import issue_mock_pay_token
 from app.data.impact_product_images import IMPACT_PRODUCT_IMAGE_BY_NAME
 
@@ -176,11 +175,11 @@ for _mo in _mock_orders:
     _mo.setdefault(
         "logistics_events",
         [
-            {"at": _mo["created_at"], "status": "created", "description": "订单已创建", "location": None},
-            {"at": _mo["updated_at"], "status": _mo["status"], "description": "状态更新", "location": None},
+            {"at": _mo["created_at"], "status": "created", "description": "Order created", "location": None},
+            {"at": _mo["updated_at"], "status": _mo["status"], "description": "Status updated", "location": None},
         ]
         if _mo.get("status") in ("shipped", "completed", "paid")
-        else [{"at": _mo["created_at"], "status": "created", "description": "订单已创建", "location": None}],
+        else [{"at": _mo["created_at"], "status": "created", "description": "Order created", "location": None}],
     )
 
 
@@ -523,7 +522,7 @@ async def request_return(
             order_id=order_id,
             category=body.type,
             status="open",
-            subject=f"{'退货' if body.type == 'return' else '换货'}申请 - {order.order_no}",
+            subject=f"{'Return' if body.type == 'return' else 'Exchange'} request - {order.order_no}",
             description="\n".join(description_parts),
         )
         db.add(ticket)

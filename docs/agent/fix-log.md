@@ -1824,3 +1824,54 @@ _Round 2: No new fixes needed. All core flows verified via API._
   - `ai_assistant/service.py`: campaign context fallback translated from Chinese to English
 - **Verification**: All API responses now use consistent English
 - **New issues**: None
+
+## Fix 222 — Dead imports across 11 backend files
+- **Date**: 2026-05-27 (Round 68)
+- **Files**: `oauth.py`, `admin.py`, `users.py`, `contact.py`, `artworks.py`, `orders.py`, `products.py`, `supply_chain.py`, `services/auth/service.py`, `services/user/service.py`, `services/child/service.py`
+- **Reason**: P3: Unused imports left from refactoring across the codebase
+- **Change**: Removed 20 dead imports:
+  - `oauth.py`: `or_` from sqlalchemy, `TokenResponse` from schemas
+  - `admin.py`: `Campaign`, `Product` models, `DashboardMetrics` schema
+  - `users.py`: `select` from sqlalchemy (kept `Optional` which is used)
+  - `contact.py`: `import time`
+  - `artworks.py`: `from datetime import datetime`
+  - `orders.py`: `generate_order_no` from security
+  - `products.py`: `from decimal import Decimal`
+  - `supply_chain.py`: `SupplyChainTrace` from schemas
+  - `auth/service.py`: `import time`, `Dict`, `Any`, `Optional` from typing (kept `Tuple`)
+  - `user/service.py`: `List`, `Tuple` from typing (kept `Optional`, `Dict`, `Any`)
+  - `child/service.py`: `List` from typing (kept `Optional`, `Dict`, `Any`)
+- **Verification**: No functional change; cleaner import lists
+- **New issues**: None
+
+## Fix 223 — Bare except blocks without logging
+- **Date**: 2026-05-27 (Round 68)
+- **Files**: `utils/mock_pay_token.py`, `services/donation/certificate.py`, `main.py`
+- **Reason**: P2: Silent exception swallowing makes debugging impossible
+- **Change**:
+  - `mock_pay_token.py`: `except Exception:` → `except Exception as e: logger.debug(...)`
+  - `certificate.py`: Both font fallback `except` blocks now log with `_cert_logger.debug()`
+  - `main.py`: Redis health check `except` now logs with `logger.debug()`
+- **Verification**: All exception handlers now log at debug level; no functional change
+- **New issues**: None
+
+## Fix 224 — Chinese strings in API response payloads
+- **Date**: 2026-05-27 (Round 68)
+- **Files**: `routers/orders.py`, `routers/products.py`, `routers/admin.py`
+- **Reason**: P3: Several API endpoints returned Chinese strings in response payloads while the rest of the codebase uses English
+- **Change**:
+  - `orders.py`: `"订单已创建"` → `"Order created"`, `"状态更新"` → `"Status updated"`, `"退货"/"换货"` → `"Return"/"Exchange"`
+  - `products.py`: `"未分类"` → `"Uncategorized"`
+  - `admin.py`: `"Uniqlo × VICOO 公益"` → `"Uniqlo × VICOO Charity"`
+- **Verification**: All API responses now use consistent English
+- **New issues**: None
+
+## Fix 225 — Frontend accessibility and cleanup
+- **Date**: 2026-05-27 (Round 68)
+- **Files**: `frontend/web-react/src/pages/OrderDetail/index.tsx`, `frontend/web-react/src/components/scroll/SupplyChainGlobe.tsx`
+- **Reason**: P2: Icon-only buttons missing aria-label; requestAnimationFrame without cleanup on unmount
+- **Change**:
+  - `OrderDetail/index.tsx`: Added `aria-label="Decrease quantity"` and `aria-label="Increase quantity"` to +/- buttons
+  - `SupplyChainGlobe.tsx`: Added cleanup function to useEffect that cancels requestAnimationFrame on unmount
+- **Verification**: Screen readers can now identify quantity buttons; no animation frame leak on unmount
+- **New issues**: None
