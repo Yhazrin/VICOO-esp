@@ -1,4 +1,4 @@
-"""可持续性聚合指标（与供应链、衣物闭环联动）。"""
+"""Sustainability aggregate metrics (linked with supply chain and clothing circular commerce)."""
 
 from decimal import Decimal
 import logging
@@ -21,7 +21,7 @@ router = APIRouter(prefix="/sustainability", tags=["Sustainability"])
 
 @router.get("/summary", response_model=ApiResponse)
 async def sustainability_summary(db: AsyncSession = Depends(get_db)):
-    """公开摘要：捐赠、再生上架、供应链核验覆盖等。"""
+    """Public summary: donations, recycled listings, supply chain verification coverage, etc."""
     try:
         donation_total = (
             await db.execute(select(func.coalesce(func.sum(Donation.amount), 0)).where(Donation.status == "completed"))

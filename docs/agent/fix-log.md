@@ -2500,3 +2500,59 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Batch-converted all 41 f-string logger calls to %s format. Total: 125 f-string logger calls eliminated across 26 files.
 - **Verification**: Zero f-string logger calls remaining in entire backend
 - **New issues**: None
+
+## Fix 298 — Contact page entirely missing i18n and accessibility labels
+- **Date**: 2026-05-27 (Round 83)
+- **Files**: `frontend/web-react/src/pages/Contact/index.tsx`
+- **Reason**: P2: Contact page was the only frontend page completely lacking i18n support. All 25+ user-facing strings were hardcoded English. Form inputs also lacked `id` props for label-input association (accessibility).
+- **Change**: Added `useTranslation`, wrapped all strings with `t()` using existing i18n keys from en.json/zh.json. Added `id` props to all form inputs for accessibility.
+- **Verification**: Contact page now translates when switching locale, form labels properly associated with inputs
+- **New issues**: None
+
+## Fix 299 — AiDesign query missing error handling (Fix 46 regression)
+- **Date**: 2026-05-27 (Round 83)
+- **Files**: `frontend/web-react/src/pages/AiDesign/index.tsx`
+- **Reason**: P2: `useQuery` destructured only `{ data, isLoading }` without `isError`. On API failure, admin sees "No design drafts yet" instead of error message. Fix 46 claimed to add this but the change was lost in a later refactoring.
+- **Change**: Added `isError: draftsError` to useQuery destructuring and error branch in rendering.
+- **Verification**: Admin now sees error message when design drafts API fails
+- **New issues**: None
+
+## Fix 300 — Two remaining f-string logger.exception calls
+- **Date**: 2026-05-27 (Round 83)
+- **Files**: `backend/app/routers/admin.py`, `backend/app/routers/impact_fund.py`
+- **Reason**: P2: Two `logger.exception(f"...")` calls survived Fix 296/297 batch conversion. Inconsistent with codebase convention.
+- **Change**: Converted to `logger.exception("...: %s", id)` format.
+- **Verification**: Zero f-string logger calls remaining in entire backend (confirmed)
+- **New issues**: None
+
+## Fix 301 — RecycleOrders and DonateOrders queries missing error handling
+- **Date**: 2026-05-27 (Round 83)
+- **Files**: `frontend/web-react/src/pages/ClothingRecycle/components/RecycleOrders.tsx`, `frontend/web-react/src/pages/DonateClothing/components/DonateOrders.tsx`
+- **Reason**: P3: Both components destructure `{ data, isLoading }` from useQuery without `isError`. On API failure, users see empty order list with no feedback.
+- **Change**: Added `isError: ordersError` and error rendering branch to both components.
+- **Verification**: Users now see error message when clothing intakes API fails
+- **New issues**: None
+
+## Fix 302 — Checkout saved addresses query missing error handling
+- **Date**: 2026-05-27 (Round 83)
+- **Files**: `frontend/web-react/src/pages/Checkout/index.tsx`
+- **Reason**: P3: `useQuery` for saved addresses lacked `isError`. On API failure, user sees no saved addresses with no error indication.
+- **Change**: Added `isError: addressesError` and inline error indicator.
+- **Verification**: User now sees warning when saved addresses fail to load
+- **New issues**: None
+
+## Fix 303 — Contact form inputs missing id props for accessibility
+- **Date**: 2026-05-27 (Round 83)
+- **Files**: `frontend/web-react/src/pages/Contact/index.tsx`
+- **Reason**: P2: Form inputs used `VintageInput`/`VintageSelect` with `label` props but no `id` props. Screen readers cannot associate labels with inputs without matching `htmlFor`/`id` pairs. Same class fixed in Fixes 22, 54, 67, 233.
+- **Change**: Added `id` props to all form inputs (`contact-name`, `contact-email`, `contact-subject`, `contact-message`). Combined with Fix 298 since both changes touch the same file.
+- **Verification**: Form labels properly associated with inputs for screen readers
+- **New issues**: None
+
+## Fix 304 — sustainability.py Chinese docstrings remain untranslated
+- **Date**: 2026-05-27 (Round 83)
+- **Files**: `backend/app/routers/sustainability.py`
+- **Reason**: P3: Two Chinese docstrings (module-level and function-level) inconsistent with codebase convention where all docstrings were translated to English in Fixes 240-244.
+- **Change**: Translated both docstrings to English.
+- **Verification**: All docstrings in sustainability.py now in English
+- **New issues**: None

@@ -34,7 +34,7 @@ export default function AiDesign() {
   const [publishStock, setPublishStock] = useState('100');
   const [errorMessage, setErrorMessage] = useState('');
 
-  const { data: drafts = [], isLoading } = useQuery({
+  const { data: drafts = [], isLoading, isError: draftsError } = useQuery({
     queryKey: ['design-drafts', filterStatus],
     queryFn: () => aiDesignApi.list(filterStatus ? { status: filterStatus } : undefined),
     enabled: isAuthenticated && isAdmin,
@@ -192,6 +192,10 @@ export default function AiDesign() {
           {/* Drafts list */}
           {isLoading ? (
             <p className="font-body text-body-sm text-ink-faded">{t('common.loading', 'Loading...')}</p>
+          ) : draftsError ? (
+            <p className="font-body text-body-sm text-rust text-center py-12">
+              {t('aiDesign.loadError', 'Failed to load design drafts. Please try again.')}
+            </p>
           ) : drafts.length === 0 ? (
             <p className="font-body text-body-sm text-ink-faded text-center py-12">
               {t('aiDesign.noDrafts', 'No design drafts yet')}

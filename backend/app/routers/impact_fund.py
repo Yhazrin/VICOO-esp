@@ -37,7 +37,7 @@ async def get_order_impact_entries(
     except HTTPException:
         raise
     except Exception as e:
-        logger.exception(f"Failed to get impact entries for order {order_id}")
+        logger.exception("Failed to get impact entries for order %s", order_id)
         raise HTTPException(status_code=500, detail="Internal server error")
 
 

@@ -80,7 +80,7 @@ export default function Checkout() {
     payUrl: string;
   } | null>(null);
 
-  const { data: savedAddresses = [] } = useQuery({
+  const { data: savedAddresses = [], isError: addressesError } = useQuery({
     queryKey: ['my-addresses'],
     queryFn: () => addressesApi.getAll(),
     enabled: isAuthenticated,
@@ -382,6 +382,11 @@ export default function Checkout() {
                     <h2 className="font-display text-h3 font-semibold text-ink mb-6">{t('checkout.step1')}</h2>
 
                     {/* Saved addresses */}
+                    {addressesError && (
+                      <p className="font-body text-caption text-rust mb-2">
+                        {t('checkout.addressesLoadError', 'Could not load saved addresses')}
+                      </p>
+                    )}
                     {savedAddresses.length > 0 && !showManualAddress && (
                       <div className="space-y-3 mb-4">
                         <p className="font-body text-caption text-sepia-mid tracking-wider uppercase">

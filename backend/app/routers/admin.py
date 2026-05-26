@@ -61,7 +61,7 @@ async def approve_donation_admin(
     except HTTPException:
         raise
     except Exception as e:
-        logger.exception(f"Approve donation {donation_id} failed")
+        logger.exception("Approve donation %s failed", donation_id)
         raise HTTPException(status_code=500, detail="Internal server error")
 
 

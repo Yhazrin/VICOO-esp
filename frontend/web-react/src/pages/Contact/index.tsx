@@ -1,5 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import { VintageInput } from '@/components/editorial/VintageInput';
@@ -20,30 +21,31 @@ interface FormErrors {
   message?: string;
 }
 
-const SUBJECT_OPTIONS = [
-  { value: 'general', label: 'General Inquiry' },
-  { value: 'order', label: 'Order Support' },
-  { value: 'partnership', label: 'Business Partnership' },
-  { value: 'other', label: 'Other' },
-];
-
 export default function Contact() {
+  const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
   const [form, setForm] = useState({ name: '', email: '', subject: 'general', message: '' });
   const [errors, setErrors] = useState<FormErrors>({});
   const [status, setStatus] = useState<FormStatus>('idle');
 
+  const subjectOptions = useMemo(() => [
+    { value: 'general', label: t('contact.form.subjectOptions.general', 'General Inquiry') },
+    { value: 'order', label: t('contact.form.subjectOptions.order', 'Order Support') },
+    { value: 'partnership', label: t('contact.form.subjectOptions.partnership', 'Business Partnership') },
+    { value: 'other', label: t('contact.form.subjectOptions.other', 'Other') },
+  ], [t]);
+
   const validate = useCallback((): FormErrors => {
     const errs: FormErrors = {};
-    if (!form.name.trim()) errs.name = 'Name is required';
-    if (!form.email.trim()) errs.email = 'Email is required';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = 'Invalid email';
+    if (!form.name.trim()) errs.name = t('contact.form.requiredField', 'Name is required');
+    if (!form.email.trim()) errs.email = t('contact.form.requiredField', 'Email is required');
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = t('contact.form.invalidEmail', 'Invalid email');
     const msg = form.message.trim();
-    if (!msg) errs.message = 'Message is required';
-    else if (msg.length < MIN_MESSAGE_LENGTH) errs.message = `Please enter at least ${MIN_MESSAGE_LENGTH} characters.`;
-    else if (msg.length > MAX_MESSAGE_LENGTH) errs.message = `Max ${MAX_MESSAGE_LENGTH} characters`;
+    if (!msg) errs.message = t('contact.form.requiredField', 'Message is required');
+    else if (msg.length < MIN_MESSAGE_LENGTH) errs.message = t('contact.form.minLength', 'Please enter at least {min} characters.').replace('{min}', String(MIN_MESSAGE_LENGTH));
+    else if (msg.length > MAX_MESSAGE_LENGTH) errs.message = t('contact.form.maxLength', 'Max {max} characters').replace('{max}', String(MAX_MESSAGE_LENGTH));
     return errs;
-  }, [form]);
+  }, [form, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,7 +77,7 @@ export default function Contact() {
             transition={{ duration: 0.5, ease: [0, 0, 0.2, 1] }}
             className="font-display text-h2 md:text-h1 text-ink mb-2"
           >
-            Contact Us
+            {t('contact.hero.title', 'Contact Us')}
           </motion.h1>
           <motion.p
             initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
@@ -83,7 +85,7 @@ export default function Contact() {
             transition={{ duration: 0.5, ease: [0, 0, 0.2, 1], delay: 0.08 }}
             className="font-body text-body text-ink-faded max-w-2xl"
           >
-            Have a question? We&apos;re here to help.
+            {t('contact.hero.welcome', "Have a question? We're here to help.")}
           </motion.p>
         </div>
       </SectionContainer>
@@ -113,62 +115,68 @@ export default function Contact() {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
-                    <h3 className="font-display text-h3 text-ink mb-2">Message Sent</h3>
+                    <h3 className="font-display text-h3 text-ink mb-2">{t('contact.form.successTitle', 'Message Sent')}</h3>
                     <p className="font-body text-body-sm text-ink-faded">
-                      We&apos;ll get back to you within 24 hours.
+                      {t('contact.form.success', "We'll get back to you within 24 hours.")}
                     </p>
                     <button
                       onClick={() => { setStatus('idle'); setForm({ name: '', email: '', subject: 'general', message: '' }); }}
                       className="mt-6 font-body text-caption text-rust tracking-[0.1em] uppercase hover:underline cursor-pointer"
                     >
-                      Send another message
+                      {t('contact.form.sendAnother', 'Send another message')}
                     </button>
                   </motion.div>
                 ) : (
                   <motion.form key="form" onSubmit={handleSubmit} className="space-y-5">
                     <VintageInput
-                      label="Name *"
+                      id="contact-name"
+                      label={t('contact.form.name', 'Name *')}
                       value={form.name}
                       onChange={(e) => setForm({ ...form, name: e.target.value })}
-                      placeholder="Your name"
+                      placeholder={t('contact.form.namePlaceholder', 'Your name')}
                     />
                     {errors.name && <p className="font-body text-caption text-rust -mt-3">{errors.name}</p>}
 
                     <VintageInput
-                      label="Email *"
+                      id="contact-email"
+                      label={t('contact.form.email', 'Email *')}
                       type="email"
                       value={form.email}
                       onChange={(e) => setForm({ ...form, email: e.target.value })}
-                      placeholder="your@email.com"
+                      placeholder={t('contact.form.emailPlaceholder', 'your@email.com')}
                     />
                     {errors.email && <p className="font-body text-caption text-rust -mt-3">{errors.email}</p>}
 
                     <VintageSelect
-                      label="Subject"
+                      id="contact-subject"
+                      label={t('contact.form.subject', 'Subject')}
                       value={form.subject}
                       onChange={(e) => setForm({ ...form, subject: e.target.value })}
-                      options={SUBJECT_OPTIONS}
+                      options={subjectOptions}
                     />
 
                     <div>
                       <VintageInput
-                        label="Message *"
+                        id="contact-message"
+                        label={t('contact.form.message', 'Message *')}
                         type="textarea"
                         value={form.message}
                         onChange={(e) => setForm({ ...form, message: e.target.value })}
-                        placeholder="How can we help?"
+                        placeholder={t('contact.form.messagePlaceholder', 'How can we help?')}
                       />
                       <div className="flex justify-between mt-1">
                         {errors.message && <p className="font-body text-caption text-rust">{errors.message}</p>}
                         <span className="font-body text-[10px] text-sepia-mid ml-auto">
-                          {form.message.trim().length}/{MAX_MESSAGE_LENGTH}
+                          {t('contact.form.characterCount', '{count} / {max} characters')
+                            .replace('{count}', String(form.message.trim().length))
+                            .replace('{max}', String(MAX_MESSAGE_LENGTH))}
                         </span>
                       </div>
                     </div>
 
                     {status === 'error' && (
                       <p className="font-body text-body-sm text-rust" role="alert">
-                        Something went wrong. Please try again.
+                        {t('contact.form.error', 'Something went wrong. Please try again.')}
                       </p>
                     )}
 
@@ -179,7 +187,7 @@ export default function Contact() {
                       disabled={status === 'sending'}
                       className="w-full py-3 rounded-full font-body text-body-sm tracking-[0.15em] uppercase bg-rust text-paper border border-rust hover:bg-rust/90 disabled:opacity-50 transition-colors cursor-pointer"
                     >
-                      {status === 'sending' ? 'Sending...' : 'Send Message'}
+                      {status === 'sending' ? t('contact.form.sending', 'Sending...') : t('contact.form.submit', 'Send Message')}
                     </motion.button>
                   </motion.form>
                 )}
@@ -195,30 +203,29 @@ export default function Contact() {
               className="md:col-span-5 space-y-6"
             >
               <div className="rounded-xl border border-warm-gray/20 bg-paper/80 p-6">
-                <h3 className="font-display text-h3 text-ink mb-3">Get in Touch</h3>
+                <h3 className="font-display text-h3 text-ink mb-3">{t('contact.contactTitle', 'Get in Touch')}</h3>
                 <div className="space-y-4 font-body text-body-sm text-ink-faded">
                   <div>
-                    <span className="font-body text-overline text-sepia-mid tracking-[0.1em] uppercase block mb-1">Email</span>
-                    <span className="text-ink">support@vicoo.com</span>
+                    <span className="font-body text-overline text-sepia-mid tracking-[0.1em] uppercase block mb-1">{t('contact.info.emailLabel', 'Email')}</span>
+                    <span className="text-ink">{t('contact.info.email', 'support@vicoo.com')}</span>
                   </div>
                   <div>
-                    <span className="font-body text-overline text-sepia-mid tracking-[0.1em] uppercase block mb-1">Customer Service</span>
-                    <span className="text-ink">Mon — Fri, 9:00 — 18:00 CST</span>
+                    <span className="font-body text-overline text-sepia-mid tracking-[0.1em] uppercase block mb-1">{t('contact.info.customerService', 'Customer Service')}</span>
+                    <span className="text-ink">{t('contact.info.hours', 'Mon — Fri, 9:00 — 18:00 CST')}</span>
                   </div>
                   <div>
-                    <span className="font-body text-overline text-sepia-mid tracking-[0.1em] uppercase block mb-1">Headquarters</span>
+                    <span className="font-body text-overline text-sepia-mid tracking-[0.1em] uppercase block mb-1">{t('contact.info.locationLabel', 'Headquarters')}</span>
                     <span className="text-ink">
-                      Midtown Tower, 9-7-1 Akasaka<br />
-                      Minato-ku, Tokyo 107-6231, Japan
+                      {t('contact.info.address', 'Midtown Tower, 9-7-1 Akasaka, Minato-ku, Tokyo 107-6231, Japan')}
                     </span>
                   </div>
                 </div>
               </div>
 
               <div className="rounded-xl border border-warm-gray/20 bg-aged-stock/30 p-6">
-                <h3 className="font-display text-h3 text-ink mb-3">Response Time</h3>
+                <h3 className="font-display text-h3 text-ink mb-3">{t('contact.info.responseTime', 'Response Time')}</h3>
                 <p className="font-body text-body-sm text-ink-faded">
-                  We typically respond within 24 hours during business days. For urgent order issues, please include your order ID.
+                  {t('contact.info.responseTimeText', 'We typically respond within 24 hours during business days. For urgent order issues, please include your order ID.')}
                 </p>
               </div>
             </motion.div>
@@ -232,25 +239,25 @@ export default function Contact() {
       <SectionContainer className="section-spacing">
         <div className="max-w-2xl mx-auto">
           <h2 className="font-display text-h2 text-ink mb-8 text-center">
-            Frequently Asked
+            {t('contact.faq.title', 'Frequently Asked')}
           </h2>
           <FAQAccordion
             items={[
               {
-                question: 'What is your return policy?',
-                answer: 'We accept returns within 30 days of purchase. Items must be unworn, unwashed, and in original packaging with tags attached.',
+                question: t('contact.faq.items.0.question', 'What is your return policy?'),
+                answer: t('contact.faq.items.0.answer', 'We accept returns within 30 days of purchase. Items must be unworn, unwashed, and in original packaging with tags attached.'),
               },
               {
-                question: 'How long does shipping take?',
-                answer: 'Standard shipping takes 3-5 business days. Express shipping is available for next-day delivery in select areas.',
+                question: t('contact.faq.items.1.question', 'How long does shipping take?'),
+                answer: t('contact.faq.items.1.answer', 'Standard shipping takes 3-5 business days. Express shipping is available for next-day delivery in select areas.'),
               },
               {
-                question: 'How can I track my order?',
-                answer: "Once your order ships, you'll receive a tracking number via email. You can also check your order status in your account.",
+                question: t('contact.faq.items.2.question', 'How can I track my order?'),
+                answer: t('contact.faq.items.2.answer', "Once your order ships, you'll receive a tracking number via email. You can also check your order status in your account."),
               },
               {
-                question: 'Do you ship internationally?',
-                answer: 'Yes, we ship to over 20 countries. International shipping typically takes 7-14 business days depending on destination.',
+                question: t('contact.faq.items.3.question', 'Do you ship internationally?'),
+                answer: t('contact.faq.items.3.answer', 'Yes, we ship to over 20 countries. International shipping typically takes 7-14 business days depending on destination.'),
               },
             ]}
           />
