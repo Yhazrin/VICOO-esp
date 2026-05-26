@@ -281,8 +281,11 @@ async def health():
         try:
             import redis.asyncio as redis
             r = redis.from_url(settings.REDIS_URL, socket_timeout=2)
-            await r.ping()
-            health_data["services"]["redis"] = "healthy"
+            try:
+                await r.ping()
+                health_data["services"]["redis"] = "healthy"
+            finally:
+                await r.aclose()
         except Exception:
             health_data["services"]["redis"] = "unhealthy"
     return health_data

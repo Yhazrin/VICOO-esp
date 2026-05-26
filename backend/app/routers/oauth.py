@@ -292,11 +292,15 @@ async def google_callback(code: str, state: str = "", request: Request = None, d
         g_user = user_resp.json()
         google_id = g_user["id"]
         email = g_user.get("email")
+        email_verified = bool(g_user.get("email_verified", True))  # Google typically marks verified
         nickname = g_user.get("name") or email or f"google_{google_id}"
         avatar = g_user.get("picture")
 
     try:
-        user = await _find_or_create_oauth_user(db, "google", google_id, email, nickname, avatar)
+        user = await _find_or_create_oauth_user(
+            db, "google", google_id, email, nickname, avatar,
+            email_verified=email_verified,
+        )
         if user.status == "banned":
             raise HTTPException(status_code=403, detail="Account is banned")
         return _build_auth_redirect(user)

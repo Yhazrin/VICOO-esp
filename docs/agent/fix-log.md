@@ -830,3 +830,19 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Changed `is_token_blacklisted()` to fail-closed: raises `HTTPException(503)` on Redis errors instead of returning `False`. This ensures logged-out tokens are never accepted when the blacklist cannot be checked.
 - **Verification**: `python -c "import ast; ast.parse(open('backend/app/deps.py').read())"` pass
 - **New issues**: None
+
+## Fix 102 — Google OAuth callback missing email_verified check
+- **Date**: 2026-05-27 (Round 47)
+- **Files**: `backend/app/routers/oauth.py`
+- **Reason**: P2: Google OAuth callback passed `email_verified=True` by default without checking the `email_verified` field from Google's userinfo response. While Google typically returns verified emails, defense-in-depth requires checking the actual response field.
+- **Change**: Google callback now reads `email_verified` from `g_user.get("email_verified", True)` and passes it to `_find_or_create_oauth_user`
+- **Verification**: `python -c "import ast; ast.parse(open('backend/app/routers/oauth.py').read())"` pass
+- **New issues**: None
+
+## Fix 103 — Health endpoint Redis connection leak
+- **Date**: 2026-05-27 (Round 47)
+- **Files**: `backend/app/main.py`
+- **Reason**: P2: Health endpoint created a new Redis connection on every call (`redis.from_url(...)`) without closing it. Since health checks are called frequently (every 15-30s by load balancers), this leaked connections continuously.
+- **Change**: Wrapped Redis ping in `try/finally` with `await r.aclose()` to ensure connection is closed after each health check
+- **Verification**: `python -c "import ast; ast.parse(open('backend/app/main.py').read())"` pass
+- **New issues**: None
