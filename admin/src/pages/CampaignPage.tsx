@@ -84,7 +84,7 @@ export default function CampaignPage() {
           {record.status === 'active' && (
             <Button size="sm" variant="secondary" loading={updateMutation.isPending} onClick={(e) => {
               e.stopPropagation();
-              updateMutation.mutate({ id: record.id, data: { status: 'ended' } });
+              updateMutation.mutate({ id: record.id, data: { status: 'completed' } });
             }}>
               {t('campaign.btnEnd')}
             </Button>
@@ -155,8 +155,8 @@ export default function CampaignPage() {
           <option value="">{t('campaign.filterAllStatuses')}</option>
           <option value="draft">{t('campaign.filterDraft')}</option>
           <option value="active">{t('campaign.filterActive')}</option>
-          <option value="ended">{t('campaign.filterEnded')}</option>
-          <option value="archived">{t('campaign.filterArchived')}</option>
+          <option value="completed">{t('campaign.filterCompleted', 'Completed')}</option>
+          <option value="cancelled">{t('campaign.filterCancelled', 'Cancelled')}</option>
         </select>
       </div>
 

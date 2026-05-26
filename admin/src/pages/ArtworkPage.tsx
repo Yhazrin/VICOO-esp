@@ -119,7 +119,7 @@ export default function ArtworkPage() {
           <option value="pending">{t('artwork.filterPending')}</option>
           <option value="approved">{t('artwork.filterApproved')}</option>
           <option value="rejected">{t('artwork.filterRejected')}</option>
-          <option value="archived">{t('artwork.filterArchived')}</option>
+          <option value="featured">{t('artwork.filterFeatured', 'Featured')}</option>
         </select>
       </div>
 

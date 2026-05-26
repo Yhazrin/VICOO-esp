@@ -1166,3 +1166,27 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Changed to `datetime.now(timezone.utc)`
 - **Verification**: Matches timezone-aware pattern used throughout codebase
 - **New issues**: None
+
+## Fix 144 — Admin OrderPage uses invalid status 'delivered' and 'refunded'
+- **Date**: 2026-05-27 (Round 52)
+- **Files**: `admin/src/pages/OrderPage.tsx`
+- **Reason**: P0: "Confirm Delivery" action sent `status: 'delivered'` but backend enum is `pending|paid|shipped|completed|cancelled`. Filter dropdown included `delivered` and `refunded` — neither exists in backend. Delivery confirmation always 422'd.
+- **Change**: Changed mutation status from `delivered` to `completed`, filter from `delivered` to `completed`, removed `refunded` filter option
+- **Verification**: All status values match backend enum
+- **New issues**: None
+
+## Fix 145 — Admin ArtworkPage filter uses nonexistent 'archived' status
+- **Date**: 2026-05-27 (Round 52)
+- **Files**: `admin/src/pages/ArtworkPage.tsx`
+- **Reason**: P1: Filter dropdown included `archived` but backend enum is `draft|pending|approved|rejected|featured`. Filtering by `archived` always returned zero results.
+- **Change**: Changed filter option from `archived` to `featured`
+- **Verification**: Status value matches backend enum
+- **New issues**: None
+
+## Fix 146 — Admin CampaignPage uses invalid status 'ended' and 'archived'
+- **Date**: 2026-05-27 (Round 52)
+- **Files**: `admin/src/pages/CampaignPage.tsx`
+- **Reason**: P1: "End" action sent `status: 'ended'` but backend enum is `draft|active|completed|cancelled`. Filter dropdown used `ended` and `archived` — neither matches backend enum. While backend schema has an alias mapper for update requests, filter queries pass values directly to SQL and would fail.
+- **Change**: Changed mutation status from `ended` to `completed`, filter options from `ended`/`archived` to `completed`/`cancelled`
+- **Verification**: All status values match backend enum
+- **New issues**: None

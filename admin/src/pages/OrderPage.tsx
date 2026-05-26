@@ -76,7 +76,7 @@ export default function OrderPage() {
           {record.status === 'shipped' && (
             <Button size="sm" variant="secondary" loading={updateMutation.isPending} onClick={(e) => {
               e.stopPropagation();
-              updateMutation.mutate({ id: record.id, status: 'delivered' });
+              updateMutation.mutate({ id: record.id, status: 'completed' });
             }}>
               {t('order.btnConfirmDelivery')}
             </Button>
@@ -104,9 +104,8 @@ export default function OrderPage() {
           <option value="pending">{t('order.filterPending')}</option>
           <option value="paid">{t('order.filterPaid')}</option>
           <option value="shipped">{t('order.filterShipped')}</option>
-          <option value="delivered">{t('order.filterDelivered')}</option>
+          <option value="completed">{t('order.filterCompleted', 'Completed')}</option>
           <option value="cancelled">{t('order.filterCancelled')}</option>
-          <option value="refunded">{t('order.filterRefunded')}</option>
         </select>
       </div>
 
