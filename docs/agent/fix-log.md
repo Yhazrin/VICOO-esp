@@ -630,3 +630,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: (a) Defined `MenuItem` union type (`{path, labelKey} | {divider}`) for Sidebar menuItems; (b) Removed `as any` from NavLink style object; (c) Removed `as any` from TopBar useAuthStore selectors; (d) Extracted `PaymentMethodConfig` interface from `SystemSettings.paymentMethods` and used `Record<'wechat'|'alipay'|'stripe'|'paypal', PaymentMethodConfig>` type
 - **Verification**: `tsc --noEmit` pass for both admin and frontend (0 errors)
 - **New issues**: None
+
+## Fix 77 — Frontend error handling: queries and mutations
+- **Date**: 2026-05-26 (Round 25)
+- **Files**: `frontend/web-react/src/pages/ProductDetail.tsx`, `frontend/web-react/src/pages/SubmitArtwork/index.tsx`, `frontend/web-react/src/pages/ArtworkSubmit/index.tsx`, `frontend/web-react/src/pages/DonateClothing/components/DonateForm.tsx`, `frontend/web-react/src/pages/ClothingRecycle/components/RecycleForm.tsx`
+- **Reason**: (a) ProductDetail had 4 useQuery calls with no error handling — product fetch failure showed infinite loading; (b) SubmitArtwork and ArtworkSubmit mutations had no onError — user got no feedback on failure; (c) DonateForm and RecycleForm mutations had no onError — intake creation failure was silent
+- **Change**: (a) Added `isError: productError` to ProductDetail main query + error UI fallback; (b) Added `onError` with `toast.error()` to SubmitArtwork and ArtworkSubmit create mutations; (c) Added `onError` with `toast.error()` to DonateForm and RecycleForm intake mutations; (d) Added `import toast from 'react-hot-toast'` to 4 files
+- **Verification**: `tsc --noEmit` pass for frontend (0 errors)
+- **New issues**: None
