@@ -726,3 +726,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Added 6 missing `from app.models.X import Y` imports to env.py
 - **Verification**: `python -c "ast.parse(...)"` pass
 - **New issues**: None
+
+## Fix 89 — Security hardening and concurrency fixes (P0/P1)
+- **Date**: 2026-05-27 (Round 36)
+- **Files**: `backend/app/routers/oauth.py`, `backend/app/routers/admin.py`, `backend/app/routers/orders.py`, `backend/app/services/order/service.py`, `admin/src/services/api.ts`
+- **Reason**: (a) OAuth CSRF: github_callback and google_callback accepted state param but never verified against oauth_state cookie — attacker could hijack OAuth flow; (b) Timing attack: admin access code used `!=` instead of constant-time comparison; (c) Race condition: stock deduction read stock in Python then deducted — concurrent orders could oversell; (d) Race condition: cancel_order checked status in Python then updated — concurrent cancels could double-restore stock; (e) Logic bug: update_order_status allowed setting "cancelled" without restoring stock; (f) API mismatch: admin frontend called `/after-sales/${id}` and `/clothing-intakes/${id}` but backend routes require `/status` suffix — 404 in production
+- **Change**: (a) Added `hmac.compare_digest` state verification in both OAuth callbacks; (b) Replaced `!=` with `hmac.compare_digest` for admin access code; (c) Replaced Python-level stock deduction with atomic `UPDATE WHERE stock >= quantity`; (d) Added atomic `UPDATE WHERE status = 'pending'` with rowcount check in cancel_order; (e) Routed cancel status through `cancel_order` service in update_order_status; (f) Added `/status` suffix to both admin API paths
+- **Verification**: `python -c "ast.parse(...)"` pass for all backend files; `tsc --noEmit` pass for admin
+- **New issues**: None
