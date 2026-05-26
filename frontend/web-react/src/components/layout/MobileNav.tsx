@@ -238,7 +238,7 @@ export default function MobileNav() {
                     onClick={() => setMobileNavOpen(false)}
                     className="inline-block font-body text-body-sm text-ink-faded border border-warm-gray/40 px-6 py-3 rounded-full hover:text-ink transition-colors cursor-pointer"
                   >
-                    {t('nav.supplyChainStudio', '溯源媒体')}
+                    {t('nav.supplyChainStudio', 'Traceability Studio')}
                   </Link>
                 )}
                 <button
