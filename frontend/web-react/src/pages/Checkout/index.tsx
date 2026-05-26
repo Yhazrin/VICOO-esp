@@ -238,6 +238,10 @@ export default function Checkout() {
 
   const handlePlaceOrder = async () => {
     if (placingRef.current) return;
+    if (!selectedAddressId && !/^1\d{10}$/.test(address.phone.trim())) {
+      setError(t('checkout.phoneInvalid', 'Please enter a valid 11-digit phone number'));
+      return;
+    }
     placingRef.current = true;
     setIsProcessing(true);
     setError('');

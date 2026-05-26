@@ -2300,3 +2300,59 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Added `compliance` role to endpoint access. Compliance-only users now see masked names via `mask_name()`. Admin users retain full access. Added `mask_name` import from `app.utils.masking`.
 - **Verification**: Compliance users see masked names (e.g., "张三" → "张*"), admin users see full names
 - **New issues**: None
+
+## Fix 273 — Admin analytics endpoints return HTTP 200 with placeholder data on error
+- **Date**: 2026-05-27 (Round 79)
+- **Files**: `backend/app/routers/admin.py`
+- **Reason**: P2: Five analytics endpoints (`ai_analytics`, `donation_analytics`, `artwork_analytics`, `order_analytics`, `user_analytics`) returned HTTP 200 with zeroed/empty data on database errors. Same pattern as Fix 270 (sustainability). Admin dashboard cannot distinguish "zero activity" from "database down."
+- **Change**: All five endpoints now raise HTTP 503 on unexpected exceptions instead of returning fake data.
+- **Verification**: Analytics endpoints return 503 on database failures
+- **New issues**: None
+
+## Fix 274 — Donation list returns HTTP 200 with empty data on error
+- **Date**: 2026-05-27 (Round 79)
+- **Files**: `backend/app/routers/donations.py`
+- **Reason**: P2: `list_donations` returned HTTP 200 with `data=[], total=0` on exceptions. Same class of bug fixed in Fix 115 for other list endpoints.
+- **Change**: Raise HTTP 503 instead of empty paginated response on error.
+- **Verification**: Donation list returns 503 on database failures
+- **New issues**: None
+
+## Fix 275 — Child participant pagination unstable without ORDER BY
+- **Date**: 2026-05-27 (Round 79)
+- **Files**: `backend/app/routers/admin.py`
+- **Reason**: P2: `list_child_participants` query had no `.order_by()` clause, causing non-deterministic pagination (items can appear on multiple pages or be skipped). Same class as Fix 253.
+- **Change**: Added `.order_by(ChildParticipant.id.desc())` to the select statement.
+- **Verification**: Pagination now returns deterministic, stable results
+- **New issues**: None
+
+## Fix 276 — Alipay callback error log uses f-string interpolation
+- **Date**: 2026-05-27 (Round 79)
+- **Files**: `backend/app/routers/payments.py`
+- **Reason**: P2: `logger.error(f"Alipay callback processing error: {str(e)}")` uses f-string which could leak sensitive data (connection strings, hostnames) into log aggregation. All other log calls use `%s` format.
+- **Change**: Changed to `logger.error("Alipay callback processing error: %s", e)` for consistency and safety.
+- **Verification**: Log format now matches codebase convention
+- **New issues**: None
+
+## Fix 277 — Donation service mass-assignment via Donation(**donation_data)
+- **Date**: 2026-05-27 (Round 79)
+- **Files**: `backend/app/services/donation/service.py`
+- **Reason**: P2: `Donation(**donation_data)` unpacked the entire request dict into the model constructor without field filtering. Same class of bug fixed in Fix 30/75 for other services.
+- **Change**: Added `_ALLOWED_FIELDS` set and filter `donation_data` to only pass known-safe fields before constructing the Donation object.
+- **Verification**: Only explicitly allowed fields are passed to Donation constructor
+- **New issues**: None
+
+## Fix 278 — Donation stats returns HTTP 200 with zeroed data on error
+- **Date**: 2026-05-27 (Round 79)
+- **Files**: `backend/app/routers/donations.py`
+- **Reason**: P3: `donation_stats` returned HTTP 200 with `{"total_amount": "0.00", "total_donors": 0}` on errors. Same pattern as Fix 270/273.
+- **Change**: Raise HTTP 503 on error instead of zeroed data.
+- **Verification**: Stats endpoint returns 503 on database failures
+- **New issues**: None
+
+## Fix 279 — Checkout form missing phone number validation
+- **Date**: 2026-05-27 (Round 79)
+- **Files**: `frontend/web-react/src/pages/Checkout/index.tsx`
+- **Reason**: P3: Checkout address form accepted any phone format, inconsistent with DonateForm (Fix 214) which validates with `/^1\d{10}$/`. Invalid phones were sent directly to backend.
+- **Change**: Added client-side phone validation before order submission, matching DonateForm pattern.
+- **Verification**: Invalid phone numbers now show error toast before order submission
+- **New issues**: None

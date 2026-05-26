@@ -268,7 +268,7 @@ async def alipay_notify(request: Request, db: AsyncSession = Depends(get_db)):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Alipay callback processing error: {str(e)}")
+        logger.error("Alipay callback processing error: %s", e)
         await db.rollback()
         return PlainTextResponse("failure")
 

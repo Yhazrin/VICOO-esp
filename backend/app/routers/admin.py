@@ -92,7 +92,7 @@ async def ai_analytics(
         raise
     except Exception as e:
         logger.error(f"AI analytics failed: {e}")
-        return ApiResponse(data={"chat_count": 0, "feedback_total": 0, "handoff_count": 0})
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 _VALID_ARTWORK_STATUSES = {"draft", "pending", "approved", "rejected", "featured"}
 _VALID_CHILD_STATUSES = {"active", "withdrawn", "pending_review"}
@@ -264,7 +264,7 @@ async def list_child_participants(
     """List child participants (admin/compliance only, sensitive data)."""
     try:
         is_compliance_only = _current_user.get("role") == "compliance"
-        stmt = select(ChildParticipant)
+        stmt = select(ChildParticipant).order_by(ChildParticipant.id.desc())
         if status:
             stmt = stmt.where(ChildParticipant.status == status)
         count_stmt = select(func.count(ChildParticipant.id))
@@ -372,10 +372,7 @@ async def donation_analytics(
         raise
     except Exception as e:
         logger.error(f"Donation analytics failed: {e}", exc_info=True)
-        return ApiResponse(data={
-            "by_method": [],
-            "by_campaign": [],
-        })
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.get("/analytics/artworks", response_model=ApiResponse)
@@ -401,11 +398,7 @@ async def artwork_analytics(
         raise
     except Exception as e:
         logger.error(f"Artwork analytics failed: {e}", exc_info=True)
-        return ApiResponse(data={
-            "by_status": {},
-            "total_views": 0,
-            "total_likes": 0,
-        })
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.get("/analytics/orders", response_model=ApiResponse)
@@ -431,10 +424,7 @@ async def order_analytics(
         raise
     except Exception as e:
         logger.error(f"Order analytics failed: {e}", exc_info=True)
-        return ApiResponse(data={
-            "by_status": {},
-            "total_revenue": "0",
-        })
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.get("/analytics/users", response_model=ApiResponse)
@@ -470,7 +460,4 @@ async def user_analytics(
         raise
     except Exception as e:
         logger.error(f"User analytics failed: {e}", exc_info=True)
-        return ApiResponse(data={
-            "by_role": {},
-            "by_month": [],
-        })
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")

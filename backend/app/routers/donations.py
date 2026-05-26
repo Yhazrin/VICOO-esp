@@ -110,13 +110,7 @@ async def list_donations(
         raise
     except Exception as e:
         logger.error(f"Error listing donations: {e}")
-        return DonationListPageResponse(
-            data=[],
-            total=0,
-            page=page,
-            page_size=page_size,
-            summary=DonationListSummaryOut(),
-        )
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 @router.get("/stats", response_model=ApiResponse)
 async def donation_stats(db: AsyncSession = Depends(get_db)):
@@ -129,7 +123,7 @@ async def donation_stats(db: AsyncSession = Depends(get_db)):
         raise
     except Exception as e:
         logger.error("Donation stats query failed: %s", e)
-        return ApiResponse(data={"total_amount": "0.00", "total_donors": 0, "currency": "CNY"})
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 @router.get("/tiers", response_model=ApiResponse)
 async def donation_tiers():
