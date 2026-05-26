@@ -622,3 +622,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: (a) campaign/service.py: added `_UPDATABLE_FIELDS` set and only set attributes in that allowlist; (b) supply_chain/service.py: added `_UPDATABLE_FIELDS` set replacing the `hasattr` guard
 - **Verification**: `python -c "from app.services.campaign.service import CampaignService; from app.services.supply_chain.service import SupplyChainService"` pass
 - **New issues**: None
+
+## Fix 76 — Admin type safety: remaining `as any` casts (Sidebar, TopBar, SettingsPage)
+- **Date**: 2026-05-26 (Round 25)
+- **Files**: `admin/src/components/layout/Sidebar.tsx`, `admin/src/components/layout/TopBar.tsx`, `admin/src/pages/SettingsPage.tsx`, `admin/src/types/index.ts`
+- **Reason**: Sidebar had `(item: any)` in menuItems.map and `as any` on NavLink style; TopBar had `(s: any)` in useAuthStore selectors; SettingsPage had `form.paymentMethods[method] as any` — all untyped access to known shapes
+- **Change**: (a) Defined `MenuItem` union type (`{path, labelKey} | {divider}`) for Sidebar menuItems; (b) Removed `as any` from NavLink style object; (c) Removed `as any` from TopBar useAuthStore selectors; (d) Extracted `PaymentMethodConfig` interface from `SystemSettings.paymentMethods` and used `Record<'wechat'|'alipay'|'stripe'|'paypal', PaymentMethodConfig>` type
+- **Verification**: `tsc --noEmit` pass for both admin and frontend (0 errors)
+- **New issues**: None
