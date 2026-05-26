@@ -8,10 +8,13 @@ import { getRecordLatLng } from '@/utils/supplyChainGeo';
 import { latLngToVector3, createArcCurve } from '@/components/scroll/globeUtils';
 import {
   buildLandOutlinesFromGeoJson,
+  createLandTextureSphere,
   landOutlineRadius,
   LAND_OUTLINE_WIDTH_TRACEABILITY_PX,
   syncLandOutlineLine2Resolution,
 } from '@/utils/globeLandOutlines';
+import { resolveGlobeColors } from '@/utils/globeThemeColors';
+import type { ThemeId } from '@/stores/uiStore';
 
 const GLOBE_RADIUS = 1.85;
 const STAGE_ORDER = ['material_sourcing', 'processing', 'manufacturing', 'quality_check', 'shipping'];
@@ -136,11 +139,13 @@ type GlobeCtx = {
   initialCameraPosition: THREE.Vector3;
   initialTarget: THREE.Vector3;
   themeMats: ThemeMats;
+  oceanMat: THREE.MeshBasicMaterial | null;
+  landSphere: THREE.Mesh | null;
 };
 
 /** 切换主题时只改材质/雾，不整场景重建（避免再解析 GeoJSON / WebGL 冷启动卡） */
-function applyTraceabilityTheme(ctx: GlobeCtx, theme: ThemeSnapshot) {
-  const { themeMats: tm, scene, landGroup, markers } = ctx;
+function applyTraceabilityTheme(ctx: GlobeCtx, theme: ThemeSnapshot, themeId?: ThemeId) {
+  const { themeMats: tm, scene, landGroup, markers, globeGroup } = ctx;
   tm.wire.color.copy(theme.wire);
   tm.inner.color.copy(theme.ink);
   tm.grid.color.copy(theme.wire);
@@ -161,6 +166,29 @@ function applyTraceabilityTheme(ctx: GlobeCtx, theme: ThemeSnapshot) {
     const mat = mesh.material as THREE.MeshStandardMaterial;
     mat.emissive.copy(theme.ink);
   });
+
+  const tc = resolveGlobeColors((themeId ?? 'monochrome') as ThemeId);
+
+  if (ctx.oceanMat) {
+    ctx.oceanMat.color.setHex(tc.ocean);
+    ctx.oceanMat.opacity = tc.oceanOpacity;
+  }
+
+  if (ctx.landSphere) {
+    globeGroup.remove(ctx.landSphere);
+    (ctx.landSphere.material as THREE.Material).dispose();
+    ctx.landSphere.geometry.dispose();
+    const isMobile = window.innerWidth < 768;
+    const newLand = createLandTextureSphere(
+      GLOBE_RADIUS * 0.998,
+      tc.land,
+      tc.landAlpha,
+      isMobile ? 512 : 1024,
+      GLOBE_RADIUS * 0.014,
+    );
+    globeGroup.add(newLand);
+    ctx.landSphere = newLand;
+  }
 }
 
 export interface TraceabilityGlobeProps {
@@ -384,14 +412,37 @@ export default function TraceabilityGlobe({
     const isMobile = window.innerWidth < 768;
     const wireSegs = isMobile ? [24, 18] : [32, 24];
 
+    const tc = resolveGlobeColors((themeKey ?? 'monochrome') as ThemeId);
+
     const wireGeo = new THREE.SphereGeometry(GLOBE_RADIUS, wireSegs[0], wireSegs[1]);
     const wireMat = new THREE.MeshBasicMaterial({
       color: theme.wire,
       wireframe: true,
       transparent: true,
       opacity: 0.34,
+      depthWrite: false,
     });
     globeGroup.add(new THREE.Mesh(wireGeo, wireMat));
+
+    /* ── Ocean sphere ── */
+    const oceanGeo = new THREE.SphereGeometry(GLOBE_RADIUS * 0.998, isMobile ? 32 : 48, isMobile ? 24 : 36);
+    const oceanMat = new THREE.MeshBasicMaterial({
+      color: tc.ocean,
+      transparent: true,
+      opacity: tc.oceanOpacity,
+      depthWrite: false,
+    });
+    globeGroup.add(new THREE.Mesh(oceanGeo, oceanMat));
+
+    /* ── Land fill (canvas texture + vertex displacement) ── */
+    const landSphere = createLandTextureSphere(
+      GLOBE_RADIUS * 0.998,
+      tc.land,
+      tc.landAlpha,
+      isMobile ? 512 : 1024,
+      GLOBE_RADIUS * 0.014,
+    );
+    globeGroup.add(landSphere);
 
     const innerGeo = new THREE.SphereGeometry(GLOBE_RADIUS * 0.98, 32, 24);
     const innerMat = new THREE.MeshBasicMaterial({
@@ -407,6 +458,7 @@ export default function TraceabilityGlobe({
       color: theme.wire,
       transparent: true,
       opacity: 0.14,
+      depthWrite: false,
     });
     const rustMats: THREE.MeshBasicMaterial[] = [];
     for (let lat = -60; lat <= 60; lat += 30) {
@@ -441,7 +493,7 @@ export default function TraceabilityGlobe({
       globeGroup.add(g);
       const ctx0 = ctxRef.current;
       ctx0.landGroup = g;
-      applyTraceabilityTheme(ctx0, themeRef.current);
+      applyTraceabilityTheme(ctx0, themeRef.current, themeKey as ThemeId);
       if (container) {
         syncLandOutlineLine2Resolution(
           g,
@@ -640,6 +692,8 @@ export default function TraceabilityGlobe({
       initialCameraPosition,
       initialTarget,
       themeMats,
+      oceanMat,
+      landSphere,
     };
     ctxRef.current = ctx;
 
@@ -848,7 +902,7 @@ export default function TraceabilityGlobe({
     const next = readThemeColors();
     themeRef.current = next;
     const c = ctxRef.current;
-    if (c) applyTraceabilityTheme(c, next);
+    if (c) applyTraceabilityTheme(c, next, themeKey as ThemeId);
   }, [themeKey]);
 
   useEffect(() => {
