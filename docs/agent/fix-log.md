@@ -686,3 +686,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: (a) Replaced 2 `str(e)` responses with generic messages ("Moderation service temporarily unavailable", "Analysis temporarily unavailable"); changed `logger.error` to `logger.exception`; (b) Added `_PRODUCT_UPDATABLE` set (15 fields) and `_ARTWORK_UPDATABLE` set (5 fields) as explicit allowlists for setattr loops
 - **Verification**: `python -c "ast.parse(...)"` pass for all backend files
 - **New issues**: None
+
+## Fix 84 — DesignPublish schema and addresses field allowlist
+- **Date**: 2026-05-26 (Round 31)
+- **Files**: `backend/app/schemas/product.py`, `backend/app/routers/design_drafts.py`, `backend/app/routers/addresses.py`
+- **Reason**: (a) design_drafts.py `publish_design_draft` accepted `body: dict | None` with no validation — `price` was accessed via `product_data["price"]` which would KeyError if missing; (b) addresses.py setattr loop had no field allowlist
+- **Change**: (a) Added `DesignPublish` Pydantic schema with required `price` field and typed optional fields; replaced `body: dict` with `body: DesignPublish` in router; (b) Added `_ADDRESS_UPDATABLE` set (9 fields) as explicit allowlist for addresses setattr loop
+- **Verification**: `python -c "ast.parse(...)"` pass for all backend files
+- **New issues**: None
