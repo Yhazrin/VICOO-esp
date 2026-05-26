@@ -24,6 +24,12 @@ from app.models.supply_chain import SupplyChainRecord
 from app.models.payment import PaymentTransaction
 from app.models.audit import AuditLog
 from app.models.circular_commerce import ClothingIntake, ProductReview, AfterSaleTicket
+from app.models.settings import SiteSettings
+from app.models.contact import ContactMessage
+from app.models.editorial import EditorialArticle
+from app.models.address import Address
+from app.models.impact_fund import ImpactFundEntry
+from app.models.design_draft import DesignDraft
 from app.models.country import Country
 from app.models.region import Region
 
