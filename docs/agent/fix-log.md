@@ -1270,3 +1270,43 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Changed to `datetime.now(timezone.utc)`
 - **Verification**: Matches timezone-aware pattern used throughout codebase
 - **New issues**: None
+
+## Fix 157 — PaymentCreate allows orphaned transactions without order or donation
+- **Date**: 2026-05-27 (Round 54)
+- **Files**: `backend/app/schemas/payment.py`
+- **Reason**: P0: Both `order_id` and `donation_id` were Optional with no validator. A request with neither creates an orphaned PaymentTransaction that can never be fulfilled. Amount verification guards are skipped entirely.
+- **Change**: Added `@model_validator(mode="after")` requiring at least one of `order_id`/`donation_id`
+- **Verification**: Schema rejects requests without either ID
+- **New issues**: None
+
+## Fix 158 — Payment callbacks proceed when referenced order/donation doesn't exist
+- **Date**: 2026-05-27 (Round 54)
+- **Files**: `backend/app/routers/payments.py`
+- **Reason**: P0: Amount-mismatch guard was `if donation and donation.amount != amount_cny`. When donation is None (non-existent ID), the check is silently skipped and `process_successful_payment` is called with a phantom ID. Same for orders.
+- **Change**: Added explicit existence check — return FAIL immediately when referenced entity doesn't exist, for both WeChat and Alipay callbacks
+- **Verification**: Non-existent donation/order IDs now rejected before processing
+- **New issues**: None
+
+## Fix 159 — payment_webhook forces JSON parsing on non-JSON payloads
+- **Date**: 2026-05-27 (Round 54)
+- **Files**: `backend/app/routers/payments.py`
+- **Reason**: P1: `body: dict` parameter forced FastAPI to parse request as JSON before the function runs. Non-JSON payloads (form-encoded, XML) get 422 before HMAC verification. The parameter was never used — `body_bytes` is read from `request.body()`.
+- **Change**: Removed unused `body: dict` parameter
+- **Verification**: Webhook now accepts any content type
+- **New issues**: None
+
+## Fix 160 — Admin analytics uses MySQL-only DATE_FORMAT
+- **Date**: 2026-05-27 (Round 54)
+- **Files**: `backend/app/routers/admin.py`
+- **Reason**: P1: Raw SQL used MySQL's `DATE_FORMAT` function which doesn't exist on SQLite or PostgreSQL. The database.py supports SQLite, so this endpoint returns 500 on non-MySQL backends.
+- **Change**: Added dialect check — uses `DATE_FORMAT` for MySQL, `strftime` for SQLite/others
+- **Verification**: Query works on both MySQL and SQLite
+- **New issues**: None
+
+## Fix 161 — Payment service IntegrityError rollback kills Order status update
+- **Date**: 2026-05-27 (Round 54)
+- **Files**: `backend/app/services/payment/service.py`
+- **Reason**: P1: When concurrent webhooks race, the loser's `IntegrityError` handler called `self.db.rollback()` which reverted the Order status UPDATE executed earlier in the same session. Also used `scalar_one()` which raises if winner hasn't committed yet.
+- **Change**: Wrapped INSERT in `begin_nested()` (savepoint) so rollback only affects the INSERT. Changed `scalar_one()` to `scalar_one_or_none()` with fallback logging.
+- **Verification**: Concurrent webhooks no longer revert order status
+- **New issues**: None

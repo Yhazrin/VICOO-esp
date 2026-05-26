@@ -4,7 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class PaymentCreate(BaseModel):
@@ -12,6 +12,12 @@ class PaymentCreate(BaseModel):
     donation_id: Optional[int] = Field(None, description="Donation ID for donation payments")
     amount: Decimal = Field(..., gt=0, le=1000000, description="Payment amount in CNY")
     method: str = Field(..., pattern="^(wechat|alipay|stripe|paypal)$", description="Payment method")
+
+    @model_validator(mode="after")
+    def require_order_or_donation(self):
+        if not self.order_id and not self.donation_id:
+            raise ValueError("Either order_id or donation_id must be provided")
+        return self
 
 
 class PaymentCallback(BaseModel):

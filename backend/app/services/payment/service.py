@@ -129,16 +129,20 @@ class PaymentService(BaseService):
             raw_response=raw_data
         )
         self.db.add(payment_tx)
-        try:
-            await self.db.flush()
-        except IntegrityError:
-            # Concurrent webhook already created this transaction
-            await self.db.rollback()
-            existing = (await self.db.execute(
-                select(PaymentTransaction).where(PaymentTransaction.provider_transaction_id == provider_tx_id)
-            )).scalar_one()
-            logger.info(f"Payment {provider_tx_id} already created by concurrent webhook, returning existing.")
-            return existing
+        # Use savepoint so IntegrityError rollback doesn't revert the Order/Donation status update above
+        async with self.db.begin_nested():
+            try:
+                await self.db.flush()
+            except IntegrityError:
+                # Concurrent webhook already created this transaction
+                existing = (await self.db.execute(
+                    select(PaymentTransaction).where(PaymentTransaction.provider_transaction_id == provider_tx_id)
+                )).scalar_one_or_none()
+                if existing:
+                    logger.info(f"Payment {provider_tx_id} already created by concurrent webhook, returning existing.")
+                    return existing
+                logger.warning(f"Payment {provider_tx_id} IntegrityError but no existing record found")
+                raise
         return payment_tx
 
 

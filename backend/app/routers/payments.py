@@ -108,14 +108,20 @@ async def wechat_notify(request: Request, db: AsyncSession = Depends(get_db)):
                 from app.models.donation import Donation
                 from sqlalchemy import select
                 donation = (await db.execute(select(Donation).where(Donation.id == donation_id))).scalar_one_or_none()
-                if donation and donation.amount != amount_cny:
+                if not donation:
+                    logger.warning(f"WeChat callback for non-existent donation {donation_id}")
+                    return Response(content="<xml><return_code>FAIL</return_code></xml>", media_type="application/xml")
+                if donation.amount != amount_cny:
                     logger.warning(f"WeChat callback amount mismatch: callback={amount_cny}, db={donation.amount} for donation {donation_id}")
                     return Response(content="<xml><return_code>FAIL</return_code></xml>", media_type="application/xml")
             elif out_trade_no:
                 from app.models.order import Order
                 from sqlalchemy import select
                 order = (await db.execute(select(Order).where(Order.order_no == out_trade_no))).scalar_one_or_none()
-                if order and order.total_amount != amount_cny:
+                if not order:
+                    logger.warning(f"WeChat callback for non-existent order {out_trade_no}")
+                    return Response(content="<xml><return_code>FAIL</return_code></xml>", media_type="application/xml")
+                if order.total_amount != amount_cny:
                     logger.warning(f"WeChat callback amount mismatch: callback={amount_cny}, db={order.total_amount} for order {out_trade_no}")
                     return Response(content="<xml><return_code>FAIL</return_code></xml>", media_type="application/xml")
 
@@ -229,14 +235,20 @@ async def alipay_notify(request: Request, db: AsyncSession = Depends(get_db)):
             from app.models.donation import Donation
             from sqlalchemy import select
             donation = (await db.execute(select(Donation).where(Donation.id == donation_id))).scalar_one_or_none()
-            if donation and donation.amount != total_amount:
+            if not donation:
+                logger.warning(f"Alipay callback for non-existent donation {donation_id}")
+                return PlainTextResponse("failure")
+            if donation.amount != total_amount:
                 logger.warning(f"Alipay callback amount mismatch: callback={total_amount}, db={donation.amount} for donation {donation_id}")
                 return PlainTextResponse("failure")
         elif out_trade_no:
             from app.models.order import Order
             from sqlalchemy import select
             order = (await db.execute(select(Order).where(Order.order_no == out_trade_no))).scalar_one_or_none()
-            if order and order.total_amount != total_amount:
+            if not order:
+                logger.warning(f"Alipay callback for non-existent order {out_trade_no}")
+                return PlainTextResponse("failure")
+            if order.total_amount != total_amount:
                 logger.warning(f"Alipay callback amount mismatch: callback={total_amount}, db={order.total_amount} for order {out_trade_no}")
                 return PlainTextResponse("failure")
 
@@ -262,7 +274,7 @@ async def alipay_notify(request: Request, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/webhook", response_model=ApiResponse)
-async def payment_webhook(request: Request, body: dict):
+async def payment_webhook(request: Request):
     """Handle generic payment webhook from various providers.
 
     Security: Verifies HMAC signature from the X-Webhook-Signature header.

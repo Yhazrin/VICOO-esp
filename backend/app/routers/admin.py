@@ -444,10 +444,18 @@ async def user_analytics(
         role_result = await db.execute(role_stmt)
         by_role = {row[0]: row[1] for row in role_result.all()}
 
-        from sqlalchemy import text
-        monthly_result = await db.execute(
-            text("SELECT DATE_FORMAT(created_at, '%Y-%m') AS month, COUNT(*) AS cnt FROM users WHERE created_at IS NOT NULL GROUP BY month ORDER BY month")
-        )
+        # Cross-dialect monthly grouping
+        dialect = db.bind.dialect.name if db.bind else "mysql"
+        if dialect == "mysql":
+            from sqlalchemy import text
+            monthly_result = await db.execute(
+                text("SELECT DATE_FORMAT(created_at, '%Y-%m') AS month, COUNT(*) AS cnt FROM users WHERE created_at IS NOT NULL GROUP BY month ORDER BY month")
+            )
+        else:
+            from sqlalchemy import text
+            monthly_result = await db.execute(
+                text("SELECT strftime('%Y-%m', created_at) AS month, COUNT(*) AS cnt FROM users WHERE created_at IS NOT NULL GROUP BY month ORDER BY month")
+            )
         by_month = [{"month": row[0], "count": row[1]} for row in monthly_result.all()]
 
         return ApiResponse(data={
