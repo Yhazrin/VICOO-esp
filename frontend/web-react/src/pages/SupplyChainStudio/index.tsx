@@ -187,7 +187,7 @@ export default function SupplyChainStudio() {
       qc.invalidateQueries({ queryKey: ['product-supply-chain'] });
       toast.success(t('supplyChainStudio.saved', '已保存'));
     },
-    onError: () => toast.error(t('supplyChainStudio.saveError', '保存失败')),
+    onError: (err: Error) => toast.error(err.message || t('supplyChainStudio.saveError', '保存失败')),
   });
 
   if (!isAuthenticated || !isStaff) {

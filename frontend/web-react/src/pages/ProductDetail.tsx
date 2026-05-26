@@ -158,7 +158,7 @@ export default function ProductDetail() {
       setReviewTitle('');
       setReviewBody('');
     },
-    onError: () => toast.error(t('review.error', 'Failed to submit review')),
+    onError: (err: Error) => toast.error(err.message || t('review.error', 'Failed to submit review')),
   });
 
   const [selectedImage, setSelectedImage] = useState(0);

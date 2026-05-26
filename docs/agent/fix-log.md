@@ -1763,3 +1763,29 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Captured command output, and on failure prints the actual error message to stderr and exits with code 1 instead of continuing.
 - **Verification**: Real DB/user creation failures are now caught immediately with clear error messages
 - **New issues**: None
+
+## Fix 216 — LIKE calls missing escape parameter
+- **Date**: 2026-05-27 (Round 65)
+- **Files**: `backend/app/services/admin/service.py`, `backend/app/services/ai_assistant/service.py`
+- **Reason**: P2: Multiple `.like()` and `.ilike()` calls lacked `escape="\\"` parameter. While current values are hardcoded, missing escape allows `%` and `_` to act as wildcards. Inconsistent with the rest of the codebase which correctly uses `escape="\\"`.
+- **Change**: Added `escape="\\"` to:
+  - `admin/service.py`: `AuditLog.details.like()` and `ContactMessage.subject.like()`
+  - `ai_assistant/service.py`: 9 `.ilike()` calls in the bag fallback search
+- **Verification**: All LIKE calls now use consistent escape handling
+- **New issues**: None
+
+## Fix 217 — Frontend onError callbacks discard backend error messages
+- **Date**: 2026-05-27 (Round 65)
+- **Files**: `frontend/web-react/src/pages/AiDesign/index.tsx`, `ProductDetail.tsx`, `SupplyChainStudio/index.tsx`, `ClothingRecycle/components/RecycleForm.tsx`, `DonateClothing/components/DonateForm.tsx`
+- **Reason**: P3: Multiple mutation `onError` handlers ignored the error object, showing only hardcoded generic strings. Backend error messages (e.g., "Insufficient stock", "Order already paid") were discarded.
+- **Change**: Added `(err: Error)` parameter and `err.message ||` fallback to all 9 onError callbacks across 5 files
+- **Verification**: Backend error messages are now displayed to users when available
+- **New issues**: None
+
+## Fix 218 — No .dockerignore file
+- **Date**: 2026-05-27 (Round 65)
+- **Files**: `.dockerignore` (new)
+- **Reason**: P3: No `.dockerignore` existed. `COPY . .` in Dockerfile copied tests, docs, git metadata, node_modules, and deploy configs into the image, inflating size and potentially leaking development artifacts.
+- **Change**: Created `.dockerignore` excluding .git, docs, node_modules, tests, deploy configs, IDE files, and environment files.
+- **Verification**: Docker build context is now significantly smaller
+- **New issues**: None

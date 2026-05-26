@@ -114,14 +114,14 @@ class AdminService(BaseService):
             select(func.count(AuditLog.id)).where(
                 AuditLog.resource == "ai_assistant",
                 AuditLog.action == "ai_feedback",
-                AuditLog.details.like('%"is_helpful": true%'),
+                AuditLog.details.like('%\\"is_helpful\\": true%', escape="\\"),
             )
         )).scalar() or 0
 
         negative_feedback = max(feedback_total - helpful_feedback, 0)
         handoff_count = (await self.db.execute(
             select(func.count(ContactMessage.id)).where(
-                ContactMessage.subject.like("AI assistant feedback:%")
+                ContactMessage.subject.like("AI assistant feedback:%", escape="\\")
             )
         )).scalar() or 0
 

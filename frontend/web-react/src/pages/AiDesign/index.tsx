@@ -54,7 +54,7 @@ export default function AiDesign() {
       setCreateTitle('');
       setCreateCategory('');
     },
-    onError: () => setErrorMessage(t('aiDesign.createError', '创建设计稿失败')),
+    onError: (err: Error) => setErrorMessage(err.message || t('aiDesign.createError', '创建设计稿失败')),
   });
 
   const generateMutation = useMutation({
@@ -63,7 +63,7 @@ export default function AiDesign() {
       qc.invalidateQueries({ queryKey: ['design-drafts'] });
       setSelectedDraft(updated);
     },
-    onError: () => setErrorMessage(t('aiDesign.generateError', 'AI 生成失败')),
+    onError: (err: Error) => setErrorMessage(err.message || t('aiDesign.generateError', 'AI 生成失败')),
   });
 
   const approveMutation = useMutation({
@@ -73,7 +73,7 @@ export default function AiDesign() {
       setSelectedDraft(updated);
       setReviewNote('');
     },
-    onError: () => setErrorMessage(t('aiDesign.approveError', '审批失败')),
+    onError: (err: Error) => setErrorMessage(err.message || t('aiDesign.approveError', '审批失败')),
   });
 
   const rejectMutation = useMutation({
@@ -83,7 +83,7 @@ export default function AiDesign() {
       setSelectedDraft(updated);
       setReviewNote('');
     },
-    onError: () => setErrorMessage(t('aiDesign.rejectError', '拒绝失败')),
+    onError: (err: Error) => setErrorMessage(err.message || t('aiDesign.rejectError', '拒绝失败')),
   });
 
   const publishMutation = useMutation({
@@ -92,7 +92,7 @@ export default function AiDesign() {
       qc.invalidateQueries({ queryKey: ['design-drafts'] });
       setSelectedDraft(null);
     },
-    onError: () => setErrorMessage(t('aiDesign.publishError', '发布商品失败')),
+    onError: (err: Error) => setErrorMessage(err.message || t('aiDesign.publishError', '发布商品失败')),
   });
 
   if (!isAuthenticated || !isAdmin) {
