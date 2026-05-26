@@ -758,3 +758,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Added `page`/`page_size` query parameters (ge=1, le=100) and count query to all 5 endpoints; changed response from `ApiResponse` to `PaginatedResponse`; design_drafts service updated to return `(rows, total)` tuple.
 - **Verification**: `python -c "ast.parse(...)"` pass for all backend files; `tsc --noEmit` pass for frontend
 - **New issues**: None
+
+## Fix 93 — P0/P1 race conditions, atomic guards, and security hardening
+- **Date**: 2026-05-27 (Round 40)
+- **Files**: `backend/app/services/donation/service.py`, `backend/app/routers/payments.py`, `backend/app/config.py`, `backend/app/services/order/service.py`, `backend/app/routers/oauth.py`, `backend/app/routers/orders.py`, `backend/app/services/artwork/service.py`
+- **Reason**: (a) P0: `complete_donation` and `admin_approve_donation` had TOCTOU race — concurrent requests could generate duplicate certificates; (b) P0: Alipay callback did inline order update without atomic status guard and skipped impact fund allocation (unlike WeChat path); (c) P0: `APP_SECRET_KEY` auto-generated on every restart — invalidated all JWT tokens; (d) P1: `cancel_order` unconditionally set product status to "active", reactivating admin-deactivated products; (e) P1: OAuth welcome email sent on every login, not just first; (f) P1: admin `update_order_status` non-cancel path had no atomic status guard; (g) P1: `ArtworkService.vote_artwork` used non-atomic `like_count += 1`
+- **Change**: (a) Atomic `UPDATE WHERE status != 'completed'` / `WHERE status = 'pending'` with rowcount check in both donation methods; (b) Refactored Alipay callback to delegate to `PaymentService.process_successful_payment` (atomic + impact funds); (c) Added `validate_secret_key_env` validator: require explicit env in production, warn in dev; (d) Added `Product.status != "inactive"` guard in cancel_order stock restore; (e) Only send welcome email when `is_new_user` flag is true; (f) Added `sql_update(Order).where(Order.id)` for admin status changes; (g) Replaced `artwork.like_count += 1` with atomic `update(Artwork).values(like_count=Artwork.like_count + 1)`
+- **Verification**: `python -c "ast.parse(...)"` pass for all 7 backend files
+- **New issues**: None
