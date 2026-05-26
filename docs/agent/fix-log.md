@@ -2268,3 +2268,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Return HTTP 400 for invalid Content-Length instead of silently ignoring.
 - **Verification**: Invalid Content-Length headers now rejected with clear error message
 - **New issues**: None
+
+## Fix 269 — Migration: restore email unique constraint and fix payment status data
+- **Date**: 2026-05-27 (Round 78)
+- **Files**: `backend/alembic/versions/l3m4n5o6p7q8_fix_email_unique_and_payment_status.py`
+- **Reason**: P1: Two migration inconsistencies: (1) Reconciliation migration dropped `users.email` unique index but never re-created it, allowing duplicate emails on migrated databases. (2) Payment status enum changed from 'completed' to 'success' without migrating existing rows, leaving invalid enum values.
+- **Change**: New migration that restores `uq_users_email` unique index and updates `payment_transactions.status = 'completed'` rows to 'success'.
+- **Verification**: Migrated databases now have correct unique constraint and valid enum values
+- **New issues**: None
