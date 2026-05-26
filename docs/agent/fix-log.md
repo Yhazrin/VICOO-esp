@@ -1502,3 +1502,43 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Changed to `alt={artwork.title || 'Artwork'}`
 - **Verification**: Screen readers now announce artwork titles
 - **New issues**: None
+
+## Fix 186 — Missing Alembic migration for payment_id indexes
+- **Date**: 2026-05-27 (Round 58)
+- **Files**: `backend/alembic/versions/k2l3m4n5o6p7_add_payment_id_indexes.py`
+- **Reason**: P1: ORM models declare `index=True` on `orders.payment_id` and `donations.payment_id`, but no migration file creates these indexes. Fresh databases silently miss the indexes, degrading payment callback lookups.
+- **Change**: Created new migration `k2l3m4n5o6p7` that adds `ix_orders_payment_id` and `ix_donations_payment_id`
+- **Verification**: Migration chain valid, indexes will be created on `alembic upgrade head`
+- **New issues**: None
+
+## Fix 187 — HTTPException returns different error envelope than other handlers
+- **Date**: 2026-05-27 (Round 58)
+- **Files**: `backend/app/main.py`
+- **Reason**: P2: 4xx errors returned FastAPI's default `{"detail": "..."}` while all other errors returned `{"success": false, "message": "...", "code": "..."}`. Frontend received two different error shapes.
+- **Change**: Added `@app.exception_handler(HTTPException)` that returns the standard `{success, data, message, code}` envelope
+- **Verification**: All error responses now use consistent envelope
+- **New issues**: None
+
+## Fix 188 — Docker backend port exposed on 0.0.0.0
+- **Date**: 2026-05-27 (Round 58)
+- **Files**: `deploy/easy/docker-compose.yml`
+- **Reason**: P2: Backend port `8000` was exposed on `0.0.0.0` while MySQL and Redis correctly bound to `127.0.0.1`. Inconsistent security posture.
+- **Change**: Changed `"8000:8000"` to `"127.0.0.1:8000:8000"`
+- **Verification**: Backend only accessible from localhost, consistent with other services
+- **New issues**: None
+
+## Fix 189 — MockProductFactory uses outdated field names
+- **Date**: 2026-05-27 (Round 58)
+- **Files**: `backend/tests/conftest.py`
+- **Reason**: P2: `MockProductFactory.create()` used `title`, `materials`, `welfare_contribution`, `image_urls`, `is_active` — none of which match the current Product model (`name`, no materials field, `image_url` singular, `status` enum).
+- **Change**: Updated field names to match current model schema
+- **Verification**: Test factories now produce valid product shapes
+- **New issues**: None
+
+## Fix 190 — MockOrderFactory uses invalid status enum value
+- **Date**: 2026-05-27 (Round 58)
+- **Files**: `backend/tests/conftest.py`
+- **Reason**: P2: `MockOrderFactory` default status was `"pending_payment"` but the Order model enum is `"pending"`. Tests using this factory would fail on DB insertion.
+- **Change**: Changed default from `"pending_payment"` to `"pending"`
+- **Verification**: Test orders now use valid status enum
+- **New issues**: None
