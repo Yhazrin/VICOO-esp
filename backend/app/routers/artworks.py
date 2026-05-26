@@ -102,16 +102,18 @@ async def list_artworks(
         if campaign_id is not None:
             stmt = stmt.where(Artwork.campaign_id == campaign_id)
         if search:
-            like = f"%{search}%"
-            stmt = stmt.where(Artwork.title.ilike(like) | Artwork.description.ilike(like))
+            safe = search.strip().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+            like = f"%{safe}%"
+            stmt = stmt.where(Artwork.title.ilike(like, escape="\\") | Artwork.description.ilike(like, escape="\\"))
         count_stmt = select(func.count(Artwork.id))
         if status:
             count_stmt = count_stmt.where(Artwork.status == status)
         if campaign_id is not None:
             count_stmt = count_stmt.where(Artwork.campaign_id == campaign_id)
         if search:
-            like = f"%{search}%"
-            count_stmt = count_stmt.where(Artwork.title.ilike(like) | Artwork.description.ilike(like))
+            safe = search.strip().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+            like = f"%{safe}%"
+            count_stmt = count_stmt.where(Artwork.title.ilike(like, escape="\\") | Artwork.description.ilike(like, escape="\\"))
         total = (await db.execute(count_stmt)).scalar() or 0
         stmt = stmt.offset((page - 1) * page_size).limit(page_size)
         result = await db.execute(stmt)
@@ -134,16 +136,18 @@ async def list_artworks(
             if campaign_id is not None:
                 stmt = stmt.where(Artwork.campaign_id == campaign_id)
             if search:
-                like = f"%{search}%"
-                stmt = stmt.where(Artwork.title.ilike(like) | Artwork.description.ilike(like))
+                safe = search.strip().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+                like = f"%{safe}%"
+                stmt = stmt.where(Artwork.title.ilike(like, escape="\\") | Artwork.description.ilike(like, escape="\\"))
             count_stmt = select(func.count(Artwork.id))
             if status:
                 count_stmt = count_stmt.where(Artwork.status == status)
             if campaign_id is not None:
                 count_stmt = count_stmt.where(Artwork.campaign_id == campaign_id)
             if search:
-                like = f"%{search}%"
-                count_stmt = count_stmt.where(Artwork.title.ilike(like) | Artwork.description.ilike(like))
+                safe = search.strip().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+                like = f"%{safe}%"
+                count_stmt = count_stmt.where(Artwork.title.ilike(like, escape="\\") | Artwork.description.ilike(like, escape="\\"))
             total = (await db.execute(count_stmt)).scalar() or 0
             stmt = stmt.offset((page - 1) * page_size).limit(page_size)
             result = await db.execute(stmt)
@@ -394,7 +398,7 @@ async def vote_artwork(artwork_id: int, db: AsyncSession = Depends(get_db), redi
         artwork = result2.scalar_one()
 
         # Mark as voted in Redis
-        await redis_client.setex(vote_key, 3600, "1")
+        await redis_client.setex(vote_key, 2592000, "1")  # 30 days
 
         response_data = _serialize_artwork(artwork)
         response_data["has_voted"] = True

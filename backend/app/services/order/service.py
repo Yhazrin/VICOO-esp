@@ -40,9 +40,10 @@ class OrderService(BaseService):
             stmt = stmt.where(Order.status == status)
             count_stmt = count_stmt.where(Order.status == status)
         if keyword:
-            like = f"%{keyword}%"
-            stmt = stmt.where(Order.order_no.ilike(like))
-            count_stmt = count_stmt.where(Order.order_no.ilike(like))
+            safe = keyword.strip().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+            like = f"%{safe}%"
+            stmt = stmt.where(Order.order_no.ilike(like, escape="\\"))
+            count_stmt = count_stmt.where(Order.order_no.ilike(like, escape="\\"))
         if date_from:
             from datetime import datetime as dt
             try:

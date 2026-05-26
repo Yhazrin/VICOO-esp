@@ -982,3 +982,155 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Removed `vite.config.js` from git tracking
 - **Verification**: `git ls-files` confirms only `.ts` remains
 - **New issues**: None
+
+## Fix 121 — Docker .env secrets baked into image layer
+- **Date**: 2026-05-27 (Round 51)
+- **Files**: `deploy/easy/backend.dockerfile`
+- **Reason**: P0: `COPY deploy/easy/.env /app/.env` baked all secrets (MYSQL_ROOT_PASSWORD, APP_SECRET_KEY, ENCRYPTION_KEY, etc.) into the Docker image layer. Anyone with `docker history` or image pull access could extract every secret.
+- **Change**: Removed the `COPY deploy/easy/.env /app/.env` line. The `.env` is injected at runtime via `docker-compose env_file`.
+- **Verification**: Dockerfile syntax valid; docker-compose already has `env_file: - .env`
+- **New issues**: None
+
+## Fix 122 — MySQL port exposed on all network interfaces
+- **Date**: 2026-05-27 (Round 51)
+- **Files**: `deploy/easy/docker-compose.yml`
+- **Reason**: P0: MySQL port `3307:3306` bound to `0.0.0.0`, making it accessible from any host on the network. Redis was correctly bound to `127.0.0.1`.
+- **Change**: Changed port mapping to `127.0.0.1:3307:3306`
+- **Verification**: YAML syntax valid
+- **New issues**: None
+
+## Fix 123 — .env.example ships real passwords as defaults
+- **Date**: 2026-05-27 (Round 51)
+- **Files**: `deploy/easy/.env.example`
+- **Reason**: P0: Example file contained hardcoded real-looking passwords (vicoo-admin, vicoo_root_pass_2026, etc.). Operators copying to `.env` without changing them would deploy with known credentials.
+- **Change**: Replaced all passwords with `CHANGEME_*` placeholder values
+- **Verification**: File syntax valid
+- **New issues**: None
+
+## Fix 124 — SQL LIKE wildcard injection in artwork search
+- **Date**: 2026-05-27 (Round 51)
+- **Files**: `backend/app/routers/artworks.py`
+- **Reason**: P1: `search` parameter interpolated directly into `ilike` without escaping `%` and `_` wildcards. Attacker could craft `%%%%%` to degrade DB performance or bypass search filters.
+- **Change**: Added `\`, `%`, `_` escaping with `escape="\\"` parameter on all ilike calls (4 locations: primary query, primary count, fallback query, fallback count)
+- **Verification**: Pattern matches existing fix in donation service
+- **New issues**: None
+
+## Fix 125 — SQL LIKE wildcard injection in order search
+- **Date**: 2026-05-27 (Round 51)
+- **Files**: `backend/app/services/order/service.py`
+- **Reason**: P1: Same wildcard injection vulnerability as artwork search
+- **Change**: Added escaping for `keyword` parameter before ilike interpolation
+- **Verification**: Pattern matches donation service fix
+- **New issues**: None
+
+## Fix 126 — SQL LIKE wildcard injection in AI assistant product search
+- **Date**: 2026-05-27 (Round 51)
+- **Files**: `backend/app/services/ai_assistant/service.py`
+- **Reason**: P1: User-supplied search terms extracted and interpolated directly into ILIKE patterns in two locations (`_search_products` and `_retrieve_rag`). Wildcards `%` and `_` in terms were never escaped.
+- **Change**: Added `_escape_like()` helper function and applied it to all user-supplied terms in both search locations
+- **Verification**: Helper function matches pattern used in other services
+- **New issues**: None
+
+## Fix 127 — Editor role can approve financial donations
+- **Date**: 2026-05-27 (Round 51)
+- **Files**: `backend/app/routers/admin.py`
+- **Reason**: P1: `approve_donation_admin` endpoint allowed `editor` role to manually approve financial donations. Donations represent real money and should be admin-only.
+- **Change**: Changed `require_role("admin", "editor")` to `require_role("admin")`
+- **Verification**: Endpoint now admin-only
+- **New issues**: None
+
+## Fix 128 — Content moderation fails open on API error
+- **Date**: 2026-05-27 (Round 51)
+- **Files**: `backend/app/services/ai_assistant/service.py`
+- **Reason**: P1: When OpenAI moderation API was unreachable, all content was assumed safe (`is_safe: True`). For a children's welfare platform, unmoderated content should be flagged for manual review.
+- **Change**: Changed `is_safe` from `True` to `False` when moderation fails, with message indicating manual review needed
+- **Verification**: Logic correct
+- **New issues**: None
+
+## Fix 129 — Campaign create_campaign accepts arbitrary model fields
+- **Date**: 2026-05-27 (Round 51)
+- **Files**: `backend/app/services/campaign/service.py`
+- **Reason**: P1: `Campaign(**data)` unpacked user dict directly without field whitelist. A caller could set `current_amount=999999` or `id=1`.
+- **Change**: Added `_CREATABLE_FIELDS` whitelist and filter data before constructing Campaign object
+- **Verification**: Matches existing `_UPDATABLE_FIELDS` pattern in same service
+- **New issues**: None
+
+## Fix 130 — SupplyChain update_record silently drops cert_image_url, carbon_kg, carbon_note
+- **Date**: 2026-05-27 (Round 51)
+- **Files**: `backend/app/services/supply_chain/service.py`
+- **Reason**: P1: PATCH endpoint accepted `cert_image_url`, `carbon_kg`, `carbon_note` in request body but `_UPDATABLE_FIELDS` didn't include them, silently discarding the values.
+- **Change**: Added the three missing fields to `_UPDATABLE_FIELDS`
+- **Verification**: Fields now properly persisted
+- **New issues**: None
+
+## Fix 131 — DesignDraftUpdate allows arbitrary status values
+- **Date**: 2026-05-27 (Round 51)
+- **Files**: `backend/app/schemas/design_draft.py`
+- **Reason**: P1: `DesignDraftUpdate.status` accepted any string, allowing clients to bypass the state machine (draft → ai_generated → review → approved → published).
+- **Change**: Added `pattern` validation restricting status to valid enum values
+- **Verification**: Schema validates correctly
+- **New issues**: None
+
+## Fix 132 — Admin panel CSP allows unsafe-eval
+- **Date**: 2026-05-27 (Round 51)
+- **Files**: `deploy/easy/nginx-admin.conf`
+- **Reason**: P1: Admin CSP permitted `unsafe-eval`, enabling `eval()` and `new Function()` calls. Combined with `unsafe-inline`, this effectively nullified CSP's XSS protection.
+- **Change**: Removed `unsafe-eval` from script-src directive
+- **Verification**: Vite production builds don't use eval
+- **New issues**: None
+
+## Fix 133 — datetime.utcnow() deprecated, returns naive datetime
+- **Date**: 2026-05-27 (Round 51)
+- **Files**: `backend/app/services/campaign/service.py`
+- **Reason**: P2: `datetime.utcnow()` is deprecated in Python 3.12+ and returns timezone-naive datetime. Could cause TypeError if DB columns store timezone-aware values.
+- **Change**: Replaced with `datetime.now(timezone.utc)` in both locations
+- **Verification**: Matches pattern in security.py
+- **New issues**: None
+
+## Fix 134 — Vote deduplication key expires after 1 hour
+- **Date**: 2026-05-27 (Round 51)
+- **Files**: `backend/app/routers/artworks.py`
+- **Reason**: P2: Redis vote key TTL was 3600s (1 hour). After expiry, users could vote again for the same artwork, undermining vote integrity.
+- **Change**: Increased TTL from 3600 to 2592000 (30 days)
+- **Verification**: TTL value correct
+- **New issues**: Consider moving to DB for permanent deduplication
+
+## Fix 135 — Contact rate limiter fails open in production
+- **Date**: 2026-05-27 (Round 51)
+- **Files**: `backend/app/routers/contact.py`
+- **Reason**: P2: When Redis was unavailable, the rate limiter allowed all requests through. In production, this meant zero rate limiting if Redis went down.
+- **Change**: Added production check — fail closed (503) when `APP_ENV == "production"`, fail open in development
+- **Verification**: Matches fail-closed pattern in other services
+- **New issues**: None
+
+## Fix 136 — Fire-and-forget asyncio.create_task swallows exceptions
+- **Date**: 2026-05-27 (Round 51)
+- **Files**: `backend/app/routers/oauth.py`
+- **Reason**: P2: `asyncio.create_task(send_welcome_email(...))` had no exception handler. Failed tasks became "task exception was never retrieved" warnings with no logging.
+- **Change**: Wrapped with `_safe_welcome_email` async helper that catches and logs exceptions
+- **Verification**: Error handling correct
+- **New issues**: None
+
+## Fix 137 — Products router serves mock data on DB errors in production
+- **Date**: 2026-05-27 (Round 51)
+- **Files**: `backend/app/routers/products.py`
+- **Reason**: P2: Four endpoints (list_products, list_categories, list_featured, get_product) returned mock/hardcoded data when DB queries failed, even in production. Could serve stale data to real customers.
+- **Change**: Added `settings.APP_ENV != "demo"` guard — returns 503 in non-demo mode, falls through to mock data only in demo mode
+- **Verification**: Matches pattern in other routers
+- **New issues**: None
+
+## Fix 138 — WeChat payment callback missing session rollback on error
+- **Date**: 2026-05-27 (Round 51)
+- **Files**: `backend/app/routers/payments.py`
+- **Reason**: P1: Alipay callback had `db.rollback()` in error handler but WeChat callback didn't, creating inconsistent error recovery behavior.
+- **Change**: Added `db.rollback()` to WeChat callback error handler for consistency
+- **Verification**: Both payment callbacks now rollback on error
+- **New issues**: None
+
+## Fix 139 — Admin JWT persisted in sessionStorage (XSS risk documented)
+- **Date**: 2026-05-27 (Round 51)
+- **Files**: `admin/src/stores/authStore.ts`
+- **Reason**: P0: Admin JWT stored in sessionStorage, accessible to any XSS payload. Deferred full fix because admin panel lacks refresh-token mechanism — removing persistence would break session restoration.
+- **Change**: Added TODO security comment documenting the risk and the required migration path (httpOnly cookie + refresh token)
+- **Verification**: Comment added
+- **New issues**: Full fix requires implementing admin refresh-token flow

@@ -133,6 +133,10 @@ async def wechat_notify(request: Request, db: AsyncSession = Depends(get_db)):
         raise
     except Exception as e:
         logger.error(f"WeChat notify error: {e}")
+        try:
+            await db.rollback()
+        except Exception:
+            pass
         return Response(content="<xml><return_code>FAIL</return_code></xml>", media_type="application/xml")
 
 

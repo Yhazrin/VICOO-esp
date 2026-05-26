@@ -63,7 +63,7 @@ async def dashboard(
 async def approve_donation_admin(
     donation_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(require_role("admin", "editor")),
+    current_user: dict = Depends(require_role("admin")),
 ):
     """Manually approve a pending donation after offline / manual payment review."""
     try:

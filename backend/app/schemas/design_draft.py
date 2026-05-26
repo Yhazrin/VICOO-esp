@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class DesignDraftCreate(BaseModel):
@@ -19,7 +19,7 @@ class DesignDraftUpdate(BaseModel):
     target_category: Optional[str] = None
     design_image_url: Optional[str] = None
     prompt_used: Optional[str] = None
-    status: Optional[str] = None
+    status: Optional[str] = Field(None, pattern=r"^(draft|ai_generated|review|approved|rejected|published)$")
     review_note: Optional[str] = None
 
 

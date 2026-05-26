@@ -215,6 +215,8 @@ async def list_products(
         raise
     except Exception:
         logger.exception("list_products: database query failed")
+        if settings.APP_ENV != "demo":
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         filtered = _mock_products
         if category:
             filtered = [p for p in filtered if p["category"] == category]
@@ -248,6 +250,8 @@ async def list_categories(db: AsyncSession = Depends(get_db)):
     except HTTPException:
         raise
     except Exception:
+        if settings.APP_ENV != "demo":
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         cat_counts: dict[str, int] = {}
         for p in _mock_products:
             cat = p.get("category", "未分类")
@@ -324,6 +328,8 @@ async def list_featured_products(locale: str = Query("zh", pattern="^(zh|en)$"),
     except HTTPException:
         raise
     except Exception:
+        if settings.APP_ENV != "demo":
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         featured = [p for p in _mock_products if p["status"] == "active" and p["stock"] > 0][:8]
         for p in featured:
             _localize_product_dict(p, locale)
@@ -402,6 +408,8 @@ async def get_product(product_id: int, locale: str = Query("zh", pattern="^(zh|e
     except HTTPException:
         raise
     except Exception:
+        if settings.APP_ENV != "demo":
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         for p in _mock_products:
             if p["id"] == product_id:
                 _localize_product_dict(p, locale)

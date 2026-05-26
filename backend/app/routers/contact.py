@@ -6,6 +6,7 @@ import time
 import logging
 
 from app.database import get_db
+from app.config import settings
 from app.models.contact import ContactMessage
 from app.schemas import ApiResponse, PaginatedResponse
 from app.schemas.contact import ContactMessageOut
@@ -42,6 +43,9 @@ async def submit_contact_form(body: ContactForm, request: Request, db: AsyncSess
     except HTTPException:
         raise
     except Exception as e:
+        if settings.APP_ENV == "production":
+            logger.error(f"Redis rate limit check failed in production, rejecting request: {e}")
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         logger.warning(f"Redis rate limit check failed for contact form, allowing request: {e}")
 
     try:

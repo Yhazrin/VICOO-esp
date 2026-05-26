@@ -30,8 +30,8 @@ RUN pip install --no-cache-dir -r requirements.txt email-validator
 # Copy backend application code
 COPY backend/ ./backend/
 
-# Copy .env (for pydantic_settings to read), entrypoint, and create data dir
-COPY deploy/easy/.env /app/.env
+# .env is injected at runtime via docker-compose env_file — never COPY into the image
+# (secrets in a Docker layer are extractable via docker history / image pull)
 COPY deploy/easy/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh && mkdir -p /data
 

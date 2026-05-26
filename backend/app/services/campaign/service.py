@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any, Tuple
 from sqlalchemy import select, func, and_, or_
 from app.models.campaign import Campaign
@@ -29,7 +29,7 @@ class CampaignService(BaseService):
             # 前端有「即将开始」tab；表枚举无 upcoming，用开始时间在未来近似
             if status:
                 if status == "upcoming":
-                    now = datetime.utcnow()
+                    now = datetime.now(timezone.utc)
                     upcoming_cond = and_(
                         Campaign.start_date > now,
                         or_(Campaign.status == "active", Campaign.status == "draft"),
@@ -42,7 +42,7 @@ class CampaignService(BaseService):
             count_stmt = select(func.count(Campaign.id))
             if status:
                 if status == "upcoming":
-                    now = datetime.utcnow()
+                    now = datetime.now(timezone.utc)
                     ucond = and_(
                         Campaign.start_date > now,
                         or_(Campaign.status == "active", Campaign.status == "draft"),
@@ -80,10 +80,13 @@ class CampaignService(BaseService):
             raise ResourceNotFoundException(message=f"Campaign {campaign_id} not found")
         return campaign
 
+    _CREATABLE_FIELDS = {"title", "description", "goal_amount", "start_date", "end_date", "status", "image_url", "location", "organizer"}
+
     async def create_campaign(self, data: Dict[str, Any]) -> Campaign:
         """Create a new campaign and invalidate cache."""
         try:
-            campaign = Campaign(**data)
+            safe = {k: v for k, v in data.items() if k in self._CREATABLE_FIELDS}
+            campaign = Campaign(**safe)
             self.db.add(campaign)
             await self.db.flush()
             await self.db.refresh(campaign, ["created_at"])

@@ -19,6 +19,9 @@ interface AuthState {
   updateUser: (user: Partial<AuthUser>) => void;
 }
 
+// TODO(security): Admin JWT is stored in sessionStorage — any XSS can steal it.
+// Migrate to httpOnly cookie + refresh-token flow (like frontend useSessionRestore)
+// so the access token never lives in JS-accessible storage.
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({

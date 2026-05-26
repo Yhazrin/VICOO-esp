@@ -16,6 +16,13 @@ from app.services.supply_chain.service import SupplyChainService
 from app.models.product import Product
 
 logger = logging.getLogger("vicoo.ai_service")
+
+
+def _escape_like(term: str) -> str:
+    """Escape SQL LIKE wildcards to prevent pattern injection."""
+    return term.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
 _SYNONYM_CONFIG_PATH = Path(__file__).resolve().parents[2] / "data" / "ai_search_synonyms.json"
 _DEFAULT_SYNONYM_CONFIG = {
     "aliases": {},
@@ -346,9 +353,8 @@ class AIAssistantService(BaseService):
                 }
         except Exception as e:
             logger.exception("Moderation call failed")
-            # Fail safe: if moderation fails, we might want to flag it for human review
-            # or allow it if it's not critical. Here we assume safe but log error.
-            return {"is_safe": True, "reason": "Moderation service temporarily unavailable", "flagged_categories": []}
+            # Fail closed: for a children's platform, flag unmoderated content for manual review
+            return {"is_safe": False, "reason": "Moderation service temporarily unavailable — flagged for manual review", "flagged_categories": []}
 
     async def analyze_artwork(self, image_url: str, description: Optional[str] = None) -> Dict[str, Any]:
         """
@@ -833,12 +839,13 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                     )
                     token_filters = []
                     for t in terms[:4]:
+                        et = _escape_like(t)
                         token_filters.extend([
-                            Product.name.ilike(f"%{t}%"),
-                            Product.name_en.ilike(f"%{t}%"),
-                            Product.description.ilike(f"%{t}%"),
-                            Product.description_en.ilike(f"%{t}%"),
-                            Product.category.ilike(f"%{t}%"),
+                            Product.name.ilike(f"%{et}%", escape="\\"),
+                            Product.name_en.ilike(f"%{et}%", escape="\\"),
+                            Product.description.ilike(f"%{et}%", escape="\\"),
+                            Product.description_en.ilike(f"%{et}%", escape="\\"),
+                            Product.category.ilike(f"%{et}%", escape="\\"),
                         ])
                     if token_filters:
                         stmt = stmt.where(or_(*token_filters))
@@ -945,12 +952,13 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                     )
                     token_filters = []
                     for t in terms[:4]:
+                        et = _escape_like(t)
                         token_filters.extend([
-                            Product.name.ilike(f"%{t}%"),
-                            Product.name_en.ilike(f"%{t}%"),
-                            Product.description.ilike(f"%{t}%"),
-                            Product.description_en.ilike(f"%{t}%"),
-                            Product.category.ilike(f"%{t}%"),
+                            Product.name.ilike(f"%{et}%", escape="\\"),
+                            Product.name_en.ilike(f"%{et}%", escape="\\"),
+                            Product.description.ilike(f"%{et}%", escape="\\"),
+                            Product.description_en.ilike(f"%{et}%", escape="\\"),
+                            Product.category.ilike(f"%{et}%", escape="\\"),
                         ])
                     if token_filters:
                         stmt = stmt.where(or_(*token_filters))

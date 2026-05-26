@@ -94,7 +94,14 @@ async def _find_or_create_oauth_user(
         import asyncio
         from app.services.mailer import send_welcome_email
         logger.info(f"Triggering welcome email for new user {user.email}")
-        asyncio.create_task(send_welcome_email(user.email, user.nickname))
+
+        async def _safe_welcome_email(email: str, nickname: str):
+            try:
+                await send_welcome_email(email, nickname)
+            except Exception as e:
+                logger.error(f"Welcome email failed for {email}: {e}")
+
+        asyncio.create_task(_safe_welcome_email(user.email, user.nickname))
 
     return user
 
