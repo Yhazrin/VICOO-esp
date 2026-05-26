@@ -814,3 +814,19 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: (a) Added `_VALID_TRANSITIONS` state machine: pending→{cancelled}, paid→{shipped, refunded}, shipped→{completed}; reject invalid transitions with 400; (b) Moved campaign amount increment from `create_donation` to `complete_donation` — campaign only reflects confirmed payments; (c) Removed plaintext passwords from demo forgot-password response, replaced with generic message
 - **Verification**: `python -c "ast.parse(...)"` pass for all 3 files
 - **New issues**: None
+
+## Fix 100 — OAuth account takeover via unverified email auto-linking
+- **Date**: 2026-05-27 (Round 47)
+- **Files**: `backend/app/routers/oauth.py`
+- **Reason**: P0: `_find_or_create_oauth_user` auto-links OAuth accounts to existing VICOO accounts by email match. For GitHub, the public profile email (`gh_user.get("email")`) is unverified — a user can set it to any address. An attacker could set their GitHub public email to a victim's VICOO email, trigger OAuth login, and gain access to the victim's account.
+- **Change**: (a) GitHub callback now always fetches verified emails from `/user/emails` endpoint first, preferring primary+verified, then any verified, and only falls back to the unverified public profile email as last resort; (b) `_find_or_create_oauth_user` accepts `email_verified` parameter (default `True`); auto-linking to existing accounts is skipped when `email_verified=False` — unverified emails are only used for new account creation
+- **Verification**: `python -c "import ast; ast.parse(open('backend/app/routers/oauth.py').read())"` pass
+- **New issues**: None
+
+## Fix 101 — Token blacklist fail-open allows logged-out tokens during Redis outage
+- **Date**: 2026-05-27 (Round 47)
+- **Files**: `backend/app/deps.py`
+- **Reason**: P1: `is_token_blacklisted()` returned `False` on Redis errors (fail-open). During a Redis outage, all logged-out tokens would be accepted — an attacker with a stolen token could continue using it even after the user logs out.
+- **Change**: Changed `is_token_blacklisted()` to fail-closed: raises `HTTPException(503)` on Redis errors instead of returning `False`. This ensures logged-out tokens are never accepted when the blacklist cannot be checked.
+- **Verification**: `python -c "import ast; ast.parse(open('backend/app/deps.py').read())"` pass
+- **New issues**: None

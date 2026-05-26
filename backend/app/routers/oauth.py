@@ -44,16 +44,23 @@ async def _find_or_create_oauth_user(
     email: str | None,
     nickname: str,
     avatar: str | None = None,
+    email_verified: bool = True,
 ) -> User:
-    """Find existing user by OAuth provider ID or email, or create a new one."""
+    """Find existing user by OAuth provider ID or email, or create a new one.
+
+    Args:
+        email_verified: Only auto-link to existing accounts when the email
+            has been verified by the OAuth provider.  Unverified emails
+            (e.g. GitHub public email) are used only for new account creation.
+    """
     id_column = User.github_id if provider == "github" else User.google_id
 
     # 1. Try to find by OAuth provider ID
     result = await db.execute(select(User).where(id_column == provider_id))
     user = result.scalar_one_or_none()
-    
-    if not user and email:
-        # 2. Try by email (link accounts)
+
+    if not user and email and email_verified:
+        # 2. Try by email (link accounts) — only for verified emails
         result = await db.execute(select(User).where(User.email == email))
         user = result.scalar_one_or_none()
         if user:
@@ -175,19 +182,35 @@ async def github_callback(code: str, state: str = "", request: Request = None, d
         github_id = str(gh_user["id"])
         nickname = gh_user.get("name") or gh_user.get("login") or f"gh_{github_id}"
         avatar = gh_user.get("avatar_url")
-        email = gh_user.get("email")
 
-        # If email not public, fetch from emails endpoint
-        if not email:
-            emails_resp = await client.get(GITHUB_EMAILS_URL, headers=headers)
-            if emails_resp.status_code == 200:
+        # Always prefer verified email from /user/emails endpoint.
+        # The public profile email is unverified — anyone can set it to
+        # any address, so we must NOT trust it for account auto-linking.
+        email = None
+        email_verified = False
+        emails_resp = await client.get(GITHUB_EMAILS_URL, headers=headers)
+        if emails_resp.status_code == 200:
+            for em in emails_resp.json():
+                if em.get("primary") and em.get("verified"):
+                    email = em["email"]
+                    email_verified = True
+                    break
+            # No primary verified email — fall back to any verified email
+            if not email:
                 for em in emails_resp.json():
-                    if em.get("primary") and em.get("verified"):
+                    if em.get("verified"):
                         email = em["email"]
+                        email_verified = True
                         break
+        # Last resort: use public profile email but mark as unverified
+        if not email:
+            email = gh_user.get("email")
 
     try:
-        user = await _find_or_create_oauth_user(db, "github", github_id, email, nickname, avatar)
+        user = await _find_or_create_oauth_user(
+            db, "github", github_id, email, nickname, avatar,
+            email_verified=email_verified,
+        )
         if user.status == "banned":
             raise HTTPException(status_code=403, detail="Account is banned")
         return _build_auth_redirect(user)
