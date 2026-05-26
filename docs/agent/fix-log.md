@@ -654,3 +654,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: (a) Wrapped 3 admin endpoints in try/except with logger.exception; (b) Added `_ALLOWED_SETTINGS_KEYS` set to filter update_settings body; (c) Added logging + try/except to editorial create; (d) Added try/except to after_sales read endpoints; (e) Broadened reviews create catch to Exception; (f) Replaced 3 `hasattr` guards with `str(user.role)`
 - **Verification**: `python -c "ast.parse(...)"` pass for all backend files; `tsc --noEmit` pass for admin and frontend
 - **New issues**: None
+
+## Fix 80 — Sustainability logging and image accessibility
+- **Date**: 2026-05-26 (Round 27)
+- **Files**: `backend/app/routers/sustainability.py`, `frontend/web-react/src/pages/OrderDetail/index.tsx`, `frontend/web-react/src/components/editorial/TraceMediaGallery.tsx`
+- **Reason**: (a) sustainability.py had bare `except Exception` with no logging — DB failures were invisible in production; (b) OrderDetail return-exchange item images had empty `alt=""` instead of product name; (c) TraceMediaGallery images had empty alt fallback
+- **Change**: (a) Added `import logging` + `logger = logging.getLogger(__name__)` + `logger.exception(...)` to sustainability.py; (b) Changed OrderDetail image alt from `""` to `item.product_name || ''`; (c) Changed TraceMediaGallery alt fallback from `''` to `'Traceability media'`
+- **Verification**: Backend syntax OK; `tsc --noEmit` pass for frontend
+- **New issues**: MaterialTrace/index.tsx has 100+ hardcoded Chinese strings using `isEnglish` ternary instead of `t()` — not routed/used in production, deferred
