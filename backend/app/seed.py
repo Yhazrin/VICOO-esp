@@ -57,8 +57,8 @@ async def reset_seed_users():
     async with AsyncSessionLocal() as session:
         print("Resetting seed user credentials...")
         users_to_reset = [
-            ("admin@vicoo.org", settings.SEED_ADMIN_PASSWORD),
-            ("editor@vicoo.org", settings.SEED_EDITOR_PASSWORD),
+            ("admin@tonghua.org", settings.SEED_ADMIN_PASSWORD),
+            ("editor@tonghua.org", settings.SEED_EDITOR_PASSWORD),
         ]
         for email, password in users_to_reset:
             result = await session.execute(
@@ -85,14 +85,14 @@ async def seed():
         print("Seeding users...")
         users = [
             User(
-                email="admin@vicoo.org",
+                email="admin@tonghua.org",
                 password_hash=hash_password(settings.SEED_ADMIN_PASSWORD),
                 nickname="管理员",
                 role="admin",
                 status="active",
             ),
             User(
-                email="editor@vicoo.org",
+                email="editor@tonghua.org",
                 password_hash=hash_password(settings.SEED_EDITOR_PASSWORD),
                 nickname="编辑小王",
                 role="editor",
