@@ -7,7 +7,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sqlalchemy import engine_from_config, pool
 from sqlalchemy import Connection
-from sqlalchemy.ext.asyncio import create_async_engine
 
 from alembic import context
 from app.config import settings
