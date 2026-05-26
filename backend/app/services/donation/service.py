@@ -167,20 +167,22 @@ class DonationService(BaseService):
 
         await self.db.refresh(donation)
 
-        # Update campaign amount now that payment is confirmed
-        if donation.campaign_id:
-            await self.db.execute(
-                update(Campaign)
-                .where(Campaign.id == donation.campaign_id)
-                .values(current_amount=Campaign.current_amount + donation.amount)
-            )
+        # Use savepoint so campaign amount update and cert generation are atomic
+        async with self.db.begin_nested():
+            # Update campaign amount now that payment is confirmed
+            if donation.campaign_id:
+                await self.db.execute(
+                    update(Campaign)
+                    .where(Campaign.id == donation.campaign_id)
+                    .values(current_amount=Campaign.current_amount + donation.amount)
+                )
 
-        # Automatic certificate generation logic
-        date_str = datetime.now().strftime("%Y%m%d")
-        donation.certificate_no = f"TH-DON-{date_str}-{donation.id:06d}"
-        donation.certificate_url = build_certificate_payload(donation)["certificate_url"]
+            # Automatic certificate generation logic
+            date_str = datetime.now().strftime("%Y%m%d")
+            donation.certificate_no = f"TH-DON-{date_str}-{donation.id:06d}"
+            donation.certificate_url = build_certificate_payload(donation)["certificate_url"]
 
-        await self.db.flush()
+            await self.db.flush()
         return donation
 
     async def admin_approve_donation(

@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field, field_validator
 
 class CampaignCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=300, description="Campaign title")
-    description: Optional[str] = Field(None, description="Campaign description (supports rich text)")
+    description: Optional[str] = Field(None, max_length=10000, description="Campaign description (supports rich text)")
     cover_image: Optional[str] = Field(None, max_length=500, description="Cover image URL")
     start_date: datetime = Field(..., description="Campaign start date")
     end_date: datetime = Field(..., description="Campaign end date")
@@ -18,7 +18,7 @@ class CampaignCreate(BaseModel):
 
 class CampaignUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=300)
-    description: Optional[str] = None
+    description: Optional[str] = Field(None, max_length=10000)
     cover_image: Optional[str] = Field(None, max_length=500)
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None

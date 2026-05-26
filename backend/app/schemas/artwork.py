@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 
 class ArtworkCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=300, description="Artwork title")
-    description: Optional[str] = Field(None, description="Artwork description")
+    description: Optional[str] = Field(None, max_length=5000, description="Artwork description")
     image_url: str = Field(..., max_length=500, description="Full-size image URL")
     thumbnail_url: Optional[str] = Field(None, max_length=500, description="Thumbnail image URL")
     child_participant_id: Optional[int] = Field(None, description="Associated child participant ID")
