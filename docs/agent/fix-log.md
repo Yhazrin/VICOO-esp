@@ -1366,3 +1366,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Added `if settings.APP_ENV != "demo": raise HTTPException(503)` guard to all three endpoints, consistent with existing pattern
 - **Verification**: Non-demo environments now get 503 instead of mock data
 - **New issues**: None
+
+## Fix 169 — AI assistant campaign/supply-chain search lacks LIKE wildcard escaping
+- **Date**: 2026-05-27 (Round 55)
+- **Files**: `backend/app/services/ai_assistant/service.py`
+- **Reason**: P1: Campaign title/description and supply chain description ilike() queries used raw user-derived terms without `_escape_like()`. The product search already had escaping, but campaign and supply chain paths did not.
+- **Change**: Applied `_escape_like(t)` and `escape="\\"` to campaign search (lines 994-995) and supply chain search (line 1015)
+- **Verification**: LIKE wildcards in user queries no longer affect search semantics
+- **New issues**: None
