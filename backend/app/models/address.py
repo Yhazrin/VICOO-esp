@@ -7,7 +7,7 @@ class Address(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
-    label = Column(String(50), nullable=True)  # e.g. "家", "公司", "默认"
+    label = Column(String(50), nullable=True)  # e.g. "Home", "Office", "Default"
     recipient_name = Column(String(100), nullable=False)
     phone = Column(String(30), nullable=False)
     province = Column(String(50), nullable=False)

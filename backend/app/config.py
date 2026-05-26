@@ -81,7 +81,7 @@ class Settings(BaseSettings):
     # CORS - receives raw string from env, parsed to list in model_validator
     CORS_ORIGINS: str = "http://localhost,http://localhost:5173,http://localhost:9111,http://localhost:9112"
 
-    # 首次部署生产库无数据时，设为 true 可在「用户表为空」时跑一次 app.seed（与 development 行为一致）
+    # For first production deployment with empty DB: set to true to run app.seed when user table is empty (same as development behavior)
     SEED_IF_EMPTY: bool = False
 
     # Seed passwords

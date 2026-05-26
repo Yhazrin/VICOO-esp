@@ -1,6 +1,6 @@
 """
 Showcase product data for demos and courses: images from Unsplash, original copy.
-配套 load_showcase_shop.py; idempotent upsert by product name.
+Used by load_showcase_shop.py; idempotent upsert by product name.
 """
 
 from __future__ import annotations

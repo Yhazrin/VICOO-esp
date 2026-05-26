@@ -2054,3 +2054,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Used `useRef` pattern for `onClose` callback — `onCloseRef.current` is updated on every render, but `useEffect` only depends on `[open]`. This matches the pattern already used in `PaymentQRModal.tsx`.
 - **Verification**: Modal Escape key handler and scroll lock no longer re-run on parent re-renders
 - **New issues**: None
+
+## Fix 243 — Final Chinese comment cleanup across backend
+- **Date**: 2026-05-27 (Round 73)
+- **Files**: `backend/app/config.py`, `backend/app/models/circular_commerce.py`, `backend/app/models/address.py`, `backend/app/services/campaign/service.py`, `backend/app/deps.py`, `backend/app/showcase_shop_catalog.py`
+- **Reason**: P3: Scattered Chinese comments remained in backend code after previous translation rounds.
+- **Change**: Translated 7 Chinese comments/docstrings to English across config, models, services, and deps modules. Only `db_repair.py` Chinese mapping dictionary and `masking.py` Chinese name example remain (both intentional).
+- **Verification**: Backend Python files now have no unintentional Chinese strings
+- **New issues**: None

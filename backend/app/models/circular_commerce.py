@@ -1,4 +1,4 @@
-"""闭环电商扩展：衣物捐献受理、商品评价、售后工单。"""
+"""Circular commerce extensions: clothing intake, product reviews, after-sale tickets."""
 
 from sqlalchemy import (
     Column,
@@ -15,7 +15,7 @@ from app.database import Base
 
 
 class ClothingIntake(Base):
-    """用户衣物捐献登记 → 运营分拣 → 上架为再生商品。"""
+    """User clothing donation intake → operations sorting → listing as recycled product."""
 
     __tablename__ = "clothing_intakes"
 

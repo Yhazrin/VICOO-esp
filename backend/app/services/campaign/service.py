@@ -15,8 +15,9 @@ class CampaignService(BaseService):
     Implements Redis caching for high-traffic listing endpoints.
     """
 
-    # 不在此使用 @cached：返回值含 ORM 对象，原 cache 层 json.dumps 无法稳定往返，易污染 Redis
-    # 并导致 Pydantic 转换失败，在 DEMO_MODE 下会落入 routes 的 except 而返回空列表（前端见「无活动」）。
+    # Do NOT use @cached here: return values contain ORM objects that cannot survive
+    # json.dumps round-trip, which corrupts Redis and causes Pydantic conversion failures.
+    # In DEMO_MODE this falls through to the router's except block, returning empty list.
     async def list_campaigns(
         self, 
         page: int = 1, 
@@ -26,7 +27,7 @@ class CampaignService(BaseService):
         """List campaigns with pagination."""
         try:
             stmt = select(Campaign)
-            # 前端有「即将开始」tab；表枚举无 upcoming，用开始时间在未来近似
+            # Frontend has an "upcoming" tab; DB enum has no 'upcoming', approximate with future start_date
             if status:
                 if status == "upcoming":
                     now = datetime.now(timezone.utc)

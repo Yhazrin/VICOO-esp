@@ -396,6 +396,6 @@ async def verify_request_signature(request: Request) -> tuple[bool, Optional[str
         )
         return False, "Invalid signature"
 
-    # 所有验证通过
+    # All checks passed
     logger.info(f"Signature verified successfully for {request.method} {request.url.path}")
     return True, None
