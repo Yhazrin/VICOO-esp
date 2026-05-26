@@ -1875,3 +1875,16 @@ _Round 2: No new fixes needed. All core flows verified via API._
   - `SupplyChainGlobe.tsx`: Added cleanup function to useEffect that cancels requestAnimationFrame on unmount
 - **Verification**: Screen readers can now identify quantity buttons; no animation frame leak on unmount
 - **New issues**: None
+
+## Fix 226 — AI assistant system prompt and demo responses to English
+- **Date**: 2026-05-27 (Round 68)
+- **Files**: `backend/app/services/ai_assistant/service.py`
+- **Reason**: P3: The AI system prompt (35 lines) and all demo-mode fallback responses were in Chinese while the rest of the API uses English
+- **Change**:
+  - `SYSTEM_PROMPT`: Full translation from Chinese to English, preserving all 15 rules, action-card format examples, and behavioral guidelines
+  - Demo-mode fallback (non-stream): `"您好，我是您的公益助手…"` → `"Hello, I'm your charity assistant…"`
+  - Demo-mode fallback (stream): Same translation
+  - Grounded demo reply: `"我已根据站内数据库…"` → `"Based on our database and retrieval results…"`
+  - Catalog clarification: Removed duplicate Chinese line, kept English only
+- **Verification**: All AI responses now use consistent English; AI can still respond in Chinese when users write in Chinese
+- **New issues**: None
