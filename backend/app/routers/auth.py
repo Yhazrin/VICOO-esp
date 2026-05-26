@@ -173,24 +173,22 @@ async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depend
     result = await db.execute(stmt)
     user = result.scalar_one_or_none()
 
+    # Always return the same message to prevent email enumeration
+    _generic_msg = "If an account exists with this email, a recovery email has been sent."
+
     if not user:
-        # Return success to prevent email enumeration
-        return ApiResponse(
-            message="If an account exists with this email, a recovery email has been sent.",
-            data={"email": body.email, "is_mock": False}
-        )
+        return ApiResponse(message=_generic_msg, data={"email": body.email, "is_mock": False})
 
     # 1. Logic for Mock / Test accounts (only in DEMO_MODE)
     is_mock = False
-    mock_password = None
 
     if settings.DEMO_MODE and (body.email.endswith("@vicoo.test") or body.email.endswith("@vicoo.org") or body.email.startswith("vicoo-")):
         is_mock = True
 
     if is_mock:
         return ApiResponse(
-            message="Recovery email sent (Demo Mode — check .env for seed passwords)",
-            data={"is_mock": True, "password_hint": "See SEED_*_PASSWORD in .env"}
+            message=_generic_msg,
+            data={"email": body.email, "is_mock": True, "password_hint": "See SEED_*_PASSWORD in .env"}
         )
 
     # 2. Logic for Real accounts
@@ -203,13 +201,10 @@ async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depend
             password_hint=recovery_hint,
             locale="zh"
         )
-        return ApiResponse(
-            message="Password recovery email has been sent.",
-            data={"email": user.email, "is_mock": False}
-        )
     except Exception as e:
         logger.error(f"Recovery mail failed: {e}")
-        raise ServiceUnavailableException(message="Failed to send recovery email")
+    # Always return success regardless of email send outcome
+    return ApiResponse(message=_generic_msg, data={"email": body.email, "is_mock": False})
 
 
 @router.post("/logout")

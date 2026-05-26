@@ -29,12 +29,13 @@ class OrderService(BaseService):
         keyword: Optional[str] = None,
         date_from: Optional[str] = None,
         date_to: Optional[str] = None,
+        is_admin: bool = False,
     ) -> Tuple[List[Order], int]:
         """
-        List orders for a specific user with pagination and optional filters.
+        List orders for a specific user (or all orders for admin) with pagination and optional filters.
         """
-        stmt = select(Order).where(Order.user_id == user_id)
-        count_stmt = select(func.count(Order.id)).where(Order.user_id == user_id)
+        stmt = select(Order) if is_admin else select(Order).where(Order.user_id == user_id)
+        count_stmt = select(func.count(Order.id)) if is_admin else select(func.count(Order.id)).where(Order.user_id == user_id)
 
         if status:
             stmt = stmt.where(Order.status == status)

@@ -1616,3 +1616,38 @@ _Round 2: No new fixes needed. All core flows verified via API._
   - `supply_chain.py`: SupplyChainRecordCreate.description(5000), SupplyChainRecordUpdate.description(5000)
 - **Verification**: All user-input string fields now have explicit length limits
 - **New issues**: None
+
+## Fix 198 — Admin cannot list all orders (list_orders filters by user_id for everyone)
+- **Date**: 2026-05-27 (Round 60)
+- **Files**: `backend/app/routers/orders.py`, `backend/app/services/order/service.py`
+- **Reason**: P1: `GET /orders` always passed `current_user["id"]` to `OrderService.list_orders()`, which filters by `user_id`. Even admins only saw their own orders, breaking the admin order management page.
+- **Change**: Added `is_admin: bool = False` parameter to `OrderService.list_orders()`. When `is_admin=True`, the query skips the `user_id` filter. Router now passes `is_admin=(current_user["role"] == "admin")`.
+- **Verification**: Admin users can now see all orders; regular users still see only their own
+- **New issues**: None
+
+## Fix 199 — Email enumeration via forgot-password response shapes
+- **Date**: 2026-05-27 (Round 60)
+- **Files**: `backend/app/routers/auth.py`
+- **Reason**: P1: `forgot-password` returned different response shapes for existing vs. non-existing users. Non-existing: `{"is_mock": False}` with generic message. Mock users: `{"is_mock": True, "password_hint": "..."}` with different message. An attacker could enumerate registered emails.
+- **Change**: All three code paths (user not found, mock user, real user) now return the same `_generic_msg` ("If an account exists..."). Mock hint is still included in data but message is identical. Email send failure no longer raises 503 — always returns success.
+- **Verification**: Cannot distinguish existing from non-existing users by response shape
+- **New issues**: None
+
+## Fix 200 — update_order_status accessible to non-admin users
+- **Date**: 2026-05-27 (Round 60)
+- **Files**: `backend/app/routers/orders.py`
+- **Reason**: P1: `PUT /orders/{id}/status` used `get_current_user` (any authenticated user). While it had checks restricting non-admins to cancel-only, the dedicated `/cancel` endpoint already handles user cancellation safely. The status update endpoint should be admin-only.
+- **Change**: Replaced multi-step role check with single admin check at the top. Added `pending → paid` and `paid → cancelled` transitions for admin flexibility.
+- **Verification**: Only admins can update order status; users must use the `/cancel` endpoint
+- **New issues**: None
+
+## Fix 201 — deps.py bare except blocks without logging
+- **Date**: 2026-05-27 (Round 60)
+- **Files**: `backend/app/deps.py`
+- **Reason**: P2: Four `except Exception:` blocks in auth dependencies silently returned None or raised 503, making authentication failures invisible in production logs.
+- **Change**: Added `as e` + `logger.error/warning(...)` to all four locations:
+  - `get_current_user`: logs error before raising 503
+  - `get_current_user_from_request`: logs warning for DB lookup and token parse failures
+  - `get_optional_current_user`: logs warning before returning None
+- **Verification**: All auth failure paths now produce log entries
+- **New issues**: None

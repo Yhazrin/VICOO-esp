@@ -200,7 +200,8 @@ async def list_orders(
     """List orders for the current user (or all for admin). (Refactored)"""
     order_service = OrderService(db)
     try:
-        orders, total = await order_service.list_orders(current_user["id"], page, page_size, status=status, keyword=search)
+        is_admin = current_user.get("role") == "admin"
+        orders, total = await order_service.list_orders(current_user["id"], page, page_size, status=status, keyword=search, is_admin=is_admin)
         
         # Batch load items for all orders
         order_ids = [o.id for o in orders]
@@ -379,22 +380,19 @@ async def update_order_status(
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Update order status (admin or owner)."""
+    """Update order status (admin only for non-cancel; owner can cancel via dedicated /cancel endpoint)."""
     try:
+        if current_user.get("role") != "admin":
+            raise HTTPException(status_code=403, detail="Only admins can update order status")
         stmt = select(Order).where(Order.id == order_id)
         result = await db.execute(stmt)
         order = result.scalar_one_or_none()
         if not order:
             raise HTTPException(status_code=404, detail="Order not found")
-        if current_user.get("role") != "admin" and order.user_id != current_user["id"]:
-            raise HTTPException(status_code=403, detail="Forbidden")
-        # Non-admin users can only cancel their own orders
-        if current_user.get("role") != "admin" and body.status != "cancelled":
-            raise HTTPException(status_code=403, detail="Only admins can change order status to non-cancelled states")
         # Enforce valid state transitions
         _VALID_TRANSITIONS = {
-            "pending": {"cancelled"},
-            "paid": {"shipped", "refunded"},
+            "pending": {"cancelled", "paid"},
+            "paid": {"shipped", "refunded", "cancelled"},
             "shipped": {"completed"},
         }
         allowed = _VALID_TRANSITIONS.get(order.status, set())

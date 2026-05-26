@@ -97,8 +97,9 @@ async def get_current_user(
         }
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
         # Fail closed: do not fall back to token payload when DB is unavailable
+        logger.error("get_current_user failed: %s", e)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
@@ -257,13 +258,15 @@ async def get_current_user_from_request(request: Request, db: AsyncSession) -> O
             if user:
                 role_value = user.role.value if hasattr(user.role, "value") else str(user.role)
                 return {"id": user.id, "email": user.email, "role": role_value, "nickname": user.nickname}
-        except Exception:
+        except Exception as e:
             # Fail closed: do not fall back to token payload when DB is unavailable
+            logger.warning("get_current_user_from_request DB lookup failed: %s", e)
             return None
 
         # User not found in DB — reject
         return None
-    except Exception:
+    except Exception as e:
+        logger.warning("get_current_user_from_request token parse failed: %s", e)
         return None
 
 
@@ -299,7 +302,8 @@ async def get_optional_current_user(
         if user:
             role_value = user.role.value if hasattr(user.role, "value") else str(user.role)
             return {"id": user.id, "email": user.email, "role": role_value, "nickname": user.nickname}
-    except Exception:
+    except Exception as e:
+        logger.warning("get_optional_current_user failed: %s", e)
         return None
     return None
 
