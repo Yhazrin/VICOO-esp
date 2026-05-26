@@ -958,3 +958,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Replaced 4-digit numeric suffix with 6-character hex string (`secrets.token_hex(3).upper()`) = 16M possibilities per second, reducing collision probability to negligible
 - **Verification**: `python -c "import ast; ..."` pass for both files
 - **New issues**: None
+
+## Fix 118 — DashboardPage passes unused sort params to fetchArtworks
+- **Date**: 2026-05-27 (Round 49)
+- **Files**: `admin/src/pages/DashboardPage.tsx`
+- **Reason**: P2: `fetchArtworks({ pageSize: 4, sortBy: 'created_at', sortOrder: 'desc' })` passed `sortBy` and `sortOrder` but `fetchArtworks` in api.ts only forwards `page`, `page_size`, `status`, and `search` — the sort parameters were silently discarded. The backend already sorts by `created_at desc` by default.
+- **Change**: Removed unused `sortBy` and `sortOrder` params from the DashboardPage call
+- **Verification**: Build passes
+- **New issues**: None

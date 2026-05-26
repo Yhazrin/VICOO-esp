@@ -18,7 +18,7 @@ export default function DashboardPage() {
   const artworksQuery = useQuery({
     queryKey: ['dashboardArtworks'],
     queryFn: () =>
-      fetchArtworks({ pageSize: 4, sortBy: 'created_at', sortOrder: 'desc' }),
+      fetchArtworks({ pageSize: 4 }),
   });
 
   const metrics = metricsQuery.data;
