@@ -18,7 +18,7 @@ function MediaBlock({ item, compact }: { item: TraceMediaItem; compact?: boolean
       <figure className={compact ? 'space-y-1' : 'space-y-2'}>
         <img
           src={resolveMediaUrl(item.url)}
-          alt={item.caption || ''}
+          alt={item.caption || 'Traceability media'}
           className={`w-full rounded-sm border border-warm-gray/20 object-cover bg-aged-stock ${
             compact ? 'max-h-28' : 'max-h-48'
           }`}

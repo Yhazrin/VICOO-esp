@@ -469,7 +469,7 @@ export default function OrderDetail() {
                           className="accent-rust cursor-pointer"
                         />
                         <div className="w-10 h-12 flex-shrink-0 overflow-hidden border border-warm-gray/10 bg-aged-stock">
-                          {item.product_image && <img src={item.product_image} alt="" className="w-full h-full object-cover" loading="lazy" />}
+                          {item.product_image && <img src={item.product_image} alt={item.product_name || ''} className="w-full h-full object-cover" loading="lazy" />}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-body text-body-sm text-ink truncate">{item.product_name || `#${item.product_id}`}</p>

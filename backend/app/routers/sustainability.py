@@ -1,6 +1,7 @@
 """可持续性聚合指标（与供应链、衣物闭环联动）。"""
 
 from decimal import Decimal
+import logging
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func, select
@@ -12,6 +13,8 @@ from app.models.donation import Donation
 from app.models.product import Product
 from app.models.supply_chain import SupplyChainRecord
 from app.schemas import ApiResponse
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/sustainability", tags=["Sustainability"])
 
@@ -56,6 +59,7 @@ async def sustainability_summary(db: AsyncSession = Depends(get_db)):
     except HTTPException:
         raise
     except Exception:
+        logger.exception("Sustainability summary query failed")
         return ApiResponse(
             data={
                 "donation_total_completed": "0",
