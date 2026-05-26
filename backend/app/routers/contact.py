@@ -3,12 +3,15 @@ from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 import time
+import logging
 
 from app.database import get_db
 from app.models.contact import ContactMessage
 from app.schemas import ApiResponse
 from app.schemas.contact import ContactMessageOut
 from app.deps import require_role
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/contact", tags=["Contact"])
 
@@ -54,15 +57,21 @@ async def submit_contact_form(body: ContactForm, request: Request, db: AsyncSess
         _contact_rate_limit[client_ip] = now
         _contact_rate_limit[f"{client_ip}_count"] = 1
 
-    msg = ContactMessage(
-        name=body.name,
-        email=body.email,
-        subject=body.subject,
-        message=body.message,
-    )
-    db.add(msg)
-    await db.flush()
-    return ApiResponse(data={"id": msg.id, "message": "Contact form submitted successfully"})
+    try:
+        msg = ContactMessage(
+            name=body.name,
+            email=body.email,
+            subject=body.subject,
+            message=body.message,
+        )
+        db.add(msg)
+        await db.flush()
+        return ApiResponse(data={"id": msg.id, "message": "Contact form submitted successfully"})
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Failed to submit contact form")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/messages", response_model=ApiResponse)
@@ -71,6 +80,10 @@ async def list_contact_messages(
     _admin: dict = Depends(require_role("admin")),
 ):
     """List all contact form messages (admin only)."""
-    result = await db.execute(select(ContactMessage).order_by(ContactMessage.created_at.desc()))
-    messages = result.scalars().all()
-    return ApiResponse(data=[ContactMessageOut.model_validate(m).model_dump() for m in messages])
+    try:
+        result = await db.execute(select(ContactMessage).order_by(ContactMessage.created_at.desc()))
+        messages = result.scalars().all()
+        return ApiResponse(data=[ContactMessageOut.model_validate(m).model_dump() for m in messages])
+    except Exception as e:
+        logger.exception("Failed to list contact messages")
+        raise HTTPException(status_code=500, detail="Internal server error")
