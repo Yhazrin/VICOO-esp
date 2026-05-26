@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
 from typing import Optional
 import logging
+import os
 
 from app.config import settings
 from app.database import get_db
@@ -14,7 +15,7 @@ from app.models.donation import Donation
 from app.models.product import Product
 from app.models.order import Order
 from app.models.audit import AuditLog
-from app.schemas import ApiResponse, AuditLogOut, DashboardMetrics, PaginatedResponse, DonationOut, SettingsUpdate
+from app.schemas import ApiResponse, AuditLogOut, DashboardMetrics, PaginatedResponse, DonationOut, SettingsUpdate, VerifyAccessRequest
 from app.deps import require_role
 from app.models.settings import SiteSettings
 
@@ -93,6 +94,10 @@ async def ai_analytics(
         logger.error(f"AI analytics failed: {e}")
         return ApiResponse(data={"chat_count": 0, "feedback_total": 0, "handoff_count": 0})
 
+_VALID_ARTWORK_STATUSES = {"draft", "pending", "approved", "rejected", "featured"}
+_VALID_CHILD_STATUSES = {"active", "withdrawn", "pending_review"}
+
+
 @router.post("/artworks/batch-moderate", response_model=ApiResponse)
 async def batch_moderate_artworks(
     artwork_ids: List[int],
@@ -101,6 +106,8 @@ async def batch_moderate_artworks(
     _current_user: dict = Depends(require_role("admin", "editor")),
 ):
     """Batch approve or reject artworks."""
+    if status not in _VALID_ARTWORK_STATUSES:
+        raise HTTPException(status_code=400, detail=f"Invalid status. Allowed: {', '.join(sorted(_VALID_ARTWORK_STATUSES))}")
     admin_service = AdminService(db)
     try:
         result = await admin_service.batch_moderate_artworks(artwork_ids, status)
@@ -119,6 +126,8 @@ async def batch_moderate_children(
     _current_user: dict = Depends(require_role("admin", "compliance")),
 ):
     """Batch approve or withdraw child participants."""
+    if status not in _VALID_CHILD_STATUSES:
+        raise HTTPException(status_code=400, detail=f"Invalid status. Allowed: {', '.join(sorted(_VALID_CHILD_STATUSES))}")
     admin_service = AdminService(db)
     try:
         result = await admin_service.batch_moderate_children(child_ids, status)
@@ -132,16 +141,12 @@ async def batch_moderate_children(
 
 @router.post("/auth/verify-access", response_model=ApiResponse)
 async def verify_audit_access(
-    body: dict[str, str],
+    body: VerifyAccessRequest,
     _current_user: dict = Depends(require_role("admin")),
 ):
     """Verify admin audit access code."""
-    access_code = body.get("accessCode", "")
-    if not access_code:
-        raise HTTPException(status_code=400, detail="Access code required")
-    import os
     expected = os.environ.get("ADMIN_AUDIT_CODE", "vicoo-admin-2025")
-    if access_code != expected:
+    if body.access_code != expected:
         raise HTTPException(status_code=403, detail="Invalid access code")
     return ApiResponse(data={"verified": True})
 

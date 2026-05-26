@@ -98,3 +98,9 @@ class SettingsUpdate(BaseModel):
     registration_enabled: Optional[bool] = None
     maintenance_mode: Optional[bool] = None
     payment_methods: Optional[Dict[str, Any]] = None
+
+
+class VerifyAccessRequest(BaseModel):
+    access_code: str = Field(..., min_length=1, max_length=200, alias="accessCode")
+
+    model_config = {"populate_by_name": True}
