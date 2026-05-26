@@ -45,6 +45,7 @@ export default function TopBar() {
         {/* Sidebar toggle */}
         <button
           onClick={toggleSidebar}
+          aria-label="Toggle sidebar"
           style={{
             padding: '5px 10px',
             border: '1px solid var(--color-border)',
@@ -75,6 +76,7 @@ export default function TopBar() {
         {/* Theme toggle */}
         <button
           onClick={toggleTheme}
+          aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
           style={{
             padding: '5px 10px',
             border: '1px solid var(--color-border)',
@@ -116,6 +118,7 @@ export default function TopBar() {
         {/* Language toggle */}
         <button
           onClick={toggleLanguage}
+          aria-label="Switch language"
           style={{
             padding: '5px 10px',
             border: '1px solid var(--color-border)',

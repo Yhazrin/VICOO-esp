@@ -44,7 +44,7 @@ export default function Pagination({ page, totalPages, total, pageSize, onPageCh
         {t('pagination.page', { current: page, total: totalPages })}
       </span>
       <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        <PageBtn onClick={() => onPageChange(page - 1)} disabled={page <= 1}>
+        <PageBtn onClick={() => onPageChange(page - 1)} disabled={page <= 1} ariaLabel="Previous page">
           &laquo;
         </PageBtn>
         {getPageNumbers().map((p, i) =>
@@ -56,7 +56,7 @@ export default function Pagination({ page, totalPages, total, pageSize, onPageCh
             </PageBtn>
           )
         )}
-        <PageBtn onClick={() => onPageChange(page + 1)} disabled={page >= totalPages}>
+        <PageBtn onClick={() => onPageChange(page + 1)} disabled={page >= totalPages} ariaLabel="Next page">
           &raquo;
         </PageBtn>
       </div>
@@ -64,13 +64,15 @@ export default function Pagination({ page, totalPages, total, pageSize, onPageCh
   );
 }
 
-function PageBtn({ children, active, disabled, onClick }: {
-  children: React.ReactNode; active?: boolean; disabled?: boolean; onClick: () => void;
+function PageBtn({ children, active, disabled, onClick, ariaLabel }: {
+  children: React.ReactNode; active?: boolean; disabled?: boolean; onClick: () => void; ariaLabel?: string;
 }) {
   return (
     <button
       onClick={onClick}
       disabled={disabled}
+      aria-label={ariaLabel || (typeof children === 'number' ? `Page ${children}` : undefined)}
+      aria-current={active ? 'page' : undefined}
       style={{
         minWidth: 30, height: 30,
         padding: '0 6px',

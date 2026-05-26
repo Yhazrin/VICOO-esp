@@ -68,6 +68,7 @@ export default function Modal({ open, onClose, title, children, footer, width = 
           </h2>
           <button
             onClick={onClose}
+            aria-label="Close dialog"
             style={{
               background: 'none',
               border: 'none',

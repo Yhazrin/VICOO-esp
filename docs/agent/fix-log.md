@@ -1707,3 +1707,27 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Narrowed to `except (ValueError, TypeError): continue`
 - **Verification**: Only expected conversion failures are caught; unexpected errors propagate
 - **New issues**: None
+
+## Fix 209 — Admin TopBar icon buttons missing aria-label
+- **Date**: 2026-05-27 (Round 63)
+- **Files**: `admin/src/components/layout/TopBar.tsx`
+- **Reason**: P2: Sidebar toggle, theme toggle, and language toggle buttons contained only SVG icons or short text ("EN"/"中文") with no `aria-label`. Screen readers could not identify the button purpose.
+- **Change**: Added `aria-label="Toggle sidebar"`, `aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}`, and `aria-label="Switch language"` to the three buttons
+- **Verification**: All TopBar icon buttons now have accessible labels
+- **New issues**: None
+
+## Fix 210 — Admin Modal close button missing aria-label
+- **Date**: 2026-05-27 (Round 63)
+- **Files**: `admin/src/components/ui/Modal.tsx`
+- **Reason**: P2: Close button rendered only `&times;` character with no `aria-label`. Screen readers announced it as a meaningless multiplication sign.
+- **Change**: Added `aria-label="Close dialog"` to the close button
+- **Verification**: Modal close button is now accessible
+- **New issues**: None
+
+## Fix 211 — Admin Pagination buttons missing aria-label and aria-current
+- **Date**: 2026-05-27 (Round 63)
+- **Files**: `admin/src/components/ui/Pagination.tsx`
+- **Reason**: P2: Previous/next buttons used `&laquo;`/`&raquo;` characters with no `aria-label`. Page number buttons had no `aria-current="page"` to indicate the active page.
+- **Change**: Added `ariaLabel` prop to `PageBtn` component. Previous/next buttons get explicit labels. Page number buttons auto-generate `aria-label="Page N"`. Active page gets `aria-current="page"`.
+- **Verification**: All pagination buttons are now accessible to screen readers
+- **New issues**: None
