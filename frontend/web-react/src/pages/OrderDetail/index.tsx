@@ -15,6 +15,10 @@ import type { SupplyChainTimelineRecord } from '@/types';
 
 const ORDER_STATUSES = ['pending', 'paid', 'shipped', 'completed'] as const;
 
+function currencySymbol(paymentMethod?: string | null) {
+  return paymentMethod === 'paypal' || paymentMethod === 'stripe' ? '$' : '¥';
+}
+
 const STATUS_COLORS: Record<string, string> = {
   pending: 'text-sepia-mid border-warm-gray/30 bg-warm-gray/5',
   paid: 'text-archive-brown border-archive-brown/30 bg-archive-brown/5',
@@ -263,11 +267,11 @@ export default function OrderDetail() {
                         {item.product_name || `Product #${item.product_id}`}
                       </Link>
                       <p className="font-mono text-[11px] text-sepia-mid mt-0.5">
-                        ¥{Number(item.price).toFixed(2)} × {item.quantity}
+                        {currencySymbol(order.payment_method)}{Number(item.price).toFixed(2)} × {item.quantity}
                       </p>
                     </div>
                     <span className="font-mono text-sm text-ink font-medium flex-shrink-0">
-                      ¥{(Number(item.price) * item.quantity).toFixed(2)}
+                      {currencySymbol(order.payment_method)}{(Number(item.price) * item.quantity).toFixed(2)}
                     </span>
                   </div>
                 ))}
@@ -276,7 +280,7 @@ export default function OrderDetail() {
               {/* Total */}
               <div className="flex items-center justify-between pt-5 mt-4 border-t border-warm-gray/20">
                 <span className="font-body text-label text-sepia-mid tracking-wide uppercase">{t('orderDetail.total', 'Total')}</span>
-                <span className="font-display text-xl font-bold text-ink">¥{Number(order.total_amount).toFixed(2)}</span>
+                <span className="font-display text-xl font-bold text-ink">{currencySymbol(order.payment_method)}{Number(order.total_amount).toFixed(2)}</span>
               </div>
 
               {/* Actions */}
@@ -387,7 +391,7 @@ export default function OrderDetail() {
                       <span className="font-body text-caption text-ink-faded ml-2">({entry.beneficiary_name})</span>
                     )}
                   </div>
-                  <span className="font-mono text-sm text-archive-brown">¥{Number(entry.allocated_amount).toFixed(2)}</span>
+                  <span className="font-mono text-sm text-archive-brown">{currencySymbol(order.payment_method)}{Number(entry.allocated_amount).toFixed(2)}</span>
                 </div>
               ))}
             </div>
@@ -473,7 +477,7 @@ export default function OrderDetail() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-body text-body-sm text-ink truncate">{item.product_name || `#${item.product_id}`}</p>
-                          <p className="font-mono text-[11px] text-sepia-mid">¥{Number(item.price).toFixed(2)} × {item.quantity}</p>
+                          <p className="font-mono text-[11px] text-sepia-mid">{currencySymbol(order.payment_method)}{Number(item.price).toFixed(2)} × {item.quantity}</p>
                         </div>
                         {selectedItems[item.id] !== undefined && (
                           <div className="flex items-center gap-1">

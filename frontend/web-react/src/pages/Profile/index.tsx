@@ -42,6 +42,10 @@ type TabKey = 'orders' | 'donations' | 'clothing' | 'support' | 'addresses';
 
 const ORDER_STATUSES = ['', 'pending', 'paid', 'shipped', 'completed', 'cancelled'] as const;
 
+function currencySymbol(paymentMethod?: string | null) {
+  return paymentMethod === 'paypal' || paymentMethod === 'stripe' ? '$' : '¥';
+}
+
 export default function Profile() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -458,7 +462,7 @@ export default function Profile() {
                               </p>
                             </div>
                             <span className="font-mono text-sm text-ink flex-shrink-0">
-                              ¥{(Number(item.price) * item.quantity).toFixed(2)}
+                              {currencySymbol(order.payment_method)}{(Number(item.price) * item.quantity).toFixed(2)}
                             </span>
                           </div>
                         ))}
@@ -469,7 +473,7 @@ export default function Profile() {
                         <div className="flex items-center gap-3">
                           <span className="font-body text-caption text-sepia-mid">{t('profile.total')}</span>
                           <span className="font-display text-base font-bold text-ink">
-                            ¥{Number(order.total_amount).toFixed(2)}
+                            {currencySymbol(order.payment_method)}{Number(order.total_amount).toFixed(2)}
                           </span>
                         </div>
                         <div className="flex items-center gap-3">

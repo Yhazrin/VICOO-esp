@@ -6,6 +6,7 @@ import QRCode from 'qrcode';
 interface PaymentQRModalProps {
   payUrl: string;
   amount: number;
+  currency?: 'CNY' | 'USD' | string;
   onSuccess: () => void;
   onFailure: () => void;
   isProcessing?: boolean;
@@ -16,6 +17,7 @@ interface PaymentQRModalProps {
 export default function PaymentQRModal({
   payUrl,
   amount,
+  currency = 'CNY',
   onSuccess,
   onFailure,
   isProcessing,
@@ -94,7 +96,7 @@ export default function PaymentQRModal({
               </p>
             )}
           </div>
-          <p className="font-display text-xl font-bold text-ink mt-4">¥{amount.toFixed(2)}</p>
+          <p className="font-display text-xl font-bold text-ink mt-4">{currency === 'USD' ? '$' : '¥'}{amount.toFixed(2)}</p>
 
           <p className="font-body text-[10px] text-ink-faded mt-4 self-stretch text-left break-all leading-relaxed">
             {payUrl}

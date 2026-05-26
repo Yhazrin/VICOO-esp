@@ -2556,3 +2556,27 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Translated both docstrings to English.
 - **Verification**: All docstrings in sustainability.py now in English
 - **New issues**: None
+
+## Fix 305 — OrderDetail hardcoded ¥ currency symbol (5 locations)
+- **Date**: 2026-05-27 (Round 84)
+- **Files**: `frontend/web-react/src/pages/OrderDetail/index.tsx`
+- **Reason**: P1: Five instances of hardcoded `¥` in order item prices, totals, and impact fund allocations. Users paying via PayPal/Stripe see ¥ instead of $.
+- **Change**: Added `currencySymbol()` helper that derives symbol from `order.payment_method` (paypal/stripe → $, others → ¥). Applied to all 5 locations: item price × qty, line total, order total, impact fund allocation, and return modal item price.
+- **Verification**: Currency symbol now matches the payment method used for the order
+- **New issues**: None
+
+## Fix 306 — Profile hardcoded ¥ currency symbol (2 locations)
+- **Date**: 2026-05-27 (Round 84)
+- **Files**: `frontend/web-react/src/pages/Profile/index.tsx`
+- **Reason**: P2: Two hardcoded `¥` in Profile order cards — item subtotals and order totals. Same issue as Fix 305.
+- **Change**: Added `currencySymbol()` helper. Applied to item line total and order total in profile order list.
+- **Verification**: Profile order cards now show correct currency symbol per payment method
+- **New issues**: None
+
+## Fix 307 — PaymentQRModal hardcoded ¥ currency symbol
+- **Date**: 2026-05-27 (Round 84)
+- **Files**: `frontend/web-react/src/components/payment/PaymentQRModal.tsx`, `frontend/web-react/src/pages/Checkout/index.tsx`
+- **Reason**: P1: PaymentQRModal displayed `¥{amount.toFixed(2)}` regardless of payment method. QR modal is the last step before payment — showing wrong currency here is most confusing.
+- **Change**: Added optional `currency` prop (`'CNY' | 'USD' | string`, defaults to `'CNY'`) to PaymentQRModal. Checkout now passes `currency={paymentMethod === 'paypal' || paymentMethod === 'stripe' ? 'USD' : 'CNY'}`. Modal displays `$` for USD, `¥` otherwise.
+- **Verification**: QR payment modal now shows correct currency symbol
+- **New issues**: None

@@ -767,6 +767,7 @@ export default function Checkout() {
         <PaymentQRModal
           payUrl={pendingPayOrder.payUrl}
           amount={pendingPayOrder.amount}
+          currency={paymentMethod === 'paypal' || paymentMethod === 'stripe' ? 'USD' : 'CNY'}
           onSuccess={handleSimulatePaid}
           onFailure={handlePayModalClose}
           isProcessing={isProcessing}
