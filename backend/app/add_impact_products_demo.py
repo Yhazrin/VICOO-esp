@@ -1,7 +1,8 @@
 """
-向数据库追加「真实感」公益商品及全链路溯源节点（含 WGS84 坐标），可安全多次执行（按商品名去重）。
+Idempotently insert realistic impact products with full supply-chain trace nodes (WGS84).
+Deduplicates by product name — safe to run multiple times.
 
-运行（容器内）:
+Run inside container:
   cd /app/backend && python -m app.add_impact_products_demo
 """
 
@@ -27,28 +28,29 @@ from app.data.impact_origin_story_seed import (
     ORIGIN_REGIONS,
 )
 
-# 与 seed.py 风格一致的可直连图片
+# Unsplash images (same style as seed.py)
 _U = "https://images.unsplash.com"
 
-# 去重用的固定名称
+# Fixed names for deduplication
 IMPACT_PRODUCT_NAMES = frozenset(
     {
-        "云南大理·白族扎染儿童画联名方巾",
-        "贵州侗寨靛蓝帆布包「侗乡晨雾」",
-        "青海祁连牦牛绒儿童画披肩",
-        "德化再生瓷·童心马克杯对杯",
+        "Dali Bai Tie-Dye Children's Art Scarf",
+        "Guizhou Dong Indigo Canvas Bag 'Morning Mist'",
+        "Qilian Yak Down Children's Art Shawl",
+        "Dehua Recycled Porcelain Kids Mug Set",
     }
 )
 
 
 def _impact_catalog() -> list[dict]:
-    """每条含 campaign_i / artwork_i（在库内按序取模绑定真实 id）。"""
+    """Each entry has campaign_i / artwork_i for modulo-binding to real DB ids."""
     return [
         {
-            "name": "云南大理·白族扎染儿童画联名方巾",
+            "name": "Dali Bai Tie-Dye Children's Art Scarf",
             "description": (
-                "大理周城非遗扎染工坊与「春天的色彩」项目联名，方巾图案来自合作小学孩子的获奖画作。"
-                "植物靛蓝染色，手工缝边。每件销售额的 26% 进入乡村美育画材基金。"
+                "Co-branded with the 'Colors of Spring' project by Dali Zhoucheng's intangible tie-dye workshop. "
+                "Scarf patterns come from award-winning paintings by partner school children. "
+                "Plant-indigo dyed, hand-stitched edges. 26% of each sale funds rural art education supplies."
             ),
             "price": Decimal("128.00"),
             "category": "accessories",
@@ -57,20 +59,20 @@ def _impact_catalog() -> list[dict]:
             "campaign_i": 0,
             "artwork_i": 0,
             "image_url": f"{_U}/photo-1504196606672-aef5d9a7b792?auto=format&fit=crop&w=900&q=80",
-            # 坐标取近似：县城/市政府驻地 WGS84（周城=喜洲镇周城村，非大理古城）
             "trace": [
-                ("material_sourcing", "有机棉纱线由云南楚雄合作棉田直供，田间农残抽检合格", "云南楚雄", 25.0330, 101.5330, True, datetime(2025, 8, 5), Decimal("2.8"), "棉田灌溉与采摘运输"),
-                ("processing", "大理周城工坊植物靛蓝发酵染，无偶氮染料", "云南大理·周城", 25.8547, 100.2139, True, datetime(2025, 8, 22), Decimal("1.9"), "太阳能辅助晒布"),
-                ("manufacturing", "手工裁切与缝边，合作绣娘按件计酬", "云南大理", 25.6065, 100.2676, True, datetime(2025, 9, 8), Decimal("0.6"), "工坊内短驳电动缝纫"),
-                ("quality_check", "昆明第三方实验室抽检色牢度与甲醛", "云南昆明", 25.0389, 102.7183, True, datetime(2025, 9, 18), Decimal("0.4"), "送检物流纳入碳排估算"),
-                ("shipping", "可降解纸包装，昆明仓发全国", "云南昆明", 25.0389, 102.7183, False, datetime(2025, 9, 25), Decimal("1.1"), "干线冷链零担+末端电动车"),
+                ("material_sourcing", "Organic cotton yarn sourced directly from partner farms in Chuxiong, pesticide residue tested", "Chuxiong, Yunnan", 25.0330, 101.5330, True, datetime(2025, 8, 5), Decimal("2.8"), "Farm irrigation and harvest transport"),
+                ("processing", "Plant-indigo fermentation dyeing at Zhoucheng workshop, no azo dyes", "Zhoucheng, Dali, Yunnan", 25.8547, 100.2139, True, datetime(2025, 8, 22), Decimal("1.9"), "Solar-assisted cloth drying"),
+                ("manufacturing", "Hand-cut and stitched edges, partner seamstresses paid per piece", "Dali, Yunnan", 25.6065, 100.2676, True, datetime(2025, 9, 8), Decimal("0.6"), "Short-haul electric sewing in workshop"),
+                ("quality_check", "Third-party lab in Kunming tests color fastness and formaldehyde", "Kunming, Yunnan", 25.0389, 102.7183, True, datetime(2025, 9, 18), Decimal("0.4"), "Test logistics included in carbon accounting"),
+                ("shipping", "Biodegradable paper packaging, ships nationwide from Kunming warehouse", "Kunming, Yunnan", 25.0389, 102.7183, False, datetime(2025, 9, 25), Decimal("1.1"), "Cold-chain LTL + last-mile electric vehicles"),
             ],
         },
         {
-            "name": "贵州侗寨靛蓝帆布包「侗乡晨雾」",
+            "name": "Guizhou Dong Indigo Canvas Bag 'Morning Mist'",
             "description": (
-                "黔东南侗族地区靛蓝染帆布，印有《侗乡晨雾》主题儿童画（经授权）。"
-                "厚织再生棉帆布，承重升级。销售额 24% 捐赠「我的家乡」乡土记忆项目。"
+                "Indigo-dyed canvas from the Dong region of Qiandongnan, printed with the 'Morning Mist of Dong Village' "
+                "children's artwork (authorized). Heavy-weight recycled cotton canvas with reinforced capacity. "
+                "24% of sales donated to the 'My Hometown' rural memory project."
             ),
             "price": Decimal("96.00"),
             "category": "accessories",
@@ -80,18 +82,19 @@ def _impact_catalog() -> list[dict]:
             "artwork_i": 1,
             "image_url": f"{_U}/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=900&q=80",
             "trace": [
-                ("material_sourcing", "再生棉帆布坯布，供应商提供 GRS 追溯编号", "浙江宁波", 29.8747, 121.5507, True, datetime(2025, 7, 12), Decimal("3.1"), "海运集港至钦州"),
-                ("processing", "凯里合作染坊侗族靛蓝浸染七道，日晒固色", "贵州凯里", 26.5836, 107.9803, True, datetime(2025, 7, 28), Decimal("2.0"), "染缸加热使用生物质颗粒"),
-                ("manufacturing", "柳州车缝厂完成裁片与提手加固", "广西柳州", 24.3263, 109.4281, True, datetime(2025, 8, 15), Decimal("1.4"), "厂区屋顶光伏"),
-                ("quality_check", "拉力与色牢度抽检，SGS 合作实验室", "广东深圳", 22.5431, 114.0579, True, datetime(2025, 8, 29), Decimal("0.5"), "抽检样品空运"),
-                ("shipping", "华南中心仓发运，面单碳中和补偿", "广东佛山", 23.0297, 113.1056, False, datetime(2025, 9, 6), Decimal("1.3"), "干线电动卡车试点线路"),
+                ("material_sourcing", "Recycled cotton canvas fabric, supplier provides GRS traceability number", "Ningbo, Zhejiang", 29.8747, 121.5507, True, datetime(2025, 7, 12), Decimal("3.1"), "Sea freight consolidation to Qinzhou"),
+                ("processing", "Seven-dip Dong indigo immersion dyeing at Kaili partner workshop, sun-cured", "Kaili, Guizhou", 26.5836, 107.9803, True, datetime(2025, 7, 28), Decimal("2.0"), "Dye vat heated with biomass pellets"),
+                ("manufacturing", "Cut pieces and handle reinforcement at Liuzhou sewing factory", "Liuzhou, Guangxi", 24.3263, 109.4281, True, datetime(2025, 8, 15), Decimal("1.4"), "Rooftop solar panels at factory"),
+                ("quality_check", "Tensile strength and color fastness spot-check, SGS partner lab", "Shenzhen, Guangdong", 22.5431, 114.0579, True, datetime(2025, 8, 29), Decimal("0.5"), "Samples air-freighted to lab"),
+                ("shipping", "Shipped from South China central warehouse, carbon-neutral label offset", "Foshan, Guangdong", 23.0297, 113.1056, False, datetime(2025, 9, 6), Decimal("1.3"), "Electric truck trunk route pilot"),
             ],
         },
         {
-            "name": "青海祁连牦牛绒儿童画披肩",
+            "name": "Qilian Yak Down Children's Art Shawl",
             "description": (
-                "祁连山下牧场牦牛绒混纺，轻柔保暖。印花图案来自海北州公益小学孩子画作。"
-                "每件捐赠 27% 用于高海拔学校冬季取暖与艺术课堂。"
+                "Yak down blend from pastures at the foot of the Qilian Mountains — soft and warm. "
+                "Printed patterns from children's paintings at Haibei Prefecture charity primary school. "
+                "27% of each sale funds winter heating and art classes for high-altitude schools."
             ),
             "price": Decimal("268.00"),
             "category": "accessories",
@@ -101,19 +104,18 @@ def _impact_catalog() -> list[dict]:
             "artwork_i": 2,
             "image_url": f"{_U}/photo-1519682337058-a94d519337bc?auto=format&fit=crop&w=900&q=80",
             "trace": [
-                ("material_sourcing", "祁连牧场分梳牦牛绒，牧民合作社直采", "青海祁连", 38.1754, 100.2497, True, datetime(2025, 6, 3), Decimal("4.2"), "牧场至西宁冷链短驳"),
-                ("processing", "西宁毛纺厂洗绒、分梳与精纺成纱", "青海西宁", 36.6171, 101.7782, True, datetime(2025, 6, 20), Decimal("2.6"), "工业余热回收"),
-                # 原 39.34°N 已偏至宁河/冀东一带，非天津中心城区针织产业带
-                ("manufacturing", "天津针织厂横机织造与数码印花", "天津", 39.0842, 117.2010, True, datetime(2025, 7, 8), Decimal("2.9"), "电网绿电占比年度披露"),
-                ("quality_check", "起球与成分含量检测，符合 FZ/T 标准", "河北廊坊", 39.5239, 116.7044, True, datetime(2025, 7, 22), Decimal("0.7"), "实验室集中送检"),
-                ("shipping", "华北仓组单，生物基包装袋", "北京通州", 39.9097, 116.6576, False, datetime(2025, 8, 1), Decimal("1.5"), "铁路干线+城配"),
+                ("material_sourcing", "Dehaired yak down from Qilian pastoral cooperative, direct sourcing", "Qilian, Qinghai", 38.1754, 100.2497, True, datetime(2025, 6, 3), Decimal("4.2"), "Cold-chain short-haul from pasture to Xining"),
+                ("processing", "Washing, dehairing, and worsted spinning at Xining wool mill", "Xining, Qinghai", 36.6171, 101.7782, True, datetime(2025, 6, 20), Decimal("2.6"), "Industrial waste heat recovery"),
+                ("manufacturing", "Flat-knit weaving and digital printing at Tianjin knitting factory", "Tianjin", 39.0842, 117.2010, True, datetime(2025, 7, 8), Decimal("2.9"), "Annual grid green-electricity share disclosure"),
+                ("quality_check", "Pilling and composition testing per FZ/T standards", "Langfang, Hebei", 39.5239, 116.7044, True, datetime(2025, 7, 22), Decimal("0.7"), "Centralized lab delivery"),
+                ("shipping", "Bundled orders from North China warehouse, bio-based packaging", "Tongzhou, Beijing", 39.9097, 116.6576, False, datetime(2025, 8, 1), Decimal("1.5"), "Rail trunk + urban distribution"),
             ],
         },
         {
-            "name": "德化再生瓷·童心马克杯对杯",
+            "name": "Dehua Recycled Porcelain Kids Mug Set",
             "description": (
-                "德化白瓷工艺，30% 再生瓷土。对杯印有两幅不同儿童画（同一班级姊妹篇）。"
-                "销售额 23% 捐入福建乡村学校陶艺兴趣角。"
+                "Dehua white porcelain craft with 30% recycled clay. Each set features two different children's "
+                "paintings (sister pieces from the same class). 23% of sales fund pottery corners at rural schools in Fujian."
             ),
             "price": Decimal("158.00"),
             "category": "lifestyle",
@@ -123,12 +125,11 @@ def _impact_catalog() -> list[dict]:
             "artwork_i": 3,
             "image_url": f"{_U}/photo-1577937927133-66ef06acdf18?auto=format&fit=crop&w=900&q=80",
             "trace": [
-                ("material_sourcing", "高岭土掺配建筑陶瓷回收粉料，批次可追溯", "福建德化", 25.4897, 118.2417, True, datetime(2025, 5, 10), Decimal("2.2"), "短途汽运至园区"),
-                ("processing", "球磨、除铁与真空练泥", "福建德化", 25.4897, 118.2417, True, datetime(2025, 5, 18), Decimal("1.1"), "峰谷电价生产"),
-                ("manufacturing", "高压注浆成型、釉下彩贴花与 1280℃ 氧化烧成", "福建德化", 25.4897, 118.2417, True, datetime(2025, 6, 2), Decimal("3.4"), "天然气窑炉热效率改造"),
-                # 原 118.68°E 已偏至泉州湾以东近海/莆田沿岸，改用鲤城区一带市区坐标
-                ("quality_check", "铅镉溶出量抽检（GB 4806.4）", "福建泉州", 24.9139, 118.5859, True, datetime(2025, 6, 15), Decimal("0.3"), "送检同城"),
-                ("shipping", "厦门港支线+华东电商仓分拨", "福建厦门", 24.4798, 118.0894, False, datetime(2025, 6, 22), Decimal("1.8"), "海运干线主力"),
+                ("material_sourcing", "Kaolin blended with recycled construction ceramic powder, batch traceable", "Dehua, Fujian", 25.4897, 118.2417, True, datetime(2025, 5, 10), Decimal("2.2"), "Short-haul trucking to industrial park"),
+                ("processing", "Ball milling, iron removal, and vacuum pugging", "Dehua, Fujian", 25.4897, 118.2417, True, datetime(2025, 5, 18), Decimal("1.1"), "Off-peak electricity production"),
+                ("manufacturing", "High-pressure slip casting, underglaze decal, and 1280°C oxidation firing", "Dehua, Fujian", 25.4897, 118.2417, True, datetime(2025, 6, 2), Decimal("3.4"), "Natural gas kiln thermal efficiency upgrade"),
+                ("quality_check", "Lead and cadmium leaching spot-check per GB 4806.4", "Quanzhou, Fujian", 24.9139, 118.5859, True, datetime(2025, 6, 15), Decimal("0.3"), "Same-city lab delivery"),
+                ("shipping", "Xiamen port feeder + East China e-commerce warehouse distribution", "Xiamen, Fujian", 24.4798, 118.0894, False, datetime(2025, 6, 22), Decimal("1.8"), "Sea freight main trunk"),
             ],
         },
     ]
@@ -167,13 +168,13 @@ async def main() -> None:
             existing = await session.execute(select(Product.name).where(Product.name.in_(IMPACT_PRODUCT_NAMES)))
             existing_names = set(existing.scalars().all())
             if existing_names == IMPACT_PRODUCT_NAMES:
-                print("公益溯源商品已存在，跳过插入。")
+                print("Impact trace products already exist — skipping insertion.")
                 return
 
             c_res = await session.execute(select(Campaign.id).order_by(Campaign.id))
             campaign_ids = list(c_res.scalars().all())
             if not campaign_ids:
-                print("错误：数据库中无活动（campaigns），请先运行种子或创建活动。")
+                print("Error: no campaigns in database — please run seed or create campaigns first.")
                 return
 
             a_res = await session.execute(
@@ -184,7 +185,7 @@ async def main() -> None:
                 a2 = await session.execute(select(Artwork.id).order_by(Artwork.id).limit(8))
                 artwork_ids = list(dict.fromkeys(artwork_ids + list(a2.scalars().all())))
             if not artwork_ids:
-                print("错误：数据库中无画作（artworks），请先运行种子。")
+                print("Error: no artworks in database — please run seed first.")
                 return
 
             catalog = _impact_catalog()
@@ -236,7 +237,7 @@ async def main() -> None:
                     )
 
             await session.commit()
-            print(f"已新增 {len(new_products)} 个公益商品及溯源节点。")
+            print(f"Inserted {len(new_products)} impact products with supply chain nodes.")
     finally:
         await engine.dispose()
 

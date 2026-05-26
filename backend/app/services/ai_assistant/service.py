@@ -111,7 +111,6 @@ class AIAssistantService(BaseService):
         if self._should_ask_catalog_clarification(last_user):
             return {
                 "reply": (
-                    "当然可以，我先确认一下：你想要 **Uniqlo** 还是 **Impact（公益线）** 的推荐？\n\n"
                     "Sure — would you like recommendations from **Uniqlo** or **Impact**?"
                 ),
                 "model": "rule-based-clarifier",

@@ -1965,3 +1965,46 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Added `htmlFor` to all 8 `<label>` elements and matching `id` to all 8 `<input>` elements: `addr-label`, `addr-recipient`, `addr-phone`, `addr-province`, `addr-city`, `addr-district`, `addr-detail`, `addr-postal`. Also translated Chinese fallback strings in the address form to English.
 - **Verification**: Screen readers can now announce which label belongs to which input
 - **New issues**: None
+
+## Fix 234 — Translate backend mock data (supply chain, orders, campaigns, artwork)
+- **Date**: 2026-05-27 (Round 72)
+- **Files**: `backend/app/routers/products.py`, `backend/app/routers/orders.py`, `backend/app/routers/campaigns.py`
+- **Reason**: P3: Multiple backend mock/fallback datasets contained Chinese-only strings for API-facing fields (description, location, product_name, shipping_address, title). These are returned directly to the frontend and should use English for consistency.
+- **Change**:
+  - `products.py`: Translated 5 supply chain mock entries (description + location) and 10 artwork fallback entries (title + artist_name) from Chinese to English
+  - `orders.py`: Translated 6 mock orders — shipping_address (5 entries) and product_name (8 entries) from Chinese to English
+  - `campaigns.py`: Translated 1 mock campaign title and description from Chinese to English
+- **Verification**: All mock data returned by API endpoints now uses English strings
+- **New issues**: None
+
+## Fix 235 — Translate frontend Chinese fallback strings (Checkout, Vote, Profile)
+- **Date**: 2026-05-27 (Round 72)
+- **Files**: `frontend/web-react/src/pages/Checkout/index.tsx`, `frontend/web-react/src/pages/Vote/index.tsx`, `frontend/web-react/src/pages/Profile/index.tsx`
+- **Reason**: P3: Multiple `t()` calls used Chinese strings as fallback values. When i18n keys are missing, users see raw Chinese text instead of English.
+- **Change**:
+  - `Checkout/index.tsx`: Translated 7 fallback strings (paymentTimeout, outOfStock, paymentFailed, savedAddresses, defaultBadge, enterNewAddress, saveAddress)
+  - `Vote/index.tsx`: Translated 3 fallback strings (error, loadError, loading)
+  - `Profile/index.tsx`: Translated 22 fallback strings across error messages, order actions, clothing intakes, support tickets, and address management (addressSaveError, addressDeleteError, setDefaultError, cancelOrderError, cancelOrder, viewLogistics, intakesError, noIntakes, viewLinkedProduct, ticketsError, noTickets, orderId, addresses.title, addAddress, editAddress, setDefault, save, cancel, noAddresses, defaultBadge, edit, delete)
+- **Verification**: All `t()` fallback values now use English
+- **New issues**: None
+
+## Fix 236 — Remove Chinese from AI assistant catalog clarification
+- **Date**: 2026-05-27 (Round 72)
+- **Files**: `backend/app/services/ai_assistant/service.py`
+- **Reason**: P3: The catalog clarification response contained a bilingual Chinese+English reply. Since the system prompt is fully English and all API strings should be English, the Chinese portion was removed.
+- **Change**: Removed the Chinese line "当然可以，我先确认一下：你想要 **Uniqlo** 还是 **Impact（公益线）** 的推荐？" from the catalog clarification response, keeping only the English version.
+- **Verification**: AI assistant clarification response now uses English only
+- **New issues**: None
+
+## Fix 237 — Translate demo/seed script data (impact products, showcase catalog, campaigns demo)
+- **Date**: 2026-05-27 (Round 72)
+- **Files**: `backend/app/add_impact_products_demo.py`, `backend/app/showcase_shop_catalog.py`, `backend/app/add_campaigns_demo.py`, `backend/app/load_showcase_shop.py`, `backend/app/fix_impact_supply_chain_coordinates.py`
+- **Reason**: P3: Demo/seed scripts contained Chinese product names, descriptions, supply chain data, and print statements. These scripts write data to the database that is served via API, and should use English for consistency.
+- **Change**:
+  - `add_impact_products_demo.py`: Translated 4 product names, 4 descriptions, 20 supply chain trace entries (description + location + carbon_note), and 4 print statements
+  - `showcase_shop_catalog.py`: Translated 8 regular product names/descriptions and 5 impact product names/descriptions with 25 supply chain trace entries
+  - `add_campaigns_demo.py`: Translated docstring, 5 campaign titles/descriptions, comment, and print statement
+  - `load_showcase_shop.py`: Translated docstring and 3 print statements
+  - `fix_impact_supply_chain_coordinates.py`: Translated docstring and print statement
+- **Verification**: All demo data inserted into database now uses English strings
+- **New issues**: None

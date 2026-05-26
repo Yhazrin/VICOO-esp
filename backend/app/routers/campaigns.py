@@ -15,8 +15,8 @@ from decimal import Decimal
 _mock_campaigns = [
     {
         "id": 1,
-        "title": "春天的色彩 — 乡村儿童画展",
-        "description": "征集来自全国各地乡村小学孩子们的画作...",
+        "title": "Colors of Spring — Rural Children Art Exhibition",
+        "description": "Collecting artworks from children in rural primary schools across the country...",
         "status": "active",
         "goal_amount": Decimal("50000.00"),
         "current_amount": Decimal("32500.00"),

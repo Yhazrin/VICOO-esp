@@ -164,7 +164,7 @@ export default function Checkout() {
         if (!cancelled) {
           try { await ordersApi.cancel(orderId); } catch { /* best-effort cleanup */ }
           setPendingPayOrder(null);
-          setError(t('checkout.paymentTimeout', '支付超时，请重新下单'));
+          setError(t('checkout.paymentTimeout', 'Payment timed out — please place a new order'));
         }
         return;
       }
@@ -277,7 +277,7 @@ export default function Checkout() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : '';
       if (msg.includes('422') || msg.includes('stock')) {
-        setError(t('checkout.outOfStock', '部分商品库存不足，请修改购物车'));
+        setError(t('checkout.outOfStock', 'Some items are out of stock — please update your cart'));
       } else {
         setError(t('checkout.error'));
       }
@@ -297,7 +297,7 @@ export default function Checkout() {
         setPendingPayOrder(null);
         await finalizeOrder({ orderId: pendingPayOrder.orderId, orderNo: o.order_no });
       } else {
-        setError(t('checkout.paymentFailed', '支付未完成，请重试'));
+        setError(t('checkout.paymentFailed', 'Payment was not completed — please retry'));
       }
     } catch {
       setError(t('checkout.error'));
@@ -381,7 +381,7 @@ export default function Checkout() {
                     {savedAddresses.length > 0 && !showManualAddress && (
                       <div className="space-y-3 mb-4">
                         <p className="font-body text-caption text-sepia-mid tracking-wider uppercase">
-                          {t('checkout.savedAddresses', '已保存的地址')}
+                          {t('checkout.savedAddresses', 'Saved addresses')}
                         </p>
                         {savedAddresses.map((addr) => (
                           <button
@@ -398,7 +398,7 @@ export default function Checkout() {
                                 <span className="font-body text-[10px] tracking-wider uppercase text-sepia-mid">{addr.label}</span>
                               )}
                               {addr.is_default && (
-                                <span className="font-body text-[10px] tracking-wider uppercase text-sage">{t('profile.addresses.defaultBadge', '默认')}</span>
+                                <span className="font-body text-[10px] tracking-wider uppercase text-sage">{t('profile.addresses.defaultBadge', 'Default')}</span>
                               )}
                             </div>
                             <p className="font-body text-body-sm text-ink">{addr.recipient_name} · {addr.phone}</p>
@@ -411,7 +411,7 @@ export default function Checkout() {
                           onClick={() => { setShowManualAddress(true); setSelectedAddressId(null); }}
                           className="font-body text-caption text-rust hover:text-rust-light transition-colors cursor-pointer"
                         >
-                          + {t('checkout.enterNewAddress', '输入新地址')}
+                          + {t('checkout.enterNewAddress', 'Enter new address')}
                         </button>
                       </div>
                     )}
@@ -518,7 +518,7 @@ export default function Checkout() {
                     {!selectedAddressId && (
                       <label className="flex items-center gap-2 cursor-pointer mt-2">
                         <input type="checkbox" checked={saveAddress} onChange={(e) => setSaveAddress(e.target.checked)} className="accent-rust" />
-                        <span className="font-body text-caption text-ink">{t('checkout.saveAddress', '保存到地址簿')}</span>
+                        <span className="font-body text-caption text-ink">{t('checkout.saveAddress', 'Save to address book')}</span>
                       </label>
                     )}
                     </>

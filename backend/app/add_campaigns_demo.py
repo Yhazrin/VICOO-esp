@@ -1,13 +1,13 @@
 """
-向数据库幂等插入/修正公益活动（可直连 Unsplash 封面图）。
+Idempotently insert / update charity campaigns in the database (with Unsplash cover images).
 
-- 新库可补充多条图文活动
-- 已有旧数据若 cover_image 为 /static/campaigns/ 等相对路径，会更新为 https 地址（修复 VPS 配图不显示）
+- New databases get multiple illustrated campaigns
+- Existing rows with relative cover_image paths (e.g. /static/campaigns/) are updated to https URLs
 
-在服务器/容器内执行:
+Run inside server/container:
   cd /path/to/VICOO-esp/backend && python -m app.add_campaigns_demo
 
-或 docker:
+Or via docker:
   docker compose -f deploy/easy/docker-compose.host-nginx.yml exec backend \
     python -m app.add_campaigns_demo
 """
@@ -30,14 +30,15 @@ from app.database import AsyncSessionLocal, engine
 from app.models.campaign import Campaign
 from app.utils.cache import invalidate_cache
 
-# 与 seed 中前三条 title 一致，便于合并环境
+# Titles match seed data for idempotent merge
 def _rows() -> list[dict]:
     return [
         {
-            "title": "春天的色彩 — 乡村儿童画展",
+            "title": "Colors of Spring — Rural Children Art Exhibition",
             "description": (
-                "征集来自全国各地乡村小学孩子们的画作，展示他们眼中的春天。"
-                "优秀作品将在城市美术馆展出，并制成公益明信片义卖。"
+                "Collecting artworks from children in rural primary schools across the country, "
+                "showcasing spring through their eyes. Outstanding works will be exhibited in city "
+                "galleries and turned into charity postcards for fundraising."
             ),
             "cover_image": COVER_SPRING,
             "start_date": datetime(2025, 3, 1),
@@ -49,9 +50,10 @@ def _rows() -> list[dict]:
             "artwork_count": 8,
         },
         {
-            "title": "我的家乡 — 故土记忆",
+            "title": "My Hometown — Memories of the Land",
             "description": (
-                "邀请孩子们用画笔记录家乡的山川河流、风土人情。记录正在消失的乡村记忆，唤起社会对乡土文化的关注。"
+                "Inviting children to paint the mountains, rivers, and traditions of their hometowns. "
+                "Preserving fading rural memories and raising awareness of local culture."
             ),
             "cover_image": COVER_HOMETOWN,
             "start_date": datetime(2025, 7, 1),
@@ -63,10 +65,11 @@ def _rows() -> list[dict]:
             "artwork_count": 7,
         },
         {
-            "title": "画出未来 — 科技与梦想",
+            "title": "Paint the Future — Technology & Dreams",
             "description": (
-                "以「未来科技」为主题，鼓励孩子们大胆想象未来世界。"
-                "获奖作品将用于制作公益行动 T 恤图案，收益全部用于乡村美育。"
+                "Themed around 'Future Technology', encouraging children to boldly imagine the world "
+                "of tomorrow. Winning artworks will be used for charity T-shirt designs, with all "
+                "proceeds funding rural art education."
             ),
             "cover_image": COVER_FUTURE,
             "start_date": datetime(2025, 11, 1),
@@ -78,10 +81,11 @@ def _rows() -> list[dict]:
             "artwork_count": 5,
         },
         {
-            "title": "童心织梦 — 可持续材料工作坊",
+            "title": "Childhood Dreams — Sustainable Materials Workshop",
             "description": (
-                "在乡村小学开设再生面料与植物染入门课，用回收布料完成小幅拼布与围巾。"
-                "材料费与讲师补贴由本活动募捐支持。"
+                "Running introductory classes on recycled fabrics and plant-based dyeing at rural "
+                "primary schools, with participants creating small quilts and scarves from reclaimed cloth. "
+                "Material costs and instructor fees are funded by this campaign."
             ),
             "cover_image": COVER_WORKSHOP,
             "start_date": datetime(2025, 9, 1),
@@ -93,8 +97,8 @@ def _rows() -> list[dict]:
             "artwork_count": 4,
         },
         {
-            "title": "云岭之声 — 乡村儿童合唱团",
-            "description": "为云南、贵州多地村小组建小型合唱团，提供乐谱、服装与一次进城展演机会。",
+            "title": "Voices of the Cloud Ridge — Rural Children's Choir",
+            "description": "Building small choirs for village groups across Yunnan and Guizhou, providing sheet music, uniforms, and one city performance opportunity.",
             "cover_image": COVER_CHOIR,
             "start_date": datetime(2025, 4, 1),
             "end_date": datetime(2025, 12, 20),
@@ -145,13 +149,13 @@ async def main() -> None:
 
         await session.commit()
 
-    # 列表缓存
+    # Invalidate list cache
     try:
         await invalidate_cache("campaigns:")
     except Exception as e:
         print(f"Warning: cache invalidation failed: {e}")
 
-    print(f"活动：新增 {inserted} 条，更新封面/描述 {updated} 条。")
+    print(f"Campaigns: inserted {inserted}, updated cover/description {updated}.")
     await engine.dispose()
 
 

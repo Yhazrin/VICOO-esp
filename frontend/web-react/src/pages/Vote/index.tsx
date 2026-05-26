@@ -120,7 +120,7 @@ export default function Vote() {
     try {
       await artworksApi.vote(String(artworkId));
     } catch (err) {
-      setVoteError(t('vote.error', '投票失败，请重试'));
+      setVoteError(t('vote.error', 'Vote failed — please retry'));
       throw err; // Re-throw so ArtworkVoteCard can rollback optimistic state
     }
   }, [t, isAuthenticated, navigate]);
@@ -130,14 +130,14 @@ export default function Vote() {
       {queryError && (
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 w-full">
           <div className="flex items-center gap-3 bg-rust/10 border border-rust/20 px-4 py-3 mt-4 mb-2">
-            <p className="font-body text-body-sm text-rust flex-1">{t('vote.loadError', '加载作品失败，请刷新重试')}</p>
+            <p className="font-body text-body-sm text-rust flex-1">{t('vote.loadError', 'Failed to load artworks — please refresh')}</p>
           </div>
         </div>
       )}
       {isLoading && (
         <SectionContainer noTopSpacing>
           <div className="py-24 text-center">
-            <p className="font-body text-sepia-mid">{t('vote.loading', '加载中...')}</p>
+            <p className="font-body text-sepia-mid">{t('vote.loading', 'Loading...')}</p>
           </div>
         </SectionContainer>
       )}
