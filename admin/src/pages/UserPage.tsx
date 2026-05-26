@@ -65,6 +65,9 @@ export default function UserPage() {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       toast.success(vars.status === 'banned' ? t('user.toastUserDisabled') : t('user.toastUserEnabled'));
     },
+    onError: (e: any) => {
+      toast.error(e?.response?.data?.detail ?? t('generic.error'));
+    },
   });
 
   const columns: Column<User>[] = [

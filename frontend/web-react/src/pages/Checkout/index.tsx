@@ -407,12 +407,14 @@ export default function Checkout() {
                     <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
+                        <label htmlFor="checkout-name" className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
                           {t('checkout.fullName')}
                         </label>
                         <input
+                          id="checkout-name"
                           type="text"
                           required
+                          aria-required="true"
                           value={address.name}
                           onChange={(e) => setAddress({ ...address, name: e.target.value })}
                           className="w-full px-4 py-3 border border-warm-gray/30 bg-transparent font-body text-body text-ink focus:outline-none focus:border-rust/50 transition-colors"
@@ -420,12 +422,14 @@ export default function Checkout() {
                         />
                       </div>
                       <div>
-                        <label className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
+                        <label htmlFor="checkout-phone" className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
                           {t('checkout.phone')}
                         </label>
                         <input
+                          id="checkout-phone"
                           type="tel"
                           required
+                          aria-required="true"
                           value={address.phone}
                           onChange={(e) => setAddress({ ...address, phone: e.target.value })}
                           className="w-full px-4 py-3 border border-warm-gray/30 bg-transparent font-body text-body text-ink focus:outline-none focus:border-rust/50 transition-colors"
@@ -435,12 +439,14 @@ export default function Checkout() {
                     </div>
 
                     <div>
-                      <label className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
+                      <label htmlFor="checkout-street" className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
                         {t('checkout.street')}
                       </label>
                       <input
+                        id="checkout-street"
                         type="text"
                         required
+                        aria-required="true"
                         value={address.street}
                         onChange={(e) => setAddress({ ...address, street: e.target.value })}
                         className="w-full px-4 py-3 border border-warm-gray/30 bg-transparent font-body text-body text-ink focus:outline-none focus:border-rust/50 transition-colors"
@@ -450,12 +456,14 @@ export default function Checkout() {
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                       <div>
-                        <label className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
+                        <label htmlFor="checkout-city" className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
                           {t('checkout.city')}
                         </label>
                         <input
+                          id="checkout-city"
                           type="text"
                           required
+                          aria-required="true"
                           value={address.city}
                           onChange={(e) => setAddress({ ...address, city: e.target.value })}
                           className="w-full px-4 py-3 border border-warm-gray/30 bg-transparent font-body text-body text-ink focus:outline-none focus:border-rust/50 transition-colors"
@@ -463,12 +471,14 @@ export default function Checkout() {
                         />
                       </div>
                       <div>
-                        <label className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
+                        <label htmlFor="checkout-province" className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
                           {t('checkout.province')}
                         </label>
                         <input
+                          id="checkout-province"
                           type="text"
                           required
+                          aria-required="true"
                           value={address.province}
                           onChange={(e) => setAddress({ ...address, province: e.target.value })}
                           className="w-full px-4 py-3 border border-warm-gray/30 bg-transparent font-body text-body text-ink focus:outline-none focus:border-rust/50 transition-colors"

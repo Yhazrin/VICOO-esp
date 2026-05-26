@@ -311,7 +311,7 @@ class AIAssistantService(BaseService):
 
         except Exception as e:
             logger.error(f"Anthropic stream failed: {e}")
-            yield f"data: {json.dumps({'type': 'error', 'error': str(e)})}\n\n"
+            yield f"data: {json.dumps({'type': 'error', 'error': 'Stream processing failed'})}\n\n"
 
     async def moderate_content(self, text: str) -> Dict[str, Any]:
         """
@@ -1105,6 +1105,6 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
             return {"escalated": True, "contact_id": contact.id}
         except Exception as e:
             logger.error(f"Failed to record AI feedback: {e}")
-            return {"escalated": False, "error": str(e)}
+            return {"escalated": False, "error": "Failed to record feedback"}
 
     # End of class

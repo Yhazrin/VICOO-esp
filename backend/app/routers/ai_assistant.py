@@ -6,7 +6,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.deps import get_optional_current_user
+from app.deps import get_optional_current_user, require_role
 from app.schemas import (
     AIChatRequest,
     AIChatResponse,
@@ -90,7 +90,8 @@ async def ai_chat_stream(
 @router.post("/analyze-artwork", response_model=ApiResponse)
 async def analyze_artwork(
     body: ArtworkAnalysisRequest,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    _admin: dict = Depends(require_role("admin", "editor")),
 ):
     """Analyze artwork style and safety."""
     ai_service = AIAssistantService(db)
@@ -104,7 +105,8 @@ async def analyze_artwork(
 @router.post("/moderate-content", response_model=ApiResponse)
 async def moderate_content(
     body: ContentModerationRequest,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    _admin: dict = Depends(require_role("admin", "editor")),
 ):
     """Moderate text content for safety."""
     ai_service = AIAssistantService(db)

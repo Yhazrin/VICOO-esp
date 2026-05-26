@@ -35,6 +35,9 @@ export default function ArtworkPage() {
       queryClient.invalidateQueries({ queryKey: ['artworks'] });
       toast.success(vars.status === 'approved' ? t('artwork.toastApproved') : t('artwork.toastRejected'));
     },
+    onError: (e: any) => {
+      toast.error(e?.response?.data?.detail ?? t('generic.error'));
+    },
   });
 
   const aiMutation = useMutation({
@@ -79,7 +82,7 @@ export default function ArtworkPage() {
             {t('artwork.btnInspect')}
           </Button>
           {record.status === 'pending' && (
-            <Button size="sm" variant="primary" onClick={(e) => { e.stopPropagation(); updateMutation.mutate({ id: record.id, status: 'approved' }); }}>
+            <Button size="sm" variant="primary" loading={updateMutation.isPending} onClick={(e) => { e.stopPropagation(); updateMutation.mutate({ id: record.id, status: 'approved' }); }}>
               {t('artwork.btnApprove')}
             </Button>
           )}
@@ -158,8 +161,8 @@ export default function ArtworkPage() {
             <div style={{ display: 'flex', gap: 12 }}>
               {selectedArtwork?.status === 'pending' ? (
                 <>
-                  <Button variant="danger" onClick={() => { updateMutation.mutate({ id: selectedArtwork.id, status: 'rejected' }); setDetailModal(false); }}>{t('artwork.btnReject')}</Button>
-                  <Button variant="primary" onClick={() => { updateMutation.mutate({ id: selectedArtwork.id, status: 'approved' }); setDetailModal(false); }}>{t('artwork.btnApproveSubmission')}</Button>
+                  <Button variant="danger" loading={updateMutation.isPending} onClick={() => { updateMutation.mutate({ id: selectedArtwork.id, status: 'rejected' }); setDetailModal(false); }}>{t('artwork.btnReject')}</Button>
+                  <Button variant="primary" loading={updateMutation.isPending} onClick={() => { updateMutation.mutate({ id: selectedArtwork.id, status: 'approved' }); setDetailModal(false); }}>{t('artwork.btnApproveSubmission')}</Button>
                 </>
               ) : (
                 <Button variant="secondary" onClick={() => setDetailModal(false)}>{t('artwork.btnCloseView')}</Button>

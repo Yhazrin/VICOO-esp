@@ -74,7 +74,7 @@ export default function CampaignPage() {
             {t('campaign.btnEdit')}
           </Button>
           {record.status === 'draft' && (
-            <Button size="sm" variant="primary" onClick={(e) => {
+            <Button size="sm" variant="primary" loading={updateMutation.isPending} onClick={(e) => {
               e.stopPropagation();
               updateMutation.mutate({ id: record.id, data: { status: 'active' } });
             }}>
@@ -82,7 +82,7 @@ export default function CampaignPage() {
             </Button>
           )}
           {record.status === 'active' && (
-            <Button size="sm" variant="secondary" onClick={(e) => {
+            <Button size="sm" variant="secondary" loading={updateMutation.isPending} onClick={(e) => {
               e.stopPropagation();
               updateMutation.mutate({ id: record.id, data: { status: 'ended' } });
             }}>

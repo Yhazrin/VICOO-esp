@@ -207,7 +207,7 @@ async def create_donation(body: DonationCreate, db: AsyncSession = Depends(get_d
             except Exception as pay_error:
                 logger.error(f"Payment parameter generation failed: {pay_error}")
                 if settings.APP_ENV == "development":
-                    response_data["payment_error"] = str(pay_error)
+                    response_data["payment_error"] = "Payment configuration error"
                     response_data["simulation_mode"] = True
                 else:
                     raise HTTPException(status_code=400, detail="Payment initialization failed. Please check configuration.")

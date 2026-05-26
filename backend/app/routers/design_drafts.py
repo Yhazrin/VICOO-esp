@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -7,6 +9,7 @@ from app.schemas.design_draft import DesignDraftCreate, DesignDraftUpdate, Desig
 from app.services.design_draft.service import DesignDraftService
 from app.deps import get_current_user, require_role
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/design-drafts", tags=["Design Drafts"])
 
 
@@ -25,7 +28,8 @@ async def list_design_drafts(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("Failed to list design drafts")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.post("", response_model=ApiResponse, status_code=201)
@@ -42,7 +46,8 @@ async def create_design_draft(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("Design draft operation failed")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/{draft_id}", response_model=ApiResponse)
@@ -59,7 +64,8 @@ async def get_design_draft(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("Design draft operation failed")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.post("/{draft_id}/generate", response_model=ApiResponse)
@@ -76,7 +82,8 @@ async def generate_design(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("Design draft operation failed")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.post("/{draft_id}/approve", response_model=ApiResponse)
@@ -94,7 +101,8 @@ async def approve_design_draft(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("Design draft operation failed")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.post("/{draft_id}/reject", response_model=ApiResponse)
@@ -112,7 +120,8 @@ async def reject_design_draft(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("Design draft operation failed")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.post("/{draft_id}/publish", response_model=ApiResponse)
@@ -130,4 +139,5 @@ async def publish_design_draft(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("Design draft operation failed")
+        raise HTTPException(status_code=500, detail="Internal server error")

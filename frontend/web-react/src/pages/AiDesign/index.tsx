@@ -128,7 +128,7 @@ export default function AiDesign() {
           {errorMessage && (
             <div className="flex items-center gap-3 bg-rust/10 border border-rust/20 px-4 py-3 mb-6">
               <p className="font-body text-body-sm text-rust flex-1">{errorMessage}</p>
-              <button onClick={() => setErrorMessage('')} className="text-rust cursor-pointer">&times;</button>
+              <button onClick={() => setErrorMessage('')} className="text-rust cursor-pointer" aria-label={t('common.dismiss', 'Dismiss')}>&times;</button>
             </div>
           )}
 

@@ -148,7 +148,7 @@ class WeChatPayService:
 
         except httpx.RequestError as e:
             logger.error(f"WeChat API HTTP request failed: {str(e)}")
-            raise Exception(f"WeChat API connection failed: {str(e)}")
+            raise Exception("WeChat API connection failed")
         except ET.ParseError as e:
             logger.error(f"Failed to parse WeChat API response: {str(e)}")
             raise Exception("Invalid response from WeChat API")

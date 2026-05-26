@@ -128,6 +128,7 @@ export default function ProductPage() {
       toast.success(t('product.toastNodeCreated'));
       closeNodeModal();
     },
+    onError: (e: any) => toast.error(e?.response?.data?.detail ?? t('generic.error')),
   });
 
   const updateNodeMut = useMutation({
@@ -138,6 +139,7 @@ export default function ProductPage() {
       toast.success(t('product.toastNodeUpdated'));
       closeNodeModal();
     },
+    onError: (e: any) => toast.error(e?.response?.data?.detail ?? t('generic.error')),
   });
 
   const deleteNodeMut = useMutation({
@@ -146,6 +148,7 @@ export default function ProductPage() {
       queryClient.invalidateQueries({ queryKey: ['supply-chain'] });
       toast.success(t('product.toastNodeDeleted'));
     },
+    onError: (e: any) => toast.error(e?.response?.data?.detail ?? t('generic.error')),
   });
 
   /* ── Helpers ── */

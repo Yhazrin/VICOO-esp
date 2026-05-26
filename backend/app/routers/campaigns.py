@@ -80,11 +80,8 @@ async def create_campaign(
         campaign = await service.create_campaign(body.model_dump())
         return ApiResponse(data=CampaignOut.model_validate(campaign).model_dump())
     except Exception as e:
-        logger.error(f"Create failed: {e}")
-        detail = str(e)
-        if "goal_amount" in detail.lower() or "gt" in detail.lower():
-            raise HTTPException(status_code=422, detail="目标金额必须大于0")
-        raise HTTPException(status_code=500, detail=detail or "Internal server error")
+        logger.exception("Campaign creation failed")
+        raise HTTPException(status_code=500, detail="Failed to create campaign")
 
 @router.put("/{campaign_id}", response_model=ApiResponse)
 async def update_campaign(

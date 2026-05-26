@@ -319,8 +319,7 @@ async def create_order(
         raise
     except Exception as e:
         logger.exception("Order placement failed: %s", e)
-        detail = str(e) if settings.DEBUG else "Internal server error"
-        raise HTTPException(status_code=500, detail=detail)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.get("/{order_id}", response_model=ApiResponse)
 async def get_order(
@@ -412,27 +411,33 @@ async def update_order_logistics(
     db: AsyncSession = Depends(get_db),
 ):
     """后台更新承运商、运单号并追加物流节点（仅管理员）。"""
-    stmt = select(Order).where(Order.id == order_id)
-    result = await db.execute(stmt)
-    order = result.scalar_one_or_none()
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
-    if body.carrier is not None:
-        order.carrier = body.carrier
-    if body.tracking_number is not None:
-        order.tracking_number = body.tracking_number
-    events = _parse_logistics_events(getattr(order, "logistics_events", None))
-    if body.new_event is not None:
-        ev = body.new_event.model_dump()
-        events.append(ev)
-        order.logistics_events = json.dumps(events, ensure_ascii=False)
-    elif body.carrier is not None or body.tracking_number is not None:
-        order.logistics_events = json.dumps(events, ensure_ascii=False)
-    await db.flush()
-    item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
-    items = (await db.execute(item_stmt)).scalars().all()
-    product_map = await _build_product_map(db, items)
-    return ApiResponse(data=order_to_out_dict(order, list(items), product_map))
+    try:
+        stmt = select(Order).where(Order.id == order_id)
+        result = await db.execute(stmt)
+        order = result.scalar_one_or_none()
+        if not order:
+            raise HTTPException(status_code=404, detail="Order not found")
+        if body.carrier is not None:
+            order.carrier = body.carrier
+        if body.tracking_number is not None:
+            order.tracking_number = body.tracking_number
+        events = _parse_logistics_events(getattr(order, "logistics_events", None))
+        if body.new_event is not None:
+            ev = body.new_event.model_dump()
+            events.append(ev)
+            order.logistics_events = json.dumps(events, ensure_ascii=False)
+        elif body.carrier is not None or body.tracking_number is not None:
+            order.logistics_events = json.dumps(events, ensure_ascii=False)
+        await db.flush()
+        item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
+        items = (await db.execute(item_stmt)).scalars().all()
+        product_map = await _build_product_map(db, items)
+        return ApiResponse(data=order_to_out_dict(order, list(items), product_map))
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Failed to update order logistics")
+        raise HTTPException(status_code=500, detail="Failed to update logistics")
 
 
 @router.post("/{order_id}/return", response_model=ApiResponse, status_code=201)
@@ -443,62 +448,68 @@ async def request_return(
     db: AsyncSession = Depends(get_db),
 ):
     """Request a return or exchange for a completed order."""
-    from app.models.circular_commerce import AfterSaleTicket
+    try:
+        from app.models.circular_commerce import AfterSaleTicket
 
-    # Validate order exists and belongs to user
-    stmt = select(Order).where(Order.id == order_id)
-    result = await db.execute(stmt)
-    order = result.scalar_one_or_none()
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
-    if order.user_id != current_user["id"] and current_user.get("role") != "admin":
-        raise HTTPException(status_code=403, detail="Access denied")
-    if order.status != "completed":
-        raise HTTPException(status_code=400, detail="Can only request returns for completed orders")
+        # Validate order exists and belongs to user
+        stmt = select(Order).where(Order.id == order_id)
+        result = await db.execute(stmt)
+        order = result.scalar_one_or_none()
+        if not order:
+            raise HTTPException(status_code=404, detail="Order not found")
+        if order.user_id != current_user["id"] and current_user.get("role") != "admin":
+            raise HTTPException(status_code=403, detail="Access denied")
+        if order.status != "completed":
+            raise HTTPException(status_code=400, detail="Can only request returns for completed orders")
 
-    # Validate items belong to this order
-    item_stmt = select(OrderItem).where(OrderItem.order_id == order_id)
-    order_items = {i.id: i for i in (await db.execute(item_stmt)).scalars().all()}
+        # Validate items belong to this order
+        item_stmt = select(OrderItem).where(OrderItem.order_id == order_id)
+        order_items = {i.id: i for i in (await db.execute(item_stmt)).scalars().all()}
 
-    for ri in body.items:
-        if ri.order_item_id not in order_items:
-            raise HTTPException(status_code=400, detail=f"Order item {ri.order_item_id} not found in this order")
-        if ri.quantity > order_items[ri.order_item_id].quantity:
-            raise HTTPException(status_code=400, detail=f"Return quantity exceeds ordered quantity for item {ri.order_item_id}")
+        for ri in body.items:
+            if ri.order_item_id not in order_items:
+                raise HTTPException(status_code=400, detail=f"Order item {ri.order_item_id} not found in this order")
+            if ri.quantity > order_items[ri.order_item_id].quantity:
+                raise HTTPException(status_code=400, detail=f"Return quantity exceeds ordered quantity for item {ri.order_item_id}")
 
-    # Build structured description
-    items_desc = []
-    for ri in body.items:
-        oi = order_items[ri.order_item_id]
-        items_desc.append({
-            "order_item_id": ri.order_item_id,
-            "product_id": oi.product_id,
-            "quantity": ri.quantity,
-            "price": str(oi.price),
-        })
+        # Build structured description
+        items_desc = []
+        for ri in body.items:
+            oi = order_items[ri.order_item_id]
+            items_desc.append({
+                "order_item_id": ri.order_item_id,
+                "product_id": oi.product_id,
+                "quantity": ri.quantity,
+                "price": str(oi.price),
+            })
 
-    import json as _json
-    description_parts = [f"Items: {_json.dumps(items_desc, ensure_ascii=False)}"]
-    if body.reason:
-        description_parts.append(f"Reason: {body.reason}")
-    if body.type == "exchange":
-        if body.exchange_product_id:
-            description_parts.append(f"Exchange product ID: {body.exchange_product_id}")
-        if body.exchange_size:
-            description_parts.append(f"Exchange size: {body.exchange_size}")
-        if body.exchange_color:
-            description_parts.append(f"Exchange color: {body.exchange_color}")
+        import json as _json
+        description_parts = [f"Items: {_json.dumps(items_desc, ensure_ascii=False)}"]
+        if body.reason:
+            description_parts.append(f"Reason: {body.reason}")
+        if body.type == "exchange":
+            if body.exchange_product_id:
+                description_parts.append(f"Exchange product ID: {body.exchange_product_id}")
+            if body.exchange_size:
+                description_parts.append(f"Exchange size: {body.exchange_size}")
+            if body.exchange_color:
+                description_parts.append(f"Exchange color: {body.exchange_color}")
 
-    ticket = AfterSaleTicket(
-        user_id=current_user["id"],
-        order_id=order_id,
-        category=body.type,
-        status="open",
-        subject=f"{'退货' if body.type == 'return' else '换货'}申请 - {order.order_no}",
-        description="\n".join(description_parts),
-    )
-    db.add(ticket)
-    await db.flush()
+        ticket = AfterSaleTicket(
+            user_id=current_user["id"],
+            order_id=order_id,
+            category=body.type,
+            status="open",
+            subject=f"{'退货' if body.type == 'return' else '换货'}申请 - {order.order_no}",
+            description="\n".join(description_parts),
+        )
+        db.add(ticket)
+        await db.flush()
 
-    from app.schemas.circular_commerce import AfterSaleOut
-    return ApiResponse(data=AfterSaleOut.model_validate(ticket).model_dump())
+        from app.schemas.circular_commerce import AfterSaleOut
+        return ApiResponse(data=AfterSaleOut.model_validate(ticket).model_dump())
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Failed to create return request")
+        raise HTTPException(status_code=500, detail="Failed to create return request")

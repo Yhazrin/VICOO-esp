@@ -1,5 +1,7 @@
 """售后服务工单。"""
 
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,6 +18,7 @@ from app.schemas import (
 )
 from app.deps import get_current_user, require_role
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/after-sales", tags=["After-sales"])
 
 
@@ -25,23 +28,29 @@ async def create_ticket(
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    ostmt = select(Order).where(Order.id == body.order_id)
-    order = (await db.execute(ostmt)).scalar_one_or_none()
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
-    if order.user_id != current_user["id"] and current_user.get("role") != "admin":
-        raise HTTPException(status_code=403, detail="Forbidden")
-    row = AfterSaleTicket(
-        user_id=current_user["id"],
-        order_id=body.order_id,
-        category=body.category,
-        subject=body.subject,
-        description=body.description,
-        status="open",
-    )
-    db.add(row)
-    await db.flush()
-    return ApiResponse(data=AfterSaleOut.model_validate(row).model_dump())
+    try:
+        ostmt = select(Order).where(Order.id == body.order_id)
+        order = (await db.execute(ostmt)).scalar_one_or_none()
+        if not order:
+            raise HTTPException(status_code=404, detail="Order not found")
+        if order.user_id != current_user["id"] and current_user.get("role") != "admin":
+            raise HTTPException(status_code=403, detail="Forbidden")
+        row = AfterSaleTicket(
+            user_id=current_user["id"],
+            order_id=body.order_id,
+            category=body.category,
+            subject=body.subject,
+            description=body.description,
+            status="open",
+        )
+        db.add(row)
+        await db.flush()
+        return ApiResponse(data=AfterSaleOut.model_validate(row).model_dump())
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Failed to create after-sale ticket")
+        raise HTTPException(status_code=500, detail="Failed to create ticket")
 
 
 @router.get("/mine", response_model=ApiResponse)
@@ -91,10 +100,16 @@ async def update_ticket_status(
     _staff: dict = Depends(require_role("admin", "editor")),
     db: AsyncSession = Depends(get_db),
 ):
-    stmt = select(AfterSaleTicket).where(AfterSaleTicket.id == ticket_id)
-    row = (await db.execute(stmt)).scalar_one_or_none()
-    if not row:
-        raise HTTPException(status_code=404, detail="Ticket not found")
-    row.status = body.status
-    await db.flush()
-    return ApiResponse(data=AfterSaleOut.model_validate(row).model_dump())
+    try:
+        stmt = select(AfterSaleTicket).where(AfterSaleTicket.id == ticket_id)
+        row = (await db.execute(stmt)).scalar_one_or_none()
+        if not row:
+            raise HTTPException(status_code=404, detail="Ticket not found")
+        row.status = body.status
+        await db.flush()
+        return ApiResponse(data=AfterSaleOut.model_validate(row).model_dump())
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Failed to update ticket status")
+        raise HTTPException(status_code=500, detail="Failed to update ticket status")

@@ -66,10 +66,11 @@ export default function SettingsPage() {
   const updateMutation = useMutation({
     mutationFn: updateSystemSettings,
     onSuccess: () => {
-      // 使 settings 查询失效，触发重新获取最新数据
       queryClient.invalidateQueries({ queryKey: ['settings'] });
-      // 显示保存成功的 toast 提示（使用国际化文本）
       toast.success(t('settings.toastSaved'));
+    },
+    onError: (e: any) => {
+      toast.error(e?.response?.data?.detail ?? t('generic.error'));
     },
   });
 
