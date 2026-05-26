@@ -670,3 +670,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: (a) Added `isError: settingsError` + error banner with retry to SettingsPage; (b) Replaced hardcoded 'ID' with `t('afterSales.colId', 'ID')`; (c) Wrapped placeholder and footer in `t()` calls; (d) Replaced 3 `as any` casts with `PaymentMethodConfig` type import; (e) Added i18n keys: `login.footerText`, `afterSales.colId` to both language files
 - **Verification**: `tsc --noEmit` pass for admin; JSON validation PASS
 - **New issues**: None
+
+## Fix 82 — Contact and impact_fund routers: add logging and error handling
+- **Date**: 2026-05-26 (Round 29)
+- **Files**: `backend/app/routers/contact.py`, `backend/app/routers/impact_fund.py`
+- **Reason**: Both routers had no `import logging`, no logger, and no try/except — DB errors produced unhandled 500s with no diagnostics. These were the last 2 routers (besides `__init__.py`) missing logging.
+- **Change**: (a) contact.py: added logging + try/except to `submit_contact_form` and `list_contact_messages`; (b) impact_fund.py: added logging + try/except to `get_order_impact_entries` and `get_impact_fund_summary`
+- **Verification**: `python -c "ast.parse(...)"` pass for all backend files
+- **New issues**: None
