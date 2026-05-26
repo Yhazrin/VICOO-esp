@@ -78,9 +78,14 @@ async def update_address(
         if not addr:
             raise HTTPException(status_code=404, detail="Address not found")
 
+        _ADDRESS_UPDATABLE = {
+            "label", "recipient_name", "phone", "province", "city",
+            "district", "detail_address", "postal_code", "is_default",
+        }
         update_data = body.model_dump(exclude_unset=True)
         for key, value in update_data.items():
-            setattr(addr, key, value)
+            if key in _ADDRESS_UPDATABLE:
+                setattr(addr, key, value)
         await db.flush()
 
         if body.is_default:

@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.schemas import ApiResponse
 from app.schemas.design_draft import DesignDraftCreate, DesignDraftUpdate, DesignDraftOut
+from app.schemas.product import DesignPublish
 from app.services.design_draft.service import DesignDraftService
 from app.deps import get_current_user, require_role
 
@@ -127,14 +128,14 @@ async def reject_design_draft(
 @router.post("/{draft_id}/publish", response_model=ApiResponse)
 async def publish_design_draft(
     draft_id: int,
-    body: dict | None = None,
+    body: DesignPublish,
     db: AsyncSession = Depends(get_db),
     _admin: dict = Depends(require_role("admin")),
 ):
     """Publish an approved design draft as a product."""
     try:
         service = DesignDraftService(db)
-        product = await service.publish_as_product(draft_id, body or {})
+        product = await service.publish_as_product(draft_id, body.model_dump())
         return ApiResponse(data={"product_id": product.id, "product_name": product.name})
     except HTTPException:
         raise

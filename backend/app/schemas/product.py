@@ -51,6 +51,16 @@ class ProductUpdate(BaseModel):
     trace_story_content_en: Optional[str] = None
 
 
+class DesignPublish(BaseModel):
+    """Schema for publishing a design draft as a product."""
+    price: Decimal = Field(..., gt=0, description="Price in CNY")
+    currency: str = Field("CNY", description="Currency code")
+    name: Optional[str] = Field(None, max_length=300)
+    description: Optional[str] = None
+    category: Optional[str] = Field(None, max_length=100)
+    stock: int = Field(0, ge=0)
+
+
 class ProductListItem(BaseModel):
     id: int
     name: str
