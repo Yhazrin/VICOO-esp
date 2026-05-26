@@ -69,6 +69,7 @@ export default function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('wechat');
   const [isProcessing, setIsProcessing] = useState(false);
   const placingRef = useRef(false);
+  const finalizeOnceRef = useRef(false);
   const [orderResult, setOrderResult] = useState<{ orderId: string; orderNo: string } | null>(null);
   const [error, setError] = useState('');
   const [pendingPayOrder, setPendingPayOrder] = useState<{
@@ -124,6 +125,8 @@ export default function Checkout() {
   selectedAddressIdRef.current = selectedAddressId;
 
   const finalizeOrder = useCallback(async (result: { orderId: string; orderNo: string }) => {
+    if (finalizeOnceRef.current) return;
+    finalizeOnceRef.current = true;
     setOrderResult(result);
     const addr = addressRef.current;
     const shouldSave = saveAddressRef.current;
@@ -159,6 +162,7 @@ export default function Checkout() {
       attempts++;
       if (attempts > maxAttempts) {
         if (!cancelled) {
+          try { await ordersApi.cancel(orderId); } catch { /* best-effort cleanup */ }
           setPendingPayOrder(null);
           setError(t('checkout.paymentTimeout', '支付超时，请重新下单'));
         }
@@ -169,6 +173,7 @@ export default function Checkout() {
         if (cancelled) return;
         if (o.status === 'paid') {
           setPendingPayOrder(null);
+          if (cancelled) return;
           await finalizeOrder({ orderId, orderNo: o.order_no });
         }
       } catch {

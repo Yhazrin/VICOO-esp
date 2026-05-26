@@ -40,22 +40,22 @@ export default function OrderDetail() {
   const [errorMessage, setErrorMessage] = useState('');
   const [isCancelling, setIsCancelling] = useState(false);
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: `/orders/${id}` }} replace />;
-  }
-
   const { data: order, isLoading, isError } = useQuery({
     queryKey: ['order', id],
     queryFn: () => ordersApi.getById(id!),
-    enabled: !!id,
+    enabled: !!id && isAuthenticated,
   });
 
   const { data: impactEntries = [] } = useQuery({
     queryKey: ['impact-fund', id],
     queryFn: () => impactFundApi.getOrderEntries(id!),
-    enabled: !!id && (order?.status === 'paid' || order?.status === 'completed' || order?.status === 'shipped'),
+    enabled: !!id && isAuthenticated && (order?.status === 'paid' || order?.status === 'completed' || order?.status === 'shipped'),
     retry: false,
   });
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: `/orders/${id}` }} replace />;
+  }
 
   const logisticsAsTimeline: SupplyChainTimelineRecord[] =
     order?.logistics_events?.map((ev, i) => ({

@@ -1190,3 +1190,27 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Changed mutation status from `ended` to `completed`, filter options from `ended`/`archived` to `completed`/`cancelled`
 - **Verification**: All status values match backend enum
 - **New issues**: None
+
+## Fix 147 — OrderDetail useQuery hooks after conditional return (incomplete prior fix)
+- **Date**: 2026-05-27 (Round 52)
+- **Files**: `frontend/web-react/src/pages/OrderDetail/index.tsx`
+- **Reason**: P1: Two `useQuery` calls remained after the `if (!isAuthenticated)` guard. `useQuery` uses React hooks internally, so calling it conditionally violates hooks rules. If `isAuthenticated` flips between renders, React crashes with "rendered fewer hooks than expected".
+- **Change**: Moved both `useQuery` calls above the conditional return, added `enabled: isAuthenticated` to prevent queries when not authenticated
+- **Verification**: All hooks called before any conditional return
+- **New issues**: None
+
+## Fix 148 — Checkout polling/confirm double-finalization race condition
+- **Date**: 2026-05-27 (Round 52)
+- **Files**: `frontend/web-react/src/pages/Checkout/index.tsx`
+- **Reason**: P2: Polling `useEffect` and `handleSimulatePaid` could both detect `status === 'paid'` and call `finalizeOrder` twice. The polling tick didn't check the `cancelled` flag between `setPendingPayOrder(null)` and `await finalizeOrder(...)`.
+- **Change**: Added `finalizeOnceRef` guard to prevent double-finalization. Added `if (cancelled) return;` check after `setPendingPayOrder(null)` in polling tick.
+- **Verification**: `finalizeOrder` now executes at most once regardless of race
+- **New issues**: None
+
+## Fix 149 — Checkout polling timeout leaves backend order orphaned
+- **Date**: 2026-05-27 (Round 52)
+- **Files**: `frontend/web-react/src/pages/Checkout/index.tsx`
+- **Reason**: P2: When polling exceeded 90 attempts (3 minutes), the effect cleared `pendingPayOrder` and showed a timeout error, but the created order on the backend remained in `pending` status indefinitely.
+- **Change**: Added `await ordersApi.cancel(orderId)` in the timeout branch before clearing state (best-effort, wrapped in try/catch)
+- **Verification**: Timeout now attempts server-side order cleanup
+- **New issues**: None
