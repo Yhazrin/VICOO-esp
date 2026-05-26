@@ -47,7 +47,7 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('general');
 
   // 获取系统设置数据
-  const { data } = useQuery({
+  const { data, isError: settingsError } = useQuery({
     queryKey: ['settings'],
     queryFn: fetchSystemSettings
   });
@@ -73,6 +73,15 @@ export default function SettingsPage() {
       toast.error(e?.response?.data?.detail ?? t('generic.error'));
     },
   });
+
+  if (settingsError) {
+    return (
+      <div style={{ padding: 16, background: 'var(--color-danger-bg, #fef2f2)', border: '1px solid var(--color-danger-border, #fecaca)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ color: 'var(--color-danger, #dc2626)', fontSize: 14 }}>{t('generic.error')}</span>
+        <button onClick={() => queryClient.invalidateQueries({ queryKey: ['settings'] })} style={{ padding: '4px 12px', fontSize: 13, cursor: 'pointer', border: '1px solid var(--color-border)', borderRadius: 4, background: 'transparent' }}>{t('generic.retry', 'Retry')}</button>
+      </div>
+    );
+  }
 
   // 数据加载中显示加载状态
   if (!form) {

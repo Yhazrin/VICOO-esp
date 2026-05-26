@@ -75,7 +75,8 @@
         "errorRequired": "Please enter username and password", 
         "errorInvalidCredentials": "Invalid username or password", 
         "errorLoginFailed": "Login failed, please try again", 
-        "toastSuccess": "Login successful"
+        "toastSuccess": "Login successful",
+        "footerText": "VICOO Admin v1.0"
     }, 
     "dashboard": {
         "issueLabel": "Authorized Access — Issue No. 01",
@@ -431,9 +432,10 @@
         "btnViewDetail": "View Details"
     }, 
     "afterSales": {
-        "title": "After-Sales Management", 
-        "description": "Handle return, exchange, and repair requests from users", 
-        "filterAllStatuses": "All Statuses", 
+        "title": "After-Sales Management",
+        "description": "Handle return, exchange, and repair requests from users",
+        "filterAllStatuses": "All Statuses",
+        "colId": "ID",
         "colOrderId": "Order ID", 
         "colUserId": "User ID", 
         "colType": "Type", 

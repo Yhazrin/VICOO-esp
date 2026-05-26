@@ -123,7 +123,7 @@ export default function LoginPage() {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="admin@vicoo.org"
+              placeholder={t('login.emailPlaceholder', 'admin@vicoo.org')}
               autoComplete="username"
               style={inputStyle}
               onFocus={(e) => { e.target.style.borderColor = 'var(--color-border-hi)'; }}
@@ -207,7 +207,7 @@ export default function LoginPage() {
           color: 'var(--color-text-3)',
           letterSpacing: '0.05em',
         }}>
-          VICOO Admin v1.0
+          {t('login.footerText', 'VICOO Admin v1.0')}
         </div>
       </div>
     </div>

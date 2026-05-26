@@ -56,7 +56,7 @@ export default function AfterSalesPage() {
   };
 
   const columns: Column<AfterSalesItem>[] = [
-    { key: 'id', title: 'ID', width: 80 },
+    { key: 'id', title: t('afterSales.colId', 'ID'), width: 80 },
     { key: 'orderId', title: t('afterSales.colOrderId'), width: 120 },
     { key: 'userId', title: t('afterSales.colUserId'), width: 120 },
     { key: 'category', title: t('afterSales.colType'), width: 100, render: (v) => getCategoryLabel(v) },

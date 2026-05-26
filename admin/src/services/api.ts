@@ -7,7 +7,7 @@ import type {
   DonationListSummary,
   AdminProduct, OriginCountry, OriginRegion,
   SupplyChainRecord, TraceMediaItem,
-  AfterSalesItem, ClothingDonationItem,
+  AfterSalesItem, ClothingDonationItem, PaymentMethodConfig,
 } from '../types';
 
 
@@ -849,7 +849,8 @@ export async function updateSystemSettings(data: Partial<SystemSettings>): Promi
   if (data.paymentMethods !== undefined) {
     body.payment_methods = {};
     for (const [k, v] of Object.entries(data.paymentMethods)) {
-      body.payment_methods[k] = { enabled: v.enabled, appId: (v as any).appId, merchantId: (v as any).merchantId, publicKey: (v as any).publicKey, clientId: (v as any).clientId };
+      const pm = v as PaymentMethodConfig;
+      body.payment_methods[k] = { enabled: pm.enabled, appId: pm.appId, merchantId: pm.merchantId, publicKey: pm.publicKey, clientId: pm.clientId };
     }
   }
   if (data.accessTokenTtlMinutes !== undefined) body.access_token_ttl_minutes = data.accessTokenTtlMinutes;

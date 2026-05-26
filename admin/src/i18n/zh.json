@@ -75,7 +75,8 @@
         "errorRequired": "请输入用户名和密码",
         "errorInvalidCredentials": "用户名或密码错误",
         "errorLoginFailed": "登录失败，请重试",
-        "toastSuccess": "登录成功"
+        "toastSuccess": "登录成功",
+        "footerText": "VICOO 管理后台 v1.0"
     },
     "dashboard": {
         "issueLabel": "授权访问 — 第 01 号",
@@ -436,6 +437,7 @@
         "title": "售后管理",
         "description": "处理用户的退货、换货、维修申请",
         "filterAllStatuses": "全部状态",
+        "colId": "ID",
         "colOrderId": "订单 ID",
         "colUserId": "用户 ID",
         "colType": "类型",
