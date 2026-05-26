@@ -558,3 +558,27 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Added matching `htmlFor`/`id` pairs and `aria-required="true"` to: Login (2), Register (4), ForgotPassword (1), Checkout (5) form fields; added `aria-label` to AiDesign dismiss button
 - **Verification**: `tsc --noEmit` pass for frontend (0 errors)
 - **New issues**: None
+
+## Fix 68 — Admin 9 list pages missing isError handling on data fetch failure
+- **Date**: 2026-05-26 (Round 22)
+- **Files**: `admin/src/pages/UserPage.tsx`, `OrderPage.tsx`, `ProductPage.tsx`, `ArtworkPage.tsx`, `CampaignPage.tsx`, `DonationPage.tsx`, `ClothingDonationPage.tsx`, `AfterSalesPage.tsx`, `AuditLogPage.tsx`
+- **Reason**: All 9 admin list pages destructured only `{ data, isLoading }` from useQuery — on backend 500, data was undefined and DataTable showed misleading "No data" empty state with no error feedback
+- **Change**: Added `isError` to useQuery destructuring; added error banner with retry button before DataTable in all 9 pages; AuditLogPage also needed `useQueryClient` import and initialization
+- **Verification**: `tsc --noEmit` pass for admin (0 errors)
+- **New issues**: None
+
+## Fix 69 — Admin i18n: generic.error and generic.retry keys
+- **Date**: 2026-05-26 (Round 22)
+- **Files**: `admin/src/i18n/en.json`, `admin/src/i18n/zh.json`
+- **Reason**: Error banners and onError handlers used `t('generic.error')` and `t('generic.retry')` but these keys didn't exist in either language file
+- **Change**: Added `generic` section with `error` and `retry` keys to both en.json and zh.json
+- **Verification**: JSON validation PASS; `tsc --noEmit` pass for admin
+- **New issues**: None
+
+## Fix 70 — OAuth development mode backdoor removed
+- **Date**: 2026-05-26 (Round 22)
+- **Files**: `backend/app/routers/oauth.py`
+- **Reason**: GitHub and Google OAuth callbacks had development-mode fallback that issued auth tokens without database verification when a DB error occurred — an attacker who triggers a DB error gets valid tokens for arbitrary user IDs
+- **Change**: Removed both development-mode fallback blocks (GitHub line 192-198, Google line 273-279); both now always raise HTTPException(503) on DB errors
+- **Verification**: `python -c "from app.routers import oauth"` pass
+- **New issues**: None
