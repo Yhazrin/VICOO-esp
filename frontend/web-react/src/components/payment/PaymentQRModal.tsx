@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import QRCode from 'qrcode';
@@ -54,14 +54,26 @@ export default function PaymentQRModal({
     }
   };
 
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onFailure();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    document.body.style.overflow = 'hidden';
+    dialogRef.current?.focus();
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = '';
+    };
+  }, [onFailure]);
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onFailure();
-      }}
     >
-      <div className="bg-paper border border-warm-gray/20 w-[380px] max-w-[95vw] max-h-[90vh] overflow-y-auto">
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-label={t('checkout.paymentQRTitle')} tabIndex={-1} className="bg-paper border border-warm-gray/20 w-[380px] max-w-[95vw] max-h-[90vh] overflow-y-auto outline-none">
         <div className="px-6 pt-6 pb-4 text-center border-b border-warm-gray/15">
           <h3 className="font-display text-lg font-semibold text-ink">{t('checkout.paymentQRTitle')}</h3>
           <p className="font-body text-caption text-ink-faded mt-1">{t('checkout.paymentQRHint')}</p>
@@ -73,7 +85,7 @@ export default function PaymentQRModal({
         <div className="px-6 py-6 flex flex-col items-center">
           <div className="w-52 h-52 border border-warm-gray/20 flex items-center justify-center bg-white shrink-0">
             {dataUrl && !qrError ? (
-              <img src={dataUrl} alt="" className="w-[220px] h-[220px]" width={220} height={220} />
+              <img src={dataUrl} alt={t('checkout.qrAlt', 'Payment QR code')} className="w-[220px] h-[220px]" width={220} height={220} />
             ) : (
               <p className="font-body text-caption text-ink-faded px-4 text-center">
                 {qrError ? t('checkout.qrError') : t('checkout.qrLoading')}

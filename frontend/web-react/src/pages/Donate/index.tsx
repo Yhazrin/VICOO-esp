@@ -253,7 +253,7 @@ export default function Donate() {
       });
     },
     onSuccess: async (result, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['impact-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['donation-stats'] });
       queryClient.invalidateQueries({ queryKey: ['my-donations'] });
       // Handle WeChat JSAPI payment if parameters are returned
       if (variables.paymentMethod === 'wechat' && result && 'appId' in result) {

@@ -400,9 +400,11 @@ export default function Traceability() {
   const [isSearching, setIsSearching] = useState(false);
   const [highlightedId, setHighlightedId] = useState<number | null>(null);
   const [searchResult, setSearchResult] = useState<EnhancedSupplyChainRecord | null>(null);
+  const [searchError, setSearchError] = useState(false);
   const [tracedProductId, setTracedProductId] = useState<number | null>(null);
   const [records, setRecords] = useState<EnhancedSupplyChainRecord[]>([]);
   const searchTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const searchSeqRef = useRef(0);
 
   // Fetch supply chain records from API on mount
   useEffect(() => {
@@ -463,15 +465,19 @@ export default function Traceability() {
 
     if (!query.trim()) {
       setIsSearching(false);
+      setSearchError(false);
       return;
     }
 
+    const seq = ++searchSeqRef.current;
     searchTimerRef.current = setTimeout(() => {
       setIsSearching(true);
+      setSearchError(false);
 
       supplyChainApi
         .getProductJourney(query.trim())
         .then((records) => {
+          if (seq !== searchSeqRef.current) return;
           if (records.length > 0) {
             const first = records[0];
             setTracedProductId(first.product_id != null ? Number(first.product_id) : null);
@@ -503,7 +509,9 @@ export default function Traceability() {
           setIsSearching(false);
         })
         .catch(() => {
+          if (seq !== searchSeqRef.current) return;
           setIsSearching(false);
+          setSearchError(true);
         });
     }, 400);
   }, [t]);
@@ -572,6 +580,22 @@ export default function Traceability() {
                 transition={{ duration: 0.3 }}
               >
                 <SearchSpinner t={t} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {searchError && !isSearching && (
+              <motion.div
+                initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, height: 0 }}
+                animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+                className="mt-4 p-4 border border-rust/30 bg-rust/5"
+              >
+                <p className="font-body text-caption text-rust">
+                  {t('traceability.searchError', 'Search failed. Please try again.')}
+                </p>
               </motion.div>
             )}
           </AnimatePresence>

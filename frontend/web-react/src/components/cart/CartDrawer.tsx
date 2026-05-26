@@ -141,7 +141,7 @@ export default function CartDrawer() {
                           <div className="flex items-center border border-warm-gray/25">
                             <button
                               onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.selectedSize, item.selectedColor)}
-                              className="w-7 h-7 flex items-center justify-center text-ink-faded hover:text-ink transition-colors cursor-pointer"
+                              className="w-8 h-8 flex items-center justify-center text-ink-faded hover:text-ink transition-colors cursor-pointer"
                               aria-label={t('cart.decreaseQuantity', 'Decrease quantity')}
                             >
                               <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
@@ -151,7 +151,7 @@ export default function CartDrawer() {
                             <span className="w-8 text-center font-mono text-xs text-ink">{item.quantity}</span>
                             <button
                               onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.selectedSize, item.selectedColor)}
-                              className="w-7 h-7 flex items-center justify-center text-ink-faded hover:text-ink transition-colors cursor-pointer"
+                              className="w-8 h-8 flex items-center justify-center text-ink-faded hover:text-ink transition-colors cursor-pointer"
                               aria-label={t('cart.increaseQuantity', 'Increase quantity')}
                             >
                               <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">

@@ -53,7 +53,8 @@ export const aiAssistantApi = {
       throw new Error(`Stream failed: ${resp.status}`);
     }
 
-    const reader = resp.body!.getReader();
+    if (!resp.body) throw new Error('ReadableStream not supported');
+    const reader = resp.body.getReader();
     const decoder = new TextDecoder();
     let fullText = '';
     let buffer = '';

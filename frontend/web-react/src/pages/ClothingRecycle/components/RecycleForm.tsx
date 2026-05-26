@@ -1,4 +1,4 @@
-import { useState, useMemo, type ChangeEvent, type FormEvent } from 'react';
+import { useState, useMemo, useEffect, useRef, type ChangeEvent, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
@@ -33,6 +33,11 @@ export default function RecycleForm({ onSubmitted }: RecycleFormProps) {
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
   const typeLabelMap = useMemo(
     () => Object.fromEntries(Object.entries(TYPE_LABEL_KEYS).map(([v, k]) => [v, t(k, v)])),
@@ -75,10 +80,10 @@ export default function RecycleForm({ onSubmitted }: RecycleFormProps) {
     onSuccess: (createdIntake) => {
       queryClient.setQueryData<ClothingIntake[]>(['my-clothing-intakes'], (prev = []) => [createdIntake, ...prev]);
       setSubmitted(true);
-      setTimeout(() => setSubmitted(false), 3000);
+      setTimeout(() => { if (mountedRef.current) setSubmitted(false); }, 3000);
       setDescription(''); setClothingType('tshirt'); setQuantity(1); setCondition('like-new');
       setNotes(''); setPhotos([]); setAddress(''); setPhone('');
-      setTimeout(() => onSubmitted(), 300);
+      setTimeout(() => { if (mountedRef.current) onSubmitted(); }, 300);
     },
   });
 

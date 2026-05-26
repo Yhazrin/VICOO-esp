@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 interface AuthUser {
   id: string;
@@ -15,6 +15,7 @@ interface AuthState {
   isAuthenticated: boolean;
   login: (user: AuthUser, token: string) => void;
   logout: () => void;
+  setAccessToken: (token: string) => void;
   updateUser: (user: Partial<AuthUser>) => void;
 }
 
@@ -29,6 +30,11 @@ export const useAuthStore = create<AuthState>()(
       },
       logout: () => {
         set({ user: null, token: null, isAuthenticated: false });
+        // Invalidate server-side session
+        fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => {});
+      },
+      setAccessToken: (token) => {
+        set({ token });
       },
       updateUser: (updates) =>
         set((state) => ({
@@ -37,6 +43,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'vicoo-admin-auth',
+      storage: createJSONStorage(() => sessionStorage),
       partialize: (state) => ({
         user: state.user,
         token: state.token,
