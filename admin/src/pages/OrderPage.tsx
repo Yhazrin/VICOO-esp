@@ -20,7 +20,7 @@ export default function OrderPage() {
   const [search, setSearch] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['orders', page, statusFilter, search],
     queryFn: () => fetchOrders({ page, pageSize: 10, status: statusFilter || undefined, search: search || undefined }),
   });
@@ -110,6 +110,12 @@ export default function OrderPage() {
         </select>
       </div>
 
+      {isError && (
+        <div style={{ padding: 16, marginBottom: 16, background: 'var(--color-danger-bg, #fef2f2)', border: '1px solid var(--color-danger-border, #fecaca)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ color: 'var(--color-danger, #dc2626)', fontSize: 14 }}>{t('generic.error')}</span>
+          <button onClick={() => queryClient.invalidateQueries({ queryKey: ['orders'] })} style={{ padding: '4px 12px', fontSize: 13, cursor: 'pointer', border: '1px solid var(--color-border)', borderRadius: 4, background: 'transparent' }}>{t('generic.retry', 'Retry')}</button>
+        </div>
+      )}
       <DataTable columns={columns} data={data?.data || []} rowKey="id" loading={isLoading} />
       <Pagination page={page} totalPages={data?.totalPages || 1} total={data?.total || 0} pageSize={10} onPageChange={setPage} />
 

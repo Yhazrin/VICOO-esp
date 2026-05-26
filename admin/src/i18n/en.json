@@ -19,7 +19,11 @@
         "detail": "Detail",
         "operation": "Action",
         "noData": "No data available"
-    }, 
+    },
+    "generic": {
+        "error": "An error occurred. Please try again.",
+        "retry": "Retry"
+    },
     "sidebar": {
         "dashboard": "Dashboard", 
         "artworks": "Artworks", 

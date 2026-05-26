@@ -27,7 +27,7 @@ export default function AfterSalesPage() {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['after-sales', page, statusFilter],
     queryFn: () => fetchAfterSales({ page, pageSize: 10, status: statusFilter || undefined }),
   });
@@ -140,6 +140,12 @@ export default function AfterSalesPage() {
         </select>
       </div>
 
+      {isError && (
+        <div style={{ padding: 16, marginBottom: 16, background: 'var(--color-danger-bg, #fef2f2)', border: '1px solid var(--color-danger-border, #fecaca)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ color: 'var(--color-danger, #dc2626)', fontSize: 14 }}>{t('generic.error')}</span>
+          <button onClick={() => queryClient.invalidateQueries({ queryKey: ['after-sales'] })} style={{ padding: '4px 12px', fontSize: 13, cursor: 'pointer', border: '1px solid var(--color-border)', borderRadius: 4, background: 'transparent' }}>{t('generic.retry', 'Retry')}</button>
+        </div>
+      )}
       <DataTable columns={columns} data={items} loading={isLoading} rowKey="id" />
 
       <div style={{ marginTop: 24 }}>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import DataTable from '../components/ui/DataTable';
 import type { Column } from '../components/ui/DataTable';
@@ -12,6 +12,7 @@ import dayjs from 'dayjs';
 
 export default function AuditLogPage() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [actionFilter, setActionFilter] = useState('');
   const [selected, setSelected] = useState<AuditLogEntry | null>(null);
@@ -34,7 +35,7 @@ export default function AuditLogPage() {
     return map[v] || v;
   };
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['auditLogs', page, actionFilter],
     queryFn: () => fetchAuditLogs({
       page,
@@ -114,6 +115,12 @@ export default function AuditLogPage() {
         </div>
       </div>
 
+      {isError && (
+        <div style={{ padding: 16, marginBottom: 16, background: 'var(--color-danger-bg, #fef2f2)', border: '1px solid var(--color-danger-border, #fecaca)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ color: 'var(--color-danger, #dc2626)', fontSize: 14 }}>{t('generic.error')}</span>
+          <button onClick={() => queryClient.invalidateQueries({ queryKey: ['auditLogs'] })} style={{ padding: '4px 12px', fontSize: 13, cursor: 'pointer', border: '1px solid var(--color-border)', borderRadius: 4, background: 'transparent' }}>{t('generic.retry', 'Retry')}</button>
+        </div>
+      )}
       <DataTable columns={columns} data={data?.data || []} rowKey="id" loading={isLoading} />
 
       <div style={{ marginTop: 32 }}>

@@ -188,14 +188,6 @@ async def github_callback(code: str, state: str = "", request: Request = None, d
         raise
     except Exception as e:
         logger.error(f"GitHub OAuth DB error: {e}", exc_info=True)
-        # Fallback for development: create mock response
-        if settings.APP_ENV == "development":
-            access = create_access_token(subject=github_id, role="user")
-            refresh = create_refresh_token(subject=github_id, role="user")
-            redirect_url = f"{settings.FRONTEND_URL}/auth/callback?access_token={access}&nickname={nickname}&email={email or ''}&avatar={avatar or ''}&provider=github"
-            response = RedirectResponse(url=redirect_url, status_code=302)
-            _set_auth_cookies(response, access, refresh)
-            return response
         raise HTTPException(status_code=503, detail="Authentication service unavailable")
 
 
@@ -278,11 +270,4 @@ async def google_callback(code: str, state: str = "", request: Request = None, d
         raise
     except Exception as e:
         logger.error(f"Google OAuth DB error: {e}", exc_info=True)
-        if settings.APP_ENV == "development":
-            access = create_access_token(subject=google_id, role="user")
-            refresh = create_refresh_token(subject=google_id, role="user")
-            redirect_url = f"{settings.FRONTEND_URL}/auth/callback?access_token={access}&nickname={nickname}&email={email or ''}&avatar={avatar or ''}&provider=google"
-            response = RedirectResponse(url=redirect_url, status_code=302)
-            _set_auth_cookies(response, access, refresh)
-            return response
         raise HTTPException(status_code=503, detail="Authentication service unavailable")
