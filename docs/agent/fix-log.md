@@ -750,3 +750,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: (a) Changed `?access_token=` to `#access_token=` in oauth.py; rewrote AuthCallback to parse from `window.location.hash` and clean fragment immediately; (b) Replaced `if product.stock - quantity == 0` with atomic `UPDATE WHERE stock = 0`; (c) Removed hardcoded fallback, fail with 500 if ADMIN_AUDIT_CODE not set
 - **Verification**: `python -c "ast.parse(...)"` pass for all backend files; `tsc --noEmit` pass for frontend
 - **New issues**: None
+
+## Fix 92 — Add pagination to 5 unbounded list endpoints
+- **Date**: 2026-05-27 (Round 39)
+- **Files**: `backend/app/routers/artworks.py`, `backend/app/routers/reviews.py`, `backend/app/routers/after_sales.py`, `backend/app/routers/clothing_intakes.py`, `backend/app/routers/design_drafts.py`, `backend/app/services/design_draft/service.py`
+- **Reason**: Five user-facing list endpoints returned all records without pagination: artworks/mine (no limit), reviews/mine, after-sales/mine, clothing-intakes/mine (hardcoded limit 100), design-drafts (no limit). Unbounded queries risk OOM and degrade as tables grow.
+- **Change**: Added `page`/`page_size` query parameters (ge=1, le=100) and count query to all 5 endpoints; changed response from `ApiResponse` to `PaginatedResponse`; design_drafts service updated to return `(rows, total)` tuple.
+- **Verification**: `python -c "ast.parse(...)"` pass for all backend files; `tsc --noEmit` pass for frontend
+- **New issues**: None
