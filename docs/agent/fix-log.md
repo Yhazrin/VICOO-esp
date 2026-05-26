@@ -502,3 +502,59 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Replaced `"未来科技"` with `「未来科技」` (Chinese quotation marks) in both `subtitle` and `description` values
 - **Verification**: `python -c "import json; json.load(...)"` JSON validation PASS
 - **New issues**: None
+
+## Fix 61 — design_drafts.py all 7 endpoints str(e) leakage
+- **Date**: 2026-05-26 (Round 21)
+- **Files**: `backend/app/routers/design_drafts.py`
+- **Reason**: Fix 27 claimed to fix these but code still had `detail=str(e)` on all 7 endpoints — database error messages, stack trace fragments, and internal state leaked to API callers
+- **Change**: Added `import logging` + `logger`; replaced all 7 `detail=str(e)` with `detail="Internal server error"` + `logger.exception()`
+- **Verification**: `python -c "import ast; ast.parse(...)"` syntax check PASS
+- **New issues**: None
+
+## Fix 62 — Backend 4 routers missing try/except on mutation endpoints
+- **Date**: 2026-05-26 (Round 21)
+- **Files**: `backend/app/routers/addresses.py`, `backend/app/routers/after_sales.py`, `backend/app/routers/clothing_intakes.py`, `backend/app/routers/orders.py`
+- **Reason**: (a) addresses.py had 4 mutation endpoints (create/update/delete/set_default) with zero try/except — DB IntegrityError or connection drop would produce unformatted 500; (b) after_sales.py create_ticket and update_ticket_status had no try/except; (c) clothing_intakes.py all 3 mutation endpoints had no try/except; (d) orders.py update_order_logistics and request_return had no try/except
+- **Change**: Added try/except with logger.exception() to all 12 mutation endpoints across 4 files
+- **Verification**: `python -c "import ast; ast.parse(...)"` syntax check PASS for all files
+- **New issues**: None
+
+## Fix 63 — Backend str(e) leakage: campaigns, orders, donations, payment_service, ai_assistant
+- **Date**: 2026-05-26 (Round 21)
+- **Files**: `backend/app/routers/campaigns.py`, `backend/app/routers/orders.py`, `backend/app/routers/donations.py`, `backend/app/services/payment_service.py`, `backend/app/services/ai_assistant/service.py`
+- **Reason**: (a) campaigns.py create endpoint leaked `str(e)` including DB constraint details; (b) orders.py had `str(e) if settings.DEBUG` conditional leakage; (c) donations.py leaked `str(pay_error)` in development mode; (d) payment_service.py re-raised with `str(e)` in WeChat exception; (e) ai_assistant/service.py SSE stream sent `str(e)` to client and feedback returned `str(e)` in error field
+- **Change**: Replaced all `str(e)` patterns with generic error messages + logger.exception()
+- **Verification**: `python -c "import ast; ast.parse(...)"` syntax check PASS
+- **New issues**: None
+
+## Fix 64 — ai_assistant analyze/moderate endpoints missing auth
+- **Date**: 2026-05-26 (Round 21)
+- **Files**: `backend/app/routers/ai_assistant.py`
+- **Reason**: `analyze_artwork` and `moderate_content` POST endpoints had zero authentication — any unauthenticated user could trigger external AI API calls (resource/cost abuse vector)
+- **Change**: Added `require_role("admin", "editor")` dependency to both endpoints; added `require_role` import
+- **Verification**: `python -c "from app.routers import ai_assistant"` pass
+- **New issues**: None
+
+## Fix 65 — Admin 7 mutations missing onError handlers (Round 21)
+- **Date**: 2026-05-26 (Round 21)
+- **Files**: `admin/src/pages/ArtworkPage.tsx`, `admin/src/pages/OrderPage.tsx`, `admin/src/pages/UserPage.tsx`, `admin/src/pages/SettingsPage.tsx`, `admin/src/pages/ProductPage.tsx`
+- **Reason**: 7 useMutation calls had onSuccess but no onError — API failures showed no user feedback (silent failures)
+- **Change**: Added `onError: (e: any) => toast.error(e?.response?.data?.detail ?? t('generic.error'))` to: ArtworkPage updateMutation, OrderPage updateMutation, UserPage statusMutation, SettingsPage updateMutation, ProductPage createNodeMut/updateNodeMut/deleteNodeMut
+- **Verification**: `tsc --noEmit` pass for admin (0 errors)
+- **New issues**: None
+
+## Fix 66 — Admin 8 action buttons missing loading states
+- **Date**: 2026-05-26 (Round 21)
+- **Files**: `admin/src/pages/ArtworkPage.tsx`, `admin/src/pages/OrderPage.tsx`, `admin/src/pages/CampaignPage.tsx`
+- **Reason**: 8 action buttons (approve, reject, approve submission, ship, confirm delivery, activate, end) had no `loading` prop — rapid clicks could trigger duplicate mutations
+- **Change**: Added `loading={updateMutation.isPending}` to all 8 buttons across 3 pages
+- **Verification**: `tsc --noEmit` pass for admin (0 errors)
+- **New issues**: None
+
+## Fix 67 — Frontend form label/input associations and aria-required
+- **Date**: 2026-05-26 (Round 21)
+- **Files**: `frontend/web-react/src/pages/Login/index.tsx`, `Register/index.tsx`, `ForgotPassword/index.tsx`, `Checkout/index.tsx`, `AiDesign/index.tsx`
+- **Reason**: Fix 22/54 claimed to fix these but labels still lacked `htmlFor` and inputs lacked `id` — screen readers couldn't associate labels with inputs; also missing `aria-required` on required fields
+- **Change**: Added matching `htmlFor`/`id` pairs and `aria-required="true"` to: Login (2), Register (4), ForgotPassword (1), Checkout (5) form fields; added `aria-label` to AiDesign dismiss button
+- **Verification**: `tsc --noEmit` pass for frontend (0 errors)
+- **New issues**: None
