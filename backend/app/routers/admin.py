@@ -64,11 +64,17 @@ async def approve_donation_admin(
     current_user: dict = Depends(require_role("admin", "editor")),
 ):
     """Manually approve a pending donation after offline / manual payment review."""
-    donation_service = DonationService(db)
-    donation = await donation_service.admin_approve_donation(
-        donation_id, admin_user_id=current_user.get("id")
-    )
-    return ApiResponse(data=DonationOut.model_validate(donation).model_dump(mode="json"))
+    try:
+        donation_service = DonationService(db)
+        donation = await donation_service.admin_approve_donation(
+            donation_id, admin_user_id=current_user.get("id")
+        )
+        return ApiResponse(data=DonationOut.model_validate(donation).model_dump(mode="json"))
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Approve donation {donation_id} failed")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/analytics/ai", response_model=ApiResponse)
@@ -146,25 +152,36 @@ async def get_settings(
     _current_user: dict = Depends(require_role("admin")),
 ):
     """Get admin settings."""
-    result = await db.execute(select(SiteSettings))
-    rows = result.scalars().all()
-    settings_dict = {}
-    for row in rows:
-        settings_dict[row.key] = row.value
-    # Defaults if no settings exist yet
-    defaults = {
-        "site_name": "Uniqlo × VICOO 公益",
-        "site_tagline": "Welfare Action for a Better World",
-        "contact_email": "admin@vicoo.test",
-        "donation_enabled": True,
-        "shop_enabled": True,
-        "registration_enabled": True,
-        "maintenance_mode": False,
-    }
-    for k, v in defaults.items():
-        if k not in settings_dict:
-            settings_dict[k] = v
-    return ApiResponse(data=settings_dict)
+    try:
+        result = await db.execute(select(SiteSettings))
+        rows = result.scalars().all()
+        settings_dict = {}
+        for row in rows:
+            settings_dict[row.key] = row.value
+        # Defaults if no settings exist yet
+        defaults = {
+            "site_name": "Uniqlo × VICOO 公益",
+            "site_tagline": "Welfare Action for a Better World",
+            "contact_email": "admin@vicoo.test",
+            "donation_enabled": True,
+            "shop_enabled": True,
+            "registration_enabled": True,
+            "maintenance_mode": False,
+        }
+        for k, v in defaults.items():
+            if k not in settings_dict:
+                settings_dict[k] = v
+        return ApiResponse(data=settings_dict)
+    except Exception as e:
+        logger.exception("Failed to load settings")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
+_ALLOWED_SETTINGS_KEYS = {
+    "site_name", "site_tagline", "contact_email",
+    "donation_enabled", "shop_enabled", "registration_enabled", "maintenance_mode",
+    "payment_methods",
+}
 
 
 @router.put("/settings", response_model=ApiResponse)
@@ -174,18 +191,26 @@ async def update_settings(
     _current_user: dict = Depends(require_role("admin")),
 ):
     """Update admin settings."""
-    for key, value in body.items():
-        result = await db.execute(select(SiteSettings).where(SiteSettings.key == key))
-        row = result.scalar_one_or_none()
-        if row:
-            row.value = value
-        else:
-            db.add(SiteSettings(key=key, value=value))
-    await db.flush()
-    # Return updated settings
-    result = await db.execute(select(SiteSettings))
-    rows = result.scalars().all()
-    return ApiResponse(data={r.key: r.value for r in rows})
+    try:
+        for key, value in body.items():
+            if key not in _ALLOWED_SETTINGS_KEYS:
+                continue
+            result = await db.execute(select(SiteSettings).where(SiteSettings.key == key))
+            row = result.scalar_one_or_none()
+            if row:
+                row.value = value
+            else:
+                db.add(SiteSettings(key=key, value=value))
+        await db.flush()
+        # Return updated settings
+        result = await db.execute(select(SiteSettings))
+        rows = result.scalars().all()
+        return ApiResponse(data={r.key: r.value for r in rows})
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Failed to update settings")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/audit-logs", response_model=PaginatedResponse)

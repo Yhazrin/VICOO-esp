@@ -41,8 +41,9 @@ class AuthService(BaseService):
                 if user.status == "banned":
                     raise HTTPException(status_code=403, detail="Account is banned")
                 
-                access_token = create_access_token(subject=str(user.id), role=user.role.value if hasattr(user.role, "value") else str(user.role))
-                refresh_token = create_refresh_token(subject=str(user.id), role=user.role.value if hasattr(user.role, "value") else str(user.role))
+                role = str(user.role)
+                access_token = create_access_token(subject=str(user.id), role=role)
+                refresh_token = create_refresh_token(subject=str(user.id), role=role)
                 return user, access_token, refresh_token
             else:
                 raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -104,7 +105,7 @@ class AuthService(BaseService):
             if user.status == "banned":
                 raise HTTPException(status_code=403, detail="Account is banned")
             
-            role = user.role.value if hasattr(user.role, "value") else str(user.role)
+            role = str(user.role)
             
             new_access = create_access_token(subject=sub, role=role)
             new_refresh = create_refresh_token(subject=sub, role=role)

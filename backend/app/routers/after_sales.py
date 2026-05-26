@@ -58,14 +58,18 @@ async def my_tickets(
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    stmt = (
-        select(AfterSaleTicket)
-        .where(AfterSaleTicket.user_id == current_user["id"])
-        .order_by(AfterSaleTicket.created_at.desc())
-        .limit(100)
-    )
-    rows = (await db.execute(stmt)).scalars().all()
-    return ApiResponse(data=[AfterSaleOut.model_validate(r).model_dump() for r in rows])
+    try:
+        stmt = (
+            select(AfterSaleTicket)
+            .where(AfterSaleTicket.user_id == current_user["id"])
+            .order_by(AfterSaleTicket.created_at.desc())
+            .limit(100)
+        )
+        rows = (await db.execute(stmt)).scalars().all()
+        return ApiResponse(data=[AfterSaleOut.model_validate(r).model_dump() for r in rows])
+    except Exception as e:
+        logger.exception("Failed to fetch user tickets")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("", response_model=PaginatedResponse)
@@ -76,21 +80,25 @@ async def list_tickets_admin(
     _admin: dict = Depends(require_role("admin", "editor")),
     db: AsyncSession = Depends(get_db),
 ):
-    stmt = select(AfterSaleTicket)
-    if status:
-        stmt = stmt.where(AfterSaleTicket.status == status)
-    count_stmt = select(func.count(AfterSaleTicket.id))
-    if status:
-        count_stmt = count_stmt.where(AfterSaleTicket.status == status)
-    total = (await db.execute(count_stmt)).scalar() or 0
-    stmt = stmt.order_by(AfterSaleTicket.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
-    rows = (await db.execute(stmt)).scalars().all()
-    return PaginatedResponse(
-        data=[AfterSaleOut.model_validate(r).model_dump() for r in rows],
-        total=total,
-        page=page,
-        page_size=page_size,
-    )
+    try:
+        stmt = select(AfterSaleTicket)
+        if status:
+            stmt = stmt.where(AfterSaleTicket.status == status)
+        count_stmt = select(func.count(AfterSaleTicket.id))
+        if status:
+            count_stmt = count_stmt.where(AfterSaleTicket.status == status)
+        total = (await db.execute(count_stmt)).scalar() or 0
+        stmt = stmt.order_by(AfterSaleTicket.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
+        rows = (await db.execute(stmt)).scalars().all()
+        return PaginatedResponse(
+            data=[AfterSaleOut.model_validate(r).model_dump() for r in rows],
+            total=total,
+            page=page,
+            page_size=page_size,
+        )
+    except Exception as e:
+        logger.exception("Failed to list tickets")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.patch("/{ticket_id}/status", response_model=ApiResponse)

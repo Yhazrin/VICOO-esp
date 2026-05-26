@@ -4,10 +4,13 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+import logging
 
 from app.database import get_db
 from app.models.circular_commerce import ProductReview
 from app.schemas import ApiResponse, PaginatedResponse, ProductReviewCreate, ProductReviewOut
+
+logger = logging.getLogger(__name__)
 from app.deps import get_current_user
 
 router = APIRouter(prefix="/reviews", tags=["Reviews"])
@@ -48,6 +51,9 @@ async def create_review(
         await db.flush()
     except IntegrityError:
         raise HTTPException(status_code=409, detail="You have already reviewed this product")
+    except Exception as e:
+        logger.exception("Failed to create review")
+        raise HTTPException(status_code=500, detail="Internal server error")
     return ApiResponse(data=ProductReviewOut.model_validate(row).model_dump())
 
 
