@@ -806,3 +806,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: (a) Replaced bare `try/except` with `async with self.db.begin_nested()` savepoint for impact fund allocation, so IntegrityError rolls back only the savepoint, not the entire session; (b) Added admin/owner check — non-admin users only see masked donor data for donations they don't own; (c) Added SELECT check for existing pending payment on same order/donation before creating new one
 - **Verification**: `python -c "ast.parse(...)"` pass for both files
 - **New issues**: None
+
+## Fix 99 — Order state machine, donation campaign amount rollback, demo password leak
+- **Date**: 2026-05-27 (Round 46)
+- **Files**: `backend/app/routers/orders.py`, `backend/app/services/donation/service.py`, `backend/app/routers/auth.py`
+- **Reason**: (a) P0: Admin order status update allowed any transition — could set pending order to completed, skipping payment, bypassing impact fund allocation; (b) P0: Campaign `current_amount` incremented at donation creation time, never decremented on abandoned payment — inflated campaign progress bars; (c) P1: Forgot-password endpoint returned actual plaintext passwords (`vicoo-admin`, `vicoo-editor`) in DEMO_MODE response body — anyone calling the endpoint got admin credentials
+- **Change**: (a) Added `_VALID_TRANSITIONS` state machine: pending→{cancelled}, paid→{shipped, refunded}, shipped→{completed}; reject invalid transitions with 400; (b) Moved campaign amount increment from `create_donation` to `complete_donation` — campaign only reflects confirmed payments; (c) Removed plaintext passwords from demo forgot-password response, replaced with generic message
+- **Verification**: `python -c "ast.parse(...)"` pass for all 3 files
+- **New issues**: None
