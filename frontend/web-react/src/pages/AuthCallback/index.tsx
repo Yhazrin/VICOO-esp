@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
 import PageWrapper from '@/components/layout/PageWrapper';
@@ -10,24 +10,33 @@ import PaperTextureBackground from '@/components/editorial/PaperTextureBackgroun
  * OAuth Callback Page
  *
  * After GitHub/Google OAuth, the backend redirects here with an access_token
- * in the query string. This page:
- * 1. Extracts the token
+ * in the URL fragment (#access_token=...). The fragment is never sent to servers,
+ * preventing token leakage in logs, Referer headers, and browser history.
+ *
+ * This page:
+ * 1. Extracts the token from the URL fragment
  * 2. Stores it in the auth store
  * 3. Redirects to home
  */
 export default function AuthCallback() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const { restoreSession } = useAuthStore();
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const accessToken = searchParams.get('access_token');
-    const nickname = searchParams.get('nickname');
-    const email = searchParams.get('email');
-    const avatar = searchParams.get('avatar');
-    const errorParam = searchParams.get('error');
+    // Parse token from URL fragment (e.g., #access_token=xxx&nickname=yyy)
+    const hash = window.location.hash.substring(1); // Remove leading #
+    const params = new URLSearchParams(hash);
+
+    const accessToken = params.get('access_token');
+    const nickname = params.get('nickname');
+    const email = params.get('email');
+    const avatar = params.get('avatar');
+    const errorParam = params.get('error');
+
+    // Clean the fragment from the URL bar immediately
+    window.history.replaceState(null, '', window.location.pathname);
 
     if (errorParam) {
       setError(t('authCallback.authenticationFailed'));
@@ -54,7 +63,7 @@ export default function AuthCallback() {
     // Redirect to home after a brief moment
     const timer = setTimeout(() => navigate('/', { replace: true }), 500);
     return () => clearTimeout(timer);
-  }, [searchParams, navigate, restoreSession, t]);
+  }, [navigate, restoreSession, t]);
 
   return (
     <PageWrapper>

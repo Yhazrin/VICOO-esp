@@ -96,8 +96,8 @@ def _build_auth_redirect(user: User) -> RedirectResponse:
     access = create_access_token(subject=str(user.id), role=user.role)
     refresh = create_refresh_token(subject=str(user.id), role=user.role)
 
-    # Redirect to frontend callback page with token in fragment (not query param for security)
-    redirect_url = f"{settings.FRONTEND_URL}/auth/callback?access_token={access}"
+    # Redirect to frontend callback page with token in URL fragment (never sent to servers)
+    redirect_url = f"{settings.FRONTEND_URL}/auth/callback#access_token={access}"
 
     response = RedirectResponse(url=redirect_url, status_code=302)
     _set_auth_cookies(response, access, refresh)

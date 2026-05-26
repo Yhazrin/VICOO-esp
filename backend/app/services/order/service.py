@@ -113,11 +113,12 @@ class OrderService(BaseService):
             if result.rowcount == 0:
                 raise HTTPException(status_code=400, detail=f"Insufficient stock for product {product.name}")
 
-            # Mark as sold_out if stock reaches zero
-            if product.stock - quantity == 0:
-                await self.db.execute(
-                    update(Product).where(Product.id == product_id).values(status="sold_out")
-                )
+            # Atomically mark as sold_out when stock reaches zero
+            await self.db.execute(
+                update(Product)
+                .where(Product.id == product_id, Product.stock == 0)
+                .values(status="sold_out")
+            )
 
             item_total = product.price * Decimal(str(quantity))
             total_amount += item_total

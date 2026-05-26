@@ -146,7 +146,9 @@ async def verify_audit_access(
     _current_user: dict = Depends(require_role("admin")),
 ):
     """Verify admin audit access code."""
-    expected = os.environ.get("ADMIN_AUDIT_CODE", "vicoo-admin-2025")
+    expected = os.environ.get("ADMIN_AUDIT_CODE")
+    if not expected:
+        raise HTTPException(status_code=500, detail="Audit access code not configured")
     if not hmac.compare_digest(body.access_code, expected):
         raise HTTPException(status_code=403, detail="Invalid access code")
     return ApiResponse(data={"verified": True})
