@@ -678,3 +678,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: (a) contact.py: added logging + try/except to `submit_contact_form` and `list_contact_messages`; (b) impact_fund.py: added logging + try/except to `get_order_impact_entries` and `get_impact_fund_summary`
 - **Verification**: `python -c "ast.parse(...)"` pass for all backend files
 - **New issues**: None
+
+## Fix 83 — AI service str(e) leakage and setattr field allowlists
+- **Date**: 2026-05-26 (Round 30)
+- **Files**: `backend/app/services/ai_assistant/service.py`, `backend/app/routers/products.py`, `backend/app/routers/artworks.py`
+- **Reason**: (a) ai_assistant/service.py lines 351 and 406 leaked raw exception strings (`f"Moderation error: {e}"`, `f"Error during analysis: {e}"`) through API response data — could expose internal details like network errors, API keys; (b) products.py and artworks.py used `setattr` loops with only Pydantic schema as guard — no explicit field allowlist at persistence layer
+- **Change**: (a) Replaced 2 `str(e)` responses with generic messages ("Moderation service temporarily unavailable", "Analysis temporarily unavailable"); changed `logger.error` to `logger.exception`; (b) Added `_PRODUCT_UPDATABLE` set (15 fields) and `_ARTWORK_UPDATABLE` set (5 fields) as explicit allowlists for setattr loops
+- **Verification**: `python -c "ast.parse(...)"` pass for all backend files
+- **New issues**: None
