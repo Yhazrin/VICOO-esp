@@ -542,7 +542,7 @@ export default function ProductPage() {
                         display: 'inline-block', padding: '2px 8px', borderRadius: 4,
                         fontSize: 10, fontWeight: 500,
                         background: 'var(--color-success-bg)', color: 'var(--color-success)',
-                      }}>Certified</span>
+                      }}>{t('product.nodeCertifiedBadge', 'Certified')}</span>
                     )}
                   </div>
                   <div style={{ display: 'flex', gap: 6 }}>
@@ -554,7 +554,7 @@ export default function ProductPage() {
                 <div style={{ fontSize: 12, color: 'var(--color-text-3)', display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                   {rec.location && <span>{rec.location}</span>}
                   {rec.timestamp && <span>{dayjs(rec.timestamp).format('YYYY-MM-DD')}</span>}
-                  {rec.carbonKg != null && <span>{rec.carbonKg} kg CO2</span>}
+                  {rec.carbonKg != null && <span>{rec.carbonKg} {t('product.carbonUnit', 'kg CO2')}</span>}
                 </div>
                 {rec.gallery.length > 0 && (
                   <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>

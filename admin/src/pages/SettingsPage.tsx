@@ -98,6 +98,14 @@ export default function SettingsPage() {
 
   // 保存配置处理函数
   const handleSave = () => {
+    if (!form.siteName?.trim()) {
+      toast.error(t('settings.errorSiteName', 'Site name is required'));
+      return;
+    }
+    if (form.contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.contactEmail)) {
+      toast.error(t('settings.errorInvalidEmail', 'Invalid email format'));
+      return;
+    }
     updateMutation.mutate(form);
   };
 

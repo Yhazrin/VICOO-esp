@@ -112,7 +112,7 @@ export default function Profile() {
     enabled: isAuthenticated,
   });
 
-  const { data: addresses = [], isLoading: loadingAddresses } = useQuery({
+  const { data: addresses = [], isLoading: loadingAddresses, isError: addressError } = useQuery({
     queryKey: ['my-addresses'],
     queryFn: () => addressesApi.getAll(),
     enabled: isAuthenticated,
@@ -728,7 +728,9 @@ export default function Profile() {
                 )}
               </AnimatePresence>
 
-              {loadingAddresses ? (
+              {addressError ? (
+                <p className="font-body text-body-sm text-rust">{t('common.error', 'Failed to load addresses')}</p>
+              ) : loadingAddresses ? (
                 <p className="font-body text-body-sm text-ink-faded">{t('common.loading', 'Loading...')}</p>
               ) : addresses.length === 0 && !showAddressForm ? (
                 <div className="text-center py-12">

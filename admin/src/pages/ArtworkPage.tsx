@@ -71,7 +71,7 @@ export default function ArtworkPage() {
     { key: 'title', title: t('artwork.colWorkTitle'), minWidth: 180, sorter: true, render: (v) => <span style={{ fontWeight: 600, fontFamily: 'var(--font-body)' }}>{v}</span> },
     { key: 'childName', title: t('artwork.colArtist'), width: 120 },
     { key: 'category', title: t('artwork.colMedium'), width: 120 },
-    { key: 'votes', title: t('artwork.colImpact'), width: 100, sorter: true, render: (v) => <span style={{ fontFamily: 'var(--font-mono)' }}>{v} pts</span> },
+    { key: 'votes', title: t('artwork.colImpact'), width: 100, sorter: true, render: (v) => <span style={{ fontFamily: 'var(--font-mono)' }}>{v} {t('artwork.pts', 'pts')}</span> },
     { key: 'status', title: t('artwork.colStatus'), width: 120, render: (v) => <StatusBadge status={v} /> },
     { key: 'createdAt', title: t('artwork.colSubmitted'), width: 160, sorter: true, render: (v) => dayjs(v).format('YYYY-MM-DD HH:mm') },
     {
@@ -233,7 +233,7 @@ export default function ArtworkPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 32px' }}>
               <DetailRow label={t('artwork.detailIdentityCode')} value={<code style={{ fontFamily: 'var(--font-mono)' }}>{selectedArtwork.id}</code>} />
               <DetailRow label={t('artwork.detailArtistName')} value={selectedArtwork.childName} />
-              <DetailRow label={t('artwork.detailArtistAge')} value={`${selectedArtwork.childAge} Years`} />
+              <DetailRow label={t('artwork.detailArtistAge')} value={`${selectedArtwork.childAge} ${t('artwork.years', 'Years')}`} />
               <DetailRow label={t('artwork.detailMedium')} value={selectedArtwork.category} />
               <DetailRow label={t('artwork.detailCuratorialStatus')} value={<StatusBadge status={selectedArtwork.status} />} />
               <DetailRow label={t('artwork.detailSubmissionDate')} value={dayjs(selectedArtwork.createdAt).format('YYYY-MM-DD')} />
