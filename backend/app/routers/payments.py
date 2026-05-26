@@ -103,6 +103,22 @@ async def wechat_notify(request: Request, db: AsyncSession = Depends(get_db)):
                 pass
 
         if params.get("result_code") == "SUCCESS":
+            # Defense-in-depth: verify callback amount matches DB amount
+            if donation_id:
+                from app.models.donation import Donation
+                from sqlalchemy import select
+                donation = (await db.execute(select(Donation).where(Donation.id == donation_id))).scalar_one_or_none()
+                if donation and donation.amount != amount_cny:
+                    logger.warning(f"WeChat callback amount mismatch: callback={amount_cny}, db={donation.amount} for donation {donation_id}")
+                    return Response(content="<xml><return_code>FAIL</return_code></xml>", media_type="application/xml")
+            elif out_trade_no:
+                from app.models.order import Order
+                from sqlalchemy import select
+                order = (await db.execute(select(Order).where(Order.order_no == out_trade_no))).scalar_one_or_none()
+                if order and order.total_amount != amount_cny:
+                    logger.warning(f"WeChat callback amount mismatch: callback={amount_cny}, db={order.total_amount} for order {out_trade_no}")
+                    return Response(content="<xml><return_code>FAIL</return_code></xml>", media_type="application/xml")
+
             await payment_service.process_successful_payment(
                 provider_tx_id=params.get("transaction_id"),
                 amount=amount_cny,
@@ -203,6 +219,22 @@ async def alipay_notify(request: Request, db: AsyncSession = Depends(get_db)):
                 donation_id = int(out_trade_no[3:])
             except (ValueError, TypeError):
                 pass
+
+        # --- Defense-in-depth: verify callback amount matches DB amount ---
+        if donation_id:
+            from app.models.donation import Donation
+            from sqlalchemy import select
+            donation = (await db.execute(select(Donation).where(Donation.id == donation_id))).scalar_one_or_none()
+            if donation and donation.amount != total_amount:
+                logger.warning(f"Alipay callback amount mismatch: callback={total_amount}, db={donation.amount} for donation {donation_id}")
+                return PlainTextResponse("failure")
+        elif out_trade_no:
+            from app.models.order import Order
+            from sqlalchemy import select
+            order = (await db.execute(select(Order).where(Order.order_no == out_trade_no))).scalar_one_or_none()
+            if order and order.total_amount != total_amount:
+                logger.warning(f"Alipay callback amount mismatch: callback={total_amount}, db={order.total_amount} for order {out_trade_no}")
+                return PlainTextResponse("failure")
 
         # --- Delegate to PaymentService (atomic status guard + impact fund allocation) ---
         payment_service = PaymentService(db)

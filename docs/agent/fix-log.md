@@ -918,3 +918,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Made cart total use the same `=== 'CNY'` check as per-item price
 - **Verification**: Build passes
 - **New issues**: None
+
+## Fix 113 — Payment callback amount not verified against database
+- **Date**: 2026-05-27 (Round 48)
+- **Files**: `backend/app/routers/payments.py`
+- **Reason**: P1: Both WeChat and Alipay payment callbacks accepted the amount from the callback XML/params without comparing against the order's `total_amount` or donation's `amount` in the database. If a callback signature is bypassed or signing key leaks, an attacker could mark a 10,000 CNY order as paid with a 0.01 CNY callback.
+- **Change**: Added defense-in-depth amount verification: look up the order/donation by ID, compare callback amount against DB amount, reject on mismatch with warning log
+- **Verification**: `python -c "import ast; ..."` pass
+- **New issues**: None
