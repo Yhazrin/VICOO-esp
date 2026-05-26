@@ -2196,3 +2196,27 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Translated all Chinese t() fallback strings to English. Covers SupplyChainStudio (17), SubmitArtwork (9), ArtworkSubmit (4), Support (3), DonateClothing (4), Stories (2), ImpactShop (2), ClothingRecycle (1), ArtworkDetail (1), OrderDetail (1), CartDrawer (1).
 - **Verification**: All t() calls in these files now use English fallbacks
 - **New issues**: None
+
+## Fix 260 — Rate limiting gaps: forgot-password, health check bypass, legacy paths
+- **Date**: 2026-05-27 (Round 77)
+- **Files**: `backend/app/deps.py`, `backend/app/main.py`
+- **Reason**: P2: Three rate-limiting issues: (1) `/auth/forgot-password` missing from public endpoint rate-limit list, enabling email abuse. (2) Health check bypass used substring match (`"/health" in path`), so any path containing "health" skipped rate limiting. (3) Legacy `/api/` paths not in rate-limit list as defense-in-depth.
+- **Change**: Added forgot-password to public_endpoints (both legacy and v1 paths). Changed health check to exact match against known paths. Added legacy `/api/` paths to public_endpoints.
+- **Verification**: forgot-password now rate-limited; health bypass only applies to actual health endpoints
+- **New issues**: None
+
+## Fix 261 — Missing database indexes on frequently queried columns
+- **Date**: 2026-05-27 (Round 77)
+- **Files**: `backend/app/models/product.py`, `backend/app/models/payment.py`, `backend/app/models/user.py`
+- **Reason**: P2: Three columns used in WHERE/GROUP BY clauses had no index: `Product.status` (filtered in most product queries), `PaymentTransaction.status` (queried during payment verification), `User.role` (checked in every `require_role()` call and analytics queries).
+- **Change**: Added `index=True` to `Product.status`, `PaymentTransaction.status`, and `User.role` columns.
+- **Verification**: Columns now indexed; queries using these filters will use index scans instead of full table scans
+- **New issues**: Requires Alembic migration (`alembic revision --autogenerate`)
+
+## Fix 262 — Docker/deploy configuration fixes
+- **Date**: 2026-05-27 (Round 77)
+- **Files**: `deploy/docker/Dockerfiles/backend.Dockerfile`, `deploy/docker/Dockerfiles/frontend.Dockerfile`, `deploy/docker/docker-compose.yml`
+- **Reason**: P1: Three Docker config bugs: (1) Backend Dockerfile used wrong module path (`backend.main` vs `app.main`), wrong healthcheck URL (`/health` vs `/api/v1/health`), missing PYTHONPATH, and insecure `--forwarded-allow-ips "*"`. (2) Frontend Dockerfile COPY path was outside build context, causing build failure. (3) Alipay private and public key mapped to same secret file. Also removed deprecated `version: "3.9"` key.
+- **Change**: Fixed backend CMD to `app.main:app`, added `PYTHONPATH=/app/backend`, fixed healthcheck URL, removed `--forwarded-allow-ips`. Changed frontend build context to project root with correct COPY paths. Split Alipay keys into separate secrets.
+- **Verification**: Backend container will start correctly; frontend build will succeed; Alipay keys properly separated
+- **New issues**: Requires updating secrets directory with separate `alipay_private_key.txt` and `alipay_public_key.txt` files

@@ -122,7 +122,7 @@ async def request_size_limit_middleware(request: Request, call_next):
 # Rate Limiting — fail-open: let the request through when rate-limit infra is broken
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
-    if "/health" in request.url.path:
+    if request.url.path in ("/health", "/api/v1/health", "/api/health"):
         return await call_next(request)
 
     try:

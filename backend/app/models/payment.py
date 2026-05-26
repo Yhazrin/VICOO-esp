@@ -17,6 +17,7 @@ class PaymentTransaction(Base):
         Enum("pending", "success", "failed", "refunded", name="payment_status"),
         default="pending",
         nullable=False,
+        index=True,
     )
     payment_url = Column(String(500), nullable=True)
     expires_at = Column(DateTime, nullable=True)

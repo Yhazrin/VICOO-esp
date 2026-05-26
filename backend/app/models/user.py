@@ -16,6 +16,7 @@ class User(Base):
         Enum("admin", "editor", "user", "guardian", "compliance", name="user_role"),
         default="user",
         nullable=False,
+        index=True,
     )
     phone_encrypted = Column(Text, nullable=True)  # AES-256-GCM encrypted
     status = Column(Enum("active", "banned", name="user_status"), default="active", nullable=False)

@@ -9,13 +9,13 @@ FROM node:18-alpine AS builder
 WORKDIR /build
 
 # Copy package files for dependency caching
-COPY package.json package-lock.json* ./
+COPY frontend/web-react/package.json frontend/web-react/package-lock.json* ./
 
 # Install dependencies
 RUN npm ci --legacy-peer-deps
 
 # Copy source code
-COPY . .
+COPY frontend/web-react/ .
 
 # Build the production bundle
 RUN npm run build
@@ -33,7 +33,7 @@ RUN rm /etc/nginx/conf.d/default.conf
 RUN apk add --no-cache gettext
 
 # Copy custom nginx configuration template
-COPY ../../deploy/docker/nginx/nginx.conf /etc/nginx/conf.d/vicoo.conf.template
+COPY deploy/docker/nginx/nginx.conf /etc/nginx/conf.d/vicoo.conf.template
 
 # Copy built React app from builder stage
 COPY --from=builder /build/dist /usr/share/nginx/html

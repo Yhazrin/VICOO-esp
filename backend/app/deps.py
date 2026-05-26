@@ -164,10 +164,12 @@ async def rate_limit_check(request: Request, current_user: Optional[dict] = None
             "/api/auth/register",
             "/api/auth/refresh",
             "/api/auth/wx-login",
+            "/api/auth/forgot-password",
             "/api/v1/auth/login",
             "/api/v1/auth/register",
             "/api/v1/auth/refresh",
             "/api/v1/auth/wx-login",
+            "/api/v1/auth/forgot-password",
         ]
         if request.url.path in public_endpoints:
             public_key = f"rate_limit:public:{client_ip}:{int(current_time // 60)}"
