@@ -1898,3 +1898,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
   - `artworks.py`: Translated 20 mock artwork titles and descriptions from Chinese to English
 - **Verification**: All mock API responses now use consistent English
 - **New issues**: None
+
+## Fix 228 — Silent cache invalidation in demo seed script
+- **Date**: 2026-05-27 (Round 68)
+- **Files**: `backend/app/add_campaigns_demo.py`
+- **Reason**: P3: `except Exception: pass` silently swallowed cache invalidation failures
+- **Change**: Added `print(f"Warning: cache invalidation failed: {e}")` to the except block
+- **Verification**: Cache failures now produce visible output during seed runs
+- **New issues**: None

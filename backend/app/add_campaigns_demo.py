@@ -148,8 +148,8 @@ async def main() -> None:
     # 列表缓存
     try:
         await invalidate_cache("campaigns:")
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"Warning: cache invalidation failed: {e}")
 
     print(f"活动：新增 {inserted} 条，更新封面/描述 {updated} 条。")
     await engine.dispose()
