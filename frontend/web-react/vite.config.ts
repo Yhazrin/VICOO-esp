@@ -40,12 +40,12 @@ export default defineConfig({
     // Dev: browser calls same-origin /api/v1 → forwarded to Docker or local API (avoids CORS)
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'http://localhost:8000',
         changeOrigin: true,
         ws: true,
       },
       '/static': {
-        target: 'http://localhost:8080',
+        target: 'http://localhost:8000',
         changeOrigin: true,
       },
     },
