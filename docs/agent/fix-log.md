@@ -606,3 +606,19 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Added `isError: addressError` to useQuery destructuring; added error message display in address section
 - **Verification**: `tsc --noEmit` pass for frontend
 - **New issues**: None
+
+## Fix 74 — Admin type safety: remove `as any` casts
+- **Date**: 2026-05-26 (Round 24)
+- **Files**: `admin/src/pages/ProductPage.tsx`, `admin/src/pages/CampaignPage.tsx`
+- **Reason**: ProductPage had 4 `as any` casts (column key, 2 form events, stage value); CampaignPage had `handleSubmit(e as any)` — untyped access to known properties
+- **Change**: (a) Removed `as any` from column key (string type already matches); (b) Changed `submitForm`/`submitNode`/`handleSubmit` signatures to accept `React.FormEvent | React.MouseEvent`; (c) Removed `as any` from Button onClick handlers; (d) Changed stage value cast from `as any` to `as SupplyChainRecord['stage']`
+- **Verification**: `tsc --noEmit` pass for admin (0 errors)
+- **New issues**: None
+
+## Fix 75 — Backend mass-assignment: campaign and supply_chain services
+- **Date**: 2026-05-26 (Round 24)
+- **Files**: `backend/app/services/campaign/service.py`, `backend/app/services/supply_chain/service.py`
+- **Reason**: Fix 30 claimed to add field allowlists but code still used unconstrained `setattr` — (a) campaign `update_campaign` iterated over all dict keys; (b) supply_chain `update_record` used `hasattr` guard which only checked existence, not safety (could overwrite `id`, `product_id`, `created_at`)
+- **Change**: (a) campaign/service.py: added `_UPDATABLE_FIELDS` set and only set attributes in that allowlist; (b) supply_chain/service.py: added `_UPDATABLE_FIELDS` set replacing the `hasattr` guard
+- **Verification**: `python -c "from app.services.campaign.service import CampaignService; from app.services.supply_chain.service import SupplyChainService"` pass
+- **New issues**: None
