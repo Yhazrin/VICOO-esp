@@ -2620,3 +2620,27 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Translated all 7 docstrings to English. Exempt files (`db_repair.py` data mapping) left unchanged.
 - **Verification**: `grep -rP '"""[^\x00-\x7F]' backend/app/` only shows exempt files (db_repair.py)
 - **New issues**: None
+
+## Fix 313 — Campaign service paginated query missing ORDER BY
+- **Date**: 2026-05-27 (Round 85)
+- **Files**: `backend/app/services/campaign/service.py`
+- **Reason**: P2: `list_campaigns` used `.offset().limit()` without `.order_by()`. Paginated results had unstable ordering across pages — users could see duplicate or missing campaigns when paginating.
+- **Change**: Added `.order_by(Campaign.created_at.desc())` before `.offset()`.
+- **Verification**: Campaign listings now have stable descending order by creation date
+- **New issues**: None
+
+## Fix 314 — artworks.py unconditional mock data fallback in production
+- **Date**: 2026-05-27 (Round 85)
+- **Files**: `backend/app/routers/artworks.py`
+- **Reason**: P1: `list_artworks` fallback except block returned `_mock_artworks` with HTTP 200 when both primary and retry queries failed. Unlike products.py (gated by `APP_ENV != "demo"`), this had no environment check — production users silently received placeholder data.
+- **Change**: Replaced mock data fallback with `raise HTTPException(status_code=503)`.
+- **Verification**: Production users now get a proper 503 error instead of fake data
+- **New issues**: None
+
+## Fix 315 — Header.tsx AI ball style options hardcoded Chinese strings
+- **Date**: 2026-05-27 (Round 85)
+- **Files**: `frontend/web-react/src/components/layout/Header.tsx`, `frontend/web-react/src/i18n/en.json`, `frontend/web-react/src/i18n/zh.json`
+- **Reason**: P3: AI ball style option names/descriptions (`光环星球`, `粒子星球`, etc.) used manual `isEnglish` ternaries instead of `t()`. Same for the short label ternary (`光环`/`粒子`).
+- **Change**: Added `nav.settings.*` translation keys to en.json and zh.json. Replaced manual locale ternaries with `t()` calls.
+- **Verification**: AI ball style labels now use i18n system
+- **New issues**: None

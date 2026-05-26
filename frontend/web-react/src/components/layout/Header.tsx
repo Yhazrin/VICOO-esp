@@ -779,8 +779,8 @@ export default function Header() {
                         </span>
                       </div>
                       {([
-                        { id: 'orb' as AIBallStyle, name: '光环星球', nameEn: 'Orb Rings', desc: '同心旋转光环 + 渐变核心' },
-                        { id: 'particles' as AIBallStyle, name: '粒子星球', nameEn: 'Particle Planet', desc: 'Canvas 粒子轨道动画' },
+                        { id: 'orb' as AIBallStyle, nameKey: 'nav.settings.orbRings', descKey: 'nav.settings.orbRingsDesc' },
+                        { id: 'particles' as AIBallStyle, nameKey: 'nav.settings.particlePlanet', descKey: 'nav.settings.particlePlanetDesc' },
                       ]).map((opt) => (
                         <button
                           key={opt.id}
@@ -791,10 +791,10 @@ export default function Header() {
                         >
                           <div className="text-left flex-1 min-w-0">
                             <p className="font-body text-body-sm text-ink truncate">
-                              {currentLocale === 'zh' ? opt.name : opt.nameEn}
+                              {t(opt.nameKey)}
                             </p>
                             <p className="font-body text-caption text-sepia-mid truncate">
-                              {opt.desc}
+                              {t(opt.descKey)}
                             </p>
                           </div>
                           {aiBallStyle === opt.id && (
@@ -848,7 +848,7 @@ export default function Header() {
                             </span>
                             <div className="flex items-center gap-2">
                               <span className="font-body text-caption text-sepia-mid">
-                                {aiBallStyle === 'orb' ? (currentLocale === 'zh' ? '光环' : 'Orb') : (currentLocale === 'zh' ? '粒子' : 'Particles')}
+                                {aiBallStyle === 'orb' ? t('nav.settings.orbShort') : t('nav.settings.particlesShort')}
                               </span>
                               <svg className="w-3 h-3 text-sepia-mid" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

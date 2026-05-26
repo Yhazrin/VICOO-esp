@@ -159,18 +159,7 @@ async def list_artworks(
             )
         except Exception as e2:
             logger.error("list_artworks fallback also failed: %s", e2, exc_info=True)
-            filtered = _mock_artworks
-            if status:
-                filtered = [a for a in filtered if a["status"] == status]
-            if campaign_id is not None:
-                filtered = [a for a in filtered if a.get("campaign_id") == campaign_id]
-            start = (page - 1) * page_size
-            return PaginatedResponse(
-                data=filtered[start : start + page_size],
-                total=len(filtered),
-                page=page,
-                page_size=page_size,
-            )
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.get("/mine", response_model=PaginatedResponse)

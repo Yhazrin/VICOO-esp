@@ -55,7 +55,7 @@ class CampaignService(BaseService):
             total = (await self.db.execute(count_stmt)).scalar() or 0
             
             # Get items
-            stmt = stmt.offset((page - 1) * page_size).limit(page_size)
+            stmt = stmt.order_by(Campaign.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
             result = await self.db.execute(stmt)
             campaigns = result.scalars().all()
             

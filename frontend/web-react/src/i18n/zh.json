@@ -24,6 +24,15 @@
     "group": {
       "company": "品牌服务",
       "impact": "可持续发展"
+    },
+    "settings": {
+      "aiBallStyle": "AI 球样式",
+      "orbRings": "光环星球",
+      "orbRingsDesc": "同心旋转光环 + 渐变核心",
+      "orbShort": "光环",
+      "particlePlanet": "粒子星球",
+      "particlePlanetDesc": "Canvas 粒子轨道动画",
+      "particlesShort": "粒子"
     }
   },
   "auth": {
