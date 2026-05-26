@@ -742,3 +742,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Added `page`/`page_size` query parameters; changed response from `ApiResponse` to `PaginatedResponse`; added count query and `.offset().limit()`
 - **Verification**: `python -c "ast.parse(...)"` pass
 - **New issues**: None
+
+## Fix 91 — OAuth token in fragment, atomic sold_out, remove audit code fallback
+- **Date**: 2026-05-27 (Round 38)
+- **Files**: `backend/app/routers/oauth.py`, `backend/app/routers/admin.py`, `backend/app/services/order/service.py`, `frontend/web-react/src/pages/AuthCallback/index.tsx`
+- **Reason**: (a) OAuth redirect passed access_token in URL query param — leaked in server logs, Referer headers, browser history; comment said "fragment" but code used query param; (b) sold_out check used stale Python-side stock value — under concurrent orders, product could stay "active" with 0 stock; (c) Admin audit code had hardcoded fallback "vicoo-admin-2025" — reduced 2FA to 1FA if env var not set
+- **Change**: (a) Changed `?access_token=` to `#access_token=` in oauth.py; rewrote AuthCallback to parse from `window.location.hash` and clean fragment immediately; (b) Replaced `if product.stock - quantity == 0` with atomic `UPDATE WHERE stock = 0`; (c) Removed hardcoded fallback, fail with 500 if ADMIN_AUDIT_CODE not set
+- **Verification**: `python -c "ast.parse(...)"` pass for all backend files; `tsc --noEmit` pass for frontend
+- **New issues**: None
