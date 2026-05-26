@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 import logging
 
-from app.config import settings
 from app.database import get_db
 from app.schemas import ApiResponse, CampaignCreate, CampaignOut, CampaignUpdate, PaginatedResponse
 from app.deps import require_role

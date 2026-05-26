@@ -1789,3 +1789,26 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Created `.dockerignore` excluding .git, docs, node_modules, tests, deploy configs, IDE files, and environment files.
 - **Verification**: Docker build context is now significantly smaller
 - **New issues**: None
+
+## Fix 219 — Chinese error messages in payments.py
+- **Date**: 2026-05-27 (Round 66)
+- **Files**: `backend/app/routers/payments.py`
+- **Reason**: P2: 7 HTTPException detail strings were in Chinese while every other router returns English. Causes mixed-language error display on frontend.
+- **Change**: Translated all 7 Chinese messages to English:
+  - `"金额不匹配"` → `"Amount mismatch"` (×2)
+  - `"无效或已过期的支付链接"` → `"Invalid or expired payment link"` (×2)
+  - `"订单不存在"` → `"Order not found"` (×2)
+  - `"订单状态不允许支付"` → `"Order status does not allow payment"`
+- **Verification**: All error messages now use consistent English
+- **New issues**: None
+
+## Fix 220 — Dead imports in 3 routers
+- **Date**: 2026-05-27 (Round 66)
+- **Files**: `backend/app/routers/campaigns.py`, `backend/app/routers/auth.py`, `backend/app/routers/donations.py`
+- **Reason**: P3: Unused imports left from refactoring:
+  - `campaigns.py`: `from app.config import settings` — never referenced
+  - `auth.py`: `send_welcome_email` and `ServiceUnavailableException` — never called/raised
+  - `donations.py`: `update` from sqlalchemy — `.update()` calls are Python dict methods, not SQLAlchemy
+- **Change**: Removed all 4 unused imports
+- **Verification**: No functional change; cleaner import lists
+- **New issues**: None

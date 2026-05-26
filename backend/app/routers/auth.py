@@ -25,8 +25,7 @@ from app.security import (
     decode_token,
 )
 from app.services.auth.service import AuthService
-from app.services.mailer import send_welcome_email, send_password_recovery_email
-from app.core.errors import ServiceUnavailableException
+from app.services.mailer import send_password_recovery_email
 
 logger = logging.getLogger("vicoo.auth")
 

@@ -53,15 +53,15 @@ async def create_payment(body: PaymentCreate, db: AsyncSession = Depends(get_db)
         if not order or (order.user_id != current_user["id"] and current_user.get("role") != "admin"):
             raise HTTPException(status_code=403, detail="Forbidden")
         if Decimal(str(body.amount)) != order.total_amount:
-            raise HTTPException(status_code=400, detail="金额不匹配")
-    
+            raise HTTPException(status_code=400, detail="Amount mismatch")
+
     if body.donation_id:
         stmt = select(Donation).where(Donation.id == body.donation_id)
         donation = (await db.execute(stmt)).scalar_one_or_none()
         if not donation or (donation.donor_user_id and donation.donor_user_id != current_user["id"] and current_user.get("role") != "admin"):
             raise HTTPException(status_code=403, detail="Forbidden")
         if Decimal(str(body.amount)) != donation.amount:
-            raise HTTPException(status_code=400, detail="金额不匹配")
+            raise HTTPException(status_code=400, detail="Amount mismatch")
 
     try:
         tx = await payment_service.create_payment_transaction(
@@ -306,12 +306,12 @@ async def mock_pay_preview(token: str = Query(..., min_length=10), db: AsyncSess
     """Demo: load order summary for mobile pay page (token-signed, no auth)."""
     payload = parse_mock_pay_token(token, settings.APP_SECRET_KEY)
     if not payload:
-        raise HTTPException(status_code=400, detail="无效或已过期的支付链接")
+        raise HTTPException(status_code=400, detail="Invalid or expired payment link")
     order = (
         await db.execute(select(Order).where(Order.id == int(payload["oid"])))
     ).scalar_one_or_none()
     if not order or order.order_no != payload["ono"] or order.user_id != int(payload["uid"]):
-        raise HTTPException(status_code=404, detail="订单不存在")
+        raise HTTPException(status_code=404, detail="Order not found")
     out = MockPayPreviewOut(
         order_no=order.order_no,
         total_amount=str(order.total_amount),
@@ -326,12 +326,12 @@ async def mock_pay_confirm(body: MockPayConfirmBody, db: AsyncSession = Depends(
     """Demo: mark order paid after user taps confirm on the mobile page."""
     payload = parse_mock_pay_token(body.token.strip(), settings.APP_SECRET_KEY)
     if not payload:
-        raise HTTPException(status_code=400, detail="无效或已过期的支付链接")
+        raise HTTPException(status_code=400, detail="Invalid or expired payment link")
     order = (
         await db.execute(select(Order).where(Order.id == int(payload["oid"])))
     ).scalar_one_or_none()
     if not order or order.order_no != payload["ono"] or order.user_id != int(payload["uid"]):
-        raise HTTPException(status_code=404, detail="订单不存在")
+        raise HTTPException(status_code=404, detail="Order not found")
     if order.status == "paid":
         return ApiResponse(
             data=MockPayConfirmOut(
@@ -339,7 +339,7 @@ async def mock_pay_confirm(body: MockPayConfirmBody, db: AsyncSession = Depends(
             ).model_dump()
         )
     if order.status != "pending":
-        raise HTTPException(status_code=400, detail="订单状态不允许支付")
+        raise HTTPException(status_code=400, detail="Order status does not allow payment")
 
     payment_service = PaymentService(db)
     provider_id = f"mock-{secrets.token_hex(16)}"
