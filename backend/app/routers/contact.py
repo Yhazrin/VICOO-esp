@@ -1,13 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, EmailStr, Field
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 import time
 import logging
 
 from app.database import get_db
 from app.models.contact import ContactMessage
-from app.schemas import ApiResponse
+from app.schemas import ApiResponse, PaginatedResponse
 from app.schemas.contact import ContactMessageOut
 from app.deps import require_role
 
@@ -74,16 +74,31 @@ async def submit_contact_form(body: ContactForm, request: Request, db: AsyncSess
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-@router.get("/messages", response_model=ApiResponse)
+@router.get("/messages", response_model=PaginatedResponse)
 async def list_contact_messages(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
     _admin: dict = Depends(require_role("admin")),
 ):
-    """List all contact form messages (admin only)."""
+    """List all contact form messages (admin only, paginated)."""
     try:
-        result = await db.execute(select(ContactMessage).order_by(ContactMessage.created_at.desc()))
+        count_stmt = select(func.count(ContactMessage.id))
+        total = (await db.execute(count_stmt)).scalar() or 0
+        stmt = (
+            select(ContactMessage)
+            .order_by(ContactMessage.created_at.desc())
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+        )
+        result = await db.execute(stmt)
         messages = result.scalars().all()
-        return ApiResponse(data=[ContactMessageOut.model_validate(m).model_dump() for m in messages])
+        return PaginatedResponse(
+            data=[ContactMessageOut.model_validate(m).model_dump() for m in messages],
+            total=total,
+            page=page,
+            page_size=page_size,
+        )
     except Exception as e:
         logger.exception("Failed to list contact messages")
         raise HTTPException(status_code=500, detail="Internal server error")
