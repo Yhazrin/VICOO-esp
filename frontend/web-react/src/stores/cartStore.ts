@@ -79,16 +79,21 @@ export const useCartStore = create<CartState>()(
             items.map((item) => productsApi.getById(String(item.product.id)))
           );
           let changed = false;
-          const freshItems = items.map((item, i) => {
+          const freshItems: CartItem[] = [];
+          items.forEach((item, i) => {
             const result = updates[i];
-            if (result.status === 'fulfilled') {
-              const fresh = result.value;
-              if (fresh.price !== item.product.price || fresh.inStock !== item.product.inStock || fresh.stockCount !== item.product.stockCount) {
-                changed = true;
-                return { ...item, product: fresh };
-              }
+            if (result.status === 'rejected') {
+              // Product deleted or unavailable — remove from cart
+              changed = true;
+              return;
             }
-            return item;
+            const fresh = result.value;
+            if (fresh.price !== item.product.price || fresh.inStock !== item.product.inStock || fresh.stockCount !== item.product.stockCount) {
+              changed = true;
+              freshItems.push({ ...item, product: fresh });
+            } else {
+              freshItems.push(item);
+            }
           });
           if (changed) set({ items: freshItems });
         } catch {

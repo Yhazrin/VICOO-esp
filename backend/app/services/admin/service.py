@@ -9,6 +9,7 @@ from app.models.donation import Donation
 from app.models.contact import ContactMessage
 from app.models.order import Order
 from app.models.campaign import Campaign
+from app.models.circular_commerce import ClothingIntake
 from app.services.base import BaseService
 from app.core.audit import audit_action
 
@@ -22,7 +23,6 @@ class AdminService(BaseService):
     Service handling administrative tasks, bulk operations, and dashboard stats.
     """
 
-    @cached(prefix="admin:audit_logs", ttl=60)
     async def list_audit_logs(
         self, 
         page: int = 1, 
@@ -80,7 +80,7 @@ class AdminService(BaseService):
         total_orders = (await self.db.execute(select(func.count(Order.id)))).scalar() or 0
 
         total_clothing_donations = (
-            await self.db.execute(select(func.count(ChildParticipant.id)))
+            await self.db.execute(select(func.count(ClothingIntake.id)))
         ).scalar() or 0
 
         return {

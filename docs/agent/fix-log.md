@@ -2220,3 +2220,51 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Fixed backend CMD to `app.main:app`, added `PYTHONPATH=/app/backend`, fixed healthcheck URL, removed `--forwarded-allow-ips`. Changed frontend build context to project root with correct COPY paths. Split Alipay keys into separate secrets.
 - **Verification**: Backend container will start correctly; frontend build will succeed; Alipay keys properly separated
 - **New issues**: Requires updating secrets directory with separate `alipay_private_key.txt` and `alipay_public_key.txt` files
+
+## Fix 263 — WeChat Pay signature verification always fails
+- **Date**: 2026-05-27 (Round 78)
+- **Files**: `backend/app/services/payment_service.py`
+- **Reason**: P1: `verify_payment_signature` included the `sign` field in the hash calculation. WeChat Pay v2 requires excluding `sign` before recalculating. This caused all callback signature verifications to fail.
+- **Change**: Exclude `sign` key from params before calling `calculate_sign`
+- **Verification**: Signature verification now correctly validates WeChat Pay callbacks
+- **New issues**: None
+
+## Fix 264 — Admin donation approval missing campaign amount update + wrong certificate URL
+- **Date**: 2026-05-27 (Round 78)
+- **Files**: `backend/app/services/donation/service.py`
+- **Reason**: P1: `admin_approve_donation` did not update `Campaign.current_amount`, so admin-approved donations didn't count toward fundraising goals. Also used `/api/` prefix instead of `/api/v1/` for certificate URL, causing 404s.
+- **Change**: Added campaign amount update (same as `complete_donation`). Fixed certificate URL to use `/api/v1/` prefix.
+- **Verification**: Admin-approved donations now update campaign totals and have working certificate links
+- **New issues**: None
+
+## Fix 265 — Dashboard clothing donations count queries wrong model
+- **Date**: 2026-05-27 (Round 78)
+- **Files**: `backend/app/services/admin/service.py`
+- **Reason**: P1: `get_dashboard_stats` counted `ChildParticipant` rows and labeled them `total_clothing_donations`. The correct model is `ClothingIntake`.
+- **Change**: Changed query from `ChildParticipant.id` to `ClothingIntake.id`. Added missing import.
+- **Verification**: Dashboard now shows correct clothing donation count
+- **New issues**: None
+
+## Fix 266 — Audit log cache serialization breaks ORM objects
+- **Date**: 2026-05-27 (Round 78)
+- **Files**: `backend/app/services/admin/service.py`
+- **Reason**: P2: `@cached` decorator on `list_audit_logs` serialized SQLAlchemy ORM objects via `json.dumps(default=str)`, storing `repr()` strings instead of actual data. Cache hits returned strings instead of AuditLog objects.
+- **Change**: Removed `@cached` decorator from `list_audit_logs` since ORM objects cannot be safely JSON-serialized.
+- **Verification**: Audit log listing now works correctly on every request
+- **New issues**: None
+
+## Fix 267 — Cart refreshCart keeps deleted products forever
+- **Date**: 2026-05-27 (Round 78)
+- **Files**: `frontend/web-react/src/stores/cartStore.ts`
+- **Reason**: P2: `refreshCart` used `Promise.allSettled` but only processed fulfilled results. Rejected fetches (deleted/unavailable products) were kept unchanged, so deleted products persisted in cart indefinitely.
+- **Change**: Filter out rejected results (product 404/failure) from the cart during refresh.
+- **Verification**: Deleted products are now automatically removed from cart on refresh
+- **New issues**: None
+
+## Fix 268 — Request size limit accepts invalid Content-Length
+- **Date**: 2026-05-27 (Round 78)
+- **Files**: `backend/app/main.py`
+- **Reason**: P2: `request_size_limit_middleware` silently passed through requests with non-numeric `Content-Length` headers (e.g., "abc") due to `except ValueError: pass`.
+- **Change**: Return HTTP 400 for invalid Content-Length instead of silently ignoring.
+- **Verification**: Invalid Content-Length headers now rejected with clear error message
+- **New issues**: None

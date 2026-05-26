@@ -214,9 +214,17 @@ class DonationService(BaseService):
 
         await self.db.refresh(donation)
 
+        # Update campaign amount (same as complete_donation)
+        if donation.campaign_id:
+            await self.db.execute(
+                update(Campaign)
+                .where(Campaign.id == donation.campaign_id)
+                .values(current_amount=Campaign.current_amount + donation.amount)
+            )
+
         date_str = datetime.now().strftime("%Y%m%d")
         donation.certificate_no = f"TH-DON-{date_str}-{donation.id:06d}"
-        donation.certificate_url = f"/api/donations/{donation.id}/certificate"
+        donation.certificate_url = f"/api/v1/donations/{donation.id}/certificate"
         await self.db.flush()
         return donation
 

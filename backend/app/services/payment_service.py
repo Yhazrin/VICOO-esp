@@ -315,7 +315,9 @@ class WeChatPayService:
         if "sign" not in params:
             return False
 
-        expected_sign = self.calculate_sign(params)
+        # Exclude 'sign' from params before recalculating — WeChat Pay v2 spec
+        params_without_sign = {k: v for k, v in params.items() if k != "sign"}
+        expected_sign = self.calculate_sign(params_without_sign)
         return hmac.compare_digest(params["sign"], expected_sign)
 
 

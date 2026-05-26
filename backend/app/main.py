@@ -110,13 +110,16 @@ async def request_size_limit_middleware(request: Request, call_next):
     if content_length:
         try:
             size = int(content_length)
-            if size > MAX_REQUEST_BODY_SIZE:
-                return JSONResponse(
-                    status_code=413,
-                    content={"success": False, "data": None, "message": "Request body too large"},
-                )
         except ValueError:
-            pass
+            return JSONResponse(
+                status_code=400,
+                content={"success": False, "data": None, "message": "Invalid Content-Length header"},
+            )
+        if size > MAX_REQUEST_BODY_SIZE:
+            return JSONResponse(
+                status_code=413,
+                content={"success": False, "data": None, "message": "Request body too large"},
+            )
     return await call_next(request)
 
 # Rate Limiting — fail-open: let the request through when rate-limit infra is broken
