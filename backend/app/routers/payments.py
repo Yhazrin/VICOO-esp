@@ -3,7 +3,7 @@ from fastapi.responses import PlainTextResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from decimal import Decimal
-import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as ET
 import secrets
 import logging
 

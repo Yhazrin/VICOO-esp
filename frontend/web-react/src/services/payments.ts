@@ -47,7 +47,7 @@ export const paymentsApi = {
     return response.data.data;
   },
 
-  /** 跨域支付确认页：直连指定 API 根（须与 mock-preview / mock-confirm 同源策略、CORS 已放行） */
+  /** Cross-origin payment confirmation page: connects directly to the specified API root (must have CORS and same-origin policy allowed for mock-preview / mock-confirm) */
   mockPreviewAt: async (baseURL: string, token: string): Promise<MockPayPreview> => {
     const response = await axios.get<{ success: boolean; data: MockPayPreview }>(
       `${baseURL.replace(/\/+$/, '')}/payments/mock-preview`,

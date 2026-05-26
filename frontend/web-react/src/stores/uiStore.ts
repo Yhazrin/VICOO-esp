@@ -96,10 +96,12 @@ function applyLocale(locale: Locale) {
 }
 
 /**
- * 与 Layout 中 useLayoutEffect 同步：把 `data-welfare-vivid` 直接挂到 <html> 上。
- * 关键点：在 store 创建（模块加载）期、`setImpactMode` 调用时都同步刷新，
- * 防止首屏 / 模式切换的当帧出现「Header className 已切公益、但 CSS 变量仍是优衣库」
- * 这种「公益胶囊套优衣库色」的半套样式（用户报告的"部分按钮仍保持慈善格式"）。
+ * Synced with Layout's useLayoutEffect: sets `data-welfare-vivid` directly on <html>.
+ * Key point: refreshes synchronously both during store creation (module load) and on
+ * `setImpactMode` calls, to prevent a frame where the Header className has switched to
+ * welfare but CSS variables are still UNIQLO's on first render / mode switch -- a
+ * "welfare capsule with UNIQLO colors" half-applied style (user-reported as "some buttons
+ * still show charity styling").
  */
 function applyWelfareVivid(on: boolean) {
   if (typeof document === 'undefined') return;
@@ -222,10 +224,12 @@ export const useUIStore = create<UIState>()(
         aiBallStyle: state.aiBallStyle,
       }),
       /**
-       * persist 的 hydrate 是异步的：用户可能在 getItem 完成前已切回优衣库。
-       * 默认 merge 会让 localStorage 里的 impactMode **覆盖**内存中更新后的 false，
-       * 导致顶栏红底 + 公益配色/胶囊/logo（`<img>` 未切到 onRed）等「半套 UI」错乱。
-       * theme/locale 仍以持久化为准；impact 始终以当前内存为准（与首屏 initialUI 一致，除非用户已操作）。
+       * persist's hydration is async: the user may have switched back to UNIQLO before
+       * getItem completes. The default merge would let the impactMode in localStorage
+       * **overwrite** the in-memory value of false, causing "half-applied UI" glitches like
+       * a red header background + welfare palette/capsule/logo (`<img>` not switched to onRed).
+       * theme/locale still use the persisted value; impact always uses the current in-memory
+       * value (consistent with the initial UI, unless the user has acted).
        */
       merge: (persistedState, currentState) => {
         if (!persistedState) return currentState;
@@ -244,7 +248,7 @@ export const useUIStore = create<UIState>()(
         if (state?.currentLocale) {
           applyLocale(state.currentLocale);
         }
-        // 与首屏同步设过的属性再校准一次，避免 merge / 异步 hydrate 后 attribute 与内存 impactMode 错位
+        // Re-calibrate attributes that were set in sync with first render, to avoid desync between DOM attributes and in-memory impactMode after merge / async hydration
         if (state) {
           applyWelfareVivid(Boolean(state.impactMode));
         }

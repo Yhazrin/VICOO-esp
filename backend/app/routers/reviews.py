@@ -1,4 +1,4 @@
-"""商品评价。"""
+"""Product reviews."""
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func
@@ -24,13 +24,19 @@ async def list_reviews(
     page_size: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
 ):
-    stmt = select(ProductReview).where(ProductReview.product_id == product_id)
-    count_stmt = select(func.count(ProductReview.id)).where(ProductReview.product_id == product_id)
-    total = (await db.execute(count_stmt)).scalar() or 0
-    stmt = stmt.order_by(ProductReview.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
-    rows = (await db.execute(stmt)).scalars().all()
-    data = [ProductReviewOut.model_validate(r).model_dump() for r in rows]
-    return PaginatedResponse(data=data, total=total, page=page, page_size=page_size)
+    try:
+        stmt = select(ProductReview).where(ProductReview.product_id == product_id)
+        count_stmt = select(func.count(ProductReview.id)).where(ProductReview.product_id == product_id)
+        total = (await db.execute(count_stmt)).scalar() or 0
+        stmt = stmt.order_by(ProductReview.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
+        rows = (await db.execute(stmt)).scalars().all()
+        data = [ProductReviewOut.model_validate(r).model_dump() for r in rows]
+        return PaginatedResponse(data=data, total=total, page=page, page_size=page_size)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Failed to list reviews")
+        raise HTTPException(status_code=500, detail="Failed to list reviews")
 
 
 @router.post("", response_model=ApiResponse, status_code=201)
@@ -73,17 +79,23 @@ async def my_reviews(
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    total = (await db.execute(
-        select(func.count(ProductReview.id)).where(ProductReview.user_id == current_user["id"])
-    )).scalar() or 0
-    stmt = (
-        select(ProductReview)
-        .where(ProductReview.user_id == current_user["id"])
-        .order_by(ProductReview.created_at.desc())
-        .offset((page - 1) * page_size).limit(page_size)
-    )
-    rows = (await db.execute(stmt)).scalars().all()
-    return PaginatedResponse(
-        data=[ProductReviewOut.model_validate(r).model_dump() for r in rows],
-        total=total, page=page, page_size=page_size,
-    )
+    try:
+        total = (await db.execute(
+            select(func.count(ProductReview.id)).where(ProductReview.user_id == current_user["id"])
+        )).scalar() or 0
+        stmt = (
+            select(ProductReview)
+            .where(ProductReview.user_id == current_user["id"])
+            .order_by(ProductReview.created_at.desc())
+            .offset((page - 1) * page_size).limit(page_size)
+        )
+        rows = (await db.execute(stmt)).scalars().all()
+        return PaginatedResponse(
+            data=[ProductReviewOut.model_validate(r).model_dump() for r in rows],
+            total=total, page=page, page_size=page_size,
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Failed to list user reviews")
+        raise HTTPException(status_code=500, detail="Failed to list reviews")

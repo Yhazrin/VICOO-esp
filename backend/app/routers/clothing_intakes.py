@@ -1,4 +1,4 @@
-"""衣物捐献受理：登记 → 运营处理 → 发布为商品。"""
+"""Clothing donation intake: register → process → publish as product."""
 
 import logging
 
@@ -59,20 +59,26 @@ async def list_my_intakes(
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    total = (await db.execute(
-        select(func.count(ClothingIntake.id)).where(ClothingIntake.user_id == current_user["id"])
-    )).scalar() or 0
-    stmt = (
-        select(ClothingIntake)
-        .where(ClothingIntake.user_id == current_user["id"])
-        .order_by(ClothingIntake.created_at.desc())
-        .offset((page - 1) * page_size).limit(page_size)
-    )
-    rows = (await db.execute(stmt)).scalars().all()
-    return PaginatedResponse(
-        data=[ClothingIntakeOut.model_validate(r).model_dump() for r in rows],
-        total=total, page=page, page_size=page_size,
-    )
+    try:
+        total = (await db.execute(
+            select(func.count(ClothingIntake.id)).where(ClothingIntake.user_id == current_user["id"])
+        )).scalar() or 0
+        stmt = (
+            select(ClothingIntake)
+            .where(ClothingIntake.user_id == current_user["id"])
+            .order_by(ClothingIntake.created_at.desc())
+            .offset((page - 1) * page_size).limit(page_size)
+        )
+        rows = (await db.execute(stmt)).scalars().all()
+        return PaginatedResponse(
+            data=[ClothingIntakeOut.model_validate(r).model_dump() for r in rows],
+            total=total, page=page, page_size=page_size,
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Failed to list user clothing intakes")
+        raise HTTPException(status_code=500, detail="Failed to list intakes")
 
 
 @router.get("", response_model=PaginatedResponse)
@@ -83,17 +89,23 @@ async def list_all_intakes(
     _staff: dict = Depends(require_role("admin", "editor")),
     db: AsyncSession = Depends(get_db),
 ):
-    stmt = select(ClothingIntake)
-    if status:
-        stmt = stmt.where(ClothingIntake.status == status)
-    count_stmt = select(func.count(ClothingIntake.id))
-    if status:
-        count_stmt = count_stmt.where(ClothingIntake.status == status)
-    total = (await db.execute(count_stmt)).scalar() or 0
-    stmt = stmt.order_by(ClothingIntake.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
-    rows = (await db.execute(stmt)).scalars().all()
-    data = [ClothingIntakeOut.model_validate(r).model_dump() for r in rows]
-    return PaginatedResponse(data=data, total=total, page=page, page_size=page_size)
+    try:
+        stmt = select(ClothingIntake)
+        if status:
+            stmt = stmt.where(ClothingIntake.status == status)
+        count_stmt = select(func.count(ClothingIntake.id))
+        if status:
+            count_stmt = count_stmt.where(ClothingIntake.status == status)
+        total = (await db.execute(count_stmt)).scalar() or 0
+        stmt = stmt.order_by(ClothingIntake.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
+        rows = (await db.execute(stmt)).scalars().all()
+        data = [ClothingIntakeOut.model_validate(r).model_dump() for r in rows]
+        return PaginatedResponse(data=data, total=total, page=page, page_size=page_size)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Failed to list clothing intakes")
+        raise HTTPException(status_code=500, detail="Failed to list intakes")
 
 
 @router.patch("/{intake_id}/status", response_model=ApiResponse)

@@ -2076,3 +2076,51 @@ _Round 2: No new fixes needed. All core flows verified via API._
   - `ClothingDonationPage.tsx`: Translated file docstring (features list)
 - **Verification**: `grep -rn '[一-鿿]' admin/src/*.tsx` returns only the intentional "中文" in TopBar.tsx language switcher
 - **New issues**: None
+
+## Fix 245 — XXE防御: WeChat支付回调使用defusedxml
+- **Date**: 2026-05-27 (Round 74)
+- **Files**: `backend/app/routers/payments.py`, `backend/app/services/payment_service.py`, `backend/requirements.txt`
+- **Reason**: P1: `ET.fromstring(xml_body)` called on untrusted WeChat payment callback XML without disabling external entity processing. Although Python 3.7.1+ disables external entities by default, `defusedxml` is the recommended safe parser.
+- **Change**: Replaced `import xml.etree.ElementTree as ET` with `import defusedxml.ElementTree as ET` in both files; added `defusedxml>=0.7.1` to requirements.txt
+- **Verification**: WeChat payment callback now uses safe XML parser
+- **New issues**: None
+
+## Fix 246 — 前端token刷新失败时清除认证状态
+- **Date**: 2026-05-27 (Round 74)
+- **Files**: `frontend/web-react/src/services/api.ts`
+- **Reason**: P2: When token refresh failed, the frontend rejected the promise but did not call `logout()`, leaving the user in a stale "authenticated" state with 401 errors on every request.
+- **Change**: Added `useAuthStore.getState().logout()` in the refresh failure catch block
+- **Verification**: Token refresh failure now properly clears auth state and redirects to login
+- **New issues**: None
+
+## Fix 247 — forgot_password接口用户枚举修复
+- **Date**: 2026-05-27 (Round 74)
+- **Files**: `backend/app/routers/auth.py`
+- **Reason**: P2: Response structure differed between user-not-found and mock-user-found cases (`is_mock` and `password_hint` fields), allowing attackers to enumerate mock users.
+- **Change**: Removed `is_mock` and `password_hint` from public response; all cases now return identical `{ email }` structure
+- **Verification**: All forgot-password responses now have identical structure
+- **New issues**: None
+
+## Fix 248 — getMyOrders分页响应类型修复
+- **Date**: 2026-05-27 (Round 74)
+- **Files**: `frontend/web-react/src/services/orders.ts`
+- **Reason**: P2: `getMyOrders` returned `response.data.data` typed as `OrderDetail[]`, but backend returns `PaginatedResponse { data, total, page, page_size }`. Callers iterating over the result would get runtime errors.
+- **Change**: Added proper handling for paginated response: `Array.isArray(envelope) ? envelope : (envelope?.data ?? [])`
+- **Verification**: Profile page orders tab now correctly displays order list
+- **New issues**: None
+
+## Fix 249 — clothing_intakes和reviews端点错误处理
+- **Date**: 2026-05-27 (Round 74)
+- **Files**: `backend/app/routers/clothing_intakes.py`, `backend/app/routers/reviews.py`
+- **Reason**: P3: `list_my_intakes`, `list_all_intakes`, `list_reviews`, `my_reviews` endpoints had no try/except wrapping, causing raw tracebacks on database errors.
+- **Change**: Added try/except blocks with `logger.exception()` and HTTP 500 responses, matching existing pattern in other endpoints. Also translated module docstrings.
+- **Verification**: Database errors now return user-friendly 500 messages instead of raw tracebacks
+- **New issues**: None
+
+## Fix 250 — 前端中文注释翻译 (utils, services, stores, components)
+- **Date**: 2026-05-27 (Round 74)
+- **Files**: `frontend/web-react/src/utils/resolveApiAssetUrl.ts`, `publicSiteUrl.ts`, `mediaUrl.ts`, `payApiBaseOverride.ts`, `campaignLocale.ts`, `navigateViewTransition.ts`, `globeLandOutlines.ts`, `frontend/web-react/src/services/products.ts`, `orders.ts`, `payments.ts`, `supply-chain.ts`, `frontend/web-react/src/types/index.ts`, `stores/uiStore.ts`, `components/payment/PaymentQRModal.tsx`, `components/editorial/TraceabilityTimeline.tsx`, `StoryQuoteBlock.tsx`, `SepiaImageFrame.tsx`, `ProductCard.tsx`
+- **Reason**: P3: ~40 Chinese code comments and JSDoc docstrings across frontend utility, service, store, and component files.
+- **Change**: Translated all Chinese comments to English
+- **Verification**: Translated files no longer contain Chinese comments (excluding intentional i18n data)
+- **New issues**: None

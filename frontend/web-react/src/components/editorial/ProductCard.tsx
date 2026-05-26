@@ -17,7 +17,7 @@ interface ProductCardProps {
   product: Product;
   index?: number;
   className?: string;
-  /** `impact` → `/impact/shop/:id` (公益壳 + 地球溯源); default 常规商店 */
+  /** `impact` → `/impact/shop/:id` (welfare shell + globe traceability); default regular store */
   detailContext?: 'company' | 'impact';
 }
 
@@ -135,7 +135,7 @@ function ProductCard({
           }}
           className="block cursor-pointer"
         >
-        {/* Image — view-transition-name 在画框容器上（与详情 SepiaImageFrame 内框对应），不是 hover 遮罩层 */}
+        {/* Image -- view-transition-name is on the frame container (matches the inner frame in SepiaImageFrame on the detail page), not the hover overlay */}
         <div
           className="relative aspect-[3/4] overflow-hidden border-2 border-rust/30 bg-aged-stock mb-5 group-hover:border-rust/50 transition-colors duration-300"
           style={

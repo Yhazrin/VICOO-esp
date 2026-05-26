@@ -5,7 +5,7 @@ import secrets
 import hashlib
 import hmac
 import logging
-import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as ET
 from decimal import Decimal
 from typing import Optional, Dict, Any
 import httpx

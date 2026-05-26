@@ -9,7 +9,7 @@ interface PaymentQRModalProps {
   onSuccess: () => void;
   onFailure: () => void;
   isProcessing?: boolean;
-  /** 未配置公网/局域网 origin 且当前为 localhost 时提示配置环境变量 */
+  /** Prompt to configure the env var when no public/LAN origin is set and the current host is localhost */
   showLocalhostWarning?: boolean;
 }
 

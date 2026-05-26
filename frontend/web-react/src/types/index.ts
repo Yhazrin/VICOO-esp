@@ -139,7 +139,7 @@ export interface SupplyChainTimelineRecord {
   /** WGS84 — when set, globe pins use exact coordinates */
   latitude?: number;
   longitude?: number;
-  /** 溯源点现场图 / 视频等 */
+  /** Traceability point field photos / videos */
   gallery?: TraceMediaItem[];
 }
 
@@ -197,7 +197,7 @@ export interface CartItem {
   selectedColor?: string;
 }
 
-/** @deprecated 请使用 services/orders 的 OrderDetail（与 API 字段一致） */
+/** @deprecated Use OrderDetail from services/orders (matches API fields) */
 export interface Order {
   id: number;
   user_id: number;

@@ -8,9 +8,9 @@ import TraceMediaGallery from '@/components/editorial/TraceMediaGallery';
 interface TraceabilityTimelineProps {
   records: SupplyChainTimelineRecord[];
   className?: string;
-  /** 与商品详情地球仪选中节点同步：对应卡片低调高亮，不滚动页面 */
+  /** Synced with the selected node on the product-detail globe: the corresponding card gets a subtle highlight without scrolling */
   linkedFromGlobeId?: number | null;
-  /** 将 API stage 键转为展示文案 */
+  /** Converts an API stage key into display text */
   getStageLabel?: (stage: string) => string;
 }
 

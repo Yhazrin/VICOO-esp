@@ -1,8 +1,10 @@
 /**
- * 本地 Docker 下单、手机打开「仅部署在虚拟机上的 /payment/confirm」时，
- * 通过链接参数 apiBase= 指定真实处理支付的 API 根路径与本机后端一致。
+ * When placing an order from local Docker and opening "/payment/confirm" (deployed
+ * only on a VM) on a phone, the apiBase= query parameter points to the actual
+ * payment API root matching the local backend.
  *
- * 安全：生产构建须配置 VITE_PAY_API_BASE_ALLOW_HOSTS（逗号分隔），否则忽略 apiBase。
+ * Security: production builds must configure VITE_PAY_API_BASE_ALLOW_HOSTS
+ * (comma-separated); otherwise apiBase is ignored.
  */
 
 function normalizePayApiBase(raw: string): string | null {
@@ -41,14 +43,16 @@ function allowHostsFromEnv(): string[] {
 }
 
 /**
- * 结账页生成二维码时使用：本机后端 API 根（供写入链接 query apiBase）。
+ * Used when generating the QR code on the checkout page: local backend API root
+ * (written into the link query as apiBase).
  */
 export function getPayApiBaseForQr(): string {
   return import.meta.env.VITE_PAY_API_BASE_FOR_QR?.trim().replace(/\/+$/, '') || '';
 }
 
 /**
- * 解析并校验支付确认页上的 apiBase 查询参数；不合法则返回 null（走默认同源 API）。
+ * Parses and validates the apiBase query parameter on the payment confirmation page;
+ * returns null if invalid (falls back to the default same-origin API).
  */
 export function resolvePayApiBaseFromSearchParam(apiBaseParam: string | null | undefined): string | null {
   const base = normalizePayApiBase(apiBaseParam?.trim() || '');

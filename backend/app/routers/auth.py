@@ -176,7 +176,7 @@ async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depend
     _generic_msg = "If an account exists with this email, a recovery email has been sent."
 
     if not user:
-        return ApiResponse(message=_generic_msg, data={"email": body.email, "is_mock": False})
+        return ApiResponse(message=_generic_msg, data={"email": body.email})
 
     # 1. Logic for Mock / Test accounts (only in DEMO_MODE)
     is_mock = False
@@ -187,7 +187,7 @@ async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depend
     if is_mock:
         return ApiResponse(
             message=_generic_msg,
-            data={"email": body.email, "is_mock": True, "password_hint": "See SEED_*_PASSWORD in .env"}
+            data={"email": body.email}
         )
 
     # 2. Logic for Real accounts
@@ -203,7 +203,7 @@ async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depend
     except Exception as e:
         logger.error(f"Recovery mail failed: {e}")
     # Always return success regardless of email send outcome
-    return ApiResponse(message=_generic_msg, data={"email": body.email, "is_mock": False})
+    return ApiResponse(message=_generic_msg, data={"email": body.email})
 
 
 @router.post("/logout", response_model=ApiResponse)

@@ -10,7 +10,7 @@ const CATEGORY_MAP: Record<string, Product['category']> = {
   footwear: 'footwear',
   home: 'home',
   gift_box: 'gift_box',
-  /** 旧版 / 中文 API 类目 */
+  /** Legacy / Chinese API categories */
   服装: 'apparel',
   配饰: 'accessories',
   文具: 'stationery',
@@ -27,9 +27,10 @@ function normalizeCategory(raw: unknown): Product['category'] {
 }
 
 /**
- * 后端若未返回 is_impact_product（本地旧库常见），仅靠「关联字段」不够；
- * 用 VICOO 公益 SKU 常见名称/文案识别，避免与优衣库常规店混列。
- * 若接口显式返回 false，以接口为准。
+ * If the backend does not return is_impact_product (common with the local legacy DB),
+ * relying on "related fields" alone is insufficient; identify using common VICOO
+ * welfare SKU names/copy to avoid mixing with UNIQLO regular-store products.
+ * If the API explicitly returns false, defer to the API.
  */
 function normalizeIsImpactProduct(raw: any): boolean {
   const v = raw?.is_impact_product ?? raw?.isImpactProduct;
