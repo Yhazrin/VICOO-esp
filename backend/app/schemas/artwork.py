@@ -18,7 +18,7 @@ class ArtworkCreate(BaseModel):
 
 class ArtworkUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=300)
-    description: Optional[str] = None
+    description: Optional[str] = Field(None, max_length=5000)
     image_url: Optional[str] = Field(None, max_length=500)
     thumbnail_url: Optional[str] = Field(None, max_length=500)
     status: Optional[str] = Field(None, pattern="^(draft|pending|approved|rejected|featured)$")

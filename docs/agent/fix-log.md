@@ -1604,3 +1604,15 @@ _Round 2: No new fixes needed. All core flows verified via API._
   - `supply_chain/service.py`: gallery_json parse failure logs warning with record ID
 - **Verification**: All exception paths now have logging; no silent error swallowing remains in routers
 - **New issues**: None
+
+## Fix 197 — 12 schema string fields missing max_length constraints
+- **Date**: 2026-05-27 (Round 59)
+- **Files**: `backend/app/schemas/editorial.py`, `backend/app/schemas/artwork.py`, `backend/app/schemas/circular_commerce.py`, `backend/app/schemas/supply_chain.py`
+- **Reason**: P2: Multiple user-input string fields accepted arbitrarily long input, risking DB column overflow and excessive memory usage.
+- **Change**: Added max_length to 12 fields:
+  - `editorial.py`: excerpt(2000), pull_quote(1000), cover_image(500), author(100)
+  - `artwork.py`: ArtworkUpdate.description(5000)
+  - `circular_commerce.py`: condition_notes(2000), admin_note(2000), PublishFromIntakeBody.description(10000), ProductReviewCreate.body(5000), AfterSaleCreate.description(5000)
+  - `supply_chain.py`: SupplyChainRecordCreate.description(5000), SupplyChainRecordUpdate.description(5000)
+- **Verification**: All user-input string fields now have explicit length limits
+- **New issues**: None
