@@ -229,7 +229,7 @@ export default function AiDesign() {
       {selectedDraft && (
         <>
           {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
-          <div className="fixed inset-0 bg-ink/40 z-40" onClick={(e) => { if (e.target === e.currentTarget) setSelectedDraft(null); }} />
+          <div aria-hidden="true" className="fixed inset-0 bg-ink/40 z-40" onClick={(e) => { if (e.target === e.currentTarget) setSelectedDraft(null); }} />
           {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
           <div
             role="dialog"
