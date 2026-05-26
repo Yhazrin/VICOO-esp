@@ -140,6 +140,14 @@ export interface FilterParams {
   endDate?: string;
 }
 
+export interface PaymentMethodConfig {
+  enabled: boolean;
+  appId?: string;
+  merchantId?: string;
+  publicKey?: string;
+  clientId?: string;
+}
+
 export interface SystemSettings {
   siteName: string;
   siteDescription: string;
@@ -148,12 +156,7 @@ export interface SystemSettings {
   shopEnabled: boolean;
   registrationEnabled: boolean;
   maintenanceMode: boolean;
-  paymentMethods: {
-    wechat: { enabled: boolean; appId?: string; merchantId?: string };
-    alipay: { enabled: boolean; appId?: string };
-    stripe: { enabled: boolean; publicKey?: string };
-    paypal: { enabled: boolean; clientId?: string };
-  };
+  paymentMethods: Record<'wechat' | 'alipay' | 'stripe' | 'paypal', PaymentMethodConfig>;
   accessTokenTtlMinutes: number;
   refreshTokenTtlDays: number;
   globalRateLimit: number;

@@ -2,6 +2,10 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useUIStore } from '../../stores/uiStore';
 
+type MenuItem =
+  | { path: string; labelKey: string; divider?: false }
+  | { path?: never; labelKey?: never; divider: true };
+
 const ICONS: Record<string, React.ReactNode> = {
   '/': (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -72,7 +76,7 @@ export default function Sidebar() {
   const location = useLocation();
   const collapsed = useUIStore((s) => s.sidebarCollapsed);
 
-  const menuItems = [
+  const menuItems: MenuItem[] = [
     { path: '/', labelKey: 'sidebar.dashboard' },
     { path: '/artworks', labelKey: 'sidebar.artworks' },
     { path: '/campaigns', labelKey: 'sidebar.campaigns' },
@@ -134,7 +138,7 @@ export default function Sidebar() {
 
       {/* Nav */}
       <nav style={{ flex: 1, padding: collapsed ? '12px 6px' : '12px 10px', overflowY: 'auto' }}>
-        {menuItems.map((item: any, i) => {
+        {menuItems.map((item, i) => {
           if (item.divider) {
             return (
               <div key={`div-${i}`} style={{
@@ -164,7 +168,7 @@ export default function Sidebar() {
                 background: isActive ? 'var(--color-elevated)' : 'transparent',
                 transition: 'all 0.15s',
                 fontWeight: isActive ? 500 : 400,
-              } as any}
+              }}
               onMouseEnter={(e) => {
                 if (!isActive) {
                   e.currentTarget.style.background = 'var(--color-surface)';

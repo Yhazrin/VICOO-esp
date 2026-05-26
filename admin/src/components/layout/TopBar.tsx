@@ -5,8 +5,8 @@ import { useUIStore } from '../../stores/uiStore';
 
 export default function TopBar() {
   const { t, i18n } = useTranslation();
-  const user = useAuthStore((s: any) => s.user);
-  const logout = useAuthStore((s: any) => s.logout);
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
   const setLocale = useUIStore((s) => s.setLocale);
   const theme = useUIStore((s) => s.theme);
   const toggleTheme = useUIStore((s) => s.toggleTheme);

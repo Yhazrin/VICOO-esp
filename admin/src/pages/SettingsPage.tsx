@@ -31,7 +31,7 @@ import { useTranslation } from 'react-i18next';
 import { fetchSystemSettings, updateSystemSettings } from '../services/api';
 
 // 导入系统设置类型定义
-import type { SystemSettings } from '../types';
+import type { SystemSettings, PaymentMethodConfig } from '../types';
 
 export default function SettingsPage() {
   // 获取翻译函数
@@ -282,7 +282,7 @@ export default function SettingsPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
             {/* 遍历所有支付渠道配置 */}
             {(['wechat', 'alipay', 'stripe', 'paypal'] as const).map((method) => {
-              const paymentConfig = form.paymentMethods[method] as any;
+              const paymentConfig: PaymentMethodConfig = form.paymentMethods[method];
               return (
                 <div
                   key={method}
