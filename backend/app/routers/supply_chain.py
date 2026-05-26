@@ -178,14 +178,11 @@ async def delete_record(
     _current_user: dict = Depends(require_role("admin", "editor")),
 ):
     """Delete a supply chain record (admin/editor)."""
+    sc_service = SupplyChainService(db)
     try:
-        stmt = select(SupplyChainRecord).where(SupplyChainRecord.id == record_id)
-        result = await db.execute(stmt)
-        record = result.scalar_one_or_none()
-        if not record:
+        deleted = await sc_service.delete_record(record_id)
+        if not deleted:
             raise HTTPException(status_code=404, detail="Record not found")
-        await db.delete(record)
-        await db.flush()
         return ApiResponse(data={"deleted": True})
     except HTTPException:
         raise

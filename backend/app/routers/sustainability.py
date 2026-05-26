@@ -60,15 +60,4 @@ async def sustainability_summary(db: AsyncSession = Depends(get_db)):
         raise
     except Exception:
         logger.exception("Sustainability summary query failed")
-        return ApiResponse(
-            data={
-                "donation_total_completed": "0",
-                "clothing_intakes_listed": 0,
-                "active_products": 0,
-                "supply_chain_nodes": 0,
-                "supply_chain_certified_nodes": 0,
-                "supply_chain_verification_rate_percent": 0.0,
-                "methodology_url": "/traceability",
-                "notes": "Data service temporarily unavailable. Placeholder metrics returned.",
-            }
-        )
+        raise HTTPException(status_code=503, detail="Sustainability data service temporarily unavailable")

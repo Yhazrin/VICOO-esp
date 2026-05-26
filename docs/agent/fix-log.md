@@ -2276,3 +2276,27 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: New migration that restores `uq_users_email` unique index and updates `payment_transactions.status = 'completed'` rows to 'success'.
 - **Verification**: Migrated databases now have correct unique constraint and valid enum values
 - **New issues**: None
+
+## Fix 270 — Sustainability summary returns HTTP 200 with placeholder data on error
+- **Date**: 2026-05-27 (Round 79)
+- **Files**: `backend/app/routers/sustainability.py`
+- **Reason**: P2: `sustainability_summary` caught all exceptions and returned HTTP 200 with zeroed-out placeholder data. Clients had no way to distinguish real data from error responses, leading to misleading dashboard displays.
+- **Change**: Return HTTP 503 with error detail instead of fake data. Clients can now detect failures via status code.
+- **Verification**: Error responses now return 503, allowing proper error handling by frontend
+- **New issues**: None
+
+## Fix 271 — Supply chain delete_record bypasses service layer and audit trail
+- **Date**: 2026-05-27 (Round 79)
+- **Files**: `backend/app/routers/supply_chain.py`, `backend/app/services/supply_chain/service.py`
+- **Reason**: P2: `delete_record` in the router directly queried and deleted records via SQLAlchemy, bypassing the service layer. Unlike `add_record` and `update_record` which have `@audit_action` decorators, deletes left no audit trail.
+- **Change**: Added `delete_record` method to `SupplyChainService` with `@audit_action` decorator. Router now delegates to the service layer.
+- **Verification**: Delete operations now generate audit log entries consistent with create/update
+- **New issues**: None
+
+## Fix 272 — Child participant PII exposed to all admin users
+- **Date**: 2026-05-27 (Round 79)
+- **Files**: `backend/app/routers/admin.py`
+- **Reason**: P1: `list_child_participants` endpoint exposed real child names (`child_name_decrypted`) and guardian names (`guardian_name_decrypted`) to all admin-role users. Compliance-role users who only need masked data for review also got full PII access.
+- **Change**: Added `compliance` role to endpoint access. Compliance-only users now see masked names via `mask_name()`. Admin users retain full access. Added `mask_name` import from `app.utils.masking`.
+- **Verification**: Compliance users see masked names (e.g., "张三" → "张*"), admin users see full names
+- **New issues**: None

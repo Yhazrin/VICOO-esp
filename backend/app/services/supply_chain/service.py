@@ -110,3 +110,13 @@ class SupplyChainService(BaseService):
 
         await self.db.flush()
         return record
+
+    @audit_action(action="delete_traceability_record", resource_type="supply_chain")
+    async def delete_record(self, record_id: int) -> bool:
+        """Delete a supply chain record (admin/editor). Returns True if deleted."""
+        record = await self.db.get(SupplyChainRecord, record_id)
+        if not record:
+            return False
+        await self.db.delete(record)
+        await self.db.flush()
+        return True

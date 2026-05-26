@@ -17,6 +17,7 @@ from app.models.audit import AuditLog
 from app.schemas import ApiResponse, AuditLogOut, PaginatedResponse, DonationOut, SettingsUpdate, VerifyAccessRequest
 from app.deps import require_role
 from app.models.settings import SiteSettings
+from app.utils.masking import mask_name
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -258,10 +259,11 @@ async def list_child_participants(
     page_size: int = Query(20, ge=1, le=100),
     status: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
-    _current_user: dict = Depends(require_role("admin")),
+    _current_user: dict = Depends(require_role("admin", "compliance")),
 ):
-    """List child participants (admin only, sensitive data)."""
+    """List child participants (admin/compliance only, sensitive data)."""
     try:
+        is_compliance_only = _current_user.get("role") == "compliance"
         stmt = select(ChildParticipant)
         if status:
             stmt = stmt.where(ChildParticipant.status == status)
@@ -275,10 +277,10 @@ async def list_child_participants(
         data = [
             {
                 "id": p.id,
-                "child_name": p.child_name_decrypted,
+                "child_name": mask_name(p.child_name_decrypted) if is_compliance_only else p.child_name_decrypted,
                 "display_name": p.display_name,
                 "age": p.age,
-                "guardian_name": p.guardian_name_decrypted,
+                "guardian_name": mask_name(p.guardian_name_decrypted) if is_compliance_only else p.guardian_name_decrypted,
                 "region": p.region,
                 "school": p.school,
                 "consent_given": p.consent_given,
