@@ -47,7 +47,7 @@ async def list_users(
         raise
     except Exception as e:
         logger.error(f"Error listing users: {e}")
-        return PaginatedResponse(data=[], total=0, page=page, page_size=page_size)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 @router.get("/me", response_model=ApiResponse)
 async def get_me(

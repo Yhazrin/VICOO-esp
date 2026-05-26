@@ -198,7 +198,7 @@ async def list_my_artworks(
         raise
     except Exception as e:
         logger.error(f"Failed to list user artworks: {e}", exc_info=True)
-        return PaginatedResponse(data=[], total=0, page=page, page_size=page_size)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.get("/featured", response_model=ApiResponse)

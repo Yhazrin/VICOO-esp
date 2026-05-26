@@ -247,7 +247,7 @@ async def list_audit_logs(
         raise
     except Exception as e:
         logger.error(f"Audit logs failed: {e}", exc_info=True)
-        return PaginatedResponse(data=[], total=0, page=page, page_size=page_size)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.get("/child-participants", response_model=PaginatedResponse)
@@ -291,7 +291,7 @@ async def list_child_participants(
         raise
     except Exception as e:
         logger.error(f"Child participants list failed: {e}", exc_info=True)
-        return PaginatedResponse(data=[], total=0, page=page, page_size=page_size)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.put("/child-participants/{child_id}/consent", response_model=ApiResponse)

@@ -9,25 +9,14 @@ from app.database import get_db
 from app.models.contact import ContactMessage
 from app.schemas import ApiResponse, PaginatedResponse
 from app.schemas.contact import ContactMessageOut
-from app.deps import require_role
+from app.deps import require_role, get_redis_client
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/contact", tags=["Contact"])
 
-# Simple per-IP rate limiter for contact form submissions
-_contact_rate_limit: dict[str, float] = {}
 _CONTACT_RATE_WINDOW = 60  # seconds
 _CONTACT_RATE_MAX = 5  # max submissions per window
-
-
-def _evict_expired_entries(now: float) -> None:
-    """Remove expired rate limit entries to prevent unbounded memory growth."""
-    cutoff = now - _CONTACT_RATE_WINDOW
-    expired = [k for k, v in _contact_rate_limit.items() if not k.endswith("_count") and v < cutoff]
-    for k in expired:
-        _contact_rate_limit.pop(k, None)
-        _contact_rate_limit.pop(f"{k}_count", None)
 
 
 class ContactForm(BaseModel):
@@ -40,22 +29,20 @@ class ContactForm(BaseModel):
 @router.post("", response_model=ApiResponse, status_code=201)
 async def submit_contact_form(body: ContactForm, request: Request, db: AsyncSession = Depends(get_db)):
     """Submit a contact form message."""
-    # Per-IP rate limiting
+    # Per-IP rate limiting via Redis (shared across all workers)
     client_ip = request.client.host if request.client else "unknown"
-    now = time.time()
-    _evict_expired_entries(now)
-    window_start = _contact_rate_limit.get(client_ip, 0)
-    if now - window_start < _CONTACT_RATE_WINDOW:
-        # Same window — count submissions
-        count_key = f"{client_ip}_count"
-        count = _contact_rate_limit.get(count_key, 0) + 1
+    try:
+        redis = await get_redis_client()
+        rate_key = f"rate_limit:contact:{client_ip}"
+        count = await redis.incr(rate_key)
+        if count == 1:
+            await redis.expire(rate_key, _CONTACT_RATE_WINDOW)
         if count > _CONTACT_RATE_MAX:
             raise HTTPException(status_code=429, detail="Too many contact form submissions. Please try again later.")
-        _contact_rate_limit[count_key] = count
-    else:
-        # New window
-        _contact_rate_limit[client_ip] = now
-        _contact_rate_limit[f"{client_ip}_count"] = 1
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.warning(f"Redis rate limit check failed for contact form, allowing request: {e}")
 
     try:
         msg = ContactMessage(

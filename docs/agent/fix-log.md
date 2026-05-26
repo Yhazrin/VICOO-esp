@@ -934,3 +934,27 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: (a) Use `p.child_name_decrypted` and `p.guardian_name_decrypted`; (b) Replaced Python-side aggregation with `DATE_FORMAT(created_at, '%Y-%m') GROUP BY` SQL; (c) Use `result.rowcount` for accurate modified count
 - **Verification**: `python -c "import ast; ..."` pass for both files
 - **New issues**: None
+
+## Fix 115 — Silent empty-result on database errors masks failures
+- **Date**: 2026-05-27 (Round 49)
+- **Files**: `backend/app/routers/orders.py`, `backend/app/routers/users.py`, `backend/app/routers/campaigns.py`, `backend/app/routers/supply_chain.py`, `backend/app/routers/artworks.py`, `backend/app/routers/admin.py`
+- **Reason**: P2: 8 list endpoints caught all exceptions and returned `PaginatedResponse(data=[], total=0)` as if the user simply has no data. A database outage or connection pool exhaustion would appear as "you have no orders" rather than an error. Clients cannot distinguish "empty" from "broken".
+- **Change**: Replaced silent empty-result returns with `raise HTTPException(status_code=503, detail="Service temporarily unavailable")` in all 8 locations across 6 router files
+- **Verification**: `python -c "import ast; ..."` pass for all 6 files
+- **New issues**: None
+
+## Fix 116 — Contact form in-process rate limiter not shared across workers
+- **Date**: 2026-05-27 (Round 49)
+- **Files**: `backend/app/routers/contact.py`
+- **Reason**: P2: Contact form rate limiter used a Python dict in process memory. With gunicorn running multiple workers, each worker maintains its own dict, effectively multiplying the rate limit by the worker count. A single attacker's requests distributed across workers would each see a fresh counter.
+- **Change**: Replaced in-process dict rate limiter with Redis-based rate limiting using `INCR` + `EXPIRE`. Falls back to allowing requests if Redis is unavailable.
+- **Verification**: `python -c "import ast; ..."` pass
+- **New issues**: None
+
+## Fix 117 — Order number collision risk under load
+- **Date**: 2026-05-27 (Round 49)
+- **Files**: `backend/app/security.py`, `backend/app/services/payment_service.py`
+- **Reason**: P2: `generate_order_no` used a 4-digit random suffix (1000-9999) within the same second. At moderate concurrency (10+ orders/second), the birthday problem gives meaningful collision probability. Collisions fail with IntegrityError (500 to user) due to unique constraint.
+- **Change**: Replaced 4-digit numeric suffix with 6-character hex string (`secrets.token_hex(3).upper()`) = 16M possibilities per second, reducing collision probability to negligible
+- **Verification**: `python -c "import ast; ..."` pass for both files
+- **New issues**: None

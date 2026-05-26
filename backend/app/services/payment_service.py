@@ -53,7 +53,7 @@ class WeChatPayService:
     def generate_order_no(self) -> str:
         """Generate unique order number."""
         timestamp = int(time.time())
-        random_part = secrets.randbelow(9000) + 1000
+        random_part = secrets.token_hex(3).upper()  # 6 hex chars = 16M possibilities
         return f"TH{timestamp}{random_part}"
 
     def calculate_sign(self, params: Dict[str, Any]) -> str:

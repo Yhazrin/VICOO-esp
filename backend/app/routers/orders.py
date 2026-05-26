@@ -222,7 +222,7 @@ async def list_orders(
         raise
     except Exception as e:
         logger.error(f"Error listing orders: {e}")
-        return PaginatedResponse(data=[], total=0, page=page, page_size=page_size)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 @router.get("/mine", response_model=PaginatedResponse)
 async def my_orders(
@@ -261,7 +261,7 @@ async def my_orders(
         raise
     except Exception as e:
         logger.error(f"Error listing user orders: {e}")
-        return PaginatedResponse(data=[], total=0, page=page, page_size=page_size)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.post("", response_model=ApiResponse, status_code=201)

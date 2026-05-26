@@ -43,7 +43,7 @@ async def list_campaigns(
         )
     except Exception as e:
         logger.error(f"Failed to list campaigns: {e}")
-        return PaginatedResponse(data=[], total=0, page=page, page_size=page_size)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 @router.get("/active", response_model=ApiResponse)
 async def get_active_campaign(db: AsyncSession = Depends(get_db)):

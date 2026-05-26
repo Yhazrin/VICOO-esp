@@ -104,7 +104,7 @@ async def list_records(
         raise
     except Exception as e:
         logger.error(f"Error listing records: {e}")
-        return PaginatedResponse(data=[], total=0, page=page, page_size=page_size)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 @router.get("/trace/{product_id}", response_model=ApiResponse)
 async def trace_product(product_id: int, db: AsyncSession = Depends(get_db)):
