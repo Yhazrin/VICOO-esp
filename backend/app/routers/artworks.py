@@ -170,27 +170,35 @@ async def list_artworks(
             )
 
 
-@router.get("/mine", response_model=ApiResponse)
+@router.get("/mine", response_model=PaginatedResponse)
 async def list_my_artworks(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """List artworks submitted by the current user."""
     try:
-        stmt = (
+        base = (
             select(Artwork)
             .options(selectinload(Artwork.child_participant))
             .where(Artwork.user_id == current_user["id"])
-            .order_by(Artwork.created_at.desc())
         )
+        total = (await db.execute(
+            select(func.count(Artwork.id)).where(Artwork.user_id == current_user["id"])
+        )).scalar() or 0
+        stmt = base.order_by(Artwork.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
         result = await db.execute(stmt)
         artworks = result.scalars().all()
-        return ApiResponse(data=[_serialize_artwork(a) for a in artworks])
+        return PaginatedResponse(
+            data=[_serialize_artwork(a) for a in artworks],
+            total=total, page=page, page_size=page_size,
+        )
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Failed to list user artworks: {e}", exc_info=True)
-        return ApiResponse(data=[])
+        return PaginatedResponse(data=[], total=0, page=page, page_size=page_size)
 
 
 @router.get("/featured", response_model=ApiResponse)

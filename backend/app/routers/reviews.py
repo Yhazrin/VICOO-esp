@@ -57,16 +57,24 @@ async def create_review(
     return ApiResponse(data=ProductReviewOut.model_validate(row).model_dump())
 
 
-@router.get("/mine", response_model=ApiResponse)
+@router.get("/mine", response_model=PaginatedResponse)
 async def my_reviews(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    total = (await db.execute(
+        select(func.count(ProductReview.id)).where(ProductReview.user_id == current_user["id"])
+    )).scalar() or 0
     stmt = (
         select(ProductReview)
         .where(ProductReview.user_id == current_user["id"])
         .order_by(ProductReview.created_at.desc())
-        .limit(100)
+        .offset((page - 1) * page_size).limit(page_size)
     )
     rows = (await db.execute(stmt)).scalars().all()
-    return ApiResponse(data=[ProductReviewOut.model_validate(r).model_dump() for r in rows])
+    return PaginatedResponse(
+        data=[ProductReviewOut.model_validate(r).model_dump() for r in rows],
+        total=total, page=page, page_size=page_size,
+    )

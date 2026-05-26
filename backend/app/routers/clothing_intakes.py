@@ -52,19 +52,27 @@ async def create_intake(
         raise HTTPException(status_code=500, detail="Failed to create intake")
 
 
-@router.get("/mine", response_model=ApiResponse)
+@router.get("/mine", response_model=PaginatedResponse)
 async def list_my_intakes(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    total = (await db.execute(
+        select(func.count(ClothingIntake.id)).where(ClothingIntake.user_id == current_user["id"])
+    )).scalar() or 0
     stmt = (
         select(ClothingIntake)
         .where(ClothingIntake.user_id == current_user["id"])
         .order_by(ClothingIntake.created_at.desc())
-        .limit(100)
+        .offset((page - 1) * page_size).limit(page_size)
     )
     rows = (await db.execute(stmt)).scalars().all()
-    return ApiResponse(data=[ClothingIntakeOut.model_validate(r).model_dump() for r in rows])
+    return PaginatedResponse(
+        data=[ClothingIntakeOut.model_validate(r).model_dump() for r in rows],
+        total=total, page=page, page_size=page_size,
+    )
 
 
 @router.get("", response_model=PaginatedResponse)

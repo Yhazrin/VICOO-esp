@@ -53,20 +53,28 @@ async def create_ticket(
         raise HTTPException(status_code=500, detail="Failed to create ticket")
 
 
-@router.get("/mine", response_model=ApiResponse)
+@router.get("/mine", response_model=PaginatedResponse)
 async def my_tickets(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     try:
+        total = (await db.execute(
+            select(func.count(AfterSaleTicket.id)).where(AfterSaleTicket.user_id == current_user["id"])
+        )).scalar() or 0
         stmt = (
             select(AfterSaleTicket)
             .where(AfterSaleTicket.user_id == current_user["id"])
             .order_by(AfterSaleTicket.created_at.desc())
-            .limit(100)
+            .offset((page - 1) * page_size).limit(page_size)
         )
         rows = (await db.execute(stmt)).scalars().all()
-        return ApiResponse(data=[AfterSaleOut.model_validate(r).model_dump() for r in rows])
+        return PaginatedResponse(
+            data=[AfterSaleOut.model_validate(r).model_dump() for r in rows],
+            total=total, page=page, page_size=page_size,
+        )
     except Exception as e:
         logger.exception("Failed to fetch user tickets")
         raise HTTPException(status_code=500, detail="Internal server error")
