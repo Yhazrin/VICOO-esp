@@ -91,6 +91,73 @@ def _needs_impact_image_refresh(url: str | None) -> bool:
     return False
 
 
+_IMPACT_PRODUCT_RENAME: dict[str, dict] = {
+    "星星之夜帆布袋": {
+        "name": "星星之夜帆布托特包",
+        "description": "GRS 认证再生棉帆布，印有获奖画作《星星之夜》。可溯源再生棉帆布，日常通勤与公益表达兼得。",
+    },
+    "妈妈的手环保笔记本": {
+        "name": "妈妈的手棉麻衬衫",
+        "description": "天然棉麻混纺面料，胸前手绘线稿刺绣风印花源自获奖画作《妈妈的手》。强调天然纤维原料可溯源。",
+        "price": 198.00,
+        "category": "apparel",
+    },
+    "太空旅行马克杯": {
+        "name": "太空旅行圆领卫衣",
+        "description": "中厚卫衣面料，胸前满印儿童宇宙涂鸦《太空旅行》。送给每个仰望星空的梦想家。",
+        "price": 228.00,
+        "category": "apparel",
+    },
+    "画出未来环保抱枕": {
+        "name": "未来城市连帽卫衣",
+        "description": "加绒连帽卫衣，背后满印儿童手绘未来城市画作《未来城市》。适合秋冬联名穿搭。",
+        "price": 268.00,
+        "category": "apparel",
+    },
+    "过年了限定礼盒": {
+        "name": "过年了针织开衫",
+        "description": "可溯源羊毛与再生纤维混纺针织开衫，正面提花织入儿童节日画作《过年了》。温暖的公益穿搭。",
+        "price": 328.00,
+        "category": "apparel",
+    },
+    "海豚之歌·再生纤维披肩": {
+        "name": "海豚之歌再生纤维披肩",
+    },
+    "牧羊曲·手工拼布壁挂": {
+        "name": "牧羊曲手绘方巾",
+        "description": "牧羊主题儿童画作《牧羊曲》转化为穿搭用方巾，可作头巾或颈巾。有机棉面料，甘肃定西工坊手工印制。",
+        "price": 88.00,
+        "category": "accessories",
+        "stock": 180,
+    },
+}
+
+
+async def repair_impact_product_renames(session: AsyncSession) -> int:
+    """幂等：把数据库中旧产品名 → 新产品名 + 新属性。"""
+    result = await session.execute(select(Product).where(Product.is_impact_product.is_(True)))
+    updated = 0
+    for p in result.scalars().all():
+        key = (p.name or "").strip()
+        patch = _IMPACT_PRODUCT_RENAME.get(key)
+        if not patch:
+            continue
+        for attr, val in patch.items():
+            if attr == "price":
+                from decimal import Decimal
+                setattr(p, attr, Decimal(str(val)))
+            else:
+                setattr(p, attr, val)
+        new_name = patch.get("name", key)
+        img = IMPACT_PRODUCT_IMAGE_BY_NAME.get(new_name)
+        if img:
+            p.image_url = img
+        updated += 1
+    if updated:
+        logger.info("db_repair: renamed/updated impact products: %s", updated)
+    return updated
+
+
 async def repair_impact_product_images(session: AsyncSession) -> int:
     """幂等：按商品名写回公益店主图 URL（修复已有库里的 Unsplash 无法加载问题）。"""
     result = await session.execute(select(Product).where(Product.is_impact_product.is_(True)))
@@ -175,6 +242,7 @@ async def repair_product_catalog(session: AsyncSession) -> int:
     if created:
         logger.info("db_repair: created baseline company SKUs: %s", created)
 
+    await repair_impact_product_renames(session)
     await repair_impact_product_images(session)
     await repair_legacy_static_product_image_urls(session)
     return created
