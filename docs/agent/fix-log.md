@@ -582,3 +582,27 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Removed both development-mode fallback blocks (GitHub line 192-198, Google line 273-279); both now always raise HTTPException(503) on DB errors
 - **Verification**: `python -c "from app.routers import oauth"` pass
 - **New issues**: None
+
+## Fix 71 — Admin hardcoded strings replaced with i18n calls
+- **Date**: 2026-05-26 (Round 23)
+- **Files**: `admin/src/pages/ProductPage.tsx`, `admin/src/pages/ArtworkPage.tsx`, `admin/src/i18n/en.json`, `admin/src/i18n/zh.json`
+- **Reason**: ProductPage had hardcoded "Certified" and "kg CO2"; ArtworkPage had hardcoded "pts" and "Years" — not translatable
+- **Change**: Replaced all 4 hardcoded strings with `t()` calls using fallback values; added 4 new i18n keys (nodeCertifiedBadge, carbonUnit, pts, years) to both language files
+- **Verification**: `tsc --noEmit` pass for admin; JSON validation PASS
+- **New issues**: None
+
+## Fix 72 — SettingsPage missing client-side validation
+- **Date**: 2026-05-26 (Round 23)
+- **Files**: `admin/src/pages/SettingsPage.tsx`, `admin/src/i18n/en.json`, `admin/src/i18n/zh.json`
+- **Reason**: Fix 40 claimed to add validation but `handleSave()` had no validation — empty `siteName` or invalid `contactEmail` could be submitted to backend
+- **Change**: Added validation for `siteName` (required, non-empty after trim) and `contactEmail` (regex email format check, optional field) with toast error messages; added 2 i18n keys per language
+- **Verification**: `tsc --noEmit` pass for admin
+- **New issues**: None
+
+## Fix 73 — Profile page addresses query missing isError handling
+- **Date**: 2026-05-26 (Round 23)
+- **Files**: `frontend/web-react/src/pages/Profile/index.tsx`
+- **Reason**: Addresses query only destructured `isLoading` — if fetch failed, user saw empty address list with no error feedback
+- **Change**: Added `isError: addressError` to useQuery destructuring; added error message display in address section
+- **Verification**: `tsc --noEmit` pass for frontend
+- **New issues**: None
