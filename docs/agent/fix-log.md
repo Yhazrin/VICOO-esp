@@ -734,3 +734,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: (a) Added `hmac.compare_digest` state verification in both OAuth callbacks; (b) Replaced `!=` with `hmac.compare_digest` for admin access code; (c) Replaced Python-level stock deduction with atomic `UPDATE WHERE stock >= quantity`; (d) Added atomic `UPDATE WHERE status = 'pending'` with rowcount check in cancel_order; (e) Routed cancel status through `cancel_order` service in update_order_status; (f) Added `/status` suffix to both admin API paths
 - **Verification**: `python -c "ast.parse(...)"` pass for all backend files; `tsc --noEmit` pass for admin
 - **New issues**: None
+
+## Fix 90 — Contact messages pagination
+- **Date**: 2026-05-27 (Round 37)
+- **Files**: `backend/app/routers/contact.py`
+- **Reason**: `list_contact_messages` fetched all messages with no pagination — every other list endpoint uses pagination; would degrade as table grows
+- **Change**: Added `page`/`page_size` query parameters; changed response from `ApiResponse` to `PaginatedResponse`; added count query and `.offset().limit()`
+- **Verification**: `python -c "ast.parse(...)"` pass
+- **New issues**: None
