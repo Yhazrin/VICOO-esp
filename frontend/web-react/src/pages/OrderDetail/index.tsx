@@ -357,7 +357,7 @@ export default function OrderDetail() {
         <PaperTextureBackground variant="aged" className="py-16 md:py-24">
           <SectionContainer>
             <h2 className="font-display text-h3 font-bold text-ink mb-8">
-              {t('orderDetail.logistics', '物流轨迹')}
+              {t('orderDetail.logistics', 'Logistics Timeline')}
             </h2>
             <TraceabilityTimeline records={logisticsAsTimeline} />
           </SectionContainer>

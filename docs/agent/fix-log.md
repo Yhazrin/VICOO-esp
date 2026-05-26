@@ -2188,3 +2188,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Added try/except blocks with `logger.error(exc_info=True)` and HTTP 503 responses to: `get_editorial_feed`, `analyze_artwork`, `moderate_content`, `my_donations`, `list_addresses`.
 - **Verification**: All endpoints now return clean error messages instead of raw tracebacks
 - **New issues**: None
+
+## Fix 259 — Remaining frontend Chinese t() fallback strings translation
+- **Date**: 2026-05-27 (Round 76)
+- **Files**: `pages/SupplyChainStudio/index.tsx`, `pages/SubmitArtwork/index.tsx`, `pages/ArtworkSubmit/index.tsx`, `pages/Support/index.tsx`, `pages/DonateClothing/components/DonateForm.tsx`, `pages/Stories/index.tsx`, `pages/ImpactShop/index.tsx`, `pages/ClothingRecycle/components/RecycleForm.tsx`, `pages/ArtworkDetail.tsx`, `pages/OrderDetail/index.tsx`, `components/cart/CartDrawer.tsx`
+- **Reason**: P3: ~45 remaining Chinese t() i18n fallback strings across 11 frontend page components.
+- **Change**: Translated all Chinese t() fallback strings to English. Covers SupplyChainStudio (17), SubmitArtwork (9), ArtworkSubmit (4), Support (3), DonateClothing (4), Stories (2), ImpactShop (2), ClothingRecycle (1), ArtworkDetail (1), OrderDetail (1), CartDrawer (1).
+- **Verification**: All t() calls in these files now use English fallbacks
+- **New issues**: None

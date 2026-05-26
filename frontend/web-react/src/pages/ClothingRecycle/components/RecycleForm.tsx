@@ -87,7 +87,7 @@ export default function RecycleForm({ onSubmitted }: RecycleFormProps) {
       setTimeout(() => { if (mountedRef.current) onSubmitted(); }, 300);
     },
     onError: (err: Error) => {
-      toast.error(err.message || t('clothingRecycle.error', '提交失败，请重试'));
+      toast.error(err.message || t('clothingRecycle.error', 'Submission failed — please retry'));
     },
   });
 

@@ -54,9 +54,9 @@ function RecordGalleryEditor({
         next[rowIndex] = { ...cur, url, type: isVideo ? 'video' : 'image' };
         return next;
       });
-      toast.success(t('supplyChainStudio.uploaded', '上传成功'));
+      toast.success(t('supplyChainStudio.uploaded', 'Upload successful'));
     } catch {
-      toast.error(t('supplyChainStudio.uploadError', '上传失败'));
+      toast.error(t('supplyChainStudio.uploadError', 'Upload failed'));
     } finally {
       setUploadingRow(null);
     }
@@ -81,8 +81,8 @@ function RecordGalleryEditor({
             }}
             className="border border-warm-gray/25 bg-paper px-2 py-1.5 text-xs font-body"
           >
-            <option value="image">{t('supplyChainStudio.image', '图片')}</option>
-            <option value="video">{t('supplyChainStudio.video', '视频')}</option>
+            <option value="image">{t('supplyChainStudio.image', 'Image')}</option>
+            <option value="video">{t('supplyChainStudio.video', 'Video')}</option>
           </select>
           <div className="space-y-1.5 min-w-0">
             <input
@@ -92,7 +92,7 @@ function RecordGalleryEditor({
                 next[i] = { ...row, url: e.target.value };
                 setRows(next);
               }}
-              placeholder={t('supplyChainStudio.urlOrUpload', 'URL 或下方本地上传')}
+              placeholder={t('supplyChainStudio.urlOrUpload', 'URL or upload locally below')}
               className="border border-warm-gray/25 bg-paper px-2 py-1.5 text-xs font-body w-full"
             />
             <div className="flex flex-wrap items-center gap-2">
@@ -109,8 +109,8 @@ function RecordGalleryEditor({
                   }}
                 />
                 {uploadingRow === i
-                  ? t('supplyChainStudio.uploading', '上传中…')
-                  : t('supplyChainStudio.uploadLocal', '本地上传')}
+                  ? t('supplyChainStudio.uploading', 'Uploading...')
+                  : t('supplyChainStudio.uploadLocal', 'Upload local file')}
               </label>
               <span className="font-body text-[10px] text-ink-faded truncate max-w-[12rem]" title={row.url}>
                 {row.url || '—'}
@@ -124,7 +124,7 @@ function RecordGalleryEditor({
               next[i] = { ...row, caption: e.target.value };
               setRows(next);
             }}
-            placeholder={t('supplyChainStudio.caption', '说明（可选）')}
+            placeholder={t('supplyChainStudio.caption', 'Caption (optional)')}
             className="border border-warm-gray/25 bg-paper px-2 py-1.5 text-xs font-body w-full"
           />
           <button
@@ -132,7 +132,7 @@ function RecordGalleryEditor({
             className="text-xs text-rust font-body self-end pb-1.5"
             onClick={() => setRows(rows.filter((_, j) => j !== i))}
           >
-            {t('supplyChainStudio.removeRow', '移除')}
+            {t('supplyChainStudio.removeRow', 'Remove')}
           </button>
         </div>
       ))}
@@ -142,7 +142,7 @@ function RecordGalleryEditor({
           onClick={() => setRows([...rows, { type: 'image', url: '', caption: '' }])}
           className="font-body text-[10px] uppercase tracking-widest text-sepia-mid border border-warm-gray/30 px-3 py-2"
         >
-          {t('supplyChainStudio.addRow', '添加一条')}
+          {t('supplyChainStudio.addRow', 'Add entry')}
         </button>
         <button
           type="button"
@@ -150,7 +150,7 @@ function RecordGalleryEditor({
           onClick={() => onSave(rows.filter((x) => x.url.trim()))}
           className="font-body text-[10px] uppercase tracking-widest bg-ink text-paper px-4 py-2 disabled:opacity-50"
         >
-          {t('supplyChainStudio.save', '保存')}
+          {t('supplyChainStudio.save', 'Save')}
         </button>
       </div>
     </div>
@@ -185,9 +185,9 @@ export default function SupplyChainStudio() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['supply-chain-records', pid] });
       qc.invalidateQueries({ queryKey: ['product-supply-chain'] });
-      toast.success(t('supplyChainStudio.saved', '已保存'));
+      toast.success(t('supplyChainStudio.saved', 'Saved'));
     },
-    onError: (err: Error) => toast.error(err.message || t('supplyChainStudio.saveError', '保存失败')),
+    onError: (err: Error) => toast.error(err.message || t('supplyChainStudio.saveError', 'Save failed')),
   });
 
   if (!isAuthenticated || !isStaff) {
@@ -195,7 +195,7 @@ export default function SupplyChainStudio() {
       <PageWrapper>
         <PaperTextureBackground variant="paper" className="py-24 text-center">
           <p className="font-body text-ink-faded mb-6">
-            {t('supplyChainStudio.adminOnly', '仅管理员/编辑可管理溯源媒体')}
+            {t('supplyChainStudio.adminOnly', 'Only admins and editors can manage traceability media')}
           </p>
           <Link to="/login" className="font-body text-rust uppercase tracking-widest text-sm">
             {t('nav.login')} →
@@ -210,24 +210,24 @@ export default function SupplyChainStudio() {
       <PaperTextureBackground variant="paper" className="py-16 md:py-24">
         <SectionContainer>
           <h1 className="font-display text-2xl text-ink mb-2">
-            {t('supplyChainStudio.title', '溯源节点媒体')}
+            {t('supplyChainStudio.title', 'Traceability Node Media')}
           </h1>
           <p className="font-body text-caption text-sepia-mid mb-8 max-w-2xl leading-relaxed">
             {t(
               'supplyChainStudio.lead',
-              '为每个溯源点配置图片或视频：可本地上传（存入服务器 /static/uploads/traceability），也可手动填写外链。支持 mp4/webm/mov、JPEG/PNG/WebP/GIF。保存后商品详情地球仪与时间线会同步展示。'
+              'Configure images or videos for each traceability node. You can upload locally (stored in /static/uploads/traceability) or paste external URLs. Supports mp4/webm/mov and JPEG/PNG/WebP/GIF. Saved media will appear on the product detail globe and timeline.'
             )}
           </p>
 
           <label className="block font-body text-caption text-ink-faded mb-2">
-            {t('supplyChainStudio.selectProduct', '选择商品')}
+            {t('supplyChainStudio.selectProduct', 'Select Product')}
           </label>
           <select
             value={productId}
             onChange={(e) => setProductId(e.target.value)}
             className="w-full max-w-md border border-warm-gray/30 bg-paper px-3 py-2 font-body text-body-sm text-ink mb-10"
           >
-            <option value="">{t('supplyChainStudio.pickProduct', '— 请选择 —')}</option>
+            <option value="">{t('supplyChainStudio.pickProduct', '— Select a product —')}</option>
             {products.map((p) => (
               <option key={p.id} value={String(p.id)}>
                 #{p.id} · {p.name}
@@ -240,7 +240,7 @@ export default function SupplyChainStudio() {
               {isLoading && <p className="font-body text-sepia-mid">{t('common.loading', '…')}</p>}
               {!isLoading && records.length === 0 && (
                 <p className="font-body text-caption text-ink-faded">
-                  {t('supplyChainStudio.noRecords', '该商品暂无溯源记录')}
+                  {t('supplyChainStudio.noRecords', 'No traceability records for this product yet')}
                 </p>
               )}
               {records.map((r) => (

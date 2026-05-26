@@ -125,7 +125,7 @@ export default function ArtworkSubmitPage() {
     },
     onSuccess: () => setIsSubmitted(true),
     onError: (err: unknown) => {
-      const msg = err instanceof Error ? err.message : t('artworkSubmit.error', '提交失败，请重试');
+      const msg = err instanceof Error ? err.message : t('artworkSubmit.error', 'Submission failed — please retry');
       toast.error(msg);
     },
   });
@@ -154,7 +154,7 @@ export default function ArtworkSubmitPage() {
       <PageWrapper>
         <PaperTextureBackground variant="paper" className="py-24 text-center">
           <p className="font-body text-ink-faded mb-6">
-            {t('submitArtwork.loginRequired', '请先登录以提交画作')}
+            {t('submitArtwork.loginRequired', 'Please log in to submit artwork')}
           </p>
           <Link to="/login" className="font-body text-rust uppercase tracking-widest text-sm">
             {t('nav.login')} →
@@ -305,7 +305,7 @@ export default function ArtworkSubmitPage() {
                     className="mt-1 cursor-pointer"
                   />
                   <span className="font-body text-body-sm text-ink-faded">
-                    {t('submitArtwork.consentLabel', '我确认已获得该未成年人监护人的同意')}
+                    {t('submitArtwork.consentLabel', 'I confirm I have obtained guardian consent for this minor')}
                   </span>
                 </label>
               )}
@@ -375,7 +375,7 @@ export default function ArtworkSubmitPage() {
               {/* Error */}
               {mutation.isError && (
                 <p className="font-body text-caption text-rust" role="alert">
-                  {t('submitArtwork.error', '提交失败，请稍后再试')}
+                  {t('submitArtwork.error', 'Submission failed — please try again later')}
                 </p>
               )}
 

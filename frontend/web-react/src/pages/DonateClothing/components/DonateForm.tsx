@@ -87,16 +87,16 @@ export default function DonateForm({ onSubmitted }: DonateFormProps) {
       setTimeout(() => { if (mountedRef.current) onSubmitted(); }, 300);
     },
     onError: (err: Error) => {
-      toast.error(err.message || t('donateClothing.error', '提交失败，请重试'));
+      toast.error(err.message || t('donateClothing.error', 'Submission failed — please retry'));
     },
   });
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!isAuthenticated) { navigate('/login'); return; }
-    if (!description.trim()) { toast.error(t('donateClothing.descriptionRequired', '请填写衣物描述')); return; }
-    if (!address.trim()) { toast.error(t('donateClothing.addressRequired', '请填写取件地址')); return; }
-    if (!phone.trim() || !/^1\d{10}$/.test(phone.trim())) { toast.error(t('donateClothing.phoneRequired', '请填写正确的11位手机号')); return; }
+    if (!description.trim()) { toast.error(t('donateClothing.descriptionRequired', 'Please describe the clothing')); return; }
+    if (!address.trim()) { toast.error(t('donateClothing.addressRequired', 'Please provide a pickup address')); return; }
+    if (!phone.trim() || !/^1\d{10}$/.test(phone.trim())) { toast.error(t('donateClothing.phoneRequired', 'Please enter a valid 11-digit phone number')); return; }
     createIntakeMutation.mutate();
   };
 
