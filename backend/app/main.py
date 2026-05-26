@@ -235,6 +235,13 @@ async def internal_server_error_handler(request: Request, exc):
         content={"success": False, "data": None, "message": "Internal server error", "code": "INTERNAL_SERVER_ERROR"},
     )
 
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"success": False, "data": None, "message": exc.detail, "code": f"HTTP_{exc.status_code}"},
+    )
+
 # ── Register routers ─────────────────────────────────────────────
 from app.routers.auth import router as auth_router
 from app.routers.oauth import router as oauth_router
