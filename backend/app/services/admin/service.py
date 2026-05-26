@@ -148,12 +148,12 @@ class AdminService(BaseService):
             .where(Artwork.id.in_(artwork_ids))
             .values(status=status)
         )
-        await self.db.execute(stmt)
-        
-        # If approving, we might want to also sync count back to children, 
+        result = await self.db.execute(stmt)
+
+        # If approving, we might want to also sync count back to children,
         # but for bulk we'll do a simple update for now.
-        
-        return {"modified_count": len(artwork_ids), "status": status}
+
+        return {"modified_count": result.rowcount, "status": status}
 
     @audit_action(action="batch_moderate_children", resource_type="child_participant")
     async def batch_moderate_children(self, child_ids: List[int], status: str) -> Dict[str, Any]:
@@ -165,5 +165,5 @@ class AdminService(BaseService):
             .where(ChildParticipant.id.in_(child_ids))
             .values(status=status)
         )
-        await self.db.execute(stmt)
-        return {"modified_count": len(child_ids), "status": status}
+        result = await self.db.execute(stmt)
+        return {"modified_count": result.rowcount, "status": status}

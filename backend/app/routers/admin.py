@@ -273,10 +273,10 @@ async def list_child_participants(
         data = [
             {
                 "id": p.id,
-                "child_name": p.child_name,
+                "child_name": p.child_name_decrypted,
                 "display_name": p.display_name,
                 "age": p.age,
-                "guardian_name": p.guardian_name,
+                "guardian_name": p.guardian_name_decrypted,
                 "region": p.region,
                 "school": p.school,
                 "consent_given": p.consent_given,
@@ -444,14 +444,11 @@ async def user_analytics(
         role_result = await db.execute(role_stmt)
         by_role = {row[0]: row[1] for row in role_result.all()}
 
-        monthly_users = (await db.execute(select(User.created_at))).all()
-        month_counts: dict[str, int] = {}
-        for (created_at,) in monthly_users:
-            if not created_at:
-                continue
-            key = created_at.strftime("%Y-%m")
-            month_counts[key] = month_counts.get(key, 0) + 1
-        by_month = [{"month": k, "count": v} for k, v in sorted(month_counts.items())]
+        from sqlalchemy import text
+        monthly_result = await db.execute(
+            text("SELECT DATE_FORMAT(created_at, '%Y-%m') AS month, COUNT(*) AS cnt FROM users WHERE created_at IS NOT NULL GROUP BY month ORDER BY month")
+        )
+        by_month = [{"month": row[0], "count": row[1]} for row in monthly_result.all()]
 
         return ApiResponse(data={
             "by_role": by_role,

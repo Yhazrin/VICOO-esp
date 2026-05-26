@@ -926,3 +926,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Added defense-in-depth amount verification: look up the order/donation by ID, compare callback amount against DB amount, reject on mismatch with warning log
 - **Verification**: `python -c "import ast; ..."` pass
 - **New issues**: None
+
+## Fix 114 — Admin dashboard unbounded user query and encrypted PII display
+- **Date**: 2026-05-27 (Round 48)
+- **Files**: `backend/app/routers/admin.py`, `backend/app/services/admin/service.py`
+- **Reason**: (a) P1: `list_child_participants` returned `p.child_name` and `p.guardian_name` directly — these are AES-256-GCM encrypted columns, so the admin UI received base64 ciphertext instead of readable names. Model provides `child_name_decrypted`/`guardian_name_decrypted` properties but they were not used; (b) P1: User analytics loaded ALL `created_at` timestamps into Python memory to compute monthly aggregates — with 100k+ users this causes OOM. Replaced with SQL `GROUP BY DATE_FORMAT`; (c) P2: `batch_moderate_artworks`/`batch_moderate_children` returned `len(ids)` instead of `result.rowcount`, reporting inflated modified counts when some IDs don't exist
+- **Change**: (a) Use `p.child_name_decrypted` and `p.guardian_name_decrypted`; (b) Replaced Python-side aggregation with `DATE_FORMAT(created_at, '%Y-%m') GROUP BY` SQL; (c) Use `result.rowcount` for accurate modified count
+- **Verification**: `python -c "import ast; ..."` pass for both files
+- **New issues**: None
