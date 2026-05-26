@@ -790,3 +790,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: (a) Added `--requirepass` to Redis, bound to `127.0.0.1` only, REDIS_URL includes password; (b) Added CSP header to nginx-admin.conf; (c) HSTS only set when `APP_ENV == "production"`; (d) Removed deprecated X-XSS-Protection from both nginx configs; (e) Removed unused import
 - **Verification**: `python -c "ast.parse(...)"` pass for backend
 - **New issues**: None
+
+## Fix 97 — Payment and impact fund idempotency unique constraints
+- **Date**: 2026-05-27 (Round 44)
+- **Files**: `backend/app/models/payment.py`, `backend/app/models/impact_fund.py`, `backend/app/services/payment/service.py`
+- **Reason**: `provider_transaction_id` had no unique constraint — concurrent webhook retries could both pass the SELECT-based idempotency check, creating duplicate PaymentTransaction rows and double impact fund allocations. Similarly, `ImpactFundEntry` had no unique constraint on `(order_id, order_item_id, beneficiary_type)`.
+- **Change**: (a) Added `unique=True, index=True` to `provider_transaction_id` column; (b) Added `UniqueConstraint("order_id", "order_item_id", "beneficiary_type")` to ImpactFundEntry; (c) Wrapped `process_successful_payment` flush in `try/except IntegrityError` to gracefully handle concurrent webhook race
+- **Verification**: `python -c "ast.parse(...)"` pass for all 3 files
+- **New issues**: None
