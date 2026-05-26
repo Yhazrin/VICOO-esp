@@ -88,7 +88,7 @@ class OrderService(BaseService):
         total_amount = Decimal("0.00")
         order_items = []
 
-        # 1. Process items and check inventory
+        # 1. Process items and check inventory (atomic deduction to prevent overselling)
         for item_in in items_data:
             product_id = item_in["product_id"]
             quantity = item_in["quantity"]
@@ -96,22 +96,28 @@ class OrderService(BaseService):
             if quantity <= 0:
                 raise HTTPException(status_code=400, detail=f"Invalid quantity for product {product_id}")
 
-            # Atomic inventory check and deduction
-            # Note: In a high-concurrency production system, we'd use a more complex SELECT FOR UPDATE
-            # or a specialized inventory service. Here we do it within the transaction.
+            # Read product info for price and error messages
             product_stmt = select(Product).where(Product.id == product_id)
             product = (await self.db.execute(product_stmt)).scalar_one_or_none()
 
             if not product:
                 raise HTTPException(status_code=404, detail=f"Product {product_id} not found")
-            
-            if product.stock < quantity:
+
+            # Atomic stock deduction — prevents overselling under concurrent orders
+            deduct_stmt = (
+                update(Product)
+                .where(Product.id == product_id, Product.stock >= quantity)
+                .values(stock=Product.stock - quantity)
+            )
+            result = await self.db.execute(deduct_stmt)
+            if result.rowcount == 0:
                 raise HTTPException(status_code=400, detail=f"Insufficient stock for product {product.name}")
 
-            # Deduct stock
-            product.stock -= quantity
-            if product.stock == 0:
-                product.status = "sold_out"
+            # Mark as sold_out if stock reaches zero
+            if product.stock - quantity == 0:
+                await self.db.execute(
+                    update(Product).where(Product.id == product_id).values(status="sold_out")
+                )
 
             item_total = product.price * Decimal(str(quantity))
             total_amount += item_total
@@ -147,26 +153,36 @@ class OrderService(BaseService):
     @audit_action(action="cancel_order", resource_type="order")
     async def cancel_order(self, order_id: int) -> Order:
         """
-        Cancel an order and return stock.
+        Cancel an order and return stock. Uses atomic status check to prevent
+        double-restoration from concurrent cancel requests.
         """
         order = await self.get_order_detail(order_id)
         if order.status != "pending":
             raise HTTPException(status_code=400, detail=f"Cannot cancel order in {order.status} status")
 
+        # Atomic status transition — prevents concurrent double-cancel
+        cancel_stmt = (
+            update(Order)
+            .where(Order.id == order_id, Order.status == "pending")
+            .values(status="cancelled")
+        )
+        result = await self.db.execute(cancel_stmt)
+        if result.rowcount == 0:
+            raise HTTPException(status_code=400, detail="Order was already cancelled or status changed")
+
         order.status = "cancelled"
-        
+
         # Return stock
-        # (This would be more robust in a separate method)
         stmt = select(OrderItem).where(OrderItem.order_id == order_id)
         result = await self.db.execute(stmt)
         items = result.scalars().all()
-        
+
         for item in items:
             await self.db.execute(
                 update(Product)
                 .where(Product.id == item.product_id)
                 .values(stock=Product.stock + item.quantity, status="active")
             )
-            
+
         await self.db.flush()
         return order

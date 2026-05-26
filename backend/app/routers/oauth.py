@@ -1,4 +1,5 @@
 """OAuth authentication routes for GitHub and Google."""
+import hmac
 import logging
 import secrets
 from urllib.parse import urlencode
@@ -133,6 +134,10 @@ async def github_login(request: Request):
 @router.get("/github/callback")
 async def github_callback(code: str, state: str = "", request: Request = None, db: AsyncSession = Depends(get_db)):
     """Handle GitHub OAuth callback."""
+    # CSRF protection: verify state parameter matches cookie
+    expected_state = request.cookies.get("oauth_state", "")
+    if not expected_state or not hmac.compare_digest(state, expected_state):
+        raise HTTPException(status_code=403, detail="Invalid OAuth state parameter")
     if not settings.GITHUB_CLIENT_ID or not settings.GITHUB_CLIENT_SECRET:
         raise HTTPException(status_code=500, detail="GitHub OAuth is not configured")
 
@@ -222,6 +227,10 @@ async def google_login(request: Request):
 @router.get("/google/callback")
 async def google_callback(code: str, state: str = "", request: Request = None, db: AsyncSession = Depends(get_db)):
     """Handle Google OAuth callback."""
+    # CSRF protection: verify state parameter matches cookie
+    expected_state = request.cookies.get("oauth_state", "")
+    if not expected_state or not hmac.compare_digest(state, expected_state):
+        raise HTTPException(status_code=403, detail="Invalid OAuth state parameter")
     if not settings.GOOGLE_CLIENT_ID or not settings.GOOGLE_CLIENT_SECRET:
         raise HTTPException(status_code=500, detail="Google OAuth is not configured")
 

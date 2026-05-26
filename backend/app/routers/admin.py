@@ -3,6 +3,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
 from typing import Optional
+import hmac
 import logging
 import os
 
@@ -146,7 +147,7 @@ async def verify_audit_access(
 ):
     """Verify admin audit access code."""
     expected = os.environ.get("ADMIN_AUDIT_CODE", "vicoo-admin-2025")
-    if body.access_code != expected:
+    if not hmac.compare_digest(body.access_code, expected):
         raise HTTPException(status_code=403, detail="Invalid access code")
     return ApiResponse(data={"verified": True})
 

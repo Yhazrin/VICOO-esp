@@ -390,8 +390,13 @@ async def update_order_status(
         # Non-admin users can only cancel their own orders
         if current_user.get("role") != "admin" and body.status != "cancelled":
             raise HTTPException(status_code=403, detail="Only admins can change order status to non-cancelled states")
-        order.status = body.status
-        await db.flush()
+        # Use cancel_order service to properly restore stock
+        if body.status == "cancelled":
+            order_service = OrderService(db)
+            order = await order_service.cancel_order(order_id)
+        else:
+            order.status = body.status
+            await db.flush()
         item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
         items = (await db.execute(item_stmt)).scalars().all()
         product_map = await _build_product_map(db, items)

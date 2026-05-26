@@ -774,7 +774,7 @@ export async function fetchAfterSales(params: FilterParams = {}): Promise<Pagina
 }
 
 export async function updateAfterSalesStatus(id: string, status: string): Promise<void> {
-  await api.patch(`/after-sales/${id}`, { status });
+  await api.patch(`/after-sales/${id}/status`, { status });
 }
 
 // ---------------------------------------------------------------------------
@@ -806,7 +806,7 @@ export async function fetchClothingIntakes(params: FilterParams = {}): Promise<P
 }
 
 export async function updateClothingIntakeStatus(id: string, status: string): Promise<void> {
-  await api.patch(`/clothing-intakes/${id}`, { status });
+  await api.patch(`/clothing-intakes/${id}/status`, { status });
 }
 
 // ---------------------------------------------------------------------------
