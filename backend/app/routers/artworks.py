@@ -95,7 +95,7 @@ async def list_artworks(
 ):
     """List artworks with optional filtering and pagination."""
     try:
-        stmt = select(Artwork).options(selectinload(Artwork.child_participant))
+        stmt = select(Artwork).options(selectinload(Artwork.child_participant)).order_by(Artwork.id.desc())
         if status:
             stmt = stmt.where(Artwork.status == status)
         if campaign_id is not None:
@@ -129,7 +129,7 @@ async def list_artworks(
         logger.warning("list_artworks primary query failed (%s), retrying without child_participant", e)
         # Fallback: query without selectinload if child_participants relationship breaks
         try:
-            stmt = select(Artwork)
+            stmt = select(Artwork).order_by(Artwork.id.desc())
             if status:
                 stmt = stmt.where(Artwork.status == status)
             if campaign_id is not None:

@@ -103,9 +103,9 @@ export const productsApi = {
     page?: number;
     page_size?: number;
     category?: string;
-    /** 与公益商店分流；务必传给后端。部分 HTTP 客户端会丢弃布尔 false，故序列化为字符串。 */
+    /** Used for welfare shop routing; must be sent to the backend. Some HTTP clients drop boolean false, so it is serialized as a string. */
     isImpactProduct?: boolean;
-    /** 语言区域，传给后端以返回对应语言的产品名称。默认取 i18n.language */
+    /** Locale passed to the backend to return product names in the corresponding language. Defaults to i18n.language */
     locale?: string;
   }): Promise<PaginatedResponse<Product>> => {
     const query: Record<string, string | number> = {};

@@ -2132,3 +2132,19 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Translated all Chinese comments to English
 - **Verification**: All translated files now use English comments only
 - **New issues**: None
+
+## Fix 252 — 前端 t() 回退字符串中→英翻译 (OrderDetail, AiDesign)
+- **Date**: 2026-05-27 (Round 75)
+- **Files**: `pages/OrderDetail/index.tsx`, `pages/AiDesign/index.tsx`, `services/products.ts`, `components/layout/MobileNav.tsx`
+- **Reason**: P3: ~50 t() i18n fallback strings were in Chinese; English fallbacks needed for i18n consistency.
+- **Change**: Translated all Chinese t() fallback strings to English in OrderDetail (27 strings) and AiDesign (28 strings). Also translated 2 remaining code comments in products.ts and 1 in MobileNav.tsx.
+- **Verification**: All t() calls in these files now use English fallbacks
+- **New issues**: None
+
+## Fix 253 — Product和Artwork列表缺少ORDER BY导致分页不稳定
+- **Date**: 2026-05-27 (Round 75)
+- **Files**: `backend/app/routers/products.py`, `backend/app/routers/artworks.py`
+- **Reason**: P2: `list_products` and `list_artworks` endpoints had no `.order_by()` clause, causing non-deterministic pagination (items could appear on multiple pages or be skipped).
+- **Change**: Added `.order_by(Product.id.desc())` and `.order_by(Artwork.id.desc())` to the respective queries
+- **Verification**: Pagination is now deterministic
+- **New issues**: None

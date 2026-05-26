@@ -54,7 +54,7 @@ export default function AiDesign() {
       setCreateTitle('');
       setCreateCategory('');
     },
-    onError: (err: Error) => setErrorMessage(err.message || t('aiDesign.createError', '创建设计稿失败')),
+    onError: (err: Error) => setErrorMessage(err.message || t('aiDesign.createError', 'Failed to create design draft')),
   });
 
   const generateMutation = useMutation({
@@ -63,7 +63,7 @@ export default function AiDesign() {
       qc.invalidateQueries({ queryKey: ['design-drafts'] });
       setSelectedDraft(updated);
     },
-    onError: (err: Error) => setErrorMessage(err.message || t('aiDesign.generateError', 'AI 生成失败')),
+    onError: (err: Error) => setErrorMessage(err.message || t('aiDesign.generateError', 'AI generation failed')),
   });
 
   const approveMutation = useMutation({
@@ -73,7 +73,7 @@ export default function AiDesign() {
       setSelectedDraft(updated);
       setReviewNote('');
     },
-    onError: (err: Error) => setErrorMessage(err.message || t('aiDesign.approveError', '审批失败')),
+    onError: (err: Error) => setErrorMessage(err.message || t('aiDesign.approveError', 'Approval failed')),
   });
 
   const rejectMutation = useMutation({
@@ -83,7 +83,7 @@ export default function AiDesign() {
       setSelectedDraft(updated);
       setReviewNote('');
     },
-    onError: (err: Error) => setErrorMessage(err.message || t('aiDesign.rejectError', '拒绝失败')),
+    onError: (err: Error) => setErrorMessage(err.message || t('aiDesign.rejectError', 'Rejection failed')),
   });
 
   const publishMutation = useMutation({
@@ -92,7 +92,7 @@ export default function AiDesign() {
       qc.invalidateQueries({ queryKey: ['design-drafts'] });
       setSelectedDraft(null);
     },
-    onError: (err: Error) => setErrorMessage(err.message || t('aiDesign.publishError', '发布商品失败')),
+    onError: (err: Error) => setErrorMessage(err.message || t('aiDesign.publishError', 'Failed to publish product')),
   });
 
   if (!isAuthenticated || !isAdmin) {
@@ -101,7 +101,7 @@ export default function AiDesign() {
         <PaperTextureBackground variant="paper" className="py-24 text-center">
 
           <p className="font-body text-ink-faded mb-6">
-            {t('aiDesign.adminOnly', '仅管理员可访问 AI 设计工作台')}
+            {t('aiDesign.adminOnly', 'Only admins can access the AI Design Studio')}
           </p>
           <Link to="/login" className="font-body text-rust uppercase tracking-widest text-sm">
             {t('nav.login')} →
@@ -119,10 +119,10 @@ export default function AiDesign() {
 
         <SectionContainer>
           <h2 className="font-display text-h3 font-bold text-ink mb-2">
-            {t('aiDesign.title', 'AI 设计工作台')}
+            {t('aiDesign.title', 'AI Design Studio')}
           </h2>
           <p className="font-body text-body-sm text-ink-faded mb-8">
-            {t('aiDesign.subtitle', '将儿童画作转化为商业产品设计')}
+            {t('aiDesign.subtitle', 'Transform children\'s artwork into commercial product designs')}
           </p>
 
           {errorMessage && (
@@ -135,18 +135,18 @@ export default function AiDesign() {
           {/* Create new draft */}
           <div className="border border-warm-gray/30 p-6 mb-8 bg-paper/90">
             <h3 className="font-display text-lg text-ink font-bold mb-4">
-              {t('aiDesign.createNew', '创建新设计稿')}
+              {t('aiDesign.createNew', 'Create New Design Draft')}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <input
                 type="number"
-                placeholder={t('aiDesign.artworkId', '画作 ID')}
+                placeholder={t('aiDesign.artworkId', 'Artwork ID')}
                 value={createArtworkId}
                 onChange={(e) => setCreateArtworkId(e.target.value)}
                 className="border border-warm-gray/30 bg-transparent px-3 py-2 font-body text-body-sm text-ink"
               />
               <input
-                placeholder={t('aiDesign.draftTitle', '设计稿标题')}
+                placeholder={t('aiDesign.draftTitle', 'Design Draft Title')}
                 value={createTitle}
                 onChange={(e) => setCreateTitle(e.target.value)}
                 className="border border-warm-gray/30 bg-transparent px-3 py-2 font-body text-body-sm text-ink"
@@ -156,18 +156,18 @@ export default function AiDesign() {
                 onChange={(e) => setCreateCategory(e.target.value)}
                 className="border border-warm-gray/30 bg-transparent px-3 py-2 font-body text-body-sm text-ink"
               >
-                <option value="">{t('aiDesign.selectCategory', '选择品类')}</option>
-                <option value="apparel">{t('shop.categories.apparel', '服饰')}</option>
-                <option value="accessories">{t('shop.categories.accessories', '配饰')}</option>
-                <option value="stationery">{t('shop.categories.stationery', '文具')}</option>
-                <option value="home">{t('shop.categories.home', '家居')}</option>
+                <option value="">{t('aiDesign.selectCategory', 'Select Category')}</option>
+                <option value="apparel">{t('shop.categories.apparel', 'Apparel')}</option>
+                <option value="accessories">{t('shop.categories.accessories', 'Accessories')}</option>
+                <option value="stationery">{t('shop.categories.stationery', 'Stationery')}</option>
+                <option value="home">{t('shop.categories.home', 'Home')}</option>
               </select>
               <button
                 onClick={() => createMutation.mutate()}
                 disabled={!createArtworkId || !createTitle || createMutation.isPending}
                 className="font-body text-label tracking-wide bg-ink text-paper py-2 hover:bg-rust disabled:opacity-40 cursor-pointer"
               >
-                {createMutation.isPending ? t('common.loading', '…') : t('aiDesign.create', '创建')}
+                {createMutation.isPending ? t('common.loading', '...') : t('aiDesign.create', 'Create')}
               </button>
             </div>
           </div>
@@ -184,7 +184,7 @@ export default function AiDesign() {
                     : 'border-warm-gray/25 text-sepia-mid hover:border-warm-gray/40'
                 }`}
               >
-                {s ? t(`aiDesign.statuses.${s}`, s) : t('aiDesign.all', '全部')}
+                {s ? t(`aiDesign.statuses.${s}`, s) : t('aiDesign.all', 'All')}
               </button>
             ))}
           </div>
@@ -194,7 +194,7 @@ export default function AiDesign() {
             <p className="font-body text-body-sm text-ink-faded">{t('common.loading', 'Loading...')}</p>
           ) : drafts.length === 0 ? (
             <p className="font-body text-body-sm text-ink-faded text-center py-12">
-              {t('aiDesign.noDrafts', '暂无设计稿')}
+              {t('aiDesign.noDrafts', 'No design drafts yet')}
             </p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -214,7 +214,7 @@ export default function AiDesign() {
                     <p className="font-body text-caption text-ink-faded line-clamp-2">{draft.description}</p>
                   )}
                   <div className="flex items-center gap-4 mt-3 font-body text-caption text-sepia-mid">
-                    <span>{t('aiDesign.artworkRef', '画作')}: #{draft.artwork_id}</span>
+                    <span>{t('aiDesign.artworkRef', 'Artwork')}: #{draft.artwork_id}</span>
                     {draft.target_category && <span>{draft.target_category}</span>}
                     <span>{draft.created_at.slice(0, 10)}</span>
                   </div>
@@ -270,7 +270,7 @@ export default function AiDesign() {
               {selectedDraft.review_note && (
                 <div>
                   <p className="font-body text-caption text-sepia-mid tracking-wider uppercase mb-1">
-                    {t('aiDesign.reviewNote', '审核备注')}
+                    {t('aiDesign.reviewNote', 'Review Note')}
                   </p>
                   <p className="font-body text-caption text-ink-faded">{selectedDraft.review_note}</p>
                 </div>
@@ -285,14 +285,14 @@ export default function AiDesign() {
                   disabled={generateMutation.isPending}
                   className="font-body text-label tracking-wide bg-ink text-paper px-6 py-2.5 hover:bg-rust disabled:opacity-40 cursor-pointer"
                 >
-                  {t('aiDesign.generate', 'AI 生成')}
+                  {t('aiDesign.generate', 'AI Generate')}
                 </button>
               )}
               {(selectedDraft.status === 'ai_generated' || selectedDraft.status === 'review') && (
                 <>
                   <input
                     type="text"
-                    placeholder={t('aiDesign.reviewNotePlaceholder', '审核备注（可选）')}
+                    placeholder={t('aiDesign.reviewNotePlaceholder', 'Review note (optional)')}
                     value={reviewNote}
                     onChange={(e) => setReviewNote(e.target.value)}
                     className="flex-1 border border-warm-gray/30 bg-transparent px-3 py-2 font-body text-body-sm text-ink min-w-0"
@@ -302,14 +302,14 @@ export default function AiDesign() {
                     disabled={approveMutation.isPending}
                     className="font-body text-label tracking-wide bg-sage text-paper px-6 py-2.5 hover:opacity-90 disabled:opacity-40 cursor-pointer"
                   >
-                    {t('aiDesign.approve', '通过')}
+                    {t('aiDesign.approve', 'Approve')}
                   </button>
                   <button
                     onClick={() => rejectMutation.mutate(selectedDraft.id)}
                     disabled={rejectMutation.isPending}
                     className="font-body text-label tracking-wide border border-rust/30 text-rust px-6 py-2.5 hover:bg-rust/5 disabled:opacity-40 cursor-pointer"
                   >
-                    {t('aiDesign.reject', '驳回')}
+                    {t('aiDesign.reject', 'Reject')}
                   </button>
                 </>
               )}
@@ -317,7 +317,7 @@ export default function AiDesign() {
                 <>
                   <input
                     type="number"
-                    placeholder={t('aiDesign.price', '价格')}
+                    placeholder={t('aiDesign.price', 'Price')}
                     value={publishPrice}
                     onChange={(e) => setPublishPrice(e.target.value)}
                     className="w-24 border border-warm-gray/30 bg-transparent px-3 py-2 font-body text-body-sm text-ink"
@@ -325,7 +325,7 @@ export default function AiDesign() {
                   />
                   <input
                     type="number"
-                    placeholder={t('aiDesign.stock', '库存')}
+                    placeholder={t('aiDesign.stock', 'Stock')}
                     value={publishStock}
                     onChange={(e) => setPublishStock(e.target.value)}
                     className="w-24 border border-warm-gray/30 bg-transparent px-3 py-2 font-body text-body-sm text-ink"
@@ -336,7 +336,7 @@ export default function AiDesign() {
                     disabled={publishMutation.isPending}
                     className="font-body text-label tracking-wide bg-archive-brown text-paper px-6 py-2.5 hover:opacity-90 disabled:opacity-40 cursor-pointer"
                   >
-                    {t('aiDesign.publish', '发布为商品')}
+                    {t('aiDesign.publish', 'Publish as Product')}
                   </button>
                 </>
               )}

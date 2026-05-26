@@ -198,7 +198,7 @@ async def list_products(
 ):
     """List products with optional filtering."""
     try:
-        stmt = _apply_product_filters(select(Product), category, status, is_impact_product)
+        stmt = _apply_product_filters(select(Product), category, status, is_impact_product).order_by(Product.id.desc())
         count_stmt = _apply_product_filters(select(func.count(Product.id)), category, status, is_impact_product)
         total = (await db.execute(count_stmt)).scalar() or 0
         stmt = stmt.offset((page - 1) * page_size).limit(page_size)
