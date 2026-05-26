@@ -187,6 +187,13 @@ export default function Checkout() {
     };
   }, [pendingPayOrder, finalizeOrder, t]);
 
+  // Reset placingRef when polling finishes (pendingPayOrder cleared)
+  useEffect(() => {
+    if (!pendingPayOrder) {
+      placingRef.current = false;
+    }
+  }, [pendingPayOrder]);
+
   if (!isAuthenticated) {
     return (
       <PageWrapper>
@@ -250,6 +257,7 @@ export default function Checkout() {
       const token = order.mock_pay_token;
       if (!token) {
         setError(t('checkout.error'));
+        placingRef.current = false;
         return;
       }
 
@@ -265,6 +273,7 @@ export default function Checkout() {
         mockPayToken: token,
         payUrl,
       });
+      // Keep placingRef = true — polling will handle reset via pendingPayOrder change
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : '';
       if (msg.includes('422') || msg.includes('stock')) {
@@ -272,9 +281,9 @@ export default function Checkout() {
       } else {
         setError(t('checkout.error'));
       }
+      placingRef.current = false;
     } finally {
       setIsProcessing(false);
-      placingRef.current = false;
     }
   };
 

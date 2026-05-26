@@ -185,8 +185,7 @@ async def create_donation(body: DonationCreate, db: AsyncSession = Depends(get_d
     donation_service = DonationService(db)
     try:
         donation_data = body.model_dump()
-        if donation_data.get("donor_user_id") is None:
-            donation_data["donor_user_id"] = current_user["id"]
+        donation_data["donor_user_id"] = current_user["id"]
 
         donation = await donation_service.create_donation(donation_data)
         await db.refresh(donation)

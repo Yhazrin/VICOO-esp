@@ -1007,8 +1007,8 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                                     "url": urljoin(base_url, f"campaigns/{c.id}"),
                                 }
                             )
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug(f"RAG campaign retrieval error: {e}")
 
                 try:
                     from app.models.supply_chain import SupplyChainRecord
@@ -1027,8 +1027,8 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                                     "url": urljoin(base_url, f"supply-chain/records/{r.id}"),
                                 }
                             )
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug(f"RAG supply chain retrieval error: {e}")
 
             if not results:
                 return ""

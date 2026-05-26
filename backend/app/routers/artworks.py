@@ -391,7 +391,9 @@ async def vote_artwork(artwork_id: int, db: AsyncSession = Depends(get_db), redi
         # Re-fetch with child_participant for response serialization
         stmt2 = select(Artwork).options(selectinload(Artwork.child_participant)).where(Artwork.id == artwork_id)
         result2 = await db.execute(stmt2)
-        artwork = result2.scalar_one()
+        artwork = result2.scalar_one_or_none()
+        if not artwork:
+            raise HTTPException(status_code=404, detail="Artwork not found")
 
         # Mark as voted in Redis
         await redis_client.setex(vote_key, 2592000, "1")  # 30 days

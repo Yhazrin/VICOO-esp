@@ -235,8 +235,8 @@ async def logout(request: Request):
                 if jti and exp:
                     ttl = max(int(exp - time.time()), 60)
                     await redis.setex(f"blacklist:{jti}", ttl, "1")
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(f"Failed to blacklist token during logout: {e}")
 
     json_response = JSONResponse(
         status_code=200,
