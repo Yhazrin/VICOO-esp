@@ -1134,3 +1134,35 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Added TODO security comment documenting the risk and the required migration path (httpOnly cookie + refresh token)
 - **Verification**: Comment added
 - **New issues**: Full fix requires implementing admin refresh-token flow
+
+## Fix 140 — Admin AfterSales page uses wrong status enum values
+- **Date**: 2026-05-27 (Round 52)
+- **Files**: `admin/src/pages/AfterSalesPage.tsx`
+- **Reason**: P0: Page used `pending|approved|rejected|completed` but backend enum is `open|in_progress|resolved|closed`. All filter queries returned zero results, all status mutations returned 422, and action buttons never rendered.
+- **Change**: Updated action button status checks (`pending`→`open`, `approved`→`in_progress`), mutation status values (`approved`→`in_progress`, `rejected`→`closed`, `completed`→`resolved`), and filter dropdown options
+- **Verification**: All status values match backend enum
+- **New issues**: None
+
+## Fix 141 — Admin ClothingDonation page uses wrong status enum values
+- **Date**: 2026-05-27 (Round 52)
+- **Files**: `admin/src/pages/ClothingDonationPage.tsx`
+- **Reason**: P0: Page checked `record.status === 'pending'` but backend initial status is `submitted`. "Convert" action sent `converted` which is not a valid enum value (`submitted|received|processing|listed|rejected`), causing 422 on every conversion.
+- **Change**: Changed `pending`→`submitted` for initial status check, `converted`→`listed` for conversion action, and updated filter dropdown options
+- **Verification**: All status values match backend enum
+- **New issues**: None
+
+## Fix 142 — Remaining datetime.utcnow() instances (deprecated, naive)
+- **Date**: 2026-05-27 (Round 52)
+- **Files**: `backend/app/routers/editorial.py`, `backend/app/services/donation/certificate.py`
+- **Reason**: P1: Two remaining `datetime.utcnow()` calls producing timezone-naive datetimes. The editorial.py instance writes directly to DB.
+- **Change**: Replaced with `datetime.now(timezone.utc)` in both locations
+- **Verification**: No remaining `datetime.utcnow()` in codebase
+- **New issues**: None
+
+## Fix 143 — datetime.now() without timezone in admin consent_date
+- **Date**: 2026-05-27 (Round 52)
+- **Files**: `backend/app/routers/admin.py`
+- **Reason**: P1: `child.consent_date = datetime.now()` wrote timezone-naive timestamp. Could cause TypeError when compared with timezone-aware datetimes elsewhere.
+- **Change**: Changed to `datetime.now(timezone.utc)`
+- **Verification**: Matches timezone-aware pattern used throughout codebase
+- **New issues**: None

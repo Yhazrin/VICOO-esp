@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 import hmac
 import logging
@@ -308,7 +308,7 @@ async def approve_child_consent(
         if not child:
             raise HTTPException(status_code=404, detail="Child participant not found")
         child.consent_given = True
-        child.consent_date = datetime.now()
+        child.consent_date = datetime.now(timezone.utc)
         child.status = "active"
         await db.flush()
 

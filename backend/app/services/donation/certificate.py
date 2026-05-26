@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from io import BytesIO
 from typing import Any, Dict, Optional
@@ -77,7 +77,7 @@ def build_certificate_payload(
     campaign_title: Optional[str] = None,
 ) -> Dict[str, Any]:
     certificate_no = donation.certificate_no or f"TH-DON-{donation.id:06d}"
-    issued_at = donation.created_at or datetime.utcnow()
+    issued_at = donation.created_at or datetime.now(timezone.utc)
     donor_name = "Anonymous Donor" if donation.is_anonymous else donation.donor_name
     amount = Decimal(str(donation.amount)).quantize(Decimal("0.00"))
     amount_display = f"{amount:,.2f} {donation.currency}"

@@ -68,37 +68,37 @@ export default function AfterSalesPage() {
       title: t('afterSales.colActions', 'Actions'),
       width: 200,
       render: (_v, record) => {
-        if (record.status === 'pending') {
+        if (record.status === 'open') {
           return (
             <div style={{ display: 'flex', gap: 6 }}>
               <Button
                 variant="primary"
                 size="sm"
                 loading={statusMutation.isPending}
-                onClick={() => statusMutation.mutate({ id: record.id, status: 'approved' })}
+                onClick={() => statusMutation.mutate({ id: record.id, status: 'in_progress' })}
               >
-                {t('afterSales.btnApprove', 'Approve')}
+                {t('afterSales.btnApprove', 'Process')}
               </Button>
               <Button
                 variant="danger"
                 size="sm"
                 loading={statusMutation.isPending}
-                onClick={() => statusMutation.mutate({ id: record.id, status: 'rejected' })}
+                onClick={() => statusMutation.mutate({ id: record.id, status: 'closed' })}
               >
-                {t('afterSales.btnReject', 'Reject')}
+                {t('afterSales.btnReject', 'Close')}
               </Button>
             </div>
           );
         }
-        if (record.status === 'approved') {
+        if (record.status === 'in_progress') {
           return (
             <Button
               variant="secondary"
               size="sm"
               loading={statusMutation.isPending}
-              onClick={() => statusMutation.mutate({ id: record.id, status: 'completed' })}
+              onClick={() => statusMutation.mutate({ id: record.id, status: 'resolved' })}
             >
-              {t('afterSales.btnComplete', 'Complete')}
+              {t('afterSales.btnComplete', 'Resolve')}
             </Button>
           );
         }
@@ -133,10 +133,10 @@ export default function AfterSalesPage() {
           }}
         >
           <option value="">{t('afterSales.filterAllStatuses')}</option>
-          <option value="pending">{t('afterSales.statusPending')}</option>
-          <option value="approved">{t('afterSales.statusApproved')}</option>
-          <option value="rejected">{t('afterSales.statusRejected')}</option>
-          <option value="completed">{t('afterSales.statusCompleted')}</option>
+          <option value="open">{t('afterSales.statusOpen', 'Open')}</option>
+          <option value="in_progress">{t('afterSales.statusInProgress', 'In Progress')}</option>
+          <option value="resolved">{t('afterSales.statusResolved', 'Resolved')}</option>
+          <option value="closed">{t('afterSales.statusClosed', 'Closed')}</option>
         </select>
       </div>
 

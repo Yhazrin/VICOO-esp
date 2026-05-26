@@ -60,7 +60,7 @@ export default function ClothingDonationPage() {
       title: t('clothingDonation.colActions', 'Actions'),
       width: 220,
       render: (_v, record) => {
-        if (record.status === 'pending') {
+        if (record.status === 'submitted') {
           return (
             <div style={{ display: 'flex', gap: 6 }}>
               <Button
@@ -100,7 +100,7 @@ export default function ClothingDonationPage() {
               variant="primary"
               size="sm"
               loading={statusMutation.isPending}
-              onClick={() => statusMutation.mutate({ id: record.id, status: 'converted' })}
+              onClick={() => statusMutation.mutate({ id: record.id, status: 'listed' })}
             >
               {t('clothingDonation.btnConvert', 'Convert')}
             </Button>
@@ -136,10 +136,10 @@ export default function ClothingDonationPage() {
           }}
         >
           <option value="">{t('clothingDonation.filterAllStatuses')}</option>
-          <option value="pending">{t('clothingDonation.statusPending')}</option>
+          <option value="submitted">{t('clothingDonation.statusSubmitted', 'Submitted')}</option>
           <option value="received">{t('clothingDonation.statusReceived')}</option>
           <option value="processing">{t('clothingDonation.statusProcessing')}</option>
-          <option value="converted">{t('clothingDonation.statusConverted')}</option>
+          <option value="listed">{t('clothingDonation.statusListed', 'Listed')}</option>
           <option value="rejected">{t('clothingDonation.statusRejected')}</option>
         </select>
       </div>

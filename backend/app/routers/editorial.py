@@ -37,7 +37,7 @@ async def create_editorial_article(
 ):
     """Create a new editorial article (admin/editor only)."""
     try:
-        from datetime import datetime
+        from datetime import datetime, timezone
         article = EditorialArticle(
             title=body.title,
             excerpt=body.excerpt,
@@ -47,7 +47,7 @@ async def create_editorial_article(
             read_time_minutes=body.read_time_minutes,
             category=body.category,
             status="published",
-            published_at=datetime.utcnow(),
+            published_at=datetime.now(timezone.utc),
         )
         db.add(article)
         await db.flush()
