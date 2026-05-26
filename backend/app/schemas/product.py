@@ -56,7 +56,7 @@ class DesignPublish(BaseModel):
     price: Decimal = Field(..., gt=0, description="Price in CNY")
     currency: str = Field("CNY", description="Currency code")
     name: Optional[str] = Field(None, max_length=300)
-    description: Optional[str] = None
+    description: Optional[str] = Field(None, max_length=10000)
     category: Optional[str] = Field(None, max_length=100)
     stock: int = Field(0, ge=0)
 

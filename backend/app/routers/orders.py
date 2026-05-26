@@ -340,7 +340,8 @@ async def get_order(
         return ApiResponse(data=order_to_out_dict(order, list(items), product_map))
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
+        logger.error("Failed to get order %d: %s", order_id, e)
         raise HTTPException(status_code=404, detail="Order not found")
 
 @router.post("/{order_id}/cancel", response_model=ApiResponse)

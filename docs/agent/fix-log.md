@@ -1542,3 +1542,53 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Changed default from `"pending_payment"` to `"pending"`
 - **Verification**: Test orders now use valid status enum
 - **New issues**: None
+
+## Fix 191 — Exception handlers mask errors as 404/500 without logging
+- **Date**: 2026-05-27 (Round 59)
+- **Files**: `backend/app/routers/donations.py`, `backend/app/routers/orders.py`, `backend/app/routers/campaigns.py`, `backend/app/routers/payments.py`
+- **Reason**: P2: Five `except Exception:` blocks silently converted all errors (including DB failures, connection issues) into generic 404/500 responses with no logging, making production debugging nearly impossible.
+- **Change**: Added `as e` and `logger.error(...)` with context (resource ID, operation) to all five locations:
+  - `donations.py:178` — get_donation
+  - `donations.py:255` — get_donation_certificate
+  - `orders.py:343` — get_order
+  - `campaigns.py:68` — get_campaign
+  - `payments.py:380` — test endpoint
+- **Verification**: All exception paths now log the actual error before returning user-friendly messages
+- **New issues**: None
+
+## Fix 192 — Schema fields missing max_length constraints
+- **Date**: 2026-05-27 (Round 59)
+- **Files**: `backend/app/schemas/order.py`, `backend/app/schemas/product.py`
+- **Reason**: P2: `LogisticsEvent.at`, `LogisticsEvent.status`, `LogisticsEvent.description`, `LogisticsEvent.location` and `DesignPublish.description` had no max_length constraints, allowing unbounded string input that could cause DB column overflow or excessive memory usage.
+- **Change**:
+  - `LogisticsEvent.at`: max_length=50
+  - `LogisticsEvent.status`: max_length=50
+  - `LogisticsEvent.description`: max_length=500
+  - `LogisticsEvent.location`: max_length=200
+  - `DesignPublish.description`: max_length=10000
+- **Verification**: All user-input string fields now have explicit length limits
+- **New issues**: None
+
+## Fix 193 — Nginx configs missing server_tokens off
+- **Date**: 2026-05-27 (Round 59)
+- **Files**: `deploy/easy/nginx.conf`, `deploy/easy/nginx-admin.conf`, `deploy/docker/nginx/nginx.conf`
+- **Reason**: P2: All three Nginx configs lacked `server_tokens off`, exposing the Nginx version number in response headers and error pages, aiding attackers in identifying known vulnerabilities.
+- **Change**: Added `server_tokens off;` to each server block
+- **Verification**: Nginx will no longer expose version information
+- **New issues**: None
+
+## Fix 194 — Backend Dockerfile runs as root
+- **Date**: 2026-05-27 (Round 59)
+- **Files**: `backend/Dockerfile`
+- **Reason**: P2: The backend container ran as root, violating the principle of least privilege. If the application is compromised, the attacker gains root access inside the container.
+- **Change**: Added `groupadd`/`useradd` to create a `vicoo` user, `chown` the app directory, and `USER vicoo` directive before CMD
+- **Verification**: Container now runs as non-root user `vicoo`
+- **New issues**: None
+
+## Fix 195 — Fix log updated for Round 59 audit completeness
+- **Date**: 2026-05-27 (Round 59)
+- **Files**: `docs/agent/fix-log.md`
+- **Reason**: Documentation of Fixes 191–194
+- **Change**: Added fix entries 191–194
+- **Verification**: Fix log now covers all changes through Round 59
+- **New issues**: None

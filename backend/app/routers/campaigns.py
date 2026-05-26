@@ -65,7 +65,8 @@ async def get_campaign(campaign_id: int, db: AsyncSession = Depends(get_db)):
         return ApiResponse(data=CampaignOut.model_validate(campaign).model_dump())
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
+        logger.error("Failed to get campaign %d: %s", campaign_id, e)
         raise HTTPException(status_code=404, detail="Campaign not found")
 
 @router.post("", response_model=ApiResponse, status_code=201)

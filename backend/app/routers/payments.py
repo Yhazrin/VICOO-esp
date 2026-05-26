@@ -377,7 +377,8 @@ async def test_wechat_params(current_user: dict = Depends(get_current_user)):
         return ApiResponse(data=payment_params)
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
+        logger.error("Payment test endpoint failed: %s", e)
         raise HTTPException(status_code=500, detail="Payment parameter generation failed")
 
 

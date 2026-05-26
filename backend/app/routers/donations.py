@@ -175,7 +175,8 @@ async def get_donation(donation_id: int, db: AsyncSession = Depends(get_db), cur
         return ApiResponse(data=DonationOut.model_validate(donation).model_dump())
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
+        logger.error("Failed to get donation %d: %s", donation_id, e)
         raise HTTPException(status_code=404, detail="Donation not found")
 
 @router.post("", response_model=ApiResponse, status_code=201)
@@ -252,7 +253,8 @@ async def get_donation_certificate(donation_id: int, db: AsyncSession = Depends(
         
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
+        logger.error("Failed to get certificate for donation %d: %s", donation_id, e)
         raise HTTPException(status_code=404, detail="Donation not found")
 
 
