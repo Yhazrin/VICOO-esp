@@ -774,3 +774,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: (a) Return `envelope.data` from `uploadTraceMedia`; (b) Extracted `validateForm()` and called it from both create and edit paths; (c) Added `Math.max(1, pageSize)` guard; (d) Added `|| undefined` fallback for coverImageUrl; (e) Added 4 trace_story fields to `_PRODUCT_UPDATABLE`; (f) Added `search` query parameter with `ilike` filter on nickname/email to `list_users` service and router
 - **Verification**: `python -c "ast.parse(...)"` pass for backend; `tsc --noEmit` pass for admin
 - **New issues**: None
+
+## Fix 95 — Shop page sustainabilityScore null guard
+- **Date**: 2026-05-27 (Round 42)
+- **Files**: `frontend/web-react/src/pages/Shop/index.tsx`
+- **Reason**: `sustainabilityScore` is an optional frontend-only computed field. The sustainability filter (`p.sustainabilityScore >= min`) evaluated to `false` for all products without a score, silently hiding them. The sort (`b.sustainabilityScore - a.sustainabilityScore`) produced `NaN`, causing unstable sort results.
+- **Change**: Added `?? 0` fallback in both the filter comparison and the sort comparator.
+- **Verification**: `tsc --noEmit` pass for frontend
+- **New issues**: None
