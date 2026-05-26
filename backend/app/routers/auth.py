@@ -54,7 +54,7 @@ def _set_auth_cookies(response: JSONResponse, access_token: str, refresh_token: 
     return response
 
 
-@router.post("/login")
+@router.post("/login", response_model=ApiResponse)
 async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
     """Login via email+password or WeChat code."""
     auth_service = AuthService(db)
@@ -94,7 +94,7 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
 
-@router.post("/register", status_code=201)
+@router.post("/register", response_model=ApiResponse, status_code=201)
 async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
     """Register a new user account."""
     auth_service = AuthService(db)
@@ -120,7 +120,7 @@ async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Registration failed")
 
 
-@router.post("/refresh")
+@router.post("/refresh", response_model=ApiResponse)
 async def refresh(request: Request, db: AsyncSession = Depends(get_db)):
     """Refresh access token."""
     refresh_token = request.cookies.get("refresh_token")
@@ -161,7 +161,7 @@ async def refresh(request: Request, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
 
 
-@router.post("/forgot-password")
+@router.post("/forgot-password", response_model=ApiResponse)
 async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
     """
     Recover password.
@@ -207,7 +207,7 @@ async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depend
     return ApiResponse(message=_generic_msg, data={"email": body.email, "is_mock": False})
 
 
-@router.post("/logout")
+@router.post("/logout", response_model=ApiResponse)
 async def logout(request: Request):
     """Invalidate the current session."""
     from app.deps import get_redis_client

@@ -1731,3 +1731,35 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Added `ariaLabel` prop to `PageBtn` component. Previous/next buttons get explicit labels. Page number buttons auto-generate `aria-label="Page N"`. Active page gets `aria-current="page"`.
 - **Verification**: All pagination buttons are now accessible to screen readers
 - **New issues**: None
+
+## Fix 212 — Auth endpoints missing response_model declaration
+- **Date**: 2026-05-27 (Round 64)
+- **Files**: `backend/app/routers/auth.py`
+- **Reason**: P2: All 5 auth endpoints (`/login`, `/register`, `/refresh`, `/forgot-password`, `/logout`) lacked `response_model=ApiResponse`, the only router in the project without response validation. Malformed responses would pass silently.
+- **Change**: Added `response_model=ApiResponse` to all 5 endpoint decorators
+- **Verification**: All auth endpoints now have response validation and appear correctly in OpenAPI docs
+- **New issues**: None
+
+## Fix 213 — Register form has no email format validation
+- **Date**: 2026-05-27 (Round 64)
+- **Files**: `frontend/web-react/src/pages/Register/index.tsx`
+- **Reason**: P2: `handleSubmit` validated password length and match but performed zero email format validation. Submissions with invalid emails (e.g., `a@b`) reached the backend, returning generic "Registration failed" error.
+- **Change**: Added empty check and regex validation (`/^[^\s@]+@[^\s@]+\.[^\s@]+$/`) before submit, with inline error messages.
+- **Verification**: Invalid emails are caught client-side with clear error messages
+- **New issues**: None
+
+## Fix 214 — DonateForm submits without validating required fields
+- **Date**: 2026-05-27 (Round 64)
+- **Files**: `frontend/web-react/src/pages/DonateClothing/components/DonateForm.tsx`
+- **Reason**: P2: `handleSubmit` only checked `isAuthenticated`, then immediately called `mutate()`. Description, address, and phone could be empty or invalid, relying entirely on backend rejection.
+- **Change**: Added validation checks: description non-empty, address non-empty, phone matches 11-digit mobile pattern (`/^1\d{10}$/`). Shows toast error on validation failure.
+- **Verification**: Required fields are validated client-side before submission
+- **New issues**: None
+
+## Fix 215 — entrypoint.sh silently swallows DB/user creation errors
+- **Date**: 2026-05-27 (Round 64)
+- **Files**: `deploy/easy/entrypoint.sh`
+- **Reason**: P2: `CREATE DATABASE` and `CREATE USER` commands redirected stderr to `/dev/null` and used `|| echo "skipped"`, masking real failures (wrong password, insufficient privileges). Script continued to `alembic upgrade head` which would fail with confusing migration errors.
+- **Change**: Captured command output, and on failure prints the actual error message to stderr and exits with code 1 instead of continuing.
+- **Verification**: Real DB/user creation failures are now caught immediately with clear error messages
+- **New issues**: None

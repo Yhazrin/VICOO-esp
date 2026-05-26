@@ -94,6 +94,9 @@ export default function DonateForm({ onSubmitted }: DonateFormProps) {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!isAuthenticated) { navigate('/login'); return; }
+    if (!description.trim()) { toast.error(t('donateClothing.descriptionRequired', '请填写衣物描述')); return; }
+    if (!address.trim()) { toast.error(t('donateClothing.addressRequired', '请填写取件地址')); return; }
+    if (!phone.trim() || !/^1\d{10}$/.test(phone.trim())) { toast.error(t('donateClothing.phoneRequired', '请填写正确的11位手机号')); return; }
     createIntakeMutation.mutate();
   };
 

@@ -26,16 +26,21 @@ done
 echo "MySQL is ready!"
 
 # Create database and app user if they don't exist
-mysql -h"${MYSQL_HOST:-mysql}" -u"${MYSQL_ROOT_USER:-root}" -p"${MYSQL_ROOT_PASSWORD}" --skip-ssl -e \
-    "CREATE DATABASE IF NOT EXISTS \`${MYSQL_DATABASE}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" \
-    2>/dev/null || echo "Database creation skipped (may already exist)"
+# Use IF NOT EXISTS so idempotent; capture real errors vs. "already exists"
+db_output=$(mysql -h"${MYSQL_HOST:-mysql}" -u"${MYSQL_ROOT_USER:-root}" -p"${MYSQL_ROOT_PASSWORD}" --skip-ssl -e \
+    "CREATE DATABASE IF NOT EXISTS \`${MYSQL_DATABASE}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" 2>&1) || {
+    echo "ERROR: Database creation failed: $db_output" >&2
+    exit 1
+}
 
 # Create app user with privileges if it doesn't exist
-mysql -h"${MYSQL_HOST:-mysql}" -u"${MYSQL_ROOT_USER:-root}" -p"${MYSQL_ROOT_PASSWORD}" --skip-ssl -e \
+user_output=$(mysql -h"${MYSQL_HOST:-mysql}" -u"${MYSQL_ROOT_USER:-root}" -p"${MYSQL_ROOT_PASSWORD}" --skip-ssl -e \
     "CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}'; \
      GRANT ALL PRIVILEGES ON \`${MYSQL_DATABASE}\`.* TO '${MYSQL_USER}'@'%'; \
-     FLUSH PRIVILEGES;" \
-    2>/dev/null || echo "App user creation skipped (may already exist)"
+     FLUSH PRIVILEGES;" 2>&1) || {
+    echo "ERROR: App user creation failed: $user_output" >&2
+    exit 1
+}
 
 echo "Database ready. Running Alembic migrations..."
 

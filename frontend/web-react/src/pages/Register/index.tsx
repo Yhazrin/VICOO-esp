@@ -22,6 +22,17 @@ export default function Register() {
     e.preventDefault();
     setLocalError('');
 
+    if (!email.trim()) {
+      setLocalError(t('register.errors.emailRequired', 'Please enter your email'));
+      return;
+    }
+
+    // Basic email format validation
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setLocalError(t('register.errors.invalidEmail', 'Please enter a valid email address'));
+      return;
+    }
+
     if (password !== confirmPassword) {
       setLocalError(t('register.errors.passwordMismatch'));
       return;
