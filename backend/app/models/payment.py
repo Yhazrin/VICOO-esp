@@ -12,7 +12,7 @@ class PaymentTransaction(Base):
     method = Column(
         Enum("wechat", "alipay", "stripe", "paypal", name="payment_method"), nullable=False
     )
-    provider_transaction_id = Column(String(200), nullable=True)
+    provider_transaction_id = Column(String(200), nullable=True, unique=True, index=True)
     status = Column(
         Enum("pending", "success", "failed", "refunded", name="payment_status"),
         default="pending",

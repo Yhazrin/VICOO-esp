@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 
 from fastapi import HTTPException
 from sqlalchemy import select, func, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.payment import PaymentTransaction
@@ -107,7 +108,16 @@ class PaymentService(BaseService):
             raw_response=raw_data
         )
         self.db.add(payment_tx)
-        await self.db.flush()
+        try:
+            await self.db.flush()
+        except IntegrityError:
+            # Concurrent webhook already created this transaction
+            await self.db.rollback()
+            existing = (await self.db.execute(
+                select(PaymentTransaction).where(PaymentTransaction.provider_transaction_id == provider_tx_id)
+            )).scalar_one()
+            logger.info(f"Payment {provider_tx_id} already created by concurrent webhook, returning existing.")
+            return existing
         return payment_tx
 
 
