@@ -646,3 +646,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Added `aria-hidden="true"` to the backdrop div
 - **Verification**: `tsc --noEmit` pass for frontend
 - **New issues**: None
+
+## Fix 79 — Backend error handling: unprotected endpoints and role normalization
+- **Date**: 2026-05-26 (Round 26)
+- **Files**: `backend/app/routers/admin.py`, `backend/app/routers/editorial.py`, `backend/app/routers/after_sales.py`, `backend/app/routers/reviews.py`, `backend/app/services/auth/service.py`
+- **Reason**: (a) admin.py approve_donation, get_settings, update_settings had no try/except — DB errors produced unhandled 500s; (b) update_settings accepted arbitrary dict keys with no allowlist; (c) editorial.py create_editorial_article had no try/except or logging; (d) after_sales.py read endpoints had no try/except; (e) reviews.py create_review only caught IntegrityError; (f) auth/service.py used scattered `hasattr(user.role, "value")` guards instead of `str()` normalization
+- **Change**: (a) Wrapped 3 admin endpoints in try/except with logger.exception; (b) Added `_ALLOWED_SETTINGS_KEYS` set to filter update_settings body; (c) Added logging + try/except to editorial create; (d) Added try/except to after_sales read endpoints; (e) Broadened reviews create catch to Exception; (f) Replaced 3 `hasattr` guards with `str(user.role)`
+- **Verification**: `python -c "ast.parse(...)"` pass for all backend files; `tsc --noEmit` pass for admin and frontend
+- **New issues**: None
