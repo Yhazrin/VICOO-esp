@@ -236,7 +236,7 @@ export default function Shop() {
     if (sustainFilter !== 'all') {
       const thresholds: Record<string, number> = { good: 70, excellent: 80, exceptional: 90 };
       const min = thresholds[sustainFilter] ?? 0;
-      list = list.filter((p) => p.sustainabilityScore >= min);
+      list = list.filter((p) => (p.sustainabilityScore ?? 0) >= min);
     }
 
     switch (sortBy) {
@@ -245,7 +245,7 @@ export default function Shop() {
       case 'price-desc':
         return [...list].sort((a, b) => b.price - a.price);
       case 'sustainability':
-        return [...list].sort((a, b) => b.sustainabilityScore - a.sustainabilityScore);
+        return [...list].sort((a, b) => (b.sustainabilityScore ?? 0) - (a.sustainabilityScore ?? 0));
       default:
         return list;
     }
