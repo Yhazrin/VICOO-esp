@@ -782,3 +782,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Added `?? 0` fallback in both the filter comparison and the sort comparator.
 - **Verification**: `tsc --noEmit` pass for frontend
 - **New issues**: None
+
+## Fix 96 — Deployment security: Redis auth, CSP, HSTS, deprecated headers
+- **Date**: 2026-05-27 (Round 43)
+- **Files**: `deploy/easy/docker-compose.yml`, `deploy/easy/.env.example`, `deploy/easy/nginx.conf`, `deploy/easy/nginx-admin.conf`, `backend/app/main.py`, `backend/alembic/env.py`
+- **Reason**: (a) Redis exposed port 6379 without authentication — anyone with network access could read/write cached data or exploit RCE via CONFIG SET; (b) Admin nginx had no Content-Security-Policy header — more XSS-vulnerable than main frontend; (c) HSTS `includeSubDomains` sent unconditionally in all environments — could break HTTP subdomains in dev; (d) Deprecated `X-XSS-Protection` header in both nginx configs; (e) Unused `create_async_engine` import in alembic env.py
+- **Change**: (a) Added `--requirepass` to Redis, bound to `127.0.0.1` only, REDIS_URL includes password; (b) Added CSP header to nginx-admin.conf; (c) HSTS only set when `APP_ENV == "production"`; (d) Removed deprecated X-XSS-Protection from both nginx configs; (e) Removed unused import
+- **Verification**: `python -c "ast.parse(...)"` pass for backend
+- **New issues**: None
