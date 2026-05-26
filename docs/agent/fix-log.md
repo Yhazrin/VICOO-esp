@@ -2356,3 +2356,59 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Added client-side phone validation before order submission, matching DonateForm pattern.
 - **Verification**: Invalid phone numbers now show error toast before order submission
 - **New issues**: None
+
+## Fix 280 — Seven page routes missing from App.tsx (regression)
+- **Date**: 2026-05-27 (Round 80)
+- **Files**: `frontend/web-react/src/App.tsx`
+- **Reason**: P0: Stories, ArtworkDetail, Traceability, SubmitArtwork, and Vote page components existed on disk but had no Route entries in App.tsx. Multiple components (Header, MobileNav, MagazineNav, ScrollNarrative, GlobeSection, PromoCard) linked to these routes, causing all navigation to return the NotFound fallback. This was a regression from a later refactoring of App.tsx.
+- **Change**: Added lazy imports and Route entries for `/stories`, `/stories/:id`, `/traceability`, `/submit-artwork`, `/vote`.
+- **Verification**: All linked pages now render correctly instead of showing NotFound
+- **New issues**: None
+
+## Fix 281 — Campaign service missing audit trail on all write operations
+- **Date**: 2026-05-27 (Round 80)
+- **Files**: `backend/app/services/campaign/service.py`
+- **Reason**: P1: `create_campaign`, `update_campaign`, `delete_campaign` all lacked `@audit_action` decorators. Campaigns manage fundraising data — admin mutations should leave an audit trail. Every other service with write operations has audit decorators.
+- **Change**: Added `@audit_action` decorators to all three methods. Added `audit_action` import.
+- **Verification**: Campaign create/update/delete now generate audit log entries
+- **New issues**: None
+
+## Fix 282 — Admin donation approval missing audit trail
+- **Date**: 2026-05-27 (Round 80)
+- **Files**: `backend/app/services/donation/service.py`
+- **Reason**: P1: `admin_approve_donation` transitions donations from pending to completed and updates campaign totals — a financial operation. While `create_donation` and `complete_donation` have `@audit_action`, the admin manual approval path had none.
+- **Change**: Added `@audit_action` decorator to `admin_approve_donation`.
+- **Verification**: Admin donation approvals now generate audit log entries
+- **New issues**: None
+
+## Fix 283 — Design draft service missing audit trail on moderation actions
+- **Date**: 2026-05-27 (Round 80)
+- **Files**: `backend/app/services/design_draft/service.py`
+- **Reason**: P1: `create_draft`, `approve_draft`, `reject_draft` lacked `@audit_action`. Only `generate_design` and `publish_as_product` had it. Admin moderation actions (approve/reject) left no audit trail.
+- **Change**: Added `@audit_action` decorators to all three methods.
+- **Verification**: Draft create/approve/reject now generate audit log entries
+- **New issues**: None
+
+## Fix 284 — Address create endpoint mass-assignment risk
+- **Date**: 2026-05-27 (Round 80)
+- **Files**: `backend/app/routers/addresses.py`
+- **Reason**: P2: `Address(user_id=..., **body.model_dump())` unpacked the entire Pydantic model into the ORM constructor without field filtering. While currently safe (schema matches model), this is inconsistent with the allowlist pattern used in `update_address` and fixed in Fix 30/75/277.
+- **Change**: Added `_ADDRESS_CREATABLE` field allowlist and filter `body.model_dump()` before constructing the Address object.
+- **Verification**: Only explicitly allowed fields are passed to Address constructor
+- **New issues**: None
+
+## Fix 285 — Editorial articles auto-published without moderation
+- **Date**: 2026-05-27 (Round 80)
+- **Files**: `backend/app/routers/editorial.py`
+- **Reason**: P2: `create_editorial_article` hardcoded `status="published"` and `published_at`, meaning every editor-submitted article went live instantly with no review. On a children's welfare platform, editorial content should go through moderation.
+- **Change**: Changed default status to `"draft"`, removed auto `published_at`. Articles now require explicit approval before publishing.
+- **Verification**: New articles are created in draft status, requiring admin approval
+- **New issues**: None
+
+## Fix 286 — Product supply chain timeline displays in random order
+- **Date**: 2026-05-27 (Round 80)
+- **Files**: `backend/app/routers/products.py`
+- **Reason**: P2: `get_product_supply_chain` queried SupplyChainRecord without `.order_by()`, causing the timeline UI to display stages in arbitrary order on each request. The service layer (`SupplyChainService.get_product_traceability`) correctly uses ORDER BY, but the router bypassed it.
+- **Change**: Added `.order_by(SupplyChainRecord.timestamp.asc())` to the query.
+- **Verification**: Supply chain timeline now displays stages in chronological order
+- **New issues**: None

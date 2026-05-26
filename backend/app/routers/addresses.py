@@ -46,9 +46,14 @@ async def create_address(
 ):
     """Create a new saved address."""
     try:
+        _ADDRESS_CREATABLE = {
+            "label", "recipient_name", "phone", "province", "city",
+            "district", "detail_address", "postal_code", "is_default",
+        }
+        safe_data = {k: v for k, v in body.model_dump().items() if k in _ADDRESS_CREATABLE}
         addr = Address(
             user_id=current_user["id"],
-            **body.model_dump(),
+            **safe_data,
         )
         db.add(addr)
         await db.flush()

@@ -347,7 +347,7 @@ async def list_featured_products(locale: str = Query("zh", pattern="^(zh|en)$"),
 async def get_product_supply_chain(product_id: int, db: AsyncSession = Depends(get_db)):
     """Get supply chain records for a product."""
     try:
-        stmt = select(SupplyChainRecord).where(SupplyChainRecord.product_id == product_id)
+        stmt = select(SupplyChainRecord).where(SupplyChainRecord.product_id == product_id).order_by(SupplyChainRecord.timestamp.asc())
         result = await db.execute(stmt)
         records = result.scalars().all()
         return ApiResponse(data=[supply_chain_record_to_out(r).model_dump() for r in records])

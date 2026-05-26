@@ -5,6 +5,7 @@ from sqlalchemy import select, func, and_, or_
 from app.models.campaign import Campaign
 from app.services.base import BaseService
 from app.utils.cache import invalidate_cache
+from app.core.audit import audit_action
 from app.core.errors import ResourceNotFoundException, ServiceUnavailableException
 
 logger = logging.getLogger("vicoo.campaign_service")
@@ -83,6 +84,7 @@ class CampaignService(BaseService):
 
     _CREATABLE_FIELDS = {"title", "description", "goal_amount", "start_date", "end_date", "status", "cover_image"}
 
+    @audit_action(action="create_campaign", resource_type="campaign")
     async def create_campaign(self, data: Dict[str, Any]) -> Campaign:
         """Create a new campaign and invalidate cache."""
         try:
@@ -100,6 +102,7 @@ class CampaignService(BaseService):
 
     _UPDATABLE_FIELDS = {"title", "description", "goal_amount", "start_date", "end_date", "status", "cover_image"}
 
+    @audit_action(action="update_campaign", resource_type="campaign")
     async def update_campaign(self, campaign_id: int, data: Dict[str, Any]) -> Campaign:
         """Update a campaign and invalidate cache."""
         campaign = await self.get_campaign_by_id(campaign_id)
@@ -112,6 +115,7 @@ class CampaignService(BaseService):
         await invalidate_cache("campaigns:")
         return campaign
 
+    @audit_action(action="delete_campaign", resource_type="campaign")
     async def delete_campaign(self, campaign_id: int):
         """Delete a campaign and invalidate cache."""
         campaign = await self.get_campaign_by_id(campaign_id)

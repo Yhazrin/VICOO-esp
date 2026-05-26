@@ -17,6 +17,7 @@ logger = logging.getLogger("vicoo.design_draft")
 class DesignDraftService(BaseService):
     """Service for managing AI-assisted design drafts from artworks."""
 
+    @audit_action(action="create_design_draft", resource_type="design_draft")
     async def create_draft(self, artwork_id: int, user_id: int, data: dict) -> DesignDraft:
         """Create a new design draft from an artwork."""
         # Verify artwork exists
@@ -59,6 +60,7 @@ class DesignDraftService(BaseService):
         await self.db.flush()
         return draft
 
+    @audit_action(action="approve_design_draft", resource_type="design_draft")
     async def approve_draft(self, draft_id: int, review_note: Optional[str] = None) -> DesignDraft:
         """Approve a draft for publishing."""
         draft = await self._get_draft(draft_id)
@@ -70,6 +72,7 @@ class DesignDraftService(BaseService):
         await self.db.flush()
         return draft
 
+    @audit_action(action="reject_design_draft", resource_type="design_draft")
     async def reject_draft(self, draft_id: int, review_note: Optional[str] = None) -> DesignDraft:
         """Reject a draft."""
         draft = await self._get_draft(draft_id)

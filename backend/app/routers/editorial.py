@@ -52,8 +52,7 @@ async def create_editorial_article(
             author=body.author,
             read_time_minutes=body.read_time_minutes,
             category=body.category,
-            status="published",
-            published_at=datetime.now(timezone.utc),
+            status="draft",
         )
         db.add(article)
         await db.flush()

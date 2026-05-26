@@ -36,6 +36,11 @@ const Campaigns = lazy(() => import('@/pages/Campaigns'));
 const CampaignDetail = lazy(() => import('@/pages/CampaignDetail'));
 const ClothingRecycle = lazy(() => import('@/pages/ClothingRecycle'));
 const DonateClothing = lazy(() => import('@/pages/DonateClothing'));
+const Stories = lazy(() => import('@/pages/Stories'));
+const ArtworkDetail = lazy(() => import('@/pages/ArtworkDetail'));
+const Traceability = lazy(() => import('@/pages/Traceability'));
+const SubmitArtwork = lazy(() => import('@/pages/SubmitArtwork'));
+const Vote = lazy(() => import('@/pages/Vote'));
 
 function normalizeLang(code: string | undefined) {
   if (!code) return '';
@@ -110,6 +115,11 @@ function AnimatedRoutes() {
             <Route path="studio/supply-chain" element={<ErrorBoundary><SupplyChainStudio /></ErrorBoundary>} />
             <Route path="clothing-recycle" element={<ErrorBoundary><ClothingRecycle /></ErrorBoundary>} />
             <Route path="donate-clothing" element={<ErrorBoundary><DonateClothing /></ErrorBoundary>} />
+            <Route path="stories" element={<ErrorBoundary><Stories /></ErrorBoundary>} />
+            <Route path="stories/:id" element={<ErrorBoundary><ArtworkDetail /></ErrorBoundary>} />
+            <Route path="traceability" element={<ErrorBoundary><Traceability /></ErrorBoundary>} />
+            <Route path="submit-artwork" element={<ErrorBoundary><SubmitArtwork /></ErrorBoundary>} />
+            <Route path="vote" element={<ErrorBoundary><Vote /></ErrorBoundary>} />
             <Route path="privacy" element={<ErrorBoundary><Privacy /></ErrorBoundary>} />
             <Route path="terms" element={<ErrorBoundary><Terms /></ErrorBoundary>} />
             <Route path="children-safety" element={<ErrorBoundary><ChildrenSafety /></ErrorBoundary>} />
