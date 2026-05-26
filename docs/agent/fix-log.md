@@ -702,3 +702,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: (a) Replaced old `SettingsUpdate` (`Dict[str, Any]` wrapper) with proper typed Pydantic schema containing 7 optional typed fields with length constraints; (b) Replaced `body: dict[str, Any]` with `body: SettingsUpdate` in admin.py; (c) Removed manual `_ALLOWED_SETTINGS_KEYS` set; (d) Used `body.model_dump(exclude_unset=True)` for iteration; (e) Removed unused `Any` import
 - **Verification**: `python -c "ast.parse(...)"` pass for all backend files
 - **New issues**: None
+
+## Fix 86 — VerifyAccessRequest schema and batch-moderate status validation
+- **Date**: 2026-05-26 (Round 33)
+- **Files**: `backend/app/routers/admin.py`, `backend/app/schemas/common.py`, `backend/app/schemas/__init__.py`
+- **Reason**: (a) `verify_audit_access` accepted `body: dict[str, str]` with manual get/accessCode — no Pydantic validation; had inline `import os` inside function body; (b) `batch_moderate_artworks` and `batch_moderate_children` accepted arbitrary `status: str` without validation — DB uses Enum columns, so invalid values would cause opaque DB errors
+- **Change**: (a) Added `VerifyAccessRequest` Pydantic schema with `access_code` field (aliased as `accessCode`); replaced `body: dict[str, str]` with `body: VerifyAccessRequest`; moved `import os` to top-level; (b) Added `_VALID_ARTWORK_STATUSES` (5 values) and `_VALID_CHILD_STATUSES` (3 values) sets; validate `status` parameter before DB write with 400 error listing allowed values
+- **Verification**: `python -c "ast.parse(...)"` pass for all backend files
+- **New issues**: None
