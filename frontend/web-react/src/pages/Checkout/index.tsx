@@ -486,10 +486,11 @@ export default function Checkout() {
                         />
                       </div>
                       <div>
-                        <label className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
+                        <label htmlFor="checkout-postal" className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
                           {t('checkout.postalCode')}
                         </label>
                         <input
+                          id="checkout-postal"
                           type="text"
                           value={address.postalCode}
                           onChange={(e) => setAddress({ ...address, postalCode: e.target.value })}

@@ -894,3 +894,27 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: (a) Removed dead `raise` line; (b) Added LIKE wildcard escaping (`%` → `\%`, `_` → `\_`) with `escape="\\"` parameter in donation and user service search queries
 - **Verification**: `python -c "import ast; ..."` pass for all 3 files
 - **New issues**: None
+
+## Fix 110 — Checkout postal code missing label-input association
+- **Date**: 2026-05-27 (Round 48)
+- **Files**: `frontend/web-react/src/pages/Checkout/index.tsx`
+- **Reason**: P1: Postal code `<label>` had no `htmlFor` and `<input>` had no `id`, breaking screen reader label-input association. All other form inputs correctly used `htmlFor`/`id` pairs.
+- **Change**: Added `htmlFor="checkout-postal"` to label and `id="checkout-postal"` to input
+- **Verification**: Build passes
+- **New issues**: None
+
+## Fix 111 — Session restore fires on forgot-password and auth callback pages
+- **Date**: 2026-05-27 (Round 48)
+- **Files**: `frontend/web-react/src/hooks/useSessionRestore.ts`
+- **Reason**: P1: `isAuthPage` only checked `/login` and `/register`, missing `/forgot-password` and `/auth/callback`. The session-refresh POST to `/auth/refresh` would fire on those pages, potentially causing redirect loops or unnecessary network requests.
+- **Change**: Added `/forgot-password` and `/auth/callback` to `isAuthPage` check
+- **Verification**: Build passes
+- **New issues**: None
+
+## Fix 112 — CartDrawer inconsistent currency symbol logic
+- **Date**: 2026-05-27 (Round 48)
+- **Files**: `frontend/web-react/src/components/cart/CartDrawer.tsx`
+- **Reason**: P1: Per-item price used `currency === 'CNY' ? '¥' : '$'` but cart total used `currency === 'USD' ? '$' : '¥'`. These are logically opposite checks that would diverge for any third currency.
+- **Change**: Made cart total use the same `=== 'CNY'` check as per-item price
+- **Verification**: Build passes
+- **New issues**: None
