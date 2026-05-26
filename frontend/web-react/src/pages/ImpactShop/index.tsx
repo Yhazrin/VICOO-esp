@@ -94,7 +94,7 @@ export default function ImpactShop() {
     staleTime: 5 * 60 * 1000,
   });
 
-  /** 公益商店：仅展示公益属性商品（与优衣库常规店目录分离） */
+  /** Welfare shop: only displays welfare-attribute products (separated from the UNIQLO regular-store catalog) */
   const impactItems = useMemo(
     () => (data?.items ?? []).filter((p) => p.isImpactProduct),
     [data?.items]

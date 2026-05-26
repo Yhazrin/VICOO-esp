@@ -131,14 +131,14 @@ type GlobeCtx = {
   animationId: number;
   focus: null | { endCam: THREE.Vector3; endTarget: THREE.Vector3 };
   landGroup: THREE.Group | null;
-  /** 用于射线检测「是否在星球上」——内层实心球 */
+  /** Used for raycasting "is on the globe" -- inner solid sphere */
   globeHitMesh: THREE.Mesh;
   initialCameraPosition: THREE.Vector3;
   initialTarget: THREE.Vector3;
   themeMats: ThemeMats;
 };
 
-/** 切换主题时只改材质/雾，不整场景重建（避免再解析 GeoJSON / WebGL 冷启动卡） */
+/** Only updates materials/fog when switching themes, without rebuilding the entire scene (avoids re-parsing GeoJSON / WebGL cold-start lag) */
 function applyTraceabilityTheme(ctx: GlobeCtx, theme: ThemeSnapshot) {
   const { themeMats: tm, scene, landGroup, markers } = ctx;
   tm.wire.color.copy(theme.wire);
@@ -172,7 +172,8 @@ export interface TraceabilityGlobeProps {
   themeKey?: string;
   className?: string;
   /**
-   * 作为全幅背景层：填满父级，不再用固定「卡片高度」约束，由外层控制占位与叠层。
+   * As a full-width background layer: fills the parent; no longer constrained by a
+   * fixed "card height"; positioning and stacking are controlled by the outer layer.
    */
   ambientBackdrop?: boolean;
 }

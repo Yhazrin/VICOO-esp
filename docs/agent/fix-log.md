@@ -2124,3 +2124,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Translated all Chinese comments to English
 - **Verification**: Translated files no longer contain Chinese comments (excluding intentional i18n data)
 - **New issues**: None
+
+## Fix 251 — 前端中文注释翻译 (layout, scroll, editorial, pages)
+- **Date**: 2026-05-27 (Round 74)
+- **Files**: `components/layout/Header.tsx`, `Layout.tsx`, `ImpactWelfareGlobeLayer.tsx`, `components/scroll/SupplyChainGlobe.tsx`, `GlobeSection.tsx`, `components/editorial/TraceabilityGlobe.tsx`, `pages/Shop/index.tsx`, `ImpactShop/index.tsx`, `Home/index.tsx`, `ProductDetail.tsx`
+- **Reason**: P3: ~30 Chinese code comments in layout, scroll, editorial, and page components.
+- **Change**: Translated all Chinese comments to English
+- **Verification**: All translated files now use English comments only
+- **New issues**: None

@@ -28,8 +28,8 @@ export default function GlobeSection() {
   const prefersReducedMotion = useReducedMotion();
   const impactMode = useUIStore((s) => s.impactMode);
   const isEnglish = i18n.resolvedLanguage?.startsWith('en');
-  /** 公益首页与文字先 paint，再 idle 时拉 chunk + 起 WebGL，避免首帧与 Planar3D 抢主线程 */
-  /** 公益壳下大球由 Layout 的 ImpactWelfareGlobeLayer 常驻，此处不挂第二套 WebGL */
+  /** Paint the welfare homepage and text first; load the chunk + init WebGL on idle to avoid the first frame competing with Planar3D for the main thread */
+  /** Under the welfare shell the large globe is persistent via Layout's ImpactWelfareGlobeLayer; do not mount a second WebGL instance here */
   const [mountGlobe, setMountGlobe] = useState(!impactMode);
 
   const routes = useMemo(() => SUPPLY_CHAIN_ROUTES, []);
@@ -49,7 +49,7 @@ export default function GlobeSection() {
     <section
       className={`relative z-0 w-full min-h-[100dvh] overflow-visible ${
         impactMode
-          ? // 大球在 Layout 层、本 section 在 z-10 上方；这里若用 backdrop-blur 会采样「背后」的 canvas，整颗球会发糊
+          ? // The globe is in the Layout layer and this section is above it at z-10; using backdrop-blur here would sample the canvas "behind", making the entire globe appear blurry
             '-mt-[4.25rem] md:-mt-24 border-b border-white/20 bg-white/22 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.45)]'
           : 'bg-aged-stock'
       }`}

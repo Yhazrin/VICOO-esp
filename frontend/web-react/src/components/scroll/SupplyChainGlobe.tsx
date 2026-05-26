@@ -39,9 +39,9 @@ interface GlobeSceneState {
 
 interface SupplyChainGlobeProps {
   routes: SupplyChainRoute[];
-  /** 为 true 时停掉 rAF、禁用手势，但保留 WebGL 上下文（如公益切 tab 时） */
+  /** When true, stops rAF and disables gestures but keeps the WebGL context (e.g. when switching away from welfare tab) */
   suspended?: boolean;
-  /** 为 true 时不按滚动衰减透明度（Layout 层常驻大球用） */
+  /** When true, does not fade opacity on scroll (used for the persistent globe in the Layout layer) */
   lockOpacity?: boolean;
 }
 
@@ -81,7 +81,7 @@ export default function SupplyChainGlobe({
       0.1,
       100,
     );
-    // 略后退，默认在画面里小一点；可与 min/maxDistance 同向微调
+    // Pull back slightly so the default appears smaller; adjust in the same direction as min/maxDistance
     camera.position.set(0, 0.35, 5.15);
 
     /* ── Renderer ── */
@@ -201,7 +201,7 @@ export default function SupplyChainGlobe({
       landGroup: null,
     };
 
-    /* ── Scroll-driven opacity（Layout 常驻球用 lock 关闭，避免子页滚动把球淡出） */
+    /* ── Scroll-driven opacity (lock off for the Layout persistent globe, to prevent child-page scrolling from fading it out) */
     const applyScrollOpacity = () => {
       if (!container || !sceneRef.current) return;
       if (lock) {
@@ -220,7 +220,7 @@ export default function SupplyChainGlobe({
       window.addEventListener('scroll', applyScrollOpacity, { passive: true });
     }
 
-    /* ── Animation loop（suspended 时不再 schedule，恢复由下方 useEffect 触达） */
+    /* ── Animation loop (when suspended, no longer schedules; resume is triggered by the useEffect below) */
     let time = 0;
 
     const tick = () => {

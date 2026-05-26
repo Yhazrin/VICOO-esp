@@ -115,13 +115,13 @@ export default function Shop() {
     staleTime: 5 * 60 * 1000,
   });
 
-  /** 优衣库常规店：仅非公益商品（与公益商店目录完全分离，双保险） */
+  /** UNIQLO regular store: only non-welfare products (completely separated from the welfare shop catalog, double safeguard) */
   const companyItems = useMemo(
     () => (data?.items ?? []).filter((p) => !p.isImpactProduct),
     [data?.items]
   );
 
-  /** 颜色筛选项与接口返回的 SKU 一致（避免写死 6 色与 Olive/Mist 等真实颜色不一致） */
+  /** Color filter options match the SKUs returned by the API (avoids hardcoding 6 colors that don't match real colors like Olive/Mist) */
   const filterColorOptions = useMemo(() => {
     const map = new Map<string, string>();
     for (const p of companyItems) {
