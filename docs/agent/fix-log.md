@@ -1214,3 +1214,51 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Added `await ordersApi.cancel(orderId)` in the timeout branch before clearing state (best-effort, wrapped in try/catch)
 - **Verification**: Timeout now attempts server-side order cleanup
 - **New issues**: None
+
+## Fix 150 — Hardcoded static password recovery hint shared across all users
+- **Date**: 2026-05-27 (Round 53)
+- **Files**: `backend/app/routers/auth.py`
+- **Reason**: P0: `recovery_hint = "VICOO-RECOVERY-ACCESS-2026"` was a single static string emailed to every user. If any one user leaks it, every account becomes recoverable by anyone.
+- **Change**: Replaced with per-request random hint `f"VICOO-{secrets.token_hex(8).upper()}"` — each recovery email gets a unique token
+- **Verification**: Each request generates a different hint
+- **New issues**: Full fix requires per-user token with DB storage and expiry (migration needed)
+
+## Fix 151 — Email enumeration via register error message
+- **Date**: 2026-05-27 (Round 53)
+- **Files**: `backend/app/services/auth/service.py`
+- **Reason**: P1: Distinct "Email already exists" error message lets attackers enumerate valid email addresses. Forgot-password endpoint already uses generic messages.
+- **Change**: Changed to generic "Registration failed." for all 400 cases
+- **Verification**: Error message no longer reveals whether email exists
+- **New issues**: None
+
+## Fix 152 — User existence leak before authorization check
+- **Date**: 2026-05-27 (Round 53)
+- **Files**: `backend/app/routers/users.py`
+- **Reason**: P1: `get_user` endpoint fetched user from DB first (404 if not found), then checked permissions (403 if denied). Any authenticated user could probe arbitrary IDs to distinguish existing vs non-existing users.
+- **Change**: Moved authorization check before DB lookup — non-admins get 403 regardless of user existence
+- **Verification**: Non-admin users can no longer enumerate user IDs
+- **New issues**: None
+
+## Fix 153 — Backend CSP header missing img-src directive
+- **Date**: 2026-05-27 (Round 53)
+- **Files**: `backend/app/main.py`
+- **Reason**: P2: CSP had `default-src 'self'` but no `img-src` directive. Frontend uses external image hosts (picsum.photos, CDNs) extensively. Browsers following strict CSP would block these images.
+- **Change**: Added `img-src 'self' data: https:` to CSP header
+- **Verification**: External images now allowed
+- **New issues**: None
+
+## Fix 154 — Traceability page re-fetches all records on language change
+- **Date**: 2026-05-27 (Round 53)
+- **Files**: `frontend/web-react/src/pages/Traceability/index.tsx`
+- **Reason**: P2: `useEffect` dependency array included `t` (i18n translation function), which is a new reference on every language change. This triggered a full API re-fetch of all supply chain records even though the data is language-independent.
+- **Change**: Removed `t` from dependency array — translation happens at render time via `stageLabelFromBackend`
+- **Verification**: Language change no longer triggers API call
+- **New issues**: None
+
+## Fix 155 — ForgotPassword page renders undefined password_hint
+- **Date**: 2026-05-27 (Round 53)
+- **Files**: `backend/app/routers/auth.py`
+- **Reason**: P2: Frontend rendered `recoveryData.password_hint` in demo mode, but backend mock response returned `{"is_mock": true}` without `password_hint` field, displaying `undefined`.
+- **Change**: Added `password_hint: "See SEED_*_PASSWORD in .env"` to mock response
+- **Verification**: Demo mode now displays a useful hint instead of undefined
+- **New issues**: None

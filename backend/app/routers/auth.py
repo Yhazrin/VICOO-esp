@@ -190,11 +190,13 @@ async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depend
     if is_mock:
         return ApiResponse(
             message="Recovery email sent (Demo Mode — check .env for seed passwords)",
-            data={"is_mock": True}
+            data={"is_mock": True, "password_hint": "See SEED_*_PASSWORD in .env"}
         )
 
     # 2. Logic for Real accounts
-    recovery_hint = "VICOO-RECOVERY-ACCESS-2026" 
+    # Generate per-request random hint — never use a static shared secret
+    import secrets
+    recovery_hint = f"VICOO-{secrets.token_hex(8).upper()}"
     try:
         await send_password_recovery_email(
             to_email=user.email,

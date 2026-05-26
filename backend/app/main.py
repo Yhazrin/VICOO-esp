@@ -155,7 +155,7 @@ async def rate_limit_middleware(request: Request, call_next):
 @app.middleware("http")
 async def security_headers_middleware(request: Request, call_next):
     response = await call_next(request)
-    response.headers["Content-Security-Policy"] = "default-src 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+    response.headers["Content-Security-Policy"] = "default-src 'self'; img-src 'self' data: https:; frame-ancestors 'none'; upgrade-insecure-requests"
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     if settings.APP_ENV == "production":

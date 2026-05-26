@@ -67,7 +67,8 @@ class AuthService(BaseService):
         """
         existing = (await self.db.execute(select(User).where(User.email == email))).scalar_one_or_none()
         if existing:
-            raise HTTPException(status_code=400, detail="Registration failed. Email already exists.")
+            # Generic message to prevent email enumeration
+            raise HTTPException(status_code=400, detail="Registration failed.")
 
         user = User(
             email=email,
