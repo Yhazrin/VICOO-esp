@@ -718,3 +718,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: (a) Replaced `{"error": str(e)}` with `{"error": "Operation failed"}` in audit log details; (b) Added `toast.error(t('review.error', 'Failed to submit review'))` to reviewMutation onError; added `import toast` to ProductDetail.tsx
 - **Verification**: Backend syntax OK; `tsc --noEmit` pass for frontend
 - **New issues**: None
+
+## Fix 88 — Alembic env.py missing model imports for autogenerate
+- **Date**: 2026-05-27 (Round 35)
+- **Files**: `backend/alembic/env.py`
+- **Reason**: `alembic/env.py` was missing 6 model imports (SiteSettings, ContactMessage, EditorialArticle, Address, ImpactFundEntry, DesignDraft) that exist in `models/__init__.py` — alembic autogenerate would not detect schema changes for these models
+- **Change**: Added 6 missing `from app.models.X import Y` imports to env.py
+- **Verification**: `python -c "ast.parse(...)"` pass
+- **New issues**: None
