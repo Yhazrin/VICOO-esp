@@ -1,6 +1,14 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
+// Inject shared DataTable styles once at module load
+if (typeof document !== 'undefined' && !document.getElementById('datatable-styles')) {
+  const style = document.createElement('style');
+  style.id = 'datatable-styles';
+  style.textContent = `@keyframes spin { to { transform: rotate(360deg); } } .table-row-hover:hover td { background-color: var(--color-surface); }`;
+  document.head.appendChild(style);
+}
+
 interface Column<T> {
   key: string;
   title: string;
@@ -149,12 +157,6 @@ export default function DataTable<T extends Record<string, any>>({
           </tbody>
         </table>
       </div>
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .table-row-hover:hover td {
-          background-color: var(--color-surface);
-        }
-      `}</style>
     </div>
   );
 }

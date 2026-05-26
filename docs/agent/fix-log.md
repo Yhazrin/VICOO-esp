@@ -1929,3 +1929,13 @@ _Round 2: No new fixes needed. All core flows verified via API._
   - `PaymentQRModal.tsx`: Stabilized `onFailure` callback using ref pattern (`onFailureRef.current`) so the Escape key useEffect doesn't re-run when parent passes new function references, preventing body scroll lock toggling and focus reset on every parent re-render
 - **Verification**: No rAF leak on unmount; DataTable rows with id=0 render correctly; admin Modal closes on Escape and locks background scroll; PaymentQRModal Escape handler is stable across re-renders
 - **New issues**: None
+
+## Fix 231 — Admin DataTable style dedup and SettingsPage deep clone
+- **Date**: 2026-05-27 (Round 69)
+- **Files**: `admin/src/components/ui/DataTable.tsx`, `admin/src/pages/SettingsPage.tsx`
+- **Reason**: P3: Inline `<style>` tag duplicated in DOM on every DataTable render; fragile JSON deep clone
+- **Change**:
+  - `DataTable.tsx`: Moved styles from inline `<style>` JSX to a module-level `document.head.appendChild` injection with dedup guard (`id='datatable-styles'`), so styles are injected once regardless of how many DataTable instances render
+  - `SettingsPage.tsx`: Replaced `JSON.parse(JSON.stringify(data))` with `structuredClone(data)` for safer deep cloning that handles more edge cases
+- **Verification**: No duplicate style tags in DOM; settings form still initializes correctly
+- **New issues**: None

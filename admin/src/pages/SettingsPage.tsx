@@ -55,7 +55,7 @@ export default function SettingsPage() {
   // 当数据加载完成后初始化表单
   useEffect(() => {
     if (data) {
-      setForm(JSON.parse(JSON.stringify(data)));
+      setForm(structuredClone(data));
     }
   }, [data]);
 
