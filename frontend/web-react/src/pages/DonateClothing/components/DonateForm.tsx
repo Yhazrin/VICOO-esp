@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import SectionContainer from '@/components/layout/SectionContainer';
 import { VintageInput } from '@/components/editorial/VintageInput';
 import { VintageSelect } from '@/components/editorial/VintageSelect';
@@ -84,6 +85,9 @@ export default function DonateForm({ onSubmitted }: DonateFormProps) {
       setDescription(''); setClothingType('tshirt'); setQuantity(1); setCondition('like-new');
       setNotes(''); setPhotos([]); setAddress(''); setPhone('');
       setTimeout(() => { if (mountedRef.current) onSubmitted(); }, 300);
+    },
+    onError: () => {
+      toast.error(t('donateClothing.error', '提交失败，请重试'));
     },
   });
 

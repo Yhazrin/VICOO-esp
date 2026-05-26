@@ -84,7 +84,7 @@ export default function ProductDetail() {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewTitle, setReviewTitle] = useState('');
   const [reviewBody, setReviewBody] = useState('');
-  const { data: product, isLoading: loading } = useQuery({
+  const { data: product, isLoading: loading, isError: productError } = useQuery({
     queryKey: ['product', id, i18n.language],
     queryFn: () => productsApi.getById(id!, i18n.language),
     enabled: !!id,
@@ -296,6 +296,18 @@ export default function ProductDetail() {
         <PaperTextureBackground variant="paper" className="py-16 md:py-24">
           <SectionContainer>
             <p className="font-body text-sepia-mid">{t('shop.detail.loading')}</p>
+          </SectionContainer>
+        </PaperTextureBackground>
+      </PageWrapper>
+    );
+  }
+
+  if (productError) {
+    return (
+      <PageWrapper>
+        <PaperTextureBackground variant="paper" className="py-16 md:py-24">
+          <SectionContainer>
+            <p className="font-body text-red-600">{t('shop.detail.error', 'Failed to load product')}</p>
           </SectionContainer>
         </PaperTextureBackground>
       </PageWrapper>

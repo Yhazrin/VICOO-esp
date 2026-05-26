@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo, useEffect, type ChangeEvent } from 'rea
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useMutation } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import { motion, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
@@ -123,6 +124,10 @@ export default function ArtworkSubmitPage() {
       });
     },
     onSuccess: () => setIsSubmitted(true),
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : t('artworkSubmit.error', '提交失败，请重试');
+      toast.error(msg);
+    },
   });
 
   const handleArtworkFile = useCallback(

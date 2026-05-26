@@ -2,6 +2,7 @@ import { useState, type ChangeEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useMutation } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
@@ -33,6 +34,10 @@ export default function SubmitArtwork() {
       });
     },
     onSuccess: () => navigate('/profile'),
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : t('submitArtwork.error', '提交失败，请重试');
+      toast.error(msg);
+    },
   });
 
   if (!isAuthenticated) {
