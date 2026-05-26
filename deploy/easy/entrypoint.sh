@@ -74,6 +74,15 @@ async def maybe_seed():
 asyncio.run(maybe_seed())
 PY
 
+# Reset seed user credentials on every deployment (in case testers changed passwords)
+echo "Resetting seed user credentials..."
+cd /app/backend
+python - <<'PY'
+import asyncio
+from app.seed import reset_seed_users
+asyncio.run(reset_seed_users())
+PY
+
 echo "Starting VICOO API..."
 
 # Docker 内默认关 reload（父进程 watchfiles + 长事务 seed 易放大启动问题）；本地热更新可设 UVICORN_RELOAD=1

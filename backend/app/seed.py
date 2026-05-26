@@ -52,6 +52,28 @@ from app.data.impact_origin_story_seed import (
 )
 
 
+async def reset_seed_users():
+    """Reset seed users (admin, editor) to default credentials. Used on deployment."""
+    async with AsyncSessionLocal() as session:
+        print("Resetting seed user credentials...")
+        users_to_reset = [
+            ("admin@vicoo.org", settings.SEED_ADMIN_PASSWORD),
+            ("editor@vicoo.org", settings.SEED_EDITOR_PASSWORD),
+        ]
+        for email, password in users_to_reset:
+            result = await session.execute(
+                select(User).where(User.email == email)
+            )
+            user = result.scalar_one_or_none()
+            if user:
+                user.password_hash = hash_password(password)
+                print(f"  Reset password for {email}")
+            else:
+                print(f"  User {email} not found, skipping")
+        await session.commit()
+        print("Seed user credentials reset complete!")
+
+
 async def seed():
     """Insert sample data (tables must already exist — created by lifespan)."""
     print("Creating tables...")
