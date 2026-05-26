@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
-from typing import Optional, Any
+from typing import Optional
 import logging
 
 from app.config import settings
@@ -14,7 +14,7 @@ from app.models.donation import Donation
 from app.models.product import Product
 from app.models.order import Order
 from app.models.audit import AuditLog
-from app.schemas import ApiResponse, AuditLogOut, DashboardMetrics, PaginatedResponse, DonationOut
+from app.schemas import ApiResponse, AuditLogOut, DashboardMetrics, PaginatedResponse, DonationOut, SettingsUpdate
 from app.deps import require_role
 from app.models.settings import SiteSettings
 
@@ -177,24 +177,15 @@ async def get_settings(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-_ALLOWED_SETTINGS_KEYS = {
-    "site_name", "site_tagline", "contact_email",
-    "donation_enabled", "shop_enabled", "registration_enabled", "maintenance_mode",
-    "payment_methods",
-}
-
-
 @router.put("/settings", response_model=ApiResponse)
 async def update_settings(
-    body: dict[str, Any],
+    body: SettingsUpdate,
     db: AsyncSession = Depends(get_db),
     _current_user: dict = Depends(require_role("admin")),
 ):
     """Update admin settings."""
     try:
-        for key, value in body.items():
-            if key not in _ALLOWED_SETTINGS_KEYS:
-                continue
+        for key, value in body.model_dump(exclude_unset=True).items():
             result = await db.execute(select(SiteSettings).where(SiteSettings.key == key))
             row = result.scalar_one_or_none()
             if row:

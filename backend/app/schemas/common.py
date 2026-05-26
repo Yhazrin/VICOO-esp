@@ -90,4 +90,11 @@ class DashboardMetrics(BaseModel):
 
 
 class SettingsUpdate(BaseModel):
-    settings: Dict[str, Any] = Field(..., description="Key-value settings to update")
+    site_name: Optional[str] = Field(None, max_length=200)
+    site_tagline: Optional[str] = Field(None, max_length=500)
+    contact_email: Optional[str] = Field(None, max_length=200)
+    donation_enabled: Optional[bool] = None
+    shop_enabled: Optional[bool] = None
+    registration_enabled: Optional[bool] = None
+    maintenance_mode: Optional[bool] = None
+    payment_methods: Optional[Dict[str, Any]] = None
