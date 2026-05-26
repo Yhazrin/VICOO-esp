@@ -39,10 +39,10 @@ class SupplyChainRecordCreate(BaseModel):
     location: Optional[str] = Field(None, max_length=300, description="Geographic location of this stage")
     certified: bool = Field(False, description="Whether this stage has certification")
     cert_image_url: Optional[str] = Field(None, max_length=500, description="Certification document image URL")
-    carbon_kg: Optional[Decimal] = None
+    carbon_kg: Optional[Decimal] = Field(None, ge=0, description="Carbon emissions in kg (non-negative)")
     carbon_note: Optional[str] = Field(None, max_length=500)
-    latitude: Optional[float] = Field(None, description="WGS84 latitude in degrees")
-    longitude: Optional[float] = Field(None, description="WGS84 longitude in degrees")
+    latitude: Optional[float] = Field(None, ge=-90, le=90, description="WGS84 latitude in degrees")
+    longitude: Optional[float] = Field(None, ge=-180, le=180, description="WGS84 longitude in degrees")
     timestamp: Optional[datetime] = Field(None, description="Actual date/time of this stage")
     gallery: Optional[List[TraceMediaItem]] = Field(
         None,

@@ -13,7 +13,7 @@ class ProductCreate(BaseModel):
     description: Optional[str] = Field(None, max_length=10000, description="Product description")
     description_en: Optional[str] = Field(None, max_length=10000, description="English description")
     price: Decimal = Field(..., gt=0, description="Price in CNY")
-    currency: str = Field("CNY", description="Currency code")
+    currency: str = Field("CNY", pattern="^(CNY|USD)$", description="Currency code")
     image_url: Optional[str] = Field(None, max_length=500, description="Product image URL")
     category: Optional[str] = Field(None, max_length=100, description="Product category. Valid values: apparel, accessories, stationery, prints, lifestyle, footwear, home, gift_box")
     stock: int = Field(0, ge=0, description="Available stock quantity")
@@ -54,7 +54,7 @@ class ProductUpdate(BaseModel):
 class DesignPublish(BaseModel):
     """Schema for publishing a design draft as a product."""
     price: Decimal = Field(..., gt=0, description="Price in CNY")
-    currency: str = Field("CNY", description="Currency code")
+    currency: str = Field("CNY", pattern="^(CNY|USD)$", description="Currency code")
     name: Optional[str] = Field(None, max_length=300)
     description: Optional[str] = Field(None, max_length=10000)
     category: Optional[str] = Field(None, max_length=100)

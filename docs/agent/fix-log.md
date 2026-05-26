@@ -1939,3 +1939,21 @@ _Round 2: No new fixes needed. All core flows verified via API._
   - `SettingsPage.tsx`: Replaced `JSON.parse(JSON.stringify(data))` with `structuredClone(data)` for safer deep cloning that handles more edge cases
 - **Verification**: No duplicate style tags in DOM; settings form still initializes correctly
 - **New issues**: None
+
+## Fix 232 — Schema validation hardening and model consistency
+- **Date**: 2026-05-27 (Round 70)
+- **Files**: `services/campaign/service.py`, `models/user.py`, `models/campaign.py`, `schemas/campaign.py`, `schemas/payment.py`, `schemas/payment_common.py`, `schemas/supply_chain.py`, `schemas/product.py`, `schemas/user.py`
+- **Reason**: P2: Multiple schema validation gaps and model/schema mismatches found in deep scan
+- **Change**:
+  - `CampaignService`: Fixed `_CREATABLE_FIELDS` and `_UPDATABLE_FIELDS` to match actual model columns (`cover_image` instead of `image_url`, removed non-existent `location`/`organizer`)
+  - `User` model: Changed default nickname from Chinese `"用户"` to English `"User"`
+  - `Campaign` model: Fixed `current_amount` default from `0` (int) to `Decimal("0.00")` for DECIMAL(12,2) consistency
+  - `CampaignCreate` schema: Added `le=9999999999.99` upper bound to `goal_amount` to prevent DECIMAL(12,2) overflow
+  - `WeChatPaymentParams` schema: Fixed `signType` default from `"MD5"` to `"SHA256"` to match actual signing algorithm
+  - `PaymentCallback` schema: Added `max_length=200` to `transaction_id` to match DB column
+  - `SupplyChainRecordCreate` schema: Added `ge=0` to `carbon_kg`, `ge=-90/le=90` to latitude, `ge=-180/le=180` to longitude
+  - `ProductCreate/ProductUpdate` schemas: Added `pattern="^(CNY|USD)$"` to `currency` to match Donation schema
+  - `UserCreate` schema: Added `max_length=20, pattern` to `phone` to match `UserUpdate`
+  - `ChildParticipantCreate` schema: Added `max_length=20, pattern` to `guardian_phone`, changed `guardian_email` to `EmailStr`
+- **Verification**: All schemas now enforce consistent validation; CampaignService field lists match model columns
+- **New issues**: None

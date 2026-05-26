@@ -13,7 +13,7 @@ class CampaignCreate(BaseModel):
     cover_image: Optional[str] = Field(None, max_length=500, description="Cover image URL")
     start_date: datetime = Field(..., description="Campaign start date")
     end_date: datetime = Field(..., description="Campaign end date")
-    goal_amount: Decimal = Field(..., gt=0, description="Fundraising goal in CNY")
+    goal_amount: Decimal = Field(..., gt=0, le=Decimal("9999999999.99"), description="Fundraising goal in CNY")
 
 
 class CampaignUpdate(BaseModel):

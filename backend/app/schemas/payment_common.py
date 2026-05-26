@@ -12,7 +12,7 @@ class WeChatPaymentParams(BaseModel):
     timeStamp: str
     nonceStr: str
     package: str
-    signType: str = "MD5"
+    signType: str = "SHA256"
     paySign: str
     transactionId: Optional[str] = None  # WeChat prepay_id for verification
     order_no: Optional[str] = None

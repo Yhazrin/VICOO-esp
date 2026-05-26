@@ -22,7 +22,7 @@ class PaymentCreate(BaseModel):
 
 class PaymentCallback(BaseModel):
     """Schema for payment provider callback data."""
-    transaction_id: str = Field(..., description="Provider transaction ID")
+    transaction_id: str = Field(..., max_length=200, description="Provider transaction ID")
     payment_id: Optional[int] = Field(None, description="Our payment record ID")
     status: str = Field(..., pattern="^(success|failed|refunded)$", description="Callback status")
     raw_data: Optional[Dict[str, Any]] = Field(None, description="Raw callback payload")

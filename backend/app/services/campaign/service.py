@@ -80,7 +80,7 @@ class CampaignService(BaseService):
             raise ResourceNotFoundException(message=f"Campaign {campaign_id} not found")
         return campaign
 
-    _CREATABLE_FIELDS = {"title", "description", "goal_amount", "start_date", "end_date", "status", "image_url", "location", "organizer"}
+    _CREATABLE_FIELDS = {"title", "description", "goal_amount", "start_date", "end_date", "status", "cover_image"}
 
     async def create_campaign(self, data: Dict[str, Any]) -> Campaign:
         """Create a new campaign and invalidate cache."""
@@ -97,7 +97,7 @@ class CampaignService(BaseService):
             logger.error(f"Error creating campaign: {e}")
             raise ServiceUnavailableException()
 
-    _UPDATABLE_FIELDS = {"title", "description", "goal_amount", "start_date", "end_date", "status", "image_url"}
+    _UPDATABLE_FIELDS = {"title", "description", "goal_amount", "start_date", "end_date", "status", "cover_image"}
 
     async def update_campaign(self, campaign_id: int, data: Dict[str, Any]) -> Campaign:
         """Update a campaign and invalidate cache."""

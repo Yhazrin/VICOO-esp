@@ -10,7 +10,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     email = Column(String(255), unique=True, nullable=True, index=True)
     password_hash = Column(String(255), nullable=True)  # Nullable for OAuth users
-    nickname = Column(String(100), nullable=False, default="用户")
+    nickname = Column(String(100), nullable=False, default="User")
     avatar = Column(String(500), nullable=True)
     role = Column(
         Enum("admin", "editor", "user", "guardian", "compliance", name="user_role"),
