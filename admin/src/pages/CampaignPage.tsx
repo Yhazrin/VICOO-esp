@@ -94,17 +94,23 @@ export default function CampaignPage() {
     },
   ];
 
-  const handleSubmit = (e: React.FormEvent | React.MouseEvent) => {
-    e.preventDefault();
+  const validateForm = (): boolean => {
     if (!form.title || !form.startDate || !form.endDate) {
       toast.error(t('campaign.errorRequiredFields'));
-      return;
+      return false;
     }
     const goalAmount = Number(form.targetAmount);
     if (!form.targetAmount || isNaN(goalAmount) || goalAmount <= 0) {
       toast.error(t('campaign.errorGoalAmount'));
-      return;
+      return false;
     }
+    return true;
+  };
+
+  const handleSubmit = (e: React.FormEvent | React.MouseEvent) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+    const goalAmount = Number(form.targetAmount);
     createMutation.mutate({
       title: form.title,
       description: form.description,
@@ -176,8 +182,9 @@ export default function CampaignPage() {
               loading={createMutation.isPending || updateMutation.isPending}
               onClick={(e) => {
                 e.preventDefault();
+                if (!validateForm()) return;
                 if (editCampaign) {
-                  updateMutation.mutate({ id: editCampaign.id, data: { title: form.title, description: form.description, startDate: form.startDate, endDate: form.endDate, targetAmount: Number(form.targetAmount) || 0 } });
+                  updateMutation.mutate({ id: editCampaign.id, data: { title: form.title, description: form.description, startDate: form.startDate, endDate: form.endDate, targetAmount: Number(form.targetAmount) } });
                 } else {
                   handleSubmit(e);
                 }

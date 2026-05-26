@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Optional
 import logging
 
 from app.database import get_db
@@ -28,13 +29,14 @@ from app.services.user.service import UserService
 async def list_users(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
+    search: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
     _current_user: dict = Depends(require_role("admin")),
 ):
     """List all users (admin only). (Refactored)"""
     user_service = UserService(db)
     try:
-        users, total = await user_service.list_users(page, page_size)
+        users, total = await user_service.list_users(page, page_size, search=search)
         return PaginatedResponse(
             data=[UserOut.model_validate(u).model_dump() for u in users],
             total=total,

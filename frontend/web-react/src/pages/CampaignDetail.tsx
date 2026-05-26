@@ -156,7 +156,7 @@ export default function CampaignDetail() {
       <section className="relative h-[50dvh] md:h-[60dvh]">
         <ImageSkeleton className="absolute inset-0" aspectRatio="aspect-video" />
         <img
-          src={campaign.coverImageUrl}
+          src={campaign.coverImageUrl || undefined}
           alt={copy.title}
           className="w-full h-full object-cover"
           style={{ filter: 'sepia(0.2) contrast(1.05) brightness(0.97)', opacity: 0, transition: 'opacity 0.3s' }}

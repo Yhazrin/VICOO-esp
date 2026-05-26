@@ -94,7 +94,7 @@ api.interceptors.response.use(
 // ---------------------------------------------------------------------------
 function adaptPaginated<T>(raw: any): PaginatedResponse<T> {
   const total: number = raw.total ?? 0;
-  const pageSize: number = raw.pageSize ?? raw.page_size ?? 20;
+  const pageSize: number = Math.max(1, raw.pageSize ?? raw.page_size ?? 20);
   return {
     data: raw.data ?? [],
     total,
@@ -616,10 +616,10 @@ export async function deleteSupplyChainRecord(recordId: string): Promise<void> {
 export async function uploadTraceMedia(file: File): Promise<{ url: string; mime: string }> {
   const form = new FormData();
   form.append('file', file);
-  const { data } = await api.post('/supply-chain/media/upload', form, {
+  const { data: envelope } = await api.post('/supply-chain/media/upload', form, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
-  return data;
+  return envelope.data;
 }
 
 export async function fetchOriginCountries(): Promise<OriginCountry[]> {

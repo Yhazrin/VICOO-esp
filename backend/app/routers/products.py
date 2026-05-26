@@ -456,6 +456,7 @@ async def update_product(product_id: int, body: ProductUpdate, db: AsyncSession 
             "name", "name_en", "description", "description_en", "price", "image_url",
             "category", "stock", "status", "is_impact_product", "campaign_id",
             "donation_percentage", "artwork_id", "origin_country_id", "origin_region_id",
+            "trace_story_title", "trace_story_content", "trace_story_title_en", "trace_story_content_en",
         }
         for k, v in payload.items():
             if k in _PRODUCT_UPDATABLE:
