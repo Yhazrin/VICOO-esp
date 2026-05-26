@@ -1,58 +1,42 @@
 /**
- * 系统设置页面 (Settings Page)
+ * System Settings Page
  *
- * 功能说明：
- * - 展示和编辑系统全局配置参数
- * - 支持三个配置标签页：全局参数、支付网关、安全设置
- * - 提供各支付渠道的集成配置（微信、支付宝、Stripe、PayPal）
- * - 安全配置可编辑（令牌有效期、频率限制等）
- * - 实时保存配置更新
+ * Features:
+ * - Display and edit global system configuration parameters
+ * - Three config tabs: global parameters, payment gateway, security settings
+ * - Payment channel integration config (WeChat, Alipay, Stripe, PayPal)
+ * - Editable security settings (token expiry, rate limiting, etc.)
+ * - Real-time config save
  *
- * 使用场景：
- * 超级管理员对平台核心运营参数进行配置和调整
+ * Usage:
+ * Super admin configures and adjusts core platform operational parameters
  */
 
-// 导入 React 状态和副作用钩子
 import { useState, useEffect } from 'react';
 
-// 导入 React Query 数据管理钩子
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-// 导入 toast 通知组件
 import toast from 'react-hot-toast';
-
-// 导入 UI 按钮组件
 import Button from '../components/ui/Button';
-
-// 导入国际化翻译钩子
 import { useTranslation } from 'react-i18next';
-
-// 导入 API 服务函数
 import { fetchSystemSettings, updateSystemSettings } from '../services/api';
-
-// 导入系统设置类型定义
 import type { SystemSettings, PaymentMethodConfig } from '../types';
 
 export default function SettingsPage() {
-  // 获取翻译函数
   const { t } = useTranslation();
 
-  // 使用 React Query 管理数据获取和缓存
+  // React Query for data fetching and caching
   const queryClient = useQueryClient();
 
-  // 表单数据状态
   const [form, setForm] = useState<SystemSettings | null>(null);
-
-  // 当前激活的标签页
   const [activeTab, setActiveTab] = useState('general');
 
-  // 获取系统设置数据
   const { data, isError: settingsError } = useQuery({
     queryKey: ['settings'],
     queryFn: fetchSystemSettings
   });
 
-  // 当数据加载完成后初始化表单
   useEffect(() => {
     if (data) {
       setForm(structuredClone(data));
@@ -60,8 +44,7 @@ export default function SettingsPage() {
   }, [data]);
 
   /**
-   * 更新配置的 mutation
-   * 成功时刷新数据并显示 toast 提示
+   * Update config mutation — refreshes data and shows toast on success
    */
   const updateMutation = useMutation({
     mutationFn: updateSystemSettings,
@@ -83,7 +66,7 @@ export default function SettingsPage() {
     );
   }
 
-  // 数据加载中显示加载状态
+  // Show loading state while data is being fetched
   if (!form) {
     return (
       <div style={{
@@ -105,7 +88,7 @@ export default function SettingsPage() {
     );
   }
 
-  // 保存配置处理函数
+  // Save config handler
   const handleSave = () => {
     if (!form.siteName?.trim()) {
       toast.error(t('settings.errorSiteName', 'Site name is required'));
@@ -118,11 +101,7 @@ export default function SettingsPage() {
     updateMutation.mutate(form);
   };
 
-  /**
-   * 支付渠道名称映射
-   * 将方法键映射到翻译文件中使用的键
-   * 注意：wechat 和 alipay 需要特殊处理首字母大写
-   */
+  /** Payment channel name mapping — maps method keys to i18n keys */
   const paymentLabels: Record<string, string> = {
     wechat: t('settings.paymentWechat'),
     alipay: t('settings.paymentAlipay'),
@@ -130,10 +109,7 @@ export default function SettingsPage() {
     paypal: t('settings.paymentPaypal'),
   };
 
-  /**
-   * 标签页配置
-   * 使用翻译函数获取各标签页的显示文本
-   */
+  /** Tab configuration */
   const tabs = [
     { key: 'general', label: t('settings.tabGeneral') },
     { key: 'payment', label: t('settings.tabPayment') },
@@ -142,7 +118,7 @@ export default function SettingsPage() {
 
   return (
     <div style={{ maxWidth: '1000px' }}>
-      {/* 页面标题和保存按钮区域 */}
+      {/* Page title and save button */}
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -150,7 +126,7 @@ export default function SettingsPage() {
         marginBottom: 40
       }}>
         <div>
-          {/* 主标题：系统配置 */}
+          {/* Main title */}
           <h1 style={{
             fontSize: 28,
             fontWeight: 600,
@@ -159,7 +135,7 @@ export default function SettingsPage() {
           }}>
             {t('settings.title')}
           </h1>
-          {/* 副标题描述 */}
+          {/* Subtitle */}
           <p style={{
             fontSize: 14,
             color: 'var(--color-text-2)',
@@ -169,7 +145,7 @@ export default function SettingsPage() {
             {t('settings.description')}
           </p>
         </div>
-        {/* 保存按钮 */}
+        {/* Save button */}
         <Button
           variant="primary"
           loading={updateMutation.isPending}
@@ -180,7 +156,7 @@ export default function SettingsPage() {
         </Button>
       </div>
 
-      {/* 标签页切换器 */}
+      {/* Tab switcher */}
       <div style={{
         display: 'flex',
         gap: 0,
@@ -213,7 +189,7 @@ export default function SettingsPage() {
         ))}
       </div>
 
-      {/* 配置卡片区域 */}
+      {/* Config card area */}
       <div style={{
         background: 'var(--color-surface)',
         border: '1px solid var(--color-border)',
@@ -221,16 +197,16 @@ export default function SettingsPage() {
         padding: '40px',
         position: 'relative'
       }}>
-        {/* 装饰性角标 */}
+        {/* Decorative corner accent */}
         <div style={{ position: 'absolute', top: 4, left: 4, width: 8, height: 8, borderTop: '1px solid var(--color-border)', borderLeft: '1px solid var(--color-border)' }} />
         <div style={{ position: 'absolute', top: 4, right: 4, width: 8, height: 8, borderTop: '1px solid var(--color-border)', borderRight: '1px solid var(--color-border)' }} />
         <div style={{ position: 'absolute', bottom: 4, left: 4, width: 8, height: 8, borderBottom: '1px solid var(--color-border)', borderLeft: '1px solid var(--color-border)' }} />
         <div style={{ position: 'absolute', bottom: 4, right: 4, width: 8, height: 8, borderBottom: '1px solid var(--color-border)', borderRight: '1px solid var(--color-border)' }} />
 
-        {/* 全局参数标签页内容 */}
+        {/* General tab content */}
         {activeTab === 'general' && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 48 }}>
-            {/* 平台身份配置区块 */}
+            {/* Platform identity section */}
             <Section title={t('settings.sectionPlatformIdentity')}>
               <Field label={t('settings.labelSiteName')}>
                 <input
@@ -256,7 +232,7 @@ export default function SettingsPage() {
               </Field>
             </Section>
 
-            {/* 运营模块配置区块 */}
+            {/* Operations module section */}
             <Section title={t('settings.sectionOperationalModules')}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
                 <Toggle
@@ -286,10 +262,10 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {/* 支付网关标签页内容 */}
+        {/* Payment gateway tab content */}
         {activeTab === 'payment' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
-            {/* 遍历所有支付渠道配置 */}
+            {/* Iterate payment channel configs */}
             {(['wechat', 'alipay', 'stripe', 'paypal'] as const).map((method) => {
               const paymentConfig: PaymentMethodConfig = form.paymentMethods[method];
               return (
@@ -307,7 +283,7 @@ export default function SettingsPage() {
                     alignItems: 'flex-start',
                     marginBottom: 24
                   }}>
-                    {/* 支付渠道名称（使用翻译映射表获取本地化名称） */}
+                    {/* Payment channel name (localized via mapping) */}
                     <h3 style={{
                       fontSize: 18,
                       fontFamily: 'var(--font-body)',
@@ -330,7 +306,7 @@ export default function SettingsPage() {
                     />
                   </div>
 
-                  {/* 支付配置表单字段 */}
+                  {/* Payment config form fields */}
                   <div style={{
                     display: 'grid',
                     gridTemplateColumns: '1fr 1fr',
@@ -338,7 +314,7 @@ export default function SettingsPage() {
                     opacity: paymentConfig.enabled ? 1 : 0.5,
                     transition: 'opacity 0.3s'
                   }}>
-                    {/* AppID 字段（如果存在） */}
+                    {/* AppID field (if present) */}
                     {paymentConfig.appId !== undefined && (
                       <Field label={t('settings.labelAppId')}>
                         <input
@@ -356,7 +332,7 @@ export default function SettingsPage() {
                         />
                       </Field>
                     )}
-                    {/* 商户号字段（如果存在） */}
+                    {/* Merchant ID field (if present) */}
                     {paymentConfig.merchantId !== undefined && (
                       <Field label={t('settings.labelMerchantId')}>
                         <input
@@ -374,7 +350,7 @@ export default function SettingsPage() {
                         />
                       </Field>
                     )}
-                    {/* 公钥字段（如果存在） */}
+                    {/* Public key field (if present) */}
                     {paymentConfig.publicKey !== undefined && (
                       <Field label={t('settings.labelPublicKey')}>
                         <input
@@ -392,7 +368,7 @@ export default function SettingsPage() {
                         />
                       </Field>
                     )}
-                    {/* Client ID 字段（如果存在） */}
+                    {/* Client ID field (if present) */}
                     {paymentConfig.clientId !== undefined && (
                       <Field label={t('settings.labelClientId')}>
                         <input
@@ -417,10 +393,10 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {/* 安全设置标签页内容 */}
+        {/* Security tab content */}
         {activeTab === 'security' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 48 }}>
-            {/* 安全提示框 */}
+            {/* Security notice */}
             <div style={{
               padding: '20px',
               background: 'var(--color-elevated)',
@@ -440,7 +416,7 @@ export default function SettingsPage() {
               {t('settings.securityNoticeDesc', 'Changes take effect immediately. Invalid values may lock out users or degrade service performance.')}
             </div>
 
-            {/* 认证生命周期配置区块 */}
+            {/* Auth lifecycle config section */}
             <Section title={t('settings.sectionAuthLifecycles')}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
                 <Field label={t('settings.labelAccessTokenValidity')}>
@@ -476,7 +452,7 @@ export default function SettingsPage() {
               </div>
             </Section>
 
-            {/* 频率限制配置区块 */}
+            {/* Rate limiting config section */}
             <Section title={t('settings.sectionRateLimiting')}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
                 <Field label={t('settings.labelGlobalThreshold')}>
@@ -519,8 +495,8 @@ export default function SettingsPage() {
 }
 
 /**
- * 配置区块组件
- * 用于分组显示相关的配置字段
+ * Configuration section component
+ * Groups related config fields together
  */
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -546,8 +522,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 /**
- * 字段标签组件
- * 包装表单输入元素及其标签
+ * Field label component
+ * Wraps a form input element with its label
  */
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -569,8 +545,8 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 /**
- * 开关切换组件
- * 用于布尔值配置项
+ * Toggle switch component
+ * For boolean configuration options
  */
 function Toggle({
   label,
@@ -644,7 +620,7 @@ function Toggle({
 }
 
 /**
- * 标准输入框样式
+ * Standard input field style
  */
 const inputStyle: React.CSSProperties = {
   width: '100%',

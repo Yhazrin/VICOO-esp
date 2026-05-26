@@ -25,7 +25,7 @@ const statusStyles: Record<string, { bg: string; color: string; key: string }> =
   completed: { bg: 'var(--color-success-bg)', color: 'var(--color-success)', key: 'statusBadge.general.completed' },
   failed: { bg: 'var(--color-error-bg)', color: 'var(--color-error)', key: 'statusBadge.general.failed' },
   active_user: { bg: 'var(--color-success-bg)', color: 'var(--color-success)', key: 'statusBadge.user.active_user' },
-  /** 后端用户状态为 banned；管理 UI 沿用「已禁用」文案 */
+  /** Backend user status is 'banned'; admin UI displays as 'disabled' */
   banned: { bg: 'var(--color-error-bg)', color: 'var(--color-error)', key: 'statusBadge.user.disabled' },
   disabled: { bg: 'var(--color-error-bg)', color: 'var(--color-error)', key: 'statusBadge.user.disabled' },
   withdrawn: { bg: 'var(--color-error-bg)', color: 'var(--color-error)', key: 'statusBadge.afterSales.withdrawn' },

@@ -1,11 +1,11 @@
 /**
- * 衣物捐献管理页面 (Clothing Donation Page)
+ * Clothing Donation Management Page
  *
- * 功能说明：
- * - 展示用户提交的衣物捐献申请列表
- * - 支持按状态筛选（待处理、已收到、处理中、已转化、未通过）
- * - 支持状态流转操作：标记已收到、开始处理、标记转化、拒绝
- * - 提供分页浏览功能
+ * Features:
+ * - Display user-submitted clothing donation intake list
+ * - Filter by status (pending, received, processing, converted, rejected)
+ * - Status transition actions: mark received, start processing, mark converted, reject
+ * - Paginated browsing
  */
 
 import { useState } from 'react';

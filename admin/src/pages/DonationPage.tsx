@@ -196,7 +196,7 @@ export default function DonationPage() {
       <tbody>${tbody}</tbody>
     </table>
   </div>`;
-    // html2canvas 常无法正确绘制远离视口的节点（如 left:-9999px），会得到空白 PDF。
+    // html2canvas fails to render off-viewport nodes (e.g. left:-9999px), producing blank PDFs.
     const overlay = document.createElement('div');
     overlay.setAttribute('aria-hidden', 'true');
     overlay.style.cssText =

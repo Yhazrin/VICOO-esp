@@ -1,11 +1,11 @@
 /**
- * 售后服务管理页面 (AfterSales Page)
+ * After-Sales Service Management Page
  *
- * 功能说明：
- * - 展示所有售后工单列表（退货、换货、维修）
- * - 支持按状态筛选（待审核、已通过、已拒绝、已完成）
- * - 支持审核操作：通过、拒绝、标记完成
- * - 提供分页浏览功能
+ * Features:
+ * - Display all after-sales tickets (returns, exchanges, repairs)
+ * - Filter by status (pending review, approved, rejected, completed)
+ * - Review actions: approve, reject, mark completed
+ * - Paginated browsing
  */
 
 import { useState } from 'react';

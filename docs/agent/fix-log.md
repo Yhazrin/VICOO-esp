@@ -2062,3 +2062,17 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Translated 7 Chinese comments/docstrings to English across config, models, services, and deps modules. Only `db_repair.py` Chinese mapping dictionary and `masking.py` Chinese name example remain (both intentional).
 - **Verification**: Backend Python files now have no unintentional Chinese strings
 - **New issues**: None
+
+## Fix 244 — Admin Chinese comment/docstring cleanup (Round 74)
+- **Date**: 2026-05-27 (Round 74)
+- **Files**: `admin/src/pages/SettingsPage.tsx`, `admin/src/pages/AfterSalesPage.tsx`, `admin/src/pages/DonationPage.tsx`, `admin/src/types/index.ts`, `admin/src/components/ui/StatusBadge.tsx`, `admin/src/pages/ClothingDonationPage.tsx`
+- **Reason**: P3: Admin panel .tsx files contained Chinese code comments, JSDoc docstrings, and JSX comments.
+- **Change**:
+  - `SettingsPage.tsx`: Translated file docstring, 30+ JSX/code comments, 4 helper function docstrings, and 1 remaining React Query comment
+  - `AfterSalesPage.tsx`: Translated file docstring (features list)
+  - `DonationPage.tsx`: Translated html2canvas comment
+  - `types/index.ts`: Translated 2 JSDoc comments about backend enum consistency
+  - `StatusBadge.tsx`: Translated 1 comment about banned status
+  - `ClothingDonationPage.tsx`: Translated file docstring (features list)
+- **Verification**: `grep -rn '[一-鿿]' admin/src/*.tsx` returns only the intentional "中文" in TopBar.tsx language switcher
+- **New issues**: None
