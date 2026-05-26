@@ -25,34 +25,34 @@
   --color-sepia-mid: #5C4D3D;
   --color-sepia-light: #8B7B66;
   --color-sepia-on-dark: #B5A595; /* WCAG AA on ink (#1A1A16) */
-  --color-rust: #8B3A2A;
-  --color-rust-light: #A85A4A;
-  --color-rust-dark: #6B2A1A;
-  --color-archive-brown: #5C4033;
-  --color-pale-gold: #C4A45A;
-  --color-pale-gold-light: #D4BC7A;
-  --color-cream: #FAF6EE;
-  --color-eco-green: #5a7a5a;
+  --color-rust: #E63946;
+  --color-rust-light: #F77F00;
+  --color-rust-dark: #C1121F;
+  --color-archive-brown: #1D3557;
+  --color-pale-gold: #F77F00;
+  --color-pale-gold-light: #FF9500;
+  --color-cream: #FFFFFF;
+  --color-eco-green: #01847F;
 
-  /* ── Sage Green Accent — Low-saturation, editorial ── */
-  --color-sage: #3F4F45;
-  --color-sage-light: #5A6B5F;
-  --color-sage-lighter: #7A8B7E;
-  --color-sage-muted: #95A398;
-  --color-sage-pale: #C8D1CA;
-  --color-sage-dark: #2D3B33;
+  /* ── Sage Green Accent — High-saturation ── */
+  --color-sage: #01847F;
+  --color-sage-light: #0077B6;
+  --color-sage-lighter: #00B4D8;
+  --color-sage-muted: #48CAE4;
+  --color-sage-pale: #90E0EF;
+  --color-sage-dark: #023E8A;
 
   /* ── Editorial Accent Colors ── */
-  --color-editorial-red: #C41E3A;
-  --color-editorial-navy: #1C2841;
-  --color-editorial-olive: #4A5240;
-  --color-editorial-burgundy: #6B2D3D;
+  --color-editorial-red: #E63946;
+  --color-editorial-navy: #1D3557;
+  --color-editorial-olive: #01847F;
+  --color-editorial-burgundy: #E63946;
 
   /* ── Functional Colors ── */
-  --color-success: #3D5A3D;
-  --color-error: #8B3A2A;
-  --color-warning: #A68A3D;
-  --color-info: #3D4A5C;
+  --color-success: #01847F;
+  --color-error: #E63946;
+  --color-warning: #F77F00;
+  --color-info: #0077B6;
 
   /* ── Typography ── */
   --font-display: 'Smiley Sans', 'Helvetica Neue', Arial, sans-serif;

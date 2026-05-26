@@ -4,11 +4,11 @@ import { useReducedMotion } from 'framer-motion';
 
 /* ─── Color Palette (matching brand) ─── */
 const COLORS = {
-  rust: 0xA45A52,
-  sage: 0x7D8471,
-  sepia: 0x8B7355,
-  warmGray: 0xC4B9A8,
-  paleGold: 0xD4C5A9,
+  rust: 0xE63946,
+  sage: 0x01847F,
+  sepia: 0x1D3557,
+  warmGray: 0x1A1A16,
+  paleGold: 0xF77F00,
 };
 
 /* ─── Types ─── */

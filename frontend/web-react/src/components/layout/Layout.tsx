@@ -7,7 +7,7 @@ import MobileNav from './MobileNav';
 import KeyedRouteContent from '../transitions/KeyedRouteContent';
 import GrainOverlay from '../animations/GrainOverlay';
 import { AIAssistantBall } from './AIAssistantBall';
-import { useUIStore } from '@/stores/uiStore';
+import { useUIStore, DARK_THEMES } from '@/stores/uiStore';
 import { COMPANY_NAV } from '@/constants/companyNav';
 
 // Lazy-load impact shell pages — these are heavy and only needed in impact mode
@@ -38,6 +38,7 @@ export default function Layout() {
   const activeImpactTab = useUIStore((s) => s.activeImpactTab);
   const setImpactMode = useUIStore((s) => s.setImpactMode);
   const setActiveImpactTab = useUIStore((s) => s.setActiveImpactTab);
+  const currentTheme = useUIStore((s) => s.currentTheme);
   const location = useLocation();
   const isImpactShopRoute = Boolean(useMatch({ path: '/impact/shop', end: false }));
   /** 仅在首页 `/` 且开启公益壳时用 tab 内容；`/shop`、`/about` 等必须走 `<Outlet />`，否则常规店被挡住 */
@@ -75,9 +76,6 @@ export default function Layout() {
   }, [isImpactShopRoute, setImpactMode, setActiveImpactTab]);
 
   useEffect(() => {
-    // Only auto-disable when navigating to company routes via internal link clicks,
-    // not when coming from the impact toggle button (which handles its own navigate).
-    // Skip if this route change was triggered by handleImpactToggle.
     if (!impactMode || isManualImpactToggle.current) {
       if (isManualImpactToggle.current) {
         isManualImpactToggle.current = false;
@@ -93,15 +91,23 @@ export default function Layout() {
     }
   }, [location.pathname, impactMode, setImpactMode]);
 
-  // 与顶栏公益↔优衣库切换同一帧同步，避免 paint 后再改 html 变量导致 header 上仍用旧的 --color-*（看起来像样式丢失）
+  // 同一帧同步所有 <html> 属性，避免 paint 后改变量导致样式闪烁
   useLayoutEffect(() => {
     const on = impactMode || isImpactShopRoute;
     if (on) {
       document.documentElement.setAttribute('data-welfare-vivid', '');
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      if (DARK_THEMES.has(currentTheme)) {
+        document.documentElement.setAttribute('data-dark-theme', '');
+      } else {
+        document.documentElement.removeAttribute('data-dark-theme');
+      }
     } else {
       document.documentElement.removeAttribute('data-welfare-vivid');
+      document.documentElement.setAttribute('data-theme', 'monochrome');
+      document.documentElement.removeAttribute('data-dark-theme');
     }
-  }, [impactMode, isImpactShopRoute]);
+  }, [impactMode, isImpactShopRoute, currentTheme]);
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-paper text-ink">

@@ -90,7 +90,7 @@ export default function CurtainTransition({ children }: CurtainTransitionProps) 
             className="absolute inset-0 z-50 pointer-events-none"
             style={{
               background:
-                'linear-gradient(90deg, var(--color-sepia-dark, #8B7355) 0%, var(--color-sepia-mid, #A69076) 50%, var(--color-sepia-light, #C4A882) 100%)',
+                'linear-gradient(90deg, var(--color-sepia-dark, #1D3557) 0%, var(--color-sepia-mid, #01847F) 50%, var(--color-sepia-light, #0077B6) 100%)',
             }}
             aria-hidden="true"
           />

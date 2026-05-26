@@ -1,13 +1,14 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence, useReducedMotion, type Transition } from 'framer-motion';
-import { useUIStore, THEMES, type ThemeId, type AIBallStyle } from '@/stores/uiStore';
+import { useUIStore, THEMES, DARK_THEMES, type ThemeId, type AIBallStyle } from '@/stores/uiStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useCartStore, selectTotalItems } from '@/stores/cartStore';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { useRef, useEffect, useState, useCallback, useLayoutEffect, useMemo } from 'react';
 import UniqloLogo from './UniqloLogo';
+import vicooLogo from '@/assets/vicoo-logo.png';
 import { COMPANY_NAV, matchCompanyNavKey } from '@/constants/companyNav';
 
 /** Spring for sliding nav pill — bouncier settle (non-linear). */
@@ -65,6 +66,7 @@ function PillWindow({
   setImpactMode,
   locationPathname,
   modeMorphTransition,
+  isDark,
 }: {
   impactMode: boolean;
   activeImpactTab: string;
@@ -72,6 +74,7 @@ function PillWindow({
   setImpactMode: (on: boolean) => void;
   locationPathname: string;
   modeMorphTransition: Transition;
+  isDark: boolean;
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -215,7 +218,9 @@ function PillWindow({
       className={`
         flex items-center overflow-hidden px-2 py-1 shadow-sm
         ${impactMode
-          ? 'border border-warm-gray/20 bg-white/80 backdrop-blur-xl'
+          ? isDark
+            ? 'border border-[rgba(255,255,255,0.08)] bg-[rgba(8,8,12,0.86)] backdrop-blur-xl'
+            : 'border border-warm-gray/20 bg-white/80 backdrop-blur-xl'
           : 'border border-white/30 bg-white/15 backdrop-blur-md'
         }
       `}
@@ -238,7 +243,7 @@ function PillWindow({
           {companyHl && (
             <motion.div
               aria-hidden
-              className={`pointer-events-none absolute z-0 bg-white ${PILL_CORNER_TRANSITION_CLASS} ${impactMode ? 'rounded-full' : 'rounded-sm'} ${prefersReducedMotion ? '' : 'will-change-transform'}`}
+              className={`pointer-events-none absolute z-0 ${impactMode ? (isDark ? 'bg-[rgba(230,57,124,0.2)]' : 'bg-ink') : 'bg-white'} ${PILL_CORNER_TRANSITION_CLASS} ${impactMode ? 'rounded-full' : 'rounded-sm'} ${prefersReducedMotion ? '' : 'will-change-transform'}`}
               initial={false}
               animate={{
                 x: companyHl.x,
@@ -279,9 +284,11 @@ function PillWindow({
                   ${PILL_CORNER_TRANSITION_CLASS}
                   ${impactMode ? 'rounded-full' : 'rounded-sm'}
                   ${isActive
-                    ? 'font-medium bg-white text-[#E60012] shadow-sm ring-1 ring-black/10'
+                    ? impactMode
+                      ? isDark ? 'font-medium text-[#F0ECE8]' : 'font-medium text-paper'
+                      : 'font-medium bg-white text-[#E60012] shadow-sm ring-1 ring-black/10'
                     : impactMode
-                      ? 'text-ink-faded hover:text-ink'
+                      ? isDark ? 'text-[#9A969C] hover:text-[#F0ECE8]' : 'text-ink-faded hover:text-ink'
                       : 'text-white/90 hover:bg-white/10 hover:text-white'
                   }
                 `}
@@ -296,7 +303,7 @@ function PillWindow({
           {impactHl && (
             <motion.div
               aria-hidden
-              className={`pointer-events-none absolute z-0 rounded-full bg-ink ${PILL_CORNER_TRANSITION_CLASS} ${prefersReducedMotion ? '' : 'will-change-transform'}`}
+              className={`pointer-events-none absolute z-0 rounded-full ${isDark ? 'bg-[#E6397C]' : 'bg-ink'} ${PILL_CORNER_TRANSITION_CLASS} ${prefersReducedMotion ? '' : 'will-change-transform'}`}
               initial={false}
               animate={{
                 x: impactHl.x,
@@ -337,9 +344,9 @@ function PillWindow({
                   ${PILL_CORNER_TRANSITION_CLASS}
                   ${impactMode ? 'rounded-full' : 'rounded-sm'}
                   ${isActive
-                    ? 'font-medium bg-ink text-paper shadow-sm ring-1 ring-black/10'
+                    ? isDark ? 'font-medium text-[#FFFFFF]' : 'font-medium bg-ink text-paper shadow-sm ring-1 ring-black/10'
                     : impactMode
-                      ? 'text-ink-faded hover:text-ink'
+                      ? isDark ? 'text-[#9A969C] hover:text-[#F0ECE8]' : 'text-ink-faded hover:text-ink'
                       : 'text-white/40'
                   }
                 `}
@@ -445,6 +452,7 @@ export default function Header() {
     setActiveSubmenu(null);
   };
 
+  const isDark = DARK_THEMES.has(currentTheme);
   const currentThemeConfig = THEMES.find((theme) => theme.id === currentTheme);
 
   useEffect(() => {
@@ -498,7 +506,9 @@ export default function Header() {
   const headerBarGpuClass = 'transform-gpu [backface-visibility:hidden] [isolation:isolate]';
 
   const iconDisc = impactMode
-    ? 'bg-white text-ink-faded shadow-sm hover:shadow-md border border-warm-gray/15'
+    ? isDark
+      ? 'bg-[rgba(255,255,255,0.05)] text-[#B8B4AE] shadow-sm hover:shadow-md border border-[rgba(255,255,255,0.08)] hover:text-[#F0ECE8]'
+      : 'bg-white text-ink-faded shadow-sm hover:shadow-md border border-warm-gray/15'
     : 'border border-white/25 bg-white/20 text-white shadow-none hover:bg-white/30';
 
   return (
@@ -511,12 +521,16 @@ export default function Header() {
           marginLeft: impactMode ? 12 : 0,
           marginRight: impactMode ? 12 : 0,
           borderRadius: impactMode ? 9999 : 0,
-          backgroundColor: impactMode ? 'rgba(252, 250, 246, 0.92)' : '#E60012',
+          backgroundColor: impactMode
+            ? isDark ? 'rgba(0, 0, 0, 0.8)' : 'var(--welfare-header-bg, rgba(255, 255, 255, 0.92))'
+            : '#E60012',
         }}
         transition={modeMorphTransition}
         style={{
           boxShadow: impactMode
-            ? '0 8px 32px rgba(0, 0, 0, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.58)'
+            ? isDark
+              ? '0 10px 36px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05)'
+              : '0 8px 32px rgba(0, 0, 0, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.58)'
             : 'inset 0 -1px 0 rgba(0, 0, 0, 0.2)',
           backdropFilter: impactMode ? 'saturate(180%) blur(14px)' : 'none',
           WebkitBackdropFilter: impactMode ? 'saturate(180%) blur(14px)' : 'none',
@@ -537,7 +551,7 @@ export default function Header() {
             setImpactMode(false);
           }}
         >
-          <motion.div animate={{ x: impactMode ? -6 : 0 }} transition={modeMorphTransition}>
+          <motion.div animate={{ x: impactMode ? -6 : 0 }} transition={modeMorphTransition} className="mr-2">
             <UniqloLogo variant={impactMode ? 'default' : 'onRed'} />
           </motion.div>
           <AnimatePresence mode="wait">
@@ -548,9 +562,9 @@ export default function Header() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -8 }}
                 transition={{ type: 'spring', stiffness: 420, damping: 28, delay: 0.04 }}
-                className="font-display text-sm font-medium tracking-wide whitespace-nowrap text-ink select-none md:text-base"
+                className="font-display text-base font-medium text-ink select-none flex items-center gap-1"
               >
-                × VICOO
+                × <img src={vicooLogo} alt="VICOO" className="inline h-[1.4em] w-auto align-middle" />
               </motion.span>
             )}
           </AnimatePresence>
@@ -569,6 +583,7 @@ export default function Header() {
                 setImpactMode={setImpactMode}
                 locationPathname={location.pathname}
                 modeMorphTransition={modeMorphTransition}
+                isDark={isDark}
               />
 
               {/* Impact toggle: UNIQLO = classic red/white; Impact shell = glass card */}
@@ -581,16 +596,22 @@ export default function Header() {
                   rounded-full px-5 py-1.5 font-body text-label font-medium tracking-wide transition-all duration-300 cursor-pointer
                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
                   ${impactMode
-                    ? `
-                      border border-warm-gray/25 bg-white/75 text-ink shadow-sm backdrop-blur-xl
-                      hover:bg-white/90 hover:border-warm-gray/35 hover:shadow-md
-                      focus-visible:ring-[#E60012]/40 focus-visible:ring-offset-paper
-                    `
+                    ? isDark
+                      ? `
+                        border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.05)] text-[#F0ECE8] shadow-sm backdrop-blur-xl
+                        hover:bg-[rgba(255,255,255,0.08)] hover:border-[rgba(255,255,255,0.12)] hover:shadow-md
+                        focus-visible:ring-[#E6397C]/40 focus-visible:ring-offset-[#1A1A1D]
+                      `
+                      : `
+                        border border-warm-gray/25 bg-white/75 text-ink shadow-sm backdrop-blur-xl
+                        hover:bg-white/90 hover:border-warm-gray/35 hover:shadow-md
+                        focus-visible:ring-[#E60012]/40 focus-visible:ring-offset-paper
+                      `
                     : `
-                      border-0 bg-white text-[#E60012] shadow-md
-                      hover:bg-white/95
-                      focus-visible:ring-white/80 focus-visible:ring-offset-[#E60012]
-                    `
+                        border-0 bg-white text-[#E60012] shadow-md
+                        hover:bg-white/95
+                        focus-visible:ring-white/80 focus-visible:ring-offset-[#E60012]
+                      `
                   }
                 `}
               >
@@ -618,7 +639,11 @@ export default function Header() {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder={t('search.placeholder', 'Search products...')}
-                      className="w-[200px] px-4 py-1.5 rounded-full bg-white/90 backdrop-blur-xl shadow-sm font-body text-sm text-ink placeholder:text-warm-gray/60 focus:outline-none focus:ring-1 focus:ring-rust/30"
+                      className={`w-[200px] px-4 py-1.5 rounded-full backdrop-blur-xl shadow-sm font-body text-sm focus:outline-none focus:ring-1 ${
+                        impactMode && isDark
+                          ? 'bg-[rgba(255,255,255,0.06)] text-[#F0ECE8] placeholder:text-[#6A666C] focus:ring-[#E6397C]/40'
+                          : 'bg-white/90 text-ink placeholder:text-warm-gray/60 focus:ring-rust/30'
+                      }`}
                       onBlur={() => {
                         if (!searchQuery.trim()) setSearchOpen(false);
                       }}
@@ -661,7 +686,9 @@ export default function Header() {
             {totalCartItems > 0 && (
               <span
                 className={`absolute -right-1 -top-1 flex h-4.5 min-h-[18px] w-4.5 min-w-[18px] items-center justify-center rounded-full font-mono text-[10px] leading-none ${
-                  impactMode ? 'bg-rust text-paper' : 'bg-white text-[#E60012]'
+                  impactMode
+                    ? isDark ? 'bg-[#E6397C] text-white' : 'bg-rust text-paper'
+                    : 'bg-white text-[#E60012]'
                 }`}
               >
                 {totalCartItems > 99 ? '99+' : totalCartItems}
@@ -975,15 +1002,15 @@ export default function Header() {
             >
               <motion.span
                 animate={prefersReducedMotion ? {} : (mobileNavOpen ? { rotate: 45, y: 6 } : { rotate: 0, y: 0 })}
-                className={`block h-px w-6 ${impactMode ? 'bg-ink' : 'bg-white'}`}
+                className={`block h-px w-6 ${impactMode ? (isDark ? 'bg-[#F0ECE8]' : 'bg-ink') : 'bg-white'}`}
               />
               <motion.span
                 animate={prefersReducedMotion ? {} : (mobileNavOpen ? { opacity: 0 } : { opacity: 1 })}
-                className={`block h-px w-6 ${impactMode ? 'bg-ink' : 'bg-white'}`}
+                className={`block h-px w-6 ${impactMode ? (isDark ? 'bg-[#F0ECE8]' : 'bg-ink') : 'bg-white'}`}
               />
               <motion.span
                 animate={prefersReducedMotion ? {} : (mobileNavOpen ? { rotate: -45, y: -6 } : { rotate: 0, y: 0 })}
-                className={`block h-px w-6 ${impactMode ? 'bg-ink' : 'bg-white'}`}
+                className={`block h-px w-6 ${impactMode ? (isDark ? 'bg-[#F0ECE8]' : 'bg-ink') : 'bg-white'}`}
               />
             </button>
           )}

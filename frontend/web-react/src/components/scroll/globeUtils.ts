@@ -23,18 +23,37 @@ export function latLngToVector3(lat: number, lng: number, radius: number): THREE
 export function createArcCurve(
   start: THREE.Vector3,
   end: THREE.Vector3,
-  _globeRadius: number,
+  globeRadius: number,
 ): THREE.CubicBezierCurve3 {
+  // Normalize to sphere surface
+  const surfaceStart = start.clone().normalize().multiplyScalar(globeRadius);
+  const surfaceEnd = end.clone().normalize().multiplyScalar(globeRadius);
+
   // Midpoint on the chord
-  const mid = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
+  const mid = new THREE.Vector3().addVectors(surfaceStart, surfaceEnd).multiplyScalar(0.5);
 
-  // Elevate the midpoint away from the sphere center
-  // The further the chord, the higher the arc
-  const chordLength = start.distanceTo(end);
-  const arcHeight = chordLength * 0.4;
-  mid.normalize().multiplyScalar(start.length() + arcHeight);
+  const chordLength = surfaceStart.distanceTo(surfaceEnd);
+  // Use geometric formula: h = sqrt(R² - d²) where d is distance from chord midpoint to center
+  // This ensures the arc peak stays on/above the sphere surface
+  const d = mid.length();
+  const minHeight = Math.sqrt(Math.max(globeRadius * globeRadius - d * d, 0));
+  const arcHeight = Math.max(chordLength * 0.8, minHeight * 1.2);
 
-  return new THREE.CubicBezierCurve3(start, mid, mid, end);
+  // Direction from center to midpoint (perpendicular to chord)
+  const toMid = mid.clone().normalize();
+
+  // Control point 1: offset along chord direction + perpendicular lift
+  const chordDir = surfaceEnd.clone().sub(surfaceStart).normalize();
+  const cp1 = mid.clone()
+    .add(chordDir.clone().multiplyScalar(-chordLength * 0.15))
+    .add(toMid.clone().multiplyScalar(arcHeight));
+
+  // Control point 2: offset along chord direction + perpendicular lift
+  const cp2 = mid.clone()
+    .add(chordDir.clone().multiplyScalar(chordLength * 0.15))
+    .add(toMid.clone().multiplyScalar(arcHeight));
+
+  return new THREE.CubicBezierCurve3(surfaceStart, cp1, cp2, surfaceEnd);
 }
 
 /**

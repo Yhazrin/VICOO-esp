@@ -228,11 +228,11 @@ function Scene02({ p, rm, mapRange, images, t }: Scene02Props) {
 
   // Merge API images with fallback gradients — use API images first, fill remaining slots
   const fallbackGradients = [
-    'linear-gradient(135deg, #C4A45A 0%, #8B7355 100%)',
-    'linear-gradient(135deg, #8B3A2A 0%, #C4A45A 100%)',
-    'linear-gradient(135deg, #5A7A5A 0%, #8B7355 100%)',
-    'linear-gradient(135deg, #D4C5A9 0%, #8B3A2A 100%)',
-    'linear-gradient(135deg, #7D8471 0%, #C4A45A 100%)',
+    'linear-gradient(135deg, #E63946 0%, #1D3557 100%)',
+    'linear-gradient(135deg, #E63946 0%, #F77F00 100%)',
+    'linear-gradient(135deg, #01847F 0%, #0077B6 100%)',
+    'linear-gradient(135deg, #1D3557 0%, #E63946 100%)',
+    'linear-gradient(135deg, #F77F00 0%, #01847F 100%)',
   ];
   const srcs = images.length > 0 ? images.concat([]).slice(0, 5) : [];
 
