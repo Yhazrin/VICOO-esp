@@ -710,3 +710,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: (a) Added `VerifyAccessRequest` Pydantic schema with `access_code` field (aliased as `accessCode`); replaced `body: dict[str, str]` with `body: VerifyAccessRequest`; moved `import os` to top-level; (b) Added `_VALID_ARTWORK_STATUSES` (5 values) and `_VALID_CHILD_STATUSES` (3 values) sets; validate `status` parameter before DB write with 400 error listing allowed values
 - **Verification**: `python -c "ast.parse(...)"` pass for all backend files
 - **New issues**: None
+
+## Fix 87 — Audit log str(e) leak and ProductDetail review error toast
+- **Date**: 2026-05-26 (Round 34)
+- **Files**: `backend/app/core/audit.py`, `frontend/web-react/src/pages/ProductDetail.tsx`
+- **Reason**: (a) `audit.py` stored `str(e)` in audit log `details` dict — raw exception messages (DB connection strings, internal paths) could leak via admin audit log API; (b) ProductDetail `reviewMutation` had empty `onError: () => {}` — silently swallowed errors with no user feedback
+- **Change**: (a) Replaced `{"error": str(e)}` with `{"error": "Operation failed"}` in audit log details; (b) Added `toast.error(t('review.error', 'Failed to submit review'))` to reviewMutation onError; added `import toast` to ProductDetail.tsx
+- **Verification**: Backend syntax OK; `tsc --noEmit` pass for frontend
+- **New issues**: None
