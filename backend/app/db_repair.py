@@ -41,12 +41,16 @@ _IMPACT_TITLE_MARKERS = (
     "妈妈的手",
     "太空旅行",
     "我的家帆布鞋",
-    "画出未来",
+    "未来城市",
     "过年了",
     "海豚之歌",
     "牧羊曲",
     "再生纤维披肩",
-    "手工拼布壁挂",
+    "手绘方巾",
+    "棉麻衬衫",
+    "圆领卫衣",
+    "连帽卫衣",
+    "针织开衫",
 )
 
 _COMPANY_TITLE_MARKERS = (
@@ -73,13 +77,14 @@ def _company_from_title(name: str) -> bool:
 
 
 def _needs_impact_image_refresh(url: str | None) -> bool:
-    """空链接、Unsplash、或已废弃的 /static/products/*.jpg 占位，需写回 Picsum。"""
+    """空链接、Unsplash、或旧占位图需写回；本地 /static/products/ 自有图保留。"""
     u = (url or "").strip()
     if not u:
         return True
-    if "picsum.photos" in u:
+    _current_urls = set(IMPACT_PRODUCT_IMAGE_BY_NAME.values())
+    if u in _current_urls:
         return False
-    if "/static/products/" in u:
+    if "picsum.photos" in u:
         return True
     if "unsplash.com" in u:
         return True
@@ -106,14 +111,19 @@ async def repair_impact_product_images(session: AsyncSession) -> int:
 
 async def repair_legacy_static_product_image_urls(session: AsyncSession) -> int:
     """
-    旧种子 / 演示里使用了不存在的 /static/products/*.jpg。按商品名对齐公益主图或常规店目录，否则 Picsum。
-    幂等；需在 repair_impact_product_images 之后执行，以便仅处理 is_impact=False 的占位行。
+    旧种子 / 演示里使用了不存在的 /static/products/*.jpg 占位。
+    按商品名对齐公益主图或常规店目录，否则 Picsum。
+    幂等；需在 repair_impact_product_images 之后执行。
+    注：当前 /static/products/ 下存有自有产品图，仅替换不在白名单中的旧占位。
     """
+    _current_urls = set(IMPACT_PRODUCT_IMAGE_BY_NAME.values())
     result = await session.execute(select(Product))
     updated = 0
     for p in result.scalars().all():
         u = (p.image_url or "").strip()
         if "/static/products/" not in u:
+            continue
+        if u in _current_urls:
             continue
         name = (p.name or "").strip()
         fixed = (
