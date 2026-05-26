@@ -662,3 +662,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: (a) Added `import logging` + `logger = logging.getLogger(__name__)` + `logger.exception(...)` to sustainability.py; (b) Changed OrderDetail image alt from `""` to `item.product_name || ''`; (c) Changed TraceMediaGallery alt fallback from `''` to `'Traceability media'`
 - **Verification**: Backend syntax OK; `tsc --noEmit` pass for frontend
 - **New issues**: MaterialTrace/index.tsx has 100+ hardcoded Chinese strings using `isEnglish` ternary instead of `t()` — not routed/used in production, deferred
+
+## Fix 81 — Admin settings error handling, i18n, and api.ts type safety
+- **Date**: 2026-05-26 (Round 28)
+- **Files**: `admin/src/pages/SettingsPage.tsx`, `admin/src/pages/AfterSalesPage.tsx`, `admin/src/pages/LoginPage.tsx`, `admin/src/services/api.ts`, `admin/src/i18n/en.json`, `admin/src/i18n/zh.json`
+- **Reason**: (a) SettingsPage useQuery had no isError — settings fetch failure showed infinite loading spinner; (b) AfterSalesPage had hardcoded 'ID' column title; (c) LoginPage had hardcoded placeholder and footer text; (d) api.ts line 852 had 3 `as any` casts for payment method fields
+- **Change**: (a) Added `isError: settingsError` + error banner with retry to SettingsPage; (b) Replaced hardcoded 'ID' with `t('afterSales.colId', 'ID')`; (c) Wrapped placeholder and footer in `t()` calls; (d) Replaced 3 `as any` casts with `PaymentMethodConfig` type import; (e) Added i18n keys: `login.footerText`, `afterSales.colId` to both language files
+- **Verification**: `tsc --noEmit` pass for admin; JSON validation PASS
+- **New issues**: None
