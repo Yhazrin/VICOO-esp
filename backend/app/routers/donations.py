@@ -150,16 +150,22 @@ async def my_donations(
     current_user: dict = Depends(get_current_user),
 ):
     """Get current user's donations."""
-    stmt = select(Donation).where(Donation.donor_user_id == current_user["id"])
-    count_stmt = select(func.count(Donation.id)).where(Donation.donor_user_id == current_user["id"])
-    total = (await db.execute(count_stmt)).scalar() or 0
-    stmt = stmt.order_by(Donation.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
-    result = await db.execute(stmt)
-    donations = result.scalars().all()
-    return PaginatedResponse(
-        data=[_serialize_donation(d) for d in donations],
-        total=total, page=page, page_size=page_size,
-    )
+    try:
+        stmt = select(Donation).where(Donation.donor_user_id == current_user["id"])
+        count_stmt = select(func.count(Donation.id)).where(Donation.donor_user_id == current_user["id"])
+        total = (await db.execute(count_stmt)).scalar() or 0
+        stmt = stmt.order_by(Donation.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
+        result = await db.execute(stmt)
+        donations = result.scalars().all()
+        return PaginatedResponse(
+            data=[_serialize_donation(d) for d in donations],
+            total=total, page=page, page_size=page_size,
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to list user donations: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.get("/{donation_id}", response_model=ApiResponse)

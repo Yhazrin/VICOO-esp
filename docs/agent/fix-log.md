@@ -2180,3 +2180,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Added `refreshCart` action to cartStore that fetches fresh product data via `productsApi.getById` when CartDrawer opens. Added out-of-stock indicator in cart items. Also translated remaining Chinese t() fallback string.
 - **Verification**: Cart now refreshes product data on open; out-of-stock items show warning
 - **New issues**: None
+
+## Fix 258 — Five endpoints missing try/except error handling (traceback leak)
+- **Date**: 2026-05-27 (Round 76)
+- **Files**: `backend/app/routers/editorial.py`, `backend/app/routers/ai_assistant.py`, `backend/app/routers/donations.py`, `backend/app/routers/addresses.py`
+- **Reason**: P2: Five endpoints had no try/except wrapping, causing raw Python tracebacks to be returned to clients on database or service errors.
+- **Change**: Added try/except blocks with `logger.error(exc_info=True)` and HTTP 503 responses to: `get_editorial_feed`, `analyze_artwork`, `moderate_content`, `my_donations`, `list_addresses`.
+- **Verification**: All endpoints now return clean error messages instead of raw tracebacks
+- **New issues**: None

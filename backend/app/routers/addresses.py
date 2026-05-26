@@ -26,10 +26,16 @@ async def list_addresses(
     db: AsyncSession = Depends(get_db),
 ):
     """List current user's saved addresses."""
-    stmt = select(Address).where(Address.user_id == current_user["id"]).order_by(Address.is_default.desc(), Address.created_at.desc())
-    result = await db.execute(stmt)
-    addresses = result.scalars().all()
-    return ApiResponse(data=[AddressOut.model_validate(a).model_dump() for a in addresses])
+    try:
+        stmt = select(Address).where(Address.user_id == current_user["id"]).order_by(Address.is_default.desc(), Address.created_at.desc())
+        result = await db.execute(stmt)
+        addresses = result.scalars().all()
+        return ApiResponse(data=[AddressOut.model_validate(a).model_dump() for a in addresses])
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to list addresses: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.post("", response_model=ApiResponse, status_code=201)

@@ -17,16 +17,22 @@ router = APIRouter(prefix="/editorial", tags=["Editorial"])
 @router.get("/feed", response_model=ApiResponse)
 async def get_editorial_feed(limit: int = Query(10, ge=1, le=20), db: AsyncSession = Depends(get_db)):
     """Lightweight editorial feed for Stories page integration."""
-    safe_limit = limit
-    result = await db.execute(
-        select(EditorialArticle)
-        .where(EditorialArticle.status == "published")
-        .order_by(EditorialArticle.published_at.desc())
-        .limit(safe_limit)
-    )
-    articles = result.scalars().all()
-    items = [EditorialArticleOut.model_validate(a).model_dump() for a in articles]
-    return ApiResponse(data={"items": items, "total": len(items)})
+    try:
+        safe_limit = limit
+        result = await db.execute(
+            select(EditorialArticle)
+            .where(EditorialArticle.status == "published")
+            .order_by(EditorialArticle.published_at.desc())
+            .limit(safe_limit)
+        )
+        articles = result.scalars().all()
+        items = [EditorialArticleOut.model_validate(a).model_dump() for a in articles]
+        return ApiResponse(data={"items": items, "total": len(items)})
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get editorial feed: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.post("", response_model=ApiResponse, status_code=201)

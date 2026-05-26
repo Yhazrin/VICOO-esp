@@ -94,12 +94,18 @@ async def analyze_artwork(
     _admin: dict = Depends(require_role("admin", "editor")),
 ):
     """Analyze artwork style and safety."""
-    ai_service = AIAssistantService(db)
-    result = await ai_service.analyze_artwork(
-        image_url=body.image_url,
-        description=body.description
-    )
-    return ApiResponse(data=ArtworkAnalysisResponse(**result).model_dump())
+    try:
+        ai_service = AIAssistantService(db)
+        result = await ai_service.analyze_artwork(
+            image_url=body.image_url,
+            description=body.description
+        )
+        return ApiResponse(data=ArtworkAnalysisResponse(**result).model_dump())
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Artwork analysis failed: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="AI service temporarily unavailable")
 
 
 @router.post("/moderate-content", response_model=ApiResponse)
@@ -109,9 +115,15 @@ async def moderate_content(
     _admin: dict = Depends(require_role("admin", "editor")),
 ):
     """Moderate text content for safety."""
-    ai_service = AIAssistantService(db)
-    result = await ai_service.moderate_content(text=body.text)
-    return ApiResponse(data=ContentModerationResponse(**result).model_dump())
+    try:
+        ai_service = AIAssistantService(db)
+        result = await ai_service.moderate_content(text=body.text)
+        return ApiResponse(data=ContentModerationResponse(**result).model_dump())
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Content moderation failed: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="AI service temporarily unavailable")
 
 
 @router.post("/feedback", response_model=ApiResponse)
