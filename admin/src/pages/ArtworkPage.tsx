@@ -82,7 +82,7 @@ export default function ArtworkPage() {
             {t('artwork.btnInspect')}
           </Button>
           {record.status === 'pending' && (
-            <Button size="sm" variant="primary" loading={updateMutation.isPending} onClick={(e) => { e.stopPropagation(); updateMutation.mutate({ id: record.id, status: 'approved' }); }}>
+            <Button size="sm" variant="primary" loading={updateMutation.isPending && updateMutation.variables?.id === record.id} onClick={(e) => { e.stopPropagation(); updateMutation.mutate({ id: record.id, status: 'approved' }); }}>
               {t('artwork.btnApprove')}
             </Button>
           )}

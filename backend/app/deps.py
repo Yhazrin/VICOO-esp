@@ -134,12 +134,8 @@ async def rate_limit_check(request: Request, current_user: Optional[dict] = None
     try:
         redis_client = await get_redis_client()
 
-        # Get client IP for global rate limiting
-        x_forwarded_for = request.headers.get("X-Forwarded-For")
-        if x_forwarded_for:
-            client_ip = x_forwarded_for.split(",")[0].strip()
-        else:
-            client_ip = request.client.host or "unknown"
+        # Use actual TCP connection IP to prevent X-Forwarded-For spoofing
+        client_ip = request.client.host if request.client else "unknown"
 
         current_time = time.time()
 

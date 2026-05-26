@@ -74,7 +74,7 @@ export default function CampaignPage() {
             {t('campaign.btnEdit')}
           </Button>
           {record.status === 'draft' && (
-            <Button size="sm" variant="primary" loading={updateMutation.isPending} onClick={(e) => {
+            <Button size="sm" variant="primary" loading={updateMutation.isPending && updateMutation.variables?.id === record.id} onClick={(e) => {
               e.stopPropagation();
               updateMutation.mutate({ id: record.id, data: { status: 'active' } });
             }}>
@@ -82,7 +82,7 @@ export default function CampaignPage() {
             </Button>
           )}
           {record.status === 'active' && (
-            <Button size="sm" variant="secondary" loading={updateMutation.isPending} onClick={(e) => {
+            <Button size="sm" variant="secondary" loading={updateMutation.isPending && updateMutation.variables?.id === record.id} onClick={(e) => {
               e.stopPropagation();
               updateMutation.mutate({ id: record.id, data: { status: 'completed' } });
             }}>
@@ -179,7 +179,7 @@ export default function CampaignPage() {
             <Button variant="secondary" onClick={() => { setShowCreate(false); setEditCampaign(null); }}>{t('common.cancel')}</Button>
             <Button
               variant="primary"
-              loading={createMutation.isPending || updateMutation.isPending}
+              loading={editCampaign ? updateMutation.isPending : createMutation.isPending}
               onClick={(e) => {
                 e.preventDefault();
                 if (!validateForm()) return;

@@ -66,7 +66,7 @@ export default function OrderPage() {
             {t('order.btnDetail')}
           </Button>
           {record.status === 'paid' && (
-            <Button size="sm" variant="primary" loading={updateMutation.isPending} onClick={(e) => {
+            <Button size="sm" variant="primary" loading={updateMutation.isPending && updateMutation.variables?.id === record.id} onClick={(e) => {
               e.stopPropagation();
               updateMutation.mutate({ id: record.id, status: 'shipped' });
             }}>
@@ -74,7 +74,7 @@ export default function OrderPage() {
             </Button>
           )}
           {record.status === 'shipped' && (
-            <Button size="sm" variant="secondary" loading={updateMutation.isPending} onClick={(e) => {
+            <Button size="sm" variant="secondary" loading={updateMutation.isPending && updateMutation.variables?.id === record.id} onClick={(e) => {
               e.stopPropagation();
               updateMutation.mutate({ id: record.id, status: 'completed' });
             }}>

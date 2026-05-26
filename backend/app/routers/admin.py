@@ -105,6 +105,8 @@ async def batch_moderate_artworks(
     _current_user: dict = Depends(require_role("admin", "editor")),
 ):
     """Batch approve or reject artworks."""
+    if not artwork_ids:
+        raise HTTPException(status_code=400, detail="artwork_ids must not be empty")
     if status not in _VALID_ARTWORK_STATUSES:
         raise HTTPException(status_code=400, detail=f"Invalid status. Allowed: {', '.join(sorted(_VALID_ARTWORK_STATUSES))}")
     admin_service = AdminService(db)
@@ -125,6 +127,8 @@ async def batch_moderate_children(
     _current_user: dict = Depends(require_role("admin", "compliance")),
 ):
     """Batch approve or withdraw child participants."""
+    if not child_ids:
+        raise HTTPException(status_code=400, detail="child_ids must not be empty")
     if status not in _VALID_CHILD_STATUSES:
         raise HTTPException(status_code=400, detail=f"Invalid status. Allowed: {', '.join(sorted(_VALID_CHILD_STATUSES))}")
     admin_service = AdminService(db)

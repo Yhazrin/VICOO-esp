@@ -2148,3 +2148,35 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Added `.order_by(Product.id.desc())` and `.order_by(Artwork.id.desc())` to the respective queries
 - **Verification**: Pagination is now deterministic
 - **New issues**: None
+
+## Fix 254 — Batch moderation endpoints missing empty list validation
+- **Date**: 2026-05-27 (Round 76)
+- **Files**: `backend/app/routers/admin.py`
+- **Reason**: P2: `batch_moderate_artworks` and `batch_moderate_children` endpoints accepted empty ID lists without validation. An empty list would silently execute a no-op UPDATE, masking client bugs.
+- **Change**: Added `if not artwork_ids` / `if not child_ids` checks that raise HTTP 400 before processing
+- **Verification**: Empty list submissions now return 400 error
+- **New issues**: None
+
+## Fix 255 — Rate limit IP extraction vulnerable to X-Forwarded-For spoofing
+- **Date**: 2026-05-27 (Round 76)
+- **Files**: `backend/app/deps.py`
+- **Reason**: P2: `rate_limit_check` trusted the `X-Forwarded-For` header without validation. An attacker could rotate this header to bypass per-IP rate limits on public endpoints (login, register, etc.). Security test docs explicitly require using the actual connection IP.
+- **Change**: Replaced `X-Forwarded-For` parsing with `request.client.host` (actual TCP connection IP), consistent with the contact endpoint's approach.
+- **Verification**: Rate limits now enforced on actual source IP; X-Forwarded-For manipulation no longer bypasses limits
+- **New issues**: None
+
+## Fix 256 — Admin pages shared isPending causes cross-row loading state
+- **Date**: 2026-05-27 (Round 76)
+- **Files**: `admin/src/pages/OrderPage.tsx`, `admin/src/pages/ArtworkPage.tsx`, `admin/src/pages/CampaignPage.tsx`
+- **Reason**: P3: Single `useMutation` instance's `isPending` was bound to all table row buttons. Clicking "Ship" on one order would show loading on all "Ship" buttons. CampaignPage modal also used `createMutation.isPending || updateMutation.isPending` incorrectly.
+- **Change**: Scoped loading indicators using `updateMutation.isPending && updateMutation.variables?.id === record.id`. Fixed CampaignPage modal to use `editCampaign ? updateMutation.isPending : createMutation.isPending`.
+- **Verification**: Loading state now only appears on the specific row/button being acted upon
+- **New issues**: None
+
+## Fix 257 — Cart store stale product data with no refresh mechanism
+- **Date**: 2026-05-27 (Round 76)
+- **Files**: `frontend/web-react/src/stores/cartStore.ts`, `frontend/web-react/src/components/cart/CartDrawer.tsx`
+- **Reason**: P3: Cart stored full Product objects at add-to-cart time with no refresh. Persisted to localStorage, so returning users could see stale prices, names, and out-of-stock items.
+- **Change**: Added `refreshCart` action to cartStore that fetches fresh product data via `productsApi.getById` when CartDrawer opens. Added out-of-stock indicator in cart items. Also translated remaining Chinese t() fallback string.
+- **Verification**: Cart now refreshes product data on open; out-of-stock items show warning
+- **New issues**: None
