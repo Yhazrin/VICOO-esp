@@ -1651,3 +1651,27 @@ _Round 2: No new fixes needed. All core flows verified via API._
   - `get_optional_current_user`: logs warning before returning None
 - **Verification**: All auth failure paths now produce log entries
 - **New issues**: None
+
+## Fix 202 — AI chat streaming has no abort signal, state update on unmount
+- **Date**: 2026-05-27 (Round 61)
+- **Files**: `frontend/web-react/src/components/layout/AIAssistantBall.tsx`
+- **Reason**: P2: `handleSend` called `chatStream()` without an `AbortSignal`. If the user closes the chat mid-stream, the `onToken` callback fires on an unmounted component. No cleanup on unmount.
+- **Change**: Added `abortRef` to track AbortController. Created new controller per request, passed `signal` to `chatStream()`, aborted previous stream on new send. Added `useEffect` cleanup to abort on unmount. Catch block now skips error display for intentional AbortError.
+- **Verification**: Stream aborts cleanly on unmount or new message; no stale state updates
+- **New issues**: None
+
+## Fix 203 — Unused imports in orders.py and donations.py
+- **Date**: 2026-05-27 (Round 61)
+- **Files**: `backend/app/routers/orders.py`, `backend/app/routers/donations.py`
+- **Reason**: P3: `orders.py` imported `Decimal` and `random` (never used); `donations.py` imported `Decimal` and `datetime` (never used). Leftover from mock data removal refactoring.
+- **Change**: Removed unused imports from both files
+- **Verification**: No functional change; cleaner import lists
+- **New issues**: None
+
+## Fix 204 — OAuth callback parameters have misleading defaults
+- **Date**: 2026-05-27 (Round 61)
+- **Files**: `backend/app/routers/oauth.py`
+- **Reason**: P3: `github_callback` and `google_callback` declared `request: Request = None` and `state: str = ""`. FastAPI always injects Request, so `= None` is misleading. `state` should be required for CSRF protection.
+- **Change**: Removed `= None` default from `request` and `= ""` default from `state` on both callbacks
+- **Verification**: FastAPI still injects Request; state is now required, matching CSRF protection intent
+- **New issues**: None

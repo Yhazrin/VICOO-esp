@@ -2,8 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
 from sqlalchemy import select, func, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from decimal import Decimal
-from datetime import datetime
 import logging
 
 from app.database import get_db

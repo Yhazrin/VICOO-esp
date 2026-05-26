@@ -150,7 +150,7 @@ async def github_login(request: Request):
 
 
 @router.get("/github/callback")
-async def github_callback(code: str, state: str = "", request: Request = None, db: AsyncSession = Depends(get_db)):
+async def github_callback(code: str, state: str, request: Request, db: AsyncSession = Depends(get_db)):
     """Handle GitHub OAuth callback."""
     # CSRF protection: verify state parameter matches cookie
     expected_state = request.cookies.get("oauth_state", "")
@@ -259,7 +259,7 @@ async def google_login(request: Request):
 
 
 @router.get("/google/callback")
-async def google_callback(code: str, state: str = "", request: Request = None, db: AsyncSession = Depends(get_db)):
+async def google_callback(code: str, state: str, request: Request, db: AsyncSession = Depends(get_db)):
     """Handle Google OAuth callback."""
     # CSRF protection: verify state parameter matches cookie
     expected_state = request.cookies.get("oauth_state", "")

@@ -1,9 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
-from decimal import Decimal
 import json
-import random
 import logging
 
 from app.config import settings
