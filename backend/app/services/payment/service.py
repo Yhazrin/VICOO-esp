@@ -1,7 +1,7 @@
 import logging
 from typing import Optional, Dict, Any, Tuple
 from decimal import Decimal
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi import HTTPException
 from sqlalchemy import select, func, update
@@ -54,7 +54,7 @@ class PaymentService(BaseService):
                 return existing_tx
 
         # Set expiry time
-        expires_at = datetime.now() + timedelta(minutes=expiry_minutes)
+        expires_at = datetime.now(timezone.utc) + timedelta(minutes=expiry_minutes)
 
         tx = PaymentTransaction(
             order_id=order_id,

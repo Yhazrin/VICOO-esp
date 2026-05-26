@@ -1262,3 +1262,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Added `password_hint: "See SEED_*_PASSWORD in .env"` to mock response
 - **Verification**: Demo mode now displays a useful hint instead of undefined
 - **New issues**: None
+
+## Fix 156 — Naive datetime in payment transaction expiry
+- **Date**: 2026-05-27 (Round 53)
+- **Files**: `backend/app/services/payment/service.py`
+- **Reason**: P1: `datetime.now()` used to compute `expires_at` for PaymentTransaction DB row. Naive datetime means payment expiry times are ambiguous across timezones.
+- **Change**: Changed to `datetime.now(timezone.utc)`
+- **Verification**: Matches timezone-aware pattern used throughout codebase
+- **New issues**: None
