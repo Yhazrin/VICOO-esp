@@ -1001,48 +1001,48 @@ export default function TraceabilityGlobe({
           style={{ opacity: 0, left: 0, top: 0 }}
           aria-live="polite"
         >
-          <div className="pointer-events-auto relative overflow-x-hidden overflow-y-auto max-h-[min(72dvh,520px)] border border-warm-gray/30 bg-paper/96 px-4 py-3.5 shadow-[0_12px_40px_-16px_rgba(26,26,22,0.18)] backdrop-blur-md rounded-sm space-y-2">
+          <div className="pointer-events-auto relative overflow-x-hidden overflow-y-auto max-h-[min(72dvh,520px)] border border-white/10 bg-[rgba(10,12,18,0.82)] px-4 py-3.5 shadow-[0_12px_40px_-16px_rgba(0,0,0,0.5)] backdrop-blur-xl rounded-sm space-y-2">
             <div
-              className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-rust/35 to-transparent pointer-events-none"
+              className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none"
               aria-hidden="true"
             />
-            <p className="font-display text-base font-bold text-ink leading-snug">
+            <p className="font-display text-base font-bold text-white/95 leading-snug">
               {getStageLabel(displayRecord.stage)}
             </p>
             <div className="flex flex-wrap gap-1.5">
               {displayRecord.verified ? (
-                <span className="font-body text-[10px] tracking-wider uppercase px-2 py-0.5 bg-sage/15 text-sage border border-sage/30">
+                <span className="font-body text-[10px] tracking-wider uppercase px-2 py-0.5 bg-sage/20 text-sage border border-sage/30">
                   {t('shop.detail.globeCertified')}
                 </span>
               ) : (
-                <span className="font-body text-[10px] tracking-wider uppercase px-2 py-0.5 bg-warm-gray/20 text-ink-faded border border-warm-gray/35">
+                <span className="font-body text-[10px] tracking-wider uppercase px-2 py-0.5 bg-white/8 text-white/50 border border-white/15">
                   {t('shop.detail.globeUncertified')}
                 </span>
               )}
               {carbonKg != null && !Number.isNaN(Number(carbonKg)) && (
-                <span className="font-body text-[10px] tracking-wider uppercase px-2 py-0.5 bg-rust/10 text-rust border border-rust/25">
+                <span className="font-body text-[10px] tracking-wider uppercase px-2 py-0.5 bg-rust/15 text-rust border border-rust/30">
                   {t('shop.detail.globeCarbonBadge', { kg: Number(carbonKg).toFixed(2) })}
                 </span>
               )}
             </div>
             {displayRecord.carbon_note && (
-              <p className="font-body text-[11px] text-ink-faded leading-snug">{displayRecord.carbon_note}</p>
+              <p className="font-body text-[11px] text-white/50 leading-snug">{displayRecord.carbon_note}</p>
             )}
-            <p className="font-body text-caption text-sepia-mid">
+            <p className="font-body text-caption text-white/65">
               {displayRecord.location}
               {displayRecord.date ? ` · ${displayRecord.date}` : ''}
             </p>
-            <p className="font-mono text-[11px] text-ink-faded leading-relaxed">
+            <p className="font-mono text-[11px] text-white/40 leading-relaxed">
               {precise ? t('shop.detail.coordsRegistered') : t('shop.detail.coordsDerived')}{' '}
               {displayCoords.lat.toFixed(4)}°, {displayCoords.lng.toFixed(4)}°
             </p>
             {displayRecord.description && (
-              <p className="font-body text-body-sm text-ink-faded leading-relaxed line-clamp-4">
+              <p className="font-body text-body-sm text-white/60 leading-relaxed line-clamp-4">
                 {displayRecord.description}
               </p>
             )}
             {displayRecord.gallery && displayRecord.gallery.length > 0 && (
-              <TraceMediaGallery items={displayRecord.gallery} compact className="pt-1 border-t border-warm-gray/15" />
+              <TraceMediaGallery items={displayRecord.gallery} compact className="pt-1 border-t border-white/10" />
             )}
           </div>
         </div>
