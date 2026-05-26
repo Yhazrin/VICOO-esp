@@ -1374,3 +1374,51 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Applied `_escape_like(t)` and `escape="\\"` to campaign search (lines 994-995) and supply chain search (line 1015)
 - **Verification**: LIKE wildcards in user queries no longer affect search semantics
 - **New issues**: None
+
+## Fix 170 — Vote re-query uses scalar_one() which crashes on concurrent delete
+- **Date**: 2026-05-27 (Round 56)
+- **Files**: `backend/app/routers/artworks.py`
+- **Reason**: P1: After atomic `UPDATE ... SET like_count = like_count + 1`, the re-fetch used `scalar_one()`. If a concurrent `DELETE` removes the row between update and select, this raises `NoResultFound` → unhandled 500.
+- **Change**: Changed to `scalar_one_or_none()` with explicit 404 guard
+- **Verification**: Concurrent delete during vote no longer causes unhandled crash
+- **New issues**: None
+
+## Fix 171 — Auth logout silently swallows Redis blacklist failure
+- **Date**: 2026-05-27 (Round 56)
+- **Files**: `backend/app/routers/auth.py`
+- **Reason**: P1: `except Exception: pass` during logout token blacklisting. A Redis failure silently allows a token to remain valid — no logging, no observability.
+- **Change**: Added `logger.warning()` with error details
+- **Verification**: Blacklist failures now logged for operational visibility
+- **New issues**: None
+
+## Fix 172 — Payment callback rollback failure silently swallowed
+- **Date**: 2026-05-27 (Round 56)
+- **Files**: `backend/app/routers/payments.py`
+- **Reason**: P1: `except Exception: pass` during `db.rollback()` after WeChat notify error. A failed rollback risks inconsistent payment state with no logging.
+- **Change**: Added `logger.error()` with rollback failure details
+- **Verification**: Rollback failures now logged
+- **New issues**: None
+
+## Fix 173 — Donation donor_user_id can be spoofed via request body
+- **Date**: 2026-05-27 (Round 56)
+- **Files**: `backend/app/routers/donations.py`
+- **Reason**: P1: `create_donation` only set `donor_user_id` from `current_user["id"]` when the body field was `None`. If `DonationCreate` schema ever adds `donor_user_id`, a user could attribute donations to another user.
+- **Change**: Force `donor_user_id = current_user["id"]` unconditionally, ignoring any client-supplied value
+- **Verification**: donor_user_id always matches authenticated user
+- **New issues**: None
+
+## Fix 174 — Checkout double-submit creates duplicate orders
+- **Date**: 2026-05-27 (Round 56)
+- **Files**: `frontend/web-react/src/pages/Checkout/index.tsx`
+- **Reason**: P1: `handlePlaceOrder` reset `placingRef.current = false` in `finally` block after order creation. Since polling takes over, a rapid second click could create a duplicate order before payment is confirmed.
+- **Change**: Moved `placingRef` reset to error paths only. On success, ref stays true until polling resolves (payment confirmed or timeout). Added useEffect to reset ref when `pendingPayOrder` clears.
+- **Verification**: Duplicate order creation prevented on rapid clicks
+- **New issues**: None
+
+## Fix 175 — AI assistant RAG context retrieval errors silently swallowed
+- **Date**: 2026-05-27 (Round 56)
+- **Files**: `backend/app/services/ai_assistant/service.py`
+- **Reason**: P1: Campaign and supply chain retrieval during RAG context building used `except Exception: pass` — DB errors, timeouts, and connection failures were completely invisible.
+- **Change**: Added `logger.debug()` with error details for both campaign and supply chain retrieval paths
+- **Verification**: RAG retrieval failures now logged for debugging
+- **New issues**: None
