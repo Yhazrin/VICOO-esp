@@ -119,7 +119,7 @@ export default function DataTable<T extends Record<string, any>>({
             ) : (
               data.map((record, idx) => (
                 <tr
-                  key={record[rowKey] || idx}
+                  key={record[rowKey] ?? idx}
                   onClick={() => onRowClick?.(record)}
                   style={{
                     cursor: onRowClick ? 'pointer' : 'default',

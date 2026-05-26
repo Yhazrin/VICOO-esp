@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 import logging
@@ -15,9 +15,9 @@ router = APIRouter(prefix="/editorial", tags=["Editorial"])
 
 
 @router.get("/feed", response_model=ApiResponse)
-async def get_editorial_feed(limit: int = 10, db: AsyncSession = Depends(get_db)):
+async def get_editorial_feed(limit: int = Query(10, ge=1, le=20), db: AsyncSession = Depends(get_db)):
     """Lightweight editorial feed for Stories page integration."""
-    safe_limit = max(1, min(limit, 20))
+    safe_limit = limit
     result = await db.execute(
         select(EditorialArticle)
         .where(EditorialArticle.status == "published")

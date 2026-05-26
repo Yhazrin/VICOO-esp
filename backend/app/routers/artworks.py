@@ -305,7 +305,7 @@ async def create_artwork(
 
 
 @router.put("/{artwork_id}", response_model=ApiResponse)
-async def update_artwork(artwork_id: int, body: ArtworkUpdate, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user), _admin: dict = Depends(require_role("admin", "editor"))):
+async def update_artwork(artwork_id: int, body: ArtworkUpdate, db: AsyncSession = Depends(get_db), _admin: dict = Depends(require_role("admin", "editor"))):
     """Update an artwork."""
     try:
         stmt = select(Artwork).options(selectinload(Artwork.child_participant)).where(Artwork.id == artwork_id)
@@ -345,7 +345,7 @@ async def get_artwork_status(artwork_id: int, db: AsyncSession = Depends(get_db)
 
 
 @router.put("/{artwork_id}/status", response_model=ApiResponse)
-async def update_artwork_status(artwork_id: int, body: ArtworkStatusUpdate, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user), _admin: dict = Depends(require_role("admin", "editor"))):
+async def update_artwork_status(artwork_id: int, body: ArtworkStatusUpdate, db: AsyncSession = Depends(get_db), _admin: dict = Depends(require_role("admin", "editor"))):
     """Update artwork status."""
     try:
         stmt = select(Artwork).options(selectinload(Artwork.child_participant)).where(Artwork.id == artwork_id)
@@ -408,7 +408,7 @@ async def vote_artwork(artwork_id: int, db: AsyncSession = Depends(get_db), redi
 
 
 @router.delete("/{artwork_id}", response_model=ApiResponse)
-async def delete_artwork(artwork_id: int, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user), _admin: dict = Depends(require_role("admin"))):
+async def delete_artwork(artwork_id: int, db: AsyncSession = Depends(get_db), _admin: dict = Depends(require_role("admin"))):
     """Delete an artwork."""
     try:
         stmt = select(Artwork).where(Artwork.id == artwork_id)

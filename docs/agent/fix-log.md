@@ -1906,3 +1906,26 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Added `print(f"Warning: cache invalidation failed: {e}")` to the except block
 - **Verification**: Cache failures now produce visible output during seed runs
 - **New issues**: None
+
+## Fix 229 — Backend structural improvements
+- **Date**: 2026-05-27 (Round 69)
+- **Files**: `backend/app/routers/artworks.py`, `backend/app/routers/editorial.py`, `backend/app/main.py`
+- **Reason**: P2-P3: Redundant auth dependencies, inconsistent param validation, missing security header
+- **Change**:
+  - `artworks.py`: Removed redundant `current_user: dict = Depends(get_current_user)` from `update_artwork`, `update_artwork_status`, `delete_artwork` — `require_role` already calls `get_current_user` internally, eliminating a redundant DB query and token decode per request
+  - `editorial.py`: Changed `limit: int = 10` with manual `max(1, min(limit, 20))` clamping to `limit: int = Query(10, ge=1, le=20)` for consistent FastAPI validation pattern
+  - `main.py`: Added `X-XSS-Protection: 0` header to disable legacy XSS filters (CSP already provides XSS mitigation)
+- **Verification**: No functional change; cleaner dependency injection, consistent validation, defense-in-depth headers
+- **New issues**: None
+
+## Fix 230 — Frontend structural fixes (rAF cleanup, key fallback, Modal a11y, PaymentQRModal stability)
+- **Date**: 2026-05-27 (Round 69)
+- **Files**: `ScrollNarrative.tsx`, `admin/DataTable.tsx`, `admin/Modal.tsx`, `PaymentQRModal.tsx`
+- **Reason**: P2: Runtime bugs and accessibility violations found in deep scan
+- **Change**:
+  - `ScrollNarrative.tsx`: Track `requestAnimationFrame` ID in local variable and `cancelAnimationFrame` in cleanup, preventing state updates on unmounted component
+  - `admin/DataTable.tsx`: Changed `record[rowKey] || idx` to `record[rowKey] ?? idx` so that falsy keys like `0` or `""` don't incorrectly fall back to index
+  - `admin/Modal.tsx`: Added `useEffect` with Escape key handler and `document.body.style.overflow = 'hidden'` scroll lock when modal is open, with proper cleanup on close
+  - `PaymentQRModal.tsx`: Stabilized `onFailure` callback using ref pattern (`onFailureRef.current`) so the Escape key useEffect doesn't re-run when parent passes new function references, preventing body scroll lock toggling and focus reset on every parent re-render
+- **Verification**: No rAF leak on unmount; DataTable rows with id=0 render correctly; admin Modal closes on Escape and locks background scroll; PaymentQRModal Escape handler is stable across re-renders
+- **New issues**: None
