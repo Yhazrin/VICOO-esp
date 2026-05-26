@@ -17,17 +17,32 @@ import {
   uploadTraceMedia,
 } from '../services/api';
 
+/* ── Shared style tokens ── */
 const inputStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '8px 12px',
-  border: '1px solid var(--color-border)',
-  borderRadius: '6px',
-  fontSize: 13,
-  outline: 'none',
-  boxSizing: 'border-box',
+  width: '100%', padding: '8px 12px',
+  border: '1px solid var(--color-border)', borderRadius: 6,
+  fontSize: 13, outline: 'none', boxSizing: 'border-box',
+  background: 'var(--color-bg)',
+  color: 'var(--color-text)',
+  transition: 'border-color .15s',
+};
+
+const labelStyle: React.CSSProperties = { display: 'block', fontSize: 12, fontWeight: 500, marginBottom: 5, color: 'var(--color-text-2)' };
+
+const btnStyle: React.CSSProperties = {
+  padding: '4px 10px', border: '1px solid var(--color-border)', borderRadius: 4,
+  fontSize: 11, cursor: 'pointer', background: 'transparent', color: 'var(--color-text-2)',
+};
+
+const sectionTitleStyle: React.CSSProperties = {
+  fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em',
+  color: 'var(--color-text-3)', marginBottom: 12, paddingBottom: 8,
+  borderBottom: '1px solid var(--color-border)',
 };
 
 const STAGES = ['material_sourcing', 'processing', 'manufacturing', 'quality_check', 'shipping'] as const;
+
+const CATEGORIES = ['apparel', 'accessories', 'stationery', 'prints', 'lifestyle', 'footwear', 'home', 'gift_box'] as const;
 
 const emptyForm = {
   name: '', description: '', price: '', currency: 'CNY', imageUrl: '',
@@ -44,17 +59,68 @@ const emptyNode = {
   timestamp: '', gallery: [] as TraceMediaItem[],
 };
 
+type EditTab = 'basic' | 'impact' | 'supply';
+
+/* ============================================================================
+ *  Tab Button
+ * ========================================================================= */
+function TabButton({ active, label, count, onClick }: {
+  active: boolean; label: string; count?: number; onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        padding: '10px 20px',
+        fontSize: 13,
+        fontWeight: active ? 600 : 400,
+        color: active ? 'var(--color-accent-2)' : 'var(--color-text-3)',
+        background: 'transparent',
+        border: 'none',
+        borderBottom: active ? '2px solid var(--color-accent-2)' : '2px solid transparent',
+        cursor: 'pointer',
+        transition: 'all .15s',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6,
+      }}
+    >
+      {label}
+      {count != null && (
+        <span style={{
+          fontSize: 10, fontWeight: 600, padding: '1px 6px', borderRadius: 10,
+          background: active ? 'var(--color-accent-2)' : 'var(--color-border)',
+          color: active ? '#fff' : 'var(--color-text-3)',
+        }}>{count}</span>
+      )}
+    </button>
+  );
+}
+
+/* ============================================================================
+ *  Section Header
+ * ========================================================================= */
+function SectionHeader({ title }: { title: string }) {
+  return <div style={sectionTitleStyle}>{title}</div>;
+}
+
+/* ============================================================================
+ *  Main Page
+ * ========================================================================= */
 export default function ProductPage() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState('');
+
+  // Product edit state
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [activeTab, setActiveTab] = useState<EditTab>('basic');
 
-  // Traceability state
-  const [traceProduct, setTraceProduct] = useState<AdminProduct | null>(null);
+  // Supply chain node edit state
   const [nodeModalOpen, setNodeModalOpen] = useState(false);
   const [editingNode, setEditingNode] = useState<SupplyChainRecord | null>(null);
   const [nodeForm, setNodeForm] = useState(emptyNode);
@@ -85,9 +151,9 @@ export default function ProductPage() {
   );
 
   const { data: traceRecords = [] } = useQuery({
-    queryKey: ['supply-chain', traceProduct?.id],
-    queryFn: () => fetchSupplyChainRecords(traceProduct!.id),
-    enabled: !!traceProduct,
+    queryKey: ['supply-chain', editingId],
+    queryFn: () => fetchSupplyChainRecords(editingId!),
+    enabled: !!editingId && modalOpen,
   });
 
   /* ── Mutations ── */
@@ -168,6 +234,7 @@ export default function ProductPage() {
   function openCreate() {
     setEditingId(null);
     setForm(emptyForm);
+    setActiveTab('basic');
     setModalOpen(true);
   }
 
@@ -195,6 +262,7 @@ export default function ProductPage() {
       traceStoryTitleEn: product.traceStoryTitleEn ?? '',
       traceStoryContentEn: product.traceStoryContentEn ?? '',
     });
+    setActiveTab('basic');
     setModalOpen(true);
   }
 
@@ -202,6 +270,7 @@ export default function ProductPage() {
     setModalOpen(false);
     setEditingId(null);
     setForm(emptyForm);
+    setActiveTab('basic');
   }
 
   function openNodeCreate() {
@@ -254,10 +323,7 @@ export default function ProductPage() {
   }
 
   function removeGalleryItem(idx: number) {
-    setNodeForm((prev) => ({
-      ...prev,
-      gallery: prev.gallery.filter((_, i) => i !== idx),
-    }));
+    setNodeForm((prev) => ({ ...prev, gallery: prev.gallery.filter((_, i) => i !== idx) }));
   }
 
   function submitForm(e: React.FormEvent) {
@@ -288,68 +354,380 @@ export default function ProductPage() {
 
   function submitNode(e: React.FormEvent) {
     e.preventDefault();
-    if (!traceProduct) return;
+    if (!editingId) return;
     if (editingNode) {
       updateNodeMut.mutate({ id: editingNode.id, node: nodeForm });
     } else {
-      createNodeMut.mutate({ productId: traceProduct.id, node: nodeForm });
+      createNodeMut.mutate({ productId: editingId, node: nodeForm });
     }
   }
 
   function handleDelete(id: string) {
-    if (confirm(t('product.confirmDelete'))) {
-      deleteMut.mutate(id);
-    }
+    if (confirm(t('product.confirmDelete'))) deleteMut.mutate(id);
   }
 
   function handleDeleteNode(id: string) {
-    if (confirm(t('product.confirmDeleteNode'))) {
-      deleteNodeMut.mutate(id);
-    }
+    if (confirm(t('product.confirmDeleteNode'))) deleteNodeMut.mutate(id);
   }
 
   const stageLabel = (stage: string) => t(`product.stage${stage.split('_').map(w => w[0].toUpperCase() + w.slice(1)).join('')}`);
 
-  /* ── Columns ── */
+  const stageIcon = (stage: string) => {
+    const icons: Record<string, string> = {
+      material_sourcing: '🌱', processing: '⚙️', manufacturing: '🏭',
+      quality_check: '✅', shipping: '🚚',
+    };
+    return icons[stage] ?? '📦';
+  };
+
+  /* ── Table columns ── */
   const columns: Column<AdminProduct>[] = [
-    { key: 'name', title: t('product.colName'), minWidth: 160 },
+    {
+      key: 'name', title: t('product.colName'), minWidth: 180,
+      render: (v, row) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {row.imageUrl && (
+            <img
+              src={row.imageUrl}
+              alt=""
+              style={{ width: 36, height: 36, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }}
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
+          )}
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 500 }}>{v as string}</div>
+            {row.nameEn && <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{row.nameEn}</div>}
+          </div>
+        </div>
+      ),
+    },
     {
       key: 'price', title: t('product.colPrice'), width: 110,
       render: (v, row) => `${row.currency} ${Number(v).toFixed(2)}`,
     },
-    { key: 'category', title: t('product.colCategory'), width: 110 },
-    { key: 'stock', title: t('product.colStock'), width: 80 },
-    { key: 'status', title: t('product.colStatus'), width: 90 },
+    { key: 'category', title: t('product.colCategory'), width: 100 },
+    { key: 'stock', title: t('product.colStock'), width: 70 },
     {
-      key: 'isImpactProduct', title: t('product.colImpact'), width: 90,
-      render: (v) => (v ? t('common.yes') : t('common.no')),
+      key: 'status', title: t('product.colStatus'), width: 90,
+      render: (v) => {
+        const colors: Record<string, { bg: string; fg: string }> = {
+          active: { bg: 'var(--color-success-bg)', fg: 'var(--color-success)' },
+          inactive: { bg: 'var(--color-border)', fg: 'var(--color-text-3)' },
+          sold_out: { bg: 'var(--color-warning-bg, rgba(255,170,0,0.1))', fg: 'var(--color-warning, #b8860b)' },
+        };
+        const c = colors[v as string] ?? colors.inactive;
+        return (
+          <span style={{ fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 4, background: c.bg, color: c.fg }}>
+            {t(`product.filter${(v as string).charAt(0).toUpperCase() + (v as string).slice(1).replace('_o', 'O')}`)}
+          </span>
+        );
+      },
     },
     {
-      key: 'createdAt', title: t('product.colCreatedAt'), width: 150,
+      key: 'isImpactProduct', title: t('product.colImpact'), width: 80,
+      render: (v) => v ? (
+        <span style={{ fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 4, background: 'var(--color-info-bg)', color: 'var(--color-info)' }}>
+          {t('common.yes')}
+        </span>
+      ) : <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{t('common.no')}</span>,
+    },
+    {
+      key: 'createdAt', title: t('product.colCreatedAt'), width: 140,
       render: (v) => dayjs(v).format('YYYY-MM-DD HH:mm'),
     },
     {
-      key: 'id' as any, title: t('product.colActions'), width: 220,
+      key: 'id' as any, title: t('product.colActions'), width: 130,
       render: (_v, row) => (
         <div style={{ display: 'flex', gap: 6 }}>
-          <button
-            onClick={() => openEdit(row)}
-            style={{ ...btnStyle, color: 'var(--color-accent-2)', borderColor: 'var(--color-accent-2)' }}
-          >{t('product.btnEdit')}</button>
-          <button
-            onClick={() => { setTraceProduct(row); }}
-            style={{ ...btnStyle, color: 'var(--color-success)', borderColor: 'var(--color-success)' }}
-          >{t('product.sectionTraceability')}</button>
-          <button
-            onClick={() => handleDelete(row.id)}
-            style={{ ...btnStyle, color: 'var(--color-error)', borderColor: 'var(--color-error)' }}
-          >{t('product.btnDelete')}</button>
+          <button onClick={() => openEdit(row)} style={{ ...btnStyle, color: 'var(--color-accent-2)', borderColor: 'var(--color-accent-2)' }}>
+            {t('product.btnEdit')}
+          </button>
+          <button onClick={() => handleDelete(row.id)} style={{ ...btnStyle, color: 'var(--color-error)', borderColor: 'var(--color-error)' }}>
+            {t('product.btnDelete')}
+          </button>
         </div>
       ),
     },
   ];
 
-  /* ── Render ── */
+  /* ══════════════════════════════════════════════════════════════════════════
+   *  RENDER — Tab: Basic Info
+   * ═════════════════════════════════════════════════════════════════════════ */
+  function renderBasicTab() {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        {/* ── Core Fields ── */}
+        <div>
+          <SectionHeader title={t('product.sectionCore')} />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div>
+              <label style={labelStyle}>{t('product.labelName')} *</label>
+              <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>{t('product.labelNameEn')}</label>
+              <input value={form.nameEn} onChange={(e) => setForm({ ...form, nameEn: e.target.value })} style={inputStyle} placeholder={t('product.labelNameEnHint')} />
+            </div>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label style={labelStyle}>{t('product.labelDescription')}</label>
+              <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} style={{ ...inputStyle, height: 76, resize: 'vertical' }} />
+            </div>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label style={labelStyle}>{t('product.labelDescriptionEn')}</label>
+              <textarea value={form.descriptionEn} onChange={(e) => setForm({ ...form, descriptionEn: e.target.value })} style={{ ...inputStyle, height: 60, resize: 'vertical' }} />
+            </div>
+          </div>
+        </div>
+
+        {/* ── Pricing & Inventory ── */}
+        <div>
+          <SectionHeader title={t('product.sectionPricing')} />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 12 }}>
+            <div>
+              <label style={labelStyle}>{t('product.labelPrice')} *</label>
+              <input type="number" min="0" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>{t('product.labelCurrency')}</label>
+              <input value={form.currency} onChange={(e) => setForm({ ...form, currency: e.target.value })} style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>{t('product.labelStock')}</label>
+              <input type="number" min="0" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>{t('product.labelStatus')}</label>
+              <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as AdminProduct['status'] })} style={inputStyle}>
+                <option value="active">{t('product.filterActive')}</option>
+                <option value="inactive">{t('product.filterInactive')}</option>
+                <option value="sold_out">{t('product.filterSoldOut')}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Category & Image ── */}
+        <div>
+          <SectionHeader title={t('product.sectionMedia')} />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div>
+              <label style={labelStyle}>{t('product.labelCategory')}</label>
+              <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} style={inputStyle}>
+                {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={labelStyle}>{t('product.labelImageUrl')}</label>
+              <input value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} style={inputStyle} placeholder="https://..." />
+            </div>
+          </div>
+          {form.imageUrl && (
+            <div style={{ marginTop: 10 }}>
+              <img
+                src={form.imageUrl}
+                alt="preview"
+                style={{ height: 80, borderRadius: 8, objectFit: 'cover', border: '1px solid var(--color-border)' }}
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  /* ══════════════════════════════════════════════════════════════════════════
+   *  RENDER — Tab: Impact & Traceability Story
+   * ═════════════════════════════════════════════════════════════════════════ */
+  function renderImpactTab() {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        {/* ── Impact Settings ── */}
+        <div>
+          <SectionHeader title={t('product.sectionImpactSettings')} />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 12 }}>
+            <div>
+              <label style={labelStyle}>{t('product.labelImpact')}</label>
+              <select value={String(form.isImpactProduct)} onChange={(e) => setForm({ ...form, isImpactProduct: e.target.value === 'true' })} style={inputStyle}>
+                <option value="true">{t('common.yes')}</option>
+                <option value="false">{t('common.no')}</option>
+              </select>
+            </div>
+            <div>
+              <label style={labelStyle}>{t('product.labelDonationPercentage')}</label>
+              <input type="number" min="0" max="100" step="0.01" value={form.donationPercentage} onChange={(e) => setForm({ ...form, donationPercentage: e.target.value })} style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>{t('product.labelCampaignId')}</label>
+              <input value={form.campaignId} onChange={(e) => setForm({ ...form, campaignId: e.target.value })} style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>{t('product.labelArtworkId')}</label>
+              <input value={form.artworkId} onChange={(e) => setForm({ ...form, artworkId: e.target.value })} style={inputStyle} />
+            </div>
+          </div>
+        </div>
+
+        {/* ── Origin ── */}
+        <div>
+          <SectionHeader title={t('product.sectionOrigin')} />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div>
+              <label style={labelStyle}>{t('product.labelOriginCountry')}</label>
+              <select
+                value={form.originCountryId}
+                onChange={(e) => setForm({ ...form, originCountryId: e.target.value, originRegionId: '' })}
+                style={inputStyle}
+              >
+                <option value="">{t('common.none')}</option>
+                {countries.map((c) => <option key={c.id} value={c.id}>{c.nameZh} ({c.code})</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={labelStyle}>{t('product.labelOriginRegion')}</label>
+              <select value={form.originRegionId} onChange={(e) => setForm({ ...form, originRegionId: e.target.value })} style={inputStyle}>
+                <option value="">{t('common.none')}</option>
+                {selectableRegions.map((r) => <option key={r.id} value={r.id}>{r.nameZh}</option>)}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Trace Story (zh) ── */}
+        <div>
+          <SectionHeader title={t('product.sectionTraceStory')} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div>
+              <label style={labelStyle}>{t('product.labelTraceStoryTitle')}</label>
+              <input value={form.traceStoryTitle} onChange={(e) => setForm({ ...form, traceStoryTitle: e.target.value })} style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>{t('product.labelTraceStoryContent')}</label>
+              <textarea value={form.traceStoryContent} onChange={(e) => setForm({ ...form, traceStoryContent: e.target.value })} style={{ ...inputStyle, height: 100, resize: 'vertical' }} />
+            </div>
+          </div>
+        </div>
+
+        {/* ── Trace Story (en) ── */}
+        <div>
+          <SectionHeader title={t('product.sectionTraceStoryEn')} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div>
+              <label style={labelStyle}>{t('product.labelTraceStoryTitleEn')}</label>
+              <input value={form.traceStoryTitleEn} onChange={(e) => setForm({ ...form, traceStoryTitleEn: e.target.value })} style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>{t('product.labelTraceStoryContentEn')}</label>
+              <textarea value={form.traceStoryContentEn} onChange={(e) => setForm({ ...form, traceStoryContentEn: e.target.value })} style={{ ...inputStyle, height: 80, resize: 'vertical' }} />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ══════════════════════════════════════════════════════════════════════════
+   *  RENDER — Tab: Supply Chain Nodes
+   * ═════════════════════════════════════════════════════════════════════════ */
+  function renderSupplyTab() {
+    if (!editingId) {
+      return (
+        <div style={{ textAlign: 'center', padding: '48px 20px', color: 'var(--color-text-3)' }}>
+          <div style={{ fontSize: 32, marginBottom: 12, opacity: 0.4 }}>📦</div>
+          <p style={{ fontSize: 13 }}>{t('product.supplyChainSaveFirst')}</p>
+        </div>
+      );
+    }
+
+    return (
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <p style={{ fontSize: 12, color: 'var(--color-text-3)', margin: 0 }}>{t('product.traceabilityDesc')}</p>
+          <Button variant="primary" onClick={openNodeCreate} style={{ flexShrink: 0 }}>{t('product.btnAddNode')}</Button>
+        </div>
+
+        {traceRecords.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--color-text-3)', border: '1px dashed var(--color-border)', borderRadius: 8 }}>
+            <div style={{ fontSize: 28, marginBottom: 8, opacity: 0.4 }}>🔗</div>
+            <p style={{ fontSize: 13, margin: 0 }}>{t('product.noTraceNodes')}</p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            {/* Timeline connector */}
+            {traceRecords.map((rec, idx) => (
+              <div key={rec.id} style={{ display: 'flex', gap: 16 }}>
+                {/* Timeline line + dot */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 28, flexShrink: 0 }}>
+                  <div style={{
+                    width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 14, background: rec.certified ? 'var(--color-success-bg)' : 'var(--color-info-bg)',
+                    border: `2px solid ${rec.certified ? 'var(--color-success)' : 'var(--color-info)'}`,
+                  }}>
+                    {stageIcon(rec.stage)}
+                  </div>
+                  {idx < traceRecords.length - 1 && (
+                    <div style={{ width: 2, flex: 1, minHeight: 20, background: 'var(--color-border)' }} />
+                  )}
+                </div>
+
+                {/* Card */}
+                <div style={{
+                  flex: 1, border: '1px solid var(--color-border)', borderRadius: 8,
+                  padding: 14, marginBottom: 8, background: 'var(--color-surface)',
+                  transition: 'box-shadow .15s',
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <span style={{
+                        padding: '2px 10px', borderRadius: 4, fontSize: 11, fontWeight: 600,
+                        fontFamily: 'var(--font-mono)', background: 'var(--color-info-bg)', color: 'var(--color-info)',
+                      }}>{stageLabel(rec.stage)}</span>
+                      {rec.certified && (
+                        <span style={{
+                          padding: '2px 8px', borderRadius: 4, fontSize: 10, fontWeight: 500,
+                          background: 'var(--color-success-bg)', color: 'var(--color-success)',
+                        }}>Certified</span>
+                      )}
+                      {rec.timestamp && (
+                        <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{dayjs(rec.timestamp).format('YYYY-MM-DD')}</span>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                      <button onClick={() => openNodeEdit(rec)} style={{ ...btnStyle, fontSize: 10, padding: '2px 8px' }}>{t('product.btnEditNode')}</button>
+                      <button onClick={() => handleDeleteNode(rec.id)} style={{ ...btnStyle, fontSize: 10, padding: '2px 8px', color: 'var(--color-error)', borderColor: 'var(--color-error)' }}>{t('product.btnDeleteNode')}</button>
+                    </div>
+                  </div>
+                  {rec.description && <div style={{ fontSize: 13, color: 'var(--color-text)', marginBottom: 4, lineHeight: 1.5 }}>{rec.description}</div>}
+                  <div style={{ fontSize: 11, color: 'var(--color-text-3)', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                    {rec.location && <span>📍 {rec.location}</span>}
+                    {rec.carbonKg != null && <span>🌿 {rec.carbonKg} kg CO₂</span>}
+                    {rec.latitude != null && rec.longitude != null && (
+                      <span>🌐 {Number(rec.latitude).toFixed(2)}, {Number(rec.longitude).toFixed(2)}</span>
+                    )}
+                  </div>
+                  {rec.gallery.length > 0 && (
+                    <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
+                      {rec.gallery.map((item, i) => (
+                        item.type === 'video' ? (
+                          <video key={i} src={item.url} style={{ width: 64, height: 48, objectFit: 'cover', borderRadius: 4 }} muted />
+                        ) : (
+                          <img key={i} src={item.url} alt={item.caption ?? ''} style={{ width: 64, height: 48, objectFit: 'cover', borderRadius: 4 }} />
+                        )
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  /* ══════════════════════════════════════════════════════════════════════════
+   *  MAIN RENDER
+   * ═════════════════════════════════════════════════════════════════════════ */
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
@@ -376,200 +754,55 @@ export default function ProductPage() {
       <DataTable columns={columns} data={data?.data || []} rowKey="id" loading={isLoading} />
       <Pagination page={page} totalPages={data?.totalPages || 1} total={data?.total || 0} pageSize={10} onPageChange={setPage} />
 
-      {/* ── Create / Edit Product Modal ── */}
+      {/* ══════════════════════════════════════════════════════════════════
+       *  Product Edit Modal — Tabbed Layout
+       * ═════════════════════════════════════════════════════════════════ */}
       <Modal
         open={modalOpen}
         onClose={closeModal}
         title={editingId ? t('product.modalEditTitle') : t('product.modalCreateTitle')}
-        width={760}
+        width={880}
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>{t('common.cancel')}</Button>
-            <Button variant="primary" loading={createMut.isPending || updateMut.isPending} onClick={(e) => submitForm(e as any)}>
+            <Button
+              variant="primary"
+              loading={createMut.isPending || updateMut.isPending}
+              onClick={(e) => submitForm(e as any)}
+            >
               {editingId ? t('product.btnSave') : t('product.btnCreateSubmit')}
             </Button>
           </>
         }
       >
-        <form onSubmit={submitForm} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <div>
-            <label style={labelStyle}>{t('product.labelName')} *</label>
-            <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} style={inputStyle} />
-          </div>
-          <div>
-            <label style={labelStyle}>{t('product.labelPrice')} *</label>
-            <input type="number" min="0" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} style={inputStyle} />
-          </div>
-          <div>
-            <label style={labelStyle}>{t('product.labelCurrency')}</label>
-            <input value={form.currency} onChange={(e) => setForm({ ...form, currency: e.target.value })} style={inputStyle} />
-          </div>
-          <div>
-            <label style={labelStyle}>{t('product.labelCategory')}</label>
-            <input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} style={inputStyle} />
-          </div>
-          <div>
-            <label style={labelStyle}>{t('product.labelStock')}</label>
-            <input type="number" min="0" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} style={inputStyle} />
-          </div>
-          <div>
-            <label style={labelStyle}>{t('product.labelStatus')}</label>
-            <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as AdminProduct['status'] })} style={inputStyle}>
-              <option value="active">{t('product.filterActive')}</option>
-              <option value="inactive">{t('product.filterInactive')}</option>
-              <option value="sold_out">{t('product.filterSoldOut')}</option>
-            </select>
-          </div>
-          <div style={{ gridColumn: '1 / -1' }}>
-            <label style={labelStyle}>{t('product.labelDescription')}</label>
-            <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} style={{ ...inputStyle, height: 80 }} />
-          </div>
-          <div>
-            <label style={labelStyle}>{t('product.labelNameEn')}</label>
-            <input value={form.nameEn} onChange={(e) => setForm({ ...form, nameEn: e.target.value })} style={inputStyle} placeholder={t('product.labelNameEnHint')} />
-          </div>
-          <div>
-            <label style={labelStyle}>{t('product.labelDescriptionEn')}</label>
-            <textarea value={form.descriptionEn} onChange={(e) => setForm({ ...form, descriptionEn: e.target.value })} style={{ ...inputStyle, height: 72 }} />
-          </div>
-          <div style={{ gridColumn: '1 / -1' }}>
-            <label style={labelStyle}>{t('product.labelImageUrl')}</label>
-            <input value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} style={inputStyle} />
-          </div>
-          <div>
-            <label style={labelStyle}>{t('product.labelImpact')}</label>
-            <select value={String(form.isImpactProduct)} onChange={(e) => setForm({ ...form, isImpactProduct: e.target.value === 'true' })} style={inputStyle}>
-              <option value="true">{t('common.yes')}</option>
-              <option value="false">{t('common.no')}</option>
-            </select>
-          </div>
-          <div>
-            <label style={labelStyle}>{t('product.labelDonationPercentage')}</label>
-            <input type="number" min="0" max="100" step="0.01" value={form.donationPercentage} onChange={(e) => setForm({ ...form, donationPercentage: e.target.value })} style={inputStyle} />
-          </div>
-          <div>
-            <label style={labelStyle}>{t('product.labelCampaignId')}</label>
-            <input value={form.campaignId} onChange={(e) => setForm({ ...form, campaignId: e.target.value })} style={inputStyle} />
-          </div>
-          <div>
-            <label style={labelStyle}>{t('product.labelArtworkId')}</label>
-            <input value={form.artworkId} onChange={(e) => setForm({ ...form, artworkId: e.target.value })} style={inputStyle} />
-          </div>
-          <div>
-            <label style={labelStyle}>{t('product.labelOriginCountry')}</label>
-            <select
-              value={form.originCountryId}
-              onChange={(e) => setForm({ ...form, originCountryId: e.target.value, originRegionId: '' })}
-              style={inputStyle}
-            >
-              <option value="">{t('common.none')}</option>
-              {countries.map((c) => (
-                <option key={c.id} value={c.id}>{c.nameZh} ({c.code})</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label style={labelStyle}>{t('product.labelOriginRegion')}</label>
-            <select value={form.originRegionId} onChange={(e) => setForm({ ...form, originRegionId: e.target.value })} style={inputStyle}>
-              <option value="">{t('common.none')}</option>
-              {selectableRegions.map((r) => (
-                <option key={r.id} value={r.id}>{r.nameZh}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label style={labelStyle}>{t('product.labelTraceStoryTitle')}</label>
-            <input value={form.traceStoryTitle} onChange={(e) => setForm({ ...form, traceStoryTitle: e.target.value })} style={inputStyle} />
-          </div>
-          <div style={{ gridColumn: '1 / -1' }}>
-            <label style={labelStyle}>{t('product.labelTraceStoryContent')}</label>
-            <textarea value={form.traceStoryContent} onChange={(e) => setForm({ ...form, traceStoryContent: e.target.value })} style={{ ...inputStyle, height: 110 }} />
-          </div>
-          <div>
-            <label style={labelStyle}>{t('product.labelTraceStoryTitleEn')}</label>
-            <input value={form.traceStoryTitleEn} onChange={(e) => setForm({ ...form, traceStoryTitleEn: e.target.value })} style={inputStyle} />
-          </div>
-          <div style={{ gridColumn: '1 / -1' }}>
-            <label style={labelStyle}>{t('product.labelTraceStoryContentEn')}</label>
-            <textarea value={form.traceStoryContentEn} onChange={(e) => setForm({ ...form, traceStoryContentEn: e.target.value })} style={{ ...inputStyle, height: 88 }} />
-          </div>
+        {/* Tab Bar */}
+        <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', marginBottom: 20, marginTop: -4 }}>
+          <TabButton active={activeTab === 'basic'} label={t('product.tabBasic')} onClick={() => setActiveTab('basic')} />
+          <TabButton active={activeTab === 'impact'} label={t('product.tabImpact')} onClick={() => setActiveTab('impact')} />
+          <TabButton
+            active={activeTab === 'supply'}
+            label={t('product.tabSupplyChain')}
+            count={editingId ? traceRecords.length : undefined}
+            onClick={() => setActiveTab('supply')}
+          />
+        </div>
+
+        {/* Tab Content */}
+        <form onSubmit={submitForm}>
+          {activeTab === 'basic' && renderBasicTab()}
+          {activeTab === 'impact' && renderImpactTab()}
+          {activeTab === 'supply' && renderSupplyTab()}
         </form>
       </Modal>
 
-      {/* ── Traceability Panel Modal ── */}
-      <Modal
-        open={!!traceProduct}
-        onClose={() => setTraceProduct(null)}
-        title={`${t('product.sectionTraceability')} — ${traceProduct?.name ?? ''}`}
-        width={900}
-        footer={
-          <>
-            <Button variant="secondary" onClick={() => setTraceProduct(null)}>{t('common.close')}</Button>
-            <Button variant="primary" onClick={openNodeCreate}>{t('product.btnAddNode')}</Button>
-          </>
-        }
-      >
-        <p style={{ fontSize: 13, color: 'var(--color-text-2)', marginBottom: 16 }}>{t('product.traceabilityDesc')}</p>
-        {traceRecords.length === 0 ? (
-          <p style={{ fontSize: 13, color: 'var(--color-text-3)', textAlign: 'center', padding: 32 }}>{t('product.noTraceNodes')}</p>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {traceRecords.map((rec) => (
-              <div key={rec.id} style={{
-                border: '1px solid var(--color-border)',
-                borderRadius: 8,
-                padding: 16,
-                background: 'var(--color-surface)',
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{
-                      display: 'inline-block', padding: '2px 10px', borderRadius: 4,
-                      fontSize: 11, fontWeight: 600, fontFamily: 'var(--font-mono)',
-                      background: 'var(--color-info-bg)', color: 'var(--color-info)',
-                    }}>{stageLabel(rec.stage)}</span>
-                    {rec.certified && (
-                      <span style={{
-                        display: 'inline-block', padding: '2px 8px', borderRadius: 4,
-                        fontSize: 10, fontWeight: 500,
-                        background: 'var(--color-success-bg)', color: 'var(--color-success)',
-                      }}>Certified</span>
-                    )}
-                  </div>
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    <button onClick={() => openNodeEdit(rec)} style={btnStyle}>{t('product.btnEditNode')}</button>
-                    <button onClick={() => handleDeleteNode(rec.id)} style={{ ...btnStyle, color: 'var(--color-error)', borderColor: 'var(--color-error)' }}>{t('product.btnDeleteNode')}</button>
-                  </div>
-                </div>
-                <div style={{ fontSize: 13, color: 'var(--color-text)', marginBottom: 4 }}>{rec.description}</div>
-                <div style={{ fontSize: 12, color: 'var(--color-text-3)', display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-                  {rec.location && <span>{rec.location}</span>}
-                  {rec.timestamp && <span>{dayjs(rec.timestamp).format('YYYY-MM-DD')}</span>}
-                  {rec.carbonKg != null && <span>{rec.carbonKg} kg CO2</span>}
-                </div>
-                {rec.gallery.length > 0 && (
-                  <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
-                    {rec.gallery.map((item, i) => (
-                      item.type === 'video' ? (
-                        <video key={i} src={item.url} style={{ width: 80, height: 60, objectFit: 'cover', borderRadius: 4 }} muted />
-                      ) : (
-                        <img key={i} src={item.url} alt={item.caption ?? ''} style={{ width: 80, height: 60, objectFit: 'cover', borderRadius: 4 }} />
-                      )
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </Modal>
-
-      {/* ── Node Create / Edit Modal ── */}
+      {/* ══════════════════════════════════════════════════════════════════
+       *  Supply Chain Node Edit Modal
+       * ═════════════════════════════════════════════════════════════════ */}
       <Modal
         open={nodeModalOpen}
         onClose={closeNodeModal}
         title={editingNode ? t('product.btnEditNode') : t('product.btnAddNode')}
-        width={640}
+        width={680}
         footer={
           <>
             <Button variant="secondary" onClick={closeNodeModal}>{t('common.cancel')}</Button>
@@ -579,100 +812,110 @@ export default function ProductPage() {
           </>
         }
       >
-        <form onSubmit={submitNode} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <form onSubmit={submitNode} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* Stage & Date */}
           <div>
-            <label style={labelStyle}>{t('product.nodeStage')}</label>
-            <select
-              value={nodeForm.stage}
-              onChange={(e) => setNodeForm({ ...nodeForm, stage: e.target.value as any })}
-              style={inputStyle}
-            >
-              {STAGES.map((s) => (
-                <option key={s} value={s}>{t(`product.stage${s.split('_').map(w => w[0].toUpperCase() + w.slice(1)).join('')}`)}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label style={labelStyle}>{t('product.nodeTimestamp')}</label>
-            <input type="date" value={nodeForm.timestamp} onChange={(e) => setNodeForm({ ...nodeForm, timestamp: e.target.value })} style={inputStyle} />
-          </div>
-          <div style={{ gridColumn: '1 / -1' }}>
-            <label style={labelStyle}>{t('product.nodeLocation')}</label>
-            <input value={nodeForm.location} onChange={(e) => setNodeForm({ ...nodeForm, location: e.target.value })} style={inputStyle} />
-          </div>
-          <div style={{ gridColumn: '1 / -1' }}>
-            <label style={labelStyle}>{t('product.nodeDescription')}</label>
-            <textarea value={nodeForm.description} onChange={(e) => setNodeForm({ ...nodeForm, description: e.target.value })} style={{ ...inputStyle, height: 80 }} />
-          </div>
-          <div>
-            <label style={labelStyle}>{t('product.nodeLatitude')}</label>
-            <input type="number" step="any" value={nodeForm.latitude} onChange={(e) => setNodeForm({ ...nodeForm, latitude: e.target.value })} style={inputStyle} />
-          </div>
-          <div>
-            <label style={labelStyle}>{t('product.nodeLongitude')}</label>
-            <input type="number" step="any" value={nodeForm.longitude} onChange={(e) => setNodeForm({ ...nodeForm, longitude: e.target.value })} style={inputStyle} />
-          </div>
-          <div>
-            <label style={labelStyle}>{t('product.nodeCarbonKg')}</label>
-            <input type="number" step="any" value={nodeForm.carbonKg} onChange={(e) => setNodeForm({ ...nodeForm, carbonKg: e.target.value })} style={inputStyle} />
-          </div>
-          <div>
-            <label style={labelStyle}>{t('product.nodeCarbonNote')}</label>
-            <input value={nodeForm.carbonNote} onChange={(e) => setNodeForm({ ...nodeForm, carbonNote: e.target.value })} style={inputStyle} />
-          </div>
-          <div style={{ gridColumn: '1 / -1' }}>
-            <label style={labelStyle}>{t('product.nodeCertImageUrl')}</label>
-            <input value={nodeForm.certImageUrl} onChange={(e) => setNodeForm({ ...nodeForm, certImageUrl: e.target.value })} style={inputStyle} />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <input
-              type="checkbox"
-              id="node-certified"
-              checked={nodeForm.certified}
-              onChange={(e) => setNodeForm({ ...nodeForm, certified: e.target.checked })}
-            />
-            <label htmlFor="node-certified" style={{ fontSize: 13 }}>{t('product.nodeCertified')}</label>
+            <SectionHeader title={t('product.sectionNodeBasic')} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div>
+                <label style={labelStyle}>{t('product.nodeStage')}</label>
+                <select value={nodeForm.stage} onChange={(e) => setNodeForm({ ...nodeForm, stage: e.target.value as any })} style={inputStyle}>
+                  {STAGES.map((s) => (
+                    <option key={s} value={s}>{stageIcon(s)} {stageLabel(s)}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label style={labelStyle}>{t('product.nodeTimestamp')}</label>
+                <input type="date" value={nodeForm.timestamp} onChange={(e) => setNodeForm({ ...nodeForm, timestamp: e.target.value })} style={inputStyle} />
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={labelStyle}>{t('product.nodeLocation')}</label>
+                <input value={nodeForm.location} onChange={(e) => setNodeForm({ ...nodeForm, location: e.target.value })} style={inputStyle} placeholder={t('product.nodeLocationHint')} />
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={labelStyle}>{t('product.nodeDescription')}</label>
+                <textarea value={nodeForm.description} onChange={(e) => setNodeForm({ ...nodeForm, description: e.target.value })} style={{ ...inputStyle, height: 72, resize: 'vertical' }} />
+              </div>
+            </div>
           </div>
 
-          {/* ── Media Gallery ── */}
-          <div style={{ gridColumn: '1 / -1', borderTop: '1px solid var(--color-border)', paddingTop: 12, marginTop: 4 }}>
-            <label style={{ ...labelStyle, marginBottom: 8, display: 'block' }}>{t('product.nodeGallery')}</label>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+          {/* Geo & Carbon */}
+          <div>
+            <SectionHeader title={t('product.sectionNodeGeo')} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 12 }}>
+              <div>
+                <label style={labelStyle}>{t('product.nodeLatitude')}</label>
+                <input type="number" step="any" value={nodeForm.latitude} onChange={(e) => setNodeForm({ ...nodeForm, latitude: e.target.value })} style={inputStyle} placeholder="e.g. 31.23" />
+              </div>
+              <div>
+                <label style={labelStyle}>{t('product.nodeLongitude')}</label>
+                <input type="number" step="any" value={nodeForm.longitude} onChange={(e) => setNodeForm({ ...nodeForm, longitude: e.target.value })} style={inputStyle} placeholder="e.g. 121.47" />
+              </div>
+              <div>
+                <label style={labelStyle}>{t('product.nodeCarbonKg')}</label>
+                <input type="number" step="any" value={nodeForm.carbonKg} onChange={(e) => setNodeForm({ ...nodeForm, carbonKg: e.target.value })} style={inputStyle} />
+              </div>
+              <div>
+                <label style={labelStyle}>{t('product.nodeCarbonNote')}</label>
+                <input value={nodeForm.carbonNote} onChange={(e) => setNodeForm({ ...nodeForm, carbonNote: e.target.value })} style={inputStyle} />
+              </div>
+            </div>
+          </div>
+
+          {/* Certification */}
+          <div>
+            <SectionHeader title={t('product.sectionNodeCert')} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 12, alignItems: 'end' }}>
+              <div>
+                <label style={labelStyle}>{t('product.nodeCertImageUrl')}</label>
+                <input value={nodeForm.certImageUrl} onChange={(e) => setNodeForm({ ...nodeForm, certImageUrl: e.target.value })} style={inputStyle} />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingBottom: 2 }}>
+                <input
+                  type="checkbox" id="node-certified"
+                  checked={nodeForm.certified}
+                  onChange={(e) => setNodeForm({ ...nodeForm, certified: e.target.checked })}
+                  style={{ width: 16, height: 16, accentColor: 'var(--color-success)' }}
+                />
+                <label htmlFor="node-certified" style={{ fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap' }}>{t('product.nodeCertified')}</label>
+              </div>
+            </div>
+          </div>
+
+          {/* Media Gallery */}
+          <div>
+            <SectionHeader title={t('product.nodeGallery')} />
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
               {nodeForm.gallery.map((item, idx) => (
                 <div key={idx} style={{ position: 'relative' }}>
                   {item.type === 'video' ? (
-                    <video src={item.url} style={{ width: 80, height: 60, objectFit: 'cover', borderRadius: 4 }} muted />
+                    <video src={item.url} style={{ width: 80, height: 60, objectFit: 'cover', borderRadius: 6 }} muted />
                   ) : (
-                    <img src={item.url} alt="" style={{ width: 80, height: 60, objectFit: 'cover', borderRadius: 4 }} />
+                    <img src={item.url} alt="" style={{ width: 80, height: 60, objectFit: 'cover', borderRadius: 6 }} />
                   )}
                   <button
-                    type="button"
-                    onClick={() => removeGalleryItem(idx)}
+                    type="button" onClick={() => removeGalleryItem(idx)}
                     style={{
                       position: 'absolute', top: -6, right: -6, width: 18, height: 18,
                       borderRadius: '50%', border: 'none', background: 'var(--color-error)',
-                      color: '#fff', fontSize: 10, cursor: 'pointer', display: 'flex',
-                      alignItems: 'center', justifyContent: 'center',
+                      color: '#fff', fontSize: 10, cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}
-                  >x</button>
+                  >×</button>
                 </div>
               ))}
             </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
-              onChange={handleMediaUpload}
-              style={{ display: 'none' }}
-            />
+            <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime" onChange={handleMediaUpload} style={{ display: 'none' }} />
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
               style={{
-                padding: '8px 16px', border: '1px dashed var(--color-border-hi)',
-                borderRadius: 6, background: 'transparent', cursor: 'pointer',
+                padding: '10px 20px', border: '1px dashed var(--color-border-hi)',
+                borderRadius: 8, background: 'transparent', cursor: uploading ? 'default' : 'pointer',
                 fontSize: 13, color: uploading ? 'var(--color-text-3)' : 'var(--color-accent-2)',
+                width: '100%', textAlign: 'center',
               }}
             >
               {uploading ? t('product.uploading') : t('product.uploadHint')}
@@ -683,11 +926,3 @@ export default function ProductPage() {
     </div>
   );
 }
-
-/* ── Shared styles ── */
-const labelStyle: React.CSSProperties = { display: 'block', fontSize: 13, marginBottom: 6 };
-
-const btnStyle: React.CSSProperties = {
-  padding: '4px 10px', border: '1px solid var(--color-border)', borderRadius: 4,
-  fontSize: 11, cursor: 'pointer', background: 'transparent', color: 'var(--color-text-2)',
-};

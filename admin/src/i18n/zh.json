@@ -346,7 +346,22 @@
         "toastNodeCreated": "溯源节点已添加",
         "toastNodeUpdated": "溯源节点已更新",
         "toastNodeDeleted": "溯源节点已删除",
-        "toastUploadFailed": "媒体上传失败"
+        "toastUploadFailed": "媒体上传失败",
+        "tabBasic": "基本信息",
+        "tabImpact": "公益与溯源",
+        "tabSupplyChain": "供应链节点",
+        "sectionCore": "商品信息",
+        "sectionPricing": "价格与库存",
+        "sectionMedia": "分类与图片",
+        "sectionImpactSettings": "公益设置",
+        "sectionOrigin": "产地溯源",
+        "sectionTraceStory": "溯源故事（中文）",
+        "sectionTraceStoryEn": "溯源故事（英文）",
+        "sectionNodeBasic": "节点信息",
+        "sectionNodeGeo": "地理与碳排放",
+        "sectionNodeCert": "认证信息",
+        "supplyChainSaveFirst": "请先保存商品后再添加供应链节点",
+        "nodeLocationHint": "例：中国新疆阿克苏"
     },
     "user": {
         "title": "用户目录",
