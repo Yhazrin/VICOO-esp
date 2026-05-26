@@ -157,20 +157,30 @@ class DonationService(BaseService):
     async def complete_donation(self, donation_id: int, payment_id: str) -> Donation:
         """
         Mark donation as completed and generate an electronic certificate.
+        Uses atomic status guard to prevent duplicate certificate generation.
         """
         donation = await self.get_donation_by_id(donation_id)
         if donation.status == "completed":
             return donation
 
-        donation.status = "completed"
-        donation.payment_id = payment_id
-        
+        # Atomic status transition — prevents concurrent double-completion
+        result = await self.db.execute(
+            update(Donation)
+            .where(Donation.id == donation_id, Donation.status != "completed")
+            .values(status="completed", payment_id=payment_id)
+        )
+        if result.rowcount == 0:
+            # Already completed by a concurrent request
+            await self.db.refresh(donation)
+            return donation
+
+        await self.db.refresh(donation)
+
         # Automatic certificate generation logic
-        # Format: TH-DON-YYYYMMDD-ID
         date_str = datetime.now().strftime("%Y%m%d")
         donation.certificate_no = f"TH-DON-{date_str}-{donation.id:06d}"
         donation.certificate_url = build_certificate_payload(donation)["certificate_url"]
-        
+
         await self.db.flush()
         return donation
 
@@ -179,7 +189,7 @@ class DonationService(BaseService):
     ) -> Donation:
         """
         Admin manual approval: pending -> completed.
-        Campaign current_amount is already updated at create time; do not add again.
+        Uses atomic status guard to prevent duplicate approvals.
         """
         donation = await self.get_donation_by_id(donation_id)
         if donation.status == "completed":
@@ -189,9 +199,20 @@ class DonationService(BaseService):
                 status_code=400,
                 detail=f"Only pending donations can be approved; current status is '{donation.status}'",
             )
-        donation.status = "completed"
-        if not donation.payment_id:
-            donation.payment_id = f"admin_approved:{admin_user_id or 0}"
+
+        payment_id = donation.payment_id or f"admin_approved:{admin_user_id or 0}"
+
+        # Atomic status transition — prevents concurrent double-approve
+        result = await self.db.execute(
+            update(Donation)
+            .where(Donation.id == donation_id, Donation.status == "pending")
+            .values(status="completed", payment_id=payment_id)
+        )
+        if result.rowcount == 0:
+            raise HTTPException(status_code=400, detail="Donation was already processed or status changed")
+
+        await self.db.refresh(donation)
+
         date_str = datetime.now().strftime("%Y%m%d")
         donation.certificate_no = f"TH-DON-{date_str}-{donation.id:06d}"
         donation.certificate_url = f"/api/donations/{donation.id}/certificate"

@@ -1,8 +1,11 @@
 from pydantic_settings import BaseSettings
 from typing import Optional, List
 from pydantic import model_validator
+import logging
 import secrets
 import json
+
+_config_logger = logging.getLogger("vicoo.config")
 
 
 def _gen_secret(length: int = 32) -> str:
@@ -116,6 +119,22 @@ class Settings(BaseSettings):
                 self.CORS_ORIGINS = [o.strip() for o in raw.split(",") if o.strip()]
         else:
             self.CORS_ORIGINS = [o.strip() for o in raw.split(",") if o.strip()]
+        return self
+
+    @model_validator(mode="after")
+    def validate_secret_key_env(self):
+        """Warn if APP_SECRET_KEY was auto-generated (not set via env/.env)."""
+        if "APP_SECRET_KEY" not in self.model_fields_set:
+            if self.APP_ENV == "production":
+                raise ValueError(
+                    "APP_SECRET_KEY must be explicitly set in production. "
+                    "Auto-generated keys invalidate JWT tokens on every restart."
+                )
+            _config_logger.warning(
+                "APP_SECRET_KEY not set via env — using auto-generated key. "
+                "JWT tokens will be invalidated on restart. "
+                "Set APP_SECRET_KEY in .env for stable tokens."
+            )
         return self
 
     @model_validator(mode="after")

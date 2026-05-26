@@ -395,8 +395,16 @@ async def update_order_status(
             order_service = OrderService(db)
             order = await order_service.cancel_order(order_id)
         else:
-            order.status = body.status
-            await db.flush()
+            # Atomic status transition — prevents concurrent conflicting updates
+            from sqlalchemy import update as sql_update
+            result = await db.execute(
+                sql_update(Order)
+                .where(Order.id == order_id)
+                .values(status=body.status)
+            )
+            if result.rowcount == 0:
+                raise HTTPException(status_code=400, detail="Order status update failed")
+            await db.refresh(order)
         item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
         items = (await db.execute(item_stmt)).scalars().all()
         product_map = await _build_product_map(db, items)

@@ -101,7 +101,12 @@ class ArtworkService(BaseService):
         if artwork.status != "approved":
             raise HTTPException(status_code=400, detail="Can only vote for approved artworks")
 
-        artwork.like_count += 1
+        # Atomic increment — prevents lost votes under concurrent requests
+        await self.db.execute(
+            update(Artwork)
+            .where(Artwork.id == artwork_id)
+            .values(like_count=Artwork.like_count + 1)
+        )
         await self.db.flush()
-        # Optional: invalidate cache if order is by likes, but here it's by created_at
+        await self.db.refresh(artwork)
         return artwork

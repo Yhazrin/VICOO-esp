@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from fastapi.responses import PlainTextResponse
-from sqlalchemy import select, func, update
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from decimal import Decimal
 import xml.etree.ElementTree as ET
@@ -196,40 +196,25 @@ async def alipay_notify(request: Request, db: AsyncSession = Depends(get_db)):
             logger.error("Missing trade_no in Alipay callback")
             return PlainTextResponse("failure")
 
-        # --- Idempotency Check ---
-        existing_tx = await db.execute(
-            select(PaymentTransaction).where(PaymentTransaction.provider_transaction_id == trade_no)
-        )
-        if existing_tx.scalar_one_or_none():
-            logger.info(f"Alipay transaction {trade_no} already processed, skipping")
-            return PlainTextResponse("success")
+        # --- Parse Donation ID from out_trade_no if applicable ---
+        donation_id = None
+        if out_trade_no and out_trade_no.startswith("DON"):
+            try:
+                donation_id = int(out_trade_no[3:])
+            except (ValueError, TypeError):
+                pass
 
-        # --- Find Order by out_trade_no ---
-        stmt = select(Order).where(Order.order_no == out_trade_no)
-        result = await db.execute(stmt)
-        order = result.scalar_one_or_none()
-
-        if order:
-            # Update order status
-            await db.execute(
-                update(Order)
-                .where(Order.id == order.id)
-                .values(status="paid", payment_id=trade_no, payment_method="alipay", updated_at=func.now())
-            )
-            logger.info(f"Updated order {order.id} status to 'paid' (Alipay)")
-
-        # --- Create payment transaction record ---
-        payment_tx = PaymentTransaction(
-            order_id=order.id if order else None,
-            donation_id=None,
+        # --- Delegate to PaymentService (atomic status guard + impact fund allocation) ---
+        payment_service = PaymentService(db)
+        await payment_service.process_successful_payment(
+            provider_tx_id=trade_no,
             amount=total_amount,
             method="alipay",
-            provider_transaction_id=trade_no,
-            status="success",
-            raw_response=params,
+            order_no=out_trade_no if not donation_id else None,
+            donation_id=donation_id,
+            raw_data=params,
         )
-        db.add(payment_tx)
-        logger.info(f"Alipay payment transaction created: TX={trade_no}")
+        logger.info(f"Alipay payment processed: TX={trade_no}")
 
         return PlainTextResponse("success")
     except HTTPException:

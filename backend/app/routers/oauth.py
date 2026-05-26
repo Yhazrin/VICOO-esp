@@ -63,6 +63,7 @@ async def _find_or_create_oauth_user(
                 user.avatar = avatar
             await db.flush()
 
+    is_new_user = False
     if not user:
         # 3. Create new user
         user = User(
@@ -76,15 +77,16 @@ async def _find_or_create_oauth_user(
         setattr(user, f"{provider}_id", provider_id)
         db.add(user)
         await db.flush()
+        is_new_user = True
         logger.info(f"New OAuth user created: {user.email}")
     else:
         logger.info(f"Existing OAuth user logged in: {user.email}")
 
-    # 4. Trigger welcome email (EVERY LOGIN for development testing)
-    if user.email and not user.email.endswith("@oauth.vicoo.org"):
+    # 4. Trigger welcome email only for new users
+    if is_new_user and user.email and not user.email.endswith("@oauth.vicoo.org"):
         import asyncio
         from app.services.mailer import send_welcome_email
-        logger.info(f"Triggering welcome email for {user.email} (Dev Mode: Every Login)")
+        logger.info(f"Triggering welcome email for new user {user.email}")
         asyncio.create_task(send_welcome_email(user.email, user.nickname))
 
     return user

@@ -181,8 +181,11 @@ class OrderService(BaseService):
         for item in items:
             await self.db.execute(
                 update(Product)
-                .where(Product.id == item.product_id)
-                .values(stock=Product.stock + item.quantity, status="active")
+                .where(Product.id == item.product_id, Product.status != "inactive")
+                .values(
+                    stock=Product.stock + item.quantity,
+                    status="active",
+                )
             )
 
         await self.db.flush()
