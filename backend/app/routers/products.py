@@ -452,8 +452,14 @@ async def update_product(product_id: int, body: ProductUpdate, db: AsyncSession 
             payload["origin_country_id"] = origin_country_id
             payload["origin_region_id"] = origin_region_id
 
+        _PRODUCT_UPDATABLE = {
+            "name", "name_en", "description", "description_en", "price", "image_url",
+            "category", "stock", "status", "is_impact_product", "campaign_id",
+            "donation_percentage", "artwork_id", "origin_country_id", "origin_region_id",
+        }
         for k, v in payload.items():
-            setattr(product, k, v)
+            if k in _PRODUCT_UPDATABLE:
+                setattr(product, k, v)
         await db.flush()
         await db.refresh(product, ["created_at"])
         return ApiResponse(data=ProductOut.model_validate(product).model_dump())

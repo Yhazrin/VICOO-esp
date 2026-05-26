@@ -304,8 +304,10 @@ async def update_artwork(artwork_id: int, body: ArtworkUpdate, db: AsyncSession 
         artwork = result.scalar_one_or_none()
         if not artwork:
             raise HTTPException(status_code=404, detail="Artwork not found")
+        _ARTWORK_UPDATABLE = {"title", "description", "image_url", "thumbnail_url", "status"}
         for k, v in body.model_dump(exclude_unset=True).items():
-            setattr(artwork, k, v)
+            if k in _ARTWORK_UPDATABLE:
+                setattr(artwork, k, v)
         await db.flush()
         await db.refresh(artwork, ["created_at", "updated_at"])
         return ApiResponse(data=_serialize_artwork(artwork))

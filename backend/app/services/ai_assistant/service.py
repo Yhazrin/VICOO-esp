@@ -345,10 +345,10 @@ class AIAssistantService(BaseService):
                     "flagged_categories": categories
                 }
         except Exception as e:
-            logger.error(f"Moderation call failed: {e}")
-            # Fail safe: if moderation fails, we might want to flag it for human review 
+            logger.exception("Moderation call failed")
+            # Fail safe: if moderation fails, we might want to flag it for human review
             # or allow it if it's not critical. Here we assume safe but log error.
-            return {"is_safe": True, "reason": f"Moderation error: {e}", "flagged_categories": []}
+            return {"is_safe": True, "reason": "Moderation service temporarily unavailable", "flagged_categories": []}
 
     async def analyze_artwork(self, image_url: str, description: Optional[str] = None) -> Dict[str, Any]:
         """
@@ -402,7 +402,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                 "suggested_tags": [],
                 "style_description": "Analysis unavailable",
                 "safety_rating": "safe",
-                "moderation_notes": f"Error during analysis: {e}"
+                "moderation_notes": "Analysis temporarily unavailable"
             }
 
     async def _get_business_context(self, user_id: Optional[int] = None) -> str:
