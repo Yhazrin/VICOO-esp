@@ -26,19 +26,36 @@ class PaymentService(BaseService):
 
     @audit_action(action="create_payment_intent", resource_type="payment")
     async def create_payment_transaction(
-        self, 
-        amount: Decimal, 
-        method: str, 
-        order_id: Optional[int] = None, 
+        self,
+        amount: Decimal,
+        method: str,
+        order_id: Optional[int] = None,
         donation_id: Optional[int] = None,
         expiry_minutes: int = 30
     ) -> PaymentTransaction:
         """
         Create a new pending payment transaction.
+        Returns existing pending transaction if one already exists for the same order/donation.
         """
+        # Check for existing pending payment (prevents double-charge on double-click)
+        if order_id or donation_id:
+            existing_stmt = select(PaymentTransaction).where(
+                PaymentTransaction.status == "pending"
+            )
+            if order_id:
+                existing_stmt = existing_stmt.where(PaymentTransaction.order_id == order_id)
+            if donation_id:
+                existing_stmt = existing_stmt.where(PaymentTransaction.donation_id == donation_id)
+            existing_tx = (await self.db.execute(
+                existing_stmt.order_by(PaymentTransaction.created_at.desc())
+            )).scalar_one_or_none()
+            if existing_tx:
+                logger.info(f"Reusing existing pending payment {existing_tx.id} for order={order_id} donation={donation_id}")
+                return existing_tx
+
         # Set expiry time
         expires_at = datetime.now() + timedelta(minutes=expiry_minutes)
-        
+
         tx = PaymentTransaction(
             order_id=order_id,
             donation_id=donation_id,
@@ -53,9 +70,9 @@ class PaymentService(BaseService):
 
     @audit_action(action="payment_callback_success", resource_type="payment")
     async def process_successful_payment(
-        self, 
-        provider_tx_id: str, 
-        amount: Decimal, 
+        self,
+        provider_tx_id: str,
+        amount: Decimal,
         method: str,
         order_no: Optional[str] = None,
         donation_id: Optional[int] = None,
@@ -64,6 +81,7 @@ class PaymentService(BaseService):
         """
         Process a successful payment callback from a provider.
         Handles status updates for orders/donations and creates/updates the transaction record.
+        Uses savepoints to isolate side effects so concurrent webhooks don't corrupt the session.
         """
         # Idempotency check: has this provider transaction already been processed?
         existing_stmt = select(PaymentTransaction).where(PaymentTransaction.provider_transaction_id == provider_tx_id)
@@ -85,10 +103,13 @@ class PaymentService(BaseService):
                     .where(Order.id == order_id)
                     .values(status="paid", payment_id=provider_tx_id, payment_method=method, updated_at=func.now())
                 )
-                # Allocate impact funds for charity products
+                # Allocate impact funds — use savepoint to isolate IntegrityError
                 try:
-                    impact_service = ImpactFundService(self.db)
-                    await impact_service.allocate_for_order(order_id)
+                    async with self.db.begin_nested():
+                        impact_service = ImpactFundService(self.db)
+                        await impact_service.allocate_for_order(order_id)
+                except IntegrityError:
+                    logger.info(f"Impact fund already allocated for order {order_id} (concurrent webhook).")
                 except Exception as e:
                     logger.error(f"Impact fund allocation failed for order {order_id}: {e}", exc_info=True)
 

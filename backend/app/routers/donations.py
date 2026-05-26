@@ -91,12 +91,15 @@ async def list_donations(
             page, page_size, campaign_id, status, payment_method, search
         )
         items = []
+        is_admin = current_user and current_user.get("role") in ("admin", "editor")
         for d in donations:
             item = DonationOut.model_validate(d).model_dump()
-            if not current_user:
-                item["donor_name"] = mask_name(item.get("donor_name")) if not item.get("is_anonymous") else "匿名爱心人士"
-                item.pop("message", None)
-                item.pop("donor_user_id", None)
+            if not is_admin:
+                is_owner = current_user and item.get("donor_user_id") == current_user.get("id")
+                if not is_owner:
+                    item["donor_name"] = mask_name(item.get("donor_name")) if not item.get("is_anonymous") else "匿名爱心人士"
+                    item.pop("message", None)
+                    item.pop("donor_user_id", None)
             items.append(item)
         return DonationListPageResponse(
             data=items,
