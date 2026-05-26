@@ -54,7 +54,7 @@ async def get_active_campaign(db: AsyncSession = Depends(get_db)):
         return ApiResponse(data=CampaignOut.model_validate(campaign).model_dump())
     except Exception as e:
         logger.error(f"Failed to get active campaign: {e}")
-        return ApiResponse(data=_mock_campaigns[0])
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 @router.get("/{campaign_id}", response_model=ApiResponse)
 async def get_campaign(campaign_id: int, db: AsyncSession = Depends(get_db)):

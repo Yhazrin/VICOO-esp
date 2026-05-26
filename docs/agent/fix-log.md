@@ -1310,3 +1310,59 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Wrapped INSERT in `begin_nested()` (savepoint) so rollback only affects the INSERT. Changed `scalar_one()` to `scalar_one_or_none()` with fallback logging.
 - **Verification**: Concurrent webhooks no longer revert order status
 - **New issues**: None
+
+## Fix 162 — Reviews: no order ownership verification on create_review
+- **Date**: 2026-05-27 (Round 55)
+- **Files**: `backend/app/routers/reviews.py`
+- **Reason**: P1: `create_review` accepted any `order_id` without verifying it belongs to the current user. An attacker could submit a review referencing another user's order.
+- **Change**: Added order ownership check — when `order_id` is provided, verify the order exists and belongs to `current_user["id"]` before creating the review
+- **Verification**: Cross-user order review attempts now return 403
+- **New issues**: None
+
+## Fix 163 — Supply chain trace_product returns silent empty data on DB failure
+- **Date**: 2026-05-27 (Round 55)
+- **Files**: `backend/app/routers/supply_chain.py`
+- **Reason**: P1: `trace_product` returned `{"records": []}` on exception, masking real failures (DB down, timeout) as "no data available". Frontend shows "no records" instead of an error.
+- **Change**: Changed exception handler to raise 503 instead of returning empty mock data
+- **Verification**: DB failures now surface as 503 errors
+- **New issues**: None
+
+## Fix 164 — Campaigns get_active_campaign returns hardcoded mock on DB failure
+- **Date**: 2026-05-27 (Round 55)
+- **Files**: `backend/app/routers/campaigns.py`
+- **Reason**: P1: `get_active_campaign` returned a hardcoded mock campaign object on any exception, making it impossible for frontend to distinguish between "no active campaign" and "service is down".
+- **Change**: Changed exception handler to raise 503 instead of returning mock data
+- **Verification**: DB failures now surface as 503 errors
+- **New issues**: None
+
+## Fix 165 — Users GET /me returns JWT dict on failure instead of raising
+- **Date**: 2026-05-27 (Round 55)
+- **Files**: `backend/app/routers/users.py`
+- **Reason**: P1: `get_me` silently returned the JWT-decoded `current_user` dict when the DB lookup failed. This exposes raw token claims (sub, role, exp) as if they were a valid user profile, and the frontend may cache this stale/incomplete data.
+- **Change**: Changed `except Exception` to log the error and raise HTTPException(500)
+- **Verification**: DB failures now surface as 500 errors instead of returning raw JWT data
+- **New issues**: None
+
+## Fix 166 — Audit log entries never flushed to database
+- **Date**: 2026-05-27 (Round 55)
+- **Files**: `backend/app/core/audit.py`
+- **Reason**: P1: `log_audit` called `db.add(audit_entry)` but never called `await db.flush()`. The audit entry only persisted if the caller's transaction committed. If the caller rolled back, or if `log_audit` was called in a fire-and-forget context, audit entries were silently lost.
+- **Change**: Added `await db.flush()` after `db.add(audit_entry)` so the audit entry is written immediately
+- **Verification**: Audit entries now persist regardless of caller transaction outcome
+- **New issues**: None
+
+## Fix 167 — Artworks endpoints return mock data on DB failure
+- **Date**: 2026-05-27 (Round 55)
+- **Files**: `backend/app/routers/artworks.py`
+- **Reason**: P1: `list_featured_artworks`, `get_artwork`, and `get_artwork_status` all fell back to hardcoded mock data on exception. This masks DB failures and serves stale fake data to users.
+- **Change**: Changed all three exception handlers to raise HTTPException(503) instead of returning mock data
+- **Verification**: DB failures now surface as 503 errors
+- **New issues**: None
+
+## Fix 168 — Products endpoints missing APP_ENV guard on mock fallbacks
+- **Date**: 2026-05-27 (Round 55)
+- **Files**: `backend/app/routers/products.py`
+- **Reason**: P1: `list_origin_countries`, `list_origin_regions`, and `get_product_supply_chain` returned mock data on any exception without checking `APP_ENV`. Other product endpoints already had the `APP_ENV != "demo"` guard.
+- **Change**: Added `if settings.APP_ENV != "demo": raise HTTPException(503)` guard to all three endpoints, consistent with existing pattern
+- **Verification**: Non-demo environments now get 503 instead of mock data
+- **New issues**: None

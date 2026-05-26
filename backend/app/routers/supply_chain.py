@@ -126,7 +126,7 @@ async def trace_product(product_id: int, db: AsyncSession = Depends(get_db)):
         raise
     except Exception as e:
         logger.error(f"Tracing failed: {e}")
-        return ApiResponse(data={"product_id": product_id, "records": []})
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 @router.post("/records", response_model=ApiResponse, status_code=201)
 async def create_record(

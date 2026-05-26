@@ -8,6 +8,7 @@ import logging
 
 from app.database import get_db
 from app.models.circular_commerce import ProductReview
+from app.models.order import Order
 from app.schemas import ApiResponse, PaginatedResponse, ProductReviewCreate, ProductReviewOut
 
 logger = logging.getLogger(__name__)
@@ -38,6 +39,14 @@ async def create_review(
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    # Verify order ownership when order_id is provided
+    if body.order_id:
+        order = (await db.execute(
+            select(Order).where(Order.id == body.order_id, Order.user_id == current_user["id"])
+        )).scalar_one_or_none()
+        if not order:
+            raise HTTPException(status_code=403, detail="Order not found or does not belong to you")
+
     row = ProductReview(
         product_id=body.product_id,
         user_id=current_user["id"],

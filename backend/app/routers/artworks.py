@@ -215,9 +215,9 @@ async def list_featured_artworks(db: AsyncSession = Depends(get_db)):
         return ApiResponse(data=[_serialize_artwork(a) for a in artworks])
     except HTTPException:
         raise
-    except Exception:
-        featured = [a for a in _mock_artworks if a["status"] == "featured"][:8]
-        return ApiResponse(data=featured)
+    except Exception as e:
+        logger.error(f"Failed to list featured artworks: {e}")
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.get("/{artwork_id}", response_model=ApiResponse)
@@ -247,11 +247,9 @@ async def get_artwork(artwork_id: int, db: AsyncSession = Depends(get_db)):
         return ApiResponse(data=_serialize_artwork(artwork))
     except HTTPException:
         raise
-    except Exception:
-        for a in _mock_artworks:
-            if a["id"] == artwork_id:
-                return ApiResponse(data=a)
-        raise HTTPException(status_code=404, detail="Artwork not found")
+    except Exception as e:
+        logger.error(f"Failed to get artwork {artwork_id}: {e}")
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.post("", response_model=ApiResponse, status_code=201)
@@ -342,11 +340,9 @@ async def get_artwork_status(artwork_id: int, db: AsyncSession = Depends(get_db)
         return ApiResponse(data={"id": artwork.id, "status": artwork.status})
     except HTTPException:
         raise
-    except Exception:
-        for a in _mock_artworks:
-            if a["id"] == artwork_id:
-                return ApiResponse(data={"id": a["id"], "status": a["status"]})
-        raise HTTPException(status_code=404, detail="Artwork not found")
+    except Exception as e:
+        logger.error(f"Failed to get artwork status {artwork_id}: {e}")
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.put("/{artwork_id}/status", response_model=ApiResponse)

@@ -61,8 +61,9 @@ async def get_me(
         return ApiResponse(data=UserOut.model_validate(user).model_dump())
     except HTTPException:
         raise
-    except Exception:
-        return ApiResponse(data=current_user)
+    except Exception as e:
+        logger.error(f"Failed to load user profile: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.put("/me", response_model=ApiResponse)
 async def update_me(

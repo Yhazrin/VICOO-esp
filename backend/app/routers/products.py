@@ -281,6 +281,8 @@ async def list_origin_countries(db: AsyncSession = Depends(get_db)):
     except HTTPException:
         raise
     except Exception:
+        if settings.APP_ENV != "demo":
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         return ApiResponse(data=_mock_countries)
 
 
@@ -311,6 +313,8 @@ async def list_origin_regions(
     except HTTPException:
         raise
     except Exception:
+        if settings.APP_ENV != "demo":
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         data = _mock_regions
         if country_id is not None:
             data = [r for r in data if r["country_id"] == country_id]
@@ -347,6 +351,8 @@ async def get_product_supply_chain(product_id: int, db: AsyncSession = Depends(g
     except HTTPException:
         raise
     except Exception:
+        if settings.APP_ENV != "demo":
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         records = [r for r in _mock_supply_chain if r["product_id"] == product_id]
         return ApiResponse(data=records)
 

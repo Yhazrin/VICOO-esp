@@ -34,6 +34,7 @@ async def log_audit(
             ip_address=ip_address,
         )
         db.add(audit_entry)
+        await db.flush()
     except Exception as e:
         logger.error(f"Failed to write audit log: {e}", exc_info=True)
 
