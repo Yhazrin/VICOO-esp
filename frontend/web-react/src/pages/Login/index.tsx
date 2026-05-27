@@ -144,8 +144,9 @@ export default function Login() {
     e.preventDefault();
     nudgeAmbient('action');
 
-    // Determine redirect based on detected mode
-    const targetPath = detectedMode === 'admin' ? '/admin' : '/';
+    // Determine redirect based on detected mode (with fallback to immediate detection)
+    const result = detectIdentityMode(email);
+    const targetPath = result.mode === 'admin' ? '/admin' : '/';
 
     login(
       { email, password },
