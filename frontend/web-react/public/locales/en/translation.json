@@ -48,6 +48,33 @@
     "error": {
       "invalidCredentials": "Invalid email or password",
       "userNotFound": "User not found"
+    },
+    "testAccounts": {
+      "show": "View demo test accounts",
+      "hide": "Hide test accounts",
+      "title": "Demo test accounts",
+      "subtitle": "For reviewers and local demos only. Tap an account to fill the sign-in form.",
+      "close": "Close",
+      "fillForm": "Tap to fill",
+      "filled": "Credentials filled in the form",
+      "copyEmail": "Copy email",
+      "copyPassword": "Copy password",
+      "copied": "Copied",
+      "adminPanelSection": "Admin console (:8080)",
+      "openAdminPanel": "Open admin sign-in",
+      "adminPanelNote": "For the admin SPA — not this sign-in page",
+      "roles": {
+        "admin": "Admin (website)",
+        "editor": "Editor",
+        "user": "Regular user",
+        "adminPanel": "Admin console"
+      },
+      "hints": {
+        "admin": "Full access: products, campaigns, orders, users, and more.",
+        "editor": "Content: campaigns, editorial, artwork review.",
+        "user": "Shop, donate, vote, and manage profile.",
+        "adminPanel": "Sign in at localhost:8080 — separate from website accounts above."
+      }
     }
   },
   "register": {
@@ -648,14 +675,40 @@
       "viewImageAria": "View image {{n}}",
       "loading": "Loading...",
       "reviews": "Reviews",
-      "reviewsLead": "Real feedback from buyers, for reference only.",
+      "reviewsEyebrow": "Community feedback",
+      "reviewsLead": "Real feedback from wearers, focused on comfort, quality, packaging, and impact.",
+      "reviewsCommunityTitle": "Community Reviews",
+      "reviewsCommunityLead": "Real feedback on fit, comfort, packaging, and traceable impact.",
+      "reviewsVerifiedOnly": "Verified feedback only",
+      "reviewsCount": "{{count}} reviews",
+      "reviewsCountOne": "{{count}} review",
+      "reviewsSignInLead": "Sign in to share how this piece fits and what impact you noticed.",
+      "reviewsSignInCta": "Sign in to review",
       "noReviews": "No reviews yet",
+      "noReviewsBody": "Be the first to share how this piece feels, fits, and contributes to a more responsible wardrobe.",
       "rating": "Rating",
       "writeReview": "Write a Review",
+      "writeReviewLead": "Your feedback helps others make thoughtful choices.",
+      "reviewTitleLabel": "Review title",
+      "reviewTitlePlaceholder": "Summarize your experience",
+      "reviewBodyLabel": "Your review",
+      "reviewBodyPlaceholder": "Share your thoughts on wearing, packaging, material quality, or impact.",
+      "reviewChipsLabel": "Highlights (optional)",
+      "reviewChips": {
+        "trueToSize": "True to size",
+        "comfortableFabric": "Comfortable fabric",
+        "thoughtfulPackaging": "Thoughtful packaging",
+        "impactVisible": "Impact feels visible"
+      },
+      "reviewDimensions": {
+        "fitComfort": "Fit & Comfort",
+        "packaging": "Packaging",
+        "traceableImpact": "Traceable Impact"
+      },
       "reviewTitle": "Title (optional)",
       "reviewBody": "Share your wearing or packaging experience",
       "reviewError": "You may have already reviewed this product",
-      "submitReview": "Submit",
+      "submitReview": "Submit Review",
       "backToShop": "Back to shop",
       "backToImpactShop": "Back to impact shop",
       "globeTitle": "Global traceability",

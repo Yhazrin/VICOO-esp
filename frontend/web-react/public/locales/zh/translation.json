@@ -48,6 +48,33 @@
     "error": {
       "invalidCredentials": "邮箱或密码错误",
       "userNotFound": "用户不存在"
+    },
+    "testAccounts": {
+      "show": "点击查看测试账号",
+      "hide": "收起测试账号",
+      "title": "演示测试账号",
+      "subtitle": "仅供评审与本地演示，点击账号可自动填入登录表单。",
+      "close": "关闭",
+      "fillForm": "点击填入",
+      "filled": "已填入登录表单",
+      "copyEmail": "复制邮箱",
+      "copyPassword": "复制密码",
+      "copied": "已复制",
+      "adminPanelSection": "独立管理后台（:8080）",
+      "openAdminPanel": "打开管理后台登录页",
+      "adminPanelNote": "以下账号用于管理后台，非本页登录",
+      "roles": {
+        "admin": "管理员（网站）",
+        "editor": "编辑",
+        "user": "普通用户",
+        "adminPanel": "管理后台 Admin"
+      },
+      "hints": {
+        "admin": "完整后台权限：商品、活动、订单、用户管理等。",
+        "editor": "内容编辑：活动、文章、画作审核等。",
+        "user": "普通购物体验：下单、捐赠、投票、个人中心。",
+        "adminPanel": "在 localhost:8080 管理后台登录，与上方网站账号体系独立。"
+      }
     }
   },
   "register": {
@@ -615,14 +642,40 @@
       "viewImageAria": "查看第 {{n}} 张图片",
       "loading": "加载中...",
       "reviews": "评价",
-      "reviewsLead": "购买者的真实反馈，仅作参考。",
+      "reviewsEyebrow": "社区反馈",
+      "reviewsLead": "来自穿着者的真实反馈，关注舒适度、品质、包装与可追溯影响。",
+      "reviewsCommunityTitle": "社区评价",
+      "reviewsCommunityLead": "关于合身度、舒适度、包装与可追溯影响的真实反馈。",
+      "reviewsVerifiedOnly": "仅展示已验证反馈",
+      "reviewsCount": "{{count}} 条评价",
+      "reviewsCountOne": "{{count}} 条评价",
+      "reviewsSignInLead": "登录后分享穿着感受与可感知的影响。",
+      "reviewsSignInCta": "登录撰写评价",
       "noReviews": "暂无评价",
+      "noReviewsBody": "成为第一位分享这件单品穿着感受、合身度，以及它如何融入更负责任衣橱的人。",
       "rating": "评分",
       "writeReview": "撰写评价",
+      "writeReviewLead": "你的反馈帮助他人做出更审慎的选择。",
+      "reviewTitleLabel": "评价标题",
+      "reviewTitlePlaceholder": "一句话概括你的体验",
+      "reviewBodyLabel": "评价内容",
+      "reviewBodyPlaceholder": "分享穿着感受、包装、面料品质或可追溯影响等方面的想法。",
+      "reviewChipsLabel": "体验标签（可选）",
+      "reviewChips": {
+        "trueToSize": "尺码准确",
+        "comfortableFabric": "面料舒适",
+        "thoughtfulPackaging": "包装用心",
+        "impactVisible": "影响可感知"
+      },
+      "reviewDimensions": {
+        "fitComfort": "合身与舒适",
+        "packaging": "包装",
+        "traceableImpact": "可追溯影响"
+      },
       "reviewTitle": "标题（可选）",
       "reviewBody": "分享穿着或包装体验",
       "reviewError": "您可能已评价过该商品",
-      "submitReview": "提交",
+      "submitReview": "提交评价",
       "backToShop": "返回商城",
       "backToImpactShop": "返回公益商店",
       "globeTitle": "全球溯源视图",

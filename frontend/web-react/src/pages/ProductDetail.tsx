@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useParams, useNavigate, useLocation, matchPath } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { motion, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
@@ -15,7 +15,7 @@ import { useCartStore } from '@/stores/cartStore';
 import { useUIStore } from '@/stores/uiStore';
 import { productsApi } from '@/services/products';
 import { supplyChainApi } from '@/services/supply-chain';
-import { reviewsApi } from '@/services/reviewsApi';
+import ProductReviewsSection from '@/components/product/ProductReviewsSection';
 import { useAuthStore } from '@/stores/authStore';
 import type { SupplyChainTimelineRecord, TraceMediaItem } from '@/types';
 import { companyProductPath, impactProductPath } from '@/utils/productPaths';
@@ -77,13 +77,9 @@ export default function ProductDetail() {
     matchPath({ path: '/impact/shop/:id', end: true }, pathname)
   );
   const { t, i18n } = useTranslation();
-  const qc = useQueryClient();
   const { isAuthenticated } = useAuthStore();
   const prefersReducedMotion = useReducedMotion();
   const currentTheme = useUIStore((s) => s.currentTheme);
-  const [reviewRating, setReviewRating] = useState(5);
-  const [reviewTitle, setReviewTitle] = useState('');
-  const [reviewBody, setReviewBody] = useState('');
   const { data: product, isLoading: loading } = useQuery({
     queryKey: ['product', id, i18n.language],
     queryFn: () => productsApi.getById(id!, i18n.language),
@@ -136,29 +132,6 @@ export default function ProductDetail() {
       }),
     [supplyChainRaw]
   );
-
-  const { data: reviewsResult } = useQuery({
-    queryKey: ['reviews', id],
-    queryFn: () => reviewsApi.listByProduct(Number(id)),
-    enabled: !!id && !!product,
-    retry: false,
-  });
-
-  const reviewMutation = useMutation({
-    mutationFn: () =>
-      reviewsApi.create({
-        product_id: Number(id),
-        rating: reviewRating,
-        title: reviewTitle || undefined,
-        body: reviewBody || undefined,
-      }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['reviews', id] });
-      setReviewTitle('');
-      setReviewBody('');
-    },
-    onError: () => {}, // error state handled by reviewMutation.isError below
-  });
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -650,87 +623,8 @@ export default function ProductDetail() {
         )}
       </PaperTextureBackground>
 
-      {/* Reviews */}
-      <PaperTextureBackground variant="paper" className="py-16 md:py-24">
-        <SectionContainer>
-          <h2 className="font-display text-h3 font-semibold text-ink mb-3 tracking-[-0.02em]">
-            {t('shop.detail.reviews')}
-          </h2>
-          <p className="font-body text-caption text-sepia-mid max-w-md mb-12 leading-relaxed">
-            {t('shop.detail.reviewsLead')}
-          </p>
-          <ul className="space-y-5 mb-12">
-            {(reviewsResult?.data ?? []).length === 0 && (
-              <li className="font-body text-caption text-ink-faded">{t('shop.detail.noReviews')}</li>
-            )}
-            {(reviewsResult?.data ?? []).map((r) => (
-              <li
-                key={r.id}
-                className="rounded-xl border border-warm-gray/18 bg-paper/50 px-5 py-5 shadow-sm"
-              >
-                <p className="font-mono text-[10px] tracking-[0.12em] uppercase text-sepia-mid">
-                  {t('shop.detail.rating')} {r.rating}/5 · {r.created_at?.slice(0, 10)}
-                </p>
-                {r.title && (
-                  <p className="font-display text-lg text-ink mt-2.5 leading-snug tracking-tight">{r.title}</p>
-                )}
-                {r.body && (
-                  <p className="font-body text-body-sm text-ink-faded mt-2 leading-[1.75] max-w-2xl">{r.body}</p>
-                )}
-              </li>
-            ))}
-          </ul>
-          {isAuthenticated && (
-            <form
-              className="max-w-lg rounded-xl border border-warm-gray/20 bg-warm-gray/5 px-6 py-7 space-y-5"
-              onSubmit={(e) => {
-                e.preventDefault();
-                reviewMutation.mutate();
-              }}
-            >
-              <p className="font-body text-[10px] tracking-[0.22em] uppercase text-sepia-mid">
-                {t('shop.detail.writeReview')}
-              </p>
-              <label className="font-body text-caption text-ink-faded block">
-                {t('shop.detail.rating')}
-                <input
-                  type="range"
-                  min={1}
-                  max={5}
-                  value={reviewRating}
-                  onChange={(e) => setReviewRating(Number(e.target.value))}
-                  className="w-full mt-2 accent-[var(--color-ink)]"
-                />
-              </label>
-              <input
-                className="w-full rounded-full border border-warm-gray/25 bg-paper px-4 py-2.5 font-body text-body-sm text-ink placeholder:text-ink-faded/60 focus:border-warm-gray/50 outline-none transition-colors"
-                placeholder={t('shop.detail.reviewTitle')}
-                aria-label={t('shop.detail.reviewTitle')}
-                value={reviewTitle}
-                onChange={(e) => setReviewTitle(e.target.value)}
-              />
-              <textarea
-                className="w-full rounded-xl border border-warm-gray/25 bg-paper p-3 font-body text-body-sm text-ink min-h-[100px] placeholder:text-ink-faded/60 focus:border-warm-gray/45 outline-none transition-colors"
-                placeholder={t('shop.detail.reviewBody')}
-                aria-label={t('shop.detail.reviewBody')}
-                value={reviewBody}
-                onChange={(e) => setReviewBody(e.target.value)}
-              />
-              {reviewMutation.isError && (
-                <p className="text-rust font-body text-caption" role="alert">
-                  {t('shop.detail.reviewError')}
-                </p>
-              )}
-              <button
-                type="submit"
-                disabled={reviewMutation.isPending}
-                className="font-body text-[10px] tracking-[0.22em] uppercase bg-ink text-paper px-6 py-3.5 rounded-full hover:bg-ink-faded cursor-pointer disabled:opacity-50 transition-colors duration-500"
-              >
-                {reviewMutation.isPending ? t('common.loading') : t('shop.detail.submitReview')}
-              </button>
-            </form>
-          )}
-        </SectionContainer>
+      <PaperTextureBackground variant="paper">
+        {id && <ProductReviewsSection productId={Number(id)} />}
       </PaperTextureBackground>
 
       {/* Back link */}

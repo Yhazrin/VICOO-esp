@@ -9,6 +9,13 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
+if [[ -f .env ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  . ./.env
+  set +a
+fi
+
 # 用法: ./compose-up-staging.sh           # 拉镜像后 up
 #       ./compose-up-staging.sh --build  # 等同 up -d --build（开发机常用）
 WITH_BUILD=""

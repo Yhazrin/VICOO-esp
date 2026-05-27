@@ -914,22 +914,31 @@ docker compose exec backend sh -lc 'cd /app/backend && alembic current'
 **症状**：浏览器访问 Frontend/Admin 显示空白页或 502 Bad Gateway
 
 **原因**：
-1. Backend 未启动或 unhealthy
-2. Nginx 配置错误
-3. 前端构建失败
+1. **部署窗口**：`compose-up-staging.sh` 会先 `down` 再 `up`，约 1–3 分钟内公网可能 502
+2. **CI 并发取消**：连续 `git push` 时，旧版 workflow 的 `cancel-in-progress` 可能在 `compose down` 之后、容器尚未 `up` 时取消任务，导致栈停在半启动状态
+3. Backend 未启动或 unhealthy（frontend 依赖 backend healthy）
+4. 宿主机 Nginx 反代到 `127.0.0.1:9080`，但 Docker 未使用 `VICOO_USE_HOST_NGINX=1`（frontend 只监听 80 时 upstream 9080 为空）
+5. Nginx 配置错误或前端构建失败
 
 **解决方案**：
 ```bash
+# 0. 若刚 push 过：在 GitHub Actions 重跑「部署到Staging」或 SSH 上执行：
+cd /home/student/vicoo/deploy/easy
+./compose-up-staging.sh --build
+
 # 1. 检查 Backend 是否正常运行
 docker compose ps backend
 curl http://localhost:8000/api/v1/health
 
-# 2. 查看 Nginx 错误日志
+# 2. 确认前端端口（80 或 host-nginx 的 9080）
+curl -fsS http://127.0.0.1:80/ || curl -fsS http://127.0.0.1:9080/
+curl -fsS http://csi420-02-vm8.ucd.ie/
+
+# 3. 查看 Nginx 错误日志
 docker compose logs frontend 2>&1 | grep -i error
 
-# 3. 重新构建前端
+# 4. 重新构建前端（admin 已并入 frontend 镜像的 /admin/）
 docker compose up -d --build frontend
-docker compose up -d --build admin
 ```
 
 #### **❌ 问题 6：Admin 无法登录**

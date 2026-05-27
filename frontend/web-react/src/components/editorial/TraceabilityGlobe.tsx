@@ -14,6 +14,12 @@ import {
   syncLandOutlineLine2Resolution,
 } from '@/utils/globeLandOutlines';
 import { resolveGlobeColors } from '@/utils/globeThemeColors';
+import {
+  globePinCardClassNames,
+  resolveGlobePinCardTone,
+  sampleWebGlBackdropLuminance,
+  type GlobePinCardTone,
+} from '@/utils/globePinCardContrast';
 import type { ThemeId } from '@/stores/uiStore';
 
 const GLOBE_RADIUS = 1.85;
@@ -197,7 +203,7 @@ export interface TraceabilityGlobeProps {
   onSelect: (id: number | null) => void;
   getStageLabel: (stage: string) => string;
   prefersReducedMotion?: boolean;
-  themeKey?: string;
+  themeKey?: ThemeId | string;
   className?: string;
   /**
    * 作为全幅背景层：填满父级，不再用固定「卡片高度」约束，由外层控制占位与叠层。
@@ -238,8 +244,27 @@ export default function TraceabilityGlobe({
 
   const [webglOk, setWebglOk] = useState(() => canUseWebGL());
   const [touchHintVisible, setTouchHintVisible] = useState(false);
+  const resolvedThemeId = (themeKey ?? 'monochrome') as ThemeId;
+  const [cardTone, setCardTone] = useState<GlobePinCardTone>(() =>
+    resolveGlobePinCardTone({ themeId: resolvedThemeId }),
+  );
+  const cardClasses = useMemo(() => globePinCardClassNames(cardTone), [cardTone]);
+
+  const themeKeyRef = useRef(resolvedThemeId);
+  themeKeyRef.current = resolvedThemeId;
+  const setCardToneRef = useRef(setCardTone);
+  setCardToneRef.current = setCardTone;
+  const cardToneRef = useRef(cardTone);
+  cardToneRef.current = cardTone;
+  const lastBackdropSampleAtRef = useRef(0);
 
   const sorted = useMemo(() => sortSupplyRecords(records), [records]);
+
+  useEffect(() => {
+    const next = resolveGlobePinCardTone({ themeId: resolvedThemeId });
+    cardToneRef.current = next;
+    setCardTone(next);
+  }, [resolvedThemeId]);
 
   const setFocus = useCallback((recordId: number | null) => {
     const ctx = ctxRef.current;
@@ -740,6 +765,27 @@ export default function TraceabilityGlobe({
       el.style.left = `${x}px`;
       el.style.top = `${y}px`;
       el.style.transform = transform;
+
+      const nowSample = performance.now();
+      if (nowSample - lastBackdropSampleAtRef.current >= 140) {
+        lastBackdropSampleAtRef.current = nowSample;
+        let sampleX = x;
+        let sampleY = y - (gap + halfH);
+        if (nx < 0.38 || nx > 0.62) {
+          sampleY = y;
+        } else if (ny < 0.32) {
+          sampleY = y + gap + halfH;
+        }
+        const sampled = sampleWebGlBackdropLuminance(gc.renderer, rect, sampleX, sampleY);
+        const nextTone = resolveGlobePinCardTone({
+          themeId: themeKeyRef.current,
+          sampledLuminance: sampled,
+        });
+        if (nextTone !== cardToneRef.current) {
+          cardToneRef.current = nextTone;
+          setCardToneRef.current(nextTone);
+        }
+      }
     };
 
     let time = 0;
@@ -1001,12 +1047,14 @@ export default function TraceabilityGlobe({
           style={{ opacity: 0, left: 0, top: 0 }}
           aria-live="polite"
         >
-          <div className="pointer-events-auto relative overflow-x-hidden overflow-y-auto max-h-[min(72dvh,520px)] border border-warm-gray/30 bg-paper/96 px-4 py-3.5 shadow-[0_12px_40px_-16px_rgba(26,26,22,0.18)] backdrop-blur-md rounded-sm space-y-2">
+          <div
+            className={`pointer-events-auto relative overflow-x-hidden overflow-y-auto max-h-[min(72dvh,520px)] px-4 py-3.5 backdrop-blur-md rounded-sm space-y-2 transition-colors duration-300 ${cardClasses.shell}`}
+          >
             <div
-              className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-rust/35 to-transparent pointer-events-none"
+              className={`absolute top-0 left-4 right-4 h-px pointer-events-none ${cardClasses.accentLine}`}
               aria-hidden="true"
             />
-            <p className="font-display text-base font-bold text-white/90 leading-snug">
+            <p className={`font-display text-base font-bold leading-snug ${cardClasses.title}`}>
               {getStageLabel(displayRecord.stage)}
             </p>
             <div className="flex flex-wrap gap-1.5">
@@ -1015,7 +1063,9 @@ export default function TraceabilityGlobe({
                   {t('shop.detail.globeCertified')}
                 </span>
               ) : (
-                <span className="font-body text-[10px] tracking-wider uppercase px-2 py-0.5 bg-warm-gray/20 text-white/45 border border-warm-gray/35">
+                <span
+                  className={`font-body text-[10px] tracking-wider uppercase px-2 py-0.5 border ${cardClasses.uncertifiedBadge}`}
+                >
                   {t('shop.detail.globeUncertified')}
                 </span>
               )}
@@ -1026,23 +1076,29 @@ export default function TraceabilityGlobe({
               )}
             </div>
             {displayRecord.carbon_note && (
-              <p className="font-body text-[11px] text-white/50 leading-snug">{displayRecord.carbon_note}</p>
+              <p className={`font-body text-[11px] leading-snug ${cardClasses.muted}`}>
+                {displayRecord.carbon_note}
+              </p>
             )}
-            <p className="font-body text-caption text-white/60">
+            <p className={`font-body text-caption ${cardClasses.body}`}>
               {displayRecord.location}
               {displayRecord.date ? ` · ${displayRecord.date}` : ''}
             </p>
-            <p className="font-mono text-[11px] text-white/40 leading-relaxed">
+            <p className={`font-mono text-[11px] leading-relaxed ${cardClasses.mono}`}>
               {precise ? t('shop.detail.coordsRegistered') : t('shop.detail.coordsDerived')}{' '}
               {displayCoords.lat.toFixed(4)}°, {displayCoords.lng.toFixed(4)}°
             </p>
             {displayRecord.description && (
-              <p className="font-body text-body-sm text-white/55 leading-relaxed line-clamp-4">
+              <p className={`font-body text-body-sm leading-relaxed line-clamp-4 ${cardClasses.description}`}>
                 {displayRecord.description}
               </p>
             )}
             {displayRecord.gallery && displayRecord.gallery.length > 0 && (
-              <TraceMediaGallery items={displayRecord.gallery} compact className="pt-1 border-t border-warm-gray/15" />
+              <TraceMediaGallery
+                items={displayRecord.gallery}
+                compact
+                className={`pt-1 border-t ${cardClasses.galleryBorder}`}
+              />
             )}
           </div>
         </div>

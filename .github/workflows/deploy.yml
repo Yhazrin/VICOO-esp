@@ -286,6 +286,10 @@ jobs:
   deploy-staging:
     name: 部署到Staging环境
     runs-on: ubuntu-latest
+    # 勿取消进行中的部署：连续 push 时若在上一次 compose down 之后被取消，公网会出现 502
+    concurrency:
+      group: deploy-staging-${{ github.ref }}
+      cancel-in-progress: false
     needs: [backend-build, frontend-build]
     if: github.ref == 'refs/heads/main'
     environment:
@@ -365,10 +369,14 @@ jobs:
         run: |
           echo "检查Backend健康状态..."
           ssh vm "curl -fsS http://localhost:8000/api/v1/health"
-          echo "检查Frontend健康状态..."
-          ssh vm "curl -fsS http://localhost:80"
-          echo "检查Admin健康状态..."
-          ssh vm "curl -fsS http://localhost:80/admin/"
+          echo "检查Frontend健康状态（Docker 映射 80 或 host-nginx 9080）..."
+          ssh vm 'if curl -fsS http://127.0.0.1:9080/ >/dev/null 2>&1; then \
+            curl -fsS http://127.0.0.1:9080/ >/dev/null && curl -fsS http://127.0.0.1:9080/admin/ >/dev/null; \
+          else \
+            curl -fsS http://127.0.0.1:80/ >/dev/null && curl -fsS http://127.0.0.1:80/admin/ >/dev/null; \
+          fi'
+          echo "检查公网域名（与浏览器一致）..."
+          ssh vm "curl -fsS -o /dev/null -w '%{http_code}\n' http://csi420-02-vm8.ucd.ie/"
 
       - name: 显示服务日志
         if: failure()
