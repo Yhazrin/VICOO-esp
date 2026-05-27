@@ -13,7 +13,67 @@ import SettingsPage from './pages/SettingsPage';
 import AuditLogPage from './pages/AuditLogPage';
 import ClothingDonationPage from './pages/ClothingDonationPage';
 import AfterSalesPage from './pages/AfterSalesPage';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
+/**
+ * Restore session from server on app load
+ */
+function SessionRestorer({ children }: { children: React.ReactNode }) {
+  const [restored, setRestored] = useState(false);
+  const login = useAuthStore((s) => s.login);
+  const location = useLocation();
+
+  useEffect(() => {
+    // Skip if already authenticated or already tried to restore
+    const user = useAuthStore.getState().user;
+    if (user) {
+      setRestored(true);
+      return;
+    }
+
+    // Try to restore session from server
+    fetch('/api/v1/auth/me', { credentials: 'include' })
+      .then((res) => {
+        if (res.ok) {
+          return res.json();
+        }
+        throw new Error('Not authenticated');
+      })
+      .then((data) => {
+        const userData = data.data?.user || data.user;
+        if (userData && hasAdminAccess(userData.role)) {
+          // Restore session with token if available
+          const token = data.data?.token?.access_token || data.token?.access_token || data.access_token;
+          login(userData, token || 'restored-session');
+        }
+      })
+      .catch(() => {
+        // Not authenticated, will be handled by AdminGuard
+      })
+      .finally(() => {
+        setRestored(true);
+      });
+  }, [login]);
+
+  // Don't render children until session check is complete
+  if (!restored) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'var(--color-bg)',
+      }}>
+        <div style={{ fontSize: '14px', color: 'var(--color-text-3)' }}>
+          Loading...
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}
 
 /**
  * Access Denied Page
@@ -105,11 +165,11 @@ function AdminGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      // Redirect to login with admin mode
-      window.location.href = `/login?redirect=${encodeURIComponent(location.pathname)}&mode=admin`;
+      // Redirect to login (relative path, works with /admin/ basename)
+      window.location.href = `login?redirect=${encodeURIComponent(location.pathname)}&mode=admin`;
     } else if (user && !hasAdminAccess(user.role)) {
       // Non-admin users trying to access admin routes
-      window.location.href = '/access-denied';
+      window.location.href = 'access-denied';
     }
   }, [isAuthenticated, user, location.pathname]);
 
@@ -122,53 +182,55 @@ function AdminGuard({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <Routes>
-      {/* Legacy redirect: /dashboard → /admin */}
-      <Route path="/dashboard" element={<LegacyDashboardRedirect />} />
+    <SessionRestorer>
+      <Routes>
+        {/* Legacy redirect: /dashboard → /admin */}
+        <Route path="/dashboard" element={<LegacyDashboardRedirect />} />
 
-      {/* Access Denied page */}
-      <Route path="/access-denied" element={<AccessDeniedPage />} />
+        {/* Access Denied page */}
+        <Route path="/access-denied" element={<AccessDeniedPage />} />
 
-      {/* Login page - unified entry */}
-      <Route path="/login" element={<LoginPage />} />
+        {/* Login page - unified entry */}
+        <Route path="/login" element={<LoginPage />} />
 
-      {/* Admin routes - all under /admin prefix */}
-      <Route
-        path="/admin/*"
-        element={
-          <AdminGuard>
-            <Layout>
-              <Routes>
-                {/* Dashboard: /admin (not /admin/dashboard) */}
-                <Route path="" element={<DashboardPage />} />
-                <Route path="artworks" element={<ArtworkPage />} />
-                <Route path="campaigns" element={<CampaignPage />} />
-                <Route path="donations" element={<DonationPage />} />
-                <Route path="orders" element={<OrderPage />} />
-                <Route path="clothing-donations" element={<ClothingDonationPage />} />
-                <Route path="after-sales" element={<AfterSalesPage />} />
-                <Route path="users" element={<UserPage />} />
-                <Route path="products" element={<ProductPage />} />
-                <Route path="settings" element={<SettingsPage />} />
-                <Route path="audit-log" element={<AuditLogPage />} />
-                {/* Unknown /admin/* paths → /admin */}
-                <Route path="*" element={<Navigate to="/admin" replace />} />
-              </Routes>
-            </Layout>
-          </AdminGuard>
-        }
-      />
+        {/* Admin routes - all under /admin prefix */}
+        <Route
+          path="/admin/*"
+          element={
+            <AdminGuard>
+              <Layout>
+                <Routes>
+                  {/* Dashboard: /admin (not /admin/dashboard) */}
+                  <Route path="" element={<DashboardPage />} />
+                  <Route path="artworks" element={<ArtworkPage />} />
+                  <Route path="campaigns" element={<CampaignPage />} />
+                  <Route path="donations" element={<DonationPage />} />
+                  <Route path="orders" element={<OrderPage />} />
+                  <Route path="clothing-donations" element={<ClothingDonationPage />} />
+                  <Route path="after-sales" element={<AfterSalesPage />} />
+                  <Route path="users" element={<UserPage />} />
+                  <Route path="products" element={<ProductPage />} />
+                  <Route path="settings" element={<SettingsPage />} />
+                  <Route path="audit-log" element={<AuditLogPage />} />
+                  {/* Unknown /admin/* paths → /admin */}
+                  <Route path="*" element={<Navigate to="/admin" replace />} />
+                </Routes>
+              </Layout>
+            </AdminGuard>
+          }
+        />
 
-      {/*
-       * Admin-only fallback routes:
-       * These only match if the admin SPA is accessed directly (not behind /admin/ prefix).
-       * In normal deployment, nginx forwards /admin/* to this SPA, so these never match.
-       */}
-      {/* Root: → /admin (admin-only fallback) */}
-      <Route path="/" element={<Navigate to="/admin" replace />} />
+        {/*
+         * Admin-only fallback routes:
+         * These only match if the admin SPA is accessed directly (not behind /admin/ prefix).
+         * In normal deployment, nginx forwards /admin/* to this SPA, so these never match.
+         */}
+        {/* Root: → /admin (admin-only fallback) */}
+        <Route path="/" element={<Navigate to="/admin" replace />} />
 
-      {/* Catch-all: → /admin (admin-only fallback) */}
-      <Route path="*" element={<Navigate to="/admin" replace />} />
-    </Routes>
+        {/* Catch-all: → /admin (admin-only fallback) */}
+        <Route path="*" element={<Navigate to="/admin" replace />} />
+      </Routes>
+    </SessionRestorer>
   );
 }
