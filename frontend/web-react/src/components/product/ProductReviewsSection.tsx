@@ -101,7 +101,15 @@ function RatingDisplay({
   );
 }
 
-function ReviewCard({ review, ratingLabel }: { review: ProductReview; ratingLabel: string }) {
+function ReviewCard({
+  review,
+  ratingLabel,
+  authorLabel,
+}: {
+  review: ProductReview;
+  ratingLabel: string;
+  authorLabel: string;
+}) {
   return (
     <article className="rounded-2xl border border-[#E8E8E6] bg-white/70 px-5 py-5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-shadow duration-200 hover:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.08)]">
       <div className="flex items-center justify-between gap-3">
@@ -116,6 +124,9 @@ function ReviewCard({ review, ratingLabel }: { review: ProductReview; ratingLabe
       </div>
       <p className="sr-only">
         {ratingLabel} {review.rating}/5
+      </p>
+      <p className="mt-3 font-body text-xs tracking-[0.04em] uppercase text-neutral-500">
+        {review.author_nickname?.trim() || authorLabel}
       </p>
       {review.title && (
         <h3 className="mt-3 font-display text-lg font-medium leading-snug tracking-tight text-ink">
@@ -139,6 +150,7 @@ export default function ProductReviewsSection({ productId }: { productId: number
   const [reviewTitle, setReviewTitle] = useState('');
   const [reviewBody, setReviewBody] = useState('');
   const [selectedChips, setSelectedChips] = useState<FeedbackChipId[]>([]);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
 
   const { data: reviewsResult } = useQuery({
     queryKey: ['reviews', productId],
@@ -147,7 +159,7 @@ export default function ProductReviewsSection({ productId }: { productId: number
   });
 
   const reviews = reviewsResult?.data ?? [];
-  const reviewCount = reviews.length;
+  const reviewCount = reviewsResult?.total ?? reviews.length;
   const averageRating = useMemo(() => {
     if (reviewCount === 0) return 0;
     return reviews.reduce((sum, r) => sum + r.rating, 0) / reviewCount;
@@ -173,6 +185,10 @@ export default function ProductReviewsSection({ productId }: { productId: number
       setReviewBody('');
       setSelectedChips([]);
       setReviewRating(5);
+      setSubmitSuccess(true);
+    },
+    onError: () => {
+      setSubmitSuccess(false);
     },
   });
 
@@ -255,7 +271,11 @@ export default function ProductReviewsSection({ productId }: { productId: number
               <ul className="space-y-4">
                 {reviews.map((r) => (
                   <li key={r.id}>
-                    <ReviewCard review={r} ratingLabel={t('shop.detail.rating')} />
+                    <ReviewCard
+                      review={r}
+                      ratingLabel={t('shop.detail.rating')}
+                      authorLabel={t('shop.detail.reviewAuthorAnonymous')}
+                    />
                   </li>
                 ))}
               </ul>
@@ -269,6 +289,7 @@ export default function ProductReviewsSection({ productId }: { productId: number
                 className="rounded-[24px] border border-[#E5E5E5] bg-[#FAFAF8]/95 p-7 md:p-8 shadow-[0_4px_24px_-8px_rgba(0,0,0,0.06)] backdrop-blur-sm"
                 onSubmit={(e) => {
                   e.preventDefault();
+                  setSubmitSuccess(false);
                   reviewMutation.mutate();
                 }}
               >
@@ -346,9 +367,17 @@ export default function ProductReviewsSection({ productId }: { productId: number
                   </div>
                 </div>
 
+                {submitSuccess && (
+                  <p className="mt-5 text-sm text-sage font-body" role="status">
+                    {t('shop.detail.reviewSuccess')}
+                  </p>
+                )}
+
                 {reviewMutation.isError && (
                   <p className="mt-5 text-sm text-rust font-body" role="alert">
-                    {t('shop.detail.reviewError')}
+                    {(reviewMutation.error as { response?: { status?: number } })?.response?.status === 409
+                      ? t('shop.detail.reviewError')
+                      : t('shop.detail.reviewSubmitFailed')}
                   </p>
                 )}
 

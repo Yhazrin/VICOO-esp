@@ -1,16 +1,24 @@
 """商品评价。"""
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.models.circular_commerce import ProductReview
-from app.schemas import ApiResponse, PaginatedResponse, ProductReviewCreate, ProductReviewOut
 from app.deps import get_current_user
+from app.models.circular_commerce import ProductReview
+from app.models.user import User
+from app.schemas import ApiResponse, PaginatedResponse, ProductReviewCreate, ProductReviewOut
 
 router = APIRouter(prefix="/reviews", tags=["Reviews"])
+
+
+def _review_to_out(review: ProductReview, author_nickname: str | None = None) -> dict:
+    payload = ProductReviewOut.model_validate(review).model_dump()
+    if author_nickname:
+        payload["author_nickname"] = author_nickname
+    return payload
 
 
 @router.get("", response_model=PaginatedResponse)
@@ -20,12 +28,18 @@ async def list_reviews(
     page_size: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
 ):
-    stmt = select(ProductReview).where(ProductReview.product_id == product_id)
     count_stmt = select(func.count(ProductReview.id)).where(ProductReview.product_id == product_id)
     total = (await db.execute(count_stmt)).scalar() or 0
-    stmt = stmt.order_by(ProductReview.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
-    rows = (await db.execute(stmt)).scalars().all()
-    data = [ProductReviewOut.model_validate(r).model_dump() for r in rows]
+    stmt = (
+        select(ProductReview, User.nickname)
+        .join(User, User.id == ProductReview.user_id)
+        .where(ProductReview.product_id == product_id)
+        .order_by(ProductReview.created_at.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+    )
+    rows = (await db.execute(stmt)).all()
+    data = [_review_to_out(review, nickname) for review, nickname in rows]
     return PaginatedResponse(data=data, total=total, page=page, page_size=page_size)
 
 
@@ -46,9 +60,11 @@ async def create_review(
     db.add(row)
     try:
         await db.flush()
+        await db.refresh(row, ["created_at"])
     except IntegrityError:
+        await db.rollback()
         raise HTTPException(status_code=409, detail="You have already reviewed this product")
-    return ApiResponse(data=ProductReviewOut.model_validate(row).model_dump())
+    return ApiResponse(data=_review_to_out(row, current_user.get("nickname")))
 
 
 @router.get("/mine", response_model=ApiResponse)
@@ -63,4 +79,5 @@ async def my_reviews(
         .limit(100)
     )
     rows = (await db.execute(stmt)).scalars().all()
-    return ApiResponse(data=[ProductReviewOut.model_validate(r).model_dump() for r in rows])
+    nickname = current_user.get("nickname")
+    return ApiResponse(data=[_review_to_out(r, nickname) for r in rows])
