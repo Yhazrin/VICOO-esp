@@ -175,7 +175,7 @@ function ProductCard({
         {/* Info */}
         <div className="px-1">
           <div className="flex items-start justify-between gap-2 mb-1">
-            <h3 className="font-display text-base md:text-lg font-semibold text-ink group-hover:text-rust transition-colors leading-tight">
+            <h3 className="font-display text-base md:text-lg font-semibold text-ink group-hover:text-rust transition-colors leading-tight line-clamp-2 min-h-[2.5em]">
               {displayName}
             </h3>
             <span className="font-body text-overline text-sepia-mid uppercase tracking-wider flex-shrink-0 mt-1">
