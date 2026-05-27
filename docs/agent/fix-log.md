@@ -2708,3 +2708,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Created `proguard-rules.pro` with keep rules for Hilt (`@HiltAndroidApp`, `@AndroidEntryPoint`), Retrofit interfaces, Gson serializers/deserializers, OkHttp, Coil, Kotlin coroutines, EncryptedSharedPreferences, and VICOO app data model classes.
 - **Verification**: Release APK will retain all necessary classes after R8 minification
 - **New issues**: None
+
+## Fix 324 — WeChat mini program upload error message inconsistent language
+- **Date**: 2026-05-27 (Round 94)
+- **Files**: `frontend/weapp/utils/request.js`
+- **Reason**: P3: The `upload()` function's `fail` handler used Chinese `'网络错误'` while the regular `request()` function used English `'Network Error'`. Inconsistent error message language within the same utility module.
+- **Change**: Changed `'网络错误'` to `'Network Error'` in the upload function's fail handler to match the request function.
+- **Verification**: Both request() and upload() now use English error messages consistently
+- **New issues**: None
