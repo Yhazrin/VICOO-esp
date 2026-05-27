@@ -168,18 +168,18 @@ export default function CampaignDetail() {
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/20 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
+        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10 pb-12 md:pb-16">
           <div className="max-w-[1400px] mx-auto">
-            <span className="font-body text-overline tracking-[0.3em] uppercase text-pale-gold mb-3 block">
+            <span className="font-body text-body-sm tracking-[0.3em] uppercase text-pale-gold mb-3 block drop-shadow-sm">
               {t('campaigns.detail.statusLine', {
                 status: t(`campaigns.status.${campaign.status}`),
               })}
             </span>
-            <BleedTitleBlock>
-              <span className="text-paper">{copy.title}</span>
+            <BleedTitleBlock className="[&_*]:text-3xl md:[&_*]:text-5xl lg:[&_*]:text-6xl">
+              <span className="text-paper drop-shadow-lg">{copy.title}</span>
             </BleedTitleBlock>
             {copy.subtitle && (
-              <p className="font-body text-body-sm md:text-body text-paper/85 max-w-2xl mt-3 leading-relaxed">
+              <p className="font-body text-body md:text-body-lg text-paper/90 max-w-2xl mt-3 leading-relaxed drop-shadow-sm">
                 {copy.subtitle}
               </p>
             )}
@@ -241,7 +241,24 @@ export default function CampaignDetail() {
                 />
               )}
 
-              <WelfareTraceabilitySustainabilityPanel />
+              <WelfareTraceabilitySustainabilityPanel
+                sustainability={{
+                  eyebrow: campaign.sustainabilityEyebrow,
+                  title: campaign.sustainabilityTitle,
+                  subtitle: campaign.sustainabilitySubtitle,
+                  p1Title: campaign.sustainabilityP1Title,
+                  p1Body: campaign.sustainabilityP1Body,
+                  p2Title: campaign.sustainabilityP2Title,
+                  p2Body: campaign.sustainabilityP2Body,
+                  p3Title: campaign.sustainabilityP3Title,
+                  p3Body: campaign.sustainabilityP3Body,
+                  p4Title: campaign.sustainabilityP4Title,
+                  p4Body: campaign.sustainabilityP4Body,
+                  footnote: campaign.sustainabilityFootnote,
+                  ctaTraceability: campaign.sustainabilityCtaTraceability,
+                  ctaShop: campaign.sustainabilityCtaShop,
+                }}
+              />
 
               {(campaignArtworks ?? []).length > 0 && (
                 <div className="pt-2 border-t border-warm-gray/25">

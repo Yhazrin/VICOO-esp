@@ -374,6 +374,7 @@ function adaptCampaign(item: any): Campaign {
   return {
     id: String(item.id),
     title: item.title ?? '',
+    subtitle: item.subtitle ?? '',
     description: item.description ?? '',
     startDate: item.start_date ?? '',
     endDate: item.end_date ?? '',
@@ -384,6 +385,20 @@ function adaptCampaign(item: any): Campaign {
     artworkCount: item.artwork_count ?? 0,
     coverImage: item.cover_image,
     createdAt: item.created_at ?? '',
+    sustainabilityEyebrow: item.sustainability_eyebrow ?? '',
+    sustainabilityTitle: item.sustainability_title ?? '',
+    sustainabilitySubtitle: item.sustainability_subtitle ?? '',
+    sustainabilityP1Title: item.sustainability_p1_title ?? '',
+    sustainabilityP1Body: item.sustainability_p1_body ?? '',
+    sustainabilityP2Title: item.sustainability_p2_title ?? '',
+    sustainabilityP2Body: item.sustainability_p2_body ?? '',
+    sustainabilityP3Title: item.sustainability_p3_title ?? '',
+    sustainabilityP3Body: item.sustainability_p3_body ?? '',
+    sustainabilityP4Title: item.sustainability_p4_title ?? '',
+    sustainabilityP4Body: item.sustainability_p4_body ?? '',
+    sustainabilityFootnote: item.sustainability_footnote ?? '',
+    sustainabilityCtaTraceability: item.sustainability_cta_traceability ?? '',
+    sustainabilityCtaShop: item.sustainability_cta_shop ?? '',
   };
 }
 
@@ -405,11 +420,26 @@ export async function fetchCampaigns(params: FilterParams = {}): Promise<Paginat
 export async function createCampaign(data: Partial<Campaign>): Promise<Campaign> {
   const { data: envelope } = await api.post('/campaigns', {
     title: data.title,
+    subtitle: data.subtitle,
     description: data.description,
     start_date: data.startDate,
     end_date: data.endDate,
     goal_amount: data.targetAmount,
     cover_image: data.coverImage,
+    sustainability_eyebrow: data.sustainabilityEyebrow,
+    sustainability_title: data.sustainabilityTitle,
+    sustainability_subtitle: data.sustainabilitySubtitle,
+    sustainability_p1_title: data.sustainabilityP1Title,
+    sustainability_p1_body: data.sustainabilityP1Body,
+    sustainability_p2_title: data.sustainabilityP2Title,
+    sustainability_p2_body: data.sustainabilityP2Body,
+    sustainability_p3_title: data.sustainabilityP3Title,
+    sustainability_p3_body: data.sustainabilityP3Body,
+    sustainability_p4_title: data.sustainabilityP4Title,
+    sustainability_p4_body: data.sustainabilityP4Body,
+    sustainability_footnote: data.sustainabilityFootnote,
+    sustainability_cta_traceability: data.sustainabilityCtaTraceability,
+    sustainability_cta_shop: data.sustainabilityCtaShop,
   });
   return adaptCampaign(envelope.data);
 }
@@ -417,6 +447,7 @@ export async function createCampaign(data: Partial<Campaign>): Promise<Campaign>
 export async function updateCampaign(id: string, data: Partial<Campaign>): Promise<Campaign> {
   const body: Record<string, any> = {};
   if (data.title !== undefined) body.title = data.title;
+  if (data.subtitle !== undefined) body.subtitle = data.subtitle;
   if (data.description !== undefined) body.description = data.description;
   if (data.startDate !== undefined) body.start_date = data.startDate;
   if (data.endDate !== undefined) body.end_date = data.endDate;
@@ -431,6 +462,21 @@ export async function updateCampaign(id: string, data: Partial<Campaign>): Promi
     if (s === 'archived') s = 'cancelled' as typeof s;
     body.status = s;
   }
+  // Sustainability fields
+  if (data.sustainabilityEyebrow !== undefined) body.sustainability_eyebrow = data.sustainabilityEyebrow;
+  if (data.sustainabilityTitle !== undefined) body.sustainability_title = data.sustainabilityTitle;
+  if (data.sustainabilitySubtitle !== undefined) body.sustainability_subtitle = data.sustainabilitySubtitle;
+  if (data.sustainabilityP1Title !== undefined) body.sustainability_p1_title = data.sustainabilityP1Title;
+  if (data.sustainabilityP1Body !== undefined) body.sustainability_p1_body = data.sustainabilityP1Body;
+  if (data.sustainabilityP2Title !== undefined) body.sustainability_p2_title = data.sustainabilityP2Title;
+  if (data.sustainabilityP2Body !== undefined) body.sustainability_p2_body = data.sustainabilityP2Body;
+  if (data.sustainabilityP3Title !== undefined) body.sustainability_p3_title = data.sustainabilityP3Title;
+  if (data.sustainabilityP3Body !== undefined) body.sustainability_p3_body = data.sustainabilityP3Body;
+  if (data.sustainabilityP4Title !== undefined) body.sustainability_p4_title = data.sustainabilityP4Title;
+  if (data.sustainabilityP4Body !== undefined) body.sustainability_p4_body = data.sustainabilityP4Body;
+  if (data.sustainabilityFootnote !== undefined) body.sustainability_footnote = data.sustainabilityFootnote;
+  if (data.sustainabilityCtaTraceability !== undefined) body.sustainability_cta_traceability = data.sustainabilityCtaTraceability;
+  if (data.sustainabilityCtaShop !== undefined) body.sustainability_cta_shop = data.sustainabilityCtaShop;
   const { data: envelope } = await api.put(`/campaigns/${id}`, body);
   return adaptCampaign(envelope.data);
 }

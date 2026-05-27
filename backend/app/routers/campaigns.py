@@ -4,7 +4,7 @@ import logging
 
 from app.config import settings
 from app.database import get_db
-from app.schemas import ApiResponse, CampaignCreate, CampaignOut, CampaignUpdate, PaginatedResponse
+from app.schemas import ApiResponse, CampaignCreate, CampaignListItem, CampaignOut, CampaignUpdate, PaginatedResponse
 from app.deps import require_role
 from app.services.campaign.service import CampaignService
 
@@ -36,7 +36,7 @@ async def list_campaigns(
     try:
         campaigns, total = await service.list_campaigns(page, page_size, status)
         return PaginatedResponse(
-            data=[CampaignOut.model_validate(c).model_dump() for c in campaigns],
+            data=[CampaignListItem.model_validate(c).model_dump() for c in campaigns],
             total=total,
             page=page,
             page_size=page_size,

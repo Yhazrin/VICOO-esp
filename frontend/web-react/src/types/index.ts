@@ -55,6 +55,21 @@ export interface Campaign {
     age: number;
     quote: string;
   };
+  // Sustainability loop fields
+  sustainabilityEyebrow?: string;
+  sustainabilityTitle?: string;
+  sustainabilitySubtitle?: string;
+  sustainabilityP1Title?: string;
+  sustainabilityP1Body?: string;
+  sustainabilityP2Title?: string;
+  sustainabilityP2Body?: string;
+  sustainabilityP3Title?: string;
+  sustainabilityP3Body?: string;
+  sustainabilityP4Title?: string;
+  sustainabilityP4Body?: string;
+  sustainabilityFootnote?: string;
+  sustainabilityCtaTraceability?: string;
+  sustainabilityCtaShop?: string;
 }
 
 export interface Story {

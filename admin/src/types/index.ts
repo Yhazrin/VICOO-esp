@@ -31,6 +31,7 @@ export interface Artwork {
 export interface Campaign {
   id: string;
   title: string;
+  subtitle?: string;
   description: string;
   startDate: string;
   endDate: string;
@@ -41,6 +42,21 @@ export interface Campaign {
   artworkCount: number;
   coverImage?: string;
   createdAt: string;
+  // Sustainability loop fields
+  sustainabilityEyebrow?: string;
+  sustainabilityTitle?: string;
+  sustainabilitySubtitle?: string;
+  sustainabilityP1Title?: string;
+  sustainabilityP1Body?: string;
+  sustainabilityP2Title?: string;
+  sustainabilityP2Body?: string;
+  sustainabilityP3Title?: string;
+  sustainabilityP3Body?: string;
+  sustainabilityP4Title?: string;
+  sustainabilityP4Body?: string;
+  sustainabilityFootnote?: string;
+  sustainabilityCtaTraceability?: string;
+  sustainabilityCtaShop?: string;
 }
 
 export interface Donation {
