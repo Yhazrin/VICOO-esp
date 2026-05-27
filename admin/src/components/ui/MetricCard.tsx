@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import './MetricCard.css';
 
 interface MetricCardProps {
@@ -111,9 +112,9 @@ export function MetricCard({
 
   if (href) {
     return (
-      <a href={href} className="metric-card metric-card--link">
+      <Link to={href} className="metric-card metric-card--link">
         {cardContent}
-      </a>
+      </Link>
     );
   }
 

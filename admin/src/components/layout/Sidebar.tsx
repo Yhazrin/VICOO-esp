@@ -10,9 +10,8 @@ export default function Sidebar() {
 
   // Check if a path matches the current location (supports sub-routes)
   const isActivePath = (path: string): boolean => {
-    // Handle /admin (dashboard) - exact match for root
-    if (path === '/admin') {
-      return location.pathname === '/admin' || location.pathname.startsWith('/admin');
+    if (path === '/') {
+      return location.pathname === '/';
     }
     return location.pathname.startsWith(path);
   };

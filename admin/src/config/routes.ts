@@ -2,7 +2,7 @@
  * Unified Route Configuration
  *
  * Single source of truth for all routes in the admin panel.
- * All routes use /admin prefix.
+ * Routes are relative to BrowserRouter basename="/admin".
  * Used by Sidebar, TopBar, and any navigation components.
  */
 
@@ -30,24 +30,24 @@ export interface NavItem {
   group: 'main' | 'management' | 'system';
 }
 
-// All admin routes use /admin prefix
+// BrowserRouter already applies the /admin basename.
 export const ROUTES: NavItem[] = [
   // Main - Dashboard
-  { path: '/admin', labelKey: 'sidebar.dashboard', icon: LayoutDashboard, group: 'main' },
+  { path: '/', labelKey: 'sidebar.dashboard', icon: LayoutDashboard, group: 'main' },
 
   // Management
-  { path: '/admin/users', labelKey: 'sidebar.users', icon: Users, group: 'management' },
-  { path: '/admin/products', labelKey: 'sidebar.products', icon: Package, group: 'management' },
-  { path: '/admin/orders', labelKey: 'sidebar.orders', icon: ShoppingBag, group: 'management' },
-  { path: '/admin/campaigns', labelKey: 'sidebar.campaigns', icon: Activity, group: 'management' },
-  { path: '/admin/donations', labelKey: 'sidebar.donations', icon: Heart, group: 'management' },
-  { path: '/admin/clothing-donations', labelKey: 'sidebar.clothing', icon: Shirt, group: 'management' },
-  { path: '/admin/artworks', labelKey: 'sidebar.artworks', icon: Layers, group: 'management' },
-  { path: '/admin/after-sales', labelKey: 'sidebar.afterSales', icon: MessageSquare, group: 'management' },
+  { path: '/users', labelKey: 'sidebar.users', icon: Users, group: 'management' },
+  { path: '/products', labelKey: 'sidebar.products', icon: Package, group: 'management' },
+  { path: '/orders', labelKey: 'sidebar.orders', icon: ShoppingBag, group: 'management' },
+  { path: '/campaigns', labelKey: 'sidebar.campaigns', icon: Activity, group: 'management' },
+  { path: '/donations', labelKey: 'sidebar.donations', icon: Heart, group: 'management' },
+  { path: '/clothing-donations', labelKey: 'sidebar.clothing', icon: Shirt, group: 'management' },
+  { path: '/artworks', labelKey: 'sidebar.artworks', icon: Layers, group: 'management' },
+  { path: '/after-sales', labelKey: 'sidebar.afterSales', icon: MessageSquare, group: 'management' },
 
   // System
-  { path: '/admin/audit-log', labelKey: 'sidebar.auditLog', icon: FileText, group: 'system' },
-  { path: '/admin/settings', labelKey: 'sidebar.settings', icon: Settings, group: 'system' },
+  { path: '/audit-log', labelKey: 'sidebar.auditLog', icon: FileText, group: 'system' },
+  { path: '/settings', labelKey: 'sidebar.settings', icon: Settings, group: 'system' },
 ];
 
 // Group navigation items by their group
@@ -68,15 +68,15 @@ export const ROUTE_MAP: Record<string, NavItem> = ROUTES.reduce(
 
 // Dashboard action paths (for internal links in Dashboard)
 export const DASHBOARD_ACTIONS = {
-  artworks: '/admin/artworks',
-  users: '/admin/users',
-  products: '/admin/products',
-  orders: '/admin/orders',
-  campaigns: '/admin/campaigns',
-  donations: '/admin/donations',
-  clothingDonations: '/admin/clothing-donations',
-  afterSales: '/admin/after-sales',
-  auditLog: '/admin/audit-log',
+  artworks: '/artworks',
+  users: '/users',
+  products: '/products',
+  orders: '/orders',
+  campaigns: '/campaigns',
+  donations: '/donations',
+  clothingDonations: '/clothing-donations',
+  afterSales: '/after-sales',
+  auditLog: '/audit-log',
 } as const;
 
 export type DashboardActionKey = keyof typeof DASHBOARD_ACTIONS;
