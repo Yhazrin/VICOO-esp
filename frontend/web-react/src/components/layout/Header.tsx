@@ -11,12 +11,12 @@ import UniqloLogo from './UniqloLogo';
 import vicooLogo from '@/assets/vicoo-logo.png';
 import { COMPANY_NAV, matchCompanyNavKey } from '@/constants/companyNav';
 
-/** Spring for sliding nav pill — bouncier settle (non-linear). */
+/** Spring for sliding nav pill — elastic settle between tabs. */
 const SLIDING_PILL_SPRING = {
   type: 'spring' as const,
-  stiffness: 400,
-  damping: 22,
-  mass: 0.72,
+  stiffness: 380,
+  damping: 18,
+  mass: 0.68,
 };
 
 /**
@@ -243,7 +243,7 @@ function PillWindow({
           {companyHl && (
             <motion.div
               aria-hidden
-              className={`pointer-events-none absolute z-0 ${impactMode ? (isDark ? 'bg-[rgba(230,57,124,0.2)]' : 'bg-ink') : 'bg-white'} ${PILL_CORNER_TRANSITION_CLASS} ${impactMode ? 'rounded-full' : 'rounded-sm'} ${prefersReducedMotion ? '' : 'will-change-transform'}`}
+              className={`pointer-events-none absolute z-0 ${impactMode ? (isDark ? 'bg-[rgba(230,57,124,0.2)]' : 'bg-ink') : 'bg-white shadow-sm ring-1 ring-black/10'} ${PILL_CORNER_TRANSITION_CLASS} ${impactMode ? 'rounded-full' : 'rounded-sm'} ${prefersReducedMotion ? '' : 'will-change-transform'}`}
               initial={false}
               animate={{
                 x: companyHl.x,
@@ -286,7 +286,7 @@ function PillWindow({
                   ${isActive
                     ? impactMode
                       ? isDark ? 'font-medium text-[#F0ECE8]' : 'font-medium text-paper'
-                      : 'font-medium bg-white text-[#E60012] shadow-sm ring-1 ring-black/10'
+                      : 'font-medium text-[#E60012]'
                     : impactMode
                       ? isDark ? 'text-[#9A969C] hover:text-[#F0ECE8]' : 'text-ink-faded hover:text-ink'
                       : 'text-white/90 hover:bg-white/10 hover:text-white'
@@ -303,7 +303,7 @@ function PillWindow({
           {impactHl && (
             <motion.div
               aria-hidden
-              className={`pointer-events-none absolute z-0 rounded-full ${isDark ? 'bg-[#E6397C]' : 'bg-ink'} ${PILL_CORNER_TRANSITION_CLASS} ${prefersReducedMotion ? '' : 'will-change-transform'}`}
+              className={`pointer-events-none absolute z-0 rounded-full ${isDark ? 'bg-[#E6397C]' : 'bg-ink shadow-sm ring-1 ring-black/10'} ${PILL_CORNER_TRANSITION_CLASS} ${prefersReducedMotion ? '' : 'will-change-transform'}`}
               initial={false}
               animate={{
                 x: impactHl.x,
@@ -344,7 +344,7 @@ function PillWindow({
                   ${PILL_CORNER_TRANSITION_CLASS}
                   ${impactMode ? 'rounded-full' : 'rounded-sm'}
                   ${isActive
-                    ? isDark ? 'font-medium text-[#FFFFFF]' : 'font-medium bg-ink text-paper shadow-sm ring-1 ring-black/10'
+                    ? isDark ? 'font-medium text-[#FFFFFF]' : 'font-medium text-paper'
                     : impactMode
                       ? isDark ? 'text-[#9A969C] hover:text-[#F0ECE8]' : 'text-ink-faded hover:text-ink'
                       : 'text-white/40'
