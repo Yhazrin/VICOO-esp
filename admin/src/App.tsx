@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore, hasAdminAccess } from './stores/authStore';
 import Layout from './components/layout/Layout';
 import LoginPage from './pages/LoginPage';
@@ -21,18 +21,17 @@ import { useEffect, useState } from 'react';
  */
 function SessionRestorer({ children }: { children: React.ReactNode }) {
   const [restored, setRestored] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const login = useAuthStore((s) => s.login);
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const storeIsAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   useEffect(() => {
-    // If auth already exists, no need to restore
-    if (isAuthenticated) {
-      setRestored(true);
-      return;
-    }
-
-    // Try to restore session from server
-    fetch('/api/v1/auth/me', { credentials: 'include' })
+    // Try to restore session from server using cookie
+    fetch('/api/v1/auth/me', {
+      credentials: 'include',
+      signal: AbortSignal.timeout(5000), // 5 second timeout
+    })
       .then((res) => {
         if (res.ok) {
           return res.json();
@@ -42,21 +41,57 @@ function SessionRestorer({ children }: { children: React.ReactNode }) {
       .then((data) => {
         const userData = data.data?.user || data.user;
         if (userData && hasAdminAccess(userData.role)) {
-          // Restore session with token if available
+          // Restore session
           const token = data.data?.token?.access_token || data.token?.access_token || data.access_token;
           login(userData, token || 'restored-session');
+          setIsAuthenticated(true);
+          setIsAdmin(true);
+        } else if (userData) {
+          // User is authenticated but not admin
+          setIsAuthenticated(true);
+          setIsAdmin(false);
         }
       })
       .catch(() => {
-        // Not authenticated - SessionRestorer doesn't redirect, Layout will handle it
+        // Not authenticated - clear any stale state
+        setIsAuthenticated(false);
+        setIsAdmin(false);
       })
       .finally(() => {
         setRestored(true);
       });
-  }, [login, isAuthenticated]);
+  }, [login]);
 
-  // Don't block rendering, just return children
-  // Layout component will handle unauthenticated state
+  // Still restoring session
+  if (!restored) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'var(--color-bg)',
+      }}>
+        <div style={{ fontSize: '14px', color: 'var(--color-text-3)' }}>
+          Loading...
+        </div>
+      </div>
+    );
+  }
+
+  // User is authenticated but not admin - redirect
+  if (isAuthenticated && !isAdmin) {
+    window.location.href = 'access-denied';
+    return null;
+  }
+
+  // User is not authenticated - redirect to login
+  if (!isAuthenticated) {
+    window.location.href = 'login';
+    return null;
+  }
+
+  // User is authenticated and is admin
   return <>{children}</>;
 }
 
@@ -134,42 +169,10 @@ function AccessDeniedPage() {
 }
 
 /**
- * Redirect from legacy /dashboard to /admin
- */
-function LegacyDashboardRedirect() {
-  return <Navigate to="/admin" replace />;
-}
-
-/**
- * Admin Route Guard - Requires admin role
+ * Admin Route Guard - Just a passthrough since SessionRestorer handles auth
  */
 function AdminGuard({ children }: { children: React.ReactNode }) {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const user = useAuthStore((s) => s.user);
-
-  if (!isAuthenticated || !user) {
-    // Show simple loading while session restores
-    return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'var(--color-bg)',
-      }}>
-        <div style={{ fontSize: '14px', color: 'var(--color-text-3)' }}>
-          Restoring session...
-        </div>
-      </div>
-    );
-  }
-
-  if (!hasAdminAccess(user.role)) {
-    // Non-admin users - redirect to access denied
-    window.location.href = 'access-denied';
-    return null;
-  }
-
+  // SessionRestorer already validated admin access
   return <>{children}</>;
 }
 
@@ -178,7 +181,7 @@ export default function App() {
     <SessionRestorer>
       <Routes>
         {/* Legacy redirect: /dashboard → /admin */}
-        <Route path="/dashboard" element={<LegacyDashboardRedirect />} />
+        <Route path="/dashboard" element={<Navigate to="" replace />} />
 
         {/* Access Denied page */}
         <Route path="/access-denied" element={<AccessDeniedPage />} />
@@ -206,7 +209,7 @@ export default function App() {
                   <Route path="settings" element={<SettingsPage />} />
                   <Route path="audit-log" element={<AuditLogPage />} />
                   {/* Unknown /admin/* paths → /admin */}
-                  <Route path="*" element={<Navigate to="/admin" replace />} />
+                  <Route path="*" element={<Navigate to="" replace />} />
                 </Routes>
               </Layout>
             </AdminGuard>
@@ -218,11 +221,11 @@ export default function App() {
          * These only match if the admin SPA is accessed directly (not behind /admin/ prefix).
          * In normal deployment, nginx forwards /admin/* to this SPA, so these never match.
          */}
-        {/* Root: → /admin (admin-only fallback) */}
-        <Route path="/" element={<Navigate to="/admin" replace />} />
+        {/* Root: → dashboard (empty path = /admin/) */}
+        <Route path="/" element={<Navigate to="" replace />} />
 
-        {/* Catch-all: → /admin (admin-only fallback) */}
-        <Route path="*" element={<Navigate to="/admin" replace />} />
+        {/* Catch-all: → dashboard */}
+        <Route path="*" element={<Navigate to="" replace />} />
       </Routes>
     </SessionRestorer>
   );

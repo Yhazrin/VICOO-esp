@@ -175,7 +175,7 @@ export default function Login() {
         // Admin users: redirect to admin SPA directly
         // DO NOT store session in web-react - admin has its own session
         toast.success(t('auth.loginSuccess', 'Login successful'));
-        window.location.href = '/admin/dashboard';
+        window.location.href = '/admin/';
       } else {
         // Regular users: store session and stay on web-react
         const login = useAuthStore.getState().login;
