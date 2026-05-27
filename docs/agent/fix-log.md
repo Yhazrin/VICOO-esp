@@ -2700,3 +2700,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Removed the Google Fonts import and the `IBM Plex Mono` reference from font-family. Added comment explaining the limitation. System fonts (`PingFang SC`, `Microsoft YaHei`) provide adequate typography on mobile.
 - **Verification**: No external font requests in mini program; system fonts used instead
 - **New issues**: None
+
+## Fix 323 — Android app missing proguard-rules.pro causing release build crashes
+- **Date**: 2026-05-27 (Round 92)
+- **Files**: `frontend/android/app/proguard-rules.pro`
+- **Reason**: P1: `build.gradle.kts` referenced `proguard-rules.pro` with `isMinifyEnabled = true` in release build type, but the file did not exist. Without keep rules, R8 would strip Hilt, Retrofit, Gson, OkHttp, and Compose classes at runtime, crashing the release APK.
+- **Change**: Created `proguard-rules.pro` with keep rules for Hilt (`@HiltAndroidApp`, `@AndroidEntryPoint`), Retrofit interfaces, Gson serializers/deserializers, OkHttp, Coil, Kotlin coroutines, EncryptedSharedPreferences, and VICOO app data model classes.
+- **Verification**: Release APK will retain all necessary classes after R8 minification
+- **New issues**: None
