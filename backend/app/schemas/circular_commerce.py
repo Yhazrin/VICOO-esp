@@ -71,6 +71,7 @@ class ProductReviewOut(BaseModel):
     title: Optional[str] = None
     body: Optional[str] = None
     created_at: datetime
+    author_nickname: Optional[str] = None
 
     model_config = {"from_attributes": True}
 

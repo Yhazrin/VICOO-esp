@@ -9,6 +9,7 @@ export interface ProductReview {
   title?: string | null;
   body?: string | null;
   created_at: string;
+  author_nickname?: string | null;
 }
 
 export const reviewsApi = {
