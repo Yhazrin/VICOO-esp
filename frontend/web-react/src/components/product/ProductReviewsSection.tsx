@@ -4,15 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { reviewsApi, type ProductReview } from '@/services/reviewsApi';
 import { useAuthStore } from '@/stores/authStore';
-
-const FEEDBACK_CHIP_IDS = [
-  'trueToSize',
-  'comfortableFabric',
-  'thoughtfulPackaging',
-  'impactVisible',
-] as const;
-
-type FeedbackChipId = (typeof FEEDBACK_CHIP_IDS)[number];
+import {
+  deserializeReviewBody,
+  FEEDBACK_CHIP_IDS,
+  serializeReviewBody,
+  type FeedbackChipId,
+} from '@/utils/reviewChips';
 
 const DIMENSION_TAG_KEYS = ['fitComfort', 'packaging', 'traceableImpact'] as const;
 
@@ -110,6 +107,9 @@ function ReviewCard({
   ratingLabel: string;
   authorLabel: string;
 }) {
+  const { t } = useTranslation();
+  const { text, chipIds } = deserializeReviewBody(review.body);
+
   return (
     <article className="rounded-2xl border border-[#E8E8E6] bg-white/70 px-5 py-5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-shadow duration-200 hover:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.08)]">
       <div className="flex items-center justify-between gap-3">
@@ -133,10 +133,22 @@ function ReviewCard({
           {review.title}
         </h3>
       )}
-      {review.body && (
+      {text && (
         <p className="mt-2 font-body text-sm leading-relaxed text-neutral-600 whitespace-pre-line">
-          {review.body}
+          {text}
         </p>
+      )}
+      {chipIds.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {chipIds.map((id) => (
+            <span
+              key={id}
+              className="rounded-full border border-[#E5E5E5] bg-white/80 px-3 py-1.5 font-body text-[11px] tracking-[0.04em] text-neutral-600"
+            >
+              {t(`shop.detail.reviewChips.${id}`)}
+            </span>
+          ))}
+        </div>
       )}
     </article>
   );
@@ -166,19 +178,13 @@ export default function ProductReviewsSection({ productId }: { productId: number
   }, [reviews, reviewCount]);
 
   const reviewMutation = useMutation({
-    mutationFn: () => {
-      const chipLine =
-        selectedChips.length > 0
-          ? selectedChips.map((id) => t(`shop.detail.reviewChips.${id}`)).join(' · ')
-          : '';
-      const bodyParts = [reviewBody.trim(), chipLine].filter(Boolean);
-      return reviewsApi.create({
+    mutationFn: () =>
+      reviewsApi.create({
         product_id: productId,
         rating: reviewRating,
         title: reviewTitle.trim() || undefined,
-        body: bodyParts.length > 0 ? bodyParts.join('\n\n') : undefined,
-      });
-    },
+        body: serializeReviewBody(reviewBody, selectedChips),
+      }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['reviews', productId] });
       setReviewTitle('');
