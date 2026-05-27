@@ -437,7 +437,7 @@ export default function OrderDetail() {
                     <h3 className="font-display text-lg font-bold text-ink">
                       {t('orderDetail.returnExchange.title', 'Request Return')}
                     </h3>
-                    <button onClick={resetReturnModal} className="text-sepia-mid hover:text-ink transition-colors cursor-pointer">
+                    <button aria-label={t('common.close', 'Close')} onClick={resetReturnModal} className="text-sepia-mid hover:text-ink transition-colors cursor-pointer">
                       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" /></svg>
                     </button>
                   </div>

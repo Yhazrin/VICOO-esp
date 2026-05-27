@@ -2644,3 +2644,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Added `nav.settings.*` translation keys to en.json and zh.json. Replaced manual locale ternaries with `t()` calls.
 - **Verification**: AI ball style labels now use i18n system
 - **New issues**: None
+
+## Fix 316 — Icon-only close button missing aria-label in OrderDetail return modal
+- **Date**: 2026-05-27 (Round 86)
+- **Files**: `frontend/web-react/src/pages/OrderDetail/index.tsx`
+- **Reason**: P2: The close button (SVG "X" icon) in the return/exchange modal had no `aria-label`. Screen readers cannot identify the button's purpose. Same class fixed in Fixes 22, 54, 67, 233, 303.
+- **Change**: Added `aria-label={t('common.close', 'Close')}` to the close button.
+- **Verification**: Screen readers now announce "Close" for the button
+- **New issues**: None
