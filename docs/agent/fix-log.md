@@ -2692,3 +2692,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Added `view_count?: number` to Artwork; made `subtitle` optional on Campaign; added `'draft' | 'cancelled'` to Campaign status union; added `created_at?: string` and `status?` to Product.
 - **Verification**: Frontend types now match backend response shapes
 - **New issues**: None
+
+## Fix 322 — WeChat mini program non-functional Google Fonts import
+- **Date**: 2026-05-27 (Round 91)
+- **Files**: `frontend/weapp/app.wxss`
+- **Reason**: P3: `app.wxss` imported Google Fonts via `@import url(https://fonts.googleapis.com/...)`. WeChat mini programs cannot load external CSS font resources — this import was non-functional dead code. Also referenced `IBM Plex Mono` in font-family which would never load.
+- **Change**: Removed the Google Fonts import and the `IBM Plex Mono` reference from font-family. Added comment explaining the limitation. System fonts (`PingFang SC`, `Microsoft YaHei`) provide adequate typography on mobile.
+- **Verification**: No external font requests in mini program; system fonts used instead
+- **New issues**: None
