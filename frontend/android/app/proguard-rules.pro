@@ -57,7 +57,7 @@
 # ── VICOO App Models ──
 # Keep all data classes used by Gson for API serialization
 -keep class org.vicoo.app.data.model.** { *; }
--keep class org.vicoo.app.data.remote.** { *; }
+-keep class org.vicoo.app.data.api.** { *; }
 
 # ── Compose ──
 -dontwarn androidx.compose.**
