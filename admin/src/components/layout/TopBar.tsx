@@ -13,6 +13,11 @@ export default function TopBar() {
   const toggleTheme = useUIStore((s) => s.toggleTheme);
   const toggleSidebar = useUIStore((s) => s.toggleSidebar);
 
+  const handleLogout = () => {
+    logout();
+    window.location.href = '/login?redirect=/admin/';
+  };
+
   const toggleLanguage = () => {
     const newLang = i18n.language === 'zh' ? 'en' : 'zh';
     i18n.changeLanguage(newLang);
@@ -93,7 +98,7 @@ export default function TopBar() {
 
           {/* Logout */}
           <button
-            onClick={logout}
+            onClick={handleLogout}
             aria-label="Logout"
             className="topbar-btn topbar-btn--logout"
           >

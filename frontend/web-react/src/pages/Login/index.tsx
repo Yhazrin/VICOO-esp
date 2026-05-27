@@ -23,6 +23,12 @@ import type { TestAccount } from './testAccounts';
 // Admin roles that can access admin panel
 const ADMIN_ROLES = ['admin', 'editor', 'compliance'];
 
+function getSafeRedirect(value: string | null): string | null {
+  if (!value) return null;
+  if (!value.startsWith('/') || value.startsWith('//')) return null;
+  return value;
+}
+
 const CARD_GLOW: Record<Exclude<AmbientMode, null>, string> = {
   email: '0 28px 56px -12px rgba(230,0,18,0.12), 0 12px 24px -8px rgba(26,26,22,0.08)',
   password: '0 28px 56px -12px rgba(109,137,116,0.14), 0 12px 24px -8px rgba(26,26,22,0.08)',
@@ -175,12 +181,12 @@ export default function Login() {
       if (userRole && ADMIN_ROLES.includes(userRole)) {
         // Admin users: redirect to admin SPA directly
         // DO NOT store session in web-react - admin has its own session
-        const redirect = searchParams.get('redirect');
+        const redirect = getSafeRedirect(searchParams.get('redirect'));
         const adminTarget = redirect?.startsWith('/admin') ? redirect : '/admin/';
         toast.success(t('auth.loginSuccess', 'Login successful'));
         window.location.href = adminTarget;
       } else {
-        const redirect = searchParams.get('redirect');
+        const redirect = getSafeRedirect(searchParams.get('redirect'));
         const userTarget = redirect && !redirect.startsWith('/admin') ? redirect : '/';
         // Regular users: store session and stay on web-react
         const login = useAuthStore.getState().login;

@@ -47,7 +47,7 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('general');
 
   // 获取系统设置数据
-  const { data } = useQuery({
+  const { data, isError, error } = useQuery({
     queryKey: ['settings'],
     queryFn: fetchSystemSettings
   });
@@ -72,6 +72,38 @@ export default function SettingsPage() {
       toast.success(t('settings.toastSaved'));
     },
   });
+
+  // 请求失败时显示明确错误，避免页面一直停在 loading。
+  if (isError) {
+    const message = error instanceof Error ? error.message : t('settings.loadFailed', 'Failed to load settings');
+    return (
+      <div style={{ maxWidth: '760px' }}>
+        <h1 style={{
+          fontSize: 28,
+          fontWeight: 600,
+          marginBottom: 8,
+          fontFamily: 'var(--font-body)'
+        }}>
+          {t('settings.title')}
+        </h1>
+        <div style={{
+          marginTop: 24,
+          padding: 24,
+          background: 'var(--color-surface)',
+          border: '1px solid var(--color-error)',
+          borderRadius: 8,
+          color: 'var(--color-text)'
+        }}>
+          <div style={{ fontWeight: 600, marginBottom: 8 }}>
+            {t('settings.loadFailed', 'Failed to load settings')}
+          </div>
+          <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.6 }}>
+            {message}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // 数据加载中显示加载状态
   if (!form) {

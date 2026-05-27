@@ -18,6 +18,7 @@ interface AuthState {
   redirectPath: string | null;
   login: (user: AuthUser, token: string, redirectPath?: string) => void;
   restoreSession: (user: AuthUser, token: string) => void;
+  clearSession: () => void;
   logout: () => void;
   setAccessToken: (token: string) => void;
   updateUser: (user: Partial<AuthUser>) => void;
@@ -141,6 +142,15 @@ export const useAuthStore = create<AuthState>()(
         });
       },
 
+      clearSession: () => {
+        set({
+          user: null,
+          token: null,
+          isAuthenticated: false,
+          redirectPath: null,
+        });
+      },
+
       logout: () => {
         set({
           user: null,
@@ -150,7 +160,12 @@ export const useAuthStore = create<AuthState>()(
         });
         // Invalidate server-side session
         fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'include' })
-          .catch(() => {});
+          .catch(() => {})
+          .finally(() => {
+            if (window.location.pathname.startsWith('/admin')) {
+              window.location.href = '/login?redirect=/admin/';
+            }
+          });
       },
 
       setAccessToken: (token) => {

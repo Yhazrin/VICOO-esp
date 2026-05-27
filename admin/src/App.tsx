@@ -12,7 +12,7 @@ import SettingsPage from './pages/SettingsPage';
 import AuditLogPage from './pages/AuditLogPage';
 import ClothingDonationPage from './pages/ClothingDonationPage';
 import AfterSalesPage from './pages/AfterSalesPage';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 /**
  * Restore session from server on app load
@@ -83,15 +83,9 @@ function SessionRestorer({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const restoreSession = useAuthStore((s) => s.restoreSession);
-  const logout = useAuthStore((s) => s.logout);
-  const restoreStartedRef = useRef(false);
+  const clearSession = useAuthStore((s) => s.clearSession);
 
   useEffect(() => {
-    if (restoreStartedRef.current) {
-      return;
-    }
-    restoreStartedRef.current = true;
-
     let cancelled = false;
 
     async function restoreFromCookie() {
@@ -107,7 +101,7 @@ function SessionRestorer({ children }: { children: React.ReactNode }) {
           setIsAuthenticated(true);
           setIsAdmin(true);
         } else {
-          logout();
+          clearSession();
           setIsAuthenticated(true);
           setIsAdmin(false);
         }
@@ -124,7 +118,7 @@ function SessionRestorer({ children }: { children: React.ReactNode }) {
 
     restoreFromCookie();
     return () => { cancelled = true; };
-  }, [restoreSession, logout]);
+  }, [restoreSession, clearSession]);
 
   // Still restoring session
   if (!restored) {
