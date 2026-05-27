@@ -300,7 +300,7 @@ export default function ProductDetail() {
                   src={productImages[selectedImage] ?? productImages[0]}
                   alt={safeProduct.name}
                   aspectRatio="portrait"
-                  size="full"
+                  size="lg"
                   viewTransitionName={
                     isImpactProductDetail && id && selectedImage === 0
                       ? `impact-product-${id}`
@@ -461,37 +461,6 @@ export default function ProductDetail() {
                       </div>
                     </div>
                   )}
-
-                  <div className="rounded-xl border border-warm-gray/18 bg-paper/35 px-4 py-4 md:px-5 md:py-5">
-                    <div className="flex flex-wrap items-end justify-between gap-3 mb-3">
-                      <p className="font-body text-[10px] tracking-[0.22em] uppercase text-sepia-mid">
-                        {t('shop.detail.sustainability')}
-                      </p>
-                      <p className="font-display text-3xl md:text-4xl text-ink tabular-nums leading-none tracking-tight">
-                        {safeProduct.sustainabilityScore}
-                        <span className="font-body text-sm text-sepia-mid font-normal">/100</span>
-                      </p>
-                    </div>
-                    <div
-                      className="h-1.5 w-full rounded-full bg-warm-gray/25 overflow-hidden"
-                      role="presentation"
-                    >
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-sage/70 to-sage transition-[width] duration-500 ease-out"
-                        style={{ width: `${Math.min(100, Math.max(0, safeProduct.sustainabilityScore))}%` }}
-                      />
-                    </div>
-                    <div className="flex gap-1.5 mt-3" aria-hidden="true">
-                      {[1, 2, 3, 4, 5].map((level) => (
-                        <div
-                          key={level}
-                          className={`h-1 flex-1 rounded-sm ${
-                            level <= safeProduct.sustainabilityScore / 20 ? 'bg-sage/55' : 'bg-warm-gray/22'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </div>
 
                   <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                     <label className="font-body text-[10px] tracking-[0.22em] uppercase text-sepia-mid sm:min-w-[5rem]">
