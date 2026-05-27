@@ -23,6 +23,7 @@ from app.schemas import (
     ProductUpdate,
     supply_chain_record_to_out,
 )
+from app.utils.content_locale import localize_artwork_dict, localize_supply_chain_row, normalize_locale
 from app.deps import require_role, get_current_user
 from app.data.default_regular_products import regular_catalog_mock_dicts, SKU_EXTRA_BY_PRODUCT_NAME
 from app.data.product_i18n_seed import PRODUCT_I18N_BY_NAME_ZH
@@ -92,16 +93,18 @@ def _apply_product_filters(stmt, category: str | None, status: str | None, is_im
 
 def _localize_product_dict(d: dict, locale: str) -> dict:
     """When locale=en and *_en fields are non-empty, override the primary fields."""
-    if locale == "en":
-        if d.get("name_en"):
-            d["name"] = d["name_en"]
-        if d.get("description_en"):
-            d["description"] = d["description_en"]
-        if d.get("trace_story_title_en"):
-            d["trace_story_title"] = d["trace_story_title_en"]
-        if d.get("trace_story_content_en"):
-            d["trace_story_content"] = d["trace_story_content_en"]
-    return d
+    out = dict(d)
+    loc = normalize_locale(locale)
+    if loc == "en":
+        if out.get("name_en"):
+            out["name"] = out["name_en"]
+        if out.get("description_en"):
+            out["description"] = out["description_en"]
+        if out.get("trace_story_title_en"):
+            out["trace_story_title"] = out["trace_story_title_en"]
+        if out.get("trace_story_content_en"):
+            out["trace_story_content"] = out["trace_story_content_en"]
+    return out
 
 
 async def _artwork_image_fallback_map(db: AsyncSession, products: list[Product]) -> dict[int, str]:
@@ -331,22 +334,47 @@ async def list_featured_products(locale: str = Query("zh", pattern="^(zh|en)$"),
 
 
 @router.get("/{product_id}/supply-chain", response_model=ApiResponse)
-async def get_product_supply_chain(product_id: int, db: AsyncSession = Depends(get_db)):
+async def get_product_supply_chain(
+    product_id: int,
+    locale: str = Query("zh", pattern="^(zh|en)$"),
+    db: AsyncSession = Depends(get_db),
+):
     """Get supply chain records for a product."""
     try:
+        product = (await db.execute(select(Product).where(Product.id == product_id))).scalar_one_or_none()
+        product_name = product.name if product else ""
         stmt = select(SupplyChainRecord).where(SupplyChainRecord.product_id == product_id)
         result = await db.execute(stmt)
         records = result.scalars().all()
-        return ApiResponse(data=[supply_chain_record_to_out(r).model_dump() for r in records])
+        rows = [
+            localize_supply_chain_row(supply_chain_record_to_out(r).model_dump(), product_name, locale)
+            for r in records
+        ]
+        return ApiResponse(data=rows)
     except HTTPException:
         raise
     except Exception:
-        records = [r for r in _mock_supply_chain if r["product_id"] == product_id]
+        if not settings.DEMO_MODE:
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+        product_name = ""
+        for p in _mock_products:
+            if p["id"] == product_id:
+                product_name = str(p.get("name") or "")
+                break
+        records = [
+            localize_supply_chain_row(dict(r), product_name, locale)
+            for r in _mock_supply_chain
+            if r["product_id"] == product_id
+        ]
         return ApiResponse(data=records)
 
 
 @router.get("/{product_id}/artwork", response_model=ApiResponse)
-async def get_product_artwork(product_id: int, db: AsyncSession = Depends(get_db)):
+async def get_product_artwork(
+    product_id: int,
+    locale: str = Query("zh", pattern="^(zh|en)$"),
+    db: AsyncSession = Depends(get_db),
+):
     """Get the artwork linked to a product."""
     try:
         stmt = select(Product).where(Product.id == product_id)
@@ -362,7 +390,8 @@ async def get_product_artwork(product_id: int, db: AsyncSession = Depends(get_db
         if not artwork:
             raise HTTPException(status_code=404, detail="Linked artwork not found")
         from app.schemas.artwork import ArtworkOut
-        return ApiResponse(data=ArtworkOut.model_validate(artwork).model_dump())
+        data = localize_artwork_dict(ArtworkOut.model_validate(artwork).model_dump(), locale)
+        return ApiResponse(data=data)
     except HTTPException:
         raise
     except Exception:
@@ -384,7 +413,7 @@ async def get_product_artwork(product_id: int, db: AsyncSession = Depends(get_db
             if p["id"] == product_id and p.get("artwork_id"):
                 aw = mock_artworks.get(p["artwork_id"])
                 if aw:
-                    return ApiResponse(data=aw)
+                    return ApiResponse(data=localize_artwork_dict(aw, locale))
         raise HTTPException(status_code=404, detail="No artwork linked to this product")
 
 
@@ -404,8 +433,7 @@ async def get_product(product_id: int, locale: str = Query("zh", pattern="^(zh|e
     except Exception:
         for p in _mock_products:
             if p["id"] == product_id:
-                _localize_product_dict(p, locale)
-                return ApiResponse(data=p)
+                return ApiResponse(data=_localize_product_dict(dict(p), locale))
         raise HTTPException(status_code=404, detail="Product not found")
 
 

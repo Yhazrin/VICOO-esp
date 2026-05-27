@@ -51,27 +51,10 @@ echo "Checking demo seed..."
 UVICORN_RELOAD="${UVICORN_RELOAD:-0}"
 python - <<'PY'
 import asyncio
-from sqlalchemy import select
 
-from app.database import AsyncSessionLocal
-from app.models.user import User
-from app.config import settings
+from app.seed import maybe_seed_demo
 
-async def maybe_seed():
-    want = settings.APP_ENV == "development" or getattr(settings, "SEED_IF_EMPTY", False)
-    if not want:
-        print("Skip seed (APP_ENV/SEED_IF_EMPTY).")
-        return
-    async with AsyncSessionLocal() as session:
-        r = await session.execute(select(User))
-        if r.scalars().first() is not None:
-            print("Skip seed (users already exist).")
-            return
-    print("Running demo seed before uvicorn...")
-    from app.seed import seed
-    await seed()
-
-asyncio.run(maybe_seed())
+asyncio.run(maybe_seed_demo())
 PY
 
 # Reset seed user credentials on every deployment (in case testers changed passwords)
