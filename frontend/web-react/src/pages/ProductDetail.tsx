@@ -88,15 +88,15 @@ export default function ProductDetail() {
   });
 
   const { data: linkedArtwork } = useQuery({
-    queryKey: ['product-artwork', id],
-    queryFn: () => productsApi.getArtwork(id!),
+    queryKey: ['product-artwork', id, i18n.language],
+    queryFn: () => productsApi.getArtwork(id!, i18n.language),
     enabled: !!id && !!product?.artworkId,
     retry: false,
   });
 
   const { data: supplyChainRaw = [] } = useQuery({
-    queryKey: ['product-supply-chain', id],
-    queryFn: () => supplyChainApi.getProductJourney(id!),
+    queryKey: ['product-supply-chain', id, i18n.language],
+    queryFn: () => supplyChainApi.getProductJourney(id!, i18n.language),
     enabled: !!id && !!product,
     retry: false,
   });
@@ -339,7 +339,7 @@ export default function ProductDetail() {
                 <div className="space-y-7 md:space-y-9">
                   <header className="space-y-4">
                     <span className="inline-block font-body text-[10px] md:text-[11px] tracking-[0.38em] uppercase text-sepia-mid px-3 py-1 rounded-full border border-warm-gray/20 bg-warm-gray/5">
-                      {safeProduct.category}
+                      {t(`shop.filters.${safeProduct.category}`, safeProduct.category)}
                     </span>
                     <h1 className="font-display text-[clamp(1.85rem,3.6vw,2.85rem)] text-ink font-semibold leading-[1.05] tracking-[-0.03em]">
                       {safeProduct.name}

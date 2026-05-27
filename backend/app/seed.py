@@ -74,6 +74,76 @@ async def reset_seed_users():
         print("Seed user credentials reset complete!")
 
 
+_DEMO_TRUNCATE_TABLES = (
+    "order_items",
+    "payment_transactions",
+    "orders",
+    "after_sale_tickets",
+    "product_reviews",
+    "clothing_intakes",
+    "supply_chain_records",
+    "donations",
+    "products",
+    "artworks",
+    "editorial_articles",
+    "contact_messages",
+    "audit_logs",
+    "site_settings",
+    "addresses",
+    "campaigns",
+    "child_participants",
+    "regions",
+    "countries",
+    "users",
+)
+
+
+async def clear_demo_data(session: AsyncSession) -> None:
+    """Remove incomplete or stale demo rows so seed can run cleanly."""
+    from sqlalchemy import text
+
+    bind = session.get_bind()
+    dialect = bind.dialect.name if bind is not None else "mysql"
+    if dialect == "mysql":
+        await session.execute(text("SET FOREIGN_KEY_CHECKS=0"))
+    for table in _DEMO_TRUNCATE_TABLES:
+        await session.execute(text(f"TRUNCATE TABLE `{table}`"))
+    if dialect == "mysql":
+        await session.execute(text("SET FOREIGN_KEY_CHECKS=1"))
+
+
+async def demo_data_is_complete(session: AsyncSession) -> bool:
+    from sqlalchemy import func, select
+
+    count = (await session.execute(select(func.count()).select_from(Product))).scalar_one()
+    return int(count or 0) > 0
+
+
+async def maybe_seed_demo() -> None:
+    """Load demo catalog when products are missing; recover partial seeds."""
+    from sqlalchemy import func, select
+
+    want = settings.APP_ENV == "development" or getattr(settings, "SEED_IF_EMPTY", False)
+    if not want:
+        print("Skip seed (APP_ENV/SEED_IF_EMPTY).")
+        return
+
+    async with AsyncSessionLocal() as session:
+        if await demo_data_is_complete(session):
+            product_count = (await session.execute(select(func.count()).select_from(Product))).scalar_one()
+            print(f"Skip seed ({product_count} products exist).")
+            return
+
+        user_exists = (await session.execute(select(User.id).limit(1))).scalar_one_or_none() is not None
+        if user_exists:
+            print("Partial demo data detected; clearing before re-seed...")
+            await clear_demo_data(session)
+            await session.commit()
+
+    print("Running demo seed before uvicorn...")
+    await seed()
+
+
 async def seed():
     """Insert sample data (tables must already exist — created by lifespan)."""
     print("Creating tables...")

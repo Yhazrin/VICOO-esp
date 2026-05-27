@@ -18,6 +18,7 @@ from app.schemas import (
     PaginatedResponse,
     supply_chain_record_to_out,
 )
+from app.utils.content_locale import localize_product_name, localize_supply_chain_row
 from app.deps import require_role
 
 router = APIRouter(prefix="/supply-chain", tags=["Supply Chain"])
@@ -107,7 +108,11 @@ async def list_records(
         return PaginatedResponse(data=[], total=0, page=page, page_size=page_size)
 
 @router.get("/trace/{product_id}", response_model=ApiResponse)
-async def trace_product(product_id: int, db: AsyncSession = Depends(get_db)):
+async def trace_product(
+    product_id: int,
+    locale: str = Query("zh", pattern="^(zh|en)$"),
+    db: AsyncSession = Depends(get_db),
+):
     """Get full supply chain trace for a product. (Refactored)"""
     sc_service = SupplyChainService(db)
     try:
@@ -117,10 +122,13 @@ async def trace_product(product_id: int, db: AsyncSession = Depends(get_db)):
             raise HTTPException(status_code=404, detail="Product not found")
 
         timeline = await sc_service.get_sustainability_timeline(product_id)
+        product_name = product.name or ""
+        display_name = localize_product_name(product_name, getattr(product, "name_en", None), locale)
+        records = [localize_supply_chain_row(row, product_name, locale) for row in timeline]
         return ApiResponse(data={
             "product_id": product_id,
-            "product_name": product.name,
-            "records": timeline,
+            "product_name": display_name,
+            "records": records,
         })
     except HTTPException:
         raise

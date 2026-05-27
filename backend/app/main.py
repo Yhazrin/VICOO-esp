@@ -42,15 +42,9 @@ async def lifespan(app: FastAPI):
     )
     if _seed_if_empty:
         try:
-            from app.models.user import User
-            async with AsyncSessionLocal() as session:
-                from sqlalchemy import select
-                result = await session.execute(select(User))
-                if result.scalars().first() is None:
-                    logger.info("Seeding demo data (empty database)...")
-                    from app.seed import seed
-                    await seed()
-                    logger.info("Demo data seeded successfully.")
+            from app.seed import maybe_seed_demo
+
+            await maybe_seed_demo()
         except Exception:
             logger.warning("Demo data seeding failed (non-critical)", exc_info=True)
 
