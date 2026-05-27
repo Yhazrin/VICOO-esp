@@ -2684,3 +2684,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Created migration `m3n4o5p6q7r8` that creates all 7 indexes with proper downgrade support.
 - **Verification**: `alembic upgrade head` will apply all missing indexes
 - **New issues**: None
+
+## Fix 321 — Frontend types misaligned with backend schemas (6 mismatches)
+- **Date**: 2026-05-27 (Round 90)
+- **Files**: `frontend/web-react/src/types/index.ts`
+- **Reason**: P2: Frontend TypeScript types diverged from backend Pydantic schemas in 6 places: (1) Artwork missing `view_count`, (2) Campaign `subtitle` required but backend doesn't send it, (3) Campaign status missing `draft`/`cancelled` values, (4) Product missing `created_at` and `status`. These cause TypeScript type violations at runtime when backend returns these fields/values.
+- **Change**: Added `view_count?: number` to Artwork; made `subtitle` optional on Campaign; added `'draft' | 'cancelled'` to Campaign status union; added `created_at?: string` and `status?` to Product.
+- **Verification**: Frontend types now match backend response shapes
+- **New issues**: None
