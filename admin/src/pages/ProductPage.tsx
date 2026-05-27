@@ -16,6 +16,17 @@ import {
   updateSupplyChainRecord, deleteSupplyChainRecord,
   uploadTraceMedia,
 } from '../services/api';
+import {
+  SupplyChainStageIcon,
+  Package,
+  Link2,
+  MapPin,
+  Leaf,
+  Globe,
+  ImagePlus,
+  ICON_STROKE,
+} from '../components/icons/supplyChain';
+import { BadgeCheck, Info, Heart, Link2 as Link2Icon } from 'lucide-react';
 
 /* ── Shared style tokens ── */
 const inputStyle: React.CSSProperties = {
@@ -64,8 +75,9 @@ type EditTab = 'basic' | 'impact' | 'supply';
 /* ============================================================================
  *  Tab Button
  * ========================================================================= */
-function TabButton({ active, label, count, onClick }: {
+function TabButton({ active, label, count, onClick, icon }: {
   active: boolean; label: string; count?: number; onClick: () => void;
+  icon?: React.ReactNode;
 }) {
   return (
     <button
@@ -86,6 +98,7 @@ function TabButton({ active, label, count, onClick }: {
         gap: 6,
       }}
     >
+      {icon}
       {label}
       {count != null && (
         <span style={{
@@ -372,12 +385,10 @@ export default function ProductPage() {
 
   const stageLabel = (stage: string) => t(`product.stage${stage.split('_').map(w => w[0].toUpperCase() + w.slice(1)).join('')}`);
 
-  const stageIcon = (stage: string) => {
-    const icons: Record<string, string> = {
-      material_sourcing: '🌱', processing: '⚙️', manufacturing: '🏭',
-      quality_check: '✅', shipping: '🚚',
-    };
-    return icons[stage] ?? '📦';
+  const metaIconStyle: React.CSSProperties = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 4,
   };
 
   /* ── Table columns ── */
@@ -633,7 +644,7 @@ export default function ProductPage() {
     if (!editingId) {
       return (
         <div style={{ textAlign: 'center', padding: '48px 20px', color: 'var(--color-text-3)' }}>
-          <div style={{ fontSize: 32, marginBottom: 12, opacity: 0.4 }}>📦</div>
+          <Package size={32} strokeWidth={ICON_STROKE} style={{ marginBottom: 12, opacity: 0.35 }} />
           <p style={{ fontSize: 13 }}>{t('product.supplyChainSaveFirst')}</p>
         </div>
       );
@@ -648,7 +659,7 @@ export default function ProductPage() {
 
         {traceRecords.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--color-text-3)', border: '1px dashed var(--color-border)', borderRadius: 8 }}>
-            <div style={{ fontSize: 28, marginBottom: 8, opacity: 0.4 }}>🔗</div>
+            <Link2 size={28} strokeWidth={ICON_STROKE} style={{ marginBottom: 8, opacity: 0.35 }} />
             <p style={{ fontSize: 13, margin: 0 }}>{t('product.noTraceNodes')}</p>
           </div>
         ) : (
@@ -660,10 +671,11 @@ export default function ProductPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 28, flexShrink: 0 }}>
                   <div style={{
                     width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 14, background: rec.certified ? 'var(--color-success-bg)' : 'var(--color-info-bg)',
+                    background: rec.certified ? 'var(--color-success-bg)' : 'var(--color-info-bg)',
                     border: `2px solid ${rec.certified ? 'var(--color-success)' : 'var(--color-info)'}`,
+                    color: rec.certified ? 'var(--color-success)' : 'var(--color-info)',
                   }}>
-                    {stageIcon(rec.stage)}
+                    <SupplyChainStageIcon stage={rec.stage} size={14} />
                   </div>
                   {idx < traceRecords.length - 1 && (
                     <div style={{ width: 2, flex: 1, minHeight: 20, background: 'var(--color-border)' }} />
@@ -686,7 +698,11 @@ export default function ProductPage() {
                         <span style={{
                           padding: '2px 8px', borderRadius: 4, fontSize: 10, fontWeight: 500,
                           background: 'var(--color-success-bg)', color: 'var(--color-success)',
-                        }}>Certified</span>
+                          display: 'inline-flex', alignItems: 'center', gap: 4,
+                        }}>
+                          <BadgeCheck size={11} strokeWidth={ICON_STROKE} aria-hidden />
+                          Certified
+                        </span>
                       )}
                       {rec.timestamp && (
                         <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{dayjs(rec.timestamp).format('YYYY-MM-DD')}</span>
@@ -699,10 +715,23 @@ export default function ProductPage() {
                   </div>
                   {rec.description && <div style={{ fontSize: 13, color: 'var(--color-text)', marginBottom: 4, lineHeight: 1.5 }}>{rec.description}</div>}
                   <div style={{ fontSize: 11, color: 'var(--color-text-3)', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                    {rec.location && <span>📍 {rec.location}</span>}
-                    {rec.carbonKg != null && <span>🌿 {rec.carbonKg} kg CO₂</span>}
+                    {rec.location && (
+                      <span style={metaIconStyle}>
+                        <MapPin size={12} strokeWidth={ICON_STROKE} aria-hidden />
+                        {rec.location}
+                      </span>
+                    )}
+                    {rec.carbonKg != null && (
+                      <span style={metaIconStyle}>
+                        <Leaf size={12} strokeWidth={ICON_STROKE} aria-hidden />
+                        {rec.carbonKg} kg CO₂
+                      </span>
+                    )}
                     {rec.latitude != null && rec.longitude != null && (
-                      <span>🌐 {Number(rec.latitude).toFixed(2)}, {Number(rec.longitude).toFixed(2)}</span>
+                      <span style={metaIconStyle}>
+                        <Globe size={12} strokeWidth={ICON_STROKE} aria-hidden />
+                        {Number(rec.latitude).toFixed(2)}, {Number(rec.longitude).toFixed(2)}
+                      </span>
                     )}
                   </div>
                   {rec.gallery.length > 0 && (
@@ -777,11 +806,22 @@ export default function ProductPage() {
       >
         {/* Tab Bar */}
         <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', marginBottom: 20, marginTop: -4 }}>
-          <TabButton active={activeTab === 'basic'} label={t('product.tabBasic')} onClick={() => setActiveTab('basic')} />
-          <TabButton active={activeTab === 'impact'} label={t('product.tabImpact')} onClick={() => setActiveTab('impact')} />
+          <TabButton
+            active={activeTab === 'basic'}
+            label={t('product.tabBasic')}
+            icon={<Info size={14} strokeWidth={ICON_STROKE} />}
+            onClick={() => setActiveTab('basic')}
+          />
+          <TabButton
+            active={activeTab === 'impact'}
+            label={t('product.tabImpact')}
+            icon={<Heart size={14} strokeWidth={ICON_STROKE} />}
+            onClick={() => setActiveTab('impact')}
+          />
           <TabButton
             active={activeTab === 'supply'}
             label={t('product.tabSupplyChain')}
+            icon={<Link2Icon size={14} strokeWidth={ICON_STROKE} />}
             count={editingId ? traceRecords.length : undefined}
             onClick={() => setActiveTab('supply')}
           />
@@ -821,7 +861,7 @@ export default function ProductPage() {
                 <label style={labelStyle}>{t('product.nodeStage')}</label>
                 <select value={nodeForm.stage} onChange={(e) => setNodeForm({ ...nodeForm, stage: e.target.value as any })} style={inputStyle}>
                   {STAGES.map((s) => (
-                    <option key={s} value={s}>{stageIcon(s)} {stageLabel(s)}</option>
+                    <option key={s} value={s}>{stageLabel(s)}</option>
                   ))}
                 </select>
               </div>
@@ -915,9 +955,10 @@ export default function ProductPage() {
                 padding: '10px 20px', border: '1px dashed var(--color-border-hi)',
                 borderRadius: 8, background: 'transparent', cursor: uploading ? 'default' : 'pointer',
                 fontSize: 13, color: uploading ? 'var(--color-text-3)' : 'var(--color-accent-2)',
-                width: '100%', textAlign: 'center',
+                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               }}
             >
+              <ImagePlus size={16} strokeWidth={ICON_STROKE} aria-hidden />
               {uploading ? t('product.uploading') : t('product.uploadHint')}
             </button>
           </div>
