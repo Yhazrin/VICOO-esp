@@ -519,6 +519,7 @@ export async function fetchProducts(params: FilterParams = {}): Promise<Paginate
       page: params.page ?? 1,
       page_size: params.pageSize ?? 10,
       status: params.status || undefined,
+      is_impact_product: params.isImpactProduct ?? true, // default to impact products only
     },
   });
   const paginated = adaptPaginated<any>(envelope);
