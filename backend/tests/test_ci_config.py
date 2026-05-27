@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 
@@ -96,6 +97,22 @@ def test_compose_up_staging_does_not_source_dotenv(tmp_path: Path) -> None:
 
     result = subprocess.run(
         ["bash", "-n", str(script)],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr
+
+
+def test_backend_startup_modules_are_importable() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "import app.seed; import app.main",
+        ],
+        cwd=PROJECT_ROOT / "backend",
         check=False,
         capture_output=True,
         text=True,
