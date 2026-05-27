@@ -616,10 +616,11 @@ export async function deleteSupplyChainRecord(recordId: string): Promise<void> {
 export async function uploadTraceMedia(file: File): Promise<{ url: string; mime: string }> {
   const form = new FormData();
   form.append('file', file);
-  const { data } = await api.post('/supply-chain/media/upload', form, {
+  const { data: envelope } = await api.post('/supply-chain/media/upload', form, {
     headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 120000,
   });
-  return data;
+  return envelope.data as { url: string; mime: string };
 }
 
 export async function fetchOriginCountries(): Promise<OriginCountry[]> {

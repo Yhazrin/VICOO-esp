@@ -16,6 +16,7 @@ import {
   updateSupplyChainRecord, deleteSupplyChainRecord,
   uploadTraceMedia,
 } from '../services/api';
+import { resolveApiAssetUrl } from '../utils/resolveApiAssetUrl';
 import {
   SupplyChainStageIcon,
   Package,
@@ -738,9 +739,9 @@ export default function ProductPage() {
                     <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
                       {rec.gallery.map((item, i) => (
                         item.type === 'video' ? (
-                          <video key={i} src={item.url} style={{ width: 64, height: 48, objectFit: 'cover', borderRadius: 4 }} muted />
+                          <video key={i} src={resolveApiAssetUrl(item.url)} style={{ width: 64, height: 48, objectFit: 'cover', borderRadius: 4 }} muted />
                         ) : (
-                          <img key={i} src={item.url} alt={item.caption ?? ''} style={{ width: 64, height: 48, objectFit: 'cover', borderRadius: 4 }} />
+                          <img key={i} src={resolveApiAssetUrl(item.url)} alt={item.caption ?? ''} style={{ width: 64, height: 48, objectFit: 'cover', borderRadius: 4 }} />
                         )
                       ))}
                     </div>
@@ -930,9 +931,9 @@ export default function ProductPage() {
               {nodeForm.gallery.map((item, idx) => (
                 <div key={idx} style={{ position: 'relative' }}>
                   {item.type === 'video' ? (
-                    <video src={item.url} style={{ width: 80, height: 60, objectFit: 'cover', borderRadius: 6 }} muted />
+                    <video src={resolveApiAssetUrl(item.url)} style={{ width: 80, height: 60, objectFit: 'cover', borderRadius: 6 }} muted />
                   ) : (
-                    <img src={item.url} alt="" style={{ width: 80, height: 60, objectFit: 'cover', borderRadius: 6 }} />
+                    <img src={resolveApiAssetUrl(item.url)} alt="" style={{ width: 80, height: 60, objectFit: 'cover', borderRadius: 6 }} />
                   )}
                   <button
                     type="button" onClick={() => removeGalleryItem(idx)}
