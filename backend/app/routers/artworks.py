@@ -242,12 +242,12 @@ async def get_artwork(artwork_id: int, db: AsyncSession = Depends(get_db)):
 
 @router.post("", response_model=ApiResponse, status_code=201)
 async def create_artwork(
-    title: str = Form(...),
+    title: str = Form(..., max_length=300),
     image: UploadFile = File(...),
-    description: str = Form(None),
+    description: str = Form(None, max_length=5000),
     campaign_id: int = Form(None),
-    child_display_name: str = Form(None),
-    guardian_consent: str = Form(None),
+    child_display_name: str = Form(None, max_length=100),
+    guardian_consent: str = Form(None, max_length=500),
     db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):

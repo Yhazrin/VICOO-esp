@@ -1,5 +1,6 @@
 import logging
 import hmac
+import secrets
 import time
 
 import httpx
@@ -192,7 +193,6 @@ async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depend
 
     # 2. Logic for Real accounts
     # Generate per-request random hint — never use a static shared secret
-    import secrets
     recovery_hint = f"VICOO-{secrets.token_hex(8).upper()}"
     try:
         await send_password_recovery_email(

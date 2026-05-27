@@ -505,8 +505,7 @@ async def request_return(
                 "price": str(oi.price),
             })
 
-        import json as _json
-        description_parts = [f"Items: {_json.dumps(items_desc, ensure_ascii=False)}"]
+        description_parts = [f"Items: {json.dumps(items_desc, ensure_ascii=False)}"]
         if body.reason:
             description_parts.append(f"Reason: {body.reason}")
         if body.type == "exchange":

@@ -2660,3 +2660,19 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Changed both `except` blocks to `raise` after logging (preserving the log). Callers already have proper try/except handling.
 - **Verification**: Caller exception handlers now actually execute on mail failure; auth.py still returns success regardless (intentional security)
 - **New issues**: None
+
+## Fix 318 — Artwork create endpoint missing max_length on Form parameters
+- **Date**: 2026-05-27 (Round 87)
+- **Files**: `backend/app/routers/artworks.py`
+- **Reason**: P2: `create_artwork` accepted `title`, `description`, `child_display_name`, and `guardian_consent` as bare `str = Form(...)` with no length constraints. The Pydantic schema enforces max_length but this endpoint bypasses it with raw Form parameters. Attacker could POST arbitrarily long strings to the database.
+- **Change**: Added `max_length` constraints matching the schema: title=300, description=5000, child_display_name=100, guardian_consent=500.
+- **Verification**: FastAPI now returns 422 for oversized form inputs
+- **New issues**: None
+
+## Fix 319 — Misplaced imports inside function bodies
+- **Date**: 2026-05-27 (Round 87)
+- **Files**: `backend/app/routers/auth.py`, `backend/app/routers/orders.py`, `backend/app/routers/oauth.py`
+- **Reason**: P3: `import secrets` (auth.py:195), `import json as _json` (orders.py:508, json already imported at top), and `import asyncio` + `from app.services.mailer import send_welcome_email` (oauth.py:96-97) were inside function bodies. Unnecessary deferral of stdlib imports; the orders.py one was redundant.
+- **Change**: Moved `secrets` and `asyncio` imports to module top. Removed redundant `import json as _json` (already imported). Moved `send_welcome_email` to module top (no circular import risk).
+- **Verification**: All imports at module level; no circular import issues
+- **New issues**: None

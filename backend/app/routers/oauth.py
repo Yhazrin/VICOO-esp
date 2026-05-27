@@ -1,4 +1,5 @@
 """OAuth authentication routes for GitHub and Google."""
+import asyncio
 import hmac
 import logging
 import secrets
@@ -15,6 +16,7 @@ from app.database import get_db
 from app.models.user import User
 from app.schemas import ApiResponse
 from app.security import create_access_token, create_refresh_token
+from app.services.mailer import send_welcome_email
 
 logger = logging.getLogger("vicoo.oauth")
 
@@ -91,8 +93,6 @@ async def _find_or_create_oauth_user(
 
     # 4. Trigger welcome email only for new users
     if is_new_user and user.email and not user.email.endswith("@oauth.vicoo.org"):
-        import asyncio
-        from app.services.mailer import send_welcome_email
         logger.info("Triggering welcome email for new user %s", user.email)
 
         async def _safe_welcome_email(email: str, nickname: str):
