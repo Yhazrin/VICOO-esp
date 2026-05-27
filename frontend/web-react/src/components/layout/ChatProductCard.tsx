@@ -169,17 +169,9 @@ export const ChatProductCard: React.FC<ChatProductCardProps> = React.memo(({ pro
         >
           {productName}
         </p>
-        <div className="flex items-center justify-between mt-1">
+        <div className="flex items-center justify-end mt-1">
           <span className="text-[11px] font-medium" style={{ color: 'rgba(255,255,255,0.85)' }}>
             {currency}{product.price.toLocaleString()}
-            {product.donationPercentage != null && product.donationPercentage > 0 && (
-              <span className="ml-1.5" style={{ color: 'rgba(255,255,255,0.65)' }}>
-                {t('aiAssistant.productCard.donated', { percentage: product.donationPercentage })}
-              </span>
-            )}
-          </span>
-          <span className="text-[10px] uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.7)' }}>
-            View →
           </span>
         </div>
       </div>

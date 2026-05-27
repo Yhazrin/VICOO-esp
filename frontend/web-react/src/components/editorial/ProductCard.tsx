@@ -21,12 +21,6 @@ interface ProductCardProps {
   detailContext?: 'company' | 'impact';
 }
 
-function getSustainabilityTier(score: number): { labelKey: string; colorClass: string; barColor: string } {
-  if (score >= 90) return { labelKey: 'shop.card.exceptional', colorClass: 'text-rust', barColor: 'bg-rust' };
-  if (score >= 80) return { labelKey: 'shop.card.excellent', colorClass: 'text-sage', barColor: 'bg-sage' };
-  return { labelKey: 'shop.card.good', colorClass: 'text-sepia-mid', barColor: 'bg-sepia-mid' };
-}
-
 function ProductCard({
   product,
   index = 0,
@@ -70,8 +64,6 @@ function ProductCard({
   const [showNotifyInput, setShowNotifyInput] = useState(false);
   const [notifyEmail, setNotifyEmail] = useState('');
   const [notifySubmitted, setNotifySubmitted] = useState(false);
-
-  const sustainability = getSustainabilityTier(product.sustainabilityScore);
 
   const handleNotifySubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -221,8 +213,8 @@ function ProductCard({
             </div>
           )}
 
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col">
+          <div className="flex items-center justify-end">
+            <div className="flex flex-col items-end">
               <span className="font-body text-body-sm text-ink font-medium">
                 {product.currency === 'CNY' ? '¥' : '$'}
                 {product.price.toLocaleString()}
@@ -233,29 +225,6 @@ function ProductCard({
                   {t('impactShop.supportsCampaign', { campaign: product.artworkBy.campaign })}
                 </span>
               )}
-            </div>
-
-            {/* Sustainability score (0–100) with tier label */}
-            <div className="flex flex-col items-end">
-              <div className="flex items-center gap-1.5">
-                <span
-                  className={`font-body text-overline tracking-wide ${sustainability.colorClass}`}
-                  title={t('shop.filters.sustainability')}
-                >
-                  {t('shop.card.sustainabilityBadge', {
-                    score: product.sustainabilityScore,
-                    tier: t(sustainability.labelKey),
-                  })}
-                </span>
-              </div>
-              <div className="w-12 h-px bg-warm-gray/30 mt-0.5 overflow-hidden">
-                <motion.div
-                  className={`h-full origin-left ${sustainability.barColor}`}
-                  initial={prefersReducedMotion ? { scaleX: product.sustainabilityScore / 100 } : { scaleX: 0 }}
-                  animate={isVisible ? { scaleX: product.sustainabilityScore / 100 } : {}}
-                  transition={{ duration: 0.8, delay: 0.3, ease: [0, 0, 0.2, 1] }}
-                />
-              </div>
             </div>
           </div>
         </div>
