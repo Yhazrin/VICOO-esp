@@ -14,9 +14,16 @@ import { COMPANY_NAV, matchCompanyNavKey } from '@/constants/companyNav';
 /** Spring for sliding nav pill — elastic settle between tabs. */
 const SLIDING_PILL_SPRING = {
   type: 'spring' as const,
-  stiffness: 380,
-  damping: 18,
-  mass: 0.68,
+  stiffness: 420,
+  damping: 24,
+  mass: 0.62,
+};
+
+const SLIDING_PILL_SIZE_SPRING = {
+  type: 'spring' as const,
+  stiffness: 520,
+  damping: 30,
+  mass: 0.56,
 };
 
 /**
@@ -88,6 +95,7 @@ function PillWindow({
   const [impactW, setImpactW] = useState(0);
   const [companyHl, setCompanyHl] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
   const [impactHl, setImpactHl] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+  const [pendingCompanyKey, setPendingCompanyKey] = useState<string | null>(null);
 
   /**
    * Company rail: only one “active” item when NOT in impact mode.
@@ -98,6 +106,7 @@ function PillWindow({
     if (impactMode) return null;
     return matchCompanyNavKey(locationPathname);
   }, [locationPathname, impactMode]);
+  const activeCompanyVisualKey = !impactMode && pendingCompanyKey ? pendingCompanyKey : activeCompanyKey;
 
   const measure = useCallback(() => {
     if (companyRef.current) setCompanyW(companyRef.current.offsetWidth);
@@ -125,12 +134,22 @@ function PillWindow({
     // Only measure the rail that is logically active — avoids two pills / wrong slides when modes share `/`.
     if (!impactMode) {
       setImpactHl(null);
-      setCompanyHl(measureHighlight(companyRef.current, activeCompanyKey, companyItemRefs.current));
+      setCompanyHl(measureHighlight(companyRef.current, activeCompanyVisualKey, companyItemRefs.current));
     } else {
       setCompanyHl(null);
       setImpactHl(measureHighlight(impactRef.current, activeImpactTab, impactItemRefs.current));
     }
-  }, [activeCompanyKey, activeImpactTab, impactMode, measureHighlight]);
+  }, [activeCompanyVisualKey, activeImpactTab, impactMode, measureHighlight]);
+
+  useEffect(() => {
+    if (impactMode) {
+      setPendingCompanyKey(null);
+      return;
+    }
+    if (pendingCompanyKey && activeCompanyKey === pendingCompanyKey) {
+      setPendingCompanyKey(null);
+    }
+  }, [activeCompanyKey, impactMode, pendingCompanyKey]);
 
   useEffect(() => {
     measure();
@@ -197,6 +216,9 @@ function PillWindow({
   const pillTransition = prefersReducedMotion
     ? { duration: 0.12, ease: [0.25, 0.1, 0.25, 1] as const }
     : SLIDING_PILL_SPRING;
+  const pillSizeTransition = prefersReducedMotion
+    ? { duration: 0.12, ease: [0.25, 0.1, 0.25, 1] as const }
+    : SLIDING_PILL_SIZE_SPRING;
 
   // Capsule has px-2 (8px each side = 16px padding).
   // Offset uses pure content width; capsule width adds padding so
@@ -248,22 +270,22 @@ function PillWindow({
               animate={{
                 x: companyHl.x,
                 y: companyHl.y,
-                scaleX: companyHl.w / 100,
-                scaleY: companyHl.h / 100,
+                width: companyHl.w,
+                height: companyHl.h,
                 borderRadius: impactMode ? 9999 : 4,
               }}
               transition={{
                 x: pillTransition,
                 y: pillTransition,
-                scaleX: pillTransition,
-                scaleY: pillTransition,
+                width: pillSizeTransition,
+                height: pillSizeTransition,
                 borderRadius: modeMorphTransition,
               }}
-              style={{ width: 100, height: 100, transformOrigin: 'top left' }}
+              style={{ left: 0, top: 0, transformOrigin: 'top left' }}
             />
           )}
           {COMPANY_NAV.map((item) => {
-            const isActive = !impactMode && activeCompanyKey === item.key;
+            const isActive = !impactMode && activeCompanyVisualKey === item.key;
             return (
               <Link
                 key={item.key}
@@ -273,6 +295,7 @@ function PillWindow({
                 }}
                 to={item.path}
                 onClick={() => {
+                  setPendingCompanyKey(item.key);
                   // `/` 是公益壳与优衣库首页共用 URL：仅依赖 pathname 的 effect 不会在点「首页」时关闭公益模式。
                   // 无条件设 false：即使其他公司路径已经被 useEffect 处理过，重复 set 是无副作用同步操作，
                   // 反而能避免 zustand persist hydrate 与本地刷新带来的瞬时 stale closure。
@@ -308,17 +331,18 @@ function PillWindow({
               animate={{
                 x: impactHl.x,
                 y: impactHl.y,
-                scaleX: impactHl.w / 100,
-                scaleY: impactHl.h / 100,
+                width: impactHl.w,
+                height: impactHl.h,
                 borderRadius: 9999,
               }}
               transition={{
                 x: pillTransition,
                 y: pillTransition,
-                scaleX: pillTransition,
-                scaleY: pillTransition,
+                width: pillSizeTransition,
+                height: pillSizeTransition,
                 borderRadius: modeMorphTransition,
               }}
+              style={{ left: 0, top: 0, transformOrigin: 'top left' }}
             />
           )}
           {IMPACT_TABS.map((tab) => {
