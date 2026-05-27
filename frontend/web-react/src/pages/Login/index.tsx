@@ -11,6 +11,7 @@ import {
 } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useUIStore } from '@/stores/uiStore';
+import { detectIdentityMode, type LoginMode } from '@/lib/auth/identity-detection';
 import vicooLogo from '@/assets/vicoo-logo.png';
 import toast from 'react-hot-toast';
 import LoginAmbientBackground from './LoginAmbientBackground';
@@ -25,6 +26,9 @@ const CARD_GLOW: Record<Exclude<AmbientMode, null>, string> = {
   action: '0 28px 56px -12px rgba(26,26,22,0.14), 0 12px 24px -8px rgba(26,26,22,0.1)',
 };
 
+// Admin mode glow (ADFS-inspired)
+const ADMIN_GLOW = '0 28px 56px -12px rgba(1,132,127,0.2), 0 12px 24px -8px rgba(26,26,22,0.08)';
+
 export default function Login() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -33,6 +37,7 @@ export default function Login() {
   const setLocale = useUIStore((s) => s.setLocale);
   const stageRef = useRef<HTMLDivElement>(null);
   const lastTypePulseRef = useRef(0);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -41,6 +46,11 @@ export default function Login() {
   const [showTestAccounts, setShowTestAccounts] = useState(false);
   const [ambientMode, setAmbientMode] = useState<AmbientMode>(null);
   const [ambientPulse, setAmbientPulse] = useState(0);
+
+  // ADFS-inspired identity detection state
+  const [detectedMode, setDetectedMode] = useState<LoginMode>('user');
+  const [manualOverride, setManualOverride] = useState(false);
+  const [showIdentityBadge, setShowIdentityBadge] = useState(false);
 
   const pointerX = useMotionValue(0.5);
   const pointerY = useMotionValue(0.5);
@@ -87,25 +97,64 @@ export default function Login() {
     pointerY.set(0.5);
   }, [pointerX, pointerY]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    nudgeAmbient('action');
-    login(
-      { email, password },
-      {
-        onSuccess: () => {
-          navigate('/');
-        },
-      }
-    );
-  };
+  // Handle email change with ADFS-inspired identity detection
+  const handleEmailChange = useCallback((value: string) => {
+    setEmail(value);
 
+    // Clear previous debounce
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    // Debounced identity detection (300ms)
+    debounceRef.current = setTimeout(() => {
+      if (!manualOverride && value) {
+        const result = detectIdentityMode(value);
+        setDetectedMode(result.mode);
+
+        // Show badge when admin detected
+        if (result.mode === 'admin') {
+          setShowIdentityBadge(true);
+          nudgeAmbient('action');
+        } else {
+          setShowIdentityBadge(false);
+        }
+      }
+    }, 300);
+  }, [manualOverride, nudgeAmbient]);
+
+  // Handle test account selection with identity detection
   const handleSelectTestAccount = (account: TestAccount) => {
     setEmail(account.email);
     setPassword(account.password);
     setShowTestAccounts(false);
     nudgeAmbient('accounts');
+
+    // Auto-detect identity from account
+    const result = detectIdentityMode(account.email);
+    setDetectedMode(result.mode);
+    setManualOverride(true);
+    setShowIdentityBadge(result.mode === 'admin');
+
     toast.success(t('login.testAccounts.filled', '已填入登录表单'));
+  };
+
+  // Handle form submission
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    nudgeAmbient('action');
+
+    // Determine redirect based on detected mode
+    const targetPath = detectedMode === 'admin' ? '/admin' : '/';
+
+    login(
+      { email, password },
+      {
+        onSuccess: () => {
+          navigate(targetPath);
+        },
+      }
+    );
   };
 
   return (
@@ -136,21 +185,28 @@ export default function Login() {
         className="relative z-10 flex w-full max-w-[780px] items-stretch justify-center mx-4"
       >
         <motion.div
-          className="relative w-full max-w-[420px] shrink-0 rounded-[24px] border border-warm-gray/30 bg-white/80 px-8 py-10 backdrop-blur-xl md:px-10 md:py-12"
+          className={`relative w-full max-w-[420px] shrink-0 rounded-[24px] border px-8 py-10 backdrop-blur-xl md:px-10 md:py-12 transition-colors duration-300 ${
+            detectedMode === 'admin'
+              ? 'bg-white/85 border-[#01847F]/25 shadow-[0_0_0_1px_rgba(1,132,127,0.08)]'
+              : 'bg-white/80 border-warm-gray/30'
+          }`}
           animate={{
-            boxShadow: ambientMode ? CARD_GLOW[ambientMode] : '0 24px 48px -12px rgba(26,26,22,0.1)',
+            boxShadow: detectedMode === 'admin'
+              ? ADMIN_GLOW
+              : (ambientMode ? CARD_GLOW[ambientMode] : '0 24px 48px -12px rgba(26,26,22,0.1)'),
           }}
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
         >
-          {!prefersReducedMotion && ambientMode && (
+          {!prefersReducedMotion && (
             <motion.div
               className="pointer-events-none absolute -inset-px rounded-[25px] opacity-0"
               aria-hidden
-              animate={{ opacity: [0.2, 0.42, 0.2] }}
+              animate={{ opacity: [0.15, 0.35, 0.15] }}
               transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
               style={{
-                background:
-                  ambientMode === 'email'
+                background: detectedMode === 'admin'
+                  ? 'linear-gradient(135deg, rgba(1,132,127,0.2), transparent 55%)'
+                  : ambientMode === 'email'
                     ? 'linear-gradient(135deg, rgba(230,0,18,0.22), transparent 55%)'
                     : ambientMode === 'password'
                       ? 'linear-gradient(135deg, rgba(109,137,116,0.24), transparent 55%)'
@@ -160,6 +216,25 @@ export default function Login() {
               }}
             />
           )}
+
+          {/* ADFS Identity Detection Badge */}
+          <AnimatePresence>
+            {showIdentityBadge && detectedMode === 'admin' && (
+              <motion.div
+                initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8, scale: 0.95 }}
+                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                className="absolute top-5 left-5 z-10 flex items-center gap-1.5 rounded-full border border-[#01847F]/20 bg-[#01847F]/10 px-3 py-1 font-mono text-[10px] tracking-wider text-[#01847F]"
+              >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+                <span>INTERNAL</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <button
             type="button"
             onClick={() => {
@@ -189,6 +264,22 @@ export default function Login() {
             <h1 className="font-display text-2xl text-ink mb-2 tracking-tight">
               {t('login.title', 'Welcome Back')}
             </h1>
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={detectedMode}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.2 }}
+                className={`font-body text-caption transition-colors duration-300 ${
+                  detectedMode === 'admin' ? 'text-[#01847F]/70' : 'text-ink-faded/60'
+                }`}
+              >
+                {detectedMode === 'admin'
+                  ? 'Staff identity detected'
+                  : t('login.subtitle', 'Sign in to your account')}
+              </motion.p>
+            </AnimatePresence>
             <button
               type="button"
               onClick={() => {
@@ -223,21 +314,27 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block font-body text-label tracking-[0.15em] uppercase text-sepia-mid mb-2">
+              <label className={`block font-body text-label tracking-[0.15em] uppercase mb-2 transition-colors duration-300 ${
+                detectedMode === 'admin' ? 'text-[#01847F]/70' : 'text-sepia-mid'
+              }`}>
                 {t('login.email')}
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => {
-                  setEmail(e.target.value);
+                  handleEmailChange(e.target.value);
                   pulseOnType('email');
                 }}
                 onFocus={() => setAmbientMode('email')}
                 onClick={() => nudgeAmbient('email')}
                 required
-                placeholder="name@email.com"
-                className="w-full px-4 py-3 rounded-full bg-aged-stock/60 border border-warm-gray/30 font-body text-body-sm text-ink placeholder:text-ink-faded/40 focus:outline-none focus:ring-2 focus:ring-rust/30 focus:border-rust/50 transition-all"
+                placeholder={detectedMode === 'admin' ? 'admin@vicoo.org' : 'name@email.com'}
+                className={`w-full px-4 py-3 rounded-full bg-aged-stock/60 border font-body text-body-sm text-ink placeholder:text-ink-faded/40 focus:outline-none focus:ring-2 transition-all ${
+                  detectedMode === 'admin'
+                    ? 'border-[#01847F]/30 focus:ring-[#01847F]/30 focus:border-[#01847F]/50'
+                    : 'border-warm-gray/30 focus:ring-rust/30 focus:border-rust/50'
+                }`}
               />
             </div>
 
@@ -320,9 +417,27 @@ export default function Login() {
               disabled={isLoggingIn}
               whileHover={prefersReducedMotion ? undefined : { y: -1 }}
               whileTap={prefersReducedMotion ? undefined : { scale: 0.985 }}
-              className="w-full bg-ink text-paper py-3.5 rounded-full font-body text-body-sm tracking-[0.15em] uppercase font-medium hover:bg-rust transition-colors duration-300 disabled:opacity-50 cursor-pointer"
+              className={`w-full py-3.5 rounded-full font-body text-body-sm tracking-[0.15em] uppercase font-medium transition-all duration-300 disabled:opacity-50 cursor-pointer ${
+                detectedMode === 'admin'
+                  ? 'bg-[#01847F] text-white hover:bg-[#016A67]'
+                  : 'bg-ink text-paper hover:bg-rust'
+              }`}
             >
-              {isLoggingIn ? t('login.submitting') : t('login.submit')}
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={detectedMode + (isLoggingIn ? '-loading' : '')}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  {isLoggingIn
+                    ? t('login.submitting')
+                    : detectedMode === 'admin'
+                      ? 'Access Admin'
+                      : t('login.submit')}
+                </motion.span>
+              </AnimatePresence>
             </motion.button>
 
             <div className="relative py-2">
