@@ -4,7 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
 import PageWrapper from '@/components/layout/PageWrapper';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
+import api from '@/services/api';
+import type { User } from '@/types';
 
+const ADMIN_ROLES = ['admin', 'editor', 'compliance'];
 
 /**
  * OAuth Callback Page
@@ -19,42 +22,67 @@ export default function AuthCallback() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { restoreSession } = useAuthStore();
+  const { restoreSession, setAccessToken } = useAuthStore();
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const accessToken = searchParams.get('access_token');
-    const nickname = searchParams.get('nickname');
-    const email = searchParams.get('email');
-    const avatar = searchParams.get('avatar');
-    const errorParam = searchParams.get('error');
+    let cancelled = false;
 
-    if (errorParam) {
-      setError(t('authCallback.authenticationFailed'));
-      return;
+    async function completeAuthentication() {
+      const accessToken = searchParams.get('access_token');
+      const nickname = searchParams.get('nickname');
+      const email = searchParams.get('email');
+      const avatar = searchParams.get('avatar');
+      const role = searchParams.get('role') as User['role'] | null;
+      const errorParam = searchParams.get('error');
+
+      if (errorParam) {
+        setError(t('authCallback.authenticationFailed'));
+        return;
+      }
+
+      if (!accessToken) {
+        setError(t('authCallback.noTokenReceived'));
+        return;
+      }
+
+      setAccessToken(accessToken);
+
+      let user: User = {
+        id: 0,
+        email: email || '',
+        nickname: nickname || t('authCallback.user', 'User'),
+        role: role || 'user',
+        avatarUrl: avatar || undefined,
+        createdAt: new Date().toISOString(),
+      };
+
+      try {
+        const profile = await api.get<{ success: boolean; data: User }>('/users/me', {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        user = profile.data.data;
+      } catch {
+        // Keep query-string fallback for legacy OAuth providers that do not expose /users/me.
+      }
+
+      if (cancelled) return;
+
+      if (ADMIN_ROLES.includes(user.role)) {
+        useAuthStore.getState().logout();
+        window.location.replace('/admin/');
+        return;
+      }
+
+      restoreSession(user, accessToken);
+      setTimeout(() => {
+        if (!cancelled) navigate('/', { replace: true });
+      }, 500);
     }
 
-    if (!accessToken) {
-      setError(t('authCallback.noTokenReceived'));
-      return;
-    }
-
-    // Store the access token and restore session
-    const user = {
-      id: 0,
-      email: email || '',
-      nickname: nickname || t('authCallback.user', 'User'),
-      role: 'user' as const,
-      avatarUrl: avatar || undefined,
-      createdAt: new Date().toISOString(),
-    };
-
-    restoreSession(user, accessToken);
-
-    // Redirect to home after a brief moment
-    const timer = setTimeout(() => navigate('/', { replace: true }), 500);
-    return () => clearTimeout(timer);
-  }, [searchParams, navigate, restoreSession, t]);
+    completeAuthentication();
+    return () => { cancelled = true; };
+  }, [searchParams, navigate, restoreSession, setAccessToken, t]);
 
   return (
     <PageWrapper>

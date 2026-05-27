@@ -17,6 +17,7 @@ interface AuthState {
   isAuthenticated: boolean;
   redirectPath: string | null;
   login: (user: AuthUser, token: string, redirectPath?: string) => void;
+  restoreSession: (user: AuthUser, token: string) => void;
   logout: () => void;
   setAccessToken: (token: string) => void;
   updateUser: (user: Partial<AuthUser>) => void;
@@ -129,6 +130,15 @@ export const useAuthStore = create<AuthState>()(
 
         // Navigate to target path
         window.location.href = targetPath;
+      },
+
+      restoreSession: (user, token) => {
+        set({
+          user,
+          token,
+          isAuthenticated: true,
+          redirectPath: null,
+        });
       },
 
       logout: () => {
