@@ -1,7 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore, hasAdminAccess } from './stores/authStore';
 import Layout from './components/layout/Layout';
-import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import ArtworkPage from './pages/ArtworkPage';
 import CampaignPage from './pages/CampaignPage';
@@ -85,9 +84,9 @@ function SessionRestorer({ children }: { children: React.ReactNode }) {
     return null;
   }
 
-  // User is not authenticated - redirect to login
+  // User is not authenticated - redirect to web-react login page
   if (!isAuthenticated) {
-    window.location.href = 'login';
+    window.location.href = '/login?redirect=/admin/';
     return null;
   }
 
@@ -185,9 +184,6 @@ export default function App() {
 
         {/* Access Denied page */}
         <Route path="/access-denied" element={<AccessDeniedPage />} />
-
-        {/* Login page - unified entry */}
-        <Route path="/login" element={<LoginPage />} />
 
         {/* Admin routes - all under /admin prefix */}
         <Route
