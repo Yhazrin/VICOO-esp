@@ -54,7 +54,6 @@ function getModeMorphTransition(reduceMotion: boolean): Transition {
 const IMPACT_TABS = [
   { key: 'home' },
   { key: 'campaigns' },
-  { key: 'donate' },
   { key: 'clothing-recycle' },
   { key: 'shop' },
 ];

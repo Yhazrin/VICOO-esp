@@ -46,7 +46,7 @@ export default function Footer() {
               {t('footer.sections.connect')}
             </h4>
             <ul className="space-y-3">
-              {['shop', 'donate', 'contact'].map((key) => (
+              {['shop', 'contact'].map((key) => (
                 <li key={key}>
                   <Link
                     to={`/${key}`}

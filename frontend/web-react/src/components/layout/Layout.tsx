@@ -14,7 +14,6 @@ import { COMPANY_NAV } from '@/constants/companyNav';
 // Lazy-load impact shell pages — these are heavy and only needed in impact mode
 const Home = lazy(() => import('@/pages/Home'));
 const Campaigns = lazy(() => import('@/pages/Campaigns'));
-const Donate = lazy(() => import('@/pages/Donate'));
 const ImpactShop = lazy(() => import('@/pages/ImpactShop'));
 const ClothingRecycle = lazy(() => import('@/pages/ClothingRecycle'));
 
@@ -24,7 +23,6 @@ function ImpactContent() {
   const content = (() => {
     switch (activeImpactTab) {
       case 'campaigns': return <Campaigns />;
-      case 'donate': return <Donate />;
       case 'shop': return <ImpactShop />;
       case 'clothing-recycle': return <ClothingRecycle />;
       default: return <Home />;
