@@ -8,9 +8,41 @@ import Pagination from '../components/ui/Pagination';
 import StatusBadge from '../components/ui/StatusBadge';
 import Modal from '../components/ui/Modal';
 import Button from '../components/ui/Button';
+import { PageHeader } from '../components/ui/PageHeader';
+import { SummaryCard, MiniStat } from '../components/ui/SummaryCard';
+import { OrderActivityChart } from '../components/charts/OrderActivityChart';
 import { fetchOrders, updateOrderStatus } from '../services/api';
 import type { Order } from '../types';
 import dayjs from 'dayjs';
+
+// Icons as React elements
+const SearchIcon = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8" />
+    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+  </svg>
+);
+
+const OrdersIcon = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+    <line x1="3" y1="6" x2="21" y2="6" />
+    <path d="M16 10a4 4 0 0 1-8 0" />
+  </svg>
+);
+
+const PendingIcon = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <polyline points="12 6 12 12 16 14" />
+  </svg>
+);
+
+const CompletedIcon = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+);
 
 export default function OrderPage() {
   const { t } = useTranslation();
@@ -33,6 +65,16 @@ export default function OrderPage() {
     },
   });
 
+  // Calculate summary stats
+  const orders = data?.data || [];
+  const summaryStats = {
+    total: orders.length,
+    pending: orders.filter((o: Order) => o.status === 'pending' || o.status === 'paid').length,
+    completed: orders.filter((o: Order) => o.status === 'delivered').length,
+    cancelled: orders.filter((o: Order) => o.status === 'cancelled' || o.status === 'refunded').length,
+    revenue: orders.reduce((sum: number, o: Order) => sum + o.totalAmount, 0),
+  };
+
   const getPaymentLabel = (v: string) => {
     const map: Record<string, string> = {
       wechat: t('order.paymentWechat'),
@@ -47,10 +89,10 @@ export default function OrderPage() {
     { key: 'orderNo', title: t('order.colOrderNo'), width: 130, sorter: true },
     { key: 'userName', title: t('order.colUser'), width: 100 },
     { key: 'items', title: t('order.colProduct'), width: 200, render: (items: Order['items']) => (
-      <span>{items.map((i) => `${i.productName} x${i.quantity}`).join(', ')}</span>
+      <span className="table-text-truncate">{items.map((i) => `${i.productName} x${i.quantity}`).join(', ')}</span>
     )},
     { key: 'totalAmount', title: t('order.colAmount'), width: 100, sorter: true, render: (v) => (
-      <span style={{ fontWeight: 600 }}>¥{Number(v).toLocaleString('zh-CN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span>
+      <span className="table-text-mono">¥{Number(v).toLocaleString('zh-CN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span>
     ) },
     { key: 'paymentMethod', title: t('order.colPaymentMethod'), width: 100, render: (v) => getPaymentLabel(v) },
     { key: 'status', title: t('order.colStatus'), width: 100, render: (v) => <StatusBadge status={v} context="order" /> },
@@ -58,7 +100,7 @@ export default function OrderPage() {
     {
       key: 'action', title: t('order.colAction'), width: 200,
       render: (_: any, record: Order) => (
-        <div style={{ display: 'flex', gap: 6 }}>
+        <div className="table-actions">
           <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); setSelectedOrder(record); }}>
             {t('order.btnDetail')}
           </Button>
@@ -85,34 +127,66 @@ export default function OrderPage() {
 
   return (
     <div>
-      <div style={{ marginBottom: 20 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 4, fontFamily: 'var(--font-body)' }}>{t('order.title')}</h1>
-        <p style={{ fontSize: 13, color: 'var(--color-text-2)' }}>{t('order.description')}</p>
+      <PageHeader
+        title={t('order.title')}
+        description={t('order.description')}
+      />
+
+      {/* Summary Cards */}
+      <div className="dashboard-summary-grid" style={{ marginBottom: 24 }}>
+        <SummaryCard title="Total Orders" subtitle="订单总数" icon={OrdersIcon}>
+          <MiniStat label="本周" value={summaryStats.total} change={12} />
+          <MiniStat label="待处理" value={summaryStats.pending} />
+        </SummaryCard>
+        <SummaryCard title="Pending" subtitle="待处理" icon={PendingIcon}>
+          <MiniStat label="待发货" value={orders.filter((o: Order) => o.status === 'paid').length} />
+          <MiniStat label="运输中" value={orders.filter((o: Order) => o.status === 'shipped').length} />
+        </SummaryCard>
+        <SummaryCard title="Completed" subtitle="已完成" icon={CompletedIcon}>
+          <MiniStat label="已完成" value={summaryStats.completed} />
+          <MiniStat label="取消/退款" value={summaryStats.cancelled} trend="error" />
+        </SummaryCard>
       </div>
 
-      <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-        <input
-          type="text" placeholder={t('order.searchPlaceholder')}
-          value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          style={filterStyle}
-        />
-        <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }} style={filterStyle}>
-          <option value="">{t('order.filterAllStatuses')}</option>
-          <option value="pending">{t('order.filterPending')}</option>
-          <option value="paid">{t('order.filterPaid')}</option>
-          <option value="shipped">{t('order.filterShipped')}</option>
-          <option value="delivered">{t('order.filterDelivered')}</option>
-          <option value="cancelled">{t('order.filterCancelled')}</option>
-          <option value="refunded">{t('order.filterRefunded')}</option>
-        </select>
+      {/* Chart */}
+      <div style={{ marginBottom: 24 }}>
+        <OrderActivityChart />
       </div>
 
-      <DataTable columns={columns} data={data?.data || []} rowKey="id" loading={isLoading} />
+      {/* Filters */}
+      <div className="table-toolbar">
+        <div className="table-toolbar__filters">
+          <div className="table-search">
+            {SearchIcon}
+            <input
+              type="text"
+              placeholder={t('order.searchPlaceholder')}
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            />
+          </div>
+          <select
+            className="table-select"
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+          >
+            <option value="">{t('order.filterAllStatuses')}</option>
+            <option value="pending">{t('order.filterPending')}</option>
+            <option value="paid">{t('order.filterPaid')}</option>
+            <option value="shipped">{t('order.filterShipped')}</option>
+            <option value="delivered">{t('order.filterDelivered')}</option>
+            <option value="cancelled">{t('order.filterCancelled')}</option>
+            <option value="refunded">{t('order.filterRefunded')}</option>
+          </select>
+        </div>
+      </div>
+
+      <DataTable columns={columns} data={orders} rowKey="id" loading={isLoading} />
       <Pagination page={page} totalPages={data?.totalPages || 1} total={data?.total || 0} pageSize={10} onPageChange={setPage} />
 
       <Modal open={!!selectedOrder} title={t('order.modalTitle')} onClose={() => setSelectedOrder(null)} width={520}>
         {selectedOrder && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div className="modal-detail-grid">
             <DetailRow label={t('order.detailOrderNo')} value={selectedOrder.orderNo} />
             <DetailRow label={t('order.detailUser')} value={selectedOrder.userName} />
             <DetailRow label={t('order.detailAmount')} value={`¥${selectedOrder.totalAmount.toLocaleString('zh-CN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`} />
@@ -121,19 +195,16 @@ export default function OrderPage() {
             <DetailRow label={t('order.detailShippingAddress')} value={selectedOrder.shippingAddress} />
             {selectedOrder.trackingNo && <DetailRow label={t('order.detailTrackingNo')} value={selectedOrder.trackingNo} />}
             <DetailRow label={t('order.detailOrderTime')} value={dayjs(selectedOrder.createdAt).format('YYYY-MM-DD HH:mm:ss')} />
-            {selectedOrder.paidAt && <DetailRow label={t('order.detailPayTime')} value={dayjs(selectedOrder.paidAt).format('YYYY-MM-DD HH:mm:ss')} />}
-            {selectedOrder.shippedAt && <DetailRow label={t('order.detailShipTime')} value={dayjs(selectedOrder.shippedAt).format('YYYY-MM-DD HH:mm:ss')} />}
-            <div style={{ marginTop: 8 }}>
-              <div style={{ fontSize: 12, color: 'var(--color-text-2)', marginBottom: 8 }}>{t('order.detailItemsLabel')}</div>
-              {selectedOrder.items.map((item, i) => (
-                <div key={i} style={{
-                  display: 'flex', justifyContent: 'space-between', padding: '8px 0',
-                  borderBottom: '1px solid var(--color-border)',
-                }}>
-                  <span style={{ fontSize: 13 }}>{item.productName} x{item.quantity}</span>
-                  <span style={{ fontSize: 13, fontWeight: 500 }}>¥{(item.price * item.quantity).toLocaleString('zh-CN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span>
-                </div>
-              ))}
+            <div className="modal-detail-full">
+              <span className="modal-detail-label">{t('order.detailItemsLabel')}</span>
+              <div className="modal-items">
+                {selectedOrder.items.map((item, i) => (
+                  <div key={i} className="modal-item-row">
+                    <span>{item.productName} x{item.quantity}</span>
+                    <span>¥{(item.price * item.quantity).toLocaleString('zh-CN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -144,15 +215,9 @@ export default function OrderPage() {
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-      <span style={{ fontSize: 13, color: 'var(--color-text-2)' }}>{label}</span>
-      <span style={{ fontSize: 13, fontWeight: 500 }}>{value}</span>
+    <div className="modal-detail-row">
+      <span className="modal-detail-label">{label}</span>
+      <span className="modal-detail-value">{value}</span>
     </div>
   );
 }
-
-const filterStyle: React.CSSProperties = {
-  padding: '8px 12px', border: '1px solid var(--color-border)',
-  borderRadius: '6px', fontSize: 13,
-  background: 'var(--color-surface)', outline: 'none',
-};

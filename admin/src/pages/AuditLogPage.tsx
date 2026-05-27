@@ -6,33 +6,60 @@ import type { Column } from '../components/ui/DataTable';
 import Pagination from '../components/ui/Pagination';
 import Modal from '../components/ui/Modal';
 import Button from '../components/ui/Button';
+import StatusBadge from '../components/ui/StatusBadge';
+import { PageHeader } from '../components/ui/PageHeader';
+import { SummaryCard, MiniStat } from '../components/ui/SummaryCard';
+import { AuditActivityChart, EventTypeChart } from '../components/charts/AuditActivityChart';
 import { fetchAuditLogs } from '../services/api';
 import type { AuditLogEntry } from '../types';
 import dayjs from 'dayjs';
+
+// Icons
+const Icons = {
+  activity: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+    </svg>
+  ),
+  alert: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+      <line x1="12" y1="9" x2="12" y2="13" />
+      <line x1="12" y1="17" x2="12.01" y2="17" />
+    </svg>
+  ),
+  user: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  ),
+  clock: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  ),
+};
+
+const ACTION_TYPE_MAP: Record<string, 'success' | 'warning' | 'error' | 'neutral'> = {
+  login: 'neutral',
+  review_artwork: 'success',
+  modify_user_role: 'warning',
+  export_data: 'neutral',
+  modify_settings: 'warning',
+  create_campaign: 'success',
+  process_donation: 'success',
+  update_order_status: 'neutral',
+  view_child_info: 'neutral',
+  delete_data: 'error',
+};
 
 export default function AuditLogPage() {
   const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [actionFilter, setActionFilter] = useState('');
   const [selected, setSelected] = useState<AuditLogEntry | null>(null);
-
-  const actionColors: Record<string, string> = {
-    login: '#A0A0A0', review_artwork: '#2563EB', modify_user_role: '#A0A0A0',
-    export_data: '#A0A0A0', modify_settings: '#A0A0A0', create_campaign: '#2563EB',
-    process_donation: '#A0A0A0', update_order_status: '#2563EB',
-    view_child_info: '#2563EB', delete_data: '#2563EB',
-  };
-
-  const getActionLabel = (v: string) => {
-    const map: Record<string, string> = {
-      login: t('auditLog.actionLogin'), review_artwork: t('auditLog.actionReviewArtwork'),
-      modify_user_role: t('auditLog.actionModifyUserRole'), export_data: t('auditLog.actionExportData'),
-      modify_settings: t('auditLog.actionModifySettings'), create_campaign: t('auditLog.actionCreateCampaign'),
-      process_donation: t('auditLog.actionProcessDonation'), update_order_status: t('auditLog.actionUpdateOrderStatus'),
-      view_child_info: t('auditLog.actionViewChildInfo'), delete_data: t('auditLog.actionDeleteData'),
-    };
-    return map[v] || v;
-  };
 
   const { data, isLoading } = useQuery({
     queryKey: ['auditLogs', page, actionFilter],
@@ -43,40 +70,66 @@ export default function AuditLogPage() {
     }),
   });
 
+  const logs = data?.data || [];
+  const total = data?.total || 0;
+
+  // Calculate summary stats
+  const summaryStats = {
+    totalEvents: total,
+    highRisk: logs.filter((l: AuditLogEntry) => ['delete_data', 'modify_user_role'].includes(l.action)).length,
+    adminActions: logs.filter((l: AuditLogEntry) => l.action !== 'login').length,
+    last24h: logs.filter((l: AuditLogEntry) => dayjs(l.timestamp).isAfter(dayjs().subtract(24, 'hour'))).length,
+  };
+
+  const getActionLabel = (v: string) => {
+    const map: Record<string, string> = {
+      login: t('auditLog.actionLogin'),
+      review_artwork: t('auditLog.actionReviewArtwork'),
+      modify_user_role: t('auditLog.actionModifyUserRole'),
+      export_data: t('auditLog.actionExportData'),
+      modify_settings: t('auditLog.actionModifySettings'),
+      create_campaign: t('auditLog.actionCreateCampaign'),
+      process_donation: t('auditLog.actionProcessDonation'),
+      update_order_status: t('auditLog.actionUpdateOrderStatus'),
+      view_child_info: t('auditLog.actionViewChildInfo'),
+      delete_data: t('auditLog.actionDeleteData'),
+    };
+    return map[v] || v;
+  };
+
+  const getActionBadgeType = (v: string): 'success' | 'warning' | 'error' | 'neutral' => {
+    return ACTION_TYPE_MAP[v] || 'neutral';
+  };
+
   const columns: Column<AuditLogEntry>[] = [
-    { key: 'timestamp', title: t('auditLog.detailTimestamp'), width: 180, sorter: true, render: (v) => dayjs(v).format('YYYY-MM-DD HH:mm:ss') },
-    { key: 'userName', title: t('auditLog.detailOperator'), width: 120 },
-    { key: 'action', title: t('auditLog.detailAction'), width: 150, render: (v) => (
-      <span style={{
-        padding: '2px 8px',
-        borderRadius: '8px',
-        fontSize: '11px',
-        fontWeight: 600,
-        textTransform: 'uppercase',
-        letterSpacing: '0.05em',
-        border: `1px solid ${actionColors[v] || 'var(--color-border)'}`,
-        color: actionColors[v] || 'var(--color-text)',
-      }}>
-        {getActionLabel(v)}
-      </span>
-    )},
-    { key: 'resource', title: t('auditLog.detailResource'), width: 120 },
-    { key: 'details', title: t('common.detail'), render: (v) => (
-      <span style={{
-        color: 'var(--color-text-2)',
-        maxWidth: 400,
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        display: 'block',
-        whiteSpace: 'nowrap',
-        fontSize: '13px'
-      }}>
-        {v}
-      </span>
-    )},
-    { key: 'ipAddress', title: t('auditLog.detailIpAddress'), width: 140, render: (v) => <code style={{ fontFamily: 'var(--font-mono)', fontSize: '11px' }}>{v}</code> },
     {
-      key: 'action_col', title: t('common.operation'), width: 100,
+      key: 'timestamp',
+      title: t('auditLog.detailTimestamp'),
+      width: 160,
+      sorter: true,
+      render: (v) => <span className="table-text-mono">{dayjs(v).format('YYYY-MM-DD HH:mm')}</span>
+    },
+    { key: 'userName', title: t('auditLog.detailOperator'), width: 100 },
+    {
+      key: 'action',
+      title: t('auditLog.detailAction'),
+      width: 140,
+      render: (v) => <StatusBadge status={v} label={getActionLabel(v)} />
+    },
+    { key: 'resource', title: t('auditLog.detailResource'), width: 100 },
+    {
+      key: 'details',
+      title: t('common.detail'),
+      render: (v) => (
+        <span className="table-text-truncate" style={{ maxWidth: 300 }}>
+          {v}
+        </span>
+      )
+    },
+    {
+      key: 'action_col',
+      title: t('common.operation'),
+      width: 80,
       render: (_: any, record: AuditLogEntry) => (
         <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); setSelected(record); }}>
           {t('auditLog.btnViewDetail')}
@@ -87,65 +140,80 @@ export default function AuditLogPage() {
 
   return (
     <div>
-      <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 600, marginBottom: 8, fontFamily: 'var(--font-body)' }}>{t('auditLog.title')}</h1>
-        <p style={{ fontSize: 14, color: 'var(--color-text-2)', maxWidth: '600px', lineHeight: 1.6 }}>
-          {t('auditLog.description')}
-        </p>
+      <PageHeader
+        title={t('auditLog.title')}
+        description={t('auditLog.description')}
+      />
+
+      {/* Summary Cards */}
+      <div className="dashboard-summary-grid" style={{ marginBottom: 24 }}>
+        <SummaryCard title="Total Events" subtitle="事件总数" icon={Icons.activity}>
+          <MiniStat label="本周" value={summaryStats.totalEvents} change={-5} />
+          <MiniStat label="过去24小时" value={summaryStats.last24h} />
+        </SummaryCard>
+        <SummaryCard title="High Risk" subtitle="高风险操作" icon={Icons.alert}>
+          <MiniStat label="高风险事件" value={summaryStats.highRisk} trend="error" />
+          <MiniStat label="Admin 操作" value={summaryStats.adminActions} />
+        </SummaryCard>
+        <SummaryCard title="Activity" subtitle="最近动态" icon={Icons.clock}>
+          <MiniStat label="今日登录" value={logs.filter((l: AuditLogEntry) => l.action === 'login').length} />
+          <MiniStat label="审核操作" value={logs.filter((l: AuditLogEntry) => l.action.includes('review')).length} />
+        </SummaryCard>
       </div>
 
-      <div style={{ display: 'flex', gap: 16, marginBottom: 24, alignItems: 'center' }}>
-        <select value={actionFilter} onChange={(e) => { setActionFilter(e.target.value); setPage(1); }} style={filterStyle}>
-          <option value="">{t('auditLog.filterAllActions')}</option>
-          <option value="login">{t('auditLog.actionLogin')}</option>
-          <option value="review_artwork">{t('auditLog.actionReviewArtwork')}</option>
-          <option value="modify_user_role">{t('auditLog.actionModifyUserRole')}</option>
-          <option value="export_data">{t('auditLog.actionExportData')}</option>
-          <option value="modify_settings">{t('auditLog.actionModifySettings')}</option>
-          <option value="create_campaign">{t('auditLog.actionCreateCampaign')}</option>
-          <option value="process_donation">{t('auditLog.actionProcessDonation')}</option>
-          <option value="update_order_status">{t('auditLog.actionUpdateOrderStatus')}</option>
-          <option value="view_child_info">{t('auditLog.actionViewChildInfo')}</option>
-          <option value="delete_data">{t('auditLog.actionDeleteData')}</option>
-        </select>
+      {/* Charts */}
+      <div className="dashboard-charts-grid" style={{ marginBottom: 24 }}>
+        <AuditActivityChart />
+        <EventTypeChart />
+      </div>
 
-        <div style={{ marginLeft: 'auto', fontSize: '12px', color: 'var(--color-text-3)' }}>
-          {t('auditLog.recordCount', { count: data?.total || 0 })}
+      {/* Filters */}
+      <div className="table-toolbar">
+        <div className="table-toolbar__filters">
+          <select
+            className="table-select"
+            value={actionFilter}
+            onChange={(e) => { setActionFilter(e.target.value); setPage(1); }}
+          >
+            <option value="">{t('auditLog.filterAllActions')}</option>
+            <option value="login">{t('auditLog.actionLogin')}</option>
+            <option value="review_artwork">{t('auditLog.actionReviewArtwork')}</option>
+            <option value="modify_user_role">{t('auditLog.actionModifyUserRole')}</option>
+            <option value="export_data">{t('auditLog.actionExportData')}</option>
+            <option value="modify_settings">{t('auditLog.actionModifySettings')}</option>
+            <option value="create_campaign">{t('auditLog.actionCreateCampaign')}</option>
+            <option value="process_donation">{t('auditLog.actionProcessDonation')}</option>
+            <option value="update_order_status">{t('auditLog.actionUpdateOrderStatus')}</option>
+            <option value="view_child_info">{t('auditLog.actionViewChildInfo')}</option>
+            <option value="delete_data">{t('auditLog.actionDeleteData')}</option>
+          </select>
+        </div>
+        <div className="table-toolbar__info">
+          {t('auditLog.recordCount', { count: total })}
         </div>
       </div>
 
-      <DataTable columns={columns} data={data?.data || []} rowKey="id" loading={isLoading} />
-
-      <div style={{ marginTop: 32 }}>
-        <Pagination page={page} totalPages={data?.totalPages || 1} total={data?.total || 0} pageSize={15} onPageChange={setPage} />
-      </div>
+      <DataTable columns={columns} data={logs} rowKey="id" loading={isLoading} />
+      <Pagination page={page} totalPages={data?.totalPages || 1} total={total} pageSize={15} onPageChange={setPage} />
 
       <Modal open={!!selected} title={t('auditLog.modalTitle')} onClose={() => setSelected(null)} width={600}>
         {selected && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20, padding: '10px 0' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 32px' }}>
-              <Row label={t('auditLog.detailLogId')} value={<code style={{ fontFamily: 'var(--font-mono)' }}>{selected.id}</code>} />
-              <Row label={t('auditLog.detailTimestamp')} value={dayjs(selected.timestamp).format('YYYY-MM-DD HH:mm:ss')} />
-              <Row label={t('auditLog.detailOperator')} value={selected.userName} />
-              <Row label={t('auditLog.detailUserId')} value={<code style={{ fontFamily: 'var(--font-mono)' }}>{selected.userId}</code>} />
-              <Row label={t('auditLog.detailAction')} value={selected.action} />
-              <Row label={t('auditLog.detailResource')} value={selected.resource} />
-              <Row label={t('auditLog.detailResourceId')} value={selected.resourceId ? <code style={{ fontFamily: 'var(--font-mono)' }}>{selected.resourceId}</code> : '-'} />
-              <Row label={t('auditLog.detailIpAddress')} value={<code style={{ fontFamily: 'var(--font-mono)' }}>{selected.ipAddress}</code>} />
+          <div className="modal-detail-grid">
+            <DetailRow label={t('auditLog.detailLogId')} value={<code className="table-text-mono">{selected.id}</code>} />
+            <DetailRow label={t('auditLog.detailTimestamp')} value={<span className="table-text-mono">{dayjs(selected.timestamp).format('YYYY-MM-DD HH:mm:ss')}</span>} />
+            <DetailRow label={t('auditLog.detailOperator')} value={selected.userName} />
+            <DetailRow label={t('auditLog.detailUserId')} value={<code className="table-text-mono">{selected.userId}</code>} />
+            <DetailRow label={t('auditLog.detailAction')} value={<StatusBadge status={selected.action} label={getActionLabel(selected.action)} />} />
+            <DetailRow label={t('auditLog.detailResource')} value={selected.resource} />
+            <DetailRow label={t('auditLog.detailResourceId')} value={selected.resourceId ? <code className="table-text-mono">{selected.resourceId}</code> : '-'} />
+            <DetailRow label={t('auditLog.detailIpAddress')} value={<code className="table-text-mono">{selected.ipAddress}</code>} />
+            <div className="modal-detail-full">
+              <span className="modal-detail-label">{t('auditLog.detailOperationDetails')}</span>
+              <div className="modal-detail-box">{selected.details}</div>
             </div>
-
-            <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 20 }}>
-              <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-text-3)', marginBottom: 8 }}>{t('auditLog.detailOperationDetails')}</div>
-              <div style={{ fontSize: 14, padding: '16px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', lineHeight: 1.6 }}>
-                {selected.details}
-              </div>
-            </div>
-
-            <div>
-              <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-text-3)', marginBottom: 8 }}>{t('auditLog.detailUserAgent')}</div>
-              <div style={{ fontSize: 12, padding: '12px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', fontFamily: 'var(--font-mono)', wordBreak: 'break-all', color: 'var(--color-text-2)' }}>
-                {selected.userAgent}
-              </div>
+            <div className="modal-detail-full">
+              <span className="modal-detail-label">{t('auditLog.detailUserAgent')}</span>
+              <div className="modal-detail-box modal-detail-box--mono">{selected.userAgent}</div>
             </div>
           </div>
         )}
@@ -154,23 +222,11 @@ export default function AuditLogPage() {
   );
 }
 
-function Row({ label, value }: { label: string; value: React.ReactNode }) {
+function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <span style={{ fontSize: 11, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
-      <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--color-text)' }}>{value}</span>
+    <div className="modal-detail-row">
+      <span className="modal-detail-label">{label}</span>
+      <span className="modal-detail-value">{value}</span>
     </div>
   );
 }
-
-const filterStyle: React.CSSProperties = {
-  padding: '10px 16px',
-  border: '1px solid var(--color-border)',
-  borderRadius: '6px',
-  fontSize: '13px',
-  background: 'var(--color-surface)',
-  color: 'var(--color-text)',
-  outline: 'none',
-  fontFamily: 'var(--font-mono)',
-  minWidth: '240px'
-};

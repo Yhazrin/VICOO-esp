@@ -154,6 +154,8 @@ export interface FilterParams {
   sortOrder?: 'asc' | 'desc';
   startDate?: string;
   endDate?: string;
+  campaignId?: string;
+  isImpactProduct?: boolean;
 }
 
 export interface SystemSettings {

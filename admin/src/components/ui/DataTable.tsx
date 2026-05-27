@@ -25,35 +25,35 @@ export default function DataTable<T extends Record<string, any>>({
   columns, data, rowKey, loading, sortBy, sortOrder, onSort, onRowClick,
 }: DataTableProps<T>) {
   const { t } = useTranslation();
+
   const renderSortIcon = (key: string) => {
-    if (sortBy !== key) return <span style={{ color: 'var(--color-text-3)', marginLeft: 4 }}>&#8693;</span>;
+    if (sortBy !== key) {
+      return (
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.4, marginLeft: 4 }}>
+          <path d="M7 15l5 5 5-5" />
+          <path d="M7 9l5-5 5 5" />
+        </svg>
+      );
+    }
     return (
-      <span style={{ color: 'var(--color-text)', marginLeft: 4 }}>
-        {sortOrder === 'asc' ? '\u2191' : '\u2193'}
-      </span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 4, color: 'var(--color-primary)' }}>
+        {sortOrder === 'asc' ? (
+          <path d="M7 15l5 5 5-5" />
+        ) : (
+          <path d="M7 9l5-5 5 5" />
+        )}
+      </svg>
     );
   };
 
   return (
-    <div className="data-table-container" style={{
-      borderRadius: '8px',
-      background: 'var(--color-surface)',
-      border: '1px solid var(--color-border)',
-      position: 'relative',
-      width: '100%',
-      overflow: 'hidden',
-    }}>
+    <div className="data-table-container">
       <div style={{
         overflowX: 'auto',
         width: '100%',
         WebkitOverflowScrolling: 'touch',
       }}>
-        <table style={{
-          width: '100%',
-          minWidth: 'max-content',
-          borderCollapse: 'separate',
-          borderSpacing: 0
-        }}>
+        <table>
           <thead>
             <tr>
               {columns.map((col) => (
@@ -64,9 +64,9 @@ export default function DataTable<T extends Record<string, any>>({
                     position: 'sticky',
                     top: 0,
                     zIndex: 10,
-                    padding: '12px 16px',
+                    padding: '14px 18px',
                     textAlign: 'left',
-                    fontSize: 11,
+                    fontSize: '11px',
                     fontWeight: 600,
                     color: 'var(--color-text-3)',
                     backgroundColor: 'var(--color-surface)',
@@ -78,11 +78,19 @@ export default function DataTable<T extends Record<string, any>>({
                     userSelect: 'none',
                     whiteSpace: 'nowrap',
                     borderBottom: '1px solid var(--color-border)',
-                    transition: 'background-color 0.15s',
-                    fontFamily: 'var(--font-body)',
+                    transition: 'all var(--duration-fast)',
+                    fontFamily: 'var(--font-mono)',
                   }}
-                  onMouseEnter={(e) => { if(col.sorter) e.currentTarget.style.backgroundColor = 'var(--color-elevated)'; }}
-                  onMouseLeave={(e) => { if(col.sorter) e.currentTarget.style.backgroundColor = 'var(--color-surface)'; }}
+                  onMouseEnter={(e) => {
+                    if (col.sorter) {
+                      e.currentTarget.style.backgroundColor = 'var(--color-elevated)';
+                      e.currentTarget.style.color = 'var(--color-text-2)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--color-surface)';
+                    e.currentTarget.style.color = 'var(--color-text-3)';
+                  }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center' }}>
                     {col.title}
@@ -95,16 +103,28 @@ export default function DataTable<T extends Record<string, any>>({
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={columns.length} style={{ padding: 48, textAlign: 'center', color: 'var(--color-text-3)' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+                <td colSpan={columns.length} style={{ padding: '60px', textAlign: 'center' }}>
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '16px',
+                  }}>
                     <div style={{
-                      width: 20, height: 20,
+                      width: '24px',
+                      height: '24px',
                       border: '2px solid var(--color-border)',
-                      borderTopColor: 'var(--color-text-3)',
+                      borderTopColor: 'var(--color-primary)',
                       borderRadius: '50%',
                       animation: 'spin 0.8s linear infinite',
                     }} />
-                    <span style={{ fontSize: 12, fontFamily: 'var(--font-mono)', letterSpacing: '0.05em' }}>
+                    <span style={{
+                      fontSize: '12px',
+                      fontFamily: 'var(--font-mono)',
+                      letterSpacing: '0.05em',
+                      color: 'var(--color-text-3)',
+                    }}>
                       {t('dataTable.loading', 'Loading...')}
                     </span>
                   </div>
@@ -112,8 +132,24 @@ export default function DataTable<T extends Record<string, any>>({
               </tr>
             ) : data.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} style={{ padding: 48, textAlign: 'center', color: 'var(--color-text-3)', fontSize: 13 }}>
-                  {t('dataTable.empty', 'No data')}
+                <td colSpan={columns.length} style={{
+                  padding: '60px',
+                  textAlign: 'center',
+                  color: 'var(--color-text-3)',
+                  fontSize: '13px',
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}>
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.3 }}>
+                      <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+                      <polyline points="13 2 13 9 20 9" />
+                    </svg>
+                    {t('dataTable.empty', 'No data')}
+                  </div>
                 </td>
               </tr>
             ) : (
@@ -123,14 +159,12 @@ export default function DataTable<T extends Record<string, any>>({
                   onClick={() => onRowClick?.(record)}
                   style={{
                     cursor: onRowClick ? 'pointer' : 'default',
-                    transition: 'background-color 0.1s',
                   }}
-                  className="table-row-hover"
                 >
                   {columns.map((col) => (
                     <td key={col.key} style={{
-                      padding: '12px 16px',
-                      fontSize: 13,
+                      padding: '14px 18px',
+                      fontSize: '13px',
                       lineHeight: 1.5,
                       color: 'var(--color-text-2)',
                       width: col.width,
@@ -149,12 +183,6 @@ export default function DataTable<T extends Record<string, any>>({
           </tbody>
         </table>
       </div>
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .table-row-hover:hover td {
-          background-color: var(--color-surface);
-        }
-      `}</style>
     </div>
   );
 }

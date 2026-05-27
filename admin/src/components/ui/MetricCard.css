@@ -1,0 +1,131 @@
+/* ─────────────────────────────────────────────────────────────
+   MetricCard — Brand-Aligned
+   Compact sizing, smaller icons, refined typography
+   ───────────────────────────────────────────────────────────── */
+
+.metric-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  box-shadow: var(--shadow-card);
+  transition: box-shadow var(--duration-fast), transform var(--duration-fast);
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-card--link {
+  text-decoration: none;
+  cursor: pointer;
+  color: inherit;
+}
+
+.metric-card--link:hover {
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+
+.metric-card:not(.metric-card--link):hover {
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Header ── */
+.metric-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+/* ── Icon ── */
+.metric-card-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
+}
+
+.metric-card-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ── Trend indicator ── */
+.metric-card-trend {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+/* ── Body ── */
+.metric-card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.metric-card-value {
+  font-family: var(--font-body);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+}
+
+.metric-card-label {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-2);
+  margin-top: 5px;
+  letter-spacing: 0.01em;
+}
+
+.metric-card-subtitle {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-text-3);
+  margin-top: 3px;
+  letter-spacing: 0.02em;
+}
+
+/* ── Loading skeleton ── */
+.metric-card--loading {
+  pointer-events: none;
+}
+
+.metric-card-skeleton {
+  background: var(--color-elevated);
+  border-radius: 3px;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.metric-card-skeleton--icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  margin-bottom: 14px;
+}
+
+.metric-card-skeleton--label {
+  height: 12px;
+  width: 55%;
+  margin-bottom: 6px;
+}
+
+.metric-card-skeleton--value {
+  height: 24px;
+  width: 35%;
+}

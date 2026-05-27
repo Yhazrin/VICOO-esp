@@ -1,16 +1,48 @@
 import { useState, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
+import dayjs from 'dayjs';
+import html2pdf from 'html2pdf.js';
 import DataTable from '../components/ui/DataTable';
 import type { Column } from '../components/ui/DataTable';
 import Pagination from '../components/ui/Pagination';
-import StatusBadge from '../components/ui/StatusBadge';
+import Modal from '../components/ui/Modal';
 import Button from '../components/ui/Button';
+import StatusBadge from '../components/ui/StatusBadge';
+import { PageHeader } from '../components/ui/PageHeader';
+import { SummaryCard, MiniStat } from '../components/ui/SummaryCard';
+import { DonationTrendChart } from '../components/charts/DonationTrendChart';
 import { fetchDonations, approveDonationAdmin } from '../services/api';
 import type { Donation } from '../types';
-import dayjs from 'dayjs';
-import html2pdf from 'html2pdf.js';
+
+// Icons
+const SearchIcon = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8" />
+    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+  </svg>
+);
+
+const HeartIcon = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+  </svg>
+);
+
+const CheckIcon = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+);
+
+const ChartIcon = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="20" x2="18" y2="10" />
+    <line x1="12" y1="20" x2="12" y2="4" />
+    <line x1="6" y1="20" x2="6" y2="14" />
+  </svg>
+);
 
 export default function DonationPage() {
   const { t } = useTranslation();
@@ -46,6 +78,7 @@ export default function DonationPage() {
 
   const filteredData = useMemo(() => data?.data ?? [], [data?.data]);
 
+  // Calculate summary stats
   const displaySummary = useMemo(() => {
     const s = data?.summary;
     if (s) {
@@ -66,40 +99,73 @@ export default function DonationPage() {
   }, [data?.summary, filteredData]);
 
   const getPaymentLabel = (v: string) => {
-    const map: Record<string, string> = { wechat: t('donation.paymentWechat'), alipay: t('donation.paymentAlipay'), stripe: t('donation.paymentStripe'), paypal: t('donation.paymentPaypal') };
-    return map[v] || v;
-  };
-
-  const getStatusLabel = (s: string) => {
     const map: Record<string, string> = {
-      completed: t('donation.filterCompleted'),
-      pending: t('donation.filterPending'),
-      failed: t('donation.filterFailed'),
-      refunded: t('donation.filterRefunded'),
+      wechat: t('donation.paymentWechat'),
+      alipay: t('donation.paymentAlipay'),
+      stripe: t('donation.paymentStripe'),
+      paypal: t('donation.paymentPaypal'),
     };
-    return map[s] || s;
+    return map[v] || v;
   };
 
   const escapeHtml = (s: string) =>
     s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   const columns: Column<Donation>[] = [
-    { key: 'id', title: t('donation.colLedgerId'), width: 120, render: (v) => <code style={{ fontFamily: 'var(--font-mono)', fontSize: '11px' }}>{v}</code> },
-    { key: 'donorName', title: t('donation.colBenefactor'), minWidth: 150, render: (v) => <span style={{ fontWeight: 600 }}>{v}</span> },
-    { key: 'amount', title: t('donation.colGrantAmount'), width: 140, sorter: true, render: (v, r) => (
-      <span style={{ fontWeight: 700, color: 'var(--color-text)', fontFamily: 'var(--font-body)', fontSize: '15px' }}>
-        {r.currency === 'CNY' ? '\u00a5' : '$'}{v.toLocaleString()}
-      </span>
-    )},
-    { key: 'paymentMethod', title: t('donation.colChannel'), width: 120, render: (v) => getPaymentLabel(v) },
-    { key: 'campaignTitle', title: t('donation.colAssignedProject'), minWidth: 200, render: (v) => v || '-' },
-    { key: 'status', title: t('donation.colState'), width: 120, render: (v) => <StatusBadge status={v} context="donation" /> },
-    { key: 'isAnonymous', title: t('donation.colAnon'), width: 80, render: (v) => v ? t('common.yes') : t('common.no') },
-    { key: 'createdAt', title: t('donation.colRecordedAt'), width: 160, sorter: true, render: (v) => dayjs(v).format('YYYY-MM-DD HH:mm') },
+    {
+      key: 'id',
+      title: t('donation.colLedgerId'),
+      width: 100,
+      render: (v) => <code className="table-text-mono">{v}</code>,
+    },
+    {
+      key: 'donorName',
+      title: t('donation.colBenefactor'),
+      minWidth: 140,
+      render: (v) => <span className="table-text-bold">{v}</span>,
+    },
+    {
+      key: 'amount',
+      title: t('donation.colGrantAmount'),
+      width: 120,
+      sorter: true,
+      render: (v, r) => (
+        <span className="table-text-price">
+          {r.currency === 'CNY' ? '¥' : '$'}
+          {v.toLocaleString()}
+        </span>
+      ),
+    },
+    { key: 'paymentMethod', title: t('donation.colChannel'), width: 100, render: (v) => getPaymentLabel(v) },
+    {
+      key: 'campaignTitle',
+      title: t('donation.colAssignedProject'),
+      minWidth: 160,
+      render: (v) => v || '-',
+    },
+    {
+      key: 'status',
+      title: t('donation.colState'),
+      width: 100,
+      render: (v) => <StatusBadge status={v} context="donation" />,
+    },
+    {
+      key: 'isAnonymous',
+      title: t('donation.colAnon'),
+      width: 70,
+      render: (v) => (v ? t('common.yes') : t('common.no')),
+    },
+    {
+      key: 'createdAt',
+      title: t('donation.colRecordedAt'),
+      width: 140,
+      sorter: true,
+      render: (v) => dayjs(v).format('YYYY-MM-DD HH:mm'),
+    },
     {
       key: 'action',
       title: t('donation.colAction'),
-      width: 120,
+      width: 100,
       render: (_: unknown, record: Donation) =>
         record.status === 'pending' ? (
           <Button
@@ -129,7 +195,7 @@ export default function DonationPage() {
     const csvRows = filteredData.map((d) =>
       `${d.id},${csvEscape(d.donorName)},${d.amount},${d.currency},${csvEscape(getPaymentLabel(d.paymentMethod))},${csvEscape(d.campaignTitle || '')},${d.status},${d.isAnonymous ? t('donation.csvYes') : t('donation.csvNo')},${dayjs(d.createdAt).format('YYYY-MM-DD HH:mm')}`
     ).join('\n');
-    const blob = new Blob(['\ufeff' + csvHeader + csvRows], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob(['﻿' + csvHeader + csvRows], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -164,7 +230,7 @@ export default function DonationPage() {
         <td>${escapeHtml(amt)}</td>
         <td>${escapeHtml(getPaymentLabel(d.paymentMethod))}</td>
         <td>${escapeHtml(d.campaignTitle || '')}</td>
-        <td>${escapeHtml(getStatusLabel(d.status))}</td>
+        <td>${escapeHtml(d.status)}</td>
         <td>${d.isAnonymous ? escapeHtml(t('donation.csvYes')) : escapeHtml(t('donation.csvNo'))}</td>
         <td>${escapeHtml(dayjs(d.createdAt).format('YYYY-MM-DD HH:mm'))}</td>
       </tr>`;
@@ -196,7 +262,6 @@ export default function DonationPage() {
       <tbody>${tbody}</tbody>
     </table>
   </div>`;
-    // html2canvas 常无法正确绘制远离视口的节点（如 left:-9999px），会得到空白 PDF。
     const overlay = document.createElement('div');
     overlay.setAttribute('aria-hidden', 'true');
     overlay.style.cssText =
@@ -241,79 +306,89 @@ export default function DonationPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 40 }}>
-        <div>
-          <h1 style={{ fontSize: 28, fontWeight: 600, marginBottom: 8, fontFamily: 'var(--font-body)' }}>{t('donation.title')}</h1>
-          <p style={{ fontSize: 14, color: 'var(--color-text-2)', maxWidth: '600px', lineHeight: 1.6 }}>
-            {t('donation.description')}
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: 12 }}>
-          <Button variant="secondary" onClick={handleExport}>{t('donation.btnExport')}</Button>
-          <Button variant="primary" onClick={handleReport}>{t('donation.btnReport')}</Button>
-        </div>
+      <PageHeader
+        title={t('donation.title')}
+        description={t('donation.description')}
+        actions={
+          <>
+            <Button variant="secondary" onClick={handleExport}>
+              {t('donation.btnExport')}
+            </Button>
+            <Button variant="primary" onClick={handleReport}>
+              {t('donation.btnReport')}
+            </Button>
+          </>
+        }
+      />
+
+      {/* Summary Cards */}
+      <div className="dashboard-summary-grid" style={{ marginBottom: 24 }}>
+        <SummaryCard title="Total" subtitle="捐赠总额" icon={HeartIcon}>
+          <MiniStat label="记录数" value={displaySummary.selectionTotal} />
+          <MiniStat label="本周增长" value="+12%" change={12} />
+        </SummaryCard>
+        <SummaryCard title="Verified" subtitle="已认证" icon={CheckIcon}>
+          <MiniStat label="已完成" value={displaySummary.completedCount} />
+          <MiniStat label="金额" value={`¥${displaySummary.completedAmount.toLocaleString()}`} />
+        </SummaryCard>
+        <SummaryCard title="Campaigns" subtitle="活动关联" icon={ChartIcon}>
+          <MiniStat label="关联活动" value={filteredData.filter((d) => d.campaignTitle).length} />
+          <MiniStat label="失败记录" value={displaySummary.failedCount} trend="error" />
+        </SummaryCard>
       </div>
 
-      <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24, marginBottom: 32,
-      }}>
-        {[
-          { label: t('donation.summaryCurrentSelection'), value: displaySummary.selectionTotal, unit: t('donation.summaryRecordsUnit') },
-          { label: t('donation.summaryAggregateValue'), value: `\u00a5${displaySummary.completedAmount.toLocaleString()}`, unit: t('donation.summaryCnyTotal') },
-          { label: t('donation.summaryVerifiedSuccess'), value: displaySummary.completedCount, unit: t('donation.summaryTransactionsUnit') },
-          { label: t('donation.summarySystemErrors'), value: displaySummary.failedCount, unit: t('donation.summaryActionRequired') },
-        ].map((s) => (
-          <div key={s.label} style={{
-            padding: '24px',
-            background: 'var(--color-surface)',
-            border: '1px solid var(--color-border)',
-            borderRadius: '8px'
-          }}>
-            <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-text-2)', marginBottom: 12 }}>{s.label}</div>
-            <div style={{ fontSize: 24, fontWeight: 700, fontFamily: 'var(--font-body)', color: 'var(--color-text)' }}>{s.value}</div>
-            <div style={{ fontSize: 10, color: 'var(--color-text-2)', marginTop: 4 }}>{s.unit}</div>
+      {/* Chart */}
+      <div style={{ marginBottom: 24 }}>
+        <DonationTrendChart />
+      </div>
+
+      {/* Filters */}
+      <div className="table-toolbar">
+        <div className="table-toolbar__filters">
+          <div className="table-search">
+            {SearchIcon}
+            <input
+              type="text"
+              placeholder={t('donation.searchPlaceholder')}
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+            />
           </div>
-        ))}
-      </div>
-
-      <div style={{ display: 'flex', gap: 16, marginBottom: 24, flexWrap: 'wrap' }}>
-        <input
-          type="text" placeholder={t('donation.searchPlaceholder')}
-          value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          style={filterStyle}
-        />
-        <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }} style={filterStyle}>
-          <option value="">{t('donation.filterAllStates')}</option>
-          <option value="completed">{t('donation.filterCompleted')}</option>
-          <option value="pending">{t('donation.filterPending')}</option>
-          <option value="failed">{t('donation.filterFailed')}</option>
-          <option value="refunded">{t('donation.filterRefunded')}</option>
-        </select>
-        <select value={paymentFilter} onChange={(e) => setPaymentFilter(e.target.value)} style={filterStyle}>
-          <option value="">{t('donation.filterAllChannels')}</option>
-          <option value="wechat">{t('donation.paymentWechat')}</option>
-          <option value="alipay">{t('donation.paymentAlipay')}</option>
-          <option value="stripe">{t('donation.paymentStripe')}</option>
-          <option value="paypal">{t('donation.paymentPaypal')}</option>
-        </select>
+          <select
+            className="table-select"
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="">{t('donation.filterAllStates')}</option>
+            <option value="completed">{t('donation.filterCompleted')}</option>
+            <option value="pending">{t('donation.filterPending')}</option>
+            <option value="failed">{t('donation.filterFailed')}</option>
+            <option value="refunded">{t('donation.filterRefunded')}</option>
+          </select>
+          <select
+            className="table-select"
+            value={paymentFilter}
+            onChange={(e) => setPaymentFilter(e.target.value)}
+          >
+            <option value="">{t('donation.filterAllChannels')}</option>
+            <option value="wechat">{t('donation.paymentWechat')}</option>
+            <option value="alipay">{t('donation.paymentAlipay')}</option>
+            <option value="stripe">{t('donation.paymentStripe')}</option>
+            <option value="paypal">{t('donation.paymentPaypal')}</option>
+          </select>
+        </div>
       </div>
 
       <DataTable columns={columns} data={filteredData} rowKey="id" loading={isLoading} />
-
-      <div style={{ marginTop: 32 }}>
+      <div style={{ marginTop: 24 }}>
         <Pagination page={page} totalPages={data?.totalPages || 1} total={data?.total || 0} pageSize={10} onPageChange={setPage} />
       </div>
     </div>
   );
 }
-
-const filterStyle: React.CSSProperties = {
-  padding: '10px 16px',
-  border: '1px solid var(--color-border)',
-  borderRadius: '6px',
-  fontSize: '13px',
-  background: 'var(--color-surface)',
-  outline: 'none',
-  fontFamily: 'var(--font-mono)',
-  minWidth: '240px'
-};

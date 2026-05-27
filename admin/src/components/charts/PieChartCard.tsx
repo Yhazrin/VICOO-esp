@@ -10,19 +10,32 @@ interface PieChartCardProps {
   height?: number;
 }
 
-const defaultColors = ['#c17c5a', '#4a9d6e', '#5a8fc4', '#d4a843', '#8b6cc1', '#e07a5f'];
+const defaultColors = [
+  'var(--color-primary)',
+  'var(--color-info)',
+  'var(--color-warning)',
+  'var(--color-success)',
+  '#8B5CF6',
+  'var(--color-error)',
+];
 
 export default function PieChartCard({
   title, data, colors = defaultColors, height = 280,
 }: PieChartCardProps) {
   return (
     <div style={{
-      background: 'var(--color-bg-card)',
+      background: 'var(--color-surface)',
       border: '1px solid var(--color-border)',
-      borderRadius: 'var(--radius-lg)',
-      padding: '20px 24px',
+      borderRadius: 'var(--radius-xl)',
+      padding: '24px',
+      boxShadow: 'var(--shadow-card)',
     }}>
-      <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 16, color: 'var(--color-text)' }}>
+      <h3 style={{
+        fontSize: '16px',
+        fontWeight: 600,
+        marginBottom: '20px',
+        color: 'var(--color-text)',
+      }}>
         {title}
       </h3>
       <ResponsiveContainer width="100%" height={height}>
@@ -36,7 +49,7 @@ export default function PieChartCard({
             paddingAngle={3}
             dataKey="value"
             label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-            labelLine={{ stroke: '#9ca3af', strokeWidth: 1 }}
+            labelLine={{ stroke: 'var(--color-text-3)', strokeWidth: 1 }}
           >
             {data.map((_, i) => (
               <Cell key={i} fill={colors[i % colors.length]} />
@@ -44,11 +57,11 @@ export default function PieChartCard({
           </Pie>
           <Tooltip
             contentStyle={{
-              background: '#fff',
-              border: '1px solid #e5e5e0',
-              borderRadius: 8,
+              background: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-md)',
               fontSize: 12,
-              boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+              boxShadow: 'var(--shadow-md)',
             }}
           />
         </PieChart>

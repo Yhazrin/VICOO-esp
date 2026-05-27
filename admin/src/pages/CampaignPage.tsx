@@ -8,9 +8,35 @@ import Pagination from '../components/ui/Pagination';
 import StatusBadge from '../components/ui/StatusBadge';
 import Modal from '../components/ui/Modal';
 import Button from '../components/ui/Button';
+import { PageHeader } from '../components/ui/PageHeader';
+import { SummaryCard, MiniStat } from '../components/ui/SummaryCard';
 import { fetchCampaigns, createCampaign, updateCampaign, uploadTraceMedia, fetchArtworks } from '../services/api';
 import type { Campaign, Artwork } from '../types';
 import dayjs from 'dayjs';
+
+// Icons
+const TargetIcon = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <circle cx="12" cy="12" r="6" />
+    <circle cx="12" cy="12" r="2" />
+  </svg>
+);
+
+const MoneyIcon = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="12" y1="1" x2="12" y2="23" />
+    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+  </svg>
+);
+
+const ChartIcon = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="20" x2="18" y2="10" />
+    <line x1="12" y1="20" x2="12" y2="4" />
+    <line x1="6" y1="20" x2="6" y2="14" />
+  </svg>
+);
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '8px 12px',
@@ -102,26 +128,36 @@ export default function CampaignPage() {
     },
   });
 
-  // Fetch artworks for the campaign being edited
+// Fetch artworks for the campaign being edited
   const { data: campaignArtworks } = useQuery({
     queryKey: ['campaign-artworks', editCampaign?.id],
     queryFn: () => fetchArtworks({ campaignId: editCampaign?.id }),
     enabled: !!editCampaign?.id,
   });
 
+  const campaigns = data?.data || [];
+
+  // Summary stats
+  const summaryStats = {
+    total: campaigns.length,
+    active: campaigns.filter((c: Campaign) => c.status === 'active').length,
+    raised: campaigns.reduce((sum: number, c: Campaign) => sum + (c.raisedAmount || 0), 0),
+    drafts: campaigns.filter((c: Campaign) => c.status === 'draft').length,
+  };
+
   const columns: Column<Campaign>[] = [
-    { key: 'title', title: t('campaign.colCampaignName'), sorter: true },
+    { key: 'title', title: t('campaign.colCampaignName'), sorter: true, render: (v) => <span className="table-text-bold">{v}</span> },
     { key: 'status', title: t('campaign.colStatus'), width: 100, render: (v) => <StatusBadge status={v} context="campaign" /> },
-    { key: 'targetAmount', title: t('campaign.colTargetAmount'), width: 120, render: (v) => `¥${v.toLocaleString('zh-CN')}` },
+    { key: 'targetAmount', title: t('campaign.colTargetAmount'), width: 120, render: (v) => <span className="table-text-mono">¥{v.toLocaleString('zh-CN')}</span> },
     { key: 'raisedAmount', title: t('campaign.colRaisedAmount'), width: 120, render: (v) => (
-      <span style={{ color: 'var(--color-success)' }}>¥{v.toLocaleString('zh-CN')}</span>
+      <span className="table-text-mono" style={{ color: 'var(--color-success)' }}>¥{v.toLocaleString('zh-CN')}</span>
     ) },
     { key: 'startDate', title: t('campaign.colStartDate'), width: 110, render: (v) => v ? dayjs(v).format('YYYY-MM-DD') : '-' },
     { key: 'endDate', title: t('campaign.colEndDate'), width: 110, render: (v) => v ? dayjs(v).format('YYYY-MM-DD') : '-' },
     {
       key: 'action', title: t('campaign.colAction'), width: 180,
       render: (_: any, record: Campaign) => (
-        <div style={{ display: 'flex', gap: 6 }}>
+        <div className="table-actions">
           <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); openEdit(record); }}>
             {t('campaign.btnEdit')}
           </Button>
@@ -385,28 +421,47 @@ export default function CampaignPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
-        <div>
-          <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 4, fontFamily: 'var(--font-body)' }}>{t('campaign.title')}</h1>
-          <p style={{ fontSize: 13, color: 'var(--color-text-2)' }}>{t('campaign.description')}</p>
-        </div>
-        <Button variant="primary" onClick={() => { setShowCreate(true); setForm(emptyForm); setActiveTab('basic'); }}>
-          {t('campaign.btnCreate')}
-        </Button>
+      <PageHeader
+        title={t('campaign.title')}
+        description={t('campaign.description')}
+        actions={
+          <Button variant="primary" onClick={() => { setShowCreate(true); setForm(emptyForm); setActiveTab('basic'); }}>
+            {t('campaign.btnCreate')}
+          </Button>
+        }
+      />
+
+      {/* Summary Cards */}
+      <div className="dashboard-summary-grid" style={{ marginBottom: 24 }}>
+        <SummaryCard title="Total Campaigns" subtitle="活动总数" icon={ChartIcon}>
+          <MiniStat label="全部活动" value={summaryStats.total} />
+          <MiniStat label="草稿" value={summaryStats.drafts} trend="warning" />
+        </SummaryCard>
+        <SummaryCard title="Active" subtitle="进行中" icon={TargetIcon}>
+          <MiniStat label="进行中" value={summaryStats.active} />
+          <MiniStat label="已结束" value={campaigns.filter((c: Campaign) => c.status === 'ended').length} />
+        </SummaryCard>
+        <SummaryCard title="Raised" subtitle="已筹款" icon={MoneyIcon}>
+          <MiniStat label="已筹款" value={`¥${summaryStats.raised.toLocaleString('zh-CN')}`} trend="up" />
+          <MiniStat label="本周新增" value="+¥8,500" change={15} />
+        </SummaryCard>
       </div>
 
-      <div style={{ marginBottom: 16 }}>
-        <select
-          value={statusFilter}
-          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          style={{ padding: '8px 12px', border: '1px solid var(--color-border)', borderRadius: '6px', fontSize: 13, background: 'var(--color-surface)' }}
-        >
-          <option value="">{t('campaign.filterAllStatuses')}</option>
-          <option value="draft">{t('campaign.filterDraft')}</option>
-          <option value="active">{t('campaign.filterActive')}</option>
-          <option value="ended">{t('campaign.filterEnded')}</option>
-          <option value="archived">{t('campaign.filterArchived')}</option>
-        </select>
+      {/* Filters */}
+      <div className="table-toolbar">
+        <div className="table-toolbar__filters">
+          <select
+            className="table-select"
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+          >
+            <option value="">{t('campaign.filterAllStatuses')}</option>
+            <option value="draft">{t('campaign.filterDraft')}</option>
+            <option value="active">{t('campaign.filterActive')}</option>
+            <option value="ended">{t('campaign.filterEnded')}</option>
+            <option value="archived">{t('campaign.filterArchived')}</option>
+          </select>
+        </div>
       </div>
 
       <DataTable columns={columns} data={data?.data || []} rowKey="id" loading={isLoading} />

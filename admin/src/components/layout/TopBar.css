@@ -1,0 +1,174 @@
+/* ─────────────────────────────────────────────────────────────
+   TopBar — Brand-Aligned Controls
+   Pill buttons, refined spacing, unified visual language
+   ───────────────────────────────────────────────────────────── */
+
+.topbar {
+  height: var(--topbar-height);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 18px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+
+.topbar-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── Shared button base ── */
+.topbar-btn {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-2);
+  transition: all var(--duration-fast);
+  white-space: nowrap;
+}
+
+.topbar-btn:hover {
+  color: var(--color-text);
+  background: var(--color-elevated);
+}
+
+.topbar-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ── Icon only button ── */
+.topbar-btn--icon {
+  padding: 7px 9px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.topbar-btn--icon:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+/* ── Icon + text button ── */
+.topbar-btn--icon-text {
+  padding: 7px 11px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.topbar-btn--icon-text:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+/* ── Pill button (language toggle) ── */
+.topbar-btn--pill {
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.topbar-btn--pill:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+/* ── Logout button ── */
+.topbar-btn--logout {
+  padding: 6px 14px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-left: 4px;
+  border-color: var(--color-border);
+}
+
+.topbar-btn--logout:hover {
+  border-color: var(--color-error);
+  color: var(--color-error);
+  background: var(--color-error-bg);
+}
+
+/* ── User section ── */
+.topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 8px;
+  padding-left: 12px;
+  border-left: 1px solid var(--color-border);
+}
+
+.topbar-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-primary-text);
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+
+.topbar-user-info {
+  text-align: left;
+}
+
+.topbar-user-name {
+  font-size: 12px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+.topbar-user-role {
+  font-size: 9px;
+  font-family: var(--font-mono);
+  color: var(--color-text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 2px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .topbar {
+    padding: 0 12px;
+  }
+
+  .topbar-user-info {
+    display: none;
+  }
+
+  .topbar-btn--icon-text span {
+    display: none;
+  }
+
+  .topbar-btn--icon-text {
+    padding: 7px 9px;
+  }
+}

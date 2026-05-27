@@ -8,6 +8,10 @@ import type { Column } from '../components/ui/DataTable';
 import Pagination from '../components/ui/Pagination';
 import Modal from '../components/ui/Modal';
 import Button from '../components/ui/Button';
+import StatusBadge from '../components/ui/StatusBadge';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
+import { PageHeader } from '../components/ui/PageHeader';
+import { SummaryCard, MiniStat } from '../components/ui/SummaryCard';
 import type { AdminProduct, SupplyChainRecord, TraceMediaItem } from '../types';
 import {
   createProduct, updateProduct, deleteProduct,
@@ -28,6 +32,30 @@ import {
   ICON_STROKE,
 } from '../components/icons/supplyChain';
 import { BadgeCheck, Info, Heart, Link2 as Link2Icon } from 'lucide-react';
+
+// Icons
+const PackageIcon = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+    <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+    <line x1="12" y1="22.08" x2="12" y2="12" />
+  </svg>
+);
+
+const LayersIcon = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="12 2 2 7 12 12 22 7 12 2" />
+    <polyline points="2 17 12 22 22 17" />
+    <polyline points="2 12 12 17 22 12" />
+  </svg>
+);
+
+const DollarIcon = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="12" y1="1" x2="12" y2="23" />
+    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+  </svg>
+);
 
 /* ── Shared style tokens ── */
 const inputStyle: React.CSSProperties = {
@@ -140,6 +168,10 @@ export default function ProductPage() {
   const [nodeForm, setNodeForm] = useState(emptyNode);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Confirm dialog state
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmTarget, setConfirmTarget] = useState<{ type: 'product' | 'node'; id: string } | null>(null);
 
   /* ── Queries ── */
   const { data, isLoading } = useQuery({
@@ -377,12 +409,24 @@ export default function ProductPage() {
   }
 
   function handleDelete(id: string) {
-    if (confirm(t('product.confirmDelete'))) deleteMut.mutate(id);
+    setConfirmTarget({ type: 'product', id });
+    setConfirmOpen(true);
   }
 
   function handleDeleteNode(id: string) {
-    if (confirm(t('product.confirmDeleteNode'))) deleteNodeMut.mutate(id);
+    setConfirmTarget({ type: 'node', id });
+    setConfirmOpen(true);
   }
+
+  const handleConfirmDelete = () => {
+    if (confirmTarget?.type === 'product') {
+      deleteMut.mutate(confirmTarget.id);
+    } else if (confirmTarget?.type === 'node') {
+      deleteNodeMut.mutate(confirmTarget.id);
+    }
+    setConfirmOpen(false);
+    setConfirmTarget(null);
+  };
 
   const stageLabel = (stage: string) => t(`product.stage${stage.split('_').map(w => w[0].toUpperCase() + w.slice(1)).join('')}`);
 
@@ -393,6 +437,14 @@ export default function ProductPage() {
   };
 
   /* ── Table columns ── */
+  const products = data?.data || [];
+  const summaryStats = {
+    total: products.length,
+    active: products.filter((p: AdminProduct) => p.status === 'active').length,
+    soldOut: products.filter((p: AdminProduct) => p.status === 'sold_out').length,
+    impact: products.filter((p: AdminProduct) => p.isImpactProduct).length,
+  };
+
   const columns: Column<AdminProduct>[] = [
     {
       key: 'name', title: t('product.colName'), minWidth: 180,
@@ -407,7 +459,7 @@ export default function ProductPage() {
             />
           )}
           <div>
-            <div style={{ fontSize: 13, fontWeight: 500 }}>{v as string}</div>
+            <div className="table-text-bold">{v as string}</div>
             {row.nameEn && <div style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{row.nameEn}</div>}
           </div>
         </div>
@@ -415,25 +467,13 @@ export default function ProductPage() {
     },
     {
       key: 'price', title: t('product.colPrice'), width: 110,
-      render: (v, row) => `${row.currency} ${Number(v).toFixed(2)}`,
+      render: (v, row) => <span className="table-text-mono">{row.currency} {Number(v).toFixed(2)}</span>,
     },
     { key: 'category', title: t('product.colCategory'), width: 100 },
     { key: 'stock', title: t('product.colStock'), width: 70 },
     {
       key: 'status', title: t('product.colStatus'), width: 90,
-      render: (v) => {
-        const colors: Record<string, { bg: string; fg: string }> = {
-          active: { bg: 'var(--color-success-bg)', fg: 'var(--color-success)' },
-          inactive: { bg: 'var(--color-border)', fg: 'var(--color-text-3)' },
-          sold_out: { bg: 'var(--color-warning-bg, rgba(255,170,0,0.1))', fg: 'var(--color-warning, #b8860b)' },
-        };
-        const c = colors[v as string] ?? colors.inactive;
-        return (
-          <span style={{ fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 4, background: c.bg, color: c.fg }}>
-            {t(`product.filter${(v as string).charAt(0).toUpperCase() + (v as string).slice(1).replace('_o', 'O')}`)}
-          </span>
-        );
-      },
+      render: (v) => <StatusBadge status={v as string} />,
     },
     {
       key: 'isImpactProduct', title: t('product.colImpact'), width: 80,
@@ -450,13 +490,13 @@ export default function ProductPage() {
     {
       key: 'id' as any, title: t('product.colActions'), width: 130,
       render: (_v, row) => (
-        <div style={{ display: 'flex', gap: 6 }}>
-          <button onClick={() => openEdit(row)} style={{ ...btnStyle, color: 'var(--color-accent-2)', borderColor: 'var(--color-accent-2)' }}>
+        <div className="table-actions">
+          <Button size="sm" variant="ghost" onClick={() => openEdit(row)}>
             {t('product.btnEdit')}
-          </button>
-          <button onClick={() => handleDelete(row.id)} style={{ ...btnStyle, color: 'var(--color-error)', borderColor: 'var(--color-error)' }}>
+          </Button>
+          <Button size="sm" variant="danger" onClick={() => handleDelete(row.id)}>
             {t('product.btnDelete')}
-          </button>
+          </Button>
         </div>
       ),
     },
@@ -760,28 +800,49 @@ export default function ProductPage() {
    * ═════════════════════════════════════════════════════════════════════════ */
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
-        <div>
-          <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 4 }}>{t('product.title')}</h1>
-          <p style={{ fontSize: 13, color: 'var(--color-text-2)' }}>{t('product.description')}</p>
+      <PageHeader
+        title={t('product.title')}
+        description={t('product.description')}
+        actions={
+          <Button variant="primary" onClick={openCreate}>
+            {t('product.btnCreate')}
+          </Button>
+        }
+      />
+
+      {/* Summary Cards */}
+      <div className="dashboard-summary-grid" style={{ marginBottom: 24 }}>
+        <SummaryCard title="Total Products" subtitle="商品总数" icon={PackageIcon}>
+          <MiniStat label="全部商品" value={summaryStats.total} />
+          <MiniStat label="本周新增" value="+3" change={8} />
+        </SummaryCard>
+        <SummaryCard title="Active" subtitle="在售" icon={LayersIcon}>
+          <MiniStat label="在售" value={summaryStats.active} />
+          <MiniStat label="缺货" value={summaryStats.soldOut} trend="warning" />
+        </SummaryCard>
+        <SummaryCard title="Impact" subtitle="公益商品" icon={DollarIcon}>
+          <MiniStat label="公益商品" value={summaryStats.impact} trend="up" />
+          <MiniStat label="普通商品" value={summaryStats.total - summaryStats.impact} />
+        </SummaryCard>
+      </div>
+
+      {/* Filters */}
+      <div className="table-toolbar">
+        <div className="table-toolbar__filters">
+          <select
+            className="table-select"
+            value={status}
+            onChange={(e) => { setStatus(e.target.value); setPage(1); }}
+          >
+            <option value="">{t('product.filterAllStatuses')}</option>
+            <option value="active">{t('product.filterActive')}</option>
+            <option value="inactive">{t('product.filterInactive')}</option>
+            <option value="sold_out">{t('product.filterSoldOut')}</option>
+          </select>
         </div>
-        <Button variant="primary" onClick={openCreate}>{t('product.btnCreate')}</Button>
       </div>
 
-      <div style={{ marginBottom: 16 }}>
-        <select
-          value={status}
-          onChange={(e) => { setStatus(e.target.value); setPage(1); }}
-          style={{ ...inputStyle, width: 220 }}
-        >
-          <option value="">{t('product.filterAllStatuses')}</option>
-          <option value="active">{t('product.filterActive')}</option>
-          <option value="inactive">{t('product.filterInactive')}</option>
-          <option value="sold_out">{t('product.filterSoldOut')}</option>
-        </select>
-      </div>
-
-      <DataTable columns={columns} data={data?.data || []} rowKey="id" loading={isLoading} />
+      <DataTable columns={columns} data={products} rowKey="id" loading={isLoading} />
       <Pagination page={page} totalPages={data?.totalPages || 1} total={data?.total || 0} pageSize={10} onPageChange={setPage} />
 
       {/* ══════════════════════════════════════════════════════════════════
@@ -965,6 +1026,17 @@ export default function ProductPage() {
           </div>
         </form>
       </Modal>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title={confirmTarget?.type === 'product' ? t('product.confirmDelete') : t('product.confirmDeleteNode')}
+        description={t('common.confirmDeleteDesc', 'This action cannot be undone.')}
+        variant="danger"
+        loading={deleteMut.isPending || deleteNodeMut.isPending}
+      />
     </div>
   );
 }

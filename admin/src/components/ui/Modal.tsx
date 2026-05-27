@@ -1,5 +1,4 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 
 interface ModalProps {
   open: boolean;
@@ -11,26 +10,29 @@ interface ModalProps {
 }
 
 export default function Modal({ open, onClose, title, children, footer, width = 500 }: ModalProps) {
-  const { t } = useTranslation();
   if (!open) return null;
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      zIndex: 1000,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px',
-    }}>
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 1000,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '20px',
+        animation: 'fadeIn var(--duration-fast)',
+      }}
+    >
       {/* Backdrop */}
       <div
         onClick={onClose}
         style={{
           position: 'absolute',
           inset: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          backdropFilter: 'blur(4px)',
         }}
       />
 
@@ -42,15 +44,17 @@ export default function Modal({ open, onClose, title, children, footer, width = 
           maxWidth: width,
           backgroundColor: 'var(--color-surface)',
           border: '1px solid var(--color-border)',
-          borderRadius: '8px',
+          borderRadius: 'var(--radius-xl)',
+          boxShadow: 'var(--shadow-lg)',
           display: 'flex',
           flexDirection: 'column',
           maxHeight: '90vh',
+          animation: 'scaleIn var(--duration-normal) var(--ease-out)',
         }}
       >
         {/* Header */}
         <div style={{
-          padding: '16px 20px',
+          padding: '20px 24px',
           borderBottom: '1px solid var(--color-border)',
           display: 'flex',
           alignItems: 'center',
@@ -58,36 +62,50 @@ export default function Modal({ open, onClose, title, children, footer, width = 
         }}>
           <h2 style={{
             margin: 0,
-            fontSize: '15px',
+            fontSize: '17px',
             fontFamily: 'var(--font-body)',
             fontWeight: 600,
-            lineHeight: 1.2,
+            lineHeight: 1.3,
             color: 'var(--color-text)',
           }}>
             {title}
           </h2>
           <button
             onClick={onClose}
+            aria-label="Close modal"
             style={{
-              background: 'none',
+              background: 'var(--color-elevated)',
               border: 'none',
-              color: 'var(--color-text-3)',
+              color: 'var(--color-text-2)',
               cursor: 'pointer',
               fontSize: '18px',
               lineHeight: 1,
-              padding: '4px',
-              transition: 'color 0.15s',
+              padding: '8px',
+              borderRadius: 'var(--radius-md)',
+              transition: 'all var(--duration-fast)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-text)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--color-text-3)'; }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'var(--color-error-bg)';
+              e.currentTarget.style.color = 'var(--color-error)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'var(--color-elevated)';
+              e.currentTarget.style.color = 'var(--color-text-2)';
+            }}
           >
-            &times;
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
           </button>
         </div>
 
         {/* Body */}
         <div style={{
-          padding: '20px',
+          padding: '24px',
           overflowY: 'auto',
           flex: 1,
         }}>
@@ -97,11 +115,11 @@ export default function Modal({ open, onClose, title, children, footer, width = 
         {/* Footer */}
         {footer && (
           <div style={{
-            padding: '14px 20px',
+            padding: '16px 24px',
             borderTop: '1px solid var(--color-border)',
             display: 'flex',
             justifyContent: 'flex-end',
-            gap: '8px',
+            gap: '10px',
           }}>
             {footer}
           </div>

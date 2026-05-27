@@ -91,7 +91,8 @@
         "sectionFinancialsLabel": "02 —",
         "anonLabel": "匿名",
         "authOkLabel": "已验证",
-        "transparencyQuote": "\"透明是信任的基石。这里的每一条记录都代表着一个被支持的孩子的故事。\""
+        "transparencyQuote": "\"透明是信任的基石。这里的每一条记录都代表着一个被支持的孩子的故事。\"",
+        "activeCampaigns": "活跃活动"
     },
     "artwork": {
         "title": "作品集",
@@ -284,7 +285,7 @@
         "modalDeleteTitle": "删除商品",
         "modalDeleteBody": "确定永久删除「{{name}}」吗？此操作不可恢复。若商品已有订单记录将无法删除（请改为下架）。",
         "toastDeleted": "商品已删除",
-        "toastDeleteFailed": "删除失败",
+        "toastDeleteFailed": "商品删除失败",
         "labelName": "商品名称",
         "labelDescription": "商品描述",
         "labelPrice": "价格",
@@ -305,15 +306,11 @@
         "toastCreateFailed": "商品创建失败",
         "toastUpdated": "商品更新成功",
         "toastUpdateFailed": "商品更新失败",
-        "toastDeleted": "商品已删除",
-        "toastDeleteFailed": "商品删除失败",
         "errorRequired": "请填写商品名称和价格",
         "confirmDelete": "确定要删除此商品吗？此操作不可撤销。",
         "modalEditTitle": "编辑商品",
         "btnEdit": "编辑",
-        "btnDelete": "删除",
         "btnSave": "保存",
-        "colActions": "操作",
         "labelNameEn": "英文名称（选填）",
         "labelNameEnHint": "网站切换英文时显示",
         "labelDescriptionEn": "英文描述（选填）",
@@ -555,9 +552,7 @@
             "archived": "已归档"
         },
         "campaign": {
-            "draft": "草稿",
-            "active": "进行中",
-            "ended": "已结束"
+            "pending": "待审核"
         },
         "order": {
             "pending": "待付款",
@@ -569,9 +564,6 @@
         },
         "donation": {
             "pending": "待处理"
-        },
-        "campaign": {
-            "pending": "待审核"
         },
         "general": {
             "completed": "已完成",
@@ -603,5 +595,10 @@
         "loading": "加载中...",
         "empty": "暂无数据"
     },
-    "modal": {}
+    "modal": {},
+    "navigation": {
+        "main": "主导航",
+        "management": "管理",
+        "system": "系统"
+    }
 }
