@@ -64,3 +64,29 @@ miniprogram_npm/
 # Playwright / e2e（运行产物不提交）
 test-results/
 playwright-report/
+
+# Project docs/media workspaces (local drafts, generated exports)
+PPT/
+videos/
+backend/user.tex
+
+# TeX build artifacts (keep source .tex/.md files)
+tex/*.aux
+tex/*.out
+tex/*.toc
+tex/*.synctex.gz
+tex/*.fdb_latexmk
+tex/*.fls
+tex/*.pdf
+tex/overleaf.tex
+tex/*版本.tex
+tex/杨昊泽.tex
+
+# TeX local figure drops (keep already tracked files untouched)
+tex/user-manual-figures/*.png
+tex/user-manual-figures/*.jpg
+
+# Local extracted/transient helper files
+_script_extract.txt
+temp_docx_content.txt
+temp_docx_extract.txt
