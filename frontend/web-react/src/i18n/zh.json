@@ -199,6 +199,58 @@
       "donate": "立即捐赠",
       "shop": "可持续购物"
     },
+    "impactHero": {
+      "eyebrow": "SDG 12 · 负责任消费与生产",
+      "title": "每一次行动，都留下痕迹。",
+      "subtitle": "与 UNIQLO 合作，VICOO 将日常基础服饰与再生材料、可溯源商品旅程，以及 SDG 12 所倡导的负责任消费相连。",
+      "subtitleShort": "VICOO × UNIQLO — 可溯源旅程、再生材料与 SDG 12 负责任消费。",
+      "tagsAria": "合作与可持续焦点",
+      "tags": {
+        "collab": "VICOO × UNIQLO",
+        "sdg12": "SDG 12 负责任消费",
+        "recycled": "再生材料",
+        "traceable": "可溯源商品",
+        "circular": "循环影响"
+      },
+      "cta": {
+        "explore": "探索影响路径",
+        "shop": "选购合作系列"
+      },
+      "scrollHint": "向下滚动",
+      "cards": {
+        "everyday": {
+          "title": "日常穿着，负责任地选择",
+          "body": "为基础衣橱而设计，更耐穿、更轻量。"
+        },
+        "trace": {
+          "title": "追溯每一件商品旅程",
+          "body": "从原料到成衣，路径清晰可见。"
+        },
+        "recycle": {
+          "title": "让材料回到循环中",
+          "body": "纤维回流，而非成为废弃物。"
+        },
+        "circularFashion": {
+          "title": "支持循环时尚",
+          "body": "让价值在穿着与再生之间持续流动。"
+        }
+      }
+    },
+    "impactNarrative": {
+      "scene01": {
+        "line1": "每一次行动，",
+        "line2": "都留下",
+        "line3": "痕迹。",
+        "subtitle": "VICOO × UNIQLO — 再生材料、可溯源旅程、SDG 12 下的循环选择。"
+      },
+      "scene04": {
+        "title": "每一次行动，都留下痕迹。",
+        "subtitle": "负责任消费，被看见——从日常基础款到再生纤维。"
+      }
+    },
+    "impactCta": {
+      "title": "每一次行动，都留下痕迹。"
+    },
     "globe": {
       "label": "模式 A — 原材料溯源",
       "title": "每一根线，都有迹可循",
@@ -612,7 +664,8 @@
       "notifyEmailLabel": "邮箱",
       "send": "发送",
       "artworkBy": "{{name}} 的作品，{{age}} 岁",
-      "campaign": "活动"
+      "campaign": "活动",
+      "sustainabilityBadge": "可持续 {{score}} · {{tier}}"
     },
     "detail": {
       "addToCart": "加入购物车",
@@ -782,7 +835,7 @@
       "votes": "{{count}} 票"
     },
     "donationBadge": "捐赠 {{percentage}}%",
-    "supportsCampaign": "支持项目：{{campaign}}",
+    "supportsCampaign": "关联公益：{{campaign}}",
     "viewTraceability": "溯源",
     "filterByCampaign": "按活动筛选",
     "allCampaigns": "全部活动",

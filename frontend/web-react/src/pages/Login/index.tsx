@@ -1,9 +1,29 @@
-import { useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { motion, useReducedMotion } from 'framer-motion';
+import {
+  AnimatePresence,
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useSpring,
+  useTransform,
+} from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useUIStore } from '@/stores/uiStore';
+import vicooLogo from '@/assets/vicoo-logo.png';
+import toast from 'react-hot-toast';
+import LoginAmbientBackground from './LoginAmbientBackground';
+import type { AmbientMode } from './loginAmbientTypes';
+import { TestAccountsPanel } from './TestAccountsPanel';
+import type { TestAccount } from './testAccounts';
+
+const CARD_GLOW: Record<Exclude<AmbientMode, null>, string> = {
+  email: '0 28px 56px -12px rgba(230,0,18,0.12), 0 12px 24px -8px rgba(26,26,22,0.08)',
+  password: '0 28px 56px -12px rgba(109,137,116,0.14), 0 12px 24px -8px rgba(26,26,22,0.08)',
+  accounts: '0 28px 56px -12px rgba(196,164,90,0.16), 0 12px 24px -8px rgba(26,26,22,0.08)',
+  action: '0 28px 56px -12px rgba(26,26,22,0.14), 0 12px 24px -8px rgba(26,26,22,0.1)',
+};
 
 export default function Login() {
   const { t, i18n } = useTranslation();
@@ -11,13 +31,65 @@ export default function Login() {
   const prefersReducedMotion = useReducedMotion();
   const { login, isLoggingIn, loginError } = useAuth();
   const setLocale = useUIStore((s) => s.setLocale);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const lastTypePulseRef = useRef(0);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [oauthLoading, setOauthLoading] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [showTestAccounts, setShowTestAccounts] = useState(false);
+  const [ambientMode, setAmbientMode] = useState<AmbientMode>(null);
+  const [ambientPulse, setAmbientPulse] = useState(0);
+
+  const pointerX = useMotionValue(0.5);
+  const pointerY = useMotionValue(0.5);
+  const smoothX = useSpring(pointerX, { stiffness: 90, damping: 20, mass: 0.55 });
+  const smoothY = useSpring(pointerY, { stiffness: 90, damping: 20, mass: 0.55 });
+
+  const orbPrimaryX = useTransform(smoothX, [0, 1], [-130, 130]);
+  const orbPrimaryY = useTransform(smoothY, [0, 1], [-90, 90]);
+  const orbSecondaryX = useTransform(smoothX, [0, 1], [110, -110]);
+  const orbSecondaryY = useTransform(smoothY, [0, 1], [70, -70]);
+  const grainDriftX = useTransform(smoothX, [0, 1], [-18, 18]);
+  const grainDriftY = useTransform(smoothY, [0, 1], [-12, 12]);
+
+  const nudgeAmbient = useCallback((mode: Exclude<AmbientMode, null>) => {
+    setAmbientMode(mode);
+    setAmbientPulse((value) => value + 1);
+  }, []);
+
+  const pulseOnType = useCallback(
+    (mode: Exclude<AmbientMode, null>) => {
+      if (prefersReducedMotion) return;
+      const now = Date.now();
+      if (now - lastTypePulseRef.current < 420) return;
+      lastTypePulseRef.current = now;
+      nudgeAmbient(mode);
+    },
+    [nudgeAmbient, prefersReducedMotion],
+  );
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!stageRef.current || prefersReducedMotion) return;
+      const rect = stageRef.current.getBoundingClientRect();
+      const nextX = (e.clientX - rect.left) / rect.width;
+      const nextY = (e.clientY - rect.top) / rect.height;
+      pointerX.set(Math.max(0, Math.min(1, nextX)));
+      pointerY.set(Math.max(0, Math.min(1, nextY)));
+    },
+    [pointerX, pointerY, prefersReducedMotion],
+  );
+
+  const handleMouseLeave = useCallback(() => {
+    pointerX.set(0.5);
+    pointerY.set(0.5);
+  }, [pointerX, pointerY]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    nudgeAmbient('action');
     login(
       { email, password },
       {
@@ -28,45 +100,128 @@ export default function Login() {
     );
   };
 
+  const handleSelectTestAccount = (account: TestAccount) => {
+    setEmail(account.email);
+    setPassword(account.password);
+    setShowTestAccounts(false);
+    nudgeAmbient('accounts');
+    toast.success(t('login.testAccounts.filled', '已填入登录表单'));
+  };
+
   return (
-    <div className="h-[100dvh] overflow-hidden bg-paper flex items-center justify-center relative">
-      {/* Subtle background grain */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-        }}
+    <div
+      ref={stageRef}
+      className="relative flex h-[100dvh] items-center justify-center overflow-hidden bg-paper"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      <LoginAmbientBackground
+        smoothX={smoothX}
+        smoothY={smoothY}
+        grainDriftX={grainDriftX}
+        grainDriftY={grainDriftY}
+        orbPrimaryX={orbPrimaryX}
+        orbPrimaryY={orbPrimaryY}
+        orbSecondaryX={orbSecondaryX}
+        orbSecondaryY={orbSecondaryY}
+        ambientMode={ambientMode}
+        ambientPulse={ambientPulse}
+        prefersReducedMotion={prefersReducedMotion}
       />
 
-      {/* Decorative gradient orbs */}
-      <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-rust/[0.04] blur-3xl pointer-events-none" />
-      <div className="absolute bottom-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-sage/[0.04] blur-3xl pointer-events-none" />
-
-      {/* Card */}
       <motion.div
         initial={prefersReducedMotion ? false : { opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0, 0, 0.2, 1] }}
-        className="relative w-full max-w-[420px] mx-6"
+        className="relative z-10 flex w-full max-w-[780px] items-stretch justify-center mx-4"
       >
-        <div className="bg-white/80 backdrop-blur-xl rounded-[24px] shadow-lg shadow-ink/[0.06] border border-warm-gray/30 px-8 py-10 md:px-10 md:py-12">
-          {/* Logo & header */}
+        <motion.div
+          className="relative w-full max-w-[420px] shrink-0 rounded-[24px] border border-warm-gray/30 bg-white/80 px-8 py-10 backdrop-blur-xl md:px-10 md:py-12"
+          animate={{
+            boxShadow: ambientMode ? CARD_GLOW[ambientMode] : '0 24px 48px -12px rgba(26,26,22,0.1)',
+          }}
+          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {!prefersReducedMotion && ambientMode && (
+            <motion.div
+              className="pointer-events-none absolute -inset-px rounded-[25px] opacity-0"
+              aria-hidden
+              animate={{ opacity: [0.2, 0.42, 0.2] }}
+              transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
+              style={{
+                background:
+                  ambientMode === 'email'
+                    ? 'linear-gradient(135deg, rgba(230,0,18,0.22), transparent 55%)'
+                    : ambientMode === 'password'
+                      ? 'linear-gradient(135deg, rgba(109,137,116,0.24), transparent 55%)'
+                      : ambientMode === 'accounts'
+                        ? 'linear-gradient(135deg, rgba(196,164,90,0.26), transparent 55%)'
+                        : 'linear-gradient(135deg, rgba(26,26,22,0.12), transparent 55%)',
+              }}
+            />
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              const next = i18n.language === 'en' ? 'zh' : 'en';
+              i18n.changeLanguage(next);
+              setLocale(next);
+              nudgeAmbient('action');
+            }}
+            className="absolute top-5 right-5 z-10 rounded-full border border-warm-gray/25 bg-aged-stock/40 px-2.5 py-1 font-body text-[11px] tracking-wide text-sepia-mid/70 transition-colors hover:bg-aged-stock hover:text-ink cursor-pointer"
+            aria-label={i18n.language === 'zh' ? 'Switch to English' : '切换到中文'}
+          >
+            {i18n.language === 'zh' ? 'EN' : '中'}
+          </button>
+
           <div className="text-center mb-8">
             <Link
               to="/"
-              className="inline-block font-display text-ink text-2xl font-medium tracking-[0.12em] mb-6 hover:text-rust transition-colors"
+              className="inline-flex items-center justify-center mb-6 hover:opacity-90 transition-opacity"
+              onMouseEnter={() => setAmbientMode('action')}
             >
-              VICOO
+              <img
+                src={vicooLogo}
+                alt="VICOO"
+                className="h-10 w-auto object-contain"
+              />
             </Link>
             <h1 className="font-display text-2xl text-ink mb-2 tracking-tight">
               {t('login.title', 'Welcome Back')}
             </h1>
-            <p className="font-body text-body-sm text-ink-faded/70">
-              {t('login.subtitle', 'Sign in to continue your journey')}
-            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setShowTestAccounts((open) => !open);
+                nudgeAmbient('accounts');
+              }}
+              className={`inline-flex items-center gap-1.5 mx-auto rounded-full border px-4 py-2 font-body text-caption tracking-[0.08em] transition-all cursor-pointer ${
+                showTestAccounts
+                  ? 'text-rust bg-rust/[0.08] border-rust/25'
+                  : 'text-ink-faded bg-aged-stock/60 border-warm-gray/30 hover:text-rust hover:border-rust/30 hover:bg-aged-stock'
+              }`}
+              aria-expanded={showTestAccounts}
+              aria-controls="login-test-accounts"
+            >
+              {showTestAccounts
+                ? t('login.testAccounts.hide')
+                : t('login.testAccounts.show')}
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                className={`transition-transform ${showTestAccounts ? 'rotate-180' : ''}`}
+                aria-hidden
+              >
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email */}
             <div>
               <label className="block font-body text-label tracking-[0.15em] uppercase text-sepia-mid mb-2">
                 {t('login.email')}
@@ -74,14 +229,18 @@ export default function Login() {
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  pulseOnType('email');
+                }}
+                onFocus={() => setAmbientMode('email')}
+                onClick={() => nudgeAmbient('email')}
                 required
                 placeholder="name@email.com"
                 className="w-full px-4 py-3 rounded-full bg-aged-stock/60 border border-warm-gray/30 font-body text-body-sm text-ink placeholder:text-ink-faded/40 focus:outline-none focus:ring-2 focus:ring-rust/30 focus:border-rust/50 transition-all"
               />
             </div>
 
-            {/* Password */}
             <div>
               <label className="block font-body text-label tracking-[0.15em] uppercase text-sepia-mid mb-2">
                 {t('login.password')}
@@ -90,14 +249,22 @@ export default function Login() {
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    pulseOnType('password');
+                  }}
+                  onFocus={() => setAmbientMode('password')}
+                  onClick={() => nudgeAmbient('password')}
                   required
                   placeholder="••••••••"
                   className="w-full px-4 py-3 pr-12 rounded-full bg-aged-stock/60 border border-warm-gray/30 font-body text-body-sm text-ink placeholder:text-ink-faded/40 focus:outline-none focus:ring-2 focus:ring-rust/30 focus:border-rust/50 transition-all"
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => {
+                    setShowPassword(!showPassword);
+                    nudgeAmbient('password');
+                  }}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-sepia-mid/60 hover:text-rust transition-colors cursor-pointer"
                   aria-label={showPassword ? t('login.hidePassword') : t('login.showPassword')}
                 >
@@ -116,12 +283,13 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Remember & Forgot */}
             <div className="flex items-center justify-between pt-1">
               <label className="flex items-center gap-2 cursor-pointer group">
                 <input
                   type="checkbox"
                   className="w-3.5 h-3.5 accent-rust rounded cursor-pointer"
+                  onFocus={() => setAmbientMode('action')}
+                  onClick={() => nudgeAmbient('action')}
                 />
                 <span className="font-body text-caption text-sepia-mid/70 group-hover:text-ink-faded transition-colors">
                   {t('login.rememberMe')}
@@ -130,12 +298,12 @@ export default function Login() {
               <Link
                 to="/forgot-password"
                 className="font-body text-caption text-rust hover:text-ink transition-colors"
+                onMouseEnter={() => setAmbientMode('action')}
               >
                 {t('login.forgotPassword')}
               </Link>
             </div>
 
-            {/* Error */}
             {loginError && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
@@ -147,18 +315,16 @@ export default function Login() {
               </motion.div>
             )}
 
-            {/* Submit */}
             <motion.button
               type="submit"
               disabled={isLoggingIn}
-              whileHover={prefersReducedMotion ? undefined : { scale: 1.015 }}
+              whileHover={prefersReducedMotion ? undefined : { y: -1 }}
               whileTap={prefersReducedMotion ? undefined : { scale: 0.985 }}
               className="w-full bg-ink text-paper py-3.5 rounded-full font-body text-body-sm tracking-[0.15em] uppercase font-medium hover:bg-rust transition-colors duration-300 disabled:opacity-50 cursor-pointer"
             >
               {isLoggingIn ? t('login.submitting') : t('login.submit')}
             </motion.button>
 
-            {/* Divider */}
             <div className="relative py-2">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-warm-gray/25" />
@@ -170,12 +336,15 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Social */}
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 disabled={!!oauthLoading}
-                onClick={() => { setOauthLoading('github'); window.location.href = '/api/v1/auth/github'; }}
+                onClick={() => {
+                  nudgeAmbient('action');
+                  setOauthLoading('github');
+                  window.location.href = '/api/v1/auth/github';
+                }}
                 className="flex items-center justify-center gap-2 py-3 rounded-full border border-warm-gray/30 bg-aged-stock/40 font-body text-caption text-ink-faded hover:border-ink/30 hover:bg-aged-stock/70 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
@@ -186,7 +355,11 @@ export default function Login() {
               <button
                 type="button"
                 disabled={!!oauthLoading}
-                onClick={() => { setOauthLoading('google'); window.location.href = '/api/v1/auth/google'; }}
+                onClick={() => {
+                  nudgeAmbient('action');
+                  setOauthLoading('google');
+                  window.location.href = '/api/v1/auth/google';
+                }}
                 className="flex items-center justify-center gap-2 py-3 rounded-full border border-warm-gray/30 bg-aged-stock/40 font-body text-caption text-ink-faded hover:border-ink/30 hover:bg-aged-stock/70 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24">
@@ -199,7 +372,6 @@ export default function Login() {
               </button>
             </div>
 
-            {/* Register link */}
             <p className="text-center pt-2">
               <span className="font-body text-caption text-ink-faded/50 mr-1">
                 {t('login.noAccount', 'New to VICOO?')}
@@ -207,26 +379,22 @@ export default function Login() {
               <Link
                 to="/register"
                 className="font-body text-caption text-rust hover:text-ink transition-colors font-medium"
+                onMouseEnter={() => setAmbientMode('action')}
               >
                 {t('login.register')}
               </Link>
             </p>
           </form>
-        </div>
+        </motion.div>
 
-        {/* Language toggle */}
-        <div className="flex justify-center mt-6">
-          <button
-            onClick={() => {
-              const next = i18n.language === 'en' ? 'zh' : 'en';
-              i18n.changeLanguage(next);
-              setLocale(next);
-            }}
-            className="font-body text-caption text-sepia-mid/50 hover:text-ink-faded transition-colors px-4 py-2 cursor-pointer"
-          >
-            {i18n.language === 'zh' ? 'English' : '中文'}
-          </button>
-        </div>
+        <AnimatePresence>
+          {showTestAccounts && (
+            <TestAccountsPanel
+              onSelect={handleSelectTestAccount}
+              onClose={() => setShowTestAccounts(false)}
+            />
+          )}
+        </AnimatePresence>
       </motion.div>
     </div>
   );

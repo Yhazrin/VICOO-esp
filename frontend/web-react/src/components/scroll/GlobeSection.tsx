@@ -5,6 +5,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 import { SUPPLY_CHAIN_ROUTES } from '@/data/supplyChain';
 import { useUIStore, DARK_THEMES } from '@/stores/uiStore';
+import ImpactHomeHeroIntro, { ImpactHomePillarCards } from '@/components/impact/ImpactHomeHeroIntro';
 
 const SupplyChainGlobe = lazy(() => import('./SupplyChainGlobe'));
 
@@ -51,9 +52,7 @@ export default function GlobeSection() {
     <section
       className={`relative z-0 w-full min-h-[100dvh] overflow-visible ${
         impactMode
-          ? isDark
-            ? '-mt-[4.25rem] md:-mt-24'
-            : '-mt-[4.25rem] md:-mt-24 welfare-border-white/20 welfare-bg-white/22 welfare-shadow-inner-white/45'
+          ? '-mt-[4.25rem] md:-mt-24 bg-transparent'
           : 'bg-aged-stock'
       }`}
     >
@@ -95,46 +94,64 @@ export default function GlobeSection() {
       )}
 
       {/* Info overlay */}
-      <div className="absolute inset-0 z-10 pointer-events-none flex flex-col justify-between">
+      <div
+        className={`absolute inset-0 z-10 pointer-events-none flex flex-col ${
+          impactMode ? 'min-h-[100dvh]' : 'justify-between'
+        }`}
+      >
         {/* Top-left headline */}
         <div
-          className={`px-8 md:px-16 max-w-2xl ${
-            impactMode ? 'pt-[5.5rem] md:pt-[8rem]' : 'pt-24 md:pt-32'
-          }`}
+          className={`px-8 md:px-16 ${impactMode ? 'w-full max-w-[90rem] pt-[5.5rem] md:pt-[7.5rem] lg:pt-[8rem]' : 'max-w-2xl pt-24 md:pt-32'}`}
         >
-          <motion.div
-            {...(prefersReducedMotion ? {} : {
-              initial: { opacity: 0, y: 30 },
-              animate: { opacity: 1, y: 0 },
-              transition: { duration: 0.8, delay: 0.3, ease: [0, 0, 0.2, 1] },
-            })}
-          >
-            <span className={`font-body text-caption tracking-[0.3em] uppercase block mb-4 ${isDark ? 'text-[#9A969C]' : 'text-sepia-mid'}`}>
-              {t('home.globe.label', 'Model A — Traceability')}
-            </span>
-            <h2 className={`font-display text-h2 md:text-h1 font-bold leading-[1.05] tracking-[-0.03em] ${isDark ? 'text-[#F0ECE8]' : 'text-ink'}`}>
-              {t('home.globe.title', 'Every Thread, Traced')}
-            </h2>
-          </motion.div>
+          {impactMode ? (
+            <ImpactHomeHeroIntro isDark={isDark} />
+          ) : (
+            <>
+              <motion.div
+                {...(prefersReducedMotion ? {} : {
+                  initial: { opacity: 0, y: 30 },
+                  animate: { opacity: 1, y: 0 },
+                  transition: { duration: 0.8, delay: 0.3, ease: [0, 0, 0.2, 1] },
+                })}
+              >
+                <span className={`font-body text-caption tracking-[0.3em] uppercase block mb-4 ${isDark ? 'text-[#9A969C]' : 'text-sepia-mid'}`}>
+                  {t('home.globe.label', 'Model A — Traceability')}
+                </span>
+                <h2 className={`font-display text-h2 md:text-h1 font-bold leading-[1.05] tracking-[-0.03em] ${isDark ? 'text-[#F0ECE8]' : 'text-ink'}`}>
+                  {t('home.globe.title', 'Every Thread, Traced')}
+                </h2>
+              </motion.div>
 
-          <motion.p
-            {...(prefersReducedMotion ? {} : {
-              initial: { opacity: 0, y: 20 },
-              animate: { opacity: 1, y: 0 },
-              transition: { duration: 0.7, delay: 0.5, ease: [0, 0, 0.2, 1] },
-            })}
-            className={`font-body text-body-sm leading-relaxed mt-4 max-w-md ${isDark ? 'text-[#9A969C]' : 'text-ink-faded'}`}
-          >
-            {t(
-              'home.globe.subtitle',
-              'From organic cotton fields to finished garments — every step verified, transparent, sustainable.',
-            )}
-          </motion.p>
+              <motion.p
+                {...(prefersReducedMotion ? {} : {
+                  initial: { opacity: 0, y: 20 },
+                  animate: { opacity: 1, y: 0 },
+                  transition: { duration: 0.7, delay: 0.5, ease: [0, 0, 0.2, 1] },
+                })}
+                className={`font-body text-body-sm leading-relaxed mt-4 max-w-md ${isDark ? 'text-[#9A969C]' : 'text-ink-faded'}`}
+              >
+                {t(
+                  'home.globe.subtitle',
+                  'From organic cotton fields to finished garments — every step verified, transparent, sustainable.',
+                )}
+              </motion.p>
+            </>
+          )}
         </div>
 
-        {/* Bottom: route cards + scroll hint */}
-        <div className="px-8 md:px-16 pb-10 md:pb-16">
-          {/* Route cards */}
+        {impactMode && <div className="flex-1 min-h-[10rem] sm:min-h-[14rem] md:min-h-[18rem] lg:min-h-[20rem]" aria-hidden />}
+
+        {/* Bottom: pillar cards (impact) or route cards + scroll hint */}
+        <div
+          className={
+            impactMode
+              ? 'w-full px-4 sm:px-6 md:px-8 lg:px-10 pb-4 md:pb-6'
+              : 'px-8 md:px-16 pb-10 md:pb-16'
+          }
+        >
+          {impactMode ? (
+            <ImpactHomePillarCards isDark={isDark} className="mb-3 md:mb-4" />
+          ) : (
           <div className="flex flex-col sm:flex-row gap-3 md:gap-4 mb-6 pointer-events-auto">
             {routes.map((route, i) => (
               <motion.div
@@ -146,7 +163,7 @@ export default function GlobeSection() {
                 })}
               >
                 <Link
-                  to="/traceability"
+                  to={impactMode ? `/impact/shop/${route.productId}` : '/traceability'}
                   className={`flex items-center gap-3 px-4 py-3 border backdrop-blur-md transition-colors group ${
                     impactMode
                       ? isDark
@@ -174,6 +191,7 @@ export default function GlobeSection() {
               </motion.div>
             ))}
           </div>
+          )}
 
           {/* Scroll hint */}
           <motion.div
@@ -185,14 +203,18 @@ export default function GlobeSection() {
             className="flex flex-col items-center gap-1"
           >
             <span className={`font-body text-[10px] tracking-[0.25em] uppercase ${isDark ? 'text-[#6A666C]' : 'text-sepia-mid'}`}>
-              {t('home.globe.scrollHint', 'Scroll to explore')}
+              {impactMode
+                ? t('home.impactHero.scrollHint', 'Scroll')
+                : t('home.globe.scrollHint', 'Scroll to explore')}
             </span>
             <div className={`w-px h-5 bg-gradient-to-b to-transparent ${isDark ? 'from-[#6A666C]/40' : 'from-sepia-mid/40'}`} />
           </motion.div>
         </div>
       </div>
 
-      <SectionGrainOverlay className="!z-[1]" opacity={isDark ? 0.003 : impactMode ? 0.008 : 0.02} />
+      {!impactMode && (
+        <SectionGrainOverlay className="!z-[1]" opacity={isDark ? 0.003 : 0.02} />
+      )}
     </section>
   );
 }

@@ -4,9 +4,25 @@ export interface AIAssistantSuggestion {
   context: string;
 }
 
-export const getAIAssistantMetadata = (impactMode: boolean, route: string) => {
+/** Normalize i18n language to backend locale (`zh` | `en`). */
+export const normalizeAssistantLocale = (language: string | undefined): 'zh' | 'en' => {
+  const code = (language || 'zh').toLowerCase();
+  return code.startsWith('zh') ? 'zh' : 'en';
+};
+
+export const getAIAssistantMetadata = (
+  impactMode: boolean,
+  route: string,
+  language?: string,
+) => {
   const isImpactSurface = impactMode || route.includes('/impact');
+  const locale = normalizeAssistantLocale(language);
+  const frontendOrigin =
+    typeof window !== 'undefined' ? window.location.origin : undefined;
   return {
+    locale,
+    language: locale,
+    ...(frontendOrigin ? { frontendOrigin } : {}),
     impactMode: isImpactSurface,
     route,
     surface: isImpactSurface ? 'impact' : 'uniqlo',

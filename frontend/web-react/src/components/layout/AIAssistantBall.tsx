@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
@@ -121,7 +121,7 @@ const welfareCapabilities = [
 ];
 
 export const AIAssistantBall: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const impactMode = useUIStore((s) => s.impactMode);
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -132,7 +132,11 @@ export const AIAssistantBall: React.FC = () => {
   const route = useLocation().pathname;
   const isImpactSurface = impactMode || route.startsWith('/impact');
   const suggestions = getAIAssistantSuggestions(isImpactSurface, route);
-  const assistantMetadata = getAIAssistantMetadata(isImpactSurface, route);
+  const assistantMetadata = useMemo(
+    () => getAIAssistantMetadata(isImpactSurface, route, i18n.language),
+    [isImpactSurface, route, i18n.language],
+  );
+  const prefillMetaRef = useRef<Record<string, unknown> | null>(null);
 
   // ── Chat logic ──
   useEffect(() => {
@@ -159,10 +163,16 @@ export const AIAssistantBall: React.FC = () => {
         role: m.role as AIChatMessage['role'],
         content: m.content,
       }));
+      const requestMetadata = {
+        ...assistantMetadata,
+        ...(prefillMetaRef.current ?? {}),
+      };
+      prefillMetaRef.current = null;
+
       await aiAssistantApi.chatStream(
         chatMessages,
         'general',
-        assistantMetadata,
+        requestMetadata,
         (fullText) => {
           setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, content: fullText } : m));
         },
@@ -182,6 +192,9 @@ export const AIAssistantBall: React.FC = () => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent).detail as { text?: string; metadata?: Record<string, unknown> } | undefined;
       if (!detail?.text) return;
+      if (detail.metadata && typeof detail.metadata === 'object') {
+        prefillMetaRef.current = detail.metadata;
+      }
       setIsOpen(true);
       // Slight delay so the panel mounts before sending
       setTimeout(() => handleSendRef.current(detail.text), 100);

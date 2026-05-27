@@ -178,40 +178,108 @@ export default function CampaignDetail() {
             <BleedTitleBlock>
               <span className="text-paper">{copy.title}</span>
             </BleedTitleBlock>
+            {copy.subtitle && (
+              <p className="font-body text-body-sm md:text-body text-paper/85 max-w-2xl mt-3 leading-relaxed">
+                {copy.subtitle}
+              </p>
+            )}
           </div>
         </div>
       </section>
 
       {/* Content — asymmetric grid */}
-      <PaperTextureBackground variant="paper" className="py-16 md:py-24">
+      <PaperTextureBackground variant="paper" className="py-12 md:py-24">
         <SectionContainer>
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-16">
-            {/* Main content */}
-            <div className="md:col-span-7">
-              <h2 className="font-display text-h3 font-bold text-ink mb-8">
-                {t('campaigns.detail.about')}
-              </h2>
-              <p className="font-body text-body-sm text-ink-faded leading-[1.8] mb-6">
-                {copy.description}
-              </p>
-
-              <StoryQuoteBlock
-                quote={t('campaigns.detail.quote', 'I drew a dress that makes rain sounds when you walk. That way, everyone knows you\'re coming.')}
-                author={t('campaigns.detail.quoteAuthor', 'Mei, age 8')}
-                role={t('campaigns.detail.quoteRole', 'Guizhou')}
+          {/* Mobile-first: progress summary above fold */}
+          <div className="lg:hidden mb-10 border border-warm-gray/30 p-5">
+            <div className="flex items-baseline justify-between gap-4 mb-3">
+              <span className="font-display text-3xl font-bold text-ink">{progress}%</span>
+              {campaign.goalAmount > 0 && (
+                <span className="font-body text-caption text-sepia-mid text-right">
+                  ¥{campaign.raisedAmount.toLocaleString()} / ¥{campaign.goalAmount.toLocaleString()}
+                </span>
+              )}
+            </div>
+            <div
+              role="progressbar"
+              aria-valuenow={progress}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={t('campaigns.detail.progress')}
+              className="w-full h-1.5 bg-warm-gray/30 rounded-sm overflow-hidden"
+            >
+              <div
+                className="h-full origin-left bg-rust rounded-sm"
+                style={{ transform: `scaleX(${Math.min(100, progress) / 100})` }}
               />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
+            {/* Main column — grows with content so it balances the donate sidebar */}
+            <div className="lg:col-span-8 order-2 lg:order-1 space-y-10 md:space-y-12">
+              <div>
+                <h2 className="font-display text-h3 font-bold text-ink mb-6">
+                  {t('campaigns.detail.about')}
+                </h2>
+                <p className="font-body text-body-sm md:text-body text-ink-faded leading-[1.85] max-w-prose">
+                  {copy.description}
+                </p>
+              </div>
+
+              {campaign.featuredChild ? (
+                <StoryQuoteBlock
+                  quote={campaign.featuredChild.quote}
+                  author={`${campaign.featuredChild.name}, ${t('impactShop.age', { age: campaign.featuredChild.age })}`}
+                  role={t('campaigns.detail.quoteRole', 'Guizhou')}
+                />
+              ) : (
+                <StoryQuoteBlock
+                  quote={t('campaigns.detail.quote', 'I drew a dress that makes rain sounds when you walk. That way, everyone knows you\'re coming.')}
+                  author={t('campaigns.detail.quoteAuthor', 'Mei, age 8')}
+                  role={t('campaigns.detail.quoteRole', 'Guizhou')}
+                />
+              )}
+
+              <WelfareTraceabilitySustainabilityPanel />
+
+              {(campaignArtworks ?? []).length > 0 && (
+                <div className="pt-2 border-t border-warm-gray/25">
+                  <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-6">
+                    <h2 className="font-display text-h3 font-bold text-ink">
+                      {t('campaigns.detail.artworks')}
+                    </h2>
+                    <p className="font-body text-caption text-sepia-mid tracking-wider">
+                      {(campaignArtworks ?? []).length} {t('campaigns.detail.artworks')}
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-5">
+                    {(campaignArtworks ?? []).map((artwork, index) => (
+                      <ArtworkCard key={artwork.id} artwork={artwork} index={index} />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Sidebar — progress + donate */}
-            <div className="md:col-span-4 md:col-start-9">
-              <div className="sticky top-24 space-y-8">
-                {/* Progress */}
-                <div className="border border-warm-gray/30 p-6">
-                  <div className="flex justify-between mb-3">
-                    <span className="font-display text-3xl font-bold text-ink">{progress}%</span>
-                    <span className="font-body text-caption text-sepia-mid self-end">
-                      {t('campaigns.detail.progress')}
-                    </span>
+            <div className="lg:col-span-4 order-1 lg:order-2">
+              <div className="lg:sticky lg:top-24 space-y-6">
+                {/* Progress — desktop */}
+                <div className="hidden lg:block border border-warm-gray/30 p-6">
+                  <p className="font-body text-overline tracking-[0.2em] uppercase text-sepia-mid mb-4">
+                    {t('campaigns.detail.progress')}
+                  </p>
+                  <div className="flex items-baseline justify-between gap-4 mb-2">
+                    <span className="font-display text-4xl font-bold text-ink">{progress}%</span>
+                    {campaign.goalAmount > 0 && (
+                      <span className="font-body text-caption text-sepia-mid text-right leading-snug">
+                        ¥{campaign.raisedAmount.toLocaleString()}
+                        <span className="block text-ink-faded/80">
+                          / ¥{campaign.goalAmount.toLocaleString()}
+                        </span>
+                      </span>
+                    )}
                   </div>
                   <div
                     role="progressbar"
@@ -219,7 +287,7 @@ export default function CampaignDetail() {
                     aria-valuemin={0}
                     aria-valuemax={100}
                     aria-label={t('campaigns.detail.progress')}
-                    className="w-full h-1.5 bg-warm-gray/30 rounded-sm overflow-hidden mb-4"
+                    className="w-full h-1.5 bg-warm-gray/30 rounded-sm overflow-hidden mb-6"
                   >
                     <motion.div
                       {...(prefersReducedMotion ? { style: { transform: `scaleX(${progress / 100})` } } : {
@@ -227,19 +295,19 @@ export default function CampaignDetail() {
                         animate: { scaleX: progress / 100 },
                         transition: { duration: 1.2, ease: 'easeOut' },
                       })}
-                      className="h-full origin-left bg-archive-brown rounded-sm"
+                      className="h-full origin-left bg-rust rounded-sm"
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4 text-center">
+                  <div className="grid grid-cols-2 gap-4 pt-4 border-t border-warm-gray/20">
                     <div>
                       <p className="font-display text-xl text-ink">{campaign.participantCount}</p>
-                      <p className="font-body text-overline text-sepia-mid tracking-wider uppercase">
+                      <p className="font-body text-overline text-sepia-mid tracking-wider uppercase mt-0.5">
                         {t('campaigns.detail.participants')}
                       </p>
                     </div>
                     <div>
                       <p className="font-display text-xl text-ink">{campaign.artworkCount}</p>
-                      <p className="font-body text-overline text-sepia-mid tracking-wider uppercase">
+                      <p className="font-body text-overline text-sepia-mid tracking-wider uppercase mt-0.5">
                         {t('campaigns.detail.artworks')}
                       </p>
                     </div>
@@ -247,7 +315,7 @@ export default function CampaignDetail() {
                 </div>
 
                 {/* Donation */}
-                <div>
+                <div className="border border-warm-gray/30 p-5 md:p-6 bg-paper/60">
                   <h3 className="font-body text-caption tracking-[0.15em] uppercase text-sepia-mid mb-4">
                     {t('campaigns.detail.donate')}
                   </h3>
@@ -258,24 +326,6 @@ export default function CampaignDetail() {
                 </div>
               </div>
             </div>
-          </div>
-
-          <div className="mt-10 md:mt-12">
-            <WelfareTraceabilitySustainabilityPanel />
-          </div>
-        </SectionContainer>
-      </PaperTextureBackground>
-
-      {/* Campaign Artworks */}
-      <PaperTextureBackground variant="aged" className="py-16 md:py-24">
-        <SectionContainer>
-          <h2 className="font-display text-h3 font-bold text-ink mb-8">
-            {t('campaigns.detail.artworks')}
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-            {(campaignArtworks ?? []).map((artwork, index) => (
-              <ArtworkCard key={artwork.id} artwork={artwork} index={index} />
-            ))}
           </div>
         </SectionContainer>
       </PaperTextureBackground>

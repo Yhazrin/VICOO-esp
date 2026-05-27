@@ -205,6 +205,58 @@
       "donate": "Make a Donation",
       "shop": "Shop Sustainably"
     },
+    "impactHero": {
+      "eyebrow": "SDG 12 · Responsible Consumption and Production",
+      "title": "Every Action Leaves a Trace.",
+      "subtitle": "In collaboration with UNIQLO, VICOO connects everyday essentials with recycled materials, traceable product journeys, and responsible consumption aligned with SDG 12.",
+      "subtitleShort": "VICOO × UNIQLO — traceable journeys, recycled materials, and responsible consumption under SDG 12.",
+      "tagsAria": "Collaboration and sustainability focus",
+      "tags": {
+        "collab": "VICOO × UNIQLO",
+        "sdg12": "SDG 12 Responsible Consumption",
+        "recycled": "Recycled Materials",
+        "traceable": "Traceable Products",
+        "circular": "Circular Impact"
+      },
+      "cta": {
+        "explore": "Explore Impact",
+        "shop": "Shop the Collaboration"
+      },
+      "scrollHint": "Scroll",
+      "cards": {
+        "everyday": {
+          "title": "Everyday Wear, Made Responsible",
+          "body": "Essentials designed for longer wear and lighter footprint."
+        },
+        "trace": {
+          "title": "Trace Every Product Journey",
+          "body": "Follow materials from source to finished piece."
+        },
+        "recycle": {
+          "title": "Recycle Materials Back",
+          "body": "Return fibers into the loop instead of waste."
+        },
+        "circularFashion": {
+          "title": "Support Circular Fashion",
+          "body": "Choose pieces that keep value in motion."
+        }
+      }
+    },
+    "impactNarrative": {
+      "scene01": {
+        "line1": "Every Action",
+        "line2": "Leaves a",
+        "line3": "Trace.",
+        "subtitle": "VICOO × UNIQLO — recycled materials, traceable journeys, circular choices under SDG 12."
+      },
+      "scene04": {
+        "title": "Every Action Leaves a Trace.",
+        "subtitle": "Responsible consumption, made visible — from essentials to recycled fibers."
+      }
+    },
+    "impactCta": {
+      "title": "Every Action Leaves a Trace."
+    },
     "globe": {
       "label": "Model A — Traceability",
       "title": "Every Thread, Traced",
@@ -645,7 +697,8 @@
       "notifyEmailLabel": "Email",
       "send": "Send",
       "artworkBy": "Artwork by {{name}}, age {{age}}",
-      "campaign": "campaign"
+      "campaign": "campaign",
+      "sustainabilityBadge": "Sustainability {{score}} · {{tier}}"
     },
     "detail": {
       "addToCart": "Add to Cart",
@@ -815,7 +868,7 @@
       "votes": "{{count}} votes"
     },
     "donationBadge": "{{percentage}}% donated",
-    "supportsCampaign": "Supports: {{campaign}}",
+    "supportsCampaign": "Charity: {{campaign}}",
     "viewTraceability": "Trace to Source",
     "filterByCampaign": "Filter by Campaign",
     "allCampaigns": "All Campaigns",

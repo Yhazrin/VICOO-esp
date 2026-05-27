@@ -14,6 +14,14 @@ from app.core.audit import audit_action
 from app.models.audit import AuditLog
 from app.services.supply_chain.service import SupplyChainService
 from app.models.product import Product
+from app.services.ai_assistant.prompts import (
+    get_catalog_clarification,
+    get_grounded_stub,
+    get_simulation_reply,
+    get_system_prompt,
+    get_tool_output_language_hint,
+    get_traceability_tool_blurb,
+)
 
 logger = logging.getLogger("vicoo.ai_service")
 _SYNONYM_CONFIG_PATH = Path(__file__).resolve().parents[2] / "data" / "ai_search_synonyms.json"
@@ -48,42 +56,6 @@ def _read_alias_map() -> Dict[str, List[str]]:
             alias_map[entry.lower()] = variants
     return alias_map
 
-SYSTEM_PROMPT = """你是「Uniqlo × VICOO 公益」平台助手，也是「Uniqlo × VICOO 公益」的专属公益智能体。语气温暖、克制、专业。
-⚠️ 严禁在回复中使用任何 emoji 表情符号（如 💝 🌟 🎨 ✨ 👕 😊 等）。保持文字干净克制。
-你需要根据页面语境推荐对应商品，并优先使用站内数据库与检索结果回答：
-1) 如果当前是 Uniqlo/常规商城语境，默认优先推荐常规商品（/shop/{id}）。
-2) 如果当前是 Impact/公益语境，默认优先推荐公益商品（/impact/shop/{id}）。
-3) 但当用户明确强调"可持续/公益/捐赠/环保/sustainable/impact/charity"时，即使在 Uniqlo 页面也要优先推荐 Impact 商品。
-4) 如果用户表达"推荐/找商品/包/衣物"等需求但没有明确 Uniqlo 或 Impact，先追问其偏好（Uniqlo 还是 Impact），再给推荐。
-5) 进行商品推荐时，尽量返回可点击链接，并给出推荐理由（材质、价格、公益比例、溯源等）。
-6) 需要同时理解中英文同义词（如 T-shirt/T恤、bag/包、clothes/衣物）并做匹配推荐。
-7) 优先基于站内数据库内容回答，不要编造站外商品或链接。
-8) 如果用户问到订单、支付、隐私，请只给基础状态说明，不泄露敏感信息。
-9) 涉及儿童信息、支付与法律问题，提醒以站内条款与客服为准。
-10) 引导用户了解和参与捐赠（解释捐赠档位、流程、证书）。
-11) 查询并报告公益活动的筹款进度和影响力数据。
-12) 帮助用户查询个人捐赠记录和历史。
-13) 介绍旧衣回收流程和意义。
-14) 查询公益商品的供应链溯源信息。
-15) 解释影响力基金的分配机制（60% 艺术家 / 30% 学校 / 10% 慈善池）。
-当用户表达公益相关意图时，主动调用对应工具获取实时数据，给出温暖、专业的回复。
-回复中如果包含捐赠记录、活动进度、影响力基金等结构化数据，请严格使用以下格式标记，以便前端渲染为可视化卡片。【注意：必须把整块 JSON 完整包裹在 :::action-card 内，不要把 JSON 裸露在外面】
-
-活动进度示例：
-:::action-card[campaign-progress]{"items":[{"name":"春日花语","raised":25000,"goal":50000,"participants":128},{"name":"海洋守护者","raised":18000,"goal":40000,"participants":95}]}
-
-捐赠记录示例：
-:::action-card[donation-list]{"items":[{"name":"张三","amount":200,"date":"2025-03-15"},{"name":"李四","amount":100,"date":"2025-03-14"}]}
-
-影响力基金示例：
-:::action-card[impact-fund]{"artistShare":6000,"schoolShare":3000,"charityShare":1000,"total":10000}
-
-重要规则：
-1. 一个 :::action-card 块内只放一个 JSON 对象
-2. JSON 必须合法（双引号、无尾逗号）
-3. 不要在 :::action-card 外面再重复输出同样的 JSON 数据
-4. 活动进度数据中 items 数组包含所有活动，每个活动有 name/raised/goal/participants 字段"""
-
 class AIAssistantService(BaseService):
     """
     Service handling AI interactions, business-aware chat, and content moderation.
@@ -103,10 +75,7 @@ class AIAssistantService(BaseService):
         last_user = self._get_last_user_message(messages)
         if self._should_ask_catalog_clarification(last_user):
             return {
-                "reply": (
-                    "当然可以，我先确认一下：你想要 **Uniqlo** 还是 **Impact（公益线）** 的推荐？\n\n"
-                    "Sure — would you like recommendations from **Uniqlo** or **Impact**?"
-                ),
+                "reply": get_catalog_clarification(metadata, last_user),
                 "model": "rule-based-clarifier",
                 "source": "tooling"
             }
@@ -117,7 +86,7 @@ class AIAssistantService(BaseService):
         context_hint = f"\n[Platform Context: {context}]\n{business_context}"
 
         full_system_prompt = (
-            SYSTEM_PROMPT
+            get_system_prompt(metadata, last_user)
             + context_hint
             + f"\n[Catalog Routing]\nSelected catalog scope: {catalog_scope}\n"
         )
@@ -125,6 +94,7 @@ class AIAssistantService(BaseService):
         # 2. Lightweight tool invocation: detect explicit product/search/trace intents and fetch factual data
         tool_output = await self._maybe_call_tools(messages, context, metadata, catalog_scope)
         if tool_output:
+            full_system_prompt += get_tool_output_language_hint(metadata, last_user)
             full_system_prompt += f"\n\n[Tool Output]\n{tool_output}\n[End Tool Output]\n\nPlease use the above factual tool output to ground your answer and cite sources."
 
         # 2b. Retrieval-Augmented Generation (RAG) — fetch relevant snippets to ground answers for Impact/sustainability/shop contexts
@@ -140,6 +110,7 @@ class AIAssistantService(BaseService):
         if use_rag and last_user:
             rag_output = await self._retrieve_rag(last_user, context, catalog_scope, metadata)
             if rag_output:
+                full_system_prompt += get_tool_output_language_hint(metadata, last_user)
                 full_system_prompt += f"\n\n[Retrieval Results]\n{rag_output}\n[End Retrieval]\n\nPlease use the above retrieval snippets to ground your answer and cite sources."
 
         # 3. Check for API key
@@ -148,12 +119,12 @@ class AIAssistantService(BaseService):
             grounded = tool_output or rag_output
             if grounded:
                 return {
-                    "reply": f"我已根据站内数据库与检索结果整理如下：\n\n{grounded}",
+                    "reply": get_grounded_stub(grounded, metadata, last_user),
                     "model": "simulation-mode",
                     "source": "local-stub"
                 }
             return {
-                "reply": f"您好，我是您的公益助手。目前我正处于演示模式（Context: {context}）。配置 API Key 后我可以为您提供更智能的回复。",
+                "reply": get_simulation_reply(context, metadata, last_user),
                 "model": "simulation-mode",
                 "source": "local-stub"
             }
@@ -204,10 +175,7 @@ class AIAssistantService(BaseService):
         last_user = self._get_last_user_message(messages)
 
         if self._should_ask_catalog_clarification(last_user):
-            reply = (
-                "当然可以，我先确认一下：你想要 **Uniqlo** 还是 **Impact（公益线）** 的推荐？\n\n"
-                "Sure — would you like recommendations from **Uniqlo** or **Impact**?"
-            )
+            reply = get_catalog_clarification(metadata, last_user)
             yield f"data: {json.dumps({'type': 'content_block_delta', 'text': reply})}\n\n"
             yield f"data: {json.dumps({'type': 'message_stop', 'model': 'rule-based-clarifier', 'source': 'tooling'})}\n\n"
             return
@@ -216,12 +184,14 @@ class AIAssistantService(BaseService):
         business_context = await self._get_business_context(user_id)
         context_hint = f"\n[Platform Context: {context}]\n{business_context}"
         full_system_prompt = (
-            SYSTEM_PROMPT + context_hint
+            get_system_prompt(metadata, last_user)
+            + context_hint
             + f"\n[Catalog Routing]\nSelected catalog scope: {catalog_scope}\n"
         )
 
         tool_output = await self._maybe_call_tools(messages, context, metadata, catalog_scope)
         if tool_output:
+            full_system_prompt += get_tool_output_language_hint(metadata, last_user)
             full_system_prompt += f"\n\n[Tool Output]\n{tool_output}\n[End Tool Output]\n\nPlease use the above factual tool output to ground your answer and cite sources."
 
         use_rag = False
@@ -234,11 +204,16 @@ class AIAssistantService(BaseService):
         if use_rag and last_user:
             rag_output = await self._retrieve_rag(last_user, context, catalog_scope, metadata)
             if rag_output:
+                full_system_prompt += get_tool_output_language_hint(metadata, last_user)
                 full_system_prompt += f"\n\n[Retrieval Results]\n{rag_output}\n[End Retrieval]\n\nPlease use the above retrieval snippets to ground your answer and cite sources."
 
         if not settings.OPENAI_API_KEY:
             grounded = tool_output or ""
-            reply = grounded or f"您好，我是您的公益助手。目前我正处于演示模式（Context: {context}）。配置 API Key 后我可以为您提供更智能的回复。"
+            reply = (
+                get_grounded_stub(grounded, metadata, last_user)
+                if grounded
+                else get_simulation_reply(context, metadata, last_user)
+            )
             yield f"data: {json.dumps({'type': 'content_block_delta', 'text': reply})}\n\n"
             yield f"data: {json.dumps({'type': 'message_stop', 'model': 'simulation-mode', 'source': 'local-stub'})}\n\n"
             return
@@ -660,13 +635,14 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
         if metadata and isinstance(metadata, dict):
             origin = metadata.get("frontendOrigin") or metadata.get("origin")
             if isinstance(origin, str) and origin.startswith(("http://", "https://")):
-                base = origin
+                base = origin.rstrip("/")
         if not base:
-            base = settings.FRONTEND_URL
+            base = (settings.FRONTEND_URL or "http://localhost:9111").rstrip("/")
+        # Dev: FRONTEND_URL may be http://localhost without Vite port
         lowered = base.lower()
-        if "localhost" in lowered or "127.0.0.1" in lowered:
-            base = "http://csi420-02-vm8.ucd.ie"
-        return base.rstrip("/") + "/"
+        if lowered in ("http://localhost", "https://localhost", "http://127.0.0.1", "https://127.0.0.1"):
+            base = "http://localhost:9111"
+        return base + "/"
 
     def _build_product_url(
         self, product_id: int, is_impact_product: bool, metadata: Optional[Dict[str, Any]] = None
@@ -765,7 +741,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
             # Supply chain trace
             if any(k in last_user for k in ["溯源", "供应链", "从哪来", "traceability", "supply chain"]):
                 base_url = self._resolve_frontend_base_url(metadata)
-                welfare_parts.append(f"商品溯源功能: 每件公益商品均可查看完整供应链时间线（原材料→加工→制造→质检→物流）。入口: {urljoin(base_url, 'supply-chain')}")
+                welfare_parts.append(get_traceability_tool_blurb(base_url, metadata, last_user))
 
             if welfare_parts:
                 welfare_output = "[Welfare Tool Output]\n" + "\n".join(welfare_parts) + "\n(Source: welfare services)\n"
@@ -1015,7 +991,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                                     "source": f"supply_chain/{r.id}",
                                     "title": r.stage or "stage",
                                     "text": snippet,
-                                    "url": urljoin(base_url, f"supply-chain/records/{r.id}"),
+                                    "url": urljoin(base_url, f"impact/shop/{r.product_id}"),
                                 }
                             )
                 except Exception:

@@ -227,22 +227,25 @@ function ProductCard({
                 {product.currency === 'CNY' ? '¥' : '$'}
                 {product.price.toLocaleString()}
               </span>
-              {/* Impact: campaign link */}
-              {product.isImpactProduct && product.campaignId && (
+              {/* Impact: linked charity campaign (name only; hide raw DB id like #1) */}
+              {product.isImpactProduct && product.artworkBy?.campaign && (
                 <span className="font-body text-overline text-rust tracking-wider mt-0.5">
-                  {t('impactShop.supportsCampaign', { campaign: `#${product.campaignId}` })}
+                  {t('impactShop.supportsCampaign', { campaign: product.artworkBy.campaign })}
                 </span>
               )}
             </div>
 
-            {/* Sustainability score with tier */}
+            {/* Sustainability score (0–100) with tier label */}
             <div className="flex flex-col items-end">
               <div className="flex items-center gap-1.5">
-                <span className="font-body text-overline text-sepia-mid">
-                  {product.sustainabilityScore}
-                </span>
-                <span className={`font-body text-overline tracking-wide ${sustainability.colorClass}`}>
-                  {t(sustainability.labelKey)}
+                <span
+                  className={`font-body text-overline tracking-wide ${sustainability.colorClass}`}
+                  title={t('shop.filters.sustainability')}
+                >
+                  {t('shop.card.sustainabilityBadge', {
+                    score: product.sustainabilityScore,
+                    tier: t(sustainability.labelKey),
+                  })}
                 </span>
               </div>
               <div className="w-12 h-px bg-warm-gray/30 mt-0.5 overflow-hidden">
@@ -314,15 +317,6 @@ function ProductCard({
             )}
           </div>
         )}
-
-        {/* Decorative divider */}
-        <div className="flex items-center gap-2 mt-3 px-1">
-          <div className="flex-1 h-px bg-ink/20" />
-          <span className="font-body text-overline text-sepia-mid tracking-widest">
-            {String(product.id).padStart(3, '0')}
-          </span>
-          <div className="flex-1 h-px bg-ink/20" />
-        </div>
       </motion.article>
     </TiltCard>
   );
