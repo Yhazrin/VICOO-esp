@@ -693,8 +693,8 @@ export default function ProductPage() {
                       )}
                     </div>
                     <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                      <button onClick={() => openNodeEdit(rec)} style={{ ...btnStyle, fontSize: 10, padding: '2px 8px' }}>{t('product.btnEditNode')}</button>
-                      <button onClick={() => handleDeleteNode(rec.id)} style={{ ...btnStyle, fontSize: 10, padding: '2px 8px', color: 'var(--color-error)', borderColor: 'var(--color-error)' }}>{t('product.btnDeleteNode')}</button>
+                      <button type="button" onClick={() => openNodeEdit(rec)} style={{ ...btnStyle, fontSize: 10, padding: '2px 8px' }}>{t('product.btnEditNode')}</button>
+                      <button type="button" onClick={() => handleDeleteNode(rec.id)} style={{ ...btnStyle, fontSize: 10, padding: '2px 8px', color: 'var(--color-error)', borderColor: 'var(--color-error)' }}>{t('product.btnDeleteNode')}</button>
                     </div>
                   </div>
                   {rec.description && <div style={{ fontSize: 13, color: 'var(--color-text)', marginBottom: 4, lineHeight: 1.5 }}>{rec.description}</div>}
@@ -787,12 +787,12 @@ export default function ProductPage() {
           />
         </div>
 
-        {/* Tab Content */}
+        {/* Tab Content — supply chain is outside <form> so Edit/Add never submit the product */}
         <form onSubmit={submitForm}>
           {activeTab === 'basic' && renderBasicTab()}
           {activeTab === 'impact' && renderImpactTab()}
-          {activeTab === 'supply' && renderSupplyTab()}
         </form>
+        {activeTab === 'supply' && renderSupplyTab()}
       </Modal>
 
       {/* ══════════════════════════════════════════════════════════════════

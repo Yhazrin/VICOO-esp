@@ -45,7 +45,7 @@ const sizes = {
 };
 
 export default function Button({
-  variant = 'primary', size = 'md', loading, icon, children, style, disabled, ...rest
+  variant = 'primary', size = 'md', loading, icon, children, style, disabled, type = 'button', ...rest
 }: ButtonProps) {
   const v = variants[variant];
   const s = sizes[size];
@@ -53,6 +53,7 @@ export default function Button({
 
   return (
     <button
+      type={type}
       disabled={disabled || loading}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
