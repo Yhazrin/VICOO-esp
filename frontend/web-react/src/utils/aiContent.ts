@@ -1,5 +1,5 @@
 export interface ActionCard {
-  type: 'donation-list' | 'campaign-progress' | 'impact-fund';
+  type: 'donation-list' | 'campaign-progress' | 'impact-fund' | 'traceability';
   data: Record<string, unknown>;
 }
 
@@ -11,6 +11,7 @@ export interface SanitizeResult {
 function classifyActionCard(data: Record<string, unknown>): ActionCard['type'] | null {
   if ('artistShare' in data || ('total' in data && 'charityShare' in data)) return 'impact-fund';
   if ('raised' in data || 'goal' in data) return 'campaign-progress';
+  if ('stages' in data && Array.isArray(data.stages)) return 'traceability';
   if ('items' in data && Array.isArray(data.items)) {
     const first = data.items[0] as Record<string, unknown> | undefined;
     if (first && ('raised' in first || 'goal' in first)) return 'campaign-progress';

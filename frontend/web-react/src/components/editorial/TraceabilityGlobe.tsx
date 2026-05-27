@@ -1097,6 +1097,7 @@ export default function TraceabilityGlobe({
               <TraceMediaGallery
                 items={displayRecord.gallery}
                 compact
+                horizontal
                 className={`pt-1 border-t ${cardClasses.galleryBorder}`}
               />
             )}

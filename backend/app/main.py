@@ -48,6 +48,15 @@ async def lifespan(app: FastAPI):
         except Exception:
             logger.warning("Demo data seeding failed (non-critical)", exc_info=True)
 
+    # Bind demo artworks to local /static/artworks/* when files exist but DB still uses placeholders
+    try:
+        from app.seed_artwork_assets import maybe_seed_artwork_assets
+
+        if await maybe_seed_artwork_assets():
+            logger.info("Artwork static asset seed applied.")
+    except Exception:
+        logger.warning("Artwork asset seed failed (non-critical)", exc_info=True)
+
     # Backfill product i18n fields on every startup (idempotent — only updates rows where name_en is null)
     try:
         from app.backfill_product_i18n import run as backfill_i18n

@@ -50,6 +50,11 @@ from app.data.impact_origin_story_seed import (
     ORIGIN_COUNTRIES,
     ORIGIN_REGIONS,
 )
+from app.data.artwork_catalog_seed import (
+    ARTWORK_CATALOG,
+    artwork_image_url,
+    artwork_thumb_url,
+)
 
 
 async def reset_seed_users():
@@ -308,41 +313,21 @@ async def seed():
 
         # ── Artworks ─────────────────────────────────────────────
         print("Seeding artworks...")
-        artwork_data = [
-            ("春天的花园", "用蜡笔描绘的五彩花园", "小明", "approved", 128, 560, 0, child_ids[0]),
-            ("彩虹鱼", "水彩画出的深海彩虹鱼", "小红", "approved", 95, 430, 0, child_ids[1]),
-            ("我的家", "温暖的家，有爸爸妈妈和小狗", "小丽", "approved", 210, 890, 1, child_ids[2]),
-            ("星星之夜", "梵高风格的星空临摹", "小刚", "featured", 350, 1200, 0, child_ids[3]),
-            ("山间小溪", "写生画：家乡的小溪", "小芳", "approved", 78, 320, 1, child_ids[5]),
-            ("小猫咪", "我的第一只猫咪朋友", "小杰", "approved", 160, 670, 2, child_ids[6]),
-            ("丰收的秋天", "金黄色的稻田和农民伯伯", "小雨", "pending", 45, 180, None, child_ids[4]),
-            ("雪人一家", "冬天堆的雪人全家福", "小雪", "approved", 190, 780, 0, child_ids[7]),
-            ("海豚之歌", "蓝色大海中跳跃的海豚", "小海", "approved", 130, 520, 1, child_ids[8]),
-            ("老房子", "记录村里即将拆除的老房子", "小明", "approved", 88, 390, 2, child_ids[0]),
-            ("妈妈的手", "画妈妈做家务的双手", "小花", "featured", 280, 1050, 0, child_ids[9]),
-            ("夏日池塘", "荷叶上的青蛙和蜻蜓", "小丽", "approved", 105, 440, 1, child_ids[2]),
-            ("我的梦想", "穿上白大褂当医生", "小红", "approved", 175, 710, 2, child_ids[1]),
-            ("田野之歌", "风吹麦浪的田野", "小明", "approved", 62, 290, None, child_ids[0]),
-            ("太空旅行", "坐火箭去月球", "小刚", "approved", 140, 580, 0, child_ids[3]),
-            ("好朋友", "和朋友们在操场上玩", "小雨", "pending", 30, 120, None, child_ids[4]),
-            ("雨后彩虹", "暴雨过后的双彩虹", "小丽", "approved", 92, 410, 1, child_ids[2]),
-            ("过年了", "放鞭炮贴春联的热闹场面", "小雪", "approved", 220, 900, 2, child_ids[7]),
-            ("未来城市", "飞行汽车和太阳能大楼", "小海", "approved", 115, 470, 0, child_ids[8]),
-            ("牧羊曲", "草原上的小牧童和羊群", "小芳", "approved", 85, 350, 1, child_ids[5]),
-        ]
         artworks = []
-        for i, (title, desc, artist, status, likes, views, ci, cpid) in enumerate(artwork_data):
+        for entry in ARTWORK_CATALOG:
+            ci = entry.get("campaign_index")
+            cidx = entry.get("child_index")
             artworks.append(
                 Artwork(
-                    title=title,
-                    description=desc,
-                    image_url=f"https://picsum.photos/seed/vicoo-art-{i + 1}/900/900",
-                    thumbnail_url=f"https://picsum.photos/seed/vicoo-art-{i + 1}/400/400",
-                    child_participant_id=cpid,
-                    artist_name=artist,
-                    status=status,
-                    like_count=likes,
-                    view_count=views,
+                    title=entry["title"],
+                    description=entry["description"],
+                    image_url=artwork_image_url(entry["seq"]),
+                    thumbnail_url=artwork_thumb_url(entry["seq"]),
+                    child_participant_id=child_ids[cidx] if cidx is not None else None,
+                    artist_name=entry["artist_name"],
+                    status=entry["status"],
+                    like_count=entry["like_count"],
+                    view_count=entry["view_count"],
                     campaign_id=campaign_ids[ci] if ci is not None else None,
                 )
             )

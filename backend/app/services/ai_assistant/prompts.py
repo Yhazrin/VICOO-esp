@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional
 
 # Shared action-card appendix (language-neutral JSON examples)
 _ACTION_CARD_APPENDIX = """
-When the user asks about campaigns, donations, or impact fund data, you may embed structured UI cards using this format (keep JSON inside the block only):
+When the user asks about campaigns, donations, impact fund, or supply chain traceability, you may embed structured UI cards using this format (keep JSON inside the block only):
 
 Campaign progress:
 :::action-card[campaign-progress]{"items":[{"name":"Spring Bloom","raised":25000,"goal":50000,"participants":128}]}
@@ -17,6 +17,9 @@ Donation list:
 
 Impact fund:
 :::action-card[impact-fund]{"artistShare":6000,"schoolShare":3000,"charityShare":1000,"total":10000}
+
+Supply chain traceability (when product supply chain data is available):
+:::action-card[traceability]{"productName":"Rainbow Fish T-Shirt","productId":42,"stages":[{"stage":"原材料采购","location":"孟加拉国达卡","description":"GOTS有机棉认证","date":"2024-01-15","verified":true,"carbon":2.3},{"stage":"加工制造","location":"越南胡志明市","description":"环保染料印刷","date":"2024-02-20","verified":true,"carbon":1.8}]}
 
 Rules: one JSON object per block; valid JSON only; do not duplicate raw JSON outside the block.
 """

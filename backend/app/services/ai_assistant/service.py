@@ -694,6 +694,26 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                             out += f"; carbon_kg={step.get('carbon_kg')}"
                         out += "\n"
 
+                    # Generate structured traceability card if timeline exists
+                    if timeline and prod:
+                        import json
+                        stages_data = []
+                        for step in timeline:
+                            stages_data.append({
+                                "stage": step.get("stage", ""),
+                                "location": step.get("location", ""),
+                                "description": step.get("description", ""),
+                                "date": step.get("timestamp", "")[:10] if step.get("timestamp") else "",
+                                "verified": bool(step.get("certified")),
+                                "carbon": step.get("carbon_kg"),
+                            })
+                        card_json = json.dumps({
+                            "productName": prod.name,
+                            "productId": prod.id,
+                            "stages": stages_data,
+                        }, ensure_ascii=False)
+                        out += f"\n:::action-card[traceability]{card_json}:::\n"
+
                     out += "\n(Source: supply_chain records, product table)"
                     return out
                 except Exception as e:
@@ -781,6 +801,26 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                     if step.get("carbon_kg") is not None:
                         out += f"; carbon_kg={step.get('carbon_kg')}"
                     out += "\n"
+
+                # Generate structured traceability card if timeline exists
+                if timeline and prod:
+                    import json
+                    stages_data = []
+                    for step in timeline:
+                        stages_data.append({
+                            "stage": step.get("stage", ""),
+                            "location": step.get("location", ""),
+                            "description": step.get("description", ""),
+                            "date": step.get("timestamp", "")[:10] if step.get("timestamp") else "",
+                            "verified": bool(step.get("certified")),
+                            "carbon": step.get("carbon_kg"),
+                        })
+                    card_json = json.dumps({
+                        "productName": prod.name,
+                        "productId": prod.id,
+                        "stages": stages_data,
+                    }, ensure_ascii=False)
+                    out += f"\n:::action-card[traceability]{card_json}:::\n"
 
                 out += "\n(Source: supply_chain records, product table)"
                 return out

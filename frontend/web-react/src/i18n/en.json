@@ -1482,7 +1482,9 @@
     "actionCard": {
       "donationList": "Donation Records",
       "campaignProgress": "Campaign Progress",
-      "impactFund": "Impact Fund"
+      "impactFund": "Impact Fund",
+      "traceability": "Supply Chain Traceability",
+      "viewDetails": "View Details"
     }
   },
   "orderDetail": {

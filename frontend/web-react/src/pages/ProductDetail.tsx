@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useParams, useNavigate, useLocation, matchPath } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 
@@ -134,11 +134,11 @@ export default function ProductDetail() {
   );
 
   const [selectedImage, setSelectedImage] = useState(0);
-  const [quantity, setQuantity] = useState(1);
-  const [added, setAdded] = useState(false);
+    const [added, setAdded] = useState(false);
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [globePinId, setGlobePinId] = useState<number | null>(null);
+  const [artworkModalOpen, setArtworkModalOpen] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
   const setCartOpen = useCartStore((s) => s.setCartOpen);
   const addedTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
@@ -213,7 +213,7 @@ export default function ProductDetail() {
       navigate('/login', { state: { from: location.pathname } });
       return;
     }
-    addItem(product, quantity, selectedSize || undefined, selectedColor || undefined);
+    addItem(product, 1, selectedSize || undefined, selectedColor || undefined);
     setAdded(true);
     setCartOpen(true);
     if (addedTimeoutRef.current) clearTimeout(addedTimeoutRef.current);
@@ -367,21 +367,40 @@ export default function ProductDetail() {
                   )}
 
                   {linkedArtwork && (
-                    <div className="rounded-xl border border-warm-gray/20 bg-gradient-to-br from-paper/90 to-aged-stock/50 px-5 py-5 shadow-sm">
-                      <p className="font-body text-[10px] tracking-[0.24em] uppercase text-sepia-mid mb-3">
-                        {t('shop.detail.artwork')}
-                      </p>
-                      <p className="font-display text-lg md:text-xl text-ink leading-snug tracking-tight">
-                        {linkedArtwork.artist_name || linkedArtwork.title}
-                      </p>
-                      {linkedArtwork.artist_name &&
-                        linkedArtwork.title &&
-                        linkedArtwork.artist_name !== linkedArtwork.title && (
-                          <p className="font-body text-body-sm text-ink-faded/90 mt-2 leading-relaxed">
-                            {linkedArtwork.title}
-                          </p>
-                        )}
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setArtworkModalOpen(true)}
+                      className="block w-full text-left relative rounded-xl overflow-hidden border border-warm-gray/20 bg-gradient-to-br from-paper/90 to-aged-stock/50 px-5 py-5 shadow-sm hover:border-warm-gray/40 transition-colors duration-300 cursor-pointer"
+                    >
+                      {/* Dreamy artwork background — fades in from left to right */}
+                      {linkedArtwork.image_url && (
+                        <div
+                          className="absolute inset-0 pointer-events-none"
+                          style={{
+                            backgroundImage: `url(${linkedArtwork.image_url})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center right',
+                            maskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.85) 45%, rgba(0,0,0,0.95) 100%)',
+                            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.85) 45%, rgba(0,0,0,0.95) 100%)',
+                          }}
+                        />
+                      )}
+                      <div className="relative z-10">
+                        <p className="font-body text-[10px] tracking-[0.24em] uppercase text-sepia-mid mb-3">
+                          {t('shop.detail.artwork')}
+                        </p>
+                        <p className="font-display text-lg md:text-xl text-ink leading-snug tracking-tight">
+                          {linkedArtwork.artist_name || linkedArtwork.title}
+                        </p>
+                        {linkedArtwork.artist_name &&
+                          linkedArtwork.title &&
+                          linkedArtwork.artist_name !== linkedArtwork.title && (
+                            <p className="font-body text-body-sm text-ink-faded/90 mt-2 leading-relaxed">
+                              {linkedArtwork.title}
+                            </p>
+                          )}
+                      </div>
+                    </button>
                   )}
 
                   {hasTraceStory && (
@@ -462,34 +481,7 @@ export default function ProductDetail() {
                     </div>
                   )}
 
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    <label className="font-body text-[10px] tracking-[0.22em] uppercase text-sepia-mid sm:min-w-[5rem]">
-                      {t('shop.detail.quantity')}
-                    </label>
-                    <div className="inline-flex items-center rounded-full border border-warm-gray/25 bg-warm-gray/5">
-                      <button
-                        type="button"
-                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                        aria-label={t('cart.decreaseQuantity')}
-                        className="min-w-[44px] min-h-[44px] px-3 py-2 text-ink hover:bg-warm-gray/15 transition-colors duration-300 cursor-pointer rounded-l-full"
-                      >
-                        −
-                      </button>
-                      <span className="font-mono text-sm px-5 py-2 text-ink tabular-nums" aria-live="polite">
-                        {quantity}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setQuantity(quantity + 1)}
-                        aria-label={t('cart.increaseQuantity')}
-                        className="min-w-[44px] min-h-[44px] px-3 py-2 text-ink hover:bg-warm-gray/15 transition-colors duration-300 cursor-pointer rounded-r-full"
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-
-                    <div className="w-full sm:w-auto flex gap-3">
+                    <div className="w-full flex justify-center gap-3">
                       <motion.button
                         type="button"
                         whileHover={prefersReducedMotion ? undefined : { y: -1 }}
@@ -497,7 +489,7 @@ export default function ProductDetail() {
                         transition={{ type: 'spring', stiffness: 520, damping: 28 }}
                         onClick={handleAddToCart}
                         disabled={!safeProduct.inStock}
-                        className={`flex-1 sm:flex-none font-body text-[11px] md:text-body-sm tracking-[0.22em] uppercase px-8 py-4 md:py-[1.125rem] rounded-full shadow-[0_14px_40px_-22px_rgba(18,17,14,0.55)] transition-colors duration-500 ${
+                        className={`font-body text-[11px] md:text-body-sm tracking-[0.22em] uppercase px-8 py-4 md:py-[1.125rem] rounded-full shadow-[0_14px_40px_-22px_rgba(18,17,14,0.55)] transition-colors duration-500 ${
                           added
                             ? 'bg-sage text-paper'
                             : safeProduct.inStock
@@ -522,9 +514,9 @@ export default function ProductDetail() {
                             },
                           }));
                         }}
-                        className="flex-1 sm:flex-none inline-flex items-center justify-center rounded-full border border-warm-gray/25 bg-paper px-4 py-3 text-ink text-[11px] tracking-[0.12em] uppercase hover:bg-aged-stock transition-colors cursor-pointer"
+                        className="inline-flex items-center justify-center rounded-full bg-ink text-paper hover:bg-ink-faded px-6 py-4 md:py-[1.125rem] text-[11px] md:text-body-sm tracking-[0.22em] uppercase shadow-[0_14px_40px_-22px_rgba(18,17,14,0.55)] transition-colors duration-500 cursor-pointer"
                       >
-                        {t('aiAssistant.askAboutProduct')}
+                        ASK AI
                       </button>
                     </div>
                   </div>
@@ -595,6 +587,93 @@ export default function ProductDetail() {
       <PaperTextureBackground variant="paper">
         {id && <ProductReviewsSection productId={Number(id)} />}
       </PaperTextureBackground>
+
+      {/* Artwork Modal — glassmorphism floating window */}
+      <AnimatePresence>
+        {artworkModalOpen && linkedArtwork?.image_url && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+            className="fixed inset-0 z-[70] flex items-center justify-center p-6"
+            style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)' }}
+            onClick={() => setArtworkModalOpen(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.88, y: 24 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 12 }}
+              transition={{
+                type: 'spring',
+                stiffness: 260,
+                damping: 28,
+                mass: 0.85,
+                restDisplacementThreshold: 0.001,
+                restSpeedThreshold: 0.001,
+              }}
+              className="relative max-w-3xl max-h-[85vh] w-full overflow-hidden"
+              style={{
+                borderRadius: 28,
+                background: 'rgba(255,255,255,0.13)',
+                backdropFilter: 'blur(40px) saturate(1.7)',
+                WebkitBackdropFilter: 'blur(40px) saturate(1.7)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                boxShadow: '0 40px 100px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.06)',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <motion.img
+                src={linkedArtwork.image_url}
+                alt={linkedArtwork.title || linkedArtwork.artist_name || 'Artwork'}
+                className="w-full h-full object-contain"
+                style={{ maxHeight: '80vh' }}
+                initial={{ scale: 1.05 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 180, damping: 22, delay: 0.08 }}
+              />
+              <motion.button
+                type="button"
+                onClick={() => setArtworkModalOpen(false)}
+                className="absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center cursor-pointer"
+                style={{
+                  background: 'rgba(0,0,0,0.25)',
+                  backdropFilter: 'blur(12px)',
+                  color: '#fff',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                }}
+                whileHover={{ scale: 1.12 }}
+                whileTap={{ scale: 0.88, rotate: 90 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </motion.button>
+              {linkedArtwork.artist_name && (
+                <motion.div
+                  className="absolute bottom-0 left-0 right-0 px-6 py-4"
+                  style={{
+                    background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 100%)',
+                  }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <p className="font-display text-lg text-white font-semibold">
+                    {linkedArtwork.artist_name}
+                  </p>
+                  {linkedArtwork.title && linkedArtwork.title !== linkedArtwork.artist_name && (
+                    <p className="font-body text-sm text-white/80 mt-1">
+                      {linkedArtwork.title}
+                    </p>
+                  )}
+                </motion.div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Back link */}
       <SectionContainer className="py-10">

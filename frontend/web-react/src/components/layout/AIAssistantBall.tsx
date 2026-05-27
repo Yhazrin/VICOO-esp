@@ -124,6 +124,7 @@ export const AIAssistantBall: React.FC = () => {
   const { t, i18n } = useTranslation();
   const impactMode = useUIStore((s) => s.impactMode);
   const [isOpen, setIsOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -209,16 +210,21 @@ export const AIAssistantBall: React.FC = () => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 16 }}
-            transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+            layoutId="ai-chat-panel"
+            initial={{ opacity: 0, y: 16, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 16, scale: 0.95 }}
+            transition={{
+              opacity: { duration: 0.2, ease: [0.4, 0, 0.2, 1] },
+              y: { duration: 0.25, ease: [0.4, 0, 0.2, 1] },
+              layout: { type: 'spring', stiffness: 300, damping: 32, mass: 1 },
+            }}
             className="fixed z-[60] flex flex-col overflow-hidden"
             style={{
               right: 24,
-              bottom: 4,
-              width: 420,
-              height: 560,
+              bottom: 24,
+              width: isExpanded ? 600 : 420,
+              height: isExpanded ? 900 : 560,
               borderRadius: 36,
               background: 'rgba(255, 255, 255, 0.82)',
               backdropFilter: 'blur(24px) saturate(1.4)',
@@ -228,11 +234,38 @@ export const AIAssistantBall: React.FC = () => {
               fontFamily: '"Source Sans Pro", "Noto Serif SC", sans-serif',
             }}
           >
+            {/* Traffic lights — macOS style */}
+            <motion.div
+              layout
+              className="relative z-20 flex items-center gap-2 px-4 pt-4 pb-2"
+              transition={{ layout: { type: 'spring', stiffness: 400, damping: 40 } }}
+            >
+              <div className="flex items-center gap-1.5">
+                {/* Close button */}
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  className="w-3 h-3 rounded-full cursor-pointer transition-transform hover:scale-110"
+                  style={{ background: '#ff5f57', boxShadow: '0 0 1px rgba(0,0,0,0.2)' }}
+                  title="Close"
+                />
+                {/* Expand button */}
+                <button
+                  type="button"
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="w-3 h-3 rounded-full cursor-pointer transition-transform hover:scale-110"
+                  style={{ background: '#28c840', boxShadow: '0 0 1px rgba(0,0,0,0.2)' }}
+                  title={isExpanded ? 'Collapse' : 'Expand'}
+                />
+              </div>
+            </motion.div>
             {/* Chat Content */}
-            <div
+            <motion.div
+              layout
               ref={scrollRef}
               className="flex-1 overflow-y-auto relative z-10 px-4 pt-4 pb-4 space-y-4 scrollbar-none"
               style={{ color: 'var(--color-ink)' }}
+              transition={{ layout: { type: 'spring', stiffness: 400, damping: 40 } }}
             >
               {messages.length === 0 && (
                 <div className="py-6 px-2">
@@ -297,12 +330,14 @@ export const AIAssistantBall: React.FC = () => {
                   </div>
                 </div>
               )}
-            </div>
+            </motion.div>
 
             {/* Welfare Capability Tags */}
             {isImpactSurface && (
-              <div
+              <motion.div
+                layout
                 className="relative z-10 px-4 py-2.5 flex gap-2 overflow-x-auto overflow-y-hidden scrollbar-none"
+                transition={{ layout: { type: 'spring', stiffness: 400, damping: 40 } }}
               >
                 {welfareCapabilities.map((cap) => (
                   <button
@@ -321,11 +356,15 @@ export const AIAssistantBall: React.FC = () => {
                     {t(cap.labelKey)}
                   </button>
                 ))}
-              </div>
+              </motion.div>
             )}
 
             {/* Input Area — capsule bar */}
-            <div className="relative z-10 px-4 pb-4">
+            <motion.div
+              layout
+              className="relative z-10 px-4 pb-4"
+              transition={{ layout: { type: 'spring', stiffness: 400, damping: 40 } }}
+            >
               <div
                 className="flex items-center p-1"
                 style={{
@@ -346,38 +385,34 @@ export const AIAssistantBall: React.FC = () => {
                     fontFamily: '"Source Sans Pro", sans-serif',
                   }}
                 />
-                {/* Close button — morphs from trigger */}
                 <motion.button
-                  layoutId="ai-trigger"
                   type="button"
-                  onClick={() => setIsOpen(false)}
+                  onClick={() => handleSendRef.current()}
                   className="flex-shrink-0 flex items-center justify-center cursor-pointer"
                   style={{
-                    width: 48,
-                    height: 48,
+                    width: 36,
+                    height: 36,
                     borderRadius: '50%',
                     background: 'var(--color-ink)',
                     color: '#ffffff',
                     border: 'none',
-                    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)',
                   }}
                   whileHover={{ scale: 1.08 }}
                   whileTap={{ scale: 0.92 }}
                 >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18 6L6 18M6 6l12 12" />
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
                   </svg>
                 </motion.button>
               </div>
-            </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Trigger Button — morphs into send button when panel opens */}
+      {/* Trigger Button */}
       {!isOpen && (
         <motion.button
-          layoutId="ai-trigger"
           type="button"
           onClick={() => setIsOpen(true)}
           className="fixed z-50 flex items-center justify-center cursor-pointer"

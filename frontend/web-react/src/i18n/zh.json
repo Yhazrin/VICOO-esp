@@ -1455,7 +1455,9 @@
     "actionCard": {
       "donationList": "捐赠记录",
       "campaignProgress": "活动进度",
-      "impactFund": "影响力基金"
+      "impactFund": "影响力基金",
+      "traceability": "供应链溯源",
+      "viewDetails": "查看详情"
     }
   },
   "orderDetail": {

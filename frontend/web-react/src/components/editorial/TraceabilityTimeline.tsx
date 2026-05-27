@@ -1,5 +1,5 @@
 import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
-import { useRef } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import type { SupplyChainTimelineRecord } from '@/types';
 import { useTranslation } from 'react-i18next';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
@@ -24,15 +24,29 @@ export default function TraceabilityTimeline({
   const dateLocale = i18n.language?.startsWith('zh') ? 'zh-CN' : 'en-US';
   const prefersReducedMotion = useReducedMotion();
   const containerRef = useRef<HTMLDivElement>(null);
+  const lineRef = useRef<SVGSVGElement>(null);
+  const [lineHeight, setLineHeight] = useState(0);
 
-  // Scroll-linked animation for the vertical path line
+  // Measure actual content height for the path
+  useEffect(() => {
+    if (!lineRef.current) return;
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setLineHeight(entry.contentRect.height);
+      }
+    });
+    observer.observe(lineRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  // Scroll-linked animation — track container scroll with window scroll
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ['start end', 'end start'],
+    offset: ['start center', 'end center'],
   });
 
   // Calculate the total height needed for the path
-  const pathHeight = records.length * 200; // Approximate height per record
+  const pathHeight = lineHeight || records.length * 200;
   const strokeDashoffset = useTransform(scrollYProgress, [0, 1], [pathHeight, 0]);
 
   if (records.length === 0) {
@@ -49,6 +63,7 @@ export default function TraceabilityTimeline({
     <div ref={containerRef} className={`relative pl-12 ${className}`}>
       {/* Animated decorative path line - draws on scroll */}
       <svg
+        ref={lineRef}
         className="absolute left-[15px] top-0 w-4 h-full overflow-visible pointer-events-none"
         aria-hidden="true"
         preserveAspectRatio="none"
@@ -193,7 +208,7 @@ export default function TraceabilityTimeline({
 
                 {record.gallery && record.gallery.length > 0 && (
                   <div className="mb-6 max-w-2xl">
-                    <TraceMediaGallery items={record.gallery} />
+                    <TraceMediaGallery items={record.gallery} horizontal />
                   </div>
                 )}
 
