@@ -8,8 +8,8 @@ import Pagination from '../components/ui/Pagination';
 import StatusBadge from '../components/ui/StatusBadge';
 import Modal from '../components/ui/Modal';
 import Button from '../components/ui/Button';
-import { fetchCampaigns, createCampaign, updateCampaign, uploadTraceMedia } from '../services/api';
-import type { Campaign } from '../types';
+import { fetchCampaigns, createCampaign, updateCampaign, uploadTraceMedia, fetchArtworks } from '../services/api';
+import type { Campaign, Artwork } from '../types';
 import dayjs from 'dayjs';
 
 const inputStyle: React.CSSProperties = {
@@ -27,7 +27,7 @@ const sectionTitleStyle: React.CSSProperties = {
   borderBottom: '1px solid var(--color-border)',
 };
 
-type EditTab = 'basic' | 'sustainability';
+type EditTab = 'basic' | 'sustainability' | 'artworks';
 
 function TabButton({ active, label, onClick }: { active: boolean; label: string; onClick: () => void }) {
   return (
@@ -100,6 +100,13 @@ export default function CampaignPage() {
       const msg = err?.response?.data?.detail || err?.message || t('campaign.errorUpdateFailed');
       toast.error(msg);
     },
+  });
+
+  // Fetch artworks for the campaign being edited
+  const { data: campaignArtworks } = useQuery({
+    queryKey: ['campaign-artworks', editCampaign?.id],
+    queryFn: () => fetchArtworks({ campaignId: editCampaign?.id }),
+    enabled: !!editCampaign?.id,
   });
 
   const columns: Column<Campaign>[] = [
@@ -349,6 +356,33 @@ export default function CampaignPage() {
     </div>
   );
 
+  const renderArtworksTab = () => {
+    const artworks = campaignArtworks?.data || [];
+    const artworkColumns: Column<Artwork>[] = [
+      { key: 'title', title: t('artwork.colTitle'), sorter: true },
+      { key: 'childName', title: t('artwork.colChild'), width: 120 },
+      { key: 'status', title: t('artwork.colStatus'), width: 100, render: (v) => <StatusBadge status={v} context="artwork" /> },
+      { key: 'createdAt', title: t('artwork.colDate'), width: 110, render: (v) => v ? dayjs(v).format('YYYY-MM-DD') : '-' },
+    ];
+
+    return (
+      <div>
+        <div style={{ marginBottom: 12 }}>
+          <p style={{ fontSize: 13, color: 'var(--color-text-2)' }}>
+            {t('campaign.artworksInfo', { count: artworks.length })}
+          </p>
+        </div>
+        {artworks.length > 0 ? (
+          <DataTable columns={artworkColumns} data={artworks} rowKey="id" loading={!campaignArtworks} />
+        ) : (
+          <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--color-text-3)' }}>
+            {t('campaign.noArtworks')}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
@@ -420,8 +454,9 @@ export default function CampaignPage() {
         <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', marginBottom: 20 }}>
           <TabButton active={activeTab === 'basic'} label={t('campaign.tabBasic')} onClick={() => setActiveTab('basic')} />
           <TabButton active={activeTab === 'sustainability'} label={t('campaign.tabSustainability')} onClick={() => setActiveTab('sustainability')} />
+          <TabButton active={activeTab === 'artworks'} label={t('campaign.tabArtworks')} onClick={() => setActiveTab('artworks')} />
         </div>
-        {activeTab === 'basic' ? renderBasicTab() : renderSustainabilityTab()}
+        {activeTab === 'basic' ? renderBasicTab() : activeTab === 'sustainability' ? renderSustainabilityTab() : renderArtworksTab()}
       </Modal>
     </div>
   );

@@ -254,7 +254,12 @@
         "errorRequiredFields": "请填写必填字段",
         "errorGoalAmount": "目标金额必须大于0",
         "errorCreateFailed": "活动创建失败",
-        "errorUpdateFailed": "活动更新失败"
+        "errorUpdateFailed": "活动更新失败",
+        "tabBasic": "基本信息",
+        "tabSustainability": "可持续板块",
+        "tabArtworks": "关联作品",
+        "artworksInfo": "已关联 {{count}} 个作品",
+        "noArtworks": "暂无关联作品"
     },
     "product": {
         "title": "商品管理",

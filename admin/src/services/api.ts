@@ -245,6 +245,7 @@ export async function fetchArtworks(params: FilterParams = {}): Promise<Paginate
       page_size: params.pageSize ?? 10,
       status: params.status || undefined,
       search: params.search || undefined,
+      campaign_id: params.campaignId || undefined,
     },
   });
   const paginated = adaptPaginated<any>(envelope);

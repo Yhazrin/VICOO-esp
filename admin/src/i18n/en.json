@@ -254,7 +254,12 @@
         "errorRequiredFields": "Please fill in required fields",
         "errorGoalAmount": "Goal amount must be greater than 0",
         "errorCreateFailed": "Failed to create campaign",
-        "errorUpdateFailed": "Failed to update campaign"
+        "errorUpdateFailed": "Failed to update campaign",
+        "tabBasic": "Basic",
+        "tabSustainability": "Sustainability",
+        "tabArtworks": "Artworks",
+        "artworksInfo": "{{count}} artworks linked",
+        "noArtworks": "No artworks linked to this campaign yet"
     },
     "product": {
         "title": "Product Management",
