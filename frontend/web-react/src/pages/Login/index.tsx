@@ -19,6 +19,9 @@ import type { AmbientMode } from './loginAmbientTypes';
 import { TestAccountsPanel } from './TestAccountsPanel';
 import type { TestAccount } from './testAccounts';
 
+// Admin roles that can access admin panel
+const ADMIN_ROLES = ['admin', 'editor', 'compliance'];
+
 const CARD_GLOW: Record<Exclude<AmbientMode, null>, string> = {
   email: '0 28px 56px -12px rgba(230,0,18,0.12), 0 12px 24px -8px rgba(26,26,22,0.08)',
   password: '0 28px 56px -12px rgba(109,137,116,0.14), 0 12px 24px -8px rgba(26,26,22,0.08)',
@@ -33,7 +36,7 @@ export default function Login() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const prefersReducedMotion = useReducedMotion();
-  const { login, isLoggingIn, loginError } = useAuth();
+  const { loginAsync, isLoggingIn, loginError } = useAuth();
   const setLocale = useUIStore((s) => s.setLocale);
   const stageRef = useRef<HTMLDivElement>(null);
   const lastTypePulseRef = useRef(0);
@@ -139,20 +142,20 @@ export default function Login() {
     toast.success(t('login.testAccounts.filled', '已填入登录表单'));
   };
 
-  // Handle form submission
+  // Handle form submission - use mutation directly to get server response
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     nudgeAmbient('action');
 
-    // Determine redirect based on detected mode (with fallback to immediate detection)
-    const result = detectIdentityMode(email);
-    const targetPath = result.mode === 'admin' ? '/admin' : '/';
-
-    login(
+    loginAsync.mutate(
       { email, password },
       {
-        onSuccess: () => {
-          navigate(targetPath);
+        onSuccess: (data) => {
+          // Use SERVER-SIDE role for redirect decision (secure)
+          const userRole = data.user?.role;
+          const isAdminUser = userRole && ADMIN_ROLES.includes(userRole);
+          const targetPath = isAdminUser ? '/admin/' : '/';
+          navigate(targetPath, { replace: true });
         },
       }
     );
