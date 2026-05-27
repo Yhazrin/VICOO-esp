@@ -51,9 +51,9 @@ def _rec(
 def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecord]:
     """
     为公益商品索引 1–9（对应 product_ids[1]..[9]）各写 5 条溯源。
-    product_ids 须与 seed 中公益 SKU 顺序一致。
+    product_ids 须与 seed 中公益 SKU 顺序一致；不足 10 条时仅为已有索引补写。
     """
-    if len(product_ids) < 10:
+    if len(product_ids) < 2:
         return []
 
     out: list[SupplyChainRecord] = []
@@ -124,6 +124,8 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
     ]
 
     # 索引 2：春天的花园丝巾 — 湖丝、杭州印花、日本真丝贸易传统
+    if len(product_ids) <= 2:
+        return out
     pid = product_ids[2]
     out += [
         _rec(
@@ -190,6 +192,8 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
     ]
 
     # 索引 3：妈妈的手棉麻衬衫 — 天然棉麻、刺绣风印花
+    if len(product_ids) <= 3:
+        return out
     pid = product_ids[3]
     out += [
         _rec(
@@ -255,6 +259,8 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
     ]
 
     # 索引 4：太空旅行圆领卫衣 — 中厚卫衣面料、宇宙涂鸦印花
+    if len(product_ids) <= 4:
+        return out
     pid = product_ids[4]
     out += [
         _rec(
@@ -320,6 +326,8 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
     ]
 
     # 索引 5：我的家帆布鞋 — 青岛硫化鞋产业带
+    if len(product_ids) <= 5:
+        return out
     pid = product_ids[5]
     out += [
         _rec(
@@ -385,6 +393,8 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
     ]
 
     # 索引 6：未来城市连帽卫衣 — 加绒卫衣、满版印花
+    if len(product_ids) <= 6:
+        return out
     pid = product_ids[6]
     out += [
         _rec(
@@ -450,6 +460,8 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
     ]
 
     # 索引 7：过年了针织开衫 — 可溯源羊毛混纺、提花织入
+    if len(product_ids) <= 7:
+        return out
     pid = product_ids[7]
     out += [
         _rec(
@@ -515,6 +527,8 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
     ]
 
     # 索引 8：海豚之歌再生纤维披肩 — 再生纤维杭州/嘉兴
+    if len(product_ids) <= 8:
+        return out
     pid = product_ids[8]
     out += [
         _rec(
@@ -580,6 +594,8 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
     ]
 
     # 索引 9：牧羊曲手绘方巾 — 定西工坊有机棉印制
+    if len(product_ids) <= 9:
+        return out
     pid = product_ids[9]
     out += [
         _rec(
