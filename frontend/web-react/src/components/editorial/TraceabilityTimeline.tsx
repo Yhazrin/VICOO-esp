@@ -24,29 +24,29 @@ export default function TraceabilityTimeline({
   const dateLocale = i18n.language?.startsWith('zh') ? 'zh-CN' : 'en-US';
   const prefersReducedMotion = useReducedMotion();
   const containerRef = useRef<HTMLDivElement>(null);
-  const lineRef = useRef<SVGSVGElement>(null);
-  const [lineHeight, setLineHeight] = useState(0);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [contentHeight, setContentHeight] = useState(0);
 
   // Measure actual content height for the path
   useEffect(() => {
-    if (!lineRef.current) return;
+    if (!contentRef.current) return;
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        setLineHeight(entry.contentRect.height);
+        setContentHeight(entry.contentRect.height);
       }
     });
-    observer.observe(lineRef.current);
+    observer.observe(contentRef.current);
     return () => observer.disconnect();
   }, []);
 
-  // Scroll-linked animation — track container scroll with window scroll
+  // Scroll-linked animation — track window scroll through the container
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ['start center', 'end center'],
+    offset: ['start start', 'end end'],
   });
 
   // Calculate the total height needed for the path
-  const pathHeight = lineHeight || records.length * 200;
+  const pathHeight = contentHeight || records.length * 200;
   const strokeDashoffset = useTransform(scrollYProgress, [0, 1], [pathHeight, 0]);
 
   if (records.length === 0) {
@@ -63,10 +63,10 @@ export default function TraceabilityTimeline({
     <div ref={containerRef} className={`relative pl-12 ${className}`}>
       {/* Animated decorative path line - draws on scroll */}
       <svg
-        ref={lineRef}
-        className="absolute left-[15px] top-0 w-4 h-full overflow-visible pointer-events-none"
+        className="absolute left-[15px] top-0 w-4 overflow-visible pointer-events-none"
         aria-hidden="true"
         preserveAspectRatio="none"
+        style={{ height: contentHeight }}
       >
         {/* Main animated vertical line */}
         <motion.path
@@ -126,7 +126,7 @@ export default function TraceabilityTimeline({
         />
       </svg>
 
-      <div className="space-y-0">
+      <div ref={contentRef} className="space-y-0">
         {records.map((record, index) => {
           const isGlobeLinked = linkedFromGlobeId != null && record.id === linkedFromGlobeId;
           return (
