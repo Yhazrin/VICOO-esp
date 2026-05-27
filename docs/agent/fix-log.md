@@ -2652,3 +2652,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Added `aria-label={t('common.close', 'Close')}` to the close button.
 - **Verification**: Screen readers now announce "Close" for the button
 - **New issues**: None
+
+## Fix 317 — Mailer service silently swallows exceptions, making caller error handling dead code
+- **Date**: 2026-05-27 (Round 87)
+- **Files**: `backend/app/services/mailer.py`
+- **Reason**: P2: Both `send_welcome_email` and `send_password_recovery_email` caught all exceptions and returned `None` instead of re-raising. This made the `try/except` blocks in callers (`auth.py:203`, `oauth.py:101`) dead code — they could never fire. Users told "check your email" even when sending failed.
+- **Change**: Changed both `except` blocks to `raise` after logging (preserving the log). Callers already have proper try/except handling.
+- **Verification**: Caller exception handlers now actually execute on mail failure; auth.py still returns success regardless (intentional security)
+- **New issues**: None

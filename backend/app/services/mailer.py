@@ -136,7 +136,7 @@ async def send_welcome_email(to_email: str, nickname: str, locale: str = "en"):
         return response
     except Exception as e:
         logger.error("Failed to send welcome email to %s: %s", to_email, e, exc_info=True)
-        return None
+        raise
 
 async def send_password_recovery_email(to_email: str, password_hint: str, locale: str = "en"):
     """Send a password recovery email via Resend."""
@@ -171,3 +171,4 @@ async def send_password_recovery_email(to_email: str, password_hint: str, locale
         logger.info("Recovery email sent to %s", to_email)
     except Exception as e:
         logger.error("Failed to send recovery email to %s: %s", to_email, e)
+        raise
