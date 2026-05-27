@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   AnimatePresence,
@@ -36,6 +36,7 @@ const ADMIN_GLOW = '0 28px 56px -12px rgba(1,132,127,0.2), 0 12px 24px -8px rgba
 export default function Login() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const prefersReducedMotion = useReducedMotion();
   const { loginError } = useAuth();
   const setLocale = useUIStore((s) => s.setLocale);
@@ -174,14 +175,18 @@ export default function Login() {
       if (userRole && ADMIN_ROLES.includes(userRole)) {
         // Admin users: redirect to admin SPA directly
         // DO NOT store session in web-react - admin has its own session
+        const redirect = searchParams.get('redirect');
+        const adminTarget = redirect?.startsWith('/admin') ? redirect : '/admin/';
         toast.success(t('auth.loginSuccess', 'Login successful'));
-        window.location.href = '/admin/';
+        window.location.href = adminTarget;
       } else {
+        const redirect = searchParams.get('redirect');
+        const userTarget = redirect && !redirect.startsWith('/admin') ? redirect : '/';
         // Regular users: store session and stay on web-react
         const login = useAuthStore.getState().login;
         const tokenData = data.data?.token || data.token || data;
         login(userData, tokenData.access_token || tokenData.accessToken, tokenData.refresh_token);
-        navigate('/', { replace: true });
+        navigate(userTarget, { replace: true });
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Login failed';

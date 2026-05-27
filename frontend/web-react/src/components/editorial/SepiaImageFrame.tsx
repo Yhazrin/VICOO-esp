@@ -114,7 +114,7 @@ export default function SepiaImageFrame({
           className={`w-full h-full object-cover ${imgVisible ? 'opacity-100' : 'opacity-0'}`}
           loading={viewTransitionName ? 'eager' : 'lazy'}
           decoding="async"
-          fetchpriority={viewTransitionName ? 'high' : undefined}
+          fetchPriority={viewTransitionName ? 'high' : undefined}
           onLoad={() => setImageLoaded(true)}
         />
       </div>
