@@ -217,7 +217,7 @@ function ProductCard({
             </div>
 
             <div className="flex flex-col items-end justify-end h-full">
-              <span className="font-body text-body-sm text-ink font-medium">
+              <span className="font-body text-body-md text-ink font-medium">
                 {product.currency === 'CNY' ? '¥' : '$'}
                 {product.price.toLocaleString()}
               </span>
