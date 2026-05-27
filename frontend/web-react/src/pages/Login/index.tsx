@@ -10,6 +10,7 @@ import {
   useTransform,
 } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
+import { useAuthStore } from '@/stores/authStore';
 import { useUIStore } from '@/stores/uiStore';
 import { detectIdentityMode, type LoginMode } from '@/lib/auth/identity-detection';
 import vicooLogo from '@/assets/vicoo-logo.png';
@@ -36,7 +37,7 @@ export default function Login() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const prefersReducedMotion = useReducedMotion();
-  const { loginAsync, isLoggingIn, loginError } = useAuth();
+  const { loginError } = useAuth();
   const setLocale = useUIStore((s) => s.setLocale);
   const stageRef = useRef<HTMLDivElement>(null);
   const lastTypePulseRef = useRef(0);
@@ -49,6 +50,8 @@ export default function Login() {
   const [showTestAccounts, setShowTestAccounts] = useState(false);
   const [ambientMode, setAmbientMode] = useState<AmbientMode>(null);
   const [ambientPulse, setAmbientPulse] = useState(0);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // ADFS-inspired identity detection state
   const [detectedMode, setDetectedMode] = useState<LoginMode>('user');
@@ -143,22 +146,49 @@ export default function Login() {
   };
 
   // Handle form submission - use mutation directly to get server response
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     nudgeAmbient('action');
 
-    loginAsync.mutate(
-      { email, password },
-      {
-        onSuccess: (data) => {
-          // Use SERVER-SIDE role for redirect decision (secure)
-          const userRole = data.user?.role;
-          const isAdminUser = userRole && ADMIN_ROLES.includes(userRole);
-          const targetPath = isAdminUser ? '/admin/' : '/';
-          navigate(targetPath, { replace: true });
-        },
+    // Show loading state
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.message || 'Login failed');
       }
-    );
+
+      const data = await response.json();
+      const userData = data.data?.user || data.user;
+      const userRole = userData?.role;
+
+      // Check if admin user
+      if (userRole && ADMIN_ROLES.includes(userRole)) {
+        // Admin users: redirect to admin SPA directly
+        // DO NOT store session in web-react - admin has its own session
+        toast.success(t('auth.loginSuccess', 'Login successful'));
+        window.location.href = '/admin/dashboard';
+      } else {
+        // Regular users: store session and stay on web-react
+        const login = useAuthStore.getState().login;
+        const tokenData = data.data?.token || data.token || data;
+        login(userData, tokenData.access_token || tokenData.accessToken, tokenData.refresh_token);
+        navigate('/', { replace: true });
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Login failed';
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -418,7 +448,7 @@ export default function Login() {
 
             <motion.button
               type="submit"
-              disabled={isLoggingIn}
+              disabled={isSubmitting}
               whileHover={prefersReducedMotion ? undefined : { y: -1 }}
               whileTap={prefersReducedMotion ? undefined : { scale: 0.985 }}
               className={`w-full py-3.5 rounded-full font-body text-body-sm tracking-[0.15em] uppercase font-medium transition-all duration-300 disabled:opacity-50 cursor-pointer ${
@@ -429,13 +459,13 @@ export default function Login() {
             >
               <AnimatePresence mode="wait">
                 <motion.span
-                  key={detectedMode + (isLoggingIn ? '-loading' : '')}
+                  key={detectedMode + (isSubmitting ? '-loading' : '')}
                   initial={{ opacity: 0, y: 4 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -4 }}
                   transition={{ duration: 0.15 }}
                 >
-                  {isLoggingIn
+                  {isSubmitting
                     ? t('login.submitting')
                     : detectedMode === 'admin'
                       ? 'Access Admin'
