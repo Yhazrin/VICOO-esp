@@ -11,16 +11,16 @@ import BleedTitleBlock from '@/components/editorial/BleedTitleBlock';
 import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
 import DonationPanel from '@/components/editorial/DonationPanel';
-import ArtworkCard from '@/components/editorial/ArtworkCard';
+import ProductCard from '@/components/editorial/ProductCard';
 import WelfareTraceabilitySustainabilityPanel from '@/components/editorial/WelfareTraceabilitySustainabilityPanel';
 import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import { campaignsApi } from '@/services/campaigns';
 import { getLocalizedCampaignCopy } from '@/utils/campaignLocale';
-import { artworksApi } from '@/services/artworks';
+import { productsApi } from '@/services/products';
 import { donationsApi } from '@/services/donations';
 import { invokeWechatPayment } from '@/utils/payment';
 import { useAuthStore } from '@/stores/authStore';
-import type { Campaign } from '@/types';
+import type { Campaign, Product } from '@/types';
 
 export default function CampaignDetail() {
   const { id } = useParams<{ id: string }>();
@@ -57,9 +57,16 @@ export default function CampaignDetail() {
     return () => { cancelled = true; };
   }, [id]);
 
-  const { data: campaignArtworks } = useQuery({
-    queryKey: ['campaign-artworks', id],
-    queryFn: () => artworksApi.getByCampaign(id!),
+  const { data: campaignProducts } = useQuery({
+    queryKey: ['campaign-products', id, i18n.language],
+    queryFn: () =>
+      productsApi.getAll({
+        page: 1,
+        page_size: 24,
+        isImpactProduct: true,
+        campaignId: Number(id),
+        locale: i18n.language,
+      }),
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
   });
@@ -146,8 +153,39 @@ export default function CampaignDetail() {
   const progress = campaign.goalAmount > 0
     ? Math.round((campaign.raisedAmount / campaign.goalAmount) * 100)
     : 0;
+  const progressValue = Math.min(100, Math.max(0, progress));
+  const locale = i18n.language || 'en';
+  const formatCurrency = (amount: number) => new Intl.NumberFormat(locale).format(amount);
+  const formatDate = (value?: string) => {
+    if (!value) return t('campaigns.detail.dateTbd', 'To be announced');
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return value;
+    return new Intl.DateTimeFormat(locale, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    }).format(parsed);
+  };
 
   const copy = getLocalizedCampaignCopy(campaign, t, i18n);
+  const snapshotItems = [
+    {
+      label: t('campaigns.detail.startDate', 'Start date'),
+      value: formatDate(campaign.startDate),
+    },
+    {
+      label: t('campaigns.detail.endDate', 'End date'),
+      value: formatDate(campaign.endDate),
+    },
+    {
+      label: t('campaigns.detail.participants', 'Participants'),
+      value: `${campaign.participantCount}`,
+    },
+    {
+      label: t('campaigns.detail.artworks', 'Campaign Artworks'),
+      value: `${campaign.artworkCount}`,
+    },
+  ];
 
   return (
     <PageWrapper>
@@ -216,9 +254,8 @@ export default function CampaignDetail() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
-            {/* Main column — grows with content so it balances the donate sidebar */}
-            <div className="lg:col-span-8 order-2 lg:order-1 space-y-10 md:space-y-12">
-              <div>
+            <div className="lg:col-span-7 order-2 lg:order-1 space-y-8 md:space-y-10">
+              <div className="border border-warm-gray/30 bg-paper/75 p-6 md:p-8 min-h-[220px]">
                 <h2 className="font-display text-h3 font-bold text-ink mb-6">
                   {t('campaigns.detail.about')}
                 </h2>
@@ -227,62 +264,48 @@ export default function CampaignDetail() {
                 </p>
               </div>
 
-              {campaign.featuredChild ? (
-                <StoryQuoteBlock
-                  quote={campaign.featuredChild.quote}
-                  author={`${campaign.featuredChild.name}, ${t('impactShop.age', { age: campaign.featuredChild.age })}`}
-                  role={t('campaigns.detail.quoteRole', 'Guizhou')}
-                />
-              ) : (
-                <StoryQuoteBlock
-                  quote={t('campaigns.detail.quote', 'I drew a dress that makes rain sounds when you walk. That way, everyone knows you\'re coming.')}
-                  author={t('campaigns.detail.quoteAuthor', 'Mei, age 8')}
-                  role={t('campaigns.detail.quoteRole', 'Guizhou')}
-                />
-              )}
-
-              <WelfareTraceabilitySustainabilityPanel
-                sustainability={{
-                  eyebrow: campaign.sustainabilityEyebrow,
-                  title: campaign.sustainabilityTitle,
-                  subtitle: campaign.sustainabilitySubtitle,
-                  p1Title: campaign.sustainabilityP1Title,
-                  p1Body: campaign.sustainabilityP1Body,
-                  p2Title: campaign.sustainabilityP2Title,
-                  p2Body: campaign.sustainabilityP2Body,
-                  p3Title: campaign.sustainabilityP3Title,
-                  p3Body: campaign.sustainabilityP3Body,
-                  p4Title: campaign.sustainabilityP4Title,
-                  p4Body: campaign.sustainabilityP4Body,
-                  footnote: campaign.sustainabilityFootnote,
-                  ctaTraceability: campaign.sustainabilityCtaTraceability,
-                  ctaShop: campaign.sustainabilityCtaShop,
-                }}
-              />
-
-              {(campaignArtworks ?? []).length > 0 && (
-                <div className="pt-2 border-t border-warm-gray/25">
-                  <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-6">
-                    <h2 className="font-display text-h3 font-bold text-ink">
-                      {t('campaigns.detail.artworks')}
-                    </h2>
-                    <p className="font-body text-caption text-sepia-mid tracking-wider">
-                      {(campaignArtworks ?? []).length} {t('campaigns.detail.artworks')}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+                {snapshotItems.map((item) => (
+                  <div
+                    key={item.label}
+                    className="border border-warm-gray/25 bg-aged-stock/70 p-5 min-h-[156px] flex flex-col justify-between"
+                  >
+                    <p className="font-body text-overline tracking-[0.18em] uppercase text-sepia-mid">
+                      {item.label}
+                    </p>
+                    <p className="font-display text-xl md:text-2xl font-bold text-ink leading-snug mt-5">
+                      {item.value}
                     </p>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-5">
-                    {(campaignArtworks ?? []).map((artwork, index) => (
-                      <ArtworkCard key={artwork.id} artwork={artwork} index={index} />
-                    ))}
-                  </div>
-                </div>
-              )}
+                ))}
+              </div>
+
+              <div className="border border-warm-gray/25 bg-aged-stock/45 p-6 md:p-8 min-h-[360px] flex flex-col justify-center">
+                <p className="font-body text-overline tracking-[0.18em] uppercase text-sepia-mid mb-5">
+                  {t('campaigns.detail.voiceEyebrow', 'Voice from the campaign')}
+                </p>
+                {campaign.featuredChild ? (
+                  <StoryQuoteBlock
+                    variant="strip"
+                    quote={campaign.featuredChild.quote}
+                    author={`${campaign.featuredChild.name}, ${t('impactShop.age', { age: campaign.featuredChild.age })}`}
+                    role={t('campaigns.detail.quoteRole', 'Guizhou')}
+                    className="w-full pt-6 md:pt-8 pb-0 border-t border-warm-gray/25"
+                  />
+                ) : (
+                  <StoryQuoteBlock
+                    variant="strip"
+                    quote={t('campaigns.detail.quote', 'I drew a dress that makes rain sounds when you walk. That way, everyone knows you\'re coming.')}
+                    author={t('campaigns.detail.quoteAuthor', 'Mei, age 8')}
+                    role={t('campaigns.detail.quoteRole', 'Guizhou')}
+                    className="w-full pt-6 md:pt-8 pb-0 border-t border-warm-gray/25"
+                  />
+                )}
+              </div>
             </div>
 
-            {/* Sidebar — progress + donate */}
-            <div className="lg:col-span-4 order-1 lg:order-2">
+            <div className="lg:col-span-5 order-1 lg:order-2">
               <div className="lg:sticky lg:top-24 space-y-6">
-                {/* Progress — desktop */}
                 <div className="hidden lg:block border border-warm-gray/30 p-6">
                   <p className="font-body text-overline tracking-[0.2em] uppercase text-sepia-mid mb-4">
                     {t('campaigns.detail.progress')}
@@ -291,9 +314,9 @@ export default function CampaignDetail() {
                     <span className="font-display text-4xl font-bold text-ink">{progress}%</span>
                     {campaign.goalAmount > 0 && (
                       <span className="font-body text-caption text-sepia-mid text-right leading-snug">
-                        ¥{campaign.raisedAmount.toLocaleString()}
+                        ¥{formatCurrency(campaign.raisedAmount)}
                         <span className="block text-ink-faded/80">
-                          / ¥{campaign.goalAmount.toLocaleString()}
+                          / ¥{formatCurrency(campaign.goalAmount)}
                         </span>
                       </span>
                     )}
@@ -307,9 +330,9 @@ export default function CampaignDetail() {
                     className="w-full h-1.5 bg-warm-gray/30 rounded-sm overflow-hidden mb-6"
                   >
                     <motion.div
-                      {...(prefersReducedMotion ? { style: { transform: `scaleX(${progress / 100})` } } : {
+                      {...(prefersReducedMotion ? { style: { transform: `scaleX(${progressValue / 100})` } } : {
                         initial: { scaleX: 0 },
-                        animate: { scaleX: progress / 100 },
+                        animate: { scaleX: progressValue / 100 },
                         transition: { duration: 1.2, ease: 'easeOut' },
                       })}
                       className="h-full origin-left bg-rust rounded-sm"
@@ -331,7 +354,6 @@ export default function CampaignDetail() {
                   </div>
                 </div>
 
-                {/* Donation */}
                 <div className="border border-warm-gray/30 p-5 md:p-6 bg-paper/60">
                   <h3 className="font-body text-caption tracking-[0.15em] uppercase text-sepia-mid mb-4">
                     {t('campaigns.detail.donate')}
@@ -343,6 +365,56 @@ export default function CampaignDetail() {
                 </div>
               </div>
             </div>
+          </div>
+
+          <div className="mt-12 md:mt-16 space-y-12 md:space-y-14">
+            <WelfareTraceabilitySustainabilityPanel
+              sustainability={{
+                eyebrow: campaign.sustainabilityEyebrow,
+                title: campaign.sustainabilityTitle,
+                subtitle: campaign.sustainabilitySubtitle,
+                p1Title: campaign.sustainabilityP1Title,
+                p1Body: campaign.sustainabilityP1Body,
+                p2Title: campaign.sustainabilityP2Title,
+                p2Body: campaign.sustainabilityP2Body,
+                p3Title: campaign.sustainabilityP3Title,
+                p3Body: campaign.sustainabilityP3Body,
+                p4Title: campaign.sustainabilityP4Title,
+                p4Body: campaign.sustainabilityP4Body,
+                footnote: campaign.sustainabilityFootnote,
+                ctaTraceability: campaign.sustainabilityCtaTraceability,
+                ctaShop: campaign.sustainabilityCtaShop,
+              }}
+            />
+
+            {(campaignProducts?.items ?? []).length > 0 && (
+              <div className="pt-2 border-t border-warm-gray/25">
+                <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-7">
+                  <div>
+                    <p className="font-body text-overline tracking-[0.22em] uppercase text-sepia-mid mb-2">
+                      {t('campaigns.detail.productsEyebrow', 'Impact collection')}
+                    </p>
+                    <h2 className="font-display text-h3 font-bold text-ink">
+                      {t('campaigns.detail.products', '公益产品')}
+                    </h2>
+                  </div>
+                  <p className="font-body text-caption text-sepia-mid tracking-wider">
+                    {campaignProducts?.items.length}{' '}
+                    {t('campaigns.detail.products', '公益产品')}
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
+                  {campaignProducts?.items.map((product: Product, index: number) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      index={index}
+                      detailContext="impact"
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </SectionContainer>
       </PaperTextureBackground>

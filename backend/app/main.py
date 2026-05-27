@@ -57,6 +57,15 @@ async def lifespan(app: FastAPI):
     except Exception:
         logger.warning("Artwork asset seed failed (non-critical)", exc_info=True)
 
+    # Bind demo campaigns to local /static/campaigns/* and expand catalog to 8 themes
+    try:
+        from app.seed_campaign_assets import maybe_seed_campaign_assets
+
+        if await maybe_seed_campaign_assets():
+            logger.info("Campaign static asset seed applied.")
+    except Exception:
+        logger.warning("Campaign asset seed failed (non-critical)", exc_info=True)
+
     # Backfill product i18n fields on every startup (idempotent — only updates rows where name_en is null)
     try:
         from app.backfill_product_i18n import run as backfill_i18n

@@ -25,7 +25,7 @@ def artwork_thumb_url(seq: int) -> str:
 
 
 # child_index: index into seed child_participants list (0–9)
-# campaign_index: index into seed campaigns (0–2), or None
+# campaign_index: index into seed campaigns (0–7), or None
 ARTWORK_CATALOG: list[dict[str, Any]] = [
     {
         "seq": 1,
