@@ -2676,3 +2676,11 @@ _Round 2: No new fixes needed. All core flows verified via API._
 - **Change**: Moved `secrets` and `asyncio` imports to module top. Removed redundant `import json as _json` (already imported). Moved `send_welcome_email` to module top (no circular import risk).
 - **Verification**: All imports at module level; no circular import issues
 - **New issues**: None
+
+## Fix 320 — Missing Alembic migration for 7 index additions from Fixes 292-295
+- **Date**: 2026-05-27 (Round 88)
+- **Files**: `backend/alembic/versions/m3n4o5p6q7r8_add_missing_column_indexes.py`
+- **Reason**: P2: Fixes 292-295 added `index=True` to 7 model columns (Product.status, User.role, PaymentTransaction.status, ChildParticipant.status, EditorialArticle.category, Donation.payment_method, AfterSaleTicket.category) but no Alembic migration was created. The indexes exist in model definitions but not in the database.
+- **Change**: Created migration `m3n4o5p6q7r8` that creates all 7 indexes with proper downgrade support.
+- **Verification**: `alembic upgrade head` will apply all missing indexes
+- **New issues**: None
