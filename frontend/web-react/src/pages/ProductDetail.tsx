@@ -239,7 +239,7 @@ export default function ProductDetail() {
   if (loading || !product) {
     if (isImpactProductDetail && impactHeroPreview && id) {
       return (
-        <PageWrapper>
+        <PageWrapper className="-mt-[4.25rem] md:-mt-24">
           <PaperTextureBackground variant="paper" className="pt-0 pb-16 md:pb-24">
             <SectionContainer>
               <div className="grid grid-cols-1 md:grid-cols-12 gap-14 md:gap-20 lg:gap-24 items-start">
@@ -276,7 +276,7 @@ export default function ProductDetail() {
   }
 
   return (
-    <PageWrapper>
+    <PageWrapper className="-mt-[4.25rem] md:-mt-24">
       {/* Product section */}
       <PaperTextureBackground variant="paper" className="pt-0 pb-16 md:pb-24">
         <SectionContainer>
