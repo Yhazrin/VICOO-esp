@@ -333,6 +333,7 @@ def _get_impact_products_data(campaign_ids: list[int]) -> list[dict]:
 async def _upsert_supply_chain(session: AsyncSession, product_ids: list[int]) -> None:
     """Upsert supply chain records for impact products."""
     from sqlalchemy import select
+    from app.data.rainbow_fish_supply_gallery import rainbow_fish_gallery_json
 
     if len(product_ids) < 2:
         return
@@ -350,34 +351,39 @@ async def _upsert_supply_chain(session: AsyncSession, product_ids: list[int]) ->
          "description": "有机棉来自新疆阿克苏有机棉田，GOTS 认证",
          "description_en": "GOTS-certified organic cotton from Aksu, Xinjiang",
          "location": "新疆阿克苏", "location_en": "Aksu, Xinjiang",
-         "latitude": 41.17, "longitude": 80.26, "certified": True},
+         "latitude": 41.17, "longitude": 80.26, "certified": True,
+         "gallery_json": rainbow_fish_gallery_json("material_sourcing")},
         {"product_id": product_ids[0], "stage": "processing",
          "description": "纱线纺织与面料染色，使用植物染料，无有害化学品",
          "description_en": "Spinning, weaving and fabric dyeing using plant-based dyes, free from harmful chemicals",
          "location": "浙江绍兴", "location_en": "Shaoxing, Zhejiang",
-         "latitude": 30.0, "longitude": 120.58, "certified": True},
+         "latitude": 30.0, "longitude": 120.58, "certified": True,
+         "gallery_json": rainbow_fish_gallery_json("processing")},
         {"product_id": product_ids[0], "stage": "manufacturing",
          "description": "成衣裁剪与缝制，ISO 9001 质量管理体系工厂",
          "description_en": "Garment cutting and sewing at ISO 9001 certified factory",
          "location": "广东深圳", "location_en": "Shenzhen, Guangdong",
-         "latitude": 22.55, "longitude": 114.05, "certified": True},
+         "latitude": 22.55, "longitude": 114.05, "certified": True,
+         "gallery_json": rainbow_fish_gallery_json("manufacturing")},
         {"product_id": product_ids[0], "stage": "quality_check",
          "description": "成品质量检验，甲醛含量、色牢度等 12 项指标检测",
          "description_en": "Finished product quality inspection: formaldehyde content, colour fastness and 12 other indicators",
          "location": "广东深圳", "location_en": "Shenzhen, Guangdong",
-         "latitude": 22.55, "longitude": 114.08, "certified": True},
+         "latitude": 22.55, "longitude": 114.08, "certified": True,
+         "gallery_json": rainbow_fish_gallery_json("quality_check")},
         {"product_id": product_ids[0], "stage": "shipping",
          "description": "使用可降解包装材料，碳中和物流",
          "description_en": "Biodegradable packaging materials, carbon-neutral logistics",
          "location": "全国配送", "location_en": "Nationwide delivery",
-         "latitude": 35.86, "longitude": 104.2, "certified": False},
+         "latitude": 35.86, "longitude": 104.2, "certified": False,
+         "gallery_json": rainbow_fish_gallery_json("shipping")},
     ]
 
     for rec_data in first_product_records:
         key = (rec_data["product_id"], rec_data["stage"])
         existing = existing_records.get(key)
         if existing:
-            for field in ["description", "description_en", "location", "location_en"]:
+            for field in ["description", "description_en", "location", "location_en", "gallery_json"]:
                 if rec_data.get(field) is not None:
                     setattr(existing, field, rec_data[field])
             updated += 1
