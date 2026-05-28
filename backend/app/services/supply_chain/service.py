@@ -2,8 +2,7 @@ import json
 import logging
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import select, func
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from app.models.supply_chain import SupplyChainRecord
 from app.services.base import BaseService
@@ -41,7 +40,9 @@ class SupplyChainService(BaseService):
                 "id": r.id,
                 "stage": r.stage,
                 "description": r.description,
+                "description_en": getattr(r, "description_en", None),
                 "location": r.location,
+                "location_en": getattr(r, "location_en", None),
                 "timestamp": r.timestamp.isoformat() if r.timestamp else None,
                 "certified": r.certified,
                 "cert_image_url": r.cert_image_url,

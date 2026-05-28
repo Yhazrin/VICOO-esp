@@ -32,10 +32,17 @@ def localize_artwork_dict(d: dict[str, Any], locale: str) -> dict[str, Any]:
 
 def localize_supply_chain_row(row: dict[str, Any], product_name: str, locale: str) -> dict[str, Any]:
     out = dict(row)
-    if normalize_locale(locale) != "en":
-        return out
+    # Always pass through raw *_en fields so frontend can use them
     stage = str(out.get("stage") or "").strip()
     m = SUPPLY_CHAIN_I18N_BY_PRODUCT.get(product_name.strip(), {}).get(stage, {})
+    if m.get("description_en"):
+        out["description_en"] = m["description_en"]
+    if m.get("location_en"):
+        out["location_en"] = m["location_en"]
+    if m.get("carbon_note_en"):
+        out["carbon_note_en"] = m["carbon_note_en"]
+    if normalize_locale(locale) != "en":
+        return out
     if m.get("description_en"):
         out["description"] = m["description_en"]
     if m.get("location_en"):

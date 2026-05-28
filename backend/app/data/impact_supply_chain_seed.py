@@ -72,7 +72,11 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
             product_id=pid,
             stage="material_sourcing",
             description=f"GRS 认证再生棉帆布坯布，宁波港集港；{_TRACE_NOTE_ZH}",
-            description_en=f"GRS-certified recycled cotton canvas greige, collected at Ningbo port; {_TRACE_NOTE_EN}",
+            description_en=(
+                "GRS-certified recycled cotton canvas greige, collected at Ningbo port; "
+                "Needle detection, colour fastness and sewing tolerances aligned with Japanese quality benchmarks; "
+                "full batch traceability from raw material to finished garment, mirroring the common Uniqlo supply chain model of 'Made in China + Japanese standards'."
+            ),
             location="浙江宁波",
             location_en="Ningbo, Zhejiang",
             lat=29.87,
