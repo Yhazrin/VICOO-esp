@@ -136,12 +136,22 @@ export default function ArtworkPage() {
     {
       key: 'title',
       title: t('artwork.colWorkTitle'),
-      minWidth: 180,
+      minWidth: 200,
       sorter: true,
-      render: (v) => (
-        <span className="table-text-truncate" style={{ maxWidth: 180, fontWeight: 500 }}>
-          <SafeText text={v} />
-        </span>
+      render: (v: string, record: Artwork) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {record.imageUrl && (
+            <img
+              src={record.imageUrl}
+              alt={v}
+              style={{ width: 36, height: 36, borderRadius: 6, objectFit: 'cover', flexShrink: 0, border: '1px solid var(--color-border)' }}
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
+          )}
+          <span className="table-text-truncate" style={{ maxWidth: 180, fontWeight: 600 }}>
+            <SafeText text={v} />
+          </span>
+        </div>
       ),
     },
     { key: 'childName', title: t('artwork.colArtist'), width: 100 },

@@ -146,7 +146,22 @@ export default function CampaignPage() {
   };
 
   const columns: Column<Campaign>[] = [
-    { key: 'title', title: t('campaign.colCampaignName'), sorter: true, render: (v) => <span className="table-text-bold">{v}</span> },
+    {
+      key: 'title', title: t('campaign.colCampaignName'), sorter: true,
+      render: (v: string, record: Campaign) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {record.coverImage && (
+            <img
+              src={record.coverImage}
+              alt={v}
+              style={{ width: 36, height: 36, borderRadius: 6, objectFit: 'cover', flexShrink: 0, border: '1px solid var(--color-border)' }}
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
+          )}
+          <span className="table-text-bold">{v}</span>
+        </div>
+      ),
+    },
     { key: 'status', title: t('campaign.colStatus'), width: 100, render: (v) => <StatusBadge status={v} context="campaign" /> },
     { key: 'targetAmount', title: t('campaign.colTargetAmount'), width: 120, render: (v) => <span className="table-text-mono">¥{v.toLocaleString('zh-CN')}</span> },
     { key: 'raisedAmount', title: t('campaign.colRaisedAmount'), width: 120, render: (v) => (

@@ -88,8 +88,18 @@ export default function OrderPage() {
   const columns: Column<Order>[] = [
     { key: 'orderNo', title: t('order.colOrderNo'), width: 130, sorter: true },
     { key: 'userName', title: t('order.colUser'), width: 100 },
-    { key: 'items', title: t('order.colProduct'), width: 200, render: (items: Order['items']) => (
-      <span className="table-text-truncate">{items.map((i) => `${i.productName} x${i.quantity}`).join(', ')}</span>
+    { key: 'items', title: t('order.colProduct'), width: 220, render: (items: Order['items']) => (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        {items[0]?.imageUrl && (
+          <img
+            src={items[0].imageUrl}
+            alt={items[0].productName}
+            style={{ width: 28, height: 28, borderRadius: 4, objectFit: 'cover', flexShrink: 0, border: '1px solid var(--color-border)' }}
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+          />
+        )}
+        <span className="table-text-truncate">{items.map((i) => `${i.productName} x${i.quantity}`).join(', ')}</span>
+      </div>
     )},
     { key: 'totalAmount', title: t('order.colAmount'), width: 100, sorter: true, render: (v) => (
       <span className="table-text-mono">¥{Number(v).toLocaleString('zh-CN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span>
@@ -199,8 +209,16 @@ export default function OrderPage() {
               <span className="modal-detail-label">{t('order.detailItemsLabel')}</span>
               <div className="modal-items">
                 {selectedOrder.items.map((item, i) => (
-                  <div key={i} className="modal-item-row">
-                    <span>{item.productName} x{item.quantity}</span>
+                  <div key={i} className="modal-item-row" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    {item.imageUrl && (
+                      <img
+                        src={item.imageUrl}
+                        alt={item.productName}
+                        style={{ width: 36, height: 36, borderRadius: 6, objectFit: 'cover', flexShrink: 0, border: '1px solid var(--color-border)' }}
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      />
+                    )}
+                    <span style={{ flex: 1 }}>{item.productName} x{item.quantity}</span>
                     <span>¥{(item.price * item.quantity).toLocaleString('zh-CN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span>
                   </div>
                 ))}

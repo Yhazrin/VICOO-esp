@@ -88,7 +88,7 @@ _mock_artworks = [
 @router.get("", response_model=PaginatedResponse)
 async def list_artworks(
     page: int = Query(1, ge=1),
-    page_size: int = Query(20, ge=1, le=100),
+    page_size: int = Query(20, ge=1, le=500),
     status: str | None = Query(None),
     campaign_id: int | None = Query(None),
     search: str | None = Query(None),

@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
@@ -17,6 +17,8 @@ import { donationsApi } from '@/services/donations';
 import { clothingIntakesApi, type ClothingIntake } from '@/services/clothingIntakes';
 import { afterSalesApi, type AfterSaleTicket } from '@/services/afterSales';
 import { addressesApi, type Address, type AddressCreateData } from '@/services/addresses';
+import { reviewsApi } from '@/services/reviewsApi';
+import { serializeReviewBody, FEEDBACK_CHIP_IDS, type FeedbackChipId } from '@/utils/reviewChips';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'text-sepia-mid',
@@ -49,7 +51,17 @@ export default function Profile() {
   const { user, isAuthenticated } = useAuthStore();
   const { logout } = useAuth();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<TabKey>('orders');
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState<TabKey>(
+    (searchParams.get('tab') as TabKey) || 'orders'
+  );
+
+  useEffect(() => {
+    const tab = searchParams.get('tab') as TabKey;
+    if (tab && ['orders', 'donations', 'clothing', 'support', 'addresses'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   // Order filters
   const [orderStatus, setOrderStatus] = useState('');
@@ -66,6 +78,45 @@ export default function Profile() {
   // Inline error message for user feedback
   const [errorMessage, setErrorMessage] = useState('');
   const [cancellingOrderId, setCancellingOrderId] = useState<number | null>(null);
+
+  // Review modal state
+  const [reviewOrder, setReviewOrder] = useState<OrderDetail | null>(null);
+  const [reviewProductId, setReviewProductId] = useState<number | null>(null);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewTitle, setReviewTitle] = useState('');
+  const [reviewBody, setReviewBody] = useState('');
+  const [reviewChips, setReviewChips] = useState<FeedbackChipId[]>([]);
+  const [reviewImages, setReviewImages] = useState<string[]>([]);
+  const [reviewSuccess, setReviewSuccess] = useState(false);
+
+  const reviewMutation = useMutation({
+    mutationFn: () =>
+      reviewsApi.create({
+        product_id: reviewProductId!,
+        rating: reviewRating,
+        title: reviewTitle.trim() || undefined,
+        body: serializeReviewBody(reviewBody, reviewChips),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reviews'] });
+      setReviewSuccess(true);
+      setTimeout(() => {
+        setReviewOrder(null);
+        setReviewSuccess(false);
+        setReviewRating(5);
+        setReviewTitle('');
+        setReviewBody('');
+        setReviewChips([]);
+        setReviewImages([]);
+      }, 1500);
+    },
+  });
+
+  const toggleReviewChip = (id: FeedbackChipId) => {
+    setReviewChips((prev) =>
+      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id],
+    );
+  };
 
   const tabs: TabKey[] = ['orders', 'donations', 'clothing', 'support', 'addresses'];
 
@@ -495,6 +546,20 @@ export default function Profile() {
                               {cancellingOrderId === order.id ? t('common.loading', '处理中...') : t('profile.cancelOrder', '取消订单')}
                             </button>
                           )}
+                          {order.status === 'completed' && order.items?.length > 0 && (
+                            <button
+                              onClick={() => {
+                                setReviewOrder(order);
+                                setReviewProductId(Number(order.items[0].product_id));
+                              }}
+                              className="font-body text-caption text-sage hover:text-ink transition-colors cursor-pointer flex items-center gap-1"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                              </svg>
+                              {t('profile.writeReview', '评价')}
+                            </button>
+                          )}
                           <Link
                             to={`/orders/${order.id}`}
                             className="font-body text-overline tracking-[0.1em] uppercase text-rust hover:text-rust-light transition-colors"
@@ -780,6 +845,221 @@ export default function Profile() {
           )}
         </SectionContainer>
       </PaperTextureBackground>
+
+      {/* Review Modal */}
+      <AnimatePresence>
+        {reviewOrder && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            onClick={() => { setReviewOrder(null); setReviewSuccess(false); }}
+          >
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2 }}
+              className="relative bg-paper rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="sticky top-0 bg-paper/95 backdrop-blur-sm border-b border-warm-gray/20 px-6 py-4 flex items-center justify-between z-10">
+                <h3 className="font-display text-lg font-semibold text-ink">
+                  {t('shop.detail.writeReview', '写评价')}
+                </h3>
+                <button
+                  onClick={() => { setReviewOrder(null); setReviewSuccess(false); }}
+                  className="p-1 hover:bg-warm-gray/20 rounded-full transition-colors cursor-pointer"
+                >
+                  <svg className="w-5 h-5 text-sepia-mid" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {reviewSuccess ? (
+                <div className="p-10 text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-sage/10 flex items-center justify-center">
+                    <svg className="w-8 h-8 text-sage" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <p className="font-display text-lg font-medium text-ink">{t('shop.detail.reviewSuccess', '感谢您的评价！')}</p>
+                </div>
+              ) : (
+                <div className="p-6 space-y-5">
+                  {/* Product selector if multiple items */}
+                  {reviewOrder.items.length > 1 && (
+                    <div>
+                      <p className="font-body text-[11px] tracking-[0.08em] uppercase text-neutral-500 mb-2">
+                        {t('profile.review.selectProduct', '选择要评价的商品')}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {reviewOrder.items.map((item) => (
+                          <button
+                            key={item.product_id}
+                            onClick={() => setReviewProductId(Number(item.product_id))}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all cursor-pointer ${
+                              reviewProductId === Number(item.product_id)
+                                ? 'border-ink bg-ink/5'
+                                : 'border-warm-gray/30 hover:border-warm-gray/50'
+                            }`}
+                          >
+                            {item.product_image && (
+                              <img src={item.product_image} alt="" className="w-6 h-6 rounded object-cover" />
+                            )}
+                            <span className="font-body text-xs text-ink truncate max-w-[120px]">{item.product_name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Star rating */}
+                  <div>
+                    <p className="font-body text-[11px] tracking-[0.08em] uppercase text-neutral-500 mb-2">
+                      {t('shop.detail.rating', '评分')}
+                    </p>
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          onClick={() => setReviewRating(star)}
+                          onMouseEnter={(e) => (e.currentTarget.style.color = '#1A1A16')}
+                          onMouseLeave={(e) => (e.currentTarget.style.color = '')}
+                          className={`p-1 transition-colors cursor-pointer ${
+                            star <= reviewRating ? 'text-neutral-900' : 'text-neutral-300'
+                          }`}
+                        >
+                          <svg viewBox="0 0 20 20" className="h-6 w-6" aria-hidden="true">
+                            <path
+                              fill={star <= reviewRating ? 'currentColor' : 'none'}
+                              stroke="currentColor"
+                              strokeWidth="1.2"
+                              d="M10 1.5l2.35 4.76 5.25.76-3.8 3.7.9 5.23L10 13.9l-4.7 2.05.9-5.23-3.8-3.7 5.25-.76L10 1.5z"
+                            />
+                          </svg>
+                        </button>
+                      ))}
+                      <span className="ml-2 font-mono text-sm text-neutral-500">{reviewRating}.0</span>
+                    </div>
+                  </div>
+
+                  {/* Title */}
+                  <div>
+                    <label className="block font-body text-[11px] tracking-[0.08em] uppercase text-neutral-500 mb-2">
+                      {t('shop.detail.reviewTitleLabel', '标题')}
+                    </label>
+                    <input
+                      value={reviewTitle}
+                      onChange={(e) => setReviewTitle(e.target.value)}
+                      placeholder={t('shop.detail.reviewTitlePlaceholder', '一句话概括')}
+                      className="w-full rounded-xl border border-[#E5E5E5] bg-white/90 px-4 py-3 font-body text-sm text-ink placeholder:text-neutral-400 outline-none focus:border-neutral-500 transition-colors"
+                    />
+                  </div>
+
+                  {/* Body */}
+                  <div>
+                    <label className="block font-body text-[11px] tracking-[0.08em] uppercase text-neutral-500 mb-2">
+                      {t('shop.detail.reviewBodyLabel', '详细评价')}
+                    </label>
+                    <textarea
+                      value={reviewBody}
+                      onChange={(e) => setReviewBody(e.target.value)}
+                      placeholder={t('shop.detail.reviewBodyPlaceholder', '分享您的使用体验...')}
+                      className="w-full rounded-xl border border-[#E5E5E5] bg-white/90 px-4 py-3 font-body text-sm text-ink placeholder:text-neutral-400 outline-none focus:border-neutral-500 transition-colors min-h-[100px] resize-y"
+                    />
+                  </div>
+
+                  {/* Feedback chips */}
+                  <div>
+                    <p className="font-body text-[11px] tracking-[0.08em] uppercase text-neutral-500 mb-2">
+                      {t('shop.detail.reviewChipsLabel', '标签')}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {FEEDBACK_CHIP_IDS.map((id) => {
+                        const active = reviewChips.includes(id);
+                        return (
+                          <button
+                            key={id}
+                            onClick={() => toggleReviewChip(id)}
+                            className={`rounded-full border px-3 py-1.5 font-body text-xs transition-all cursor-pointer ${
+                              active
+                                ? 'border-neutral-800 bg-neutral-900 text-white'
+                                : 'border-[#E5E5E5] bg-white text-neutral-600 hover:border-neutral-400'
+                            }`}
+                          >
+                            {t(`shop.detail.reviewChips.${id}`)}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Image upload placeholder */}
+                  <div>
+                    <p className="font-body text-[11px] tracking-[0.08em] uppercase text-neutral-500 mb-2">
+                      {t('profile.review.photos', '晒图（可选）')}
+                    </p>
+                    <div className="flex gap-2">
+                      <label className="w-16 h-16 rounded-lg border-2 border-dashed border-warm-gray/40 flex items-center justify-center cursor-pointer hover:border-warm-gray/60 transition-colors">
+                        <svg className="w-5 h-5 text-sepia-mid" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
+                        </svg>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          className="hidden"
+                          onChange={(e) => {
+                            const files = e.target.files;
+                            if (!files) return;
+                            const urls = Array.from(files).map((f) => URL.createObjectURL(f));
+                            setReviewImages((prev) => [...prev, ...urls]);
+                          }}
+                        />
+                      </label>
+                      {reviewImages.map((url, i) => (
+                        <div key={i} className="relative w-16 h-16 rounded-lg overflow-hidden border border-warm-gray/20">
+                          <img src={url} alt="" className="w-full h-full object-cover" />
+                          <button
+                            onClick={() => setReviewImages((prev) => prev.filter((_, j) => j !== i))}
+                            className="absolute top-0.5 right-0.5 w-4 h-4 bg-black/60 rounded-full flex items-center justify-center cursor-pointer"
+                          >
+                            <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Submit */}
+                  {reviewMutation.isError && (
+                    <p className="text-sm text-rust font-body" role="alert">
+                      {(reviewMutation.error as { response?: { status?: number } })?.response?.status === 409
+                        ? t('shop.detail.reviewError', '您已评价过该商品')
+                        : t('shop.detail.reviewSubmitFailed', '提交失败，请重试')}
+                    </p>
+                  )}
+
+                  <button
+                    onClick={() => reviewMutation.mutate()}
+                    disabled={reviewMutation.isPending || !reviewProductId}
+                    className="w-full rounded-full bg-neutral-900 px-6 py-3 font-body text-sm font-medium text-white transition-all hover:bg-neutral-800 disabled:opacity-50 cursor-pointer"
+                  >
+                    {reviewMutation.isPending ? t('common.loading', '提交中...') : t('shop.detail.submitReview', '提交评价')}
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </PageWrapper>
   );
 }

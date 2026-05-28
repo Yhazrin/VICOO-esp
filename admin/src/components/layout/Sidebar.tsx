@@ -21,12 +21,14 @@ export default function Sidebar() {
       {/* Header */}
       <div className="sidebar-header">
         <div className="sidebar-brand">
-          <div className="sidebar-logo">
-            <span className="logo-text">V</span>
-          </div>
+          <img
+            src="/vicoo-logo.png"
+            alt="VICOO"
+            className="sidebar-logo-img"
+            style={{ width: collapsed ? 28 : 32, height: collapsed ? 28 : 32, objectFit: 'contain', flexShrink: 0 }}
+          />
           {!collapsed && (
             <div className="sidebar-brand-text">
-              <div className="brand-name">VICOO</div>
               <div className="brand-subtitle">{t('sidebar.systemName')}</div>
             </div>
           )}
