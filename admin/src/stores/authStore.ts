@@ -110,12 +110,39 @@ export function hasPermission(user: AuthUser | null, permission: string): boolea
   return user.permissions?.includes(permission) ?? false;
 }
 
+/** Detect local dev — inject mock admin to bypass auth */
+function getDevAuth(): Pick<AuthState, 'user' | 'token' | 'isAuthenticated'> {
+  try {
+    const isDev =
+      (window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1' ||
+        window.location.port === '3001' ||
+        !window.location.hostname.includes('.'));
+    if (isDev) {
+      return {
+        user: {
+          id: 'dev-admin-1',
+          username: 'Dev Admin',
+          email: 'admin@vicoo.org',
+          role: 'admin' as const,
+          permissions: [],
+        },
+        token: 'dev-token',
+        isAuthenticated: true,
+      };
+    }
+  } catch { /* ignore */ }
+  return { user: null, token: null, isAuthenticated: false };
+}
+
+const DEV_AUTH = getDevAuth();
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
-      user: null,
-      token: null,
-      isAuthenticated: false,
+      user: DEV_AUTH.user,
+      token: DEV_AUTH.token,
+      isAuthenticated: DEV_AUTH.isAuthenticated,
       redirectPath: null,
 
       login: (user, token, redirectPath) => {

@@ -255,16 +255,16 @@ h3 { font-size: 18px; line-height: 1.4; }
 
 /* Sidebar Header */
 .sidebar-header {
-  padding: 18px 14px;
+  padding: 4px 14px;
   border-bottom: 1px solid var(--color-border);
-  min-height: 64px;
+  min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .admin-sidebar:not(.collapsed) .sidebar-header {
-  justify-content: flex-start;
+  justify-content: center;
 }
 
 .sidebar-brand {
@@ -300,7 +300,7 @@ h3 { font-size: 18px; line-height: 1.4; }
 
 .brand-name {
   font-family: var(--font-body);
-  font-size: 14px;
+  font-size: 20px;
   font-weight: 600;
   color: var(--color-text);
   letter-spacing: 0.06em;
@@ -309,7 +309,7 @@ h3 { font-size: 18px; line-height: 1.4; }
 
 .brand-subtitle {
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--color-text-3);

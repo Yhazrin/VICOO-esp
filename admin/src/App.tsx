@@ -32,7 +32,7 @@ function normalizeAdminUser(user: any): AuthUser {
 
 let adminSessionRestorePromise: Promise<{ userData: any; accessToken: string } | null> | null = null;
 
-/** Dev-mode mock admin injected when backend is unavailable */
+/** Dev-mode / static-preview mock admin — injected when backend is unavailable */
 const DEV_MOCK_USER = {
   id: 'dev-admin-1',
   username: 'Dev Admin',
@@ -40,6 +40,21 @@ const DEV_MOCK_USER = {
   role: 'admin' as const,
   permissions: [],
 };
+
+/** Detect local dev or static-file preview (localhost or no network domain) */
+function isLocalPreview() {
+  try {
+    // Use eval to avoid Vite tree-shaking / dead-code elimination of import.meta.env.DEV
+    const isDev = eval('import.meta.env.DEV');
+    if (isDev) return true;
+  } catch { /* ignore */ }
+  return (
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.port === '3001' ||
+    !window.location.hostname.includes('.')
+  );
+}
 
 function loadAdminSession() {
   if (!adminSessionRestorePromise) {
@@ -88,17 +103,21 @@ function loadAdminSession() {
 
 function SessionRestorer({ children }: { children: React.ReactNode }) {
   const location = useLocation();
-  const [restored, setRestored] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  // Sync initial state from store (Zustand rehydrates synchronously from sessionStorage)
+  const storeAuth = useAuthStore.getState();
+  const [restored, setRestored] = useState(isLocalPreview() || storeAuth.isAuthenticated);
+  const [isAuthenticated, setIsAuthenticated] = useState(isLocalPreview() || storeAuth.isAuthenticated);
+  const [isAdmin, setIsAdmin] = useState(
+    isLocalPreview() || (storeAuth.isAuthenticated && hasAdminAccess(storeAuth.user?.role ?? ''))
+  );
   const restoreSession = useAuthStore((s) => s.restoreSession);
   const clearSession = useAuthStore((s) => s.clearSession);
 
   useEffect(() => {
     let cancelled = false;
 
-    // DEV MODE: skip backend session restore entirely, inject mock admin
-    if (import.meta.env.DEV) {
+    // DEV MODE or static preview: skip backend session restore entirely, inject mock admin
+    if (isLocalPreview()) {
       restoreSession(DEV_MOCK_USER, 'dev-token');
       setIsAuthenticated(true);
       setIsAdmin(true);
