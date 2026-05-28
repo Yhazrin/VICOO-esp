@@ -1544,7 +1544,12 @@
     "paymentQRTitle": "微信支付",
     "paymentQRHint": "请扫描下方二维码完成支付",
     "paymentSuccess": "支付成功",
-    "paymentFailed": "支付失败"
+    "paymentFailed": "支付失败",
+    "phoneErrorChina": "请输入有效的11位中国手机号码",
+    "phoneErrorTaiwan": "请输入有效的10位台湾手机号码",
+    "phoneErrorHongKong": "请输入有效的8位香港手机号码",
+    "phoneErrorSingapore": "请输入有效的8位新加坡手机号码",
+    "phoneErrorDefault": "请输入有效的手机号码"
   },
   "submitArtwork": {
     "loginRequired": "请先登录以提交画作",

@@ -33,6 +33,55 @@ interface AddressForm {
   country: string;
 }
 
+// Phone validation by country/region
+function getPhonePattern(country: string): RegExp | null {
+  const patterns: Record<string, RegExp> = {
+    // China (CN) - 11 digits starting with 1
+    'China': /^1[3-9]\d{9}$/,
+    // Taiwan (TW) - 10 digits starting with 09
+    'Taiwan, China': /^09\d{8}$/,
+    // Hong Kong (HK) - 8 digits starting with 5/6/9
+    'Hong Kong': /^[569]\d{7}$/,
+    // Singapore (SG) - 8 digits
+    'Singapore': /^[89]\d{7}$/,
+    // Japan (JP) - 10/11 digits starting with 0
+    'Japan': /^0\d{9,10}$/,
+    // South Korea (KR) - 10/11 digits starting with 01
+    'South Korea': /^01[016789]\d{7,8}$/,
+    // US/CA - 10 digits
+    'United States': /^1?[2-9]\d{9}$/,
+    'Canada': /^1?[2-9]\d{9}$/,
+    // UK - 10/11 digits starting with 7
+    'United Kingdom': /^7[1-9]\d{9}$/,
+    // Germany - 10/11 digits starting with 1
+    'Germany': /^1[1-9]\d{9,10}$/,
+    // France - 10 digits starting with 6/7
+    'France': /^[67]\d{9}$/,
+    // Australia - 9/10 digits starting with 4
+    'Australia': /^4\d{8,9}$/,
+    // Default - require at least 8 digits
+    'default': /^\d{8,15}$/,
+  };
+  return patterns[country] || patterns['default'];
+}
+
+function validatePhone(phone: string, country: string): boolean {
+  if (!phone) return false;
+  const pattern = getPhonePattern(country);
+  return pattern ? pattern.test(phone) : true;
+}
+
+function getPhoneError(country: string, t: (key: string) => string): string {
+  const errorMap: Record<string, string> = {
+    'China': t('checkout.phoneErrorChina'),
+    'Taiwan, China': t('checkout.phoneErrorTaiwan'),
+    'Hong Kong': t('checkout.phoneErrorHongKong'),
+    'Singapore': t('checkout.phoneErrorSingapore'),
+    'default': t('checkout.phoneErrorDefault'),
+  };
+  return errorMap[country] || errorMap['default'];
+}
+
 const STEPS = ['step1', 'step2', 'step3', 'step4'] as const;
 
 const PAYMENT_OPTIONS: { key: PaymentMethod }[] = [
@@ -54,7 +103,7 @@ const COMMON_COUNTRIES = [
   { code: 'CA', name: 'Canada' },
   { code: 'SG', name: 'Singapore' },
   { code: 'HK', name: 'Hong Kong' },
-  { code: 'TW', name: 'Taiwan' },
+  { code: 'TW', name: 'Taiwan, China' },
 ];
 
 export default function Checkout() {
@@ -100,7 +149,7 @@ export default function Checkout() {
     enabled: isAuthenticated,
   });
 
-  const canProceedStep1 = selectedAddressId || (address.recipient_name.trim() && address.phone.trim() && /^1[3-9]\d{9}$/.test(address.phone) && address.detail_address.trim() && address.city.trim() && address.province.trim());
+  const canProceedStep1 = selectedAddressId || (address.recipient_name.trim() && address.phone.trim() && validatePhone(address.phone, address.country) && address.detail_address.trim() && address.city.trim() && address.province.trim());
 
   const selectSavedAddress = (addr: Address) => {
     setSelectedAddressId(addr.id);
@@ -459,8 +508,8 @@ export default function Checkout() {
                           className="w-full px-4 py-3 border border-warm-gray/30 bg-transparent font-body text-body text-ink focus:outline-none focus:border-rust/50 transition-colors"
                           placeholder={t('checkout.phone')}
                         />
-                        {address.phone && !/^1[3-9]\d{9}$/.test(address.phone) && (
-                          <p className="font-body text-caption text-rust mt-1">{t('checkout.phoneError', '请输入有效的11位手机号码')}</p>
+                        {address.phone && !validatePhone(address.phone, address.country) && (
+                          <p className="font-body text-caption text-rust mt-1">{getPhoneError(address.country, t)}</p>
                         )}
                       </div>
                     </div>

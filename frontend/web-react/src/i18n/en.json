@@ -1571,7 +1571,12 @@
     "paymentQRTitle": "WeChat Pay",
     "paymentQRHint": "Scan the QR code below to complete payment",
     "paymentSuccess": "Payment Success",
-    "paymentFailed": "Payment Failed"
+    "paymentFailed": "Payment Failed",
+    "phoneErrorChina": "Please enter a valid 11-digit Chinese mobile number",
+    "phoneErrorTaiwan": "Please enter a valid 10-digit Taiwanese mobile number",
+    "phoneErrorHongKong": "Please enter a valid 8-digit Hong Kong mobile number",
+    "phoneErrorSingapore": "Please enter a valid 8-digit Singapore mobile number",
+    "phoneErrorDefault": "Please enter a valid phone number"
   },
   "submitArtwork": {
     "loginRequired": "Please log in to submit artwork",
