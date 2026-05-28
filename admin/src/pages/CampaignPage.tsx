@@ -87,7 +87,8 @@ const emptyForm = {
 };
 
 export default function CampaignPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isZh = i18n.language === 'zh';
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
@@ -475,17 +476,17 @@ export default function CampaignPage() {
 
       {/* Summary Cards */}
       <div className="dashboard-summary-grid" style={{ marginBottom: 24 }}>
-        <SummaryCard title="Total Campaigns" subtitle="活动总数" icon={ChartIcon}>
-          <MiniStat label="全部活动" value={summaryStats.total} />
-          <MiniStat label="草稿" value={summaryStats.drafts} trend="warning" />
+        <SummaryCard title={isZh ? '活动总数' : 'Total Campaigns'} subtitle={isZh ? '总计' : 'All'} icon={ChartIcon}>
+          <MiniStat label={isZh ? '全部活动' : 'All Campaigns'} value={summaryStats.total} />
+          <MiniStat label={isZh ? '草稿' : 'Drafts'} value={summaryStats.drafts} trend="warning" />
         </SummaryCard>
-        <SummaryCard title="Active" subtitle="进行中" icon={TargetIcon}>
-          <MiniStat label="进行中" value={summaryStats.active} />
-          <MiniStat label="已结束" value={campaigns.filter((c: Campaign) => c.status === 'ended').length} />
+        <SummaryCard title={isZh ? '进行中' : 'Active'} subtitle={isZh ? '活跃' : 'Ongoing'} icon={TargetIcon}>
+          <MiniStat label={isZh ? '进行中' : 'Active'} value={summaryStats.active} />
+          <MiniStat label={isZh ? '已结束' : 'Ended'} value={campaigns.filter((c: Campaign) => c.status === 'ended').length} />
         </SummaryCard>
-        <SummaryCard title="Raised" subtitle="已筹款" icon={MoneyIcon}>
-          <MiniStat label="已筹款" value={`¥${summaryStats.raised.toLocaleString('zh-CN')}`} trend="up" />
-          <MiniStat label="本周新增" value="+¥8,500" change={15} />
+        <SummaryCard title={isZh ? '已筹款' : 'Raised'} subtitle={isZh ? '金额' : 'Amount'} icon={MoneyIcon}>
+          <MiniStat label={isZh ? '已筹款' : 'Raised'} value={`¥${summaryStats.raised.toLocaleString('zh-CN')}`} trend="up" />
+          <MiniStat label={t('common.miniStatWeeklyGrowth')} value="+¥8,500" change={15} />
         </SummaryCard>
       </div>
 

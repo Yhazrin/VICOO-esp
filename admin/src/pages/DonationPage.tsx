@@ -45,7 +45,8 @@ const ChartIcon = (
 );
 
 export default function DonationPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isZh = i18n.language === 'zh';
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
@@ -323,17 +324,17 @@ export default function DonationPage() {
 
       {/* Summary Cards */}
       <div className="dashboard-summary-grid" style={{ marginBottom: 24 }}>
-        <SummaryCard title="Total" subtitle="捐赠总额" icon={HeartIcon}>
-          <MiniStat label="记录数" value={displaySummary.selectionTotal} />
-          <MiniStat label="本周增长" value="+12%" change={12} />
+        <SummaryCard title={isZh ? '总计' : 'Total'} subtitle={isZh ? '捐赠总额' : 'Donations'} icon={HeartIcon}>
+          <MiniStat label={isZh ? '记录数' : 'Records'} value={displaySummary.selectionTotal} />
+          <MiniStat label={t('common.miniStatWeeklyGrowth')} value="+12%" change={12} />
         </SummaryCard>
-        <SummaryCard title="Verified" subtitle="已认证" icon={CheckIcon}>
-          <MiniStat label="已完成" value={displaySummary.completedCount} />
-          <MiniStat label="金额" value={`¥${displaySummary.completedAmount.toLocaleString()}`} />
+        <SummaryCard title={isZh ? '已认证' : 'Verified'} subtitle={isZh ? '完成' : 'Completed'} icon={CheckIcon}>
+          <MiniStat label={isZh ? '已完成' : 'Completed'} value={displaySummary.completedCount} />
+          <MiniStat label={isZh ? '金额' : 'Amount'} value={`¥${displaySummary.completedAmount.toLocaleString()}`} />
         </SummaryCard>
-        <SummaryCard title="Campaigns" subtitle="活动关联" icon={ChartIcon}>
-          <MiniStat label="关联活动" value={filteredData.filter((d) => d.campaignTitle).length} />
-          <MiniStat label="失败记录" value={displaySummary.failedCount} trend="error" />
+        <SummaryCard title={isZh ? '活动' : 'Campaigns'} subtitle={isZh ? '关联' : 'Linked'} icon={ChartIcon}>
+          <MiniStat label={isZh ? '关联活动' : 'Linked'} value={filteredData.filter((d) => d.campaignTitle).length} />
+          <MiniStat label={isZh ? '失败记录' : 'Failed'} value={displaySummary.failedCount} trend="error" />
         </SummaryCard>
       </div>
 

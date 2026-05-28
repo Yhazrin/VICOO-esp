@@ -45,7 +45,8 @@ const CompletedIcon = (
 );
 
 export default function OrderPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isZh = i18n.language === 'zh';
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
@@ -144,17 +145,17 @@ export default function OrderPage() {
 
       {/* Summary Cards */}
       <div className="dashboard-summary-grid" style={{ marginBottom: 24 }}>
-        <SummaryCard title="Total Orders" subtitle="订单总数" icon={OrdersIcon}>
-          <MiniStat label="本周" value={summaryStats.total} change={12} />
-          <MiniStat label="待处理" value={summaryStats.pending} />
+        <SummaryCard title={isZh ? '订单总数' : 'Total Orders'} subtitle={isZh ? '总计' : 'All'} icon={OrdersIcon}>
+          <MiniStat label={t('common.miniStatThisWeek')} value={summaryStats.total} change={12} />
+          <MiniStat label={t('common.miniStatPending')} value={summaryStats.pending} />
         </SummaryCard>
-        <SummaryCard title="Pending" subtitle="待处理" icon={PendingIcon}>
-          <MiniStat label="待发货" value={orders.filter((o: Order) => o.status === 'paid').length} />
-          <MiniStat label="运输中" value={orders.filter((o: Order) => o.status === 'shipped').length} />
+        <SummaryCard title={isZh ? '待处理' : 'Pending'} subtitle={isZh ? '处理中' : 'Processing'} icon={PendingIcon}>
+          <MiniStat label={isZh ? '待发货' : 'To Ship'} value={orders.filter((o: Order) => o.status === 'paid').length} />
+          <MiniStat label={isZh ? '运输中' : 'Shipping'} value={orders.filter((o: Order) => o.status === 'shipped').length} />
         </SummaryCard>
-        <SummaryCard title="Completed" subtitle="已完成" icon={CompletedIcon}>
-          <MiniStat label="已完成" value={summaryStats.completed} />
-          <MiniStat label="取消/退款" value={summaryStats.cancelled} trend="error" />
+        <SummaryCard title={isZh ? '已完成' : 'Completed'} subtitle={isZh ? '完成' : 'Done'} icon={CompletedIcon}>
+          <MiniStat label={isZh ? '已完成' : 'Completed'} value={summaryStats.completed} />
+          <MiniStat label={isZh ? '取消/退款' : 'Cancelled'} value={summaryStats.cancelled} trend="error" />
         </SummaryCard>
       </div>
 

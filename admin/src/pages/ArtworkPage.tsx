@@ -66,7 +66,8 @@ const XIcon = (
 );
 
 export default function ArtworkPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isZh = i18n.language === 'zh';
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
@@ -275,17 +276,17 @@ export default function ArtworkPage() {
 
       {/* Summary Cards */}
       <div className="dashboard-summary-grid" style={{ marginBottom: 24 }}>
-        <SummaryCard title="Total Works" subtitle="作品总数" icon={LayersIcon}>
-          <MiniStat label="全部作品" value={summaryStats.total} />
-          <MiniStat label="本周新增" value={artworks.filter((a: Artwork) => dayjs(a.createdAt).isAfter(dayjs().subtract(7, 'day'))).length} change={8} />
+        <SummaryCard title={isZh ? '作品总数' : 'Total Works'} subtitle={isZh ? '总计' : 'All'} icon={LayersIcon}>
+          <MiniStat label={isZh ? '全部作品' : 'All Works'} value={summaryStats.total} />
+          <MiniStat label={t('common.miniStatThisWeek')} value={artworks.filter((a: Artwork) => dayjs(a.createdAt).isAfter(dayjs().subtract(7, 'day'))).length} change={8} />
         </SummaryCard>
-        <SummaryCard title="Pending" subtitle="待审核" icon={AlertIcon}>
-          <MiniStat label="待审核" value={summaryStats.pending} trend="warning" />
-          <MiniStat label="需处理" value={`${summaryStats.pending} 项`} />
+        <SummaryCard title={isZh ? '待审核' : 'Pending'} subtitle={isZh ? '待审核' : 'Review'} icon={AlertIcon}>
+          <MiniStat label={isZh ? '待审核' : 'Pending'} value={summaryStats.pending} trend="warning" />
+          <MiniStat label={isZh ? '需处理' : 'To Handle'} value={`${summaryStats.pending} ${isZh ? '项' : 'items'}`} />
         </SummaryCard>
-        <SummaryCard title="Reviewed" subtitle="已审核" icon={CheckIcon}>
-          <MiniStat label="已通过" value={summaryStats.approved} trend="up" />
-          <MiniStat label="已拒绝" value={summaryStats.rejected} />
+        <SummaryCard title={isZh ? '已审核' : 'Reviewed'} subtitle={isZh ? '审核' : 'Done'} icon={CheckIcon}>
+          <MiniStat label={isZh ? '已通过' : 'Approved'} value={summaryStats.approved} trend="up" />
+          <MiniStat label={isZh ? '已拒绝' : 'Rejected'} value={summaryStats.rejected} />
         </SummaryCard>
       </div>
 

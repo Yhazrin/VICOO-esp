@@ -57,7 +57,8 @@ const ACTION_TYPE_MAP: Record<string, 'success' | 'warning' | 'error' | 'neutral
 };
 
 export default function AuditLogPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isZh = i18n.language === 'zh';
   const [page, setPage] = useState(1);
   const [actionFilter, setActionFilter] = useState('');
   const [selected, setSelected] = useState<AuditLogEntry | null>(null);
@@ -148,17 +149,17 @@ export default function AuditLogPage() {
 
       {/* Summary Cards */}
       <div className="dashboard-summary-grid" style={{ marginBottom: 24 }}>
-        <SummaryCard title="Total Events" subtitle="事件总数" icon={Icons.activity}>
-          <MiniStat label="本周" value={summaryStats.totalEvents} change={-5} />
-          <MiniStat label="过去24小时" value={summaryStats.last24h} />
+        <SummaryCard title={isZh ? '事件统计' : 'Total Events'} subtitle={isZh ? '事件总数' : 'Events'} icon={Icons.activity}>
+          <MiniStat label={t('common.miniStatThisWeek')} value={summaryStats.totalEvents} change={-5} />
+          <MiniStat label={t('common.miniStatLast24h')} value={summaryStats.last24h} />
         </SummaryCard>
-        <SummaryCard title="High Risk" subtitle="高风险操作" icon={Icons.alert}>
-          <MiniStat label="高风险事件" value={summaryStats.highRisk} trend="error" />
-          <MiniStat label="Admin 操作" value={summaryStats.adminActions} />
+        <SummaryCard title={isZh ? '高风险' : 'High Risk'} subtitle={isZh ? '高风险操作' : 'Risk Ops'} icon={Icons.alert}>
+          <MiniStat label={t('common.miniStatHighRisk')} value={summaryStats.highRisk} trend="error" />
+          <MiniStat label={t('common.miniStatAdminOps')} value={summaryStats.adminActions} />
         </SummaryCard>
-        <SummaryCard title="Activity" subtitle="最近动态" icon={Icons.clock}>
-          <MiniStat label="今日登录" value={logs.filter((l: AuditLogEntry) => l.action === 'login').length} />
-          <MiniStat label="审核操作" value={logs.filter((l: AuditLogEntry) => l.action.includes('review')).length} />
+        <SummaryCard title={isZh ? '活跃' : 'Activity'} subtitle={isZh ? '最近动态' : 'Recent'} icon={Icons.clock}>
+          <MiniStat label={isZh ? '今日登录' : 'Today Login'} value={logs.filter((l: AuditLogEntry) => l.action === 'login').length} />
+          <MiniStat label={isZh ? '审核操作' : 'Review Ops'} value={logs.filter((l: AuditLogEntry) => l.action.includes('review')).length} />
         </SummaryCard>
       </div>
 
