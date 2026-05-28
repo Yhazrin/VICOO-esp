@@ -1,5 +1,5 @@
 export interface ActionCard {
-  type: 'donation-list' | 'campaign-progress' | 'impact-fund' | 'traceability';
+  type: 'donation-list' | 'impact-fund' | 'traceability';
   data: Record<string, unknown>;
 }
 
@@ -10,11 +10,9 @@ export interface SanitizeResult {
 
 function classifyActionCard(data: Record<string, unknown>): ActionCard['type'] | null {
   if ('artistShare' in data || ('total' in data && 'charityShare' in data)) return 'impact-fund';
-  if ('raised' in data || 'goal' in data) return 'campaign-progress';
   if ('stages' in data && Array.isArray(data.stages)) return 'traceability';
   if ('items' in data && Array.isArray(data.items)) {
     const first = data.items[0] as Record<string, unknown> | undefined;
-    if (first && ('raised' in first || 'goal' in first)) return 'campaign-progress';
     if (first && 'amount' in first) return 'donation-list';
   }
   return null;
@@ -64,9 +62,8 @@ export const sanitizeAssistantContentWithCards = (content: string): SanitizeResu
   cleaned = cleaned.replace(/:::action-card\[[^\]]*\]\s*/g, '');
   cleaned = cleaned.replace(/(?:::)\s*$/gm, '');
 
-  // ── Phase 3: Detect bare JSON blocks with campaign/donation/fund fields ──
-  // Match JSON objects or arrays that contain known data fields
-  const BARE_JSON_RE = /(\{[\s\S]*?"(?:raised|goal|items|artistShare|amount|charityShare)"[\s\S]*?\})/g;
+  // ── Phase 3: Detect bare JSON blocks with known card fields ──
+  const BARE_JSON_RE = /(\{[\s\S]*?"(?:items|artistShare|amount|charityShare|stages)"[\s\S]*?\})/g;
   let match: RegExpExecArray | null;
   while ((match = BARE_JSON_RE.exec(cleaned)) !== null) {
     const jsonStr = match[1];
@@ -84,18 +81,17 @@ export const sanitizeAssistantContentWithCards = (content: string): SanitizeResu
   }
 
   // ── Phase 4: Detect truncated JSON arrays (starts with comma or missing opener) ──
-  // Pattern: `,{"name":...},{"name":...}]}`
-  const FRAGMENT_RE = /,\s*(\{[\s\S]*?\})\s*(?:,\s*(\{[\s\S]*?\})\s*)*\]/g;
+  // Pattern: `,{"name":...,"amount":...},{"name":...,"amount":...}]}` — donation list fragment
+  const FRAGMENT_RE = /,\s*(\{[\s\S]*?"amount"[\s\S]*?\})\s*(?:,\s*(\{[\s\S]*?"amount"[\s\S]*?\})\s*)*\]/g;
   while ((match = FRAGMENT_RE.exec(cleaned)) !== null) {
     const fullMatch = match[0];
-    // Try wrapping as an array
     const attempt = tryParseJSON('[' + fullMatch);
     if (attempt && Array.isArray(attempt) && attempt.length > 0) {
       const first = attempt[0] as Record<string, unknown>;
-      if ('raised' in first || 'goal' in first || 'name' in first) {
+      if ('amount' in first) {
         const data = { items: attempt };
         const idx = actionCards.length;
-        actionCards.push({ type: 'campaign-progress', data });
+        actionCards.push({ type: 'donation-list', data });
         cleaned = cleaned.replace(fullMatch, `\n\n{{ACTION_CARD:${idx}}}\n\n`);
         FRAGMENT_RE.lastIndex = 0;
       }

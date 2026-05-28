@@ -54,60 +54,6 @@ const DonationListCard: React.FC<{ data: Record<string, unknown> }> = ({ data })
   );
 };
 
-// ── Campaign Progress ──
-interface CampaignItem {
-  name?: string;
-  title?: string;
-  raised?: number;
-  goal?: number;
-  participants?: number;
-}
-
-const CampaignProgressCard: React.FC<{ data: Record<string, unknown> }> = ({ data }) => {
-  const { t } = useTranslation();
-
-  // Support both single-campaign and items-array formats
-  const items: CampaignItem[] = Array.isArray(data.items)
-    ? data.items as CampaignItem[]
-    : [data as unknown as CampaignItem];
-
-  return (
-    <div style={cardBase}>
-      <p className="text-[12px] font-semibold mb-2" style={{ color: 'var(--color-ink)' }}>
-        {t('aiAssistant.actionCard.campaignProgress')}
-      </p>
-      <div className="space-y-3">
-        {items.map((item, i) => {
-          const name = item.name || item.title || '';
-          const goal = Number(item.goal ?? 0);
-          const raised = Number(item.raised ?? 0);
-          const participants = Number(item.participants ?? 0);
-          const progress = goal > 0 ? Math.min((raised / goal) * 100, 100) : 0;
-
-          return (
-            <div key={i}>
-              {name && (
-                <p className="text-[12px] font-medium mb-1" style={{ color: 'var(--color-ink)' }}>{name}</p>
-              )}
-              <div style={{ height: 5, borderRadius: 3, background: 'rgba(0,0,0,0.06)', overflow: 'hidden', marginBottom: 4 }}>
-                <div style={{ width: `${progress}%`, height: '100%', borderRadius: 3, background: 'var(--color-rust)', transition: 'width 0.6s ease' }} />
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[10px]" style={{ color: 'var(--color-ink-faded)' }}>
-                  ¥{raised.toLocaleString()} / ¥{goal.toLocaleString()}
-                </span>
-                <span className="text-[10px]" style={{ color: 'var(--color-ink-faded)' }}>
-                  {Math.round(progress)}% &middot; {participants} {t('aiAssistant.campaignCard.participants', { count: participants })}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
-
 // ── Impact Fund ──
 const ImpactFundCard: React.FC<{ data: Record<string, unknown> }> = ({ data }) => {
   const { t } = useTranslation();
@@ -286,8 +232,6 @@ export const ChatActionCard: React.FC<ChatActionCardProps> = React.memo(({ card 
   switch (card.type) {
     case 'donation-list':
       return <DonationListCard data={card.data} />;
-    case 'campaign-progress':
-      return <CampaignProgressCard data={card.data} />;
     case 'impact-fund':
       return <ImpactFundCard data={card.data} />;
     case 'traceability':

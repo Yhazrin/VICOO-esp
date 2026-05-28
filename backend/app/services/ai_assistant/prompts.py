@@ -7,10 +7,7 @@ from typing import Any, Dict, Optional
 
 # Shared action-card appendix (language-neutral JSON examples)
 _ACTION_CARD_APPENDIX = """
-When the user asks about campaigns, donations, impact fund, or supply chain traceability, you may embed structured UI cards using this format (keep JSON inside the block only):
-
-Campaign progress:
-:::action-card[campaign-progress]{"items":[{"name":"Spring Bloom","raised":25000,"goal":50000,"participants":128}]}
+When the user asks about donations, impact fund, or supply chain traceability, you may embed structured UI cards using this format (keep JSON inside the block only):
 
 Donation list:
 :::action-card[donation-list]{"items":[{"name":"Alex","amount":200,"date":"2025-03-15"}]}
@@ -20,6 +17,8 @@ Impact fund:
 
 Supply chain traceability (when product supply chain data is available):
 :::action-card[traceability]{"productName":"Rainbow Fish T-Shirt","productId":42,"stages":[{"stage":"原材料采购","location":"孟加拉国达卡","description":"GOTS有机棉认证","date":"2024-01-15","verified":true,"carbon":2.3},{"stage":"加工制造","location":"越南胡志明市","description":"环保染料印刷","date":"2024-02-20","verified":true,"carbon":1.8}]}
+
+For campaign information: ALWAYS use markdown links like [Campaign Name](/campaigns/123) — the system will automatically render a beautiful campaign card with cover image, title and progress bar. Do NOT use action-card for campaigns.
 
 Rules: one JSON object per block; valid JSON only; do not duplicate raw JSON outside the block.
 """
