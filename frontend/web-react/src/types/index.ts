@@ -188,6 +188,8 @@ export interface Donation {
   certificate_pdf_url?: string;
   payment_notice?: string;
   simulation_mode?: boolean;
+  mock_pay_token?: string;
+  mockPayToken?: string;
 }
 
 export interface DonationCertificate {

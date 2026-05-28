@@ -31,6 +31,7 @@ const Orders = lazy(() => import('@/pages/Orders'));
 const Support = lazy(() => import('@/pages/Support'));
 const Checkout = lazy(() => import('@/pages/Checkout'));
 const PaymentConfirm = lazy(() => import('@/pages/PaymentConfirm'));
+const PaymentConfirmDonation = lazy(() => import('@/pages/PaymentConfirmDonation'));
 const AiDesign = lazy(() => import('@/pages/AiDesign'));
 const SupplyChainStudio = lazy(() => import('@/pages/SupplyChainStudio'));
 const Campaigns = lazy(() => import('@/pages/Campaigns'));
@@ -107,6 +108,7 @@ function AnimatedRoutes() {
             <Route path="orders/:id" element={<ErrorBoundary><OrderDetail /></ErrorBoundary>} />
             <Route path="checkout" element={<ErrorBoundary><Checkout /></ErrorBoundary>} />
             <Route path="payment/confirm" element={<ErrorBoundary><PaymentConfirm /></ErrorBoundary>} />
+            <Route path="payment/confirm-donation" element={<ErrorBoundary><PaymentConfirmDonation /></ErrorBoundary>} />
             <Route path="support" element={<ErrorBoundary><Support /></ErrorBoundary>} />
             <Route path="ai-design" element={<ErrorBoundary><AiDesign /></ErrorBoundary>} />
             <Route path="studio/supply-chain" element={<ErrorBoundary><SupplyChainStudio /></ErrorBoundary>} />

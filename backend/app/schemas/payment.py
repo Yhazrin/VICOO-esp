@@ -62,3 +62,17 @@ class MockPayConfirmOut(BaseModel):
     order_no: str
     status: str
     already_paid: bool = False
+
+
+class MockDonationPayPreviewOut(BaseModel):
+    donation_id: int
+    amount: str
+    status: str
+    payment_method: Optional[str] = None
+    campaign_id: Optional[int] = None
+
+
+class MockDonationPayConfirmOut(BaseModel):
+    donation_id: int
+    status: str
+    already_paid: bool = False

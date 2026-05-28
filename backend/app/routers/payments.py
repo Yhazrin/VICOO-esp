@@ -16,9 +16,16 @@ from app.models.payment import PaymentTransaction
 from app.models.order import Order
 from app.models.donation import Donation
 from app.schemas import ApiResponse, PaymentCreate, PaymentOut, PaginatedResponse, WeChatPaymentParams
-from app.schemas.payment import MockPayConfirmBody, MockPayPreviewOut, MockPayConfirmOut
+from app.schemas.payment import (
+    MockPayConfirmBody,
+    MockPayPreviewOut,
+    MockPayConfirmOut,
+    MockDonationPayPreviewOut,
+    MockDonationPayConfirmOut,
+)
 from app.deps import get_current_user
-from app.utils.mock_pay_token import parse_mock_pay_token
+from app.utils.mock_pay_token import parse_mock_pay_token, parse_mock_donation_pay_token
+from app.services.donation.service import DonationService
 from app.services.payment_service import get_payment_service
 from app.routers.orders import _mock_orders
 _mock_donations: list = []
@@ -323,6 +330,57 @@ async def mock_pay_confirm(body: MockPayConfirmBody, db: AsyncSession = Depends(
     return ApiResponse(
         data=MockPayConfirmOut(
             order_no=order.order_no, status="paid", already_paid=False
+        ).model_dump()
+    )
+
+
+@router.get("/mock-donation-preview", response_model=ApiResponse)
+async def mock_donation_pay_preview(token: str = Query(..., min_length=10), db: AsyncSession = Depends(get_db)):
+    """Demo: load donation summary for mobile pay page (token-signed, no auth)."""
+    payload = parse_mock_donation_pay_token(token, settings.APP_SECRET_KEY)
+    if not payload:
+        raise HTTPException(status_code=400, detail="无效或已过期的支付链接")
+    donation = (
+        await db.execute(select(Donation).where(Donation.id == int(payload["did"])))
+    ).scalar_one_or_none()
+    if not donation or donation.donor_user_id != int(payload["uid"]):
+        raise HTTPException(status_code=404, detail="捐赠记录不存在")
+    out = MockDonationPayPreviewOut(
+        donation_id=donation.id,
+        amount=str(donation.amount),
+        status=donation.status,
+        payment_method=donation.payment_method,
+        campaign_id=donation.campaign_id,
+    )
+    return ApiResponse(data=out.model_dump())
+
+
+@router.post("/mock-donation-confirm", response_model=ApiResponse)
+async def mock_donation_pay_confirm(body: MockPayConfirmBody, db: AsyncSession = Depends(get_db)):
+    """Demo: mark donation completed after user confirms on mobile pay page."""
+    payload = parse_mock_donation_pay_token(body.token.strip(), settings.APP_SECRET_KEY)
+    if not payload:
+        raise HTTPException(status_code=400, detail="无效或已过期的支付链接")
+    donation = (
+        await db.execute(select(Donation).where(Donation.id == int(payload["did"])))
+    ).scalar_one_or_none()
+    if not donation or donation.donor_user_id != int(payload["uid"]):
+        raise HTTPException(status_code=404, detail="捐赠记录不存在")
+    if donation.status == "completed":
+        return ApiResponse(
+            data=MockDonationPayConfirmOut(
+                donation_id=donation.id, status=donation.status, already_paid=True
+            ).model_dump()
+        )
+    if donation.status != "pending":
+        raise HTTPException(status_code=400, detail="捐赠状态不允许支付")
+
+    donation_service = DonationService(db)
+    provider_id = f"mock-don-{secrets.token_hex(16)}"
+    await donation_service.complete_donation(donation.id, provider_id)
+    return ApiResponse(
+        data=MockDonationPayConfirmOut(
+            donation_id=donation.id, status="completed", already_paid=False
         ).model_dump()
     )
 
