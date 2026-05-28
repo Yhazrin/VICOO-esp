@@ -2,6 +2,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useUIStore } from '../../stores/uiStore';
 import { NAV_GROUPS, GROUP_LABELS } from '../../config/routes';
+import viteLogo from '/vicoo-logo.png';
 
 export default function Sidebar() {
   const { t } = useTranslation();
@@ -22,7 +23,7 @@ export default function Sidebar() {
       <div className="sidebar-header">
         <div className="sidebar-brand">
           <img
-            src="/vicoo-logo.png"
+            src={viteLogo}
             alt="VICOO"
             className="sidebar-logo-img"
             style={{ width: collapsed ? 28 : 32, height: collapsed ? 28 : 32, objectFit: 'contain', flexShrink: 0 }}
