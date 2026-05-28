@@ -10,19 +10,19 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 export function formatDate(date: string | Date, format = 'YYYY-MM-DD'): string {
-  return dayjs(date).tz().format(format);
+  return dayjs.utc(date).tz(dayjs.tz.guess()).format(format);
 }
 
 export function formatDateTime(date: string | Date): string {
-  return dayjs(date).tz().format('YYYY-MM-DD HH:mm');
+  return dayjs.utc(date).tz(dayjs.tz.guess()).format('YYYY-MM-DD HH:mm');
 }
 
 export function formatDateTimeFull(date: string | Date): string {
-  return dayjs(date).tz().format('YYYY-MM-DD HH:mm:ss');
+  return dayjs.utc(date).tz(dayjs.tz.guess()).format('YYYY-MM-DD HH:mm:ss');
 }
 
 export function formatTimestamp(date: string | Date): string {
-  return dayjs(date).tz().format('YYYYMMDD_HHmmss');
+  return dayjs.utc(date).tz(dayjs.tz.guess()).format('YYYYMMDD_HHmmss');
 }
 
 export const timeZone = dayjs.tz.guess();
