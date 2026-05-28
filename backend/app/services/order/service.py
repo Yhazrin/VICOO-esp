@@ -23,6 +23,7 @@ class OrderService(BaseService):
     async def list_orders(
         self,
         user_id: int,
+        is_admin: bool = False,
         page: int = 1,
         page_size: int = 20,
         status: Optional[str] = None,
@@ -31,10 +32,14 @@ class OrderService(BaseService):
         date_to: Optional[str] = None,
     ) -> Tuple[List[Order], int]:
         """
-        List orders for a specific user with pagination and optional filters.
+        List orders with pagination and optional filters.
+        Admin callers can see all orders; regular users are scoped to themselves.
         """
-        stmt = select(Order).where(Order.user_id == user_id)
-        count_stmt = select(func.count(Order.id)).where(Order.user_id == user_id)
+        stmt = select(Order)
+        count_stmt = select(func.count(Order.id))
+        if not is_admin:
+            stmt = stmt.where(Order.user_id == user_id)
+            count_stmt = count_stmt.where(Order.user_id == user_id)
 
         if status:
             stmt = stmt.where(Order.status == status)

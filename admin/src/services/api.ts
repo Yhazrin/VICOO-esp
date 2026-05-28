@@ -311,7 +311,7 @@ export async function fetchOrders(params: FilterParams = {}): Promise<PaginatedR
       id: String(item.id),
       orderNo: item.order_no ?? '',
       userId: String(item.user_id ?? ''),
-      userName: item.user_name ?? '',
+      userName: item.user_name ?? (item.user_id != null ? `用户 #${item.user_id}` : ''),
       items: (item.items ?? []).map((it: any) => ({
         productId: String(it.product_id ?? ''),
         productName: it.product_name ?? '',
@@ -521,7 +521,7 @@ export async function fetchProducts(params: FilterParams = {}): Promise<Paginate
       page: params.page ?? 1,
       page_size: params.pageSize ?? 10,
       status: params.status || undefined,
-      is_impact_product: params.isImpactProduct ?? true, // default to impact products only
+      is_impact_product: params.isImpactProduct,
     },
   });
   const paginated = adaptPaginated<any>(envelope);
@@ -594,7 +594,9 @@ function adaptSupplyChainRecord(item: any): SupplyChainRecord {
     productId: String(item.product_id),
     stage: item.stage,
     description: item.description ?? '',
+    descriptionEn: item.description_en ?? '',
     location: item.location ?? '',
+    locationEn: item.location_en ?? '',
     latitude: item.latitude,
     longitude: item.longitude,
     certified: item.certified ?? false,
@@ -626,7 +628,9 @@ export async function createSupplyChainRecord(
     product_id: Number(productId),
     stage: payload.stage,
     description: payload.description,
+    description_en: payload.descriptionEn,
     location: payload.location,
+    location_en: payload.locationEn,
     latitude: payload.latitude ?? null,
     longitude: payload.longitude ?? null,
     certified: payload.certified,
@@ -646,7 +650,9 @@ export async function updateSupplyChainRecord(
   const body: any = {};
   if (payload.stage !== undefined) body.stage = payload.stage;
   if (payload.description !== undefined) body.description = payload.description;
+  if (payload.descriptionEn !== undefined) body.description_en = payload.descriptionEn;
   if (payload.location !== undefined) body.location = payload.location;
+  if (payload.locationEn !== undefined) body.location_en = payload.locationEn;
   if (payload.latitude !== undefined) body.latitude = payload.latitude;
   if (payload.longitude !== undefined) body.longitude = payload.longitude;
   if (payload.certified !== undefined) body.certified = payload.certified;

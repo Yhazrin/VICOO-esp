@@ -63,6 +63,7 @@ class OrderLogisticsUpdate(BaseModel):
 class OrderOut(BaseModel):
     id: int
     user_id: int
+    user_name: Optional[str] = None
     order_no: str
     total_amount: Decimal
     status: str

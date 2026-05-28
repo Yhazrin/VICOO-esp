@@ -36,7 +36,9 @@ class SupplyChainRecordCreate(BaseModel):
         description="Supply chain stage: material_sourcing, processing, manufacturing, quality_check, shipping",
     )
     description: Optional[str] = Field(None, description="Stage description and details")
+    description_en: Optional[str] = Field(None, description="English stage description and details")
     location: Optional[str] = Field(None, max_length=300, description="Geographic location of this stage")
+    location_en: Optional[str] = Field(None, max_length=300, description="English geographic location of this stage")
     certified: bool = Field(False, description="Whether this stage has certification")
     cert_image_url: Optional[str] = Field(None, max_length=500, description="Certification document image URL")
     carbon_kg: Optional[Decimal] = None
@@ -51,8 +53,14 @@ class SupplyChainRecordCreate(BaseModel):
 
 
 class SupplyChainRecordUpdate(BaseModel):
+    stage: Optional[str] = Field(
+        None,
+        pattern="^(material_sourcing|processing|manufacturing|quality_check|shipping)$",
+    )
     description: Optional[str] = None
+    description_en: Optional[str] = None
     location: Optional[str] = Field(None, max_length=300)
+    location_en: Optional[str] = Field(None, max_length=300)
     certified: Optional[bool] = None
     cert_image_url: Optional[str] = Field(None, max_length=500)
     carbon_kg: Optional[Decimal] = None

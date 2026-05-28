@@ -10,6 +10,7 @@ from app.config import settings
 from app.database import get_db
 from app.models.order import Order, OrderItem
 from app.models.product import Product
+from app.models.user import User
 from app.schemas import (
     ApiResponse,
     OrderCreate,
@@ -47,6 +48,7 @@ def order_to_out_dict(
     order: Order,
     items: list,
     product_map: dict | None = None,
+    user_map: dict | None = None,
     *,
     mock_pay_token: str | None = None,
 ) -> dict:
@@ -54,6 +56,7 @@ def order_to_out_dict(
     base = {
         "id": order.id,
         "user_id": order.user_id,
+        "user_name": (user_map or {}).get(order.user_id),
         "order_no": order.order_no,
         "total_amount": order.total_amount,
         "status": order.status,
@@ -89,6 +92,16 @@ async def _build_product_map(db: AsyncSession, items: list) -> dict:
     stmt = select(Product.id, Product.name, Product.image_url).where(Product.id.in_(product_ids))
     result = await db.execute(stmt)
     return {row.id: {"name": row.name, "image_url": row.image_url} for row in result.all()}
+
+
+async def _build_user_map(db: AsyncSession, orders: list[Order]) -> dict[int, str]:
+    """Fetch display names for order owners."""
+    user_ids = list({o.user_id for o in orders if o.user_id})
+    if not user_ids:
+        return {}
+    stmt = select(User.id, User.nickname, User.email).where(User.id.in_(user_ids))
+    result = await db.execute(stmt)
+    return {row.id: (row.nickname or row.email or f"User #{row.id}") for row in result.all()}
 
 _mock_orders = [
     {
@@ -200,7 +213,15 @@ async def list_orders(
     """List orders for the current user (or all for admin). (Refactored)"""
     order_service = OrderService(db)
     try:
-        orders, total = await order_service.list_orders(current_user["id"], page, page_size, status=status, keyword=search)
+        is_admin = current_user.get("role") == "admin"
+        orders, total = await order_service.list_orders(
+            current_user["id"],
+            is_admin=is_admin,
+            page=page,
+            page_size=page_size,
+            status=status,
+            keyword=search,
+        )
         
         # Batch load items for all orders
         order_ids = [o.id for o in orders]
@@ -215,7 +236,8 @@ async def list_orders(
             items_by_order = {}
             product_map = {}
 
-        data = [order_to_out_dict(order, items_by_order.get(order.id, []), product_map) for order in orders]
+        user_map = await _build_user_map(db, orders)
+        data = [order_to_out_dict(order, items_by_order.get(order.id, []), product_map, user_map) for order in orders]
 
         return PaginatedResponse(data=data, total=total, page=page, page_size=page_size)
     except HTTPException:
@@ -239,8 +261,13 @@ async def my_orders(
     order_service = OrderService(db)
     try:
         orders, total = await order_service.list_orders(
-            current_user["id"], page, page_size,
-            status=status, keyword=keyword, date_from=date_from, date_to=date_to,
+            current_user["id"],
+            page=page,
+            page_size=page_size,
+            status=status,
+            keyword=keyword,
+            date_from=date_from,
+            date_to=date_to,
         )
         # Batch load items for all orders
         order_ids = [o.id for o in orders]
@@ -255,7 +282,8 @@ async def my_orders(
             items_by_order = {}
             product_map = {}
 
-        data = [order_to_out_dict(order, items_by_order.get(order.id, []), product_map) for order in orders]
+        user_map = await _build_user_map(db, orders)
+        data = [order_to_out_dict(order, items_by_order.get(order.id, []), product_map, user_map) for order in orders]
         return PaginatedResponse(data=data, total=total, page=page, page_size=page_size)
     except HTTPException:
         raise

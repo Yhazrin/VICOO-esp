@@ -94,7 +94,7 @@ const emptyForm = {
 
 const emptyNode = {
   stage: 'material_sourcing' as SupplyChainRecord['stage'],
-  description: '', location: '', latitude: '', longitude: '',
+  description: '', descriptionEn: '', location: '', locationEn: '', latitude: '', longitude: '',
   certified: false, certImageUrl: '', carbonKg: '', carbonNote: '',
   timestamp: '', gallery: [] as TraceMediaItem[],
 };
@@ -265,7 +265,9 @@ export default function ProductPage() {
     return {
       stage: n.stage,
       description: n.description,
+      descriptionEn: n.descriptionEn,
       location: n.location,
+      locationEn: n.locationEn,
       latitude: n.latitude ? Number(n.latitude) : undefined,
       longitude: n.longitude ? Number(n.longitude) : undefined,
       certified: n.certified,
@@ -330,7 +332,9 @@ export default function ProductPage() {
     setNodeForm({
       stage: record.stage,
       description: record.description,
+      descriptionEn: record.descriptionEn ?? '',
       location: record.location,
+      locationEn: record.locationEn ?? '',
       latitude: record.latitude != null ? String(record.latitude) : '',
       longitude: record.longitude != null ? String(record.longitude) : '',
       certified: record.certified,
@@ -936,8 +940,16 @@ export default function ProductPage() {
                 <input value={nodeForm.location} onChange={(e) => setNodeForm({ ...nodeForm, location: e.target.value })} style={inputStyle} placeholder={t('product.nodeLocationHint')} />
               </div>
               <div style={{ gridColumn: '1 / -1' }}>
+                <label style={labelStyle}>{t('product.nodeLocationEn', 'Location (EN)')}</label>
+                <input value={nodeForm.locationEn} onChange={(e) => setNodeForm({ ...nodeForm, locationEn: e.target.value })} style={inputStyle} placeholder="e.g. Shanghai, China" />
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
                 <label style={labelStyle}>{t('product.nodeDescription')}</label>
                 <textarea value={nodeForm.description} onChange={(e) => setNodeForm({ ...nodeForm, description: e.target.value })} style={{ ...inputStyle, height: 72, resize: 'vertical' }} />
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={labelStyle}>{t('product.nodeDescriptionEn', 'Description (EN)')}</label>
+                <textarea value={nodeForm.descriptionEn} onChange={(e) => setNodeForm({ ...nodeForm, descriptionEn: e.target.value })} style={{ ...inputStyle, height: 72, resize: 'vertical' }} />
               </div>
             </div>
           </div>

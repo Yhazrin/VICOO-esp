@@ -70,8 +70,8 @@ export default function OrderPage() {
   const summaryStats = {
     total: orders.length,
     pending: orders.filter((o: Order) => o.status === 'pending' || o.status === 'paid').length,
-    completed: orders.filter((o: Order) => o.status === 'delivered').length,
-    cancelled: orders.filter((o: Order) => o.status === 'cancelled' || o.status === 'refunded').length,
+    completed: orders.filter((o: Order) => o.status === 'completed').length,
+    cancelled: orders.filter((o: Order) => o.status === 'cancelled').length,
     revenue: orders.reduce((sum: number, o: Order) => sum + o.totalAmount, 0),
   };
 
@@ -125,7 +125,7 @@ export default function OrderPage() {
           {record.status === 'shipped' && (
             <Button size="sm" variant="secondary" onClick={(e) => {
               e.stopPropagation();
-              updateMutation.mutate({ id: record.id, status: 'delivered' });
+              updateMutation.mutate({ id: record.id, status: 'completed' });
             }}>
               {t('order.btnConfirmDelivery')}
             </Button>
@@ -184,9 +184,8 @@ export default function OrderPage() {
             <option value="pending">{t('order.filterPending')}</option>
             <option value="paid">{t('order.filterPaid')}</option>
             <option value="shipped">{t('order.filterShipped')}</option>
-            <option value="delivered">{t('order.filterDelivered')}</option>
+            <option value="completed">{t('order.filterDelivered')}</option>
             <option value="cancelled">{t('order.filterCancelled')}</option>
-            <option value="refunded">{t('order.filterRefunded')}</option>
           </select>
         </div>
       </div>

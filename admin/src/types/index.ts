@@ -82,7 +82,7 @@ export interface Order {
   userName: string;
   items: OrderItem[];
   totalAmount: number;
-  status: 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
+  status: 'pending' | 'paid' | 'shipped' | 'completed' | 'cancelled';
   paymentMethod: string;
   shippingAddress: string;
   trackingNo?: string;
@@ -251,7 +251,9 @@ export interface SupplyChainRecord {
   productId: string;
   stage: 'material_sourcing' | 'processing' | 'manufacturing' | 'quality_check' | 'shipping';
   description: string;
+  descriptionEn?: string;
   location: string;
+  locationEn?: string;
   latitude?: number;
   longitude?: number;
   certified: boolean;
