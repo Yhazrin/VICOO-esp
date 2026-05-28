@@ -183,16 +183,16 @@ h3 { font-size: 18px; line-height: 1.4; }
   min-width: 0;
   min-height: 100vh;
   background-color: var(--color-bg);
-  transition: padding-left var(--duration-normal) var(--ease-out), width var(--duration-normal) var(--ease-out);
-  padding-left: var(--sidebar-width);
+  transition: margin-left var(--duration-normal) var(--ease-out);
+  margin-left: var(--sidebar-width);
 }
 
 .main-area.sidebar-collapsed {
-  padding-left: var(--sidebar-collapsed-width);
+  margin-left: var(--sidebar-collapsed-width);
 }
 
 .main-area.sidebar-expanded {
-  padding-left: var(--sidebar-width);
+  margin-left: var(--sidebar-width);
 }
 
 .content-area {

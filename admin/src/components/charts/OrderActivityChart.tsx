@@ -1,7 +1,18 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useTranslation } from 'react-i18next';
 
 // Mock data for order activity (last 7 days)
-const MOCK_DATA = [
+const MOCK_DATA_EN = [
+  { date: 'Mon', orders: 12, completed: 8 },
+  { date: 'Tue', orders: 18, completed: 15 },
+  { date: 'Wed', orders: 14, completed: 12 },
+  { date: 'Thu', orders: 22, completed: 18 },
+  { date: 'Fri', orders: 25, completed: 20 },
+  { date: 'Sat', orders: 30, completed: 28 },
+  { date: 'Sun', orders: 20, completed: 16 },
+];
+
+const MOCK_DATA_ZH = [
   { date: '周一', orders: 12, completed: 8 },
   { date: '周二', orders: 18, completed: 15 },
   { date: '周三', orders: 14, completed: 12 },
@@ -16,25 +27,27 @@ interface OrderActivityChartProps {
   height?: number;
 }
 
-export function OrderActivityChart({ data = MOCK_DATA, height = 180 }: OrderActivityChartProps) {
-  const totalOrders = data.reduce((sum, d) => sum + d.orders, 0);
-  const totalCompleted = data.reduce((sum, d) => sum + d.completed, 0);
+export function OrderActivityChart({ data, height = 180 }: OrderActivityChartProps) {
+  const { i18n } = useTranslation();
+  const isZh = i18n.language === 'zh';
+  const chartData = data || (isZh ? MOCK_DATA_ZH : MOCK_DATA_EN);
+  const totalOrders = chartData.reduce((sum, d) => sum + d.orders, 0);
 
   return (
     <div className="chart-card">
       <div className="chart-card-header">
         <div className="chart-card-title">
-          <span className="chart-card-label">订单活动</span>
-          <span className="chart-card-sublabel">Order Activity</span>
+          <span className="chart-card-label">{isZh ? '订单活动' : 'Order Activity'}</span>
+          <span className="chart-card-sublabel">7 DAYS</span>
         </div>
         <div className="chart-card-stat">
           <span className="chart-stat-value">{totalOrders}</span>
-          <span className="chart-stat-sub">本周订单</span>
+          <span className="chart-stat-sub">{isZh ? '本周订单' : 'Orders'}</span>
         </div>
       </div>
       <div className="chart-card-body" style={{ height }}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+          <LineChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
             <CartesianGrid
               strokeDasharray="2 2"
               stroke="var(--color-border)"
@@ -61,7 +74,7 @@ export function OrderActivityChart({ data = MOCK_DATA, height = 180 }: OrderActi
               }}
               formatter={(value: number, name: string) => [
                 value,
-                name === 'orders' ? '订单' : '已完成'
+                name === 'orders' ? (isZh ? '订单' : 'Orders') : (isZh ? '已完成' : 'Completed')
               ]}
               labelStyle={{ color: 'var(--color-text-2)' }}
             />

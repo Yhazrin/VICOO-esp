@@ -92,7 +92,10 @@
         "anonLabel": "ANON",
         "authOkLabel": "AUTH OK",
         "transparencyQuote": "\"Transparency is the cornerstone of trust. Every record here represents a child's story supported.\"",
-        "activeCampaigns": "Active Campaigns"
+        "activeCampaigns": "Active Campaigns",
+        "donationTrend": "Donation Trend",
+        "reviewStatus": "Review Status",
+        "total": "Total"
     },
     "artwork": {
         "title": "Artwork Collection",

@@ -92,7 +92,10 @@
         "anonLabel": "匿名",
         "authOkLabel": "已验证",
         "transparencyQuote": "\"透明是信任的基石。这里的每一条记录都代表着一个被支持的孩子的故事。\"",
-        "activeCampaigns": "活跃活动"
+        "activeCampaigns": "活跃活动",
+        "donationTrend": "捐赠趋势",
+        "reviewStatus": "审核状态",
+        "total": "总计"
     },
     "artwork": {
         "title": "作品集",
