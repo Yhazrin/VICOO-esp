@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import './SummaryCard.css';
 
 interface SummaryCardProps {
@@ -10,7 +11,11 @@ interface SummaryCardProps {
   icon?: React.ReactNode;
 }
 
-export function SummaryCard({ title, subtitle, linkTo, linkLabel = '查看全部', children, icon }: SummaryCardProps) {
+export function SummaryCard({ title, subtitle, linkTo, linkLabel, children, icon }: SummaryCardProps) {
+  const { t, i18n } = useTranslation();
+  const defaultLabel = i18n.language === 'zh' ? '查看全部' : 'View All';
+  const finalLabel = linkLabel !== undefined ? linkLabel : defaultLabel;
+
   return (
     <div className="summary-card">
       <div className="summary-card-header">
@@ -21,7 +26,7 @@ export function SummaryCard({ title, subtitle, linkTo, linkLabel = '查看全部
         </div>
         {linkTo && (
           <Link to={linkTo} className="summary-card-link">
-            {linkLabel}
+            {finalLabel}
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="5" y1="12" x2="19" y2="12" />
               <polyline points="12 5 19 12 12 19" />

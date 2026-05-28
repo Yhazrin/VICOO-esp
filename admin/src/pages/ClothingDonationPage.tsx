@@ -64,7 +64,7 @@ export default function ClothingDonationPage() {
       width: 280,
       render: (_v, record) => (
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          <Button variant="ghost" size="sm" onClick={() => setSelected(record)}>
+          <Button variant="secondary" size="sm" onClick={() => setSelected(record)}>
             {t('common.detail')}
           </Button>
           {record.status === 'pending' && (
