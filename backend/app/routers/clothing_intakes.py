@@ -2,7 +2,7 @@
 
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,6 +19,7 @@ from app.schemas import (
     PublishFromIntakeBody,
 )
 from app.deps import get_current_user, require_role
+from app.core.audit import log_audit
 
 router = APIRouter(prefix="/clothing-intakes", tags=["Clothing Intakes"])
 logger = logging.getLogger(__name__)
@@ -86,18 +87,33 @@ async def list_all_intakes(
 async def update_intake_status(
     intake_id: int,
     body: ClothingIntakeStatusUpdate,
-    _staff: dict = Depends(require_role("admin", "editor")),
+    staff: dict = Depends(require_role("admin", "editor")),
     db: AsyncSession = Depends(get_db),
+    request: Request = None,
 ):
     stmt = select(ClothingIntake).where(ClothingIntake.id == intake_id)
     row = (await db.execute(stmt)).scalar_one_or_none()
     if not row:
         raise HTTPException(status_code=404, detail="Intake not found")
+    old_status = row.status
     row.status = body.status
     if body.admin_note is not None:
         row.admin_note = body.admin_note
     await db.flush()
     await db.refresh(row)
+
+    # Audit log
+    ip = request.client.host if request else None
+    await log_audit(
+        db=db,
+        user_id=staff.get("id"),
+        action="update_clothing_intake_status",
+        resource="clothing_intake",
+        resource_id=str(intake_id),
+        details={"old_status": old_status, "new_status": body.status, "admin_note": body.admin_note},
+        ip_address=ip,
+    )
+
     return ApiResponse(data=ClothingIntakeOut.model_validate(row).model_dump())
 
 
@@ -105,8 +121,9 @@ async def update_intake_status(
 async def publish_product_from_intake(
     intake_id: int,
     body: PublishFromIntakeBody,
-    _staff: dict = Depends(require_role("admin", "editor")),
+    staff: dict = Depends(require_role("admin", "editor")),
     db: AsyncSession = Depends(get_db),
+    request: Request = None,
 ):
     """将受理单关联为已上架商品（完成 捐献→商品 闭环）。"""
     stmt = select(ClothingIntake).where(ClothingIntake.id == intake_id)
@@ -136,6 +153,19 @@ async def publish_product_from_intake(
     await db.flush()
     await db.refresh(intake)
     await db.refresh(product)
+
+    # Audit log
+    ip = request.client.host if request else None
+    await log_audit(
+        db=db,
+        user_id=staff.get("id"),
+        action="publish_product_from_intake",
+        resource="clothing_intake",
+        resource_id=str(intake_id),
+        details={"product_id": product.id, "product_name": body.name},
+        ip_address=ip,
+    )
+
     return ApiResponse(
         data={
             "intake": ClothingIntakeOut.model_validate(intake).model_dump(),
