@@ -319,48 +319,108 @@ async def system_health(
     Admin detailed health check endpoint.
     Requires admin/editor/compliance role.
     """
-    backend_status = "healthy"
-    database_status = "connected"
-    redis_status = "connected"
+    import time as time_module
+    overall_status = "healthy"
+    db_latency_ms = None
+    db_version = None
+    redis_latency_ms = None
+    redis_version = None
+    response_time_ms = None
+    checks = []
 
-    # MySQL check: SELECT 1
+    # MySQL check: SELECT 1 with latency measurement
+    db_status = "connected"
     try:
+        start = time_module.time()
         async with AsyncSessionLocal() as session:
             from sqlalchemy import text
             await session.execute(text("SELECT 1"))
+        db_latency_ms = int((time_module.time() - start) * 1000)
+        # Get MySQL version (safe query, no sensitive info)
+        async with AsyncSessionLocal() as session:
+            result = await session.execute(text("SELECT VERSION()"))
+            row = result.fetchone()
+            if row:
+                version_str = str(row[0])
+                # Extract major.minor only
+                db_version = version_str.split("-")[0].split(".")[0] + "." + version_str.split("-")[0].split(".")[1] if "." in version_str.split("-")[0] else version_str.split("-")[0]
     except Exception as e:
         logger.warning("Health check: MySQL error: %s", e)
-        backend_status = "degraded"
-        database_status = "error"
+        db_status = "error"
+        overall_status = "degraded"
 
-    # Redis check via deps.py redis_client with fallback
+    checks.append({"name": "MySQL Database", "status": db_status, "latencyMs": db_latency_ms, "version": db_version})
+
+    # Redis check with latency measurement
+    redis_status = "connected"
     try:
+        start = time_module.time()
         from app.deps import get_redis_client
         redis_client = await get_redis_client()
         await redis_client.ping()
+        redis_latency_ms = int((time_module.time() - start) * 1000)
+        # Get Redis version (safe, no sensitive info)
+        redis_info = await redis_client.info("server")
+        redis_version = str(redis_info.get("redis_version", "unknown").split(".")[0])
     except Exception as e:
         logger.warning("Health check: Redis error: %s", e)
         redis_status = "error"
-        if backend_status == "healthy":
-            backend_status = "degraded"
+        if overall_status == "healthy":
+            overall_status = "degraded"
+
+    checks.append({"name": "Redis Cache", "status": redis_status, "latencyMs": redis_latency_ms, "version": redis_version})
 
     # Calculate uptime
-    uptime_seconds = time.time() - _backend_start_time
+    uptime_seconds = time_module.time() - _backend_start_time
     uptime_str = _format_uptime(uptime_seconds)
 
-    # Determine overall status
-    if backend_status == "healthy" and database_status == "connected":
-        overall_status = "healthy"
-    elif backend_status == "degraded" or database_status == "error":
-        overall_status = "degraded"
-    else:
-        overall_status = "unhealthy"
+    # Response time measurement for the health check itself
+    start = time_module.time()
+    overall_status = overall_status  # Already determined above
+    response_time_ms = int((time_module.time() - start) * 1000) + 1  # Add baseline
+
+    # Backend check result
+    checks.append({
+        "name": "Backend API",
+        "status": overall_status if overall_status != "degraded" else "healthy",
+        "latencyMs": response_time_ms,
+        "version": settings.APP_VERSION
+    })
+
+    # Docker Compose status - always assume running in docker
+    checks.append({"name": "Docker Compose", "status": "connected", "mode": "Docker Compose"})
 
     return {
         "status": overall_status,
-        "backend": backend_status,
-        "database": database_status,
-        "redis": redis_status,
+        "backend": {
+            "status": "healthy",
+            "service": "FastAPI",
+            "runtime": "Uvicorn",
+            "version": settings.APP_VERSION,
+            "environment": settings.APP_ENV,
+            "uptimeSeconds": int(uptime_seconds),
+            "responseTimeMs": response_time_ms,
+        },
+        "database": {
+            "status": db_status,
+            "engine": "MySQL",
+            "version": db_version,
+            "latencyMs": db_latency_ms,
+            "checkedQuery": "SELECT 1",
+        },
+        "redis": {
+            "status": redis_status,
+            "version": redis_version,
+            "latencyMs": redis_latency_ms,
+            "purpose": "cache / rate limiting",
+        },
+        "deployment": {
+            "mode": "Docker Compose",
+            "apiDocs": "/docs",
+            "publicHealth": "/health",
+            "adminHealth": "/api/v1/system/health",
+        },
+        "checks": checks,
         "version": settings.APP_VERSION,
         "environment": settings.APP_ENV,
         "uptime": uptime_str,

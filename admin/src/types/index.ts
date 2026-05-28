@@ -178,15 +178,57 @@ export interface SystemSettings {
   perUserRateLimit: number;
 }
 
+export interface BackendHealth {
+  status: 'healthy' | 'degraded';
+  service: string;
+  runtime: string;
+  version: string;
+  environment: string;
+  uptimeSeconds: number;
+  responseTimeMs: number;
+}
+
+export interface DatabaseHealth {
+  status: 'connected' | 'error';
+  engine: string;
+  version: string | null;
+  latencyMs: number | null;
+  checkedQuery: string;
+}
+
+export interface RedisHealth {
+  status: 'connected' | 'error';
+  version: string | null;
+  latencyMs: number | null;
+  purpose: string;
+}
+
+export interface DeploymentInfo {
+  mode: string;
+  apiDocs: string;
+  publicHealth: string;
+  adminHealth: string;
+}
+
+export interface HealthCheck {
+  name: string;
+  status: string;
+  latencyMs?: number | null;
+  version?: string | null;
+  mode?: string;
+}
+
 export interface SystemHealth {
   status: 'healthy' | 'degraded' | 'unhealthy';
-  backend: 'healthy' | 'degraded';
-  database: 'connected' | 'error';
-  redis: 'connected' | 'error';
+  backend: BackendHealth;
+  database: DatabaseHealth;
+  redis: RedisHealth;
+  deployment: DeploymentInfo;
+  checks: HealthCheck[];
   version: string;
-  environment?: string;
-  uptime?: string;
-  uptimeSeconds?: number;
+  environment: string;
+  uptime: string;
+  uptimeSeconds: number;
   checkedAt: string;
 }
 

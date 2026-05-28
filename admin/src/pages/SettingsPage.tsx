@@ -684,18 +684,20 @@ const inputStyle: React.CSSProperties = {
 // ---------------------------------------------------------------------------
 
 function SystemHealthCard() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isZh = i18n.language === 'zh';
   const queryClient = useQueryClient();
 
-  const { data: health, isLoading, isError } = useQuery({
+  const { data: health, isLoading, isError, dataUpdatedAt } = useQuery({
     queryKey: ['system-health'],
     queryFn: fetchSystemHealth,
     staleTime: 25000,
+    refetchInterval: 30000,
   });
 
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ['system-health'] });
-    toast.success(t('settings.healthRefreshed', 'Health check refreshed'));
+    toast.success(t('settings.healthRefreshed'));
   };
 
   const getStatusColor = (status: string): string => {
@@ -726,70 +728,18 @@ function SystemHealthCard() {
     }
   };
 
-  // Status icon SVG
-  const StatusIcon = ({ status }: { status: string }) => {
-    const color = getStatusColor(status);
-    return (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-        {status === 'connected' || status === 'healthy' ? (
-          <path d="M20 6L9 17l-5-5" />
-        ) : status === 'degraded' ? (
-          <>
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-            <line x1="12" y1="16" x2="12.01" y2="16" />
-          </>
-        ) : (
-          <>
-            <circle cx="12" cy="12" r="10" />
-            <line x1="15" y1="9" x2="9" y2="15" />
-            <line x1="9" y1="9" x2="15" y2="15" />
-          </>
-        )}
-      </svg>
-    );
+  const formatUptime = (seconds: number): string => {
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    if (days > 0) return `${days}d ${hours}h`;
+    if (hours > 0) return `${hours}h ${mins}m`;
+    return `${mins}m`;
   };
 
-  // Service icon SVG
-  const ServiceIcon = ({ name }: { name: string }) => {
-    const iconColor = 'var(--color-text-2)';
-    if (name.includes('Backend')) {
-      return (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="2" y="3" width="20" height="14" rx="2" />
-          <line x1="8" y1="21" x2="16" y2="21" />
-          <line x1="12" y1="17" x2="12" y2="21" />
-        </svg>
-      );
-    }
-    if (name.includes('MySQL') || name.includes('Database')) {
-      return (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <ellipse cx="12" cy="5" rx="9" ry="3" />
-          <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
-          <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
-        </svg>
-      );
-    }
-    if (name.includes('Redis') || name.includes('Cache')) {
-      return (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5" />
-          <line x1="12" y1="22" x2="12" y2="15.5" />
-          <polyline points="22 8.5 12 15.5 2 8.5" />
-          <polyline points="2 15.5 12 8.5 22 15.5" />
-          <line x1="12" y1="2" x2="12" y2="8.5" />
-        </svg>
-      );
-    }
-    // Docker icon
-    return (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M22 12.5v-5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v5c0 1.5.5 3 2 4.5M22 12.5a2.5 2.5 0 0 1-5 0c0-1.5-.5-3-2-4.5" />
-        <path d="M6 7.5V5a2 2 0 0 0-2-2h12a2 2 0 0 0-2 2v2.5" />
-        <rect x="8" y="12" width="8" height="6" rx="1" />
-      </svg>
-    );
+  const formatLatency = (ms: number | null | undefined): string => {
+    if (ms === null || ms === undefined) return '--';
+    return `${ms}ms`;
   };
 
   if (isLoading) {
@@ -817,7 +767,7 @@ function SystemHealthCard() {
           textTransform: 'uppercase',
           letterSpacing: '0.1em',
         }}>
-          {t('settings.healthChecking', 'Checking system health...')}
+          {t('settings.healthChecking')}
         </div>
       </div>
     );
@@ -841,37 +791,141 @@ function SystemHealthCard() {
         </svg>
         <div>
           <div style={{ fontWeight: 600, color: '#ef4444', marginBottom: '4px' }}>
-            {t('settings.healthError', 'Failed to fetch health status')}
+            {t('settings.healthError')}
           </div>
           <div style={{ fontSize: '12px', color: 'var(--color-text-2)' }}>
-            {t('settings.healthErrorHint', 'Check if backend is running')}
+            {t('settings.healthErrorHint')}
           </div>
         </div>
       </div>
     );
   }
 
-  const services = [
-    { name: t('settings.healthBackend', 'Backend API'), status: health?.backend ?? 'degraded', icon: 'backend' },
-    { name: t('settings.healthMySQL', 'MySQL Database'), status: health?.database ?? 'error', icon: 'database' },
-    { name: t('settings.healthRedis', 'Redis Cache'), status: health?.redis ?? 'error', icon: 'redis' },
-    { name: t('settings.healthDocker', 'Docker Compose'), status: 'connected' as const, icon: 'docker' },
+  // Build checks from health data
+  const checks = health?.checks ?? [];
+  const dbCheck = checks.find(c => c.name.includes('MySQL') || c.name.includes('Database'));
+  const redisCheck = checks.find(c => c.name.includes('Redis') || c.name.includes('Cache'));
+  const backendCheck = checks.find(c => c.name.includes('Backend') || c.name.includes('API'));
+
+  // Reliability metrics calculation
+  const totalChecks = checks.length;
+  const healthyCount = checks.filter(c => c.status === 'connected' || c.status === 'healthy').length;
+  const reliabilityPct = totalChecks > 0 ? Math.round((healthyCount / totalChecks) * 100) : 0;
+
+  // Service grid data from checks
+  const serviceItems = [
+    {
+      name: 'Backend API',
+      icon: 'backend',
+      status: health?.backend?.status ?? 'degraded',
+      latency: health?.backend?.responseTimeMs,
+      version: health?.backend?.version ?? health?.version,
+    },
+    {
+      name: isZh ? 'MySQL 数据库' : 'MySQL Database',
+      icon: 'database',
+      status: dbCheck?.status ?? 'error',
+      latency: dbCheck?.latencyMs,
+      version: dbCheck?.version ?? null,
+    },
+    {
+      name: isZh ? 'Redis 缓存' : 'Redis Cache',
+      icon: 'redis',
+      status: redisCheck?.status ?? 'error',
+      latency: redisCheck?.latencyMs,
+      version: redisCheck?.version ?? null,
+    },
+    {
+      name: isZh ? 'Docker 容器' : 'Docker Compose',
+      icon: 'docker',
+      status: 'connected',
+      latency: null,
+      version: null,
+    },
   ];
+
+  // Status icon SVG
+  const StatusIcon = ({ status }: { status: string }) => {
+    const color = getStatusColor(status);
+    return (
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        {status === 'connected' || status === 'healthy' ? (
+          <path d="M20 6L9 17l-5-5" />
+        ) : status === 'degraded' ? (
+          <>
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </>
+        ) : (
+          <>
+            <circle cx="12" cy="12" r="10" />
+            <line x1="15" y1="9" x2="9" y2="15" />
+            <line x1="9" y1="9" x2="15" y2="15" />
+          </>
+        )}
+      </svg>
+    );
+  };
+
+  // Service icon SVG
+  const ServiceIcon = ({ name }: { name: string }) => {
+    const iconColor = 'var(--color-text-2)';
+    if (name.includes('Backend')) {
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="2" y="3" width="20" height="14" rx="2" />
+          <line x1="8" y1="21" x2="16" y2="21" />
+          <line x1="12" y1="17" x2="12" y2="21" />
+        </svg>
+      );
+    }
+    if (name.includes('MySQL') || name.includes('Database') || name.includes('数据')) {
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <ellipse cx="12" cy="5" rx="9" ry="3" />
+          <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+          <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+        </svg>
+      );
+    }
+    if (name.includes('Redis') || name.includes('Cache') || name.includes('缓存')) {
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5" />
+          <line x1="12" y1="22" x2="12" y2="15.5" />
+          <polyline points="22 8.5 12 15.5 2 8.5" />
+          <polyline points="2 15.5 12 8.5 22 15.5" />
+          <line x1="12" y1="2" x2="12" y2="8.5" />
+        </svg>
+      );
+    }
+    // Docker icon
+    return (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M22 12.5v-5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v5c0 1.5.5 3 2 4.5M22 12.5a2.5 2.5 0 0 1-5 0c0-1.5-.5-3-2-4.5" />
+        <path d="M6 7.5V5a2 2 0 0 0-2-2h12a2 2 0 0 0-2 2v2.5" />
+        <rect x="8" y="12" width="8" height="6" rx="1" />
+      </svg>
+    );
+  };
+
+  const lastChecked = dataUpdatedAt ? new Date(dataUpdatedAt).toLocaleTimeString() : (health?.checkedAt ? new Date(health.checkedAt).toLocaleTimeString() : '--:--:--');
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Header */}
+      {/* Health Overview */}
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'flex-start',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           {/* Status indicator */}
           <div style={{
-            width: '48px',
-            height: '48px',
-            borderRadius: '12px',
+            width: '56px',
+            height: '56px',
+            borderRadius: '14px',
             background: getStatusBg(health?.status ?? 'unhealthy'),
             display: 'flex',
             alignItems: 'center',
@@ -884,10 +938,10 @@ function SystemHealthCard() {
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              marginBottom: '4px',
+              marginBottom: '6px',
             }}>
               <span style={{
-                fontSize: '18px',
+                fontSize: '22px',
                 fontWeight: 600,
                 color: 'var(--color-text)',
                 textTransform: 'capitalize',
@@ -896,11 +950,12 @@ function SystemHealthCard() {
               </span>
               {health?.environment && (
                 <span style={{
-                  padding: '2px 8px',
+                  padding: '3px 8px',
                   borderRadius: '4px',
                   fontSize: '10px',
                   fontWeight: 600,
                   textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
                   background: health.environment === 'production'
                     ? 'rgba(239, 68, 68, 0.1)'
                     : 'rgba(16, 185, 129, 0.1)',
@@ -915,45 +970,68 @@ function SystemHealthCard() {
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '12px',
+              gap: '16px',
               fontFamily: 'var(--font-mono)',
               fontSize: '11px',
               color: 'var(--color-text-3)',
             }}>
-              <span>v{health?.version ?? '1.0.0'}</span>
-              {health?.uptime && (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ color: 'var(--color-text-2)' }}>v</span>{health?.version ?? '1.0.0'}
+              </span>
+              {health?.uptimeSeconds && (
                 <>
-                  <span style={{ opacity: 0.5 }}>|</span>
-                  <span>Uptime: {health.uptime}</span>
+                  <span style={{ opacity: 0.4 }}>|</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    {formatUptime(health.uptimeSeconds)}
+                  </span>
                 </>
               )}
             </div>
           </div>
         </div>
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={handleRefresh}
-          style={{ minWidth: '100px' }}
-        >
-          {t('settings.btnRefresh', 'Refresh')}
-        </Button>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <div style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '10px',
+            color: 'var(--color-text-3)',
+            textTransform: 'uppercase',
+          }}>
+            {isZh ? '已刷新' : 'Updated'} {lastChecked}
+          </div>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleRefresh}
+            style={{ minWidth: '90px' }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
+              <polyline points="23 4 23 10 17 10" />
+              <polyline points="1 20 1 14 7 14" />
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+            </svg>
+            {t('settings.btnRefresh')}
+          </Button>
+        </div>
       </div>
 
-      {/* Service grid */}
+      {/* Service Status Grid */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(2, 1fr)',
-        gap: '12px',
+        gap: '10px',
       }}>
-        {services.map((service) => (
+        {serviceItems.map((service) => (
           <div
             key={service.name}
             style={{
-              padding: '16px 20px',
+              padding: '14px 16px',
               background: 'var(--color-elevated)',
               border: '1px solid var(--color-border)',
-              borderRadius: '12px',
+              borderRadius: '10px',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
@@ -961,8 +1039,8 @@ function SystemHealthCard() {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{
-                width: '32px',
-                height: '32px',
+                width: '30px',
+                height: '30px',
                 borderRadius: '8px',
                 background: getStatusBg(service.status),
                 display: 'flex',
@@ -979,65 +1057,67 @@ function SystemHealthCard() {
                 {service.name}
               </span>
             </div>
-            <span style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '4px 10px',
-              borderRadius: '6px',
-              fontSize: '11px',
-              fontWeight: 600,
-              textTransform: 'capitalize',
-              fontFamily: 'var(--font-mono)',
-              backgroundColor: getStatusBg(service.status),
-              color: getStatusColor(service.status),
-            }}>
-              <StatusIcon status={service.status} />
-              {service.status}
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              {service.latency !== null && (
+                <span style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '10px',
+                  color: 'var(--color-text-3)',
+                }}>
+                  {formatLatency(service.latency)}
+                </span>
+              )}
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '4px 8px',
+                borderRadius: '5px',
+                fontSize: '10px',
+                fontWeight: 600,
+                textTransform: 'capitalize',
+                fontFamily: 'var(--font-mono)',
+                backgroundColor: getStatusBg(service.status),
+                color: getStatusColor(service.status),
+              }}>
+                <StatusIcon status={service.status} />
+                {service.status}
+              </span>
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Last checked */}
+      {/* Runtime Summary Row */}
       <div style={{
-        display: 'flex',
-        justifyContent: 'flex-end',
-        fontFamily: 'var(--font-mono)',
-        fontSize: '11px',
-        color: 'var(--color-text-3)',
-      }}>
-        {t('settings.healthLastChecked', 'Last Checked')}: {health?.checkedAt ? new Date(health.checkedAt).toLocaleTimeString() : '--:--:--'}
-      </div>
-
-      {/* Deployment info */}
-      <div style={{
-        padding: '20px',
-        background: 'var(--color-bg)',
-        border: '1px solid var(--color-border)',
-        borderRadius: '12px',
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: '16px',
+        gap: '12px',
       }}>
         {[
-          { label: 'Backend', value: 'FastAPI' },
-          { label: 'Runtime', value: 'Uvicorn' },
-          { label: 'Database', value: 'MySQL 8.0' },
-          { label: 'Cache', value: 'Redis 7' },
+          { label: isZh ? '服务' : 'Service', value: health?.backend?.service ?? 'FastAPI' },
+          { label: isZh ? '运行时' : 'Runtime', value: health?.backend?.runtime ?? 'Uvicorn' },
+          { label: isZh ? '引擎' : 'Engine', value: health?.database?.engine ?? 'MySQL' },
+          { label: isZh ? '版本' : 'DB Version', value: health?.database?.version ?? '--' },
         ].map((item) => (
-          <div key={item.label} style={{ textAlign: 'center' }}>
+          <div key={item.label} style={{
+            padding: '12px 16px',
+            background: 'var(--color-bg)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '8px',
+            textAlign: 'center',
+          }}>
             <div style={{
-              fontSize: '10px',
+              fontSize: '9px',
               color: 'var(--color-text-3)',
               textTransform: 'uppercase',
-              letterSpacing: '0.1em',
+              letterSpacing: '0.08em',
               marginBottom: '4px',
             }}>
               {item.label}
             </div>
             <div style={{
-              fontSize: '13px',
+              fontSize: '12px',
               fontWeight: 600,
               color: 'var(--color-text)',
               fontFamily: 'var(--font-mono)',
@@ -1046,6 +1126,156 @@ function SystemHealthCard() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Mini Reliability Metrics */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 2fr',
+        gap: '16px',
+      }}>
+        {/* Availability metric */}
+        <div style={{
+          padding: '16px 20px',
+          background: 'var(--color-elevated)',
+          border: '1px solid var(--color-border)',
+          borderRadius: '10px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+        }}>
+          <div style={{
+            width: '44px',
+            height: '44px',
+            borderRadius: '10px',
+            background: reliabilityPct >= 90 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={reliabilityPct >= 90 ? '#10b981' : '#f59e0b'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+          </div>
+          <div>
+            <div style={{
+              fontSize: '10px',
+              color: 'var(--color-text-3)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              marginBottom: '4px',
+            }}>
+              {isZh ? '系统可用性' : 'Availability'}
+            </div>
+            <div style={{
+              fontSize: '24px',
+              fontWeight: 700,
+              fontFamily: 'var(--font-mono)',
+              color: reliabilityPct >= 90 ? '#10b981' : '#f59e0b',
+            }}>
+              {reliabilityPct}%
+            </div>
+          </div>
+        </div>
+
+        {/* Recent checks summary */}
+        <div style={{
+          padding: '16px 20px',
+          background: 'var(--color-elevated)',
+          border: '1px solid var(--color-border)',
+          borderRadius: '10px',
+        }}>
+          <div style={{
+            fontSize: '10px',
+            color: 'var(--color-text-3)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+            marginBottom: '12px',
+          }}>
+            {isZh ? '最近检查' : 'Recent Checks'}
+          </div>
+          <div style={{ display: 'flex', gap: '20px' }}>
+            {checks.slice(0, 4).map((check, idx) => (
+              <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <StatusIcon status={check.status} />
+                <span style={{
+                  fontSize: '11px',
+                  color: 'var(--color-text)',
+                  fontFamily: 'var(--font-mono)',
+                }}>
+                  {check.name}
+                </span>
+                {check.latencyMs !== undefined && check.latencyMs !== null && (
+                  <span style={{
+                    fontSize: '9px',
+                    color: 'var(--color-text-3)',
+                    fontFamily: 'var(--font-mono)',
+                  }}>
+                    {formatLatency(check.latencyMs)}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Deployment Info */}
+      <div style={{
+        padding: '16px 20px',
+        background: 'var(--color-bg)',
+        border: '1px dashed var(--color-border)',
+        borderRadius: '10px',
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, 1fr)',
+        gap: '20px',
+      }}>
+        {[
+          { label: isZh ? '部署模式' : 'Mode', value: health?.deployment?.mode ?? 'Docker Compose' },
+          { label: isZh ? '公共健康检查' : 'Public Health', value: health?.deployment?.publicHealth ?? '/health' },
+          { label: isZh ? '管理员端点' : 'Admin Endpoint', value: health?.deployment?.adminHealth ?? '/api/v1/system/health' },
+        ].map((item) => (
+          <div key={item.label} style={{ textAlign: 'center' }}>
+            <div style={{
+              fontSize: '9px',
+              color: 'var(--color-text-3)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              marginBottom: '4px',
+            }}>
+              {item.label}
+            </div>
+            <div style={{
+              fontSize: '11px',
+              fontWeight: 500,
+              color: 'var(--color-text)',
+              fontFamily: 'var(--font-mono)',
+            }}>
+              {item.value}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Auto-refresh indicator */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: '8px',
+        fontSize: '10px',
+        color: 'var(--color-text-3)',
+        fontFamily: 'var(--font-mono)',
+      }}>
+        <div style={{
+          width: '6px',
+          height: '6px',
+          borderRadius: '50%',
+          background: '#10b981',
+          animation: 'pulse 2s infinite',
+        }} />
+        {isZh ? '每 30 秒自动刷新' : 'Auto-refreshes every 30s'}
       </div>
     </div>
   );

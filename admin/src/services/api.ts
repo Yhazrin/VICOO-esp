@@ -981,10 +981,15 @@ export async function fetchSystemHealth(): Promise<SystemHealth> {
   const { data: envelope } = await api.get('/system/health');
   return {
     status: envelope.status ?? 'unhealthy',
-    backend: envelope.backend ?? 'degraded',
-    database: envelope.database ?? 'error',
-    redis: envelope.redis ?? 'error',
+    backend: envelope.backend ?? { status: 'degraded', service: 'FastAPI', runtime: 'Uvicorn', version: envelope.version ?? '1.0.0', environment: envelope.environment ?? 'development', uptimeSeconds: 0, responseTimeMs: 0 },
+    database: envelope.database ?? { status: 'error', engine: 'MySQL', version: null, latencyMs: null, checkedQuery: 'SELECT 1' },
+    redis: envelope.redis ?? { status: 'error', version: null, latencyMs: null, purpose: 'cache / rate limiting' },
+    deployment: envelope.deployment ?? { mode: 'Docker Compose', apiDocs: '/docs', publicHealth: '/health', adminHealth: '/api/v1/system/health' },
+    checks: envelope.checks ?? [],
     version: envelope.version ?? '1.0.0',
+    environment: envelope.environment ?? 'development',
+    uptime: envelope.uptime ?? '0m',
+    uptimeSeconds: envelope.uptimeSeconds ?? 0,
     checkedAt: envelope.checkedAt ?? new Date().toISOString(),
   };
 }
