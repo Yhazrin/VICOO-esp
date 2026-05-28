@@ -404,6 +404,9 @@ export default function Header() {
   const setImpactMode = useUIStore((s) => s.setImpactMode);
   const activeImpactTab = useUIStore((s) => s.activeImpactTab);
   const setActiveImpactTab = useUIStore((s) => s.setActiveImpactTab);
+  const headerHiddenForCapture = useUIStore((s) => s.headerHiddenForCapture);
+  const toggleHeaderHiddenForCapture = useUIStore((s) => s.toggleHeaderHiddenForCapture);
+  const captureDebugEnabled = import.meta.env.DEV;
 
   const user = useAuthStore((s) => s.user);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -535,10 +538,23 @@ export default function Header() {
 
   return (
     <header className="pointer-events-none fixed top-0 left-0 right-0 z-50">
+      {captureDebugEnabled && (
+        <button
+          type="button"
+          data-testid="header-capture-toggle"
+          onClick={toggleHeaderHiddenForCapture}
+          className="pointer-events-auto fixed top-0 right-0 z-[60] h-14 w-14 cursor-pointer border-0 bg-transparent opacity-0 md:h-[4.25rem] md:w-16"
+          aria-hidden="true"
+          tabIndex={-1}
+          title={headerHiddenForCapture ? 'Show header (dev)' : 'Hide header (dev)'}
+        />
+      )}
       <motion.div
-        className={`pointer-events-auto ${headerBarGpuClass}`}
+        className={`${headerHiddenForCapture ? 'pointer-events-none' : 'pointer-events-auto'} ${headerBarGpuClass}`}
         initial={false}
         animate={{
+          y: headerHiddenForCapture ? -120 : 0,
+          opacity: headerHiddenForCapture ? 0 : 1,
           marginTop: impactMode ? 10 : 0,
           marginLeft: impactMode ? 12 : 0,
           marginRight: impactMode ? 12 : 0,

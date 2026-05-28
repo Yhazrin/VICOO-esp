@@ -149,8 +149,11 @@ interface UIState {
   impactMode: boolean;
   activeImpactTab: string;
   aiBallStyle: AIBallStyle;
+  /** Dev-only: hide top header bar for clean marketing screenshots (not persisted). */
+  headerHiddenForCapture: boolean;
   setMobileNavOpen: (open: boolean) => void;
   toggleMobileNav: () => void;
+  toggleHeaderHiddenForCapture: () => void;
   setLocale: (locale: Locale) => void;
   setMenuTriggerRef: (ref: React.RefObject<HTMLButtonElement>) => void;
   setTheme: (theme: ThemeId) => void;
@@ -174,8 +177,11 @@ export const useUIStore = create<UIState>()(
       impactMode: initialUI.impactMode,
       activeImpactTab: initialUI.activeImpactTab,
       aiBallStyle: initialUI.aiBallStyle,
+      headerHiddenForCapture: false,
 
       setMobileNavOpen: (mobileNavOpen) => set({ mobileNavOpen }),
+      toggleHeaderHiddenForCapture: () =>
+        set((state) => ({ headerHiddenForCapture: !state.headerHiddenForCapture })),
       toggleMobileNav: () =>
         set((state) => ({ mobileNavOpen: !state.mobileNavOpen })),
       setLocale: (currentLocale) => {
