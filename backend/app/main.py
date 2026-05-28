@@ -270,9 +270,32 @@ from app.routers.impact_fund import router as impact_fund_router
 from app.routers.design_drafts import router as design_drafts_router
 
 # Health check router
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from datetime import datetime
+
 health_router = APIRouter(tags=["Health"])
+
+# Track backend start time for uptime calculation
+_backend_start_time = time.time()
+
+
+def _format_uptime(seconds: float) -> str:
+    """Format uptime seconds to human-readable string."""
+    if seconds < 60:
+        return f"{int(seconds)}s"
+    elif seconds < 3600:
+        mins = int(seconds // 60)
+        secs = int(seconds % 60)
+        return f"{mins}m {secs}s"
+    elif seconds < 86400:
+        hours = int(seconds // 3600)
+        mins = int((seconds % 3600) // 60)
+        return f"{hours}h {mins}m"
+    else:
+        days = int(seconds // 86400)
+        hours = int((seconds % 86400) // 3600)
+        return f"{days}d {hours}h"
+
 
 @health_router.get("/health")
 async def health():
@@ -280,41 +303,21 @@ async def health():
     Public lightweight health endpoint for Docker / deployment / quick check.
     No authentication required.
     """
-    health_data = {
+    return {
         "status": "ok",
         "service": "vicoo-api",
         "version": settings.APP_VERSION,
         "timestamp": datetime.utcnow().isoformat() + "Z",
     }
-    try:
-        async with AsyncSessionLocal() as session:
-            from sqlalchemy import text
-            await session.execute(text("SELECT 1"))
-            health_data["database"] = "connected"
-    except Exception:
-        health_data["database"] = "error"
-        health_data["status"] = "degraded"
-
-    if settings.REDIS_URL:
-        try:
-            import redis.asyncio as redis
-            r = redis.from_url(settings.REDIS_URL, socket_timeout=2)
-            await r.ping()
-            health_data["redis"] = "connected"
-        except Exception:
-            health_data["redis"] = "error"
-    else:
-        health_data["redis"] = "unavailable"
-
-    return health_data
 
 
 @health_router.get("/system/health")
-async def system_health():
+async def system_health(
+    _current_user: dict = Depends(require_role("admin", "editor", "compliance")),
+):
     """
     Admin detailed health check endpoint.
-    Checks MySQL and Redis connectivity without exposing sensitive config.
-    Returns degraded/unhealthy if services fail - never crashes.
+    Requires admin/editor/compliance role.
     """
     backend_status = "healthy"
     database_status = "connected"
@@ -338,9 +341,12 @@ async def system_health():
     except Exception as e:
         logger.warning("Health check: Redis error: %s", e)
         redis_status = "error"
-        # Redis failure is degraded, not unhealthy (rate limiting is fail-open)
         if backend_status == "healthy":
             backend_status = "degraded"
+
+    # Calculate uptime
+    uptime_seconds = time.time() - _backend_start_time
+    uptime_str = _format_uptime(uptime_seconds)
 
     # Determine overall status
     if backend_status == "healthy" and database_status == "connected":
@@ -356,6 +362,9 @@ async def system_health():
         "database": database_status,
         "redis": redis_status,
         "version": settings.APP_VERSION,
+        "environment": settings.APP_ENV,
+        "uptime": uptime_str,
+        "uptimeSeconds": int(uptime_seconds),
         "checkedAt": datetime.utcnow().isoformat() + "Z",
     }
 

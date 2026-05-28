@@ -184,6 +184,9 @@ export interface SystemHealth {
   database: 'connected' | 'error';
   redis: 'connected' | 'error';
   version: string;
+  environment?: string;
+  uptime?: string;
+  uptimeSeconds?: number;
   checkedAt: string;
 }
 
