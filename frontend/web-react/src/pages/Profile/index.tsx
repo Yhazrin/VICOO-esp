@@ -14,6 +14,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useAuth } from '@/hooks/useAuth';
 import { ordersApi, type OrderDetail } from '@/services/orders';
 import { donationsApi } from '@/services/donations';
+import { formatDate } from '@/utils/dateTime';
 import { clothingIntakesApi, type ClothingIntake } from '@/services/clothingIntakes';
 import { afterSalesApi, type AfterSaleTicket } from '@/services/afterSales';
 import { addressesApi, type Address, type AddressCreateData } from '@/services/addresses';
@@ -475,7 +476,7 @@ export default function Profile() {
                         <div>
                           <p className="font-mono text-xs text-sepia-mid">{order.order_no}</p>
                           <p className="font-body text-caption text-ink-faded mt-0.5">
-                            {new Date(order.created_at).toLocaleDateString(i18n.language, { year: 'numeric', month: 'short', day: 'numeric' })}
+                            {formatDate(order.created_at, i18n.language)}
                           </p>
                         </div>
                         <span className={`font-body text-overline tracking-[0.1em] uppercase px-3 py-1 border ${
@@ -606,11 +607,7 @@ export default function Profile() {
                     <EditorialCard
                       key={donation.id}
                       title={`${donation.currency} ${Number(donation.amount).toFixed(2)}`}
-                      subtitle={new Date(donation.created_at).toLocaleDateString(i18n.language, {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })}
+                      subtitle={formatDate(donation.created_at, i18n.language)}
                       index={index}
                       hoverEffect="border"
                     >

@@ -8,6 +8,7 @@ import PaperTextureBackground from '@/components/editorial/PaperTextureBackgroun
 
 import { aiDesignApi, type DesignDraft } from '@/services/aiDesign';
 import { useAuthStore } from '@/stores/authStore';
+import { formatDate } from '@/utils/dateTime';
 
 const STATUS_STYLES: Record<string, string> = {
   draft: 'text-sepia-mid border-warm-gray/30',
@@ -216,7 +217,7 @@ export default function AiDesign() {
                   <div className="flex items-center gap-4 mt-3 font-body text-caption text-sepia-mid">
                     <span>{t('aiDesign.artworkRef', '画作')}: #{draft.artwork_id}</span>
                     {draft.target_category && <span>{draft.target_category}</span>}
-                    <span>{draft.created_at.slice(0, 10)}</span>
+                    <span>{formatDate(draft.created_at)}</span>
                   </div>
                 </div>
               ))}

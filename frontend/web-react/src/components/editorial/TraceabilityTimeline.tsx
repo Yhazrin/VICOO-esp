@@ -4,6 +4,7 @@ import type { SupplyChainTimelineRecord } from '@/types';
 import { useTranslation } from 'react-i18next';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 import TraceMediaGallery from '@/components/editorial/TraceMediaGallery';
+import { formatDate } from '@/utils/dateTime';
 
 interface TraceabilityTimelineProps {
   records: SupplyChainTimelineRecord[];
@@ -232,11 +233,7 @@ export default function TraceabilityTimeline({
                       {t('traceability.date')}
                     </span>
                     <span className="font-mono text-[11px] text-ink-faded">
-                      {new Date(record.date).toLocaleDateString(dateLocale, {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })}
+                      {formatDate(record.date, dateLocale)}
                     </span>
                   </div>
                   {record.carbonFootprint !== undefined && (

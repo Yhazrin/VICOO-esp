@@ -9,6 +9,7 @@ import SectionContainer from '@/components/layout/SectionContainer';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
 
 import { ordersApi, type ReturnRequestData } from '@/services/orders';
+import { formatDateTime } from '@/utils/dateTime';
 import { impactFundApi } from '@/services/impactFund';
 import TraceabilityTimeline from '@/components/editorial/TraceabilityTimeline';
 import type { SupplyChainTimelineRecord } from '@/types';
@@ -343,7 +344,7 @@ export default function OrderDetail() {
                     {t('orderDetail.orderDate', '下单时间')}
                   </p>
                   <p className="font-body text-body-sm text-ink">
-                    {new Date(order.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    {formatDateTime(order.created_at)}
                   </p>
                 </div>
               </div>

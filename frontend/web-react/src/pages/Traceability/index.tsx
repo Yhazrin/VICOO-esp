@@ -8,6 +8,7 @@ import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
 import { ScrollPathDrawInline } from '@/components/animations/ScrollPathDraw';
 import { supplyChainApi } from '@/services/supply-chain';
+import { formatDate } from '@/utils/dateTime';
 import type { TraceMediaItem } from '@/types';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 import { MagazineDivider } from '@/components/editorial/MagazineDivider';
@@ -298,11 +299,7 @@ function EnhancedTimelineEntry({ record, index, t }: {
             <div className="font-body text-label text-sepia-mid">
               <span className="uppercase tracking-[0.1em]">{t('traceability.date')}:</span>{' '}
               <span className="text-ink-faded font-medium">
-                {new Date(record.date).toLocaleDateString(i18n.language, {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                })}
+                {formatDate(record.date, i18n.language)}
               </span>
             </div>
             {record.carbonFootprint !== undefined && (
@@ -623,10 +620,7 @@ export default function Traceability() {
                     </h4>
                     <p className="font-body text-caption text-ink-faded leading-relaxed">
                       {searchResult.partnerName} &mdash; {searchResult.location},{' '}
-                      {new Date(searchResult.date).toLocaleDateString(i18n.language, {
-                        year: 'numeric',
-                        month: 'short',
-                      })}
+                      {formatDate(searchResult.date, i18n.language)}
                     </p>
                     {tracedProductId && (
                       <Link

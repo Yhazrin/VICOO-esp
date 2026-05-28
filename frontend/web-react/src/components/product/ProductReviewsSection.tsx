@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { reviewsApi, type ProductReview } from '@/services/reviewsApi';
 import { deserializeReviewBody } from '@/utils/reviewChips';
+import { formatDate } from '@/utils/dateTime';
 
 const DIMENSION_TAG_KEYS = ['fitComfort', 'packaging', 'traceableImpact'] as const;
 
@@ -68,7 +69,7 @@ function ReviewCard({
           ))}
         </div>
         <time className="font-mono text-[10px] tracking-[0.06em] text-neutral-400">
-          {review.created_at?.slice(0, 10)}
+          {formatDate(review.created_at)}
         </time>
       </div>
       <p className="sr-only">

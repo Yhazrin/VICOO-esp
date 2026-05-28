@@ -24,6 +24,7 @@ import { useAuthStore } from '@/stores/authStore';
 import type { Campaign, Product } from '@/types';
 import { getPublicSiteOrigin } from '@/utils/publicSiteUrl';
 import { getPayApiBaseForQr } from '@/utils/payApiBaseOverride';
+import { formatDate as formatDateTz } from '@/utils/dateTime';
 
 export default function CampaignDetail() {
   const { id } = useParams<{ id: string }>();
@@ -269,13 +270,7 @@ export default function CampaignDetail() {
   const formatCurrency = (amount: number) => new Intl.NumberFormat(locale).format(amount);
   const formatDate = (value?: string) => {
     if (!value) return t('campaigns.detail.dateTbd', 'To be announced');
-    const parsed = new Date(value);
-    if (Number.isNaN(parsed.getTime())) return value;
-    return new Intl.DateTimeFormat(locale, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    }).format(parsed);
+    return formatDateTz(value, locale);
   };
 
   const copy = getLocalizedCampaignCopy(campaign, t, i18n);
