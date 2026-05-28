@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
@@ -11,7 +11,7 @@ import Button from '../components/ui/Button';
 import { PageHeader } from '../components/ui/PageHeader';
 import { SummaryCard, MiniStat } from '../components/ui/SummaryCard';
 import { ReviewStatusChart } from '../components/charts/ReviewStatusChart';
-import { fetchArtworks, updateArtworkStatus, analyzeArtwork } from '../services/api';
+import { fetchArtworks, updateArtworkStatus, updateArtwork, deleteArtwork, analyzeArtwork, uploadTraceMedia } from '../services/api';
 import type { Artwork } from '../types';
 import dayjs from 'dayjs';
 
@@ -76,6 +76,9 @@ export default function ArtworkPage() {
   const [detailModal, setDetailModal] = useState(false);
   const [aiResult, setAiResult] = useState<any>(null);
   const [rejectConfirmOpen, setRejectConfirmOpen] = useState(false);
+  const [editingImageUrl, setEditingImageUrl] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['artworks', page, statusFilter, search, sortBy, sortOrder],
@@ -89,6 +92,35 @@ export default function ArtworkPage() {
     onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: ['artworks'] });
       toast.success(vars.status === 'approved' ? t('artwork.toastApproved') : t('artwork.toastRejected'));
+    },
+  });
+
+  const updateArtworkMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Artwork> }) =>
+      updateArtwork(id, {
+        title: data.title,
+        description: data.description,
+        imageUrl: data.imageUrl,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['artworks'] });
+      toast.success(t('common.saveSuccess', '保存成功'));
+    },
+    onError: () => {
+      toast.error(t('common.saveFailed', '保存失败'));
+    },
+  });
+
+  const deleteArtworkMutation = useMutation({
+    mutationFn: deleteArtwork,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['artworks'] });
+      setDetailModal(false);
+      setSelectedArtwork(null);
+      toast.success(t('common.deleteSuccess', '删除成功'));
+    },
+    onError: () => {
+      toast.error(t('common.deleteFailed', '删除失败'));
     },
   });
 
@@ -122,8 +154,25 @@ export default function ArtworkPage() {
 
   const handleOpenDetail = (artwork: Artwork) => {
     setSelectedArtwork(artwork);
+    setEditingImageUrl(artwork.imageUrl || '');
     setAiResult(null);
     setDetailModal(true);
+  };
+
+  const handleArtworkImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const result = await uploadTraceMedia(file);
+      setEditingImageUrl(result.url);
+      toast.success(t('common.uploadSuccess', '上传成功'));
+    } catch {
+      toast.error(t('common.uploadFailed', '上传失败'));
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   const columns: Column<Artwork>[] = [
@@ -204,6 +253,16 @@ export default function ArtworkPage() {
               {t('artwork.btnApprove')}
             </Button>
           )}
+          <Button
+            size="sm"
+            variant="danger"
+            onClick={(e) => {
+              e.stopPropagation();
+              deleteArtworkMutation.mutate(record.id);
+            }}
+          >
+            {t('common.delete', '删除')}
+          </Button>
         </div>
       ),
     },
@@ -324,6 +383,15 @@ export default function ArtworkPage() {
                 </Button>
               </>
             )}
+            {selectedArtwork && (
+              <Button
+                variant="danger"
+                onClick={() => deleteArtworkMutation.mutate(selectedArtwork.id)}
+                loading={deleteArtworkMutation.isPending}
+              >
+                {t('common.delete', '删除')}
+              </Button>
+            )}
           </div>
         }
       >
@@ -367,6 +435,47 @@ export default function ArtworkPage() {
                 </div>
               </div>
             )}
+            <div className="modal-detail-full">
+              <span className="modal-detail-label">Image URL</span>
+              <input
+                value={editingImageUrl}
+                onChange={(e) => setEditingImageUrl(e.target.value)}
+                className="table-search"
+                style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid var(--color-border)' }}
+              />
+              <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleArtworkImageUpload}
+                  style={{ display: 'none' }}
+                />
+                <Button variant="secondary" onClick={() => fileInputRef.current?.click()} loading={uploading}>
+                  {t('common.uploadImage', '上传图片')}
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    if (!selectedArtwork) return;
+                    updateArtworkMutation.mutate({
+                      id: selectedArtwork.id,
+                      data: { imageUrl: editingImageUrl },
+                    });
+                  }}
+                  loading={updateArtworkMutation.isPending}
+                >
+                  {t('common.save', '保存')}
+                </Button>
+              </div>
+              {editingImageUrl && (
+                <img
+                  src={editingImageUrl}
+                  alt="artwork-preview"
+                  style={{ width: 120, height: 120, objectFit: 'cover', borderRadius: 8, marginTop: 10, border: '1px solid var(--color-border)' }}
+                />
+              )}
+            </div>
           </div>
         )}
       </Modal>
