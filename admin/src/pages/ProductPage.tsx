@@ -152,7 +152,8 @@ function SectionHeader({ title }: { title: string }) {
  *  Main Page
  * ========================================================================= */
 export default function ProductPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isZh = i18n.language === 'zh';
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState('');
@@ -817,17 +818,17 @@ export default function ProductPage() {
 
       {/* Summary Cards */}
       <div className="dashboard-summary-grid" style={{ marginBottom: 24 }}>
-        <SummaryCard title="Total Products" subtitle="商品总数" icon={PackageIcon}>
-          <MiniStat label="全部商品" value={summaryStats.total} />
-          <MiniStat label="本周新增" value="+3" change={8} />
+        <SummaryCard title={isZh ? '商品总数' : 'Total Products'} subtitle={isZh ? '总计' : 'All'} icon={PackageIcon}>
+          <MiniStat label={isZh ? '全部商品' : 'All Products'} value={summaryStats.total} />
+          <MiniStat label={t('common.miniStatNew')} value="+3" change={8} />
         </SummaryCard>
-        <SummaryCard title="Active" subtitle="在售" icon={LayersIcon}>
-          <MiniStat label="在售" value={summaryStats.active} />
-          <MiniStat label="缺货" value={summaryStats.soldOut} trend="warning" />
+        <SummaryCard title={isZh ? '在售' : 'Active'} subtitle={isZh ? '销售' : 'Selling'} icon={LayersIcon}>
+          <MiniStat label={isZh ? '在售' : 'Active'} value={summaryStats.active} />
+          <MiniStat label={isZh ? '缺货' : 'Sold Out'} value={summaryStats.soldOut} trend="warning" />
         </SummaryCard>
-        <SummaryCard title="Impact" subtitle="公益商品" icon={DollarIcon}>
-          <MiniStat label="公益商品" value={summaryStats.impact} trend="up" />
-          <MiniStat label="普通商品" value={summaryStats.total - summaryStats.impact} />
+        <SummaryCard title={isZh ? '公益' : 'Impact'} subtitle={isZh ? '商品' : 'Products'} icon={DollarIcon}>
+          <MiniStat label={isZh ? '公益商品' : 'Impact'} value={summaryStats.impact} trend="up" />
+          <MiniStat label={isZh ? '普通商品' : 'Regular'} value={summaryStats.total - summaryStats.impact} />
         </SummaryCard>
       </div>
 
