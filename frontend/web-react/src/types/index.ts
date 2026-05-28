@@ -230,12 +230,13 @@ export interface Order {
 }
 
 export interface Address {
-  name: string;
+  recipient_name: string;
   phone: string;
-  street: string;
+  detail_address: string;
   city: string;
   province: string;
-  postalCode: string;
+  district: string;
+  postal_code: string;
   country: string;
 }
 

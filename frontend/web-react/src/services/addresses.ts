@@ -11,6 +11,7 @@ export interface Address {
   district: string | null;
   detail_address: string;
   postal_code: string | null;
+  country: string;
   is_default: boolean;
   created_at: string;
   updated_at: string;
@@ -25,6 +26,7 @@ export interface AddressCreateData {
   district?: string;
   detail_address: string;
   postal_code?: string;
+  country: string;
   is_default?: boolean;
 }
 
@@ -37,6 +39,7 @@ export interface AddressUpdateData {
   district?: string;
   detail_address?: string;
   postal_code?: string;
+  country?: string;
   is_default?: boolean;
 }
 

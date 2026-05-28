@@ -1,10 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select, func
+from fastapi import APIRouter, Depends, HTTPException, Query, Header
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from decimal import Decimal
 import json
-import random
 import logging
+from typing import Optional
 
 from app.config import settings
 from app.database import get_db
@@ -13,16 +12,16 @@ from app.models.product import Product
 from app.models.user import User
 from app.schemas import (
     ApiResponse,
-    OrderCreate,
-    OrderLogisticsUpdate,
-    OrderOut,
-    OrderStatusUpdate,
     PaginatedResponse,
+    OrderOut,
+    OrderCreate,
+    OrderStatusUpdate,
+    OrderLogisticsUpdate,
+    ReturnRequestCreate,
 )
-from app.schemas.order import ReturnRequestCreate
-from app.deps import get_current_user, require_role
-from app.security import generate_order_no
-from app.utils.mock_pay_token import issue_mock_pay_token
+from app.routers.auth import get_current_user, require_role
+from app.utils.security import issue_mock_pay_token
+from app.services.order.service import OrderService
 from app.data.impact_product_images import IMPACT_PRODUCT_IMAGE_BY_NAME
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
@@ -77,6 +76,16 @@ def order_to_out_dict(
             }
             for i in items
         ],
+        # P1: Structured shipping address fields
+        "recipient_name": getattr(order, "recipient_name", None),
+        "recipient_phone": getattr(order, "recipient_phone", None),
+        "province": getattr(order, "province", None),
+        "city": getattr(order, "city", None),
+        "district": getattr(order, "district", None),
+        "detail_address": getattr(order, "detail_address", None),
+        "postal_code": getattr(order, "postal_code", None),
+        "country": getattr(order, "country", None),
+        "country_code": getattr(order, "country_code", None),
         "created_at": order.created_at,
         "updated_at": order.updated_at,
         "mock_pay_token": mock_pay_token,
@@ -199,7 +208,6 @@ for _mo in _mock_orders:
     )
 
 
-from app.services.order.service import OrderService
 
 @router.get("", response_model=PaginatedResponse)
 async def list_orders(
@@ -298,12 +306,38 @@ async def create_order(
     body: OrderCreate,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key"),
 ):
-    """Create a new order with inventory reservation. (Refactored)"""
+    """Create a new order with inventory reservation. (Refactored)
+
+    P1 Security: Uses idempotency_key header to prevent duplicate orders
+    when users click "Submit" multiple times rapidly.
+    """
     order_service = OrderService(db)
+
+    # P1: Idempotency check - if same idempotency key was used recently, return existing order
+    if idempotency_key:
+        idem_stmt = select(Order).where(
+            Order.user_id == current_user["id"],
+            Order.idempotency_key == idempotency_key
+        ).order_by(Order.created_at.desc())
+        idem_result = await db.execute(idem_stmt)
+        existing_order = idem_result.scalar_one_or_none()
+        if existing_order:
+            logger.info(f"Idempotent order reuse for key={idempotency_key}, order_id={existing_order.id}")
+            item_stmt = select(OrderItem).where(OrderItem.order_id == existing_order.id)
+            items = (await db.execute(item_stmt)).scalars().all()
+            product_map = await _build_product_map(db, items)
+            return ApiResponse(data=order_to_out_dict(existing_order, list(items), product_map))
+
     try:
         # Resolve address_id to shipping_address string
         order_data = body.model_dump()
+
+        # P1: Store idempotency key if provided
+        if idempotency_key:
+            order_data["idempotency_key"] = idempotency_key
+
         if body.address_id:
             from app.models.address import Address
             addr_stmt = select(Address).where(Address.id == body.address_id, Address.user_id == current_user["id"])
@@ -313,6 +347,16 @@ async def create_order(
                 raise HTTPException(status_code=404, detail="Address not found")
             parts = [addr.province, addr.city, addr.district, addr.detail_address]
             order_data["shipping_address"] = f"{addr.recipient_name} {addr.phone}, " + " ".join(p for p in parts if p)
+            # P1: Also populate structured address fields from saved address
+            order_data["recipient_name"] = addr.recipient_name
+            order_data["recipient_phone"] = addr.phone
+            order_data["province"] = addr.province
+            order_data["city"] = addr.city
+            order_data["district"] = addr.district
+            order_data["detail_address"] = addr.detail_address
+            order_data["postal_code"] = addr.postal_code
+            order_data["country"] = getattr(addr, "country", None)
+            order_data["country_code"] = getattr(addr, "country_code", None)
 
         order = await order_service.place_order(current_user["id"], order_data)
 

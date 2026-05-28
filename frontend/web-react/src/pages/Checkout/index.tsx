@@ -24,9 +24,9 @@ function currencySymbol(currency?: string) {
 }
 
 interface AddressForm {
-  name: string;
+  recipient_name: string;
   phone: string;
-  street: string;
+  detail_address: string;
   city: string;
   province: string;
   postalCode: string;
@@ -42,6 +42,21 @@ const PAYMENT_OPTIONS: { key: PaymentMethod }[] = [
   { key: 'paypal' },
 ];
 
+const COMMON_COUNTRIES = [
+  { code: 'CN', name: 'China' },
+  { code: 'US', name: 'United States' },
+  { code: 'JP', name: 'Japan' },
+  { code: 'KR', name: 'South Korea' },
+  { code: 'GB', name: 'United Kingdom' },
+  { code: 'DE', name: 'Germany' },
+  { code: 'FR', name: 'France' },
+  { code: 'AU', name: 'Australia' },
+  { code: 'CA', name: 'Canada' },
+  { code: 'SG', name: 'Singapore' },
+  { code: 'HK', name: 'Hong Kong' },
+  { code: 'TW', name: 'Taiwan' },
+];
+
 export default function Checkout() {
   const { t, i18n } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
@@ -55,9 +70,9 @@ export default function Checkout() {
 
   const [step, setStep] = useState(0);
   const [address, setAddress] = useState<AddressForm>({
-    name: '',
+    recipient_name: '',
     phone: '',
-    street: '',
+    detail_address: '',
     city: '',
     province: '',
     postalCode: '',
@@ -85,19 +100,19 @@ export default function Checkout() {
     enabled: isAuthenticated,
   });
 
-  const canProceedStep1 = selectedAddressId || (address.name.trim() && address.phone.trim() && address.street.trim() && address.city.trim() && address.province.trim());
+  const canProceedStep1 = selectedAddressId || (address.recipient_name.trim() && address.phone.trim() && /^1[3-9]\d{9}$/.test(address.phone) && address.detail_address.trim() && address.city.trim() && address.province.trim());
 
   const selectSavedAddress = (addr: Address) => {
     setSelectedAddressId(addr.id);
     setShowManualAddress(false);
     setAddress({
-      name: addr.recipient_name,
+      recipient_name: addr.recipient_name,
       phone: addr.phone,
-      street: [addr.district, addr.detail_address].filter(Boolean).join(' '),
+      detail_address: [addr.district, addr.detail_address].filter(Boolean).join(' '),
       city: addr.city,
       province: addr.province,
       postalCode: addr.postal_code || '',
-      country: 'China',
+      country: addr.country || 'China',
     });
   };
 
@@ -128,16 +143,17 @@ export default function Checkout() {
     const addr = addressRef.current;
     const shouldSave = saveAddressRef.current;
     const selId = selectedAddressIdRef.current;
-    if (shouldSave && !selId && addr.name && addr.phone) {
+    if (shouldSave && !selId && addr.recipient_name && addr.phone) {
       try {
         await addressesApi.create({
-          recipient_name: addr.name,
+          recipient_name: addr.recipient_name,
           phone: addr.phone,
           province: addr.province,
           city: addr.city,
           district: '',
-          detail_address: addr.street,
+          detail_address: addr.detail_address,
           postal_code: addr.postalCode || undefined,
+          country: addr.country,
           is_default: false,
         });
       } catch {
@@ -235,7 +251,7 @@ export default function Checkout() {
           product_id: item.product.id,
           quantity: item.quantity,
         })),
-        shipping_address: selectedAddressId ? undefined : `${address.name}, ${address.phone}, ${address.street}, ${address.city}, ${address.province} ${address.postalCode}, ${address.country}`,
+        shipping_address: selectedAddressId ? undefined : `${address.recipient_name}, ${address.phone}, ${address.detail_address}, ${address.city}, ${address.province} ${address.postalCode}, ${address.country}`,
         address_id: selectedAddressId || undefined,
         payment_method: paymentMethod,
       };
@@ -428,8 +444,8 @@ export default function Checkout() {
                         <input
                           type="text"
                           required
-                          value={address.name}
-                          onChange={(e) => setAddress({ ...address, name: e.target.value })}
+                          value={address.recipient_name}
+                          onChange={(e) => setAddress({ ...address, recipient_name: e.target.value })}
                           className="w-full px-4 py-3 border border-warm-gray/30 bg-transparent font-body text-body text-ink focus:outline-none focus:border-rust/50 transition-colors"
                           placeholder={t('checkout.fullName')}
                         />
@@ -441,11 +457,15 @@ export default function Checkout() {
                         <input
                           type="tel"
                           required
+                          pattern="1[3-9]\d{9}"
                           value={address.phone}
                           onChange={(e) => setAddress({ ...address, phone: e.target.value })}
                           className="w-full px-4 py-3 border border-warm-gray/30 bg-transparent font-body text-body text-ink focus:outline-none focus:border-rust/50 transition-colors"
                           placeholder={t('checkout.phone')}
                         />
+                        {address.phone && !/^1[3-9]\d{9}$/.test(address.phone) && (
+                          <p className="font-body text-caption text-rust mt-1">{t('checkout.phoneError', '请输入有效的11位手机号码')}</p>
+                        )}
                       </div>
                     </div>
 
@@ -456,8 +476,8 @@ export default function Checkout() {
                       <input
                         type="text"
                         required
-                        value={address.street}
-                        onChange={(e) => setAddress({ ...address, street: e.target.value })}
+                        value={address.detail_address}
+                        onChange={(e) => setAddress({ ...address, detail_address: e.target.value })}
                         className="w-full px-4 py-3 border border-warm-gray/30 bg-transparent font-body text-body text-ink focus:outline-none focus:border-rust/50 transition-colors"
                         placeholder={t('checkout.street')}
                       />
@@ -501,6 +521,20 @@ export default function Checkout() {
                           className="w-full px-4 py-3 border border-warm-gray/30 bg-transparent font-body text-body text-ink focus:outline-none focus:border-rust/50 transition-colors"
                           placeholder={t('checkout.postalCode')}
                         />
+                      </div>
+                      <div>
+                        <label className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
+                          {t('checkout.country', 'Country')}
+                        </label>
+                        <select
+                          value={address.country}
+                          onChange={(e) => setAddress({ ...address, country: e.target.value })}
+                          className="w-full px-4 py-3 border border-warm-gray/30 bg-transparent font-body text-body text-ink focus:outline-none focus:border-rust/50 transition-colors cursor-pointer"
+                        >
+                          {COMMON_COUNTRIES.map((c) => (
+                            <option key={c.code} value={c.name}>{c.name}</option>
+                          ))}
+                        </select>
                       </div>
                     </div>
 
@@ -571,8 +605,8 @@ export default function Checkout() {
                           {t('checkout.back')}
                         </button>
                       </div>
-                      <p className="font-body text-body-sm text-ink">{address.name} · {address.phone}</p>
-                      <p className="font-body text-body-sm text-ink-faded mt-1">{address.street}, {address.city}, {address.province} {address.postalCode}</p>
+                      <p className="font-body text-body-sm text-ink">{address.recipient_name} · {address.phone}</p>
+                      <p className="font-body text-body-sm text-ink-faded mt-1">{address.detail_address}, {address.city}, {address.province} {address.postalCode}, {address.country}</p>
                     </div>
 
                     {/* Payment choice + scan note */}

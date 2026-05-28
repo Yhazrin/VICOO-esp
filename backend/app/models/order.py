@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text, DECIMAL, Enum, ForeignKey, func
+from sqlalchemy import Column, Integer, String, DateTime, Text, DECIMAL, Enum, ForeignKey, func, Index
 from app.database import Base
 
 
@@ -21,8 +21,25 @@ class Order(Base):
     carrier = Column(String(100), nullable=True)
     tracking_number = Column(String(120), nullable=True, index=True)
     logistics_events = Column(Text, nullable=True)
+    # P1: Idempotency key to prevent duplicate orders
+    idempotency_key = Column(String(100), nullable=True, index=True)
+    # P1: Structured shipping address fields for international support
+    recipient_name = Column(String(100), nullable=True)
+    recipient_phone = Column(String(30), nullable=True)
+    province = Column(String(50), nullable=True)
+    city = Column(String(50), nullable=True)
+    district = Column(String(50), nullable=True)
+    detail_address = Column(Text, nullable=True)
+    postal_code = Column(String(20), nullable=True)
+    country = Column(String(100), nullable=True)
+    country_code = Column(String(10), nullable=True)
     created_at = Column(DateTime, server_default=func.now(), nullable=False, index=True)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    # Composite index for idempotency lookups
+    __table_args__ = (
+        Index("ix_orders_user_idempotency", "user_id", "idempotency_key"),
+    )
 
 
 class OrderItem(Base):

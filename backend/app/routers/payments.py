@@ -15,7 +15,7 @@ from app.database import get_db
 from app.models.payment import PaymentTransaction
 from app.models.order import Order
 from app.models.donation import Donation
-from app.schemas import ApiResponse, PaymentCreate, PaymentOut, PaginatedResponse, WeChatPaymentParams
+from app.schemas import ApiResponse, PaymentCreate, PaymentOut
 from app.schemas.payment import (
     MockPayConfirmBody,
     MockPayPreviewOut,
@@ -27,7 +27,9 @@ from app.deps import get_current_user
 from app.utils.mock_pay_token import parse_mock_pay_token, parse_mock_donation_pay_token
 from app.services.donation.service import DonationService
 from app.services.payment_service import get_payment_service
+from app.services.payment.service import PaymentService
 from app.routers.orders import _mock_orders
+
 _mock_donations: list = []
 
 logger = logging.getLogger(__name__)
@@ -45,8 +47,6 @@ _mock_payments = [
     {"id": 7, "order_id": 6, "donation_id": None, "amount": "128.00", "method": "wechat", "provider_transaction_id": "wx2025060100007", "status": "pending", "created_at": "2025-06-01T00:00:00"},
 ]
 
-
-from app.services.payment.service import PaymentService
 
 @router.post("/create", response_model=ApiResponse, status_code=201)
 async def create_payment(body: PaymentCreate, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
@@ -148,7 +148,6 @@ async def alipay_notify(request: Request, db: AsyncSession = Depends(get_db)):
             return PlainTextResponse("failure")
 
         # Filter out sign and sign_type, sort remaining params
-        sign_type = params.get("sign_type", "RSA2")
         filtered = {k: v for k, v in params.items() if k not in ("sign", "sign_type")}
 
         # Filter out empty values (Alipay spec)
@@ -217,6 +216,10 @@ async def alipay_notify(request: Request, db: AsyncSession = Depends(get_db)):
         order = result.scalar_one_or_none()
 
         if order:
+            # P0: Verify callback amount matches order total (prevents forged callbacks)
+            if total_amount != order.total_amount:
+                logger.warning(f"Alipay amount mismatch: callback={total_amount} != order={order.total_amount}")
+                return PlainTextResponse("failure")
             # Update order status
             await db.execute(
                 update(Order)

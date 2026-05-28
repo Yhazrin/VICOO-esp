@@ -72,7 +72,7 @@ export default function Profile() {
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const [addressForm, setAddressForm] = useState<AddressCreateData>({
     label: '', recipient_name: '', phone: '', province: '', city: '',
-    district: '', detail_address: '', postal_code: '', is_default: false,
+    district: '', detail_address: '', postal_code: '', country: 'China', is_default: false,
   });
 
   // Inline error message for user feedback
@@ -176,7 +176,7 @@ export default function Profile() {
   };
 
   const resetAddressForm = () => {
-    setAddressForm({ label: '', recipient_name: '', phone: '', province: '', city: '', district: '', detail_address: '', postal_code: '', is_default: false });
+    setAddressForm({ label: '', recipient_name: '', phone: '', province: '', city: '', district: '', detail_address: '', postal_code: '', country: 'China', is_default: false });
     setEditingAddress(null);
     setShowAddressForm(false);
   };
@@ -226,6 +226,7 @@ export default function Profile() {
       district: addr.district || '',
       detail_address: addr.detail_address,
       postal_code: addr.postal_code || '',
+      country: addr.country || 'China',
       is_default: addr.is_default,
     });
     setEditingAddress(addr);
@@ -773,6 +774,23 @@ export default function Profile() {
                       <div>
                         <label className="block font-body text-[10px] tracking-wider uppercase text-sepia-mid mb-1">{t('profile.addresses.postalCode', '邮编')}</label>
                         <input type="text" value={addressForm.postal_code} onChange={(e) => setAddressForm({ ...addressForm, postal_code: e.target.value })} className="w-full px-3 py-2 border border-warm-gray/30 bg-transparent font-body text-body-sm text-ink focus:outline-none focus:border-rust/50" />
+                      </div>
+                      <div>
+                        <label className="block font-body text-[10px] tracking-wider uppercase text-sepia-mid mb-1">{t('checkout.country', 'Country')}</label>
+                        <select value={addressForm.country} onChange={(e) => setAddressForm({ ...addressForm, country: e.target.value })} className="w-full px-3 py-2 border border-warm-gray/30 bg-transparent font-body text-body-sm text-ink focus:outline-none focus:border-rust/50 cursor-pointer">
+                          <option value="China">China</option>
+                          <option value="United States">United States</option>
+                          <option value="Japan">Japan</option>
+                          <option value="South Korea">South Korea</option>
+                          <option value="United Kingdom">United Kingdom</option>
+                          <option value="Germany">Germany</option>
+                          <option value="France">France</option>
+                          <option value="Australia">Australia</option>
+                          <option value="Canada">Canada</option>
+                          <option value="Singapore">Singapore</option>
+                          <option value="Hong Kong">Hong Kong</option>
+                          <option value="Taiwan">Taiwan</option>
+                        </select>
                       </div>
                       <div className="flex items-end">
                         <label className="flex items-center gap-2 cursor-pointer">

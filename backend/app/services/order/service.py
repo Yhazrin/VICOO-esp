@@ -6,7 +6,6 @@ from datetime import datetime
 
 from fastapi import HTTPException
 from sqlalchemy import select, func, update
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.order import Order, OrderItem
 from app.models.product import Product
@@ -85,6 +84,10 @@ class OrderService(BaseService):
     async def place_order(self, user_id: int, order_data: Dict[str, Any]) -> Order:
         """
         Create a new order with inventory reservation.
+
+        P0 Security: Uses SELECT FOR UPDATE to lock product rows and prevent overselling
+        in concurrent requests. This prevents race conditions where multiple requests
+        could read the same stock value and all pass validation.
         """
         items_data = order_data.get("items", [])
         if not items_data:
@@ -93,7 +96,7 @@ class OrderService(BaseService):
         total_amount = Decimal("0.00")
         order_items = []
 
-        # 1. Process items and check inventory
+        # 1. Process items and check inventory with row locking
         for item_in in items_data:
             product_id = item_in["product_id"]
             quantity = item_in["quantity"]
@@ -101,19 +104,18 @@ class OrderService(BaseService):
             if quantity <= 0:
                 raise HTTPException(status_code=400, detail=f"Invalid quantity for product {product_id}")
 
-            # Atomic inventory check and deduction
-            # Note: In a high-concurrency production system, we'd use a more complex SELECT FOR UPDATE
-            # or a specialized inventory service. Here we do it within the transaction.
-            product_stmt = select(Product).where(Product.id == product_id)
+            # P0: Use SELECT FOR UPDATE to lock the row and prevent concurrent overselling
+            # This ensures that only one transaction can modify a product's stock at a time
+            product_stmt = select(Product).where(Product.id == product_id).with_for_update()
             product = (await self.db.execute(product_stmt)).scalar_one_or_none()
 
             if not product:
                 raise HTTPException(status_code=404, detail=f"Product {product_id} not found")
-            
+
             if product.stock < quantity:
                 raise HTTPException(status_code=400, detail=f"Insufficient stock for product {product.name}")
 
-            # Deduct stock
+            # Deduct stock (within the lock, safe from race conditions)
             product.stock -= quantity
             if product.stock == 0:
                 product.status = "sold_out"
@@ -136,6 +138,17 @@ class OrderService(BaseService):
             status="pending",
             shipping_address=order_data.get("shipping_address"),
             payment_method=order_data.get("payment_method"),
+            # P1: Store structured address fields
+            idempotency_key=order_data.get("idempotency_key"),
+            recipient_name=order_data.get("recipient_name"),
+            recipient_phone=order_data.get("recipient_phone"),
+            province=order_data.get("province"),
+            city=order_data.get("city"),
+            district=order_data.get("district"),
+            detail_address=order_data.get("detail_address"),
+            postal_code=order_data.get("postal_code"),
+            country=order_data.get("country"),
+            country_code=order_data.get("country_code"),
         )
         
         self.db.add(order)
