@@ -19,6 +19,7 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from app.config import settings
 from app.database import engine, Base, AsyncSessionLocal
 from app.deps import rate_limit_check, get_current_user_from_request, require_role
+from app.models.audit import AuditLog
 
 # Maximum allowed request body size (10 MB)
 MAX_REQUEST_BODY_SIZE = 10 * 1024 * 1024
@@ -183,6 +184,105 @@ async def request_logging_middleware(request: Request, call_next):
     logger.info("%s %s %.3fs %d", request.method, request.url.path, elapsed, response.status_code)
     response.headers["X-Process-Time"] = f"{elapsed:.3f}"
     return response
+
+# Audit logging middleware - logs all admin API requests to audit_logs table
+@app.middleware("http")
+async def audit_logging_middleware(request: Request, call_next):
+    path = request.url.path
+
+    # Only log admin API endpoints
+    # Log POST, PUT, PATCH, DELETE for write operations
+    # Log specific GET requests that represent sensitive data access
+    sensitive_gets = [
+        "/api/v1/admin/child-participants",
+    ]
+    should_log = path.startswith("/api/v1/admin/")
+    if should_log:
+        if request.method in ("POST", "PUT", "PATCH", "DELETE"):
+            pass  # Log these
+        elif any(path.startswith(sg) for sg in sensitive_gets):
+            pass  # Log sensitive GETs
+        else:
+            return await call_next(request)
+
+    # Capture request data before processing
+    method = request.method
+    path_info = path.replace("/api/v1/admin/", "")
+
+    # Extract route pattern for grouping similar actions
+    # e.g., /admin/users/123 -> users
+    route_parts = path_info.strip("/").split("/")
+    resource = route_parts[0] if route_parts else "admin"
+
+    # Build action from method and resource
+    action_map = {
+        "POST": "create",
+        "PUT": "update",
+        "PATCH": "modify",
+        "DELETE": "delete",
+    }
+    base_action = action_map.get(method, method.lower())
+    action = f"{base_action}_{resource}" if resource else base_action
+
+    try:
+        # Get current user from request
+        async with AsyncSessionLocal() as db:
+            current_user = await get_current_user_from_request(request, db)
+            user_id = current_user.get("id") if current_user else None
+            user_name = current_user.get("nickname", "") if current_user else ""
+
+            # Get client IP
+            client_ip = request.client.host if request.client else "unknown"
+
+            # Get user agent
+            user_agent = request.headers.get("user-agent", "")[:500]
+
+            response = await call_next(request)
+
+            # Log after response is ready
+            if response.status_code < 400:
+                status = "success"
+                details = {"method": method, "path": path_info, "status_code": response.status_code}
+            else:
+                status = "failed"
+                details = {"method": method, "path": path_info, "status_code": response.status_code}
+
+            # Determine resource_id from path if available
+            resource_id = None
+            for part in route_parts[1:]:
+                if part.isdigit():
+                    resource_id = part
+                    break
+
+            # Map action names to more readable format
+            action_display = {
+                "update_settings": "modify_settings",
+                "create_users": "create_user",
+                "update_users": "update_user",
+                "modify_artworks": "moderate_artwork",
+                "modify_campaigns": "update_campaign",
+                "modify_clothing_intakes_status": "update_clothing_intake",
+                "update_child_participants_consent": "approve_child_consent",
+                "approve_donations": "approve_donation",
+            }.get(action, action)
+
+            audit_entry = AuditLog(
+                user_id=user_id,
+                user_name=user_name,
+                action=action_display,
+                resource=resource,
+                resource_id=resource_id,
+                details=f"{method} {path_info} - {status}",
+                ip_address=client_ip,
+                user_agent=user_agent,
+            )
+            db.add(audit_entry)
+            await db.commit()
+    except Exception as e:
+        # Don't let audit logging failures affect the request
+        logger.warning("Audit logging failed: %s", e)
+
+    return await call_next(request)
 
 # ── Exception handlers ──────────────────────────────────────────
 from app.core.errors import BusinessException
