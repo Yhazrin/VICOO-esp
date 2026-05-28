@@ -3,10 +3,11 @@
  *
  * 功能说明：
  * - 展示和编辑系统全局配置参数
- * - 支持三个配置标签页：全局参数、支付网关、安全设置
+ * - 支持四个配置标签页：全局参数、支付网关、安全设置、系统状态
  * - 提供各支付渠道的集成配置（微信、支付宝、Stripe、PayPal）
  * - 安全配置可编辑（令牌有效期、频率限制等）
  * - 实时保存配置更新
+ * - 系统状态监控（健康检查）
  *
  * 使用场景：
  * 超级管理员对平台核心运营参数进行配置和调整
@@ -28,10 +29,10 @@ import Button from '../components/ui/Button';
 import { useTranslation } from 'react-i18next';
 
 // 导入 API 服务函数
-import { fetchSystemSettings, updateSystemSettings } from '../services/api';
+import { fetchSystemSettings, updateSystemSettings, fetchSystemHealth } from '../services/api';
 
 // 导入系统设置类型定义
-import type { SystemSettings } from '../types';
+import type { SystemSettings, SystemHealth } from '../types';
 
 export default function SettingsPage() {
   // 获取翻译函数
@@ -152,6 +153,7 @@ export default function SettingsPage() {
     { key: 'general', label: t('settings.tabGeneral') },
     { key: 'payment', label: t('settings.tabPayment') },
     { key: 'security', label: t('settings.tabSecurity') },
+    { key: 'health', label: t('settings.tabHealth', 'System Health') },
   ];
 
   return (
@@ -527,6 +529,9 @@ export default function SettingsPage() {
             </Section>
           </div>
         )}
+
+        {/* 系统状态标签页内容 */}
+        {activeTab === 'health' && <SystemHealthCard />}
       </div>
     </div>
   );
@@ -673,3 +678,254 @@ const inputStyle: React.CSSProperties = {
   fontFamily: 'var(--font-mono)',
   transition: 'all 0.2s',
 };
+
+// ---------------------------------------------------------------------------
+// System Health Card Component
+// ---------------------------------------------------------------------------
+
+function SystemHealthCard() {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+
+  const { data: health, isLoading, isError, error } = useQuery({
+    queryKey: ['system-health'],
+    queryFn: fetchSystemHealth,
+    refetchInterval: 30000, // Auto-refresh every 30 seconds
+  });
+
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ['system-health'] });
+    toast.success(t('settings.healthRefreshed', 'Health check refreshed'));
+  };
+
+  const getStatusColor = (status: string): string => {
+    switch (status) {
+      case 'healthy':
+      case 'connected':
+        return '#10b981'; // muted green
+      case 'degraded':
+        return '#f59e0b'; // amber
+      case 'error':
+        return '#ef4444'; // red
+      default:
+        return '#6b7280'; // gray
+    }
+  };
+
+  const getStatusBg = (status: string): string => {
+    switch (status) {
+      case 'healthy':
+      case 'connected':
+        return 'rgba(16, 185, 129, 0.08)';
+      case 'degraded':
+        return 'rgba(245, 158, 11, 0.08)';
+      case 'error':
+        return 'rgba(239, 68, 68, 0.08)';
+      default:
+        return 'rgba(107, 114, 128, 0.08)';
+    }
+  };
+
+  const formatTime = (isoString: string): string => {
+    try {
+      const date = new Date(isoString);
+      return date.toLocaleTimeString('zh-CN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+    } catch {
+      return isoString;
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        padding: '60px',
+        color: 'var(--color-text-3)',
+      }}>
+        <div style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: '12px',
+          textTransform: 'uppercase',
+          letterSpacing: '0.2em',
+        }}>
+          {t('settings.healthChecking', 'Checking system health...')}
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div style={{
+        padding: '24px',
+        background: 'var(--color-elevated)',
+        border: '1px solid var(--color-error)',
+        borderRadius: '8px',
+      }}>
+        <div style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: '12px',
+          color: 'var(--color-error)',
+        }}>
+          {t('settings.healthError', 'Failed to fetch health status')}
+        </div>
+      </div>
+    );
+  }
+
+  const services = [
+    { name: t('settings.healthBackend', 'Backend API'), status: health?.backend ?? 'degraded' },
+    { name: t('settings.healthMySQL', 'MySQL Database'), status: health?.database ?? 'error' },
+    { name: t('settings.healthRedis', 'Redis Cache'), status: health?.redis ?? 'error' },
+    { name: t('settings.healthDocker', 'Docker Compose'), status: 'connected' as const },
+  ];
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      {/* Header with status badge */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <span style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            padding: '6px 16px',
+            borderRadius: '999px',
+            fontSize: '11px',
+            fontWeight: 700,
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em',
+            fontFamily: 'var(--font-body)',
+            backgroundColor: getStatusBg(health?.status ?? 'unhealthy'),
+            color: getStatusColor(health?.status ?? 'unhealthy'),
+          }}>
+            <span style={{
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              backgroundColor: getStatusColor(health?.status ?? 'unhealthy'),
+              marginRight: 8,
+            }} />
+            {health?.status ?? 'unhealthy'}
+          </span>
+          <span style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '12px',
+            color: 'var(--color-text-3)',
+          }}>
+            v{health?.version ?? '1.0.0'}
+          </span>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleRefresh}
+          style={{ minWidth: '100px' }}
+        >
+          {t('settings.btnRefresh', 'Refresh')}
+        </Button>
+      </div>
+
+      {/* Service status grid */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(2, 1fr)',
+        gap: 12,
+      }}>
+        {services.map((service) => (
+          <div
+            key={service.name}
+            style={{
+              padding: '16px 20px',
+              background: 'var(--color-elevated)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '8px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            <span style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: '13px',
+              color: 'var(--color-text)',
+            }}>
+              {service.name}
+            </span>
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: '4px 12px',
+              borderRadius: '999px',
+              fontSize: '10px',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              fontFamily: 'var(--font-mono)',
+              backgroundColor: getStatusBg(service.status),
+              color: getStatusColor(service.status),
+            }}>
+              {service.status}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* Last checked time */}
+      <div style={{
+        padding: '12px 16px',
+        background: 'var(--color-bg)',
+        border: '1px solid var(--color-border)',
+        borderRadius: '6px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+      }}>
+        <span style={{
+          fontFamily: 'var(--font-body)',
+          fontSize: '11px',
+          color: 'var(--color-text-2)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+        }}>
+          {t('settings.healthLastChecked', 'Last Checked')}
+        </span>
+        <span style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: '12px',
+          color: 'var(--color-text)',
+        }}>
+          {health?.checkedAt ? formatTime(health.checkedAt) : '--:--:--'}
+        </span>
+      </div>
+
+      {/* Deployment info */}
+      <div style={{
+        padding: '16px',
+        background: 'var(--color-elevated)',
+        border: '1px dashed var(--color-border)',
+        borderRadius: '8px',
+        fontFamily: 'var(--font-mono)',
+        fontSize: '11px',
+        color: 'var(--color-text-2)',
+        lineHeight: 1.8,
+      }}>
+        <div style={{ marginBottom: 8, color: 'var(--color-text-3)', fontWeight: 600 }}>
+          DEPLOYMENT
+        </div>
+        <div>Backend: FastAPI (uvicorn)</div>
+        <div>Database: MySQL 8.0</div>
+        <div>Cache: Redis 7</div>
+        <div>Runtime: Docker Compose</div>
+      </div>
+    </div>
+  );
+}

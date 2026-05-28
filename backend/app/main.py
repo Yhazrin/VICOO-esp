@@ -271,32 +271,93 @@ from app.routers.design_drafts import router as design_drafts_router
 
 # Health check router
 from fastapi import APIRouter
+from datetime import datetime
 health_router = APIRouter(tags=["Health"])
 
 @health_router.get("/health")
 async def health():
+    """
+    Public lightweight health endpoint for Docker / deployment / quick check.
+    No authentication required.
+    """
     health_data = {
-        "status": "ok", "app": settings.APP_NAME, "version": settings.APP_VERSION, "timestamp": time.time(),
-        "services": {"database": "unknown", "redis": "unknown"}
+        "status": "ok",
+        "service": "vicoo-api",
+        "version": settings.APP_VERSION,
+        "timestamp": datetime.utcnow().isoformat() + "Z",
     }
     try:
         async with AsyncSessionLocal() as session:
             from sqlalchemy import text
             await session.execute(text("SELECT 1"))
-            health_data["services"]["database"] = "healthy"
-    except Exception as e:
-        health_data["services"]["database"] = "unhealthy"
+            health_data["database"] = "connected"
+    except Exception:
+        health_data["database"] = "error"
         health_data["status"] = "degraded"
-    
+
     if settings.REDIS_URL:
         try:
             import redis.asyncio as redis
             r = redis.from_url(settings.REDIS_URL, socket_timeout=2)
             await r.ping()
-            health_data["services"]["redis"] = "healthy"
+            health_data["redis"] = "connected"
         except Exception:
-            health_data["services"]["redis"] = "unhealthy"
+            health_data["redis"] = "error"
+    else:
+        health_data["redis"] = "unavailable"
+
     return health_data
+
+
+@health_router.get("/system/health")
+async def system_health():
+    """
+    Admin detailed health check endpoint.
+    Checks MySQL and Redis connectivity without exposing sensitive config.
+    Returns degraded/unhealthy if services fail - never crashes.
+    """
+    backend_status = "healthy"
+    database_status = "connected"
+    redis_status = "connected"
+
+    # MySQL check: SELECT 1
+    try:
+        async with AsyncSessionLocal() as session:
+            from sqlalchemy import text
+            await session.execute(text("SELECT 1"))
+    except Exception as e:
+        logger.warning("Health check: MySQL error: %s", e)
+        backend_status = "degraded"
+        database_status = "error"
+
+    # Redis check via deps.py redis_client with fallback
+    try:
+        from app.deps import get_redis_client
+        redis_client = await get_redis_client()
+        await redis_client.ping()
+    except Exception as e:
+        logger.warning("Health check: Redis error: %s", e)
+        redis_status = "error"
+        # Redis failure is degraded, not unhealthy (rate limiting is fail-open)
+        if backend_status == "healthy":
+            backend_status = "degraded"
+
+    # Determine overall status
+    if backend_status == "healthy" and database_status == "connected":
+        overall_status = "healthy"
+    elif backend_status == "degraded" or database_status == "error":
+        overall_status = "degraded"
+    else:
+        overall_status = "unhealthy"
+
+    return {
+        "status": overall_status,
+        "backend": backend_status,
+        "database": database_status,
+        "redis": redis_status,
+        "version": settings.APP_VERSION,
+        "checkedAt": datetime.utcnow().isoformat() + "Z",
+    }
 
 routers = (
     auth_router, oauth_router, users_router, artworks_router, campaigns_router,

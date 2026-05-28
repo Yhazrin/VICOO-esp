@@ -540,7 +540,17 @@
         "unitMinutes": "minutes",
         "unitDays": "days",
         "unitReqPerSec": "req/s",
-        "unitReqPerMin": "req/min"
+        "unitReqPerMin": "req/min",
+        "tabHealth": "System Health",
+        "healthChecking": "Checking system health...",
+        "healthError": "Failed to fetch health status",
+        "healthRefreshed": "Health check refreshed",
+        "healthBackend": "Backend API",
+        "healthMySQL": "MySQL Database",
+        "healthRedis": "Redis Cache",
+        "healthDocker": "Docker Compose",
+        "healthLastChecked": "Last Checked",
+        "btnRefresh": "Refresh"
     },
     "statusBadge": {
         "artwork": {

@@ -542,7 +542,17 @@
         "unitMinutes": "分钟",
         "unitDays": "天",
         "unitReqPerSec": "次/秒",
-        "unitReqPerMin": "次/分钟"
+        "unitReqPerMin": "次/分钟",
+        "tabHealth": "系统状态",
+        "healthChecking": "正在检查系统状态...",
+        "healthError": "无法获取健康状态",
+        "healthRefreshed": "健康检查已刷新",
+        "healthBackend": "Backend API",
+        "healthMySQL": "MySQL Database",
+        "healthRedis": "Redis Cache",
+        "healthDocker": "Docker Compose",
+        "healthLastChecked": "上次检查",
+        "btnRefresh": "刷新"
     },
     "statusBadge": {
         "artwork": {

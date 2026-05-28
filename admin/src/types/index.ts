@@ -178,6 +178,15 @@ export interface SystemSettings {
   perUserRateLimit: number;
 }
 
+export interface SystemHealth {
+  status: 'healthy' | 'degraded' | 'unhealthy';
+  backend: 'healthy' | 'degraded';
+  database: 'connected' | 'error';
+  redis: 'connected' | 'error';
+  version: string;
+  checkedAt: string;
+}
+
 export interface AdminProduct {
   id: string;
   name: string;

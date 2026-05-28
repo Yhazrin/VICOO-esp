@@ -3,7 +3,7 @@ import { useAuthStore } from '../stores/authStore';
 import type {
   Artwork, Campaign, Donation, Order, User,
   AuditLogEntry, DashboardMetrics,
-  ChartDataPoint, SystemSettings, FilterParams, PaginatedResponse,
+  ChartDataPoint, SystemSettings, SystemHealth, FilterParams, PaginatedResponse,
   DonationListSummary,
   AdminProduct, OriginCountry, OriginRegion,
   SupplyChainRecord, TraceMediaItem,
@@ -933,6 +933,18 @@ export async function updateSystemSettings(data: Partial<SystemSettings>): Promi
     refreshTokenTtlDays: d.refresh_token_ttl_days ?? 7,
     globalRateLimit: d.global_rate_limit ?? 1000,
     perUserRateLimit: d.per_user_rate_limit ?? 60,
+  };
+}
+
+export async function fetchSystemHealth(): Promise<SystemHealth> {
+  const { data: envelope } = await api.get('/system/health');
+  return {
+    status: envelope.status ?? 'unhealthy',
+    backend: envelope.backend ?? 'degraded',
+    database: envelope.database ?? 'error',
+    redis: envelope.redis ?? 'error',
+    version: envelope.version ?? '1.0.0',
+    checkedAt: envelope.checkedAt ?? new Date().toISOString(),
   };
 }
 
