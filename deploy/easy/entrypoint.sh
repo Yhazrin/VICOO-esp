@@ -66,6 +66,16 @@ from app.seed import reset_seed_users
 asyncio.run(reset_seed_users())
 PY
 
+echo "Backfilling rainbow fish trace photos..."
+cd /app/backend
+python - <<'PY'
+import asyncio
+
+from app.backfill_rainbow_fish_gallery import main
+
+asyncio.run(main())
+PY
+
 echo "Starting VICOO API..."
 
 # Docker 内默认关 reload（父进程 watchfiles + 长事务 seed 易放大启动问题）；本地热更新可设 UVICORN_RELOAD=1
