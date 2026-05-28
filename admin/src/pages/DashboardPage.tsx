@@ -102,21 +102,34 @@ const MOCK_METRICS = {
 };
 
 // Mock pending artworks for summary
-const MOCK_PENDING_ARTWORKS = [
+const MOCK_PENDING_ARTWORKS_EN = [
+  { id: '1', title: 'My First Red Scarf', childName: 'Xiao Ming', submittedAt: '2h ago', status: 'pending' },
+  { id: '2', title: 'Green Environmental Protection', childName: 'Xiao Hong', submittedAt: '5h ago', status: 'pending' },
+  { id: '3', title: 'I Love My Motherland', childName: 'Xiao Hua', submittedAt: '1d ago', status: 'pending' },
+];
+
+const MOCK_PENDING_ARTWORKS_ZH = [
   { id: '1', title: '我的第一条红领巾', childName: '小明', submittedAt: '2h ago', status: 'pending' },
   { id: '2', title: '绿色环保从我做起', childName: '小红', submittedAt: '5h ago', status: 'pending' },
   { id: '3', title: '我爱我的祖国', childName: '小华', submittedAt: '1d ago', status: 'pending' },
 ];
 
 // Mock audit logs for summary
-const MOCK_AUDIT_LOGS = [
+const MOCK_AUDIT_LOGS_EN = [
+  { id: '1', action: 'Approved', target: 'Work #234', user: 'Admin', time: '10m ago' },
+  { id: '2', action: 'New Order', target: 'Order #8921', user: 'System', time: '25m ago' },
+  { id: '3', action: 'Updated Campaign', target: 'Campaign #12', user: 'Editor', time: '1h ago' },
+];
+
+const MOCK_AUDIT_LOGS_ZH = [
   { id: '1', action: '审核通过', target: '作品 #234', user: 'Admin', time: '10m ago' },
   { id: '2', action: '新增订单', target: 'Order #8921', user: 'System', time: '25m ago' },
   { id: '3', action: '更新活动', target: 'Campaign #12', user: 'Editor', time: '1h ago' },
 ];
 
 export default function DashboardPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isZh = i18n.language === 'zh';
 
   const metricsQuery = useQuery({
     queryKey: ['dashboardMetrics'],
@@ -144,7 +157,7 @@ export default function DashboardPage() {
   };
 
   // Use pending artworks from query or mock
-  const pendingArtworks = artworks.length > 0 ? artworks : MOCK_PENDING_ARTWORKS;
+  const pendingArtworks = artworks.length > 0 ? artworks : (isZh ? MOCK_PENDING_ARTWORKS_ZH : MOCK_PENDING_ARTWORKS_EN);
 
   return (
     <div className="dashboard-page">
@@ -162,7 +175,7 @@ export default function DashboardPage() {
           icon={Icons.works}
           color="primary"
           loading={isLoading}
-          subtitle="作品总数"
+          subtitle={isZh ? '作品总数' : 'Total Works'}
           href="/artworks"
         />
         <MetricCard
@@ -171,7 +184,7 @@ export default function DashboardPage() {
           icon={Icons.pending}
           color="warning"
           loading={isLoading}
-          subtitle="待审核"
+          subtitle={isZh ? '待审核' : 'Pending'}
           href="/artworks"
         />
         <MetricCard
@@ -180,7 +193,7 @@ export default function DashboardPage() {
           icon={Icons.orders}
           color="info"
           loading={isLoading}
-          subtitle="订单总数"
+          subtitle={isZh ? '订单总数' : 'Total Orders'}
           href="/orders"
         />
         <MetricCard
@@ -189,7 +202,7 @@ export default function DashboardPage() {
           icon={Icons.users}
           color="success"
           loading={isLoading}
-          subtitle="授权用户"
+          subtitle={isZh ? '授权用户' : 'Users'}
           href="/users"
         />
         <MetricCard
@@ -198,7 +211,7 @@ export default function DashboardPage() {
           icon={Icons.donations}
           color="primary"
           loading={isLoading}
-          subtitle="捐赠总额"
+          subtitle={isZh ? '捐赠总额' : 'Total'}
           href="/donations"
         />
       </div>
@@ -213,8 +226,8 @@ export default function DashboardPage() {
       <div className="dashboard-summary-grid">
         {/* Pending Artworks Summary */}
         <SummaryCard
-          title="待审核作品"
-          subtitle="Pending Reviews"
+          title={isZh ? '待审核作品' : 'Pending Reviews'}
+          subtitle={isZh ? 'Pending Artworks' : '待审核'}
           linkTo="/artworks"
           icon={Icons.alert}
         >
@@ -231,25 +244,25 @@ export default function DashboardPage() {
 
         {/* Financial Summary */}
         <SummaryCard
-          title="财务概览"
-          subtitle="Financial Overview"
+          title={isZh ? '财务概览' : 'Financial Overview'}
+          subtitle={isZh ? '财务' : '财务概览'}
           linkTo="/donations"
           icon={Icons.wallet}
         >
-          <MiniStat label="本周捐赠" value={`¥${(45820 * 0.15).toFixed(0)}`} change={12} />
-          <MiniStat label="Active Campaigns" value={displayMetrics.activeCampaigns} />
-          <MiniStat label="Verified Records" value="98.5%" trend="up" />
-          <MiniStat label="本周增长" value={`+${MOCK_METRICS.weeklyChange}%`} change={MOCK_METRICS.weeklyChange} />
+          <MiniStat label={isZh ? '本周捐赠' : 'Weekly Donation'} value={`¥${(45820 * 0.15).toFixed(0)}`} change={12} />
+          <MiniStat label={isZh ? '活跃活动' : 'Active Campaigns'} value={displayMetrics.activeCampaigns} />
+          <MiniStat label={isZh ? '验证记录' : 'Verified Records'} value="98.5%" trend="up" />
+          <MiniStat label={isZh ? '本周增长' : 'Weekly Growth'} value={`+${MOCK_METRICS.weeklyChange}%`} change={MOCK_METRICS.weeklyChange} />
         </SummaryCard>
 
         {/* Audit Log Summary */}
         <SummaryCard
-          title="最近动态"
-          subtitle="Recent Activity"
+          title={isZh ? '最近动态' : 'Recent Activity'}
+          subtitle={isZh ? '最近' : '最近动态'}
           linkTo="/audit-log"
           icon={Icons.check}
         >
-          {MOCK_AUDIT_LOGS.map((log) => (
+          {(isZh ? MOCK_AUDIT_LOGS_ZH : MOCK_AUDIT_LOGS_EN).map((log) => (
             <PendingItem
               key={log.id}
               title={log.action}
