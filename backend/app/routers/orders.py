@@ -20,7 +20,7 @@ from app.schemas import (
     ReturnRequestCreate,
 )
 from app.deps import get_current_user, require_role
-from app.utils.security import issue_mock_pay_token
+from app.utils.mock_pay_token import issue_mock_pay_token
 from app.services.order.service import OrderService
 from app.data.impact_product_images import IMPACT_PRODUCT_IMAGE_BY_NAME
 
