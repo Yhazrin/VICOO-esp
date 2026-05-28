@@ -18,7 +18,7 @@ from fastapi.responses import JSONResponse, RedirectResponse
 
 from app.config import settings
 from app.database import engine, Base, AsyncSessionLocal
-from app.deps import rate_limit_check, get_current_user_from_request
+from app.deps import rate_limit_check, get_current_user_from_request, require_role
 
 # Maximum allowed request body size (10 MB)
 MAX_REQUEST_BODY_SIZE = 10 * 1024 * 1024
