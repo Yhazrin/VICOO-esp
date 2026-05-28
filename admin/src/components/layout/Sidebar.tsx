@@ -26,7 +26,7 @@ export default function Sidebar() {
             src={viteLogo}
             alt="VICOO"
             className="sidebar-logo-img"
-            style={{ width: collapsed ? 28 : 32, height: collapsed ? 28 : 32, objectFit: 'contain', flexShrink: 0 }}
+            style={{ width: collapsed ? 36 : 120, height: collapsed ? 36 : 120, objectFit: 'contain', flexShrink: 0 }}
           />
           {!collapsed && (
             <div className="sidebar-brand-text">

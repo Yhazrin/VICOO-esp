@@ -32,6 +32,15 @@ function normalizeAdminUser(user: any): AuthUser {
 
 let adminSessionRestorePromise: Promise<{ userData: any; accessToken: string } | null> | null = null;
 
+/** Dev-mode mock admin injected when backend is unavailable */
+const DEV_MOCK_USER = {
+  id: 'dev-admin-1',
+  username: 'Dev Admin',
+  email: 'admin@vicoo.org',
+  role: 'admin' as const,
+  permissions: [],
+};
+
 function loadAdminSession() {
   if (!adminSessionRestorePromise) {
     adminSessionRestorePromise = (async () => {
@@ -88,6 +97,15 @@ function SessionRestorer({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let cancelled = false;
 
+    // DEV MODE: skip backend session restore entirely, inject mock admin
+    if (import.meta.env.DEV) {
+      restoreSession(DEV_MOCK_USER, 'dev-token');
+      setIsAuthenticated(true);
+      setIsAdmin(true);
+      setRestored(true);
+      return;
+    }
+
     async function restoreFromCookie() {
       try {
         const session = await loadAdminSession();
@@ -107,7 +125,6 @@ function SessionRestorer({ children }: { children: React.ReactNode }) {
         }
       } catch {
         if (cancelled) return;
-        // Not authenticated - clear any stale state
         setIsAuthenticated(false);
         setIsAdmin(false);
       } finally {
