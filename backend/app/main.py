@@ -282,7 +282,7 @@ async def audit_logging_middleware(request: Request, call_next):
         # Don't let audit logging failures affect the request
         logger.warning("Audit logging failed: %s", e)
 
-    return await call_next(request)
+    return response
 
 # ── Exception handlers ──────────────────────────────────────────
 from app.core.errors import BusinessException
