@@ -190,7 +190,7 @@ export default function CampaignPage() {
       key: 'action', title: t('campaign.colAction'), width: 180,
       render: (_: any, record: Campaign) => (
         <div className="table-actions">
-          <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); openEdit(record); }}>
+          <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); openEdit(record); }}>
             {t('campaign.btnEdit')}
           </Button>
           <Button

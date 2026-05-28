@@ -235,7 +235,7 @@ export default function ArtworkPage() {
         <div className="table-actions">
           <Button
             size="sm"
-            variant="ghost"
+            variant="secondary"
             onClick={(e) => {
               e.stopPropagation();
               handleOpenDetail(record);
@@ -356,7 +356,7 @@ export default function ArtworkPage() {
         width={650}
         footer={
           <div className="modal-actions">
-            <Button variant="ghost" onClick={() => setDetailModal(false)}>
+            <Button variant="secondary" onClick={() => setDetailModal(false)}>
               {t('common.close')}
             </Button>
             {selectedArtwork?.status === 'pending' && (

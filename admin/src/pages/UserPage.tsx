@@ -148,7 +148,7 @@ export default function UserPage() {
         <div className="table-actions">
           <Button
             size="sm"
-            variant="ghost"
+            variant="secondary"
             onClick={(e) => {
               e.stopPropagation();
               setSelectedUser(record);
@@ -223,7 +223,7 @@ export default function UserPage() {
         width={450}
         footer={
           <>
-            <Button variant="ghost" onClick={() => setSelectedUser(null)}>
+            <Button variant="secondary" onClick={() => setSelectedUser(null)}>
               {t('common.cancel')}
             </Button>
             <Button
@@ -280,7 +280,7 @@ export default function UserPage() {
         width={450}
         footer={
           <>
-            <Button variant="ghost" onClick={() => setStatusConfirm(null)}>
+            <Button variant="secondary" onClick={() => setStatusConfirm(null)}>
               {t('user.btnAbort')}
             </Button>
             <Button

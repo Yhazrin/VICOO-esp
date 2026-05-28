@@ -497,7 +497,7 @@ export default function ProductPage() {
       key: 'id' as any, title: t('product.colActions'), width: 130,
       render: (_v, row) => (
         <div className="table-actions">
-          <Button size="sm" variant="ghost" onClick={() => openEdit(row)}>
+          <Button size="sm" variant="secondary" onClick={() => openEdit(row)}>
             {t('product.btnEdit')}
           </Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(row.id)}>

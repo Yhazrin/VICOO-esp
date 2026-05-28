@@ -931,7 +931,7 @@ function SystemHealthCard() {
           </div>
         </div>
         <Button
-          variant="ghost"
+          variant="secondary"
           size="sm"
           onClick={handleRefresh}
           style={{ minWidth: '100px' }}

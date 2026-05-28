@@ -112,7 +112,7 @@ export default function OrderPage() {
       key: 'action', title: t('order.colAction'), width: 200,
       render: (_: any, record: Order) => (
         <div className="table-actions">
-          <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); setSelectedOrder(record); }}>
+          <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); setSelectedOrder(record); }}>
             {t('order.btnDetail')}
           </Button>
           {record.status === 'paid' && (

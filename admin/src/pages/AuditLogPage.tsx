@@ -133,7 +133,7 @@ export default function AuditLogPage() {
       title: t('common.operation'),
       width: 80,
       render: (_: any, record: AuditLogEntry) => (
-        <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); setSelected(record); }}>
+        <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); setSelected(record); }}>
           {t('auditLog.btnViewDetail')}
         </Button>
       ),
