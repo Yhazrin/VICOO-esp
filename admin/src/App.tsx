@@ -108,7 +108,7 @@ function SessionRestorer({ children }: { children: React.ReactNode }) {
   const [restored, setRestored] = useState(isLocalPreview() || storeAuth.isAuthenticated);
   const [isAuthenticated, setIsAuthenticated] = useState(isLocalPreview() || storeAuth.isAuthenticated);
   const [isAdmin, setIsAdmin] = useState(
-    isLocalPreview() || (storeAuth.isAuthenticated && hasAdminAccess(storeAuth.user?.role as any))
+    isLocalPreview() || (storeAuth.isAuthenticated && hasAdminAccess(storeAuth.user?.role ?? ''))
   );
   const restoreSession = useAuthStore((s) => s.restoreSession);
   const clearSession = useAuthStore((s) => s.clearSession);
