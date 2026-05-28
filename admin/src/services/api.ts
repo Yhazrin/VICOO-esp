@@ -293,6 +293,43 @@ export async function updateArtworkStatus(id: string, status: Artwork['status'])
 }
 
 /**
+ * Update artwork fields via PUT /artworks/{id}.
+ */
+export async function updateArtwork(
+  id: string,
+  payload: Partial<Pick<Artwork, 'title' | 'description' | 'imageUrl'>>,
+): Promise<Artwork> {
+  const body: Record<string, unknown> = {};
+  if (payload.title !== undefined) body.title = payload.title;
+  if (payload.description !== undefined) body.description = payload.description;
+  if (payload.imageUrl !== undefined) body.image_url = payload.imageUrl;
+  const { data: envelope } = await api.put(`/artworks/${id}`, body);
+  const item = envelope.data;
+  return {
+    id: String(item.id),
+    title: item.title ?? '',
+    description: item.description ?? '',
+    childName: item.artist_name ?? item.childParticipant?.firstName ?? '',
+    childAge: item.childParticipant?.age ?? 0,
+    imageUrl: item.image_url ?? item.imageUrl ?? '',
+    status: item.status ?? 'pending',
+    category: item.category ?? '',
+    campaignId: item.campaign_id ? String(item.campaign_id) : undefined,
+    votes: item.vote_count ?? item.like_count ?? item.votes ?? 0,
+    createdAt: item.created_at ?? '',
+    reviewedAt: item.reviewed_at,
+    reviewedBy: item.reviewed_by,
+  };
+}
+
+/**
+ * Delete artwork via DELETE /artworks/{id}.
+ */
+export async function deleteArtwork(id: string): Promise<void> {
+  await api.delete(`/artworks/${id}`);
+}
+
+/**
  * Fetch orders from GET /orders (business route, no /admin prefix).
  */
 export async function fetchOrders(params: FilterParams = {}): Promise<PaginatedResponse<Order>> {
@@ -482,6 +519,10 @@ export async function updateCampaign(id: string, data: Partial<Campaign>): Promi
   if (data.sustainabilityCtaShop !== undefined) body.sustainability_cta_shop = data.sustainabilityCtaShop;
   const { data: envelope } = await api.put(`/campaigns/${id}`, body);
   return adaptCampaign(envelope.data);
+}
+
+export async function deleteCampaign(id: string): Promise<void> {
+  await api.delete(`/campaigns/${id}`);
 }
 
 // ---------------------------------------------------------------------------

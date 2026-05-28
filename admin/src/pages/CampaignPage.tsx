@@ -8,9 +8,10 @@ import Pagination from '../components/ui/Pagination';
 import StatusBadge from '../components/ui/StatusBadge';
 import Modal from '../components/ui/Modal';
 import Button from '../components/ui/Button';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
 import { PageHeader } from '../components/ui/PageHeader';
 import { SummaryCard, MiniStat } from '../components/ui/SummaryCard';
-import { fetchCampaigns, createCampaign, updateCampaign, uploadTraceMedia, fetchArtworks } from '../services/api';
+import { fetchCampaigns, createCampaign, updateCampaign, deleteCampaign, uploadTraceMedia, fetchArtworks } from '../services/api';
 import type { Campaign, Artwork } from '../types';
 import { formatDate, formatDateTime } from '../utils/dateTime';
 import dayjs from 'dayjs';
@@ -96,6 +97,8 @@ export default function CampaignPage() {
   const [activeTab, setActiveTab] = useState<EditTab>('basic');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteCampaignId, setDeleteCampaignId] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['campaigns', page, statusFilter],
@@ -125,6 +128,18 @@ export default function CampaignPage() {
     },
     onError: (err: any) => {
       const msg = err?.response?.data?.detail || err?.message || t('campaign.errorUpdateFailed');
+      toast.error(msg);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteCampaign,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+      toast.success(t('common.deleteSuccess', '删除成功'));
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.detail || err?.message || t('common.deleteFailed', '删除失败');
       toast.error(msg);
     },
   });
@@ -176,6 +191,17 @@ export default function CampaignPage() {
         <div className="table-actions">
           <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); openEdit(record); }}>
             {t('campaign.btnEdit')}
+          </Button>
+          <Button
+            size="sm"
+            variant="danger"
+            onClick={(e) => {
+              e.stopPropagation();
+              setDeleteCampaignId(record.id);
+              setDeleteConfirmOpen(true);
+            }}
+          >
+            {t('common.delete', '删除')}
           </Button>
           {record.status === 'draft' && (
             <Button size="sm" variant="primary" onClick={(e) => {
@@ -529,6 +555,25 @@ export default function CampaignPage() {
         </div>
         {activeTab === 'basic' ? renderBasicTab() : activeTab === 'sustainability' ? renderSustainabilityTab() : renderArtworksTab()}
       </Modal>
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onClose={() => {
+          setDeleteConfirmOpen(false);
+          setDeleteCampaignId(null);
+        }}
+        onConfirm={() => {
+          if (deleteCampaignId) {
+            deleteMutation.mutate(deleteCampaignId);
+          }
+          setDeleteConfirmOpen(false);
+          setDeleteCampaignId(null);
+        }}
+        title={t('campaign.confirmDelete', '确认删除活动？')}
+        description={t('common.confirmDeleteDesc', 'This action cannot be undone.')}
+        variant="danger"
+        loading={deleteMutation.isPending}
+      />
     </div>
   );
 }
