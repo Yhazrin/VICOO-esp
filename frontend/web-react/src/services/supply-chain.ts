@@ -16,8 +16,10 @@ export interface SupplyChainRecord {
   productName?: string;
   stage: string;
   location: string;
+  location_en?: string;
   timestamp: string;
   description: string;
+  description_en?: string;
   certified?: boolean;
   certifications?: string[];
   cert_image_url?: string | null;
