@@ -17,7 +17,7 @@ Creates tables and inserts sample data:
 
 import asyncio
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
 
 from sqlalchemy import select
@@ -33,7 +33,6 @@ from app.models.donation import Donation
 from app.models.product import Product
 from app.models.order import Order, OrderItem
 from app.models.supply_chain import SupplyChainRecord
-from app.models.payment import PaymentTransaction
 from app.models.audit import AuditLog
 from app.models.settings import SiteSettings
 from app.models.contact import ContactMessage

@@ -107,6 +107,8 @@ export const productsApi = {
     isImpactProduct?: boolean;
     /** 语言区域，传给后端以返回对应语言的产品名称。默认取 i18n.language */
     locale?: string;
+    /** 公益活动 ID，用于筛选特定活动下的商品 */
+    campaignId?: number;
   }): Promise<PaginatedResponse<Product>> => {
     const query: Record<string, string | number> = {};
     if (params?.page != null) query.page = params.page;
@@ -116,6 +118,7 @@ export const productsApi = {
       query.is_impact_product = params.isImpactProduct ? 'true' : 'false';
     }
     if (params?.locale != null) query.locale = normalizeApiLocale(params.locale);
+    if (params?.campaignId != null) query.campaign_id = params.campaignId;
     const response = await api.get('/products', { params: query });
     const d = response.data;
     return {
