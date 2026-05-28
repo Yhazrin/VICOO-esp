@@ -16,6 +16,13 @@ depends_on = None
 
 
 def upgrade() -> None:
+    # Idempotent: skip if table already exists
+    from sqlalchemy import text
+    bind = op.get_bind()
+    result = bind.execute(text("SHOW TABLES LIKE 'site_settings'")).fetchone()
+    if result:
+        return  # Table exists, skip
+
     op.create_table(
         'site_settings',
         sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
