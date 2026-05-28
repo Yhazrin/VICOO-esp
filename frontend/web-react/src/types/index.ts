@@ -144,7 +144,9 @@ export interface SupplyChainTimelineRecord {
   id: number;
   stage: string;
   description: string;
+  description_en?: string;
   location: string;
+  location_en?: string;
   date: string;
   verified: boolean;
   partnerName: string;

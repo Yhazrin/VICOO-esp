@@ -497,6 +497,10 @@ async def seed():
             p.origin_region_id = region_id_by_name_zh.get(story["region_name_zh"])
             p.trace_story_title = story["title"]
             p.trace_story_content = story["content"]
+            if story.get("title_en"):
+                p.trace_story_title_en = story["title_en"]
+            if story.get("content_en"):
+                p.trace_story_content_en = story["content_en"]
         product_ids = [p.id for p in products]
 
         # ── Supply Chain Records ─────────────────────────────────
@@ -519,7 +523,9 @@ async def seed():
             SupplyChainRecord(
                 product_id=product_ids[0], stage="material_sourcing",
                 description="有机棉来自新疆阿克苏有机棉田，GOTS 认证",
-                location="新疆阿克苏", latitude=41.17, longitude=80.26,
+                description_en="GOTS-certified organic cotton from Aksu, Xinjiang",
+                location="新疆阿克苏", location_en="Aksu, Xinjiang",
+                latitude=41.17, longitude=80.26,
                 certified=True,
                 cert_image_url="/static/certs/gots_cert.jpg",
                 gallery_json=_demo_gallery,
@@ -528,7 +534,9 @@ async def seed():
             SupplyChainRecord(
                 product_id=product_ids[0], stage="processing",
                 description="纱线纺织与面料染色，使用植物染料，无有害化学品",
-                location="浙江绍兴", latitude=30.0, longitude=120.58,
+                description_en="Spinning, weaving and fabric dyeing using plant-based dyes, free from harmful chemicals",
+                location="浙江绍兴", location_en="Shaoxing, Zhejiang",
+                latitude=30.0, longitude=120.58,
                 certified=True,
                 cert_image_url="/static/certs/oeko_cert.jpg",
                 timestamp=datetime(2025, 2, 15),
@@ -536,7 +544,9 @@ async def seed():
             SupplyChainRecord(
                 product_id=product_ids[0], stage="manufacturing",
                 description="成衣裁剪与缝制，ISO 9001 质量管理体系工厂",
-                location="广东深圳", latitude=22.55, longitude=114.05,
+                description_en="Garment cutting and sewing at ISO 9001 certified factory",
+                location="广东深圳", location_en="Shenzhen, Guangdong",
+                latitude=22.55, longitude=114.05,
                 certified=True,
                 cert_image_url="/static/certs/iso9001.jpg",
                 timestamp=datetime(2025, 3, 1),
@@ -544,14 +554,18 @@ async def seed():
             SupplyChainRecord(
                 product_id=product_ids[0], stage="quality_check",
                 description="成品质量检验，甲醛含量、色牢度等 12 项指标检测",
-                location="广东深圳", latitude=22.55, longitude=114.08,
+                description_en="Finished product quality inspection: formaldehyde content, colour fastness and 12 other indicators",
+                location="广东深圳", location_en="Shenzhen, Guangdong",
+                latitude=22.55, longitude=114.08,
                 certified=True,
                 timestamp=datetime(2025, 3, 10),
             ),
             SupplyChainRecord(
                 product_id=product_ids[0], stage="shipping",
                 description="使用可降解包装材料，碳中和物流",
-                location="全国配送", latitude=35.86, longitude=104.2,
+                description_en="Biodegradable packaging materials, carbon-neutral logistics",
+                location="全国配送", location_en="Nationwide delivery",
+                latitude=35.86, longitude=104.2,
                 certified=False,
                 timestamp=datetime(2025, 3, 15),
             ),

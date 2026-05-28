@@ -71,7 +71,9 @@ class SupplyChainRecordOut(BaseModel):
     product_id: int
     stage: str
     description: Optional[str] = None
+    description_en: Optional[str] = None
     location: Optional[str] = None
+    location_en: Optional[str] = None
     certified: bool
     cert_image_url: Optional[str] = None
     carbon_kg: Optional[Decimal] = None
@@ -93,7 +95,9 @@ def supply_chain_record_to_out(r: Any) -> SupplyChainRecordOut:
         product_id=r.product_id,
         stage=stage_val,
         description=r.description,
+        description_en=getattr(r, "description_en", None),
         location=r.location,
+        location_en=getattr(r, "location_en", None),
         certified=bool(r.certified),
         cert_image_url=r.cert_image_url,
         carbon_kg=r.carbon_kg,

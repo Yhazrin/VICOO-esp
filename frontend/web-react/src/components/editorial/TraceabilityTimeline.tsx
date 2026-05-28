@@ -203,7 +203,7 @@ export default function TraceabilityTimeline({
                 </div>
 
                 <p className="font-body text-body-sm text-ink-faded leading-[1.85] mb-5 max-w-2xl">
-                  {record.description}
+                  {(i18n.language?.startsWith('en') && record.description_en) ? record.description_en : record.description}
                 </p>
 
                 {record.gallery && record.gallery.length > 0 && (
@@ -217,7 +217,9 @@ export default function TraceabilityTimeline({
                     <span className="uppercase tracking-[0.16em] block text-[10px] mb-0.5 opacity-90">
                       {t('traceability.location')}
                     </span>
-                    <span className="text-ink-faded font-medium">{record.location}</span>
+                    <span className="text-ink-faded font-medium">
+                      {(i18n.language?.startsWith('en') && record.location_en) ? record.location_en : record.location}
+                    </span>
                   </div>
                   <div className="font-body text-[11px] text-sepia-mid leading-snug">
                     <span className="uppercase tracking-[0.16em] block text-[10px] mb-0.5 opacity-90">
