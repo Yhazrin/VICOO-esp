@@ -71,6 +71,70 @@ function validatePhone(phone: string, country: string): boolean {
   return pattern ? pattern.test(phone) : true;
 }
 
+// Name validation (Chinese or English, 2-50 chars)
+function validateName(name: string): boolean {
+  if (!name || name.trim().length < 2 || name.trim().length > 50) return false;
+  // Allow Chinese characters, English letters, spaces, hyphens, apostrophes
+  return /^[一-龥a-zA-Z\s\-']+$/.test(name.trim());
+}
+
+// Address length validation (5-200 chars)
+function validateAddress(address: string): boolean {
+  if (!address || address.trim().length < 5 || address.trim().length > 200) return false;
+  return true;
+}
+
+// Postal code validation by country/region
+function getPostalCodePattern(country: string): RegExp | null {
+  const patterns: Record<string, RegExp> = {
+    'China': /^\d{6}$/,                              // 6 digits
+    'Taiwan, China': /^\d{3,5}$/,                      // 3-5 digits
+    'Japan': /^\d{3}-?\d{4}$/,                          // 123-4567 or 1234567
+    'South Korea': /^\d{5}$/,                           // 5 digits
+    'United States': /^\d{5}(-\d{4})?$/,               // 12345 or 12345-6789
+    'Canada': /^[A-Z]\d[A-Z]\s?\d[A-Z]\d$/i,            // A1A 1A1
+    'United Kingdom': /^[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}$/i, // Various UK formats
+    'Germany': /^\d{5}$/,                              // 5 digits
+    'France': /^\d{5}$/,                               // 5 digits
+    'Australia': /^\d{4}$/,                            // 4 digits
+    'Singapore': /^\d{6}$/,                           // 6 digits
+    'Hong Kong': /^(?:\d{6}|\s*)?$/,                   // Optional 6 digits
+  };
+  return patterns[country] || null;
+}
+
+function validatePostalCode(postalCode: string, country: string): boolean {
+  if (!postalCode) return true; // Optional field
+  const pattern = getPostalCodePattern(country);
+  if (!pattern) return true; // No pattern for this country, skip validation
+  return pattern.test(postalCode.trim());
+}
+
+// Field error messages for i18n
+function getFieldError(field: string, country: string, t: (key: string) => string): string | null {
+  const errors: Record<string, Record<string, string>> = {
+    name: {
+      default: t('checkout.nameError'),
+      China: t('checkout.nameErrorChina'),
+      'Taiwan, China': t('checkout.nameErrorTaiwan'),
+    },
+    address: {
+      default: t('checkout.addressError'),
+      China: t('checkout.addressErrorChina'),
+      'Taiwan, China': t('checkout.addressErrorTaiwan'),
+    },
+    postalCode: {
+      default: t('checkout.postalCodeError'),
+      China: t('checkout.postalCodeErrorChina'),
+      'Taiwan, China': t('checkout.postalCodeErrorTaiwan'),
+      'United States': t('checkout.postalCodeErrorUS'),
+      Canada: t('checkout.postalCodeErrorCA'),
+      'United Kingdom': t('checkout.postalCodeErrorUK'),
+    },
+  };
+  return errors[field]?.[country] || errors[field]?.['default'] || null;
+}
+
 function getPhoneError(country: string, t: (key: string) => string): string {
   const errorMap: Record<string, string> = {
     'China': t('checkout.phoneErrorChina'),
@@ -149,7 +213,17 @@ export default function Checkout() {
     enabled: isAuthenticated,
   });
 
-  const canProceedStep1 = selectedAddressId || (address.recipient_name.trim() && address.phone.trim() && validatePhone(address.phone, address.country) && address.detail_address.trim() && address.city.trim() && address.province.trim());
+  const canProceedStep1 = selectedAddressId || (
+    address.recipient_name.trim() &&
+    validateName(address.recipient_name) &&
+    address.phone.trim() &&
+    validatePhone(address.phone, address.country) &&
+    address.detail_address.trim() &&
+    validateAddress(address.detail_address) &&
+    address.city.trim() &&
+    address.province.trim() &&
+    (!address.postalCode.trim() || validatePostalCode(address.postalCode, address.country))
+  );
 
   const selectSavedAddress = (addr: Address) => {
     setSelectedAddressId(addr.id);
@@ -494,6 +568,9 @@ export default function Checkout() {
                           className="w-full px-4 py-3 border border-warm-gray/30 bg-transparent font-body text-body text-ink focus:outline-none focus:border-rust/50 transition-colors"
                           placeholder={t('checkout.fullName')}
                         />
+                        {address.recipient_name && !validateName(address.recipient_name) && (
+                          <p className="font-body text-caption text-rust mt-1">{getFieldError('name', address.country, t)}</p>
+                        )}
                       </div>
                       <div>
                         <label className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
@@ -526,6 +603,9 @@ export default function Checkout() {
                         className="w-full px-4 py-3 border border-warm-gray/30 bg-transparent font-body text-body text-ink focus:outline-none focus:border-rust/50 transition-colors"
                         placeholder={t('checkout.street')}
                       />
+                      {address.detail_address && !validateAddress(address.detail_address) && (
+                        <p className="font-body text-caption text-rust mt-1">{getFieldError('address', address.country, t)}</p>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -566,6 +646,9 @@ export default function Checkout() {
                           className="w-full px-4 py-3 border border-warm-gray/30 bg-transparent font-body text-body text-ink focus:outline-none focus:border-rust/50 transition-colors"
                           placeholder={t('checkout.postalCode')}
                         />
+                        {address.postalCode && !validatePostalCode(address.postalCode, address.country) && (
+                          <p className="font-body text-caption text-rust mt-1">{getFieldError('postalCode', address.country, t)}</p>
+                        )}
                       </div>
                       <div>
                         <label className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">

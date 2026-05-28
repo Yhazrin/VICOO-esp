@@ -1576,7 +1576,19 @@
     "phoneErrorTaiwan": "Please enter a valid 10-digit Taiwanese mobile number",
     "phoneErrorHongKong": "Please enter a valid 8-digit Hong Kong mobile number",
     "phoneErrorSingapore": "Please enter a valid 8-digit Singapore mobile number",
-    "phoneErrorDefault": "Please enter a valid phone number"
+    "phoneErrorDefault": "Please enter a valid phone number",
+    "nameError": "Invalid name format. Please use Chinese or English characters.",
+    "nameErrorChina": "Name must be 2-50 characters in Chinese or English",
+    "nameErrorTaiwan": "Name must be 2-50 characters in Chinese or English",
+    "addressError": "Invalid address format",
+    "addressErrorChina": "Address must be 5-200 characters",
+    "addressErrorTaiwan": "Address must be 5-200 characters",
+    "postalCodeError": "Invalid postal code format",
+    "postalCodeErrorChina": "Please enter 6-digit postal code",
+    "postalCodeErrorTaiwan": "Please enter 3-5 digit postal code",
+    "postalCodeErrorUS": "Format: 12345 or 12345-6789",
+    "postalCodeErrorCA": "Format: A1A 1A1",
+    "postalCodeErrorUK": "Format: SW1A 1AA"
   },
   "submitArtwork": {
     "loginRequired": "Please log in to submit artwork",

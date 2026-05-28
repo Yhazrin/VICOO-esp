@@ -1549,7 +1549,19 @@
     "phoneErrorTaiwan": "请输入有效的10位台湾手机号码",
     "phoneErrorHongKong": "请输入有效的8位香港手机号码",
     "phoneErrorSingapore": "请输入有效的8位新加坡手机号码",
-    "phoneErrorDefault": "请输入有效的手机号码"
+    "phoneErrorDefault": "请输入有效的手机号码",
+    "nameError": "姓名格式不正确，请输入中英文",
+    "nameErrorChina": "请输入2-50位中英文姓名",
+    "nameErrorTaiwan": "請輸入2-50位中英文姓名",
+    "addressError": "详细地址格式不正确",
+    "addressErrorChina": "详细地址长度需在5-200字符之间",
+    "addressErrorTaiwan": "詳細地址長度需在5-200字符之間",
+    "postalCodeError": "邮政编码格式不正确",
+    "postalCodeErrorChina": "请输入6位邮政编码",
+    "postalCodeErrorTaiwan": "請輸入3-5位郵遞區號",
+    "postalCodeErrorUS": "格式示例: 12345 或 12345-6789",
+    "postalCodeErrorCA": "格式示例: A1A 1A1",
+    "postalCodeErrorUK": "格式示例: SW1A 1AA"
   },
   "submitArtwork": {
     "loginRequired": "请先登录以提交画作",
