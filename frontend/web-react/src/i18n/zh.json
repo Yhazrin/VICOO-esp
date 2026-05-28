@@ -1521,6 +1521,7 @@
     "postalCode": "邮政编码",
     "country": "国家",
     "paymentMethod": "支付方式",
+    "wechat": "微信支付",
     "wechatPay": "微信支付",
     "alipay": "支付宝",
     "stripe": "信用卡",

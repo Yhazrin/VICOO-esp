@@ -337,6 +337,56 @@ async def mock_pay_confirm(body: MockPayConfirmBody, db: AsyncSession = Depends(
     )
 
 
+@router.post("/mock-confirm-by-order-id", response_model=ApiResponse)
+async def mock_pay_confirm_by_order_id(order_id: int, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    """Mock payment confirmation by order ID (no token required).
+
+    Simplified flow for development/testing without APP_SECRET_KEY.
+    Only the order owner or admin can confirm payment.
+    """
+    order = (
+        await db.execute(select(Order).where(Order.id == order_id))
+    ).scalar_one_or_none()
+
+    if not order:
+        raise HTTPException(status_code=404, detail="订单不存在")
+
+    # Only order owner or admin can confirm
+    if order.user_id != current_user["id"] and current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="无权限确认此订单支付")
+
+    if order.status == "paid":
+        return ApiResponse(
+            data=MockPayConfirmOut(
+                order_no=order.order_no, status=order.status, already_paid=True
+            ).model_dump()
+        )
+
+    if order.status != "pending":
+        raise HTTPException(status_code=400, detail=f"订单状态不允许支付 (当前: {order.status})")
+
+    # Process successful payment
+    payment_service = PaymentService(db)
+    provider_id = f"mock-{secrets.token_hex(16)}"
+    method = (order.payment_method or "wechat").strip().lower() or "wechat"
+    if method not in ("wechat", "alipay", "stripe", "paypal"):
+        method = "wechat"
+
+    await payment_service.process_successful_payment(
+        provider_tx_id=provider_id,
+        amount=Decimal(str(order.total_amount)),
+        method=method,
+        order_no=order.order_no,
+        raw_data={"demo": True, "mock_pay": True, "confirmed_by": current_user["id"]},
+    )
+
+    return ApiResponse(
+        data=MockPayConfirmOut(
+            order_no=order.order_no, status="paid", already_paid=False
+        ).model_dump()
+    )
+
+
 @router.get("/mock-donation-preview", response_model=ApiResponse)
 async def mock_donation_pay_preview(token: str = Query(..., min_length=10), db: AsyncSession = Depends(get_db)):
     """Demo: load donation summary for mobile pay page (token-signed, no auth)."""

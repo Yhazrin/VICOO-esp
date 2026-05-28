@@ -1548,6 +1548,7 @@
     "postalCode": "Postal Code",
     "country": "Country",
     "paymentMethod": "Payment Method",
+    "wechat": "WeChat Pay",
     "wechatPay": "WeChat Pay",
     "alipay": "Alipay",
     "stripe": "Credit Card",

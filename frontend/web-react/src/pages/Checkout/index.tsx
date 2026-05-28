@@ -308,14 +308,10 @@ export default function Checkout() {
     if (!pendingPayOrder) return;
     setIsProcessing(true);
     try {
-      await paymentsApi.mockConfirm(pendingPayOrder.mockPayToken);
-      const o = await ordersApi.getById(pendingPayOrder.orderId);
-      if (o.status === 'paid') {
-        setPendingPayOrder(null);
-        await finalizeOrder({ orderId: pendingPayOrder.orderId, orderNo: o.order_no });
-      } else {
-        setError(t('checkout.paymentFailed', '支付未完成，请重试'));
-      }
+      // Use simplified mock payment confirm by order ID
+      await paymentsApi.mockConfirmByOrderId(pendingPayOrder.orderId);
+      setPendingPayOrder(null);
+      await finalizeOrder({ orderId: pendingPayOrder.orderId, orderNo: pendingPayOrder.orderNo });
     } catch {
       setError(t('checkout.error'));
     } finally {

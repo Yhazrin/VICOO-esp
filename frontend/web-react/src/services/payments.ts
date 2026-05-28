@@ -68,6 +68,16 @@ export const paymentsApi = {
     return response.data.data;
   },
 
+  /** Simplified mock payment confirm by order ID (no token required) */
+  mockConfirmByOrderId: async (orderId: string): Promise<MockPayConfirm> => {
+    const response = await api.post<{ success: boolean; data: MockPayConfirm }>(
+      '/payments/mock-confirm-by-order-id',
+      null,
+      { params: { order_id: orderId } },
+    );
+    return response.data.data;
+  },
+
   /** 跨域支付确认页：直连指定 API 根（须与 mock-preview / mock-confirm 同源策略、CORS 已放行） */
   mockPreviewAt: async (baseURL: string, token: string): Promise<MockPayPreview> => {
     const response = await axios.get<{ success: boolean; data: MockPayPreview }>(
