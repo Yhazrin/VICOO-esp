@@ -241,8 +241,21 @@ export default function Checkout() {
       };
 
       const order = await ordersApi.create(orderData);
-      const amount = typeof order.total_amount === 'string' ? parseFloat(order.total_amount) : order.total_amount;
-      const token = order.mock_pay_token;
+      const rawOrder = order as unknown as Record<string, unknown>;
+      const amountRaw = (rawOrder.total_amount ?? rawOrder.totalAmount ?? order.total_amount) as
+        | string
+        | number
+        | undefined;
+      const amount = typeof amountRaw === 'string' ? parseFloat(amountRaw) : Number(amountRaw ?? 0);
+      const token = (
+        rawOrder.mock_pay_token ??
+        rawOrder.mockPayToken ??
+        rawOrder.mock_payment_token ??
+        rawOrder.mockPaymentToken ??
+        rawOrder.payment_token ??
+        rawOrder.paymentToken ??
+        order.mock_pay_token
+      ) as string | undefined;
       if (!token) {
         setError(t('checkout.error'));
         return;
@@ -253,9 +266,11 @@ export default function Checkout() {
       const qs = new URLSearchParams({ t: token });
       if (devApi) qs.set('apiBase', devApi);
       const payUrl = `${origin}/payment/confirm?${qs.toString()}`;
+      const orderId = String(rawOrder.id ?? rawOrder.order_id ?? rawOrder.orderId ?? order.id);
+      const orderNo = String(rawOrder.order_no ?? rawOrder.orderNo ?? order.order_no ?? '');
       setPendingPayOrder({
-        orderId: String(order.id),
-        orderNo: order.order_no,
+        orderId,
+        orderNo,
         amount,
         mockPayToken: token,
         payUrl,

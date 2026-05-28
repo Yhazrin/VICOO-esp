@@ -3,10 +3,13 @@ import axios from 'axios';
 import type { Payment, CreatePaymentRequest } from '@/types';
 
 export interface MockPayPreview {
-  order_no: string;
-  total_amount: string;
+  order_no?: string;
+  orderNo?: string;
+  total_amount?: string;
+  totalAmount?: string;
   status: string;
   payment_method?: string | null;
+  paymentMethod?: string | null;
 }
 
 export interface MockPayConfirm {
