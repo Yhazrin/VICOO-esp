@@ -41,7 +41,7 @@ function getPhonePattern(country: string): RegExp | null {
     // Taiwan (TW) - 10 digits starting with 09
     'Taiwan, China': /^09\d{8}$/,
     // Hong Kong (HK) - 8 digits starting with 5/6/9
-    'Hong Kong': /^[569]\d{7}$/,
+    'Hong Kong, China': /^[569]\d{7}$/,
     // Singapore (SG) - 8 digits
     'Singapore': /^[89]\d{7}$/,
     // Japan (JP) - 10/11 digits starting with 0
@@ -98,7 +98,7 @@ function getPostalCodePattern(country: string): RegExp | null {
     'France': /^\d{5}$/,                               // 5 digits
     'Australia': /^\d{4}$/,                            // 4 digits
     'Singapore': /^\d{6}$/,                           // 6 digits
-    'Hong Kong': /^(?:\d{6}|\s*)?$/,                   // Optional 6 digits
+    'Hong Kong, China': /^(?:\d{6}|\s*)?$/,                   // Optional 6 digits
   };
   return patterns[country] || null;
 }
@@ -139,7 +139,7 @@ function getPhoneError(country: string, t: (key: string) => string): string {
   const errorMap: Record<string, string> = {
     'China': t('checkout.phoneErrorChina'),
     'Taiwan, China': t('checkout.phoneErrorTaiwan'),
-    'Hong Kong': t('checkout.phoneErrorHongKong'),
+    'Hong Kong, China': t('checkout.phoneErrorHongKong'),
     'Singapore': t('checkout.phoneErrorSingapore'),
     'default': t('checkout.phoneErrorDefault'),
   };
@@ -166,7 +166,7 @@ const COMMON_COUNTRIES = [
   { code: 'AU', name: 'Australia' },
   { code: 'CA', name: 'Canada' },
   { code: 'SG', name: 'Singapore' },
-  { code: 'HK', name: 'Hong Kong' },
+  { code: 'HK', name: 'Hong Kong, China' },
   { code: 'TW', name: 'Taiwan, China' },
 ];
 

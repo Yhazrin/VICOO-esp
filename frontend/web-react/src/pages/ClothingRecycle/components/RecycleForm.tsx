@@ -13,6 +13,84 @@ import {
   TYPE_OPTION_VALUES, CONDITION_OPTION_VALUES,
 } from './types';
 
+// Common countries with Taiwan, China
+const COMMON_COUNTRIES = [
+  { code: 'CN', name: 'China' },
+  { code: 'US', name: 'United States' },
+  { code: 'JP', name: 'Japan' },
+  { code: 'KR', name: 'South Korea' },
+  { code: 'GB', name: 'United Kingdom' },
+  { code: 'DE', name: 'Germany' },
+  { code: 'FR', name: 'France' },
+  { code: 'AU', name: 'Australia' },
+  { code: 'CA', name: 'Canada' },
+  { code: 'SG', name: 'Singapore' },
+  { code: 'HK', name: 'Hong Kong, China' },
+  { code: 'TW', name: 'Taiwan, China' },
+];
+
+// Phone validation by country/region
+function getPhonePattern(country: string): RegExp | null {
+  const patterns: Record<string, RegExp> = {
+    'China': /^1[3-9]\d{9}$/,
+    'Taiwan, China': /^09\d{8}$/,
+    'Hong Kong, China': /^[569]\d{7}$/,
+    'Singapore': /^[89]\d{7}$/,
+    'Japan': /^0\d{9,10}$/,
+    'South Korea': /^01[016789]\d{7,8}$/,
+    'United States': /^1?[2-9]\d{9}$/,
+    'Canada': /^1?[2-9]\d{9}$/,
+    'United Kingdom': /^7[1-9]\d{9}$/,
+    'Germany': /^1[1-9]\d{9,10}$/,
+    'France': /^[67]\d{9}$/,
+    'Australia': /^4\d{8,9}$/,
+    'default': /^\d{8,15}$/,
+  };
+  return patterns[country] || patterns['default'];
+}
+
+function validatePhone(phone: string, country: string): boolean {
+  if (!phone) return false;
+  const pattern = getPhonePattern(country);
+  return pattern ? pattern.test(phone) : true;
+}
+
+function validateName(name: string): boolean {
+  if (!name || name.trim().length < 2 || name.trim().length > 50) return false;
+  return /^[一-龥a-zA-Z\s\-']+$/.test(name.trim());
+}
+
+function validateAddress(address: string): boolean {
+  if (!address || address.trim().length < 5 || address.trim().length > 200) return false;
+  return true;
+}
+
+// Postal code validation by country/region
+function getPostalCodePattern(country: string): RegExp | null {
+  const patterns: Record<string, RegExp> = {
+    'China': /^\d{6}$/,
+    'Taiwan, China': /^\d{3,5}$/,
+    'Japan': /^\d{3}-?\d{4}$/,
+    'South Korea': /^\d{5}$/,
+    'United States': /^\d{5}(-\d{4})?$/,
+    'Canada': /^[A-Z]\d[A-Z]\s?\d[A-Z]\d$/i,
+    'United Kingdom': /^[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}$/i,
+    'Germany': /^\d{5}$/,
+    'France': /^\d{5}$/,
+    'Australia': /^\d{4}$/,
+    'Singapore': /^\d{6}$/,
+    'Hong Kong, China': /^(?:\d{6}|\s*)?$/,
+  };
+  return patterns[country] || null;
+}
+
+function validatePostalCode(postalCode: string, country: string): boolean {
+  if (!postalCode) return true;
+  const pattern = getPostalCodePattern(country);
+  if (!pattern) return true;
+  return pattern.test(postalCode.trim());
+}
+
 interface RecycleFormProps {
   onSubmitted: () => void;
 }
@@ -31,9 +109,45 @@ export default function RecycleForm({ onSubmitted }: RecycleFormProps) {
   const [notes, setNotes] = useState('');
   const [photos, setPhotos] = useState<File[]>([]);
   const [address, setAddress] = useState('');
+  const [country, setCountry] = useState('China');
+  const [postalCode, setPostalCode] = useState('');
+  const [contactName, setContactName] = useState('');
   const [phone, setPhone] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const mountedRef = useRef(true);
+
+  // Validation
+  const canSubmit = isAuthenticated && description.trim() && validateName(contactName) &&
+    phone.trim() && validatePhone(phone, country) && address.trim() && validateAddress(address) &&
+    (!postalCode.trim() || validatePostalCode(postalCode, country));
+
+  // Get error message by country
+  const getErrorMsg = (field: string) => {
+    const msgs: Record<string, Record<string, string>> = {
+      name: {
+        'China': t('clothingRecycle.nameErrorCn', '请输入2-50位姓名'),
+        'Taiwan, China': t('clothingRecycle.nameErrorTw', '請輸入2-50位姓名'),
+        'default': t('clothingRecycle.nameError', 'Name must be 2-50 characters'),
+      },
+      phone: {
+        'China': t('clothingRecycle.phoneErrorCn', '请输入有效的11位手机号码'),
+        'Taiwan, China': t('clothingRecycle.phoneErrorTw', '請輸入有效的10位台灣手機號碼'),
+        'default': t('clothingRecycle.phoneError', 'Invalid phone number'),
+      },
+      address: {
+        'China': t('clothingRecycle.addressErrorCn', '地址长度需在5-200字符'),
+        'Taiwan, China': t('clothingRecycle.addressErrorTw', '地址長度需在5-200字符'),
+        'default': t('clothingRecycle.addressError', 'Address must be 5-200 characters'),
+      },
+      postalCode: {
+        'China': t('clothingRecycle.postalCodeErrorCn', '请输入6位邮政编码'),
+        'Taiwan, China': t('clothingRecycle.postalCodeErrorTw', '請輸入3-5位郵遞區號'),
+        'default': t('clothingRecycle.postalCodeError', 'Invalid postal code format'),
+      },
+    };
+    return msgs[field]?.[country] || msgs[field]?.['default'] || '';
+  };
+
   useEffect(() => {
     mountedRef.current = true;
     return () => { mountedRef.current = false; };
