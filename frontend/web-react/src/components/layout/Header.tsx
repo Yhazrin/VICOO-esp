@@ -853,7 +853,7 @@ export default function Header() {
                           </Link>
 
                           <Link
-                            to="/profile?tab=orders"
+                            to="/orders"
                             role="menuitem"
                             className="flex items-center gap-2 px-4 py-2.5 hover:bg-warm-gray/10 transition-colors cursor-pointer"
                             onClick={() => setUserMenuOpen(false)}

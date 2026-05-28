@@ -27,6 +27,7 @@ const Terms = lazy(() => import('@/pages/Terms'));
 const ChildrenSafety = lazy(() => import('@/pages/ChildrenSafety'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 const OrderDetail = lazy(() => import('@/pages/OrderDetail'));
+const Orders = lazy(() => import('@/pages/Orders'));
 const Support = lazy(() => import('@/pages/Support'));
 const Checkout = lazy(() => import('@/pages/Checkout'));
 const PaymentConfirm = lazy(() => import('@/pages/PaymentConfirm'));
@@ -102,6 +103,7 @@ function AnimatedRoutes() {
             <Route path="donations/:id/certificate" element={<ErrorBoundary><DonationCertificate /></ErrorBoundary>} />
             <Route path="auth/callback" element={<ErrorBoundary><AuthCallback /></ErrorBoundary>} />
             <Route path="profile" element={<ErrorBoundary><Profile /></ErrorBoundary>} />
+            <Route path="orders" element={<ErrorBoundary><Orders /></ErrorBoundary>} />
             <Route path="orders/:id" element={<ErrorBoundary><OrderDetail /></ErrorBoundary>} />
             <Route path="checkout" element={<ErrorBoundary><Checkout /></ErrorBoundary>} />
             <Route path="payment/confirm" element={<ErrorBoundary><PaymentConfirm /></ErrorBoundary>} />
