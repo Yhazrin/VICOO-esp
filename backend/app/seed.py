@@ -800,20 +800,8 @@ async def seed():
 
         # ── Supply Chain Records ─────────────────────────────────
         print("Seeding supply chain records...")
-        _demo_gallery = json.dumps(
-            [
-                {
-                    "type": "image",
-                    "url": "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=640&q=80",
-                    "caption": "有机棉田现场",
-                },
-                {
-                    "type": "video",
-                    "url": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
-                    "caption": "采收与初加工短片（示例）",
-                },
-            ]
-        )
+        from app.data.rainbow_fish_supply_gallery import rainbow_fish_gallery_json
+
         supply_records = [
             SupplyChainRecord(
                 product_id=product_ids[0], stage="material_sourcing",
@@ -823,7 +811,7 @@ async def seed():
                 latitude=41.17, longitude=80.26,
                 certified=True,
                 cert_image_url="/static/certs/gots_cert.jpg",
-                gallery_json=_demo_gallery,
+                gallery_json=rainbow_fish_gallery_json("material_sourcing"),
                 timestamp=datetime(2025, 2, 1),
             ),
             SupplyChainRecord(
@@ -834,6 +822,7 @@ async def seed():
                 latitude=30.0, longitude=120.58,
                 certified=True,
                 cert_image_url="/static/certs/oeko_cert.jpg",
+                gallery_json=rainbow_fish_gallery_json("processing"),
                 timestamp=datetime(2025, 2, 15),
             ),
             SupplyChainRecord(
@@ -844,6 +833,7 @@ async def seed():
                 latitude=22.55, longitude=114.05,
                 certified=True,
                 cert_image_url="/static/certs/iso9001.jpg",
+                gallery_json=rainbow_fish_gallery_json("manufacturing"),
                 timestamp=datetime(2025, 3, 1),
             ),
             SupplyChainRecord(
@@ -853,6 +843,7 @@ async def seed():
                 location="广东深圳", location_en="Shenzhen, Guangdong",
                 latitude=22.55, longitude=114.08,
                 certified=True,
+                gallery_json=rainbow_fish_gallery_json("quality_check"),
                 timestamp=datetime(2025, 3, 10),
             ),
             SupplyChainRecord(
@@ -862,6 +853,7 @@ async def seed():
                 location="全国配送", location_en="Nationwide delivery",
                 latitude=35.86, longitude=104.2,
                 certified=False,
+                gallery_json=rainbow_fish_gallery_json("shipping"),
                 timestamp=datetime(2025, 3, 15),
             ),
         ]
