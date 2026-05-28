@@ -19,7 +19,7 @@ import StatusBadge from '../components/ui/StatusBadge';
 import Button from '../components/ui/Button';
 import { fetchAfterSales, updateAfterSalesStatus } from '../services/api';
 import type { AfterSalesItem } from '../types';
-import dayjs from 'dayjs';
+import { formatDateTime } from '../utils/dateTime';
 
 export default function AfterSalesPage() {
   const { t } = useTranslation();
@@ -62,7 +62,7 @@ export default function AfterSalesPage() {
     { key: 'category', title: t('afterSales.colType'), width: 100, render: (v) => getCategoryLabel(v) },
     { key: 'subject', title: t('afterSales.colReason'), width: 200, render: (v) => (v ? String(v).slice(0, 40) + (String(v).length > 40 ? '…' : '') : '-') },
     { key: 'status', title: t('afterSales.colStatus'), width: 120, render: (v) => <StatusBadge status={v} /> },
-    { key: 'createdAt', title: t('afterSales.colApplyTime'), width: 180, render: (v) => dayjs(v).format('YYYY-MM-DD HH:mm') },
+    { key: 'createdAt', title: t('afterSales.colApplyTime'), width: 180, render: (v) => formatDateTime(v) },
     {
       key: '_actions',
       title: t('afterSales.colActions', 'Actions'),

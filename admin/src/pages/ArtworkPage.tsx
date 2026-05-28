@@ -14,6 +14,7 @@ import { ReviewStatusChart } from '../components/charts/ReviewStatusChart';
 import { fetchArtworks, updateArtworkStatus, analyzeArtwork } from '../services/api';
 import type { Artwork } from '../types';
 import dayjs from 'dayjs';
+import { formatDateTime } from '../utils/dateTime';
 
 // Safe text rendering - prevents XSS without dangerouslySetInnerHTML
 function SafeText({ text }: { text?: string }) {
@@ -174,7 +175,7 @@ export default function ArtworkPage() {
       title: t('artwork.colSubmitted'),
       width: 140,
       sorter: true,
-      render: (v) => dayjs(v).format('YYYY-MM-DD HH:mm'),
+      render: (v) => formatDateTime(v),
     },
     {
       key: 'action',
@@ -357,7 +358,7 @@ export default function ArtworkPage() {
             </div>
             <div className="modal-detail-row">
               <span className="modal-detail-label">{t('artwork.colSubmitted')}</span>
-              <span className="modal-detail-value">{dayjs(selectedArtwork.createdAt).format('YYYY-MM-DD HH:mm')}</span>
+              <span className="modal-detail-value">{formatDateTime(selectedArtwork.createdAt)}</span>
             </div>
             {selectedArtwork.description && (
               <div className="modal-detail-full">

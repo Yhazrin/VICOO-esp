@@ -12,6 +12,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { SummaryCard, MiniStat } from '../components/ui/SummaryCard';
 import { fetchCampaigns, createCampaign, updateCampaign, uploadTraceMedia, fetchArtworks } from '../services/api';
 import type { Campaign, Artwork } from '../types';
+import { formatDate, formatDateTime } from '../utils/dateTime';
 import dayjs from 'dayjs';
 
 // Icons
@@ -167,8 +168,8 @@ export default function CampaignPage() {
     { key: 'raisedAmount', title: t('campaign.colRaisedAmount'), width: 120, render: (v) => (
       <span className="table-text-mono" style={{ color: 'var(--color-success)' }}>¥{v.toLocaleString('zh-CN')}</span>
     ) },
-    { key: 'startDate', title: t('campaign.colStartDate'), width: 110, render: (v) => v ? dayjs(v).format('YYYY-MM-DD') : '-' },
-    { key: 'endDate', title: t('campaign.colEndDate'), width: 110, render: (v) => v ? dayjs(v).format('YYYY-MM-DD') : '-' },
+    { key: 'startDate', title: t('campaign.colStartDate'), width: 110, render: (v) => v ? formatDate(v) : '-' },
+    { key: 'endDate', title: t('campaign.colEndDate'), width: 110, render: (v) => v ? formatDate(v) : '-' },
     {
       key: 'action', title: t('campaign.colAction'), width: 180,
       render: (_: any, record: Campaign) => (
@@ -413,7 +414,7 @@ export default function CampaignPage() {
       { key: 'title', title: t('artwork.colTitle'), sorter: true },
       { key: 'childName', title: t('artwork.colChild'), width: 120 },
       { key: 'status', title: t('artwork.colStatus'), width: 100, render: (v) => <StatusBadge status={v} context="artwork" /> },
-      { key: 'createdAt', title: t('artwork.colDate'), width: 110, render: (v) => v ? dayjs(v).format('YYYY-MM-DD') : '-' },
+      { key: 'createdAt', title: t('artwork.colDate'), width: 110, render: (v) => v ? formatDate(v) : '-' },
     ];
 
     return (

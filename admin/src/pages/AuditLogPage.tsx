@@ -12,6 +12,7 @@ import { SummaryCard, MiniStat } from '../components/ui/SummaryCard';
 import { AuditActivityChart, EventTypeChart } from '../components/charts/AuditActivityChart';
 import { fetchAuditLogs } from '../services/api';
 import type { AuditLogEntry } from '../types';
+import { formatDateTime, formatDateTimeFull } from '../utils/dateTime';
 import dayjs from 'dayjs';
 
 // Icons
@@ -107,7 +108,7 @@ export default function AuditLogPage() {
       title: t('auditLog.detailTimestamp'),
       width: 160,
       sorter: true,
-      render: (v) => <span className="table-text-mono">{dayjs(v).format('YYYY-MM-DD HH:mm')}</span>
+      render: (v) => <span className="table-text-mono">{formatDateTime(v)}</span>
     },
     { key: 'userName', title: t('auditLog.detailOperator'), width: 100 },
     {
@@ -200,7 +201,7 @@ export default function AuditLogPage() {
         {selected && (
           <div className="modal-detail-grid">
             <DetailRow label={t('auditLog.detailLogId')} value={<code className="table-text-mono">{selected.id}</code>} />
-            <DetailRow label={t('auditLog.detailTimestamp')} value={<span className="table-text-mono">{dayjs(selected.timestamp).format('YYYY-MM-DD HH:mm:ss')}</span>} />
+            <DetailRow label={t('auditLog.detailTimestamp')} value={<span className="table-text-mono">{formatDateTimeFull(selected.timestamp)}</span>} />
             <DetailRow label={t('auditLog.detailOperator')} value={selected.userName} />
             <DetailRow label={t('auditLog.detailUserId')} value={<code className="table-text-mono">{selected.userId}</code>} />
             <DetailRow label={t('auditLog.detailAction')} value={<StatusBadge status={selected.action} label={getActionLabel(selected.action)} />} />

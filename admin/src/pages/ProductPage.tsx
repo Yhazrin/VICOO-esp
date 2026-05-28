@@ -21,6 +21,7 @@ import {
   uploadTraceMedia,
 } from '../services/api';
 import { resolveApiAssetUrl } from '../utils/resolveApiAssetUrl';
+import { formatDate, formatDateTime } from '../utils/dateTime';
 import {
   SupplyChainStageIcon,
   Package,
@@ -489,7 +490,7 @@ export default function ProductPage() {
     },
     {
       key: 'createdAt', title: t('product.colCreatedAt'), width: 140,
-      render: (v) => dayjs(v).format('YYYY-MM-DD HH:mm'),
+      render: (v) => formatDateTime(v),
     },
     {
       key: 'id' as any, title: t('product.colActions'), width: 130,
@@ -750,7 +751,7 @@ export default function ProductPage() {
                         </span>
                       )}
                       {rec.timestamp && (
-                        <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{dayjs(rec.timestamp).format('YYYY-MM-DD')}</span>
+                        <span style={{ fontSize: 11, color: 'var(--color-text-3)' }}>{formatDate(rec.timestamp)}</span>
                       )}
                     </div>
                     <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>

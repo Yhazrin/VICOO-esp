@@ -19,7 +19,7 @@ import StatusBadge from '../components/ui/StatusBadge';
 import Button from '../components/ui/Button';
 import { fetchClothingIntakes, updateClothingIntakeStatus } from '../services/api';
 import type { ClothingDonationItem } from '../types';
-import dayjs from 'dayjs';
+import { formatDateTime } from '../utils/dateTime';
 
 export default function ClothingDonationPage() {
   const { t } = useTranslation();
@@ -54,7 +54,7 @@ export default function ClothingDonationPage() {
     { key: 'contactPhone', title: t('clothingDonation.colPhone'), width: 120, render: (v) => v || '-' },
     { key: 'pickupAddress', title: t('clothingDonation.colAddress', 'Pickup Address'), width: 160, render: (v) => (v ? String(v).slice(0, 40) + (String(v).length > 40 ? '…' : '') : '-') },
     { key: 'status', title: t('clothingDonation.colStatus'), width: 100, render: (v) => <StatusBadge status={v} /> },
-    { key: 'createdAt', title: t('clothingDonation.colSubmittedAt'), width: 160, render: (v) => dayjs(v).format('YYYY-MM-DD HH:mm') },
+    { key: 'createdAt', title: t('clothingDonation.colSubmittedAt'), width: 160, render: (v) => formatDateTime(v) },
     {
       key: '_actions',
       title: t('clothingDonation.colActions', 'Actions'),

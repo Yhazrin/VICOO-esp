@@ -12,6 +12,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { SummaryCard, MiniStat } from '../components/ui/SummaryCard';
 import { fetchUsers, updateUserRole, updateUserStatus } from '../services/api';
 import type { User } from '../types';
+import { formatDate, formatDateTime } from '../utils/dateTime';
 import dayjs from 'dayjs';
 
 // Icons
@@ -130,13 +131,13 @@ export default function UserPage() {
       key: 'createdAt',
       title: t('user.colRegistration'),
       width: 120,
-      render: (v) => dayjs(v).format('YYYY-MM-DD'),
+      render: (v) => formatDate(v),
     },
     {
       key: 'lastLogin',
       title: t('user.colLastAccess'),
       width: 140,
-      render: (v) => (v ? dayjs(v).format('YYYY-MM-DD HH:mm') : '-'),
+      render: (v) => (v ? formatDateTime(v) : '-'),
     },
     {
       key: 'action',

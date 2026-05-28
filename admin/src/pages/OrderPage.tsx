@@ -13,7 +13,7 @@ import { SummaryCard, MiniStat } from '../components/ui/SummaryCard';
 import { OrderActivityChart } from '../components/charts/OrderActivityChart';
 import { fetchOrders, updateOrderStatus } from '../services/api';
 import type { Order } from '../types';
-import dayjs from 'dayjs';
+import { formatDateTime, formatDateTimeFull } from '../utils/dateTime';
 
 // Icons as React elements
 const SearchIcon = (
@@ -106,7 +106,7 @@ export default function OrderPage() {
     ) },
     { key: 'paymentMethod', title: t('order.colPaymentMethod'), width: 100, render: (v) => getPaymentLabel(v) },
     { key: 'status', title: t('order.colStatus'), width: 100, render: (v) => <StatusBadge status={v} context="order" /> },
-    { key: 'createdAt', title: t('order.colCreatedAt'), width: 160, sorter: true, render: (v) => dayjs(v).format('YYYY-MM-DD HH:mm') },
+    { key: 'createdAt', title: t('order.colCreatedAt'), width: 160, sorter: true, render: (v) => formatDateTime(v) },
     {
       key: 'action', title: t('order.colAction'), width: 200,
       render: (_: any, record: Order) => (
@@ -203,7 +203,7 @@ export default function OrderPage() {
             <DetailRow label={t('order.detailPaymentMethod')} value={getPaymentLabel(selectedOrder.paymentMethod)} />
             <DetailRow label={t('order.detailShippingAddress')} value={selectedOrder.shippingAddress} />
             {selectedOrder.trackingNo && <DetailRow label={t('order.detailTrackingNo')} value={selectedOrder.trackingNo} />}
-            <DetailRow label={t('order.detailOrderTime')} value={dayjs(selectedOrder.createdAt).format('YYYY-MM-DD HH:mm:ss')} />
+            <DetailRow label={t('order.detailOrderTime')} value={formatDateTimeFull(selectedOrder.createdAt)} />
             <div className="modal-detail-full">
               <span className="modal-detail-label">{t('order.detailItemsLabel')}</span>
               <div className="modal-items">

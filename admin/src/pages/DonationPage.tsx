@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import dayjs from 'dayjs';
 import html2pdf from 'html2pdf.js';
 import DataTable from '../components/ui/DataTable';
 import type { Column } from '../components/ui/DataTable';
@@ -15,6 +14,7 @@ import { SummaryCard, MiniStat } from '../components/ui/SummaryCard';
 import { DonationTrendChart } from '../components/charts/DonationTrendChart';
 import { fetchDonations, approveDonationAdmin } from '../services/api';
 import type { Donation } from '../types';
+import { formatDateTime, formatTimestamp } from '../utils/dateTime';
 
 // Icons
 const SearchIcon = (
@@ -160,7 +160,7 @@ export default function DonationPage() {
       title: t('donation.colRecordedAt'),
       width: 140,
       sorter: true,
-      render: (v) => dayjs(v).format('YYYY-MM-DD HH:mm'),
+      render: (v) => formatDateTime(v),
     },
     {
       key: 'action',
@@ -193,13 +193,13 @@ export default function DonationPage() {
   const handleExport = () => {
     const csvHeader = t('donation.csvHeader');
     const csvRows = filteredData.map((d) =>
-      `${d.id},${csvEscape(d.donorName)},${d.amount},${d.currency},${csvEscape(getPaymentLabel(d.paymentMethod))},${csvEscape(d.campaignTitle || '')},${d.status},${d.isAnonymous ? t('donation.csvYes') : t('donation.csvNo')},${dayjs(d.createdAt).format('YYYY-MM-DD HH:mm')}`
+      `${d.id},${csvEscape(d.donorName)},${d.amount},${d.currency},${csvEscape(getPaymentLabel(d.paymentMethod))},${csvEscape(d.campaignTitle || '')},${d.status},${d.isAnonymous ? t('donation.csvYes') : t('donation.csvNo')},${formatDateTime(d.createdAt)}`
     ).join('\n');
     const blob = new Blob(['﻿' + csvHeader + csvRows], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `donations_${dayjs().format('YYYYMMDD_HHmmss')}.csv`;
+    a.download = `donations_${formatTimestamp(new Date())}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -232,7 +232,7 @@ export default function DonationPage() {
         <td>${escapeHtml(d.campaignTitle || '')}</td>
         <td>${escapeHtml(d.status)}</td>
         <td>${d.isAnonymous ? escapeHtml(t('donation.csvYes')) : escapeHtml(t('donation.csvNo'))}</td>
-        <td>${escapeHtml(dayjs(d.createdAt).format('YYYY-MM-DD HH:mm'))}</td>
+        <td>${escapeHtml(formatDateTime(d.createdAt))}</td>
       </tr>`;
     }).join('');
     const inner = `
@@ -250,7 +250,7 @@ export default function DonationPage() {
   </style>
   <div class="report-root">
     <h1>${escapeHtml(t('donation.title'))}</h1>
-    <div class="meta">${escapeHtml(t('donation.reportGeneratedAt', { time: dayjs().format('YYYY-MM-DD HH:mm:ss') }))}</div>
+    <div class="meta">${escapeHtml(t('donation.reportGeneratedAt', { time: formatTimestamp(new Date()) }))}</div>
     <div class="summary">
       <div class="card"><div class="label">${escapeHtml(t('donation.summaryCurrentSelection'))}</div><div class="value">${displaySummary.selectionTotal}</div><div class="label">${escapeHtml(t('donation.summaryRecordsUnit'))}</div></div>
       <div class="card"><div class="label">${escapeHtml(t('donation.summaryAggregateValue'))}</div><div class="value">¥${displaySummary.completedAmount.toLocaleString()}</div><div class="label">${escapeHtml(t('donation.summaryCnyTotal'))}</div></div>
@@ -272,7 +272,7 @@ export default function DonationPage() {
     container.innerHTML = inner;
     overlay.appendChild(container);
     document.body.appendChild(overlay);
-    const filename = `donations_report_${dayjs().format('YYYYMMDD_HHmmss')}.pdf`;
+    const filename = `donations_report_${formatTimestamp(new Date())}.pdf`;
     try {
       if (document.fonts?.ready) {
         await document.fonts.ready.catch(() => undefined);
