@@ -1,36 +1,15 @@
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useTranslation } from 'react-i18next';
 
-// Mock data for donation trend (last 7 days)
-const MOCK_DATA_EN = [
-  { date: 'Mon', amount: 4200 },
-  { date: 'Tue', amount: 5800 },
-  { date: 'Wed', amount: 3100 },
-  { date: 'Thu', amount: 7500 },
-  { date: 'Fri', amount: 6200 },
-  { date: 'Sat', amount: 8900 },
-  { date: 'Sun', amount: 5400 },
-];
-
-const MOCK_DATA_ZH = [
-  { date: '周一', amount: 4200 },
-  { date: '周二', amount: 5800 },
-  { date: '周三', amount: 3100 },
-  { date: '周四', amount: 7500 },
-  { date: '周五', amount: 6200 },
-  { date: '周六', amount: 8900 },
-  { date: '周日', amount: 5400 },
-];
-
 interface DonationTrendChartProps {
   data?: Array<{ date: string; amount: number }>;
   height?: number;
 }
 
-export function DonationTrendChart({ data, height = 180 }: DonationTrendChartProps) {
+export function DonationTrendChart({ data = [], height = 180 }: DonationTrendChartProps) {
   const { t, i18n } = useTranslation();
   const isZh = i18n.language === 'zh';
-  const chartData = data || (isZh ? MOCK_DATA_ZH : MOCK_DATA_EN);
+  const chartData = data.length > 0 ? data : [];
   const total = chartData.reduce((sum, d) => sum + d.amount, 0);
 
   return (

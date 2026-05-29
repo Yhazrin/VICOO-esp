@@ -1,36 +1,15 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useTranslation } from 'react-i18next';
 
-// Mock data for order activity (last 7 days)
-const MOCK_DATA_EN = [
-  { date: 'Mon', orders: 12, completed: 8 },
-  { date: 'Tue', orders: 18, completed: 15 },
-  { date: 'Wed', orders: 14, completed: 12 },
-  { date: 'Thu', orders: 22, completed: 18 },
-  { date: 'Fri', orders: 25, completed: 20 },
-  { date: 'Sat', orders: 30, completed: 28 },
-  { date: 'Sun', orders: 20, completed: 16 },
-];
-
-const MOCK_DATA_ZH = [
-  { date: '周一', orders: 12, completed: 8 },
-  { date: '周二', orders: 18, completed: 15 },
-  { date: '周三', orders: 14, completed: 12 },
-  { date: '周四', orders: 22, completed: 18 },
-  { date: '周五', orders: 25, completed: 20 },
-  { date: '周六', orders: 30, completed: 28 },
-  { date: '周日', orders: 20, completed: 16 },
-];
-
 interface OrderActivityChartProps {
   data?: Array<{ date: string; orders: number; completed: number }>;
   height?: number;
 }
 
-export function OrderActivityChart({ data, height = 180 }: OrderActivityChartProps) {
+export function OrderActivityChart({ data = [], height = 180 }: OrderActivityChartProps) {
   const { i18n } = useTranslation();
   const isZh = i18n.language === 'zh';
-  const chartData = data || (isZh ? MOCK_DATA_ZH : MOCK_DATA_EN);
+  const chartData = data.length > 0 ? data : [];
   const totalOrders = chartData.reduce((sum, d) => sum + d.orders, 0);
 
   return (

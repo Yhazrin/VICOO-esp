@@ -1,21 +1,6 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { useTranslation } from 'react-i18next';
 
-// Mock data for review status
-const MOCK_DATA_EN = [
-  { status: 'Pending', count: 12, key: 'pending' },
-  { status: 'Approved', count: 89, key: 'approved' },
-  { status: 'Rejected', count: 5, key: 'rejected' },
-  { status: 'Draft', count: 3, key: 'draft' },
-];
-
-const MOCK_DATA_ZH = [
-  { status: '待审核', count: 12, key: 'pending' },
-  { status: '已通过', count: 89, key: 'approved' },
-  { status: '已拒绝', count: 5, key: 'rejected' },
-  { status: '草稿', count: 3, key: 'draft' },
-];
-
 const STATUS_COLORS: Record<string, string> = {
   pending: 'var(--color-warning)',
   approved: 'var(--color-primary)',
@@ -28,10 +13,10 @@ interface ReviewStatusChartProps {
   height?: number;
 }
 
-export function ReviewStatusChart({ data, height = 180 }: ReviewStatusChartProps) {
+export function ReviewStatusChart({ data = [], height = 180 }: ReviewStatusChartProps) {
   const { t, i18n } = useTranslation();
   const isZh = i18n.language === 'zh';
-  const chartData = data || (isZh ? MOCK_DATA_ZH : MOCK_DATA_EN);
+  const chartData = data.length > 0 ? data : [];
   const total = chartData.reduce((sum, d) => sum + d.count, 0);
 
   return (

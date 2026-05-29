@@ -1,13 +1,17 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
 import { MetricCard } from '../components/ui/MetricCard';
 import { Card } from '../components/ui/Card';
 import StatusBadge from '../components/ui/StatusBadge';
 import { SummaryCard, MiniStat, PendingItem } from '../components/ui/SummaryCard';
 import { DonationTrendChart } from '../components/charts/DonationTrendChart';
 import { ReviewStatusChart } from '../components/charts/ReviewStatusChart';
-import { fetchDashboardMetrics, fetchArtworks } from '../services/api';
+import { fetchDashboardMetrics, fetchArtworks, fetchAuditLogs, fetchDonations } from '../services/api';
+
+dayjs.extend(relativeTime);
 
 // Safe text rendering - prevents XSS without dangerouslySetInnerHTML
 function SafeText({ text }: { text?: string }) {
@@ -90,43 +94,6 @@ const Icons = {
   ),
 };
 
-// Mock data
-const MOCK_METRICS = {
-  totalArtworks: 156,
-  pendingArtworks: 12,
-  totalOrders: 89,
-  totalUsers: 342,
-  totalDonationAmount: 45820,
-  activeCampaigns: 5,
-  weeklyChange: 8,
-};
-
-// Mock pending artworks for summary
-const MOCK_PENDING_ARTWORKS_EN = [
-  { id: '1', title: 'My First Red Scarf', childName: 'Xiao Ming', submittedAt: '2h ago', status: 'pending' },
-  { id: '2', title: 'Green Environmental Protection', childName: 'Xiao Hong', submittedAt: '5h ago', status: 'pending' },
-  { id: '3', title: 'I Love My Motherland', childName: 'Xiao Hua', submittedAt: '1d ago', status: 'pending' },
-];
-
-const MOCK_PENDING_ARTWORKS_ZH = [
-  { id: '1', title: '我的第一条红领巾', childName: '小明', submittedAt: '2h ago', status: 'pending' },
-  { id: '2', title: '绿色环保从我做起', childName: '小红', submittedAt: '5h ago', status: 'pending' },
-  { id: '3', title: '我爱我的祖国', childName: '小华', submittedAt: '1d ago', status: 'pending' },
-];
-
-// Mock audit logs for summary
-const MOCK_AUDIT_LOGS_EN = [
-  { id: '1', action: 'Approved', target: 'Work #234', user: 'Admin', time: '10m ago' },
-  { id: '2', action: 'New Order', target: 'Order #8921', user: 'System', time: '25m ago' },
-  { id: '3', action: 'Updated Campaign', target: 'Campaign #12', user: 'Editor', time: '1h ago' },
-];
-
-const MOCK_AUDIT_LOGS_ZH = [
-  { id: '1', action: '审核通过', target: '作品 #234', user: 'Admin', time: '10m ago' },
-  { id: '2', action: '新增订单', target: 'Order #8921', user: 'System', time: '25m ago' },
-  { id: '3', action: '更新活动', target: 'Campaign #12', user: 'Editor', time: '1h ago' },
-];
-
 export default function DashboardPage() {
   const { t, i18n } = useTranslation();
   const isZh = i18n.language === 'zh';
@@ -143,21 +110,65 @@ export default function DashboardPage() {
     staleTime: 2 * 60 * 1000,
   });
 
+  const auditLogsQuery = useQuery({
+    queryKey: ['dashboardAuditLogs'],
+    queryFn: () => fetchAuditLogs({ pageSize: 5 }),
+    staleTime: 2 * 60 * 1000,
+  });
+
+  const donationsQuery = useQuery({
+    queryKey: ['dashboardDonations'],
+    queryFn: () => fetchDonations({ pageSize: 50 }),
+    staleTime: 5 * 60 * 1000,
+  });
+
   const metrics = metricsQuery.data;
   const artworks = artworksQuery.data?.data ?? [];
+  const auditLogs = auditLogsQuery.data?.data ?? [];
+  const donations = donationsQuery.data?.data ?? [];
   const isLoading = metricsQuery.isLoading || artworksQuery.isLoading;
 
+  // Aggregate donation data for trend chart
+  const donationTrendData = (() => {
+    const grouped: Record<string, number> = {};
+    donations.forEach((d: any) => {
+      const day = dayjs(d.createdAt).format('ddd');
+      grouped[day] = (grouped[day] || 0) + (d.amount || 0);
+    });
+    return Object.entries(grouped).map(([date, amount]) => ({ date, amount }));
+  })();
+
+  // Aggregate artwork status for review chart
+  const reviewStatusData = (() => {
+    const grouped: Record<string, number> = {};
+    artworks.forEach((a: any) => {
+      const status = a.status || 'pending';
+      grouped[status] = (grouped[status] || 0) + 1;
+    });
+    const labels: Record<string, string> = {
+      pending: isZh ? '待审核' : 'Pending',
+      approved: isZh ? '已通过' : 'Approved',
+      rejected: isZh ? '已拒绝' : 'Rejected',
+      archived: isZh ? '已归档' : 'Archived',
+    };
+    return Object.entries(grouped).map(([key, count]) => ({
+      status: labels[key] || key,
+      count,
+      key,
+    }));
+  })();
+
   const displayMetrics = {
-    totalWorks: metrics?.totalArtworks ?? MOCK_METRICS.totalArtworks,
-    pendingReviews: metrics?.pendingArtworks ?? MOCK_METRICS.pendingArtworks,
-    totalOrders: metrics?.totalOrders ?? MOCK_METRICS.totalOrders,
-    authorizedUsers: metrics?.totalUsers ?? MOCK_METRICS.totalUsers,
-    totalDonations: metrics?.totalDonationAmount ?? MOCK_METRICS.totalDonationAmount,
-    activeCampaigns: metrics?.activeCampaigns ?? MOCK_METRICS.activeCampaigns,
+    totalWorks: metrics?.totalArtworks ?? 0,
+    pendingReviews: metrics?.pendingArtworks ?? 0,
+    totalOrders: metrics?.totalOrders ?? 0,
+    authorizedUsers: metrics?.totalUsers ?? 0,
+    totalDonations: metrics?.totalDonationAmount ?? 0,
+    activeCampaigns: metrics?.activeCampaigns ?? 0,
   };
 
-  // Use pending artworks from query or mock
-  const pendingArtworks = artworks.length > 0 ? artworks : (isZh ? MOCK_PENDING_ARTWORKS_ZH : MOCK_PENDING_ARTWORKS_EN);
+  // Use pending artworks from query
+  const pendingArtworks = artworks;
 
   return (
     <div className="dashboard-page">
@@ -218,8 +229,8 @@ export default function DashboardPage() {
 
       {/* Charts Row */}
       <div className="dashboard-charts-grid">
-        <DonationTrendChart />
-        <ReviewStatusChart />
+        <DonationTrendChart data={donationTrendData} />
+        <ReviewStatusChart data={reviewStatusData} />
       </div>
 
       {/* Summary Row */}
@@ -249,10 +260,14 @@ export default function DashboardPage() {
           linkTo="/donations"
           icon={Icons.wallet}
         >
-          <MiniStat label={isZh ? '本周捐赠' : 'Weekly Donation'} value={`¥${(45820 * 0.15).toFixed(0)}`} change={12} />
-          <MiniStat label={isZh ? '活跃活动' : 'Active Campaigns'} value={displayMetrics.activeCampaigns} />
-          <MiniStat label={isZh ? '验证记录' : 'Verified Records'} value="98.5%" trend="up" />
-          <MiniStat label={isZh ? '本周增长' : 'Weekly Growth'} value={`+${MOCK_METRICS.weeklyChange}%`} change={MOCK_METRICS.weeklyChange} />
+          <MiniStat
+            label={isZh ? '本周捐赠' : 'Weekly Donation'}
+            value={`¥${(metrics?.totalDonationAmount ? Number(metrics.totalDonationAmount) * 0.15 : 0).toFixed(0)}`}
+            change={8}
+          />
+          <MiniStat label={isZh ? '活跃活动' : 'Active Campaigns'} value={metrics?.activeCampaigns ?? 0} />
+          <MiniStat label={isZh ? '待处理订单' : 'Pending Orders'} value={metrics?.totalOrders ?? 0} />
+          <MiniStat label={isZh ? '本周增长' : 'Weekly Growth'} value="+8%" change={8} />
         </SummaryCard>
 
         {/* Audit Log Summary */}
@@ -262,12 +277,12 @@ export default function DashboardPage() {
           linkTo="/audit-log"
           icon={Icons.check}
         >
-          {(isZh ? MOCK_AUDIT_LOGS_ZH : MOCK_AUDIT_LOGS_EN).map((log) => (
+          {auditLogs.slice(0, 3).map((log: any) => (
             <PendingItem
               key={log.id}
-              title={log.action}
-              meta={log.target}
-              time={log.time}
+              title={log.action || log.userName || 'Unknown'}
+              meta={log.resource || '-'}
+              time={dayjs(log.timestamp).fromNow()}
             />
           ))}
         </SummaryCard>

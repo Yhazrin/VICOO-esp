@@ -67,13 +67,44 @@ export default function AuditLogPage() {
     queryKey: ['auditLogs', page, actionFilter],
     queryFn: () => fetchAuditLogs({
       page,
-      pageSize: 15,
+      pageSize: 100,  // Get more data for charts
       search: actionFilter || undefined
     }),
   });
 
   const logs = data?.data || [];
   const total = data?.total || 0;
+
+  // Aggregate logs into chart data
+  const activityTrendData = (() => {
+    const grouped: Record<string, number> = {};
+    logs.forEach((l: AuditLogEntry) => {
+      const day = dayjs(l.timestamp).format('ddd');
+      grouped[day] = (grouped[day] || 0) + 1;
+    });
+    return Object.entries(grouped).map(([date, count]) => ({ date, count }));
+  })();
+
+  const eventTypeData = (() => {
+    const grouped: Record<string, { type: string; count: number; key: string }> = {};
+    const labels: Record<string, string> = {
+      login: isZh ? '登录' : 'Login',
+      review_artwork: isZh ? '审核' : 'Review',
+      update_order_status: isZh ? '订单' : 'Order',
+      modify_settings: isZh ? '设置' : 'Settings',
+      modify_user_role: isZh ? '用户' : 'User',
+      create_campaign: isZh ? '活动' : 'Campaign',
+      delete_data: isZh ? '删除' : 'Delete',
+    };
+    logs.forEach((l: AuditLogEntry) => {
+      const key = l.action.split('_')[0];
+      if (!grouped[key]) {
+        grouped[key] = { type: labels[l.action] || l.action, count: 0, key };
+      }
+      grouped[key].count++;
+    });
+    return Object.values(grouped).sort((a, b) => b.count - a.count);
+  })();
 
   // Calculate summary stats
   const summaryStats = {
@@ -165,8 +196,8 @@ export default function AuditLogPage() {
 
       {/* Charts */}
       <div className="dashboard-charts-grid" style={{ marginBottom: 24 }}>
-        <AuditActivityChart />
-        <EventTypeChart />
+        <AuditActivityChart data={activityTrendData} />
+        <EventTypeChart data={eventTypeData} />
       </div>
 
       {/* Filters */}
