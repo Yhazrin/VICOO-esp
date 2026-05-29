@@ -141,6 +141,14 @@ function getPhoneError(country: string, t: (key: string) => string): string {
     'Taiwan, China': t('checkout.phoneErrorTaiwan'),
     'Hong Kong, China': t('checkout.phoneErrorHongKong'),
     'Singapore': t('checkout.phoneErrorSingapore'),
+    'Japan': t('checkout.phoneErrorJapan'),
+    'South Korea': t('checkout.phoneErrorKr'),
+    'United States': t('checkout.phoneErrorUs'),
+    'Canada': t('checkout.phoneErrorCa'),
+    'United Kingdom': t('checkout.phoneErrorUk'),
+    'Germany': t('checkout.phoneErrorDe'),
+    'France': t('checkout.phoneErrorFr'),
+    'Australia': t('checkout.phoneErrorAu'),
     'default': t('checkout.phoneErrorDefault'),
   };
   return errorMap[country] || errorMap['default'];

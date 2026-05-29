@@ -1648,6 +1648,7 @@
     "phoneErrorHongKong": "请输入有效的8位香港手机号码",
     "phoneErrorSingapore": "请输入有效的8位新加坡手机号码",
     "phoneErrorJapan": "请输入有效的日本电话号码",
+    "phoneErrorKr": "请输入有效的韩国手机号码",
     "phoneErrorUs": "请输入有效的10位美国电话号码",
     "phoneErrorCa": "请输入有效的10位加拿大电话号码",
     "phoneErrorUk": "请输入有效的10位英国电话号码",

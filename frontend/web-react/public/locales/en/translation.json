@@ -1675,6 +1675,7 @@
     "phoneErrorHongKong": "Please enter a valid 8-digit Hong Kong mobile number",
     "phoneErrorSingapore": "Please enter a valid 8-digit Singapore mobile number",
     "phoneErrorJapan": "Please enter a valid Japanese phone number",
+    "phoneErrorKr": "Please enter a valid South Korean mobile number",
     "phoneErrorUs": "Please enter a valid 10-digit US phone number",
     "phoneErrorCa": "Please enter a valid 10-digit Canadian phone number",
     "phoneErrorUk": "Please enter a valid 10-digit UK phone number",
