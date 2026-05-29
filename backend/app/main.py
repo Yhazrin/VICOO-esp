@@ -196,9 +196,14 @@ async def audit_logging_middleware(request: Request, call_next):
     sensitive_gets = [
         "/api/v1/admin/child-participants",
     ]
+    # Skip logging for audit-logs/system health reads (avoid infinite loops and noise)
+    skip_paths = [
+        "/api/v1/admin/audit-logs",
+        "/api/v1/admin/health",
+        "/api/v1/admin/system/health",
+    ]
     should_log = path.startswith("/api/v1/admin/")
-    # Skip logging for audit-logs reads and health checks (avoid infinite loops)
-    if should_log and ("/audit-logs" in path or "/health" in path):
+    if should_log and any(path.startswith(sp) for sp in skip_paths):
         return await call_next(request)
 
     if should_log:

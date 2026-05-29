@@ -9,7 +9,7 @@ import StatusBadge from '../components/ui/StatusBadge';
 import { SummaryCard, MiniStat, PendingItem } from '../components/ui/SummaryCard';
 import { DonationTrendChart } from '../components/charts/DonationTrendChart';
 import { ReviewStatusChart } from '../components/charts/ReviewStatusChart';
-import { fetchDashboardMetrics, fetchArtworks, fetchAuditLogs, fetchDonations } from '../services/api';
+import { fetchDashboardMetrics, fetchArtworks, fetchAuditLogs, fetchDonationTrend, fetchArtworkByCategory } from '../services/api';
 
 dayjs.extend(relativeTime);
 
@@ -117,46 +117,23 @@ export default function DashboardPage() {
   });
 
   const donationsQuery = useQuery({
-    queryKey: ['dashboardDonations'],
-    queryFn: () => fetchDonations({ pageSize: 50 }),
+    queryKey: ['dashboardDonationTrend'],
+    queryFn: fetchDonationTrend,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const artworkStatsQuery = useQuery({
+    queryKey: ['dashboardArtworkStats'],
+    queryFn: fetchArtworkByCategory,
     staleTime: 5 * 60 * 1000,
   });
 
   const metrics = metricsQuery.data;
   const artworks = artworksQuery.data?.data ?? [];
   const auditLogs = auditLogsQuery.data?.data ?? [];
-  const donations = donationsQuery.data?.data ?? [];
+  const donationTrendData = donationsQuery.data ?? [];
+  const reviewStatusData = artworkStatsQuery.data ?? [];
   const isLoading = metricsQuery.isLoading || artworksQuery.isLoading;
-
-  // Aggregate donation data for trend chart
-  const donationTrendData = (() => {
-    const grouped: Record<string, number> = {};
-    donations.forEach((d: any) => {
-      const day = dayjs(d.createdAt).format('ddd');
-      grouped[day] = (grouped[day] || 0) + (d.amount || 0);
-    });
-    return Object.entries(grouped).map(([date, amount]) => ({ date, amount }));
-  })();
-
-  // Aggregate artwork status for review chart
-  const reviewStatusData = (() => {
-    const grouped: Record<string, number> = {};
-    artworks.forEach((a: any) => {
-      const status = a.status || 'pending';
-      grouped[status] = (grouped[status] || 0) + 1;
-    });
-    const labels: Record<string, string> = {
-      pending: isZh ? '待审核' : 'Pending',
-      approved: isZh ? '已通过' : 'Approved',
-      rejected: isZh ? '已拒绝' : 'Rejected',
-      archived: isZh ? '已归档' : 'Archived',
-    };
-    return Object.entries(grouped).map(([key, count]) => ({
-      status: labels[key] || key,
-      count,
-      key,
-    }));
-  })();
 
   const displayMetrics = {
     totalWorks: metrics?.totalArtworks ?? 0,

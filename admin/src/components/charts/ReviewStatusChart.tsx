@@ -1,5 +1,6 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { useTranslation } from 'react-i18next';
+import type { ChartDataPoint } from '../../types';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'var(--color-warning)',
@@ -9,7 +10,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 interface ReviewStatusChartProps {
-  data?: Array<{ status: string; count: number; key: string }>;
+  data?: ChartDataPoint[];
   height?: number;
 }
 
@@ -17,7 +18,7 @@ export function ReviewStatusChart({ data = [], height = 180 }: ReviewStatusChart
   const { t, i18n } = useTranslation();
   const isZh = i18n.language === 'zh';
   const chartData = data.length > 0 ? data : [];
-  const total = chartData.reduce((sum, d) => sum + d.count, 0);
+  const total = chartData.reduce((sum, d) => sum + (d.value as number), 0);
 
   return (
     <div className="chart-card">
@@ -47,7 +48,7 @@ export function ReviewStatusChart({ data = [], height = 180 }: ReviewStatusChart
             />
             <YAxis
               type="category"
-              dataKey="status"
+              dataKey="name"
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 11, fill: 'var(--color-text-2)' }}
@@ -64,9 +65,9 @@ export function ReviewStatusChart({ data = [], height = 180 }: ReviewStatusChart
               formatter={(value: number) => [value, isZh ? '数量' : 'Count']}
               labelStyle={{ color: 'var(--color-text-2)' }}
             />
-            <Bar dataKey="count" radius={[0, 3, 3, 0]} barSize={16}>
+            <Bar dataKey="value" radius={[0, 3, 3, 0]} barSize={16}>
               {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.key] || 'var(--color-primary)'} />
+                <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.name] || 'var(--color-primary)'} />
               ))}
             </Bar>
           </BarChart>

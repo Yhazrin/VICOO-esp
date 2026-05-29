@@ -1,8 +1,9 @@
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useTranslation } from 'react-i18next';
+import type { ChartDataPoint } from '../../types';
 
 interface DonationTrendChartProps {
-  data?: Array<{ date: string; amount: number }>;
+  data?: ChartDataPoint[];
   height?: number;
 }
 
@@ -10,7 +11,7 @@ export function DonationTrendChart({ data = [], height = 180 }: DonationTrendCha
   const { t, i18n } = useTranslation();
   const isZh = i18n.language === 'zh';
   const chartData = data.length > 0 ? data : [];
-  const total = chartData.reduce((sum, d) => sum + d.amount, 0);
+  const total = chartData.reduce((sum, d) => sum + (d.value as number), 0);
 
   return (
     <div className="chart-card">
@@ -39,7 +40,7 @@ export function DonationTrendChart({ data = [], height = 180 }: DonationTrendCha
               vertical={false}
             />
             <XAxis
-              dataKey="date"
+              dataKey={chartData[0]?.name ? 'name' : 'date'}
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 10, fill: 'var(--color-text-3)' }}
@@ -63,7 +64,7 @@ export function DonationTrendChart({ data = [], height = 180 }: DonationTrendCha
             />
             <Area
               type="monotone"
-              dataKey="amount"
+              dataKey={chartData[0]?.value !== undefined ? 'value' : 'amount'}
               stroke="var(--color-primary)"
               strokeWidth={1.5}
               fillOpacity={1}
