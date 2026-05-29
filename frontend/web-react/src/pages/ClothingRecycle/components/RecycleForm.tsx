@@ -91,6 +91,74 @@ function validatePostalCode(postalCode: string, country: string): boolean {
   return pattern.test(postalCode.trim());
 }
 
+// Get error message for phone by country
+function getPhoneError(country: string, t: (key: string) => string): string {
+  const errorMap: Record<string, string> = {
+    'China': t('clothingRecycle.phoneErrorCn', '请输入有效的11位中国手机号码'),
+    'Taiwan, China': t('clothingRecycle.phoneErrorTw', '請輸入有效的10位台灣手機號碼'),
+    'Hong Kong, China': t('clothingRecycle.phoneErrorHk', '请输入有效的8位香港手机号码'),
+    'Singapore': t('clothingRecycle.phoneErrorSg', '请输入有效的8位新加坡手机号码'),
+    'Japan': t('clothingRecycle.phoneErrorJp', '请输入有效的日本电话号码'),
+    'South Korea': t('clothingRecycle.phoneErrorKr', '请输入有效的韩国手机号码'),
+    'United States': t('clothingRecycle.phoneErrorUs', '请输入有效的美国电话号码'),
+    'Canada': t('clothingRecycle.phoneErrorCa', '请输入有效的加拿大电话号码'),
+    'United Kingdom': t('clothingRecycle.phoneErrorUk', '请输入有效的英国电话号码'),
+    'Germany': t('clothingRecycle.phoneErrorDe', '请输入有效的德国电话号码'),
+    'France': t('clothingRecycle.phoneErrorFr', '请输入有效的法国电话号码'),
+    'Australia': t('clothingRecycle.phoneErrorAu', '请输入有效的澳大利亚电话号码'),
+    'default': t('clothingRecycle.phoneError', 'Invalid phone number'),
+  };
+  return errorMap[country] || errorMap['default'];
+}
+
+// Get dynamic placeholder for phone by country
+function getPhonePlaceholder(country: string, t: (key: string) => string): string {
+  const placeholders: Record<string, string> = {
+    'China': t('clothingRecycle.phonePlaceholderCn', '请输入11位手机号'),
+    'Taiwan, China': t('clothingRecycle.phonePlaceholderTw', '請輸入10位手機號碼'),
+    'Hong Kong, China': t('clothingRecycle.phonePlaceholderHk', '請輸入8位電話號碼'),
+    'Singapore': t('clothingRecycle.phonePlaceholderSg', '請輸入8位電話號碼'),
+    'Japan': t('clothingRecycle.phonePlaceholderJp', '請輸入電話號碼'),
+    'South Korea': t('clothingRecycle.phonePlaceholderKr', '請輸入10/11位手機號碼'),
+    'United States': t('clothingRecycle.phonePlaceholderUs', '10-digit phone number'),
+    'Canada': t('clothingRecycle.phonePlaceholderCa', '10-digit phone number'),
+    'United Kingdom': t('clothingRecycle.phonePlaceholderUk', '11-digit phone number'),
+    'Germany': t('clothingRecycle.phonePlaceholderDe', '10/11-digit phone number'),
+    'France': t('clothingRecycle.phonePlaceholderFr', '10-digit phone number'),
+    'Australia': t('clothingRecycle.phonePlaceholderAu', '9/10-digit phone number'),
+    'default': t('clothingRecycle.phonePlaceholder', 'Enter phone number'),
+  };
+  return placeholders[country] || placeholders['default'];
+}
+
+// Get error message for field by country
+function getFieldError(field: string, country: string, t: (key: string) => string): string {
+  const errors: Record<string, Record<string, string>> = {
+    name: {
+      'China': t('clothingRecycle.nameErrorCn', '请输入2-50位中英文姓名'),
+      'Taiwan, China': t('clothingRecycle.nameErrorTw', '請輸入2-50位中英文姓名'),
+      'Hong Kong, China': t('clothingRecycle.nameErrorHk', '请输入2-50位中英文姓名'),
+      'default': t('clothingRecycle.nameError', 'Name must be 2-50 characters'),
+    },
+    address: {
+      'China': t('clothingRecycle.addressErrorCn', '地址长度需在5-200字符'),
+      'Taiwan, China': t('clothingRecycle.addressErrorTw', '地址長度需在5-200字符'),
+      'default': t('clothingRecycle.addressError', 'Address must be 5-200 characters'),
+    },
+    postalCode: {
+      'China': t('clothingRecycle.postalCodeErrorCn', '请输入6位邮政编码'),
+      'Taiwan, China': t('clothingRecycle.postalCodeErrorTw', '請輸入3-5位郵遞區號'),
+      'Japan': t('clothingRecycle.postalCodeErrorJp', '格式: 123-4567 或 1234567'),
+      'South Korea': t('clothingRecycle.postalCodeErrorKr', '请输入5位邮政编码'),
+      'United States': t('clothingRecycle.postalCodeErrorUs', '格式: 12345 或 12345-6789'),
+      'Canada': t('clothingRecycle.postalCodeErrorCa', '格式: A1A 1A1'),
+      'United Kingdom': t('clothingRecycle.postalCodeErrorUk', '格式: SW1A 1AA'),
+      'default': t('clothingRecycle.postalCodeError', 'Invalid postal code format'),
+    },
+  };
+  return errors[field]?.[country] || errors[field]?.['default'] || '';
+}
+
 interface RecycleFormProps {
   onSubmitted: () => void;
 }
@@ -120,33 +188,6 @@ export default function RecycleForm({ onSubmitted }: RecycleFormProps) {
   const canSubmit = isAuthenticated && description.trim() && validateName(contactName) &&
     phone.trim() && validatePhone(phone, country) && address.trim() && validateAddress(address) &&
     (!postalCode.trim() || validatePostalCode(postalCode, country));
-
-  // Get error message by country
-  const getErrorMsg = (field: string) => {
-    const msgs: Record<string, Record<string, string>> = {
-      name: {
-        'China': t('clothingRecycle.nameErrorCn', '请输入2-50位姓名'),
-        'Taiwan, China': t('clothingRecycle.nameErrorTw', '請輸入2-50位姓名'),
-        'default': t('clothingRecycle.nameError', 'Name must be 2-50 characters'),
-      },
-      phone: {
-        'China': t('clothingRecycle.phoneErrorCn', '请输入有效的11位手机号码'),
-        'Taiwan, China': t('clothingRecycle.phoneErrorTw', '請輸入有效的10位台灣手機號碼'),
-        'default': t('clothingRecycle.phoneError', 'Invalid phone number'),
-      },
-      address: {
-        'China': t('clothingRecycle.addressErrorCn', '地址长度需在5-200字符'),
-        'Taiwan, China': t('clothingRecycle.addressErrorTw', '地址長度需在5-200字符'),
-        'default': t('clothingRecycle.addressError', 'Address must be 5-200 characters'),
-      },
-      postalCode: {
-        'China': t('clothingRecycle.postalCodeErrorCn', '请输入6位邮政编码'),
-        'Taiwan, China': t('clothingRecycle.postalCodeErrorTw', '請輸入3-5位郵遞區號'),
-        'default': t('clothingRecycle.postalCodeError', 'Invalid postal code format'),
-      },
-    };
-    return msgs[field]?.[country] || msgs[field]?.['default'] || '';
-  };
 
   useEffect(() => {
     mountedRef.current = true;
@@ -266,13 +307,39 @@ export default function RecycleForm({ onSubmitted }: RecycleFormProps) {
               value={condition}
               onChange={(e) => setCondition(e.target.value)}
             />
-            <VintageInput
-              label={t('clothingRecycle.fieldPhone', 'Contact Phone *')}
-              value={phone}
-              onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setPhone(e.target.value)}
-              placeholder={t('clothingRecycle.phonePlaceholder', '11-digit mobile number')}
-              required
+            <div>
+              <VintageInput
+                label={t('clothingRecycle.fieldContactName', 'Contact Name *')}
+                value={contactName}
+                onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setContactName(e.target.value)}
+                placeholder={t('clothingRecycle.namePlaceholder', 'Enter your name')}
+                required
+              />
+              {contactName && !validateName(contactName) && (
+                <p className="font-body text-caption text-rust mt-1">{getFieldError('name', country, t)}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <VintageSelect
+              label={t('clothingRecycle.fieldCountry', 'Country/Region')}
+              options={COMMON_COUNTRIES.map((c) => ({ value: c.name, label: c.name }))}
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
             />
+            <div>
+              <VintageInput
+                label={t('clothingRecycle.fieldPhone', 'Contact Phone *')}
+                value={phone}
+                onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setPhone(e.target.value)}
+                placeholder={getPhonePlaceholder(country, t)}
+                required
+              />
+              {phone && !validatePhone(phone, country) && (
+                <p className="font-body text-caption text-rust mt-1">{getPhoneError(country, t)}</p>
+              )}
+            </div>
           </div>
 
           <VintageInput
@@ -311,6 +378,21 @@ export default function RecycleForm({ onSubmitted }: RecycleFormProps) {
             placeholder={t('clothingRecycle.addressPlaceholder', 'Enter the full pickup address')}
             required
           />
+          {address && !validateAddress(address) && (
+            <p className="font-body text-caption text-rust -mt-3">{getFieldError('address', country, t)}</p>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <VintageInput
+              label={t('clothingRecycle.fieldPostalCode', 'Postal Code')}
+              value={postalCode}
+              onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setPostalCode(e.target.value)}
+              placeholder={t('clothingRecycle.postalCodePlaceholder', 'Enter postal code')}
+            />
+            {postalCode && !validatePostalCode(postalCode, country) && (
+              <p className="font-body text-caption text-rust -mt-3">{getFieldError('postalCode', country, t)}</p>
+            )}
+          </div>
 
           <motion.button
             type="submit"
