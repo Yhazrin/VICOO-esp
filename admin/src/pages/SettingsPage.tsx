@@ -691,8 +691,8 @@ function SystemHealthCard() {
   const { data: health, isLoading, isError, dataUpdatedAt } = useQuery({
     queryKey: ['system-health'],
     queryFn: fetchSystemHealth,
-    staleTime: 25000,
-    refetchInterval: 30000,
+    staleTime: 7200000,
+    refetchInterval: 7200000,  // 2 hours
   });
 
   const handleRefresh = () => {
@@ -1275,7 +1275,7 @@ function SystemHealthCard() {
           background: '#10b981',
           animation: 'pulse 2s infinite',
         }} />
-        {isZh ? '每 30 秒自动刷新' : 'Auto-refreshes every 30s'}
+        {isZh ? '每 2 小时自动刷新' : 'Auto-refreshes every 2h'}
       </div>
     </div>
   );
