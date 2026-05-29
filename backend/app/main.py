@@ -197,6 +197,10 @@ async def audit_logging_middleware(request: Request, call_next):
         "/api/v1/admin/child-participants",
     ]
     should_log = path.startswith("/api/v1/admin/")
+    # Skip logging for audit-logs reads and health checks (avoid infinite loops)
+    if should_log and ("/audit-logs" in path or "/health" in path):
+        return await call_next(request)
+
     if should_log:
         if request.method in ("POST", "PUT", "PATCH", "DELETE"):
             pass  # Log these
