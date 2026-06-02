@@ -196,8 +196,9 @@ async def audit_logging_middleware(request: Request, call_next):
     sensitive_gets = [
         "/api/v1/admin/child-participants",
     ]
-    # Skip logging for audit-logs/system health reads (avoid infinite loops and noise)
+    # Skip logging for health endpoints and audit-logs (avoid infinite loops and noise)
     skip_paths = [
+        "/api/v1/health",
         "/api/v1/admin/audit-logs",
         "/api/v1/admin/health",
         "/api/v1/admin/system/health",
@@ -213,6 +214,9 @@ async def audit_logging_middleware(request: Request, call_next):
             pass  # Log sensitive GETs
         else:
             return await call_next(request)
+    else:
+        # Not an admin endpoint, skip audit logging entirely
+        return await call_next(request)
 
     # Capture request data before processing
     method = request.method
