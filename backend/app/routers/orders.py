@@ -465,6 +465,7 @@ async def update_order_status(
             raise HTTPException(status_code=403, detail="Only admins can change order status to non-cancelled states")
         order.status = body.status
         await db.flush()
+        await db.refresh(order)
         item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
         items = (await db.execute(item_stmt)).scalars().all()
         product_map = await _build_product_map(db, items)
@@ -501,6 +502,7 @@ async def update_order_logistics(
     elif body.carrier is not None or body.tracking_number is not None:
         order.logistics_events = json.dumps(events, ensure_ascii=False)
     await db.flush()
+    await db.refresh(order)
     item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
     items = (await db.execute(item_stmt)).scalars().all()
     product_map = await _build_product_map(db, items)
@@ -571,6 +573,7 @@ async def request_return(
     )
     db.add(ticket)
     await db.flush()
+    await db.refresh(ticket)
 
     from app.schemas.circular_commerce import AfterSaleOut
     return ApiResponse(data=AfterSaleOut.model_validate(ticket).model_dump())

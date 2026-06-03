@@ -1560,7 +1560,9 @@
       "successDesc": "我们将在1-3个工作日内处理您的申请"
     },
     "cancelError": "取消订单失败，请重试",
-    "returnError": "提交退换货申请失败，请重试"
+    "returnError": "提交退换货申请失败，请重试",
+    "writeReview": "评价",
+    "reviewSuccessHint": "您的评价将显示在商品页面的社区反馈中"
   },
   "cart": {
     "title": "购物袋",

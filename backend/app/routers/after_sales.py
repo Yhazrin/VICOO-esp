@@ -41,6 +41,7 @@ async def create_ticket(
     )
     db.add(row)
     await db.flush()
+    await db.refresh(row)
     return ApiResponse(data=AfterSaleOut.model_validate(row).model_dump())
 
 
@@ -97,4 +98,5 @@ async def update_ticket_status(
         raise HTTPException(status_code=404, detail="Ticket not found")
     row.status = body.status
     await db.flush()
+    await db.refresh(row)
     return ApiResponse(data=AfterSaleOut.model_validate(row).model_dump())
