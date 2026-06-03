@@ -281,12 +281,17 @@ export interface TraceMediaItem {
 export interface AfterSalesItem {
   id: string;
   orderId: string;
+  orderNo?: string;
   userId: string;
   category: string;
   subject: string;
+  reason?: string;
   description: string;
   status: string;
   createdAt: string;
+  replacementOrderId?: string;
+  replacementOrderNo?: string;
+  replacementOrderStatus?: string;
 }
 
 export interface ClothingDonationItem {

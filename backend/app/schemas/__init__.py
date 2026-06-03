@@ -105,6 +105,7 @@ from app.schemas.circular_commerce import (
     AIChatResponse,
     AfterSaleCreate,
     AfterSaleOut,
+    AfterSaleReviewRequest,
     AfterSaleStatusUpdate,
     ArtworkAnalysisRequest,
     ArtworkAnalysisResponse,

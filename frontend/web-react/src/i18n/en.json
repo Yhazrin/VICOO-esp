@@ -1518,7 +1518,24 @@
     "cancelError": "Failed to cancel order. Please try again.",
     "returnError": "Failed to submit return/exchange request. Please try again.",
     "writeReview": "Write a Review",
-    "reviewSuccessHint": "Your review will appear in the product's community feedback section"
+    "reviewSuccessHint": "Your review will appear in the product's community feedback section",
+    "afterSale": {
+      "title": "After-Sales Progress",
+      "typeReturn": "Return",
+      "typeExchange": "Exchange",
+      "rejected": "Rejected",
+      "completed": "Completed",
+      "inProgress": "In Progress",
+      "replacementOrder": "Replacement Order",
+      "viewReplacementOrder": "View replacement logistics",
+      "steps": {
+        "submitted": "Submitted",
+        "reviewing": "Under Review",
+        "processing": "Processing",
+        "exchangeShipping": "Exchange Shipping",
+        "completed": "Completed"
+      }
+    }
   },
   "cart": {
     "title": "Shopping Bag",

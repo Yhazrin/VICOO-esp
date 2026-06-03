@@ -480,7 +480,17 @@
         "colActions": "Actions",
         "btnApprove": "Approve",
         "btnReject": "Reject",
-        "btnComplete": "Complete",
+        "btnComplete": "Mark Complete",
+        "btnShip": "Ship",
+        "btnApproveExchange": "Approve Exchange",
+        "btnConfirmDelivery": "Confirm Delivery",
+        "colReplacementOrder": "Replacement Order",
+        "colReplacementStatus": "Replacement Status",
+        "toastApproved": "Request approved",
+        "toastRejected": "Request rejected",
+        "toastShipped": "Replacement order shipped",
+        "toastDelivered": "Replacement order confirmed delivered",
+        "toastShipError": "Failed to ship replacement order",
         "toastUpdated": "Status updated",
         "toastError": "Update failed"
     },
@@ -610,6 +620,10 @@
             "disabled": "Disabled"
         },
         "afterSales": {
+            "pending": "Pending",
+            "approved": "Approved",
+            "rejected": "Rejected",
+            "completed": "Completed",
             "withdrawn": "Withdrawn",
             "pending_review": "Pending Review"
         }

@@ -552,6 +552,14 @@ async def request_return(
         })
 
     import json as _json
+    ticket_items_payload = {
+        "items": items_desc,
+        "type": body.type,
+        "exchange_product_id": body.exchange_product_id,
+        "exchange_size": body.exchange_size,
+        "exchange_color": body.exchange_color,
+        "reason": body.reason,
+    }
     description_parts = [f"Items: {_json.dumps(items_desc, ensure_ascii=False)}"]
     if body.reason:
         description_parts.append(f"Reason: {body.reason}")
@@ -570,10 +578,11 @@ async def request_return(
         status="open",
         subject=f"{'退货' if body.type == 'return' else '换货'}申请 - {order.order_no}",
         description="\n".join(description_parts),
+        items=_json.dumps(ticket_items_payload, ensure_ascii=False),
     )
     db.add(ticket)
     await db.flush()
     await db.refresh(ticket)
 
-    from app.schemas.circular_commerce import AfterSaleOut
-    return ApiResponse(data=AfterSaleOut.model_validate(ticket).model_dump())
+    from app.services.after_sales.service import enrich_tickets
+    return ApiResponse(data=(await enrich_tickets(db, [ticket]))[0])

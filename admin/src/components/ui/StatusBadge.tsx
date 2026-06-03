@@ -4,7 +4,7 @@ import './StatusBadge.css';
 interface StatusBadgeProps {
   status: string;
   label?: string;
-  context?: 'artwork' | 'order' | 'donation' | 'campaign';
+  context?: 'artwork' | 'order' | 'donation' | 'campaign' | 'afterSales';
 }
 
 const STATUS_TYPE_MAP: Record<string, string> = {
@@ -48,9 +48,9 @@ const STATUS_TYPE_MAP: Record<string, string> = {
 export default function StatusBadge({ status, label, context }: StatusBadgeProps) {
   const { t } = useTranslation();
 
-  // Build i18n key: "statusBadge.artwork.pending" or fallback to status
-  const contextKey = context ? `${context}_${status}` : status;
-  const i18nKey = `statusBadge.${contextKey}`;
+  const i18nKey = context
+    ? `statusBadge.${context}.${status}`
+    : `statusBadge.general.${status}`;
 
   // Get type for styling
   const type = STATUS_TYPE_MAP[status] || 'neutral';

@@ -483,6 +483,16 @@
         "btnApprove": "通过",
         "btnReject": "拒绝",
         "btnComplete": "标记完成",
+        "btnShip": "发货",
+        "btnApproveExchange": "同意换货",
+        "btnConfirmDelivery": "确认送达",
+        "colReplacementOrder": "换货订单",
+        "colReplacementStatus": "换货状态",
+        "toastApproved": "申请已通过",
+        "toastRejected": "申请已拒绝",
+        "toastShipped": "换货订单已发货",
+        "toastDelivered": "换货订单已确认送达",
+        "toastShipError": "发货失败",
         "toastUpdated": "状态已更新",
         "toastError": "更新失败"
     },
@@ -589,6 +599,7 @@
             "pending": "待付款",
             "paid": "已支付",
             "shipped": "已发货",
+            "completed": "已完成",
             "delivered": "已送达",
             "cancelled": "已取消",
             "refunded": "已退款"
@@ -612,6 +623,10 @@
             "disabled": "已禁用"
         },
         "afterSales": {
+            "pending": "待处理",
+            "approved": "已通过",
+            "rejected": "已拒绝",
+            "completed": "已完成",
             "withdrawn": "已退出",
             "pending_review": "待审查"
         }

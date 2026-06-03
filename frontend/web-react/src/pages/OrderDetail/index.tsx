@@ -11,7 +11,9 @@ import PaperTextureBackground from '@/components/editorial/PaperTextureBackgroun
 import { ordersApi, type ReturnRequestData } from '@/services/orders';
 import { formatDateTime } from '@/utils/dateTime';
 import { impactFundApi } from '@/services/impactFund';
+import { afterSalesApi } from '@/services/afterSales';
 import OrderReviewModal from '@/components/order/OrderReviewModal';
+import AfterSaleProgress, { hasActiveAfterSale } from '@/components/order/AfterSaleProgress';
 import TraceabilityTimeline from '@/components/editorial/TraceabilityTimeline';
 import type { SupplyChainTimelineRecord } from '@/types';
 
@@ -60,6 +62,14 @@ export default function OrderDetail() {
     enabled: !!id && (order?.status === 'paid' || order?.status === 'completed' || order?.status === 'shipped'),
     retry: false,
   });
+
+  const { data: afterSaleTickets = [] } = useQuery({
+    queryKey: ['order-after-sales', id],
+    queryFn: () => afterSalesApi.byOrder(id!),
+    enabled: !!id,
+  });
+
+  const activeAfterSale = hasActiveAfterSale(afterSaleTickets);
 
   const logisticsAsTimeline: SupplyChainTimelineRecord[] =
     order?.logistics_events?.map((ev, i) => ({
@@ -122,6 +132,7 @@ export default function OrderDetail() {
       await ordersApi.requestReturn(String(order.id), data);
       setReturnSuccess(true);
       queryClient.invalidateQueries({ queryKey: ['my-after-sales'] });
+      queryClient.invalidateQueries({ queryKey: ['order-after-sales', id] });
     } catch {
       setErrorMessage(t('orderDetail.returnError', '提交退换货申请失败，请重试'));
     }
@@ -254,6 +265,19 @@ export default function OrderDetail() {
             </motion.div>
           )}
 
+          {afterSaleTickets.length > 0 && (
+            <motion.div
+              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.05 }}
+              className="mb-10 space-y-4"
+            >
+              {afterSaleTickets.map((ticket) => (
+                <AfterSaleProgress key={ticket.id} ticket={ticket} />
+              ))}
+            </motion.div>
+          )}
+
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Main: items */}
             <div className="lg:col-span-7">
@@ -327,7 +351,7 @@ export default function OrderDetail() {
                     {t('orderDetail.writeReview', '评价')}
                   </button>
                 )}
-                {order.status === 'completed' && (
+                {order.status === 'completed' && !activeAfterSale && (
                   <button
                     type="button"
                     onClick={() => setShowReturnModal(true)}

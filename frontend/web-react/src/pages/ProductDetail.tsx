@@ -136,7 +136,7 @@ export default function ProductDetail() {
   );
 
   const [selectedImage, setSelectedImage] = useState(0);
-    const [added, setAdded] = useState(false);
+  const [added, setAdded] = useState(false);
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [globePinId, setGlobePinId] = useState<number | null>(null);
@@ -388,20 +388,20 @@ export default function ProductDetail() {
                         />
                       )}
                       <div className="relative z-10">
-                        <p className="font-body text-[10px] tracking-[0.24em] uppercase text-sepia-mid mb-3">
-                          {t('shop.detail.artwork')}
-                        </p>
-                        <p className="font-display text-lg md:text-xl text-ink leading-snug tracking-tight">
-                          {linkedArtwork.artist_name || linkedArtwork.title}
-                        </p>
-                        {linkedArtwork.artist_name &&
-                          linkedArtwork.title &&
-                          linkedArtwork.artist_name !== linkedArtwork.title && (
-                            <p className="font-body text-body-sm text-ink-faded/90 mt-2 leading-relaxed">
-                              {linkedArtwork.title}
-                            </p>
-                          )}
-                      </div>
+                      <p className="font-body text-[10px] tracking-[0.24em] uppercase text-sepia-mid mb-3">
+                        {t('shop.detail.artwork')}
+                      </p>
+                      <p className="font-display text-lg md:text-xl text-ink leading-snug tracking-tight">
+                        {linkedArtwork.artist_name || linkedArtwork.title}
+                      </p>
+                      {linkedArtwork.artist_name &&
+                        linkedArtwork.title &&
+                        linkedArtwork.artist_name !== linkedArtwork.title && (
+                          <p className="font-body text-body-sm text-ink-faded/90 mt-2 leading-relaxed">
+                            {linkedArtwork.title}
+                          </p>
+                        )}
+                    </div>
                     </button>
                   )}
 
@@ -512,7 +512,7 @@ export default function ProductDetail() {
                           window.dispatchEvent(new CustomEvent('ai-assistant-prefill', {
                             detail: {
                               text: t('aiAssistant.productPrefill', { id }),
-                              metadata: { product_id: Number(id), impactMode: product.isImpactProduct },
+                          metadata: { product_id: Number(id), impactMode: product.isImpactProduct },
                             },
                           }));
                         }}

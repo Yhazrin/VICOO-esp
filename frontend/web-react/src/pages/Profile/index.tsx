@@ -19,6 +19,7 @@ import { clothingIntakesApi, type ClothingIntake } from '@/services/clothingInta
 import { afterSalesApi, type AfterSaleTicket } from '@/services/afterSales';
 import { addressesApi, type Address, type AddressCreateData } from '@/services/addresses';
 import OrderReviewModal from '@/components/order/OrderReviewModal';
+import AfterSaleProgress from '@/components/order/AfterSaleProgress';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'text-sepia-mid',
@@ -653,21 +654,24 @@ export default function Profile() {
               ) : tickets.length === 0 ? (
                 <p className="font-body text-body-sm text-ink-faded">{t('profile.noTickets', '暂无工单')}</p>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {tickets.map((tk: AfterSaleTicket, index: number) => (
-                    <EditorialCard
-                      key={tk.id}
-                      title={tk.subject}
-                      subtitle={`${t('profile.orderId', '订单')} #${tk.order_id}`}
-                      index={index}
-                      hoverEffect="border"
-                    >
-                      <p className="font-body text-overline uppercase text-sepia-mid">{tk.category}</p>
-                      <p className={`font-body text-caption mt-2 ${STATUS_COLORS[tk.status] ?? 'text-ink'}`}>{tk.status}</p>
-                      {tk.description && (
-                        <p className="font-body text-caption text-ink-faded mt-2 border-l-2 border-warm-gray/30 pl-3">{tk.description}</p>
-                      )}
-                    </EditorialCard>
+                <div className="space-y-6">
+                  {tickets.map((tk: AfterSaleTicket) => (
+                    <div key={tk.id} className="space-y-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <Link
+                          to={`/orders/${tk.order_id}`}
+                          className="font-mono text-xs text-rust hover:text-ink transition-colors"
+                        >
+                          {tk.order_no || `#${tk.order_id}`} →
+                        </Link>
+                        {tk.reason && (
+                          <p className="font-body text-caption text-ink-faded max-w-md truncate" title={tk.reason}>
+                            {tk.reason}
+                          </p>
+                        )}
+                      </div>
+                      <AfterSaleProgress ticket={tk} compact showReplacementLink />
+                    </div>
                   ))}
                 </div>
               )}
