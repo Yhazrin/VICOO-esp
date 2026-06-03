@@ -80,5 +80,6 @@ class AfterSaleTicket(Base):
     subject = Column(String(200), nullable=False)
     description = Column(Text, nullable=True)
     items = Column(Text, nullable=True)  # JSON: item-level return/exchange details
+    replacement_order_id = Column(Integer, ForeignKey("orders.id"), nullable=True, index=True)
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)

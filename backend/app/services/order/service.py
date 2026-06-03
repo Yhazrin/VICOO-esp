@@ -188,3 +188,70 @@ class OrderService(BaseService):
             
         await self.db.flush()
         return order
+
+    async def create_replacement_order(
+        self,
+        *,
+        user_id: int,
+        original_order: Order,
+        line_items: list[dict],
+        exchange_product_id: int | None = None,
+    ) -> Order:
+        """Create a paid replacement order for an approved exchange (no charge, ready to ship)."""
+        if not line_items:
+            raise HTTPException(status_code=400, detail="No items for replacement order")
+
+        order_items: list[OrderItem] = []
+        for item in line_items:
+            product_id = exchange_product_id or int(item["product_id"])
+            quantity = int(item["quantity"])
+            if quantity <= 0:
+                raise HTTPException(status_code=400, detail="Invalid replacement quantity")
+
+            product_stmt = select(Product).where(Product.id == product_id).with_for_update()
+            product = (await self.db.execute(product_stmt)).scalar_one_or_none()
+            if not product:
+                raise HTTPException(status_code=404, detail=f"Product {product_id} not found")
+            if product.stock < quantity:
+                raise HTTPException(status_code=400, detail=f"Insufficient stock for product {product.name}")
+
+            product.stock -= quantity
+            if product.stock == 0:
+                product.status = "sold_out"
+
+            order_items.append(
+                OrderItem(
+                    product_id=product_id,
+                    quantity=quantity,
+                    price=Decimal("0.00"),
+                )
+            )
+
+        order_no = f"EX{datetime.now().strftime('%Y%m%d%H%M%S')}{uuid.uuid4().hex[:6].upper()}"
+        order = Order(
+            user_id=user_id,
+            order_no=order_no,
+            total_amount=Decimal("0.00"),
+            status="paid",
+            shipping_address=original_order.shipping_address,
+            payment_method="exchange",
+            recipient_name=getattr(original_order, "recipient_name", None),
+            recipient_phone=getattr(original_order, "recipient_phone", None),
+            province=getattr(original_order, "province", None),
+            city=getattr(original_order, "city", None),
+            district=getattr(original_order, "district", None),
+            detail_address=getattr(original_order, "detail_address", None),
+            postal_code=getattr(original_order, "postal_code", None),
+            country=getattr(original_order, "country", None),
+            country_code=getattr(original_order, "country_code", None),
+        )
+        self.db.add(order)
+        await self.db.flush()
+
+        for order_item in order_items:
+            order_item.order_id = order.id
+            self.db.add(order_item)
+
+        await self.db.flush()
+        await self.db.refresh(order)
+        return order

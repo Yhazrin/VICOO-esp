@@ -423,7 +423,7 @@ export default function CampaignPage() {
         <textarea value={form.sustainabilityFootnote} onChange={(e) => setForm({ ...form, sustainabilityFootnote: e.target.value })} style={{ ...inputStyle, height: 60, resize: 'vertical' }} />
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <div>
+    <div>
           <label style={labelStyle}>{t('campaign.labelCtaTraceability')}</label>
           <input value={form.sustainabilityCtaTraceability} onChange={(e) => setForm({ ...form, sustainabilityCtaTraceability: e.target.value })} style={inputStyle} />
         </div>
@@ -469,8 +469,8 @@ export default function CampaignPage() {
         description={t('campaign.description')}
         actions={
           <Button variant="primary" onClick={() => { setShowCreate(true); setForm(emptyForm); setActiveTab('basic'); }}>
-            {t('campaign.btnCreate')}
-          </Button>
+          {t('campaign.btnCreate')}
+        </Button>
         }
       />
 
@@ -493,17 +493,17 @@ export default function CampaignPage() {
       {/* Filters */}
       <div className="table-toolbar">
         <div className="table-toolbar__filters">
-          <select
+        <select
             className="table-select"
-            value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          >
-            <option value="">{t('campaign.filterAllStatuses')}</option>
-            <option value="draft">{t('campaign.filterDraft')}</option>
-            <option value="active">{t('campaign.filterActive')}</option>
-            <option value="ended">{t('campaign.filterEnded')}</option>
-            <option value="archived">{t('campaign.filterArchived')}</option>
-          </select>
+          value={statusFilter}
+          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+        >
+          <option value="">{t('campaign.filterAllStatuses')}</option>
+          <option value="draft">{t('campaign.filterDraft')}</option>
+          <option value="active">{t('campaign.filterActive')}</option>
+          <option value="ended">{t('campaign.filterEnded')}</option>
+          <option value="archived">{t('campaign.filterArchived')}</option>
+        </select>
         </div>
       </div>
 

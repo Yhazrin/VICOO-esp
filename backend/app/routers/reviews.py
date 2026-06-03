@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.deps import get_current_user
 from app.models.circular_commerce import ProductReview
+from app.models.order import Order, OrderItem
 from app.models.user import User
 from app.schemas import ApiResponse, PaginatedResponse, ProductReviewCreate, ProductReviewOut
 
@@ -49,6 +50,19 @@ async def create_review(
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    if body.order_id is not None:
+        order = await db.get(Order, body.order_id)
+        if not order or order.user_id != current_user["id"]:
+            raise HTTPException(status_code=404, detail="Order not found")
+        if order.status != "completed":
+            raise HTTPException(status_code=400, detail="Only completed orders can be reviewed")
+        item_stmt = select(OrderItem.id).where(
+            OrderItem.order_id == body.order_id,
+            OrderItem.product_id == body.product_id,
+        )
+        if (await db.execute(item_stmt)).scalar_one_or_none() is None:
+            raise HTTPException(status_code=400, detail="Product is not in this order")
+
     row = ProductReview(
         product_id=body.product_id,
         user_id=current_user["id"],

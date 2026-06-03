@@ -1560,7 +1560,26 @@
       "successDesc": "我们将在1-3个工作日内处理您的申请"
     },
     "cancelError": "取消订单失败，请重试",
-    "returnError": "提交退换货申请失败，请重试"
+    "returnError": "提交退换货申请失败，请重试",
+    "writeReview": "评价",
+    "reviewSuccessHint": "您的评价将显示在商品页面的社区反馈中",
+    "afterSale": {
+      "title": "售后进度",
+      "typeReturn": "退货",
+      "typeExchange": "换货",
+      "rejected": "已拒绝",
+      "completed": "已完成",
+      "inProgress": "处理中",
+      "replacementOrder": "换货订单",
+      "viewReplacementOrder": "查看换货物流",
+      "steps": {
+        "submitted": "已提交",
+        "reviewing": "审核中",
+        "processing": "处理中",
+        "exchangeShipping": "换货发货",
+        "completed": "已完成"
+      }
+    }
   },
   "cart": {
     "title": "购物袋",

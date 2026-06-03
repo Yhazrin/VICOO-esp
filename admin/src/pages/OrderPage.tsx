@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import DataTable from '../components/ui/DataTable';
 import type { Column } from '../components/ui/DataTable';
@@ -48,10 +49,16 @@ export default function OrderPage() {
   const { t, i18n } = useTranslation();
   const isZh = i18n.language === 'zh';
   const queryClient = useQueryClient();
+  const [searchParams] = useSearchParams();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
   const [search, setSearch] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+  useEffect(() => {
+    const q = searchParams.get('search');
+    if (q) setSearch(q);
+  }, [searchParams]);
 
   const { data, isLoading } = useQuery({
     queryKey: ['orders', page, statusFilter, search],

@@ -465,6 +465,7 @@ async def update_order_status(
             raise HTTPException(status_code=403, detail="Only admins can change order status to non-cancelled states")
         order.status = body.status
         await db.flush()
+        await db.refresh(order)
         item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
         items = (await db.execute(item_stmt)).scalars().all()
         product_map = await _build_product_map(db, items)
@@ -501,6 +502,7 @@ async def update_order_logistics(
     elif body.carrier is not None or body.tracking_number is not None:
         order.logistics_events = json.dumps(events, ensure_ascii=False)
     await db.flush()
+    await db.refresh(order)
     item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
     items = (await db.execute(item_stmt)).scalars().all()
     product_map = await _build_product_map(db, items)
@@ -550,6 +552,14 @@ async def request_return(
         })
 
     import json as _json
+    ticket_items_payload = {
+        "items": items_desc,
+        "type": body.type,
+        "exchange_product_id": body.exchange_product_id,
+        "exchange_size": body.exchange_size,
+        "exchange_color": body.exchange_color,
+        "reason": body.reason,
+    }
     description_parts = [f"Items: {_json.dumps(items_desc, ensure_ascii=False)}"]
     if body.reason:
         description_parts.append(f"Reason: {body.reason}")
@@ -568,9 +578,11 @@ async def request_return(
         status="open",
         subject=f"{'退货' if body.type == 'return' else '换货'}申请 - {order.order_no}",
         description="\n".join(description_parts),
+        items=_json.dumps(ticket_items_payload, ensure_ascii=False),
     )
     db.add(ticket)
     await db.flush()
+    await db.refresh(ticket)
 
-    from app.schemas.circular_commerce import AfterSaleOut
-    return ApiResponse(data=AfterSaleOut.model_validate(ticket).model_dump())
+    from app.services.after_sales.service import enrich_tickets
+    return ApiResponse(data=(await enrich_tickets(db, [ticket]))[0])

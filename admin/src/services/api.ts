@@ -846,12 +846,29 @@ export async function updateUserStatus(id: string, status: User['status']): Prom
 // After-Sales
 // ---------------------------------------------------------------------------
 
+const AFTER_SALE_STATUS_FROM_API: Record<string, string> = {
+  open: 'pending',
+  in_progress: 'approved',
+  closed: 'rejected',
+  resolved: 'completed',
+};
+
+const AFTER_SALE_STATUS_TO_API: Record<string, string> = {
+  pending: 'open',
+  approved: 'in_progress',
+  rejected: 'closed',
+  completed: 'resolved',
+};
+
 export async function fetchAfterSales(params: FilterParams = {}): Promise<PaginatedResponse<AfterSalesItem>> {
+  const apiStatus = params.status
+    ? AFTER_SALE_STATUS_TO_API[params.status] ?? params.status
+    : undefined;
   const { data: envelope } = await api.get('/after-sales', {
     params: {
       page: params.page ?? 1,
       page_size: params.pageSize ?? 10,
-      status: params.status || undefined,
+      status: apiStatus || undefined,
     },
   });
   const paginated = adaptPaginated<any>(envelope);
@@ -861,18 +878,35 @@ export async function fetchAfterSales(params: FilterParams = {}): Promise<Pagina
       id: String(item.id),
       userId: String(item.user_id ?? ''),
       orderId: String(item.order_id ?? ''),
+      orderNo: item.order_no ?? undefined,
       category: item.category ?? item.type ?? '',
       subject: item.subject ?? item.reason ?? '',
+      reason: item.reason ?? undefined,
       description: item.description ?? '',
-      status: item.status ?? 'open',
+      status: AFTER_SALE_STATUS_FROM_API[item.status] ?? item.status ?? 'pending',
       createdAt: item.created_at ?? '',
       updatedAt: item.updated_at ?? '',
+      replacementOrderId: item.replacement_order_id ? String(item.replacement_order_id) : undefined,
+      replacementOrderNo: item.replacement_order_no ?? undefined,
+      replacementOrderStatus: item.replacement_order_status ?? undefined,
     })),
   };
 }
 
+export async function reviewAfterSales(
+  id: string,
+  action: 'approve' | 'reject',
+  adminNote?: string,
+): Promise<void> {
+  await api.post(`/after-sales/${id}/review`, {
+    action,
+    admin_note: adminNote || undefined,
+  });
+}
+
 export async function updateAfterSalesStatus(id: string, status: string): Promise<void> {
-  await api.patch(`/after-sales/${id}`, { status });
+  const apiStatus = AFTER_SALE_STATUS_TO_API[status] ?? status;
+  await api.patch(`/after-sales/${id}/status`, { status: apiStatus });
 }
 
 // ---------------------------------------------------------------------------

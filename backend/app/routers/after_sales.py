@@ -10,13 +10,29 @@ from app.models.order import Order
 from app.schemas import (
     AfterSaleCreate,
     AfterSaleOut,
+    AfterSaleReviewRequest,
     AfterSaleStatusUpdate,
     ApiResponse,
     PaginatedResponse,
 )
 from app.deps import get_current_user, require_role
+from app.services.after_sales.service import (
+    enrich_tickets,
+    normalize_status_filter,
+    parse_ticket_payload,
+)
+from app.services.order.service import OrderService
 
 router = APIRouter(prefix="/after-sales", tags=["After-sales"])
+
+VALID_STATUSES = frozenset({"open", "in_progress", "resolved", "closed"})
+
+
+def _resolve_status(status: str) -> str:
+    mapped = normalize_status_filter(status) or status
+    if mapped not in VALID_STATUSES:
+        raise HTTPException(status_code=400, detail="Invalid status")
+    return mapped
 
 
 @router.post("", response_model=ApiResponse, status_code=201)
@@ -41,7 +57,8 @@ async def create_ticket(
     )
     db.add(row)
     await db.flush()
-    return ApiResponse(data=AfterSaleOut.model_validate(row).model_dump())
+    await db.refresh(row)
+    return ApiResponse(data=(await enrich_tickets(db, [row]))[0])
 
 
 @router.get("/mine", response_model=ApiResponse)
@@ -56,7 +73,29 @@ async def my_tickets(
         .limit(100)
     )
     rows = (await db.execute(stmt)).scalars().all()
-    return ApiResponse(data=[AfterSaleOut.model_validate(r).model_dump() for r in rows])
+    return ApiResponse(data=await enrich_tickets(db, list(rows)))
+
+
+@router.get("/by-order/{order_id}", response_model=ApiResponse)
+async def tickets_for_order(
+    order_id: int,
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """List after-sales tickets linked to an order (for order detail progress UI)."""
+    order = await db.get(Order, order_id)
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if order.user_id != current_user["id"] and current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    stmt = (
+        select(AfterSaleTicket)
+        .where(AfterSaleTicket.order_id == order_id)
+        .order_by(AfterSaleTicket.created_at.desc())
+    )
+    rows = (await db.execute(stmt)).scalars().all()
+    return ApiResponse(data=await enrich_tickets(db, list(rows)))
 
 
 @router.get("", response_model=PaginatedResponse)
@@ -67,21 +106,79 @@ async def list_tickets_admin(
     _admin: dict = Depends(require_role("admin", "editor")),
     db: AsyncSession = Depends(get_db),
 ):
+    normalized_status = normalize_status_filter(status)
     stmt = select(AfterSaleTicket)
-    if status:
-        stmt = stmt.where(AfterSaleTicket.status == status)
+    if normalized_status:
+        stmt = stmt.where(AfterSaleTicket.status == normalized_status)
     count_stmt = select(func.count(AfterSaleTicket.id))
-    if status:
-        count_stmt = count_stmt.where(AfterSaleTicket.status == status)
+    if normalized_status:
+        count_stmt = count_stmt.where(AfterSaleTicket.status == normalized_status)
     total = (await db.execute(count_stmt)).scalar() or 0
     stmt = stmt.order_by(AfterSaleTicket.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
     rows = (await db.execute(stmt)).scalars().all()
+
+    data = await enrich_tickets(db, list(rows))
+
     return PaginatedResponse(
-        data=[AfterSaleOut.model_validate(r).model_dump() for r in rows],
+        data=data,
         total=total,
         page=page,
         page_size=page_size,
     )
+
+
+@router.post("/{ticket_id}/review", response_model=ApiResponse)
+async def review_ticket(
+    ticket_id: int,
+    body: AfterSaleReviewRequest,
+    _staff: dict = Depends(require_role("admin", "editor")),
+    db: AsyncSession = Depends(get_db),
+):
+    stmt = select(AfterSaleTicket).where(AfterSaleTicket.id == ticket_id)
+    row = (await db.execute(stmt)).scalar_one_or_none()
+    if not row:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    if row.status != "open":
+        raise HTTPException(status_code=400, detail="Ticket has already been processed")
+
+    if body.action == "reject":
+        row.status = "closed"
+        if body.admin_note:
+            row.description = "\n".join(
+                part for part in [row.description, f"Admin note: {body.admin_note}"] if part
+            )
+        await db.flush()
+        await db.refresh(row)
+        return ApiResponse(data=(await enrich_tickets(db, [row]))[0])
+
+    original_order = await db.get(Order, row.order_id)
+    if not original_order:
+        raise HTTPException(status_code=404, detail="Original order not found")
+
+    replacement_order = None
+    if row.category == "exchange":
+        payload = parse_ticket_payload(row)
+        line_items = payload.get("items") or []
+        if not line_items:
+            raise HTTPException(status_code=400, detail="Exchange ticket has no items")
+        exchange_product_id = payload.get("exchange_product_id")
+        order_service = OrderService(db)
+        replacement_order = await order_service.create_replacement_order(
+            user_id=row.user_id,
+            original_order=original_order,
+            line_items=line_items,
+            exchange_product_id=exchange_product_id,
+        )
+        row.replacement_order_id = replacement_order.id
+
+    row.status = "in_progress"
+    if body.admin_note:
+        row.description = "\n".join(
+            part for part in [row.description, f"Admin note: {body.admin_note}"] if part
+        )
+    await db.flush()
+    await db.refresh(row)
+    return ApiResponse(data=(await enrich_tickets(db, [row]))[0])
 
 
 @router.patch("/{ticket_id}/status", response_model=ApiResponse)
@@ -95,6 +192,18 @@ async def update_ticket_status(
     row = (await db.execute(stmt)).scalar_one_or_none()
     if not row:
         raise HTTPException(status_code=404, detail="Ticket not found")
-    row.status = body.status
+    row.status = _resolve_status(body.status)
     await db.flush()
-    return ApiResponse(data=AfterSaleOut.model_validate(row).model_dump())
+    await db.refresh(row)
+    return ApiResponse(data=(await enrich_tickets(db, [row]))[0])
+
+
+@router.patch("/{ticket_id}", response_model=ApiResponse)
+async def update_ticket_status_legacy(
+    ticket_id: int,
+    body: AfterSaleStatusUpdate,
+    _staff: dict = Depends(require_role("admin", "editor")),
+    db: AsyncSession = Depends(get_db),
+):
+    """Legacy admin path alias for status updates."""
+    return await update_ticket_status(ticket_id, body, _staff, db)
