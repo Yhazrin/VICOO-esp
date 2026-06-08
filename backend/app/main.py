@@ -198,9 +198,11 @@ async def audit_logging_middleware(request: Request, call_next):
     ]
     # Skip logging for health endpoints and audit-logs (avoid infinite loops and noise)
     skip_paths = [
+        "/health",
         "/api/v1/health",
         "/api/v1/admin/audit-logs",
         "/api/v1/admin/health",
+        "/api/v1/system/health",
         "/api/v1/admin/system/health",
     ]
     should_log = path.startswith("/api/v1/admin/")

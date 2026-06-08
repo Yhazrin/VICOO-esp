@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select, func
+from sqlalchemy import select, func, not_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
 from typing import Optional, Any
@@ -21,6 +21,26 @@ from app.models.settings import SiteSettings
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
 logger = logging.getLogger(__name__)
+
+
+def _exclude_health_audit_logs(stmt):
+    health_details = [
+        "GET /health%",
+        "GET health%",
+        "GET /api/v1/health%",
+        "GET /api/v1/admin/health%",
+        "GET /api/v1/system/health%",
+        "GET /api/v1/admin/system/health%",
+        "GET system/health%",
+    ]
+    return stmt.where(
+        not_(
+            or_(
+                AuditLog.resource == "health",
+                *[func.coalesce(AuditLog.details, "").like(pattern) for pattern in health_details],
+            )
+        )
+    )
 
 
 from typing import List
@@ -199,12 +219,12 @@ async def list_audit_logs(
 ):
     """List audit logs with optional filters."""
     try:
-        stmt = select(AuditLog)
+        stmt = _exclude_health_audit_logs(select(AuditLog))
         if action:
             stmt = stmt.where(AuditLog.action == action)
         if resource:
             stmt = stmt.where(AuditLog.resource == resource)
-        count_stmt = select(func.count(AuditLog.id))
+        count_stmt = _exclude_health_audit_logs(select(func.count(AuditLog.id)))
         if action:
             count_stmt = count_stmt.where(AuditLog.action == action)
         if resource:
