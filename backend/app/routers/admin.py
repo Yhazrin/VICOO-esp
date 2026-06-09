@@ -77,6 +77,34 @@ async def dashboard(
         )
 
 
+@router.get("/donations", response_model=PaginatedResponse)
+async def list_donations_admin(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    status: Optional[str] = Query(None, description="Filter by donation status"),
+    db: AsyncSession = Depends(get_db),
+    _current_user: dict = Depends(require_role("admin")),
+):
+    """List all donations (admin)."""
+    from app.models.donation import Donation
+    from sqlalchemy import select, func
+
+    stmt = select(Donation)
+    count_stmt = select(func.count(Donation.id))
+    if status:
+        stmt = stmt.where(Donation.status == status)
+        count_stmt = count_stmt.where(Donation.status == status)
+    total = (await db.execute(count_stmt)).scalar() or 0
+    stmt = stmt.order_by(Donation.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
+    rows = (await db.execute(stmt)).scalars().all()
+    return PaginatedResponse(
+        data=[DonationOut.model_validate(d).model_dump(mode="json") for d in rows],
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
+
+
 @router.post("/donations/{donation_id}/approve", response_model=ApiResponse)
 async def approve_donation_admin(
     donation_id: int,

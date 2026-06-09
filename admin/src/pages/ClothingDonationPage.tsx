@@ -32,7 +32,7 @@ export default function ClothingDonationPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['clothing-intakes', page, statusFilter],
-    queryFn: () => fetchClothingIntakes({ page, pageSize: 10, status: statusFilter || undefined }),
+    queryFn: () => fetchClothingIntakes({ page, pageSize: 20, status: statusFilter || undefined }),
   });
 
   const items: ClothingDonationItem[] = data?.data ?? [];
@@ -151,7 +151,7 @@ export default function ClothingDonationPage() {
         <Pagination
           page={page}
           totalPages={Math.ceil(total / 10)}
-          pageSize={10}
+          pageSize={20}
           total={total}
           onPageChange={setPage}
         />

@@ -67,7 +67,7 @@ export default function UserPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['users', page, search],
-    queryFn: () => fetchUsers({ page, pageSize: 10, search: search || undefined }),
+    queryFn: () => fetchUsers({ page, pageSize: 20, search: search || undefined }),
   });
 
   const users = data?.data || [];
@@ -212,7 +212,7 @@ export default function UserPage() {
 
       <DataTable columns={columns} data={users} rowKey="id" loading={isLoading} />
       <div style={{ marginTop: 24 }}>
-        <Pagination page={page} totalPages={data?.totalPages || 1} total={data?.total || 0} pageSize={10} onPageChange={setPage} />
+        <Pagination page={page} totalPages={data?.totalPages || 1} total={data?.total || 0} pageSize={20} onPageChange={setPage} />
       </div>
 
       {/* Role Edit Modal */}

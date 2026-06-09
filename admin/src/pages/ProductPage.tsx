@@ -180,7 +180,7 @@ export default function ProductPage() {
   /* ── Queries ── */
   const { data, isLoading } = useQuery({
     queryKey: ['admin-products', page, status],
-    queryFn: () => fetchProducts({ page, pageSize: 10, status: status || undefined }),
+    queryFn: () => fetchProducts({ page, pageSize: 20, status: status || undefined }),
   });
 
   const { data: countries = [] } = useQuery({
@@ -898,7 +898,7 @@ export default function ProductPage() {
       </div>
 
       <DataTable columns={columns} data={products} rowKey="id" loading={isLoading} />
-      <Pagination page={page} totalPages={data?.totalPages || 1} total={data?.total || 0} pageSize={10} onPageChange={setPage} />
+      <Pagination page={page} totalPages={data?.totalPages || 1} total={data?.total || 0} pageSize={20} onPageChange={setPage} />
 
       {/* ══════════════════════════════════════════════════════════════════
        *  Product Edit Modal — Tabbed Layout

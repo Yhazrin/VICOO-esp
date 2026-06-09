@@ -62,7 +62,7 @@ export default function OrderPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['orders', page, statusFilter, search],
-    queryFn: () => fetchOrders({ page, pageSize: 10, status: statusFilter || undefined, search: search || undefined }),
+    queryFn: () => fetchOrders({ page, pageSize: 20, status: statusFilter || undefined, search: search || undefined }),
   });
 
   const updateMutation = useMutation({
@@ -199,7 +199,7 @@ export default function OrderPage() {
       </div>
 
       <DataTable columns={columns} data={orders} rowKey="id" loading={isLoading} />
-      <Pagination page={page} totalPages={data?.totalPages || 1} total={data?.total || 0} pageSize={10} onPageChange={setPage} />
+      <Pagination page={page} totalPages={data?.totalPages || 1} total={data?.total || 0} pageSize={20} onPageChange={setPage} />
 
       <Modal open={!!selectedOrder} title={t('order.modalTitle')} onClose={() => setSelectedOrder(null)} width={520}>
         {selectedOrder && (

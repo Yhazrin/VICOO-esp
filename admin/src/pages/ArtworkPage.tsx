@@ -96,7 +96,7 @@ export default function ArtworkPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['artworks', page, statusFilter, search, sortBy, sortOrder],
-    queryFn: () => fetchArtworks({ page, pageSize: 10, status: statusFilter || undefined, search: search || undefined, sortBy, sortOrder }),
+    queryFn: () => fetchArtworks({ page, pageSize: 20, status: statusFilter || undefined, search: search || undefined, sortBy, sortOrder }),
   });
 
   const artworks = data?.data || [];
@@ -412,7 +412,7 @@ export default function ArtworkPage() {
           page={page}
           totalPages={data?.totalPages || 1}
           total={data?.total || 0}
-          pageSize={10}
+          pageSize={20}
           onPageChange={setPage}
         />
       </div>

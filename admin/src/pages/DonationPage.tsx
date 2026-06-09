@@ -58,7 +58,7 @@ export default function DonationPage() {
     queryFn: () =>
       fetchDonations({
         page,
-        pageSize: 10,
+        pageSize: 20,
         status: statusFilter || undefined,
         search: search || undefined,
         paymentMethod: paymentFilter || undefined,
@@ -388,7 +388,7 @@ export default function DonationPage() {
 
       <DataTable columns={columns} data={filteredData} rowKey="id" loading={isLoading} />
       <div style={{ marginTop: 24 }}>
-        <Pagination page={page} totalPages={data?.totalPages || 1} total={data?.total || 0} pageSize={10} onPageChange={setPage} />
+        <Pagination page={page} totalPages={data?.totalPages || 1} total={data?.total || 0} pageSize={20} onPageChange={setPage} />
       </div>
     </div>
   );

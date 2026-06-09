@@ -35,7 +35,7 @@ export default function AfterSalesPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['after-sales', page, statusFilter],
-    queryFn: () => fetchAfterSales({ page, pageSize: 10, status: statusFilter || undefined }),
+    queryFn: () => fetchAfterSales({ page, pageSize: 20, status: statusFilter || undefined }),
   });
 
   const items: AfterSalesItem[] = data?.data ?? [];
@@ -285,7 +285,7 @@ export default function AfterSalesPage() {
         <Pagination
           page={page}
           totalPages={Math.ceil(total / 10)}
-          pageSize={10}
+          pageSize={20}
           total={total}
           onPageChange={setPage}
         />

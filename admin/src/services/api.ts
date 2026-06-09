@@ -211,7 +211,7 @@ export async function fetchAuditLogs(params: FilterParams = {}): Promise<Paginat
   const { data: envelope } = await api.get('/admin/audit-logs', {
     params: {
       page: params.page ?? 1,
-      page_size: params.pageSize ?? 10,
+      page_size: params.pageSize ?? 20,
       action: params.search || undefined,
       resource: params.status || undefined,
     },
@@ -242,7 +242,7 @@ export async function fetchArtworks(params: FilterParams = {}): Promise<Paginate
   const { data: envelope } = await api.get('/artworks', {
     params: {
       page: params.page ?? 1,
-      page_size: params.pageSize ?? 10,
+      page_size: params.pageSize ?? 20,
       status: params.status || undefined,
       search: params.search || undefined,
       campaign_id: params.campaignId || undefined,
@@ -366,7 +366,7 @@ export async function fetchOrders(params: FilterParams = {}): Promise<PaginatedR
   const { data: envelope } = await api.get('/orders', {
     params: {
       page: params.page ?? 1,
-      page_size: params.pageSize ?? 10,
+      page_size: params.pageSize ?? 20,
       status: params.status || undefined,
       search: params.search || undefined,
     },
@@ -479,7 +479,7 @@ export async function fetchCampaigns(params: FilterParams = {}): Promise<Paginat
   const { data: envelope } = await api.get('/campaigns', {
     params: {
       page: params.page ?? 1,
-      page_size: params.pageSize ?? 10,
+      page_size: params.pageSize ?? 20,
       status: status || undefined,
     },
   });
@@ -590,7 +590,7 @@ export async function fetchProducts(params: FilterParams = {}): Promise<Paginate
   const { data: envelope } = await api.get('/products', {
     params: {
       page: params.page ?? 1,
-      page_size: params.pageSize ?? 10,
+      page_size: params.pageSize ?? 20,
       status: params.status || undefined,
       is_impact_product: params.isImpactProduct,
     },
@@ -806,7 +806,7 @@ export async function fetchDonations(
   const { data: envelope } = await api.get('/donations', {
     params: {
       page: params.page ?? 1,
-      page_size: params.pageSize ?? 10,
+      page_size: params.pageSize ?? 20,
       status: params.status || undefined,
       payment_method: params.paymentMethod || undefined,
       search: params.search || undefined,
@@ -854,7 +854,7 @@ export async function fetchUsers(params: FilterParams = {}): Promise<PaginatedRe
   const { data: envelope } = await api.get('/users', {
     params: {
       page: params.page ?? 1,
-      page_size: params.pageSize ?? 10,
+      page_size: params.pageSize ?? 20,
       ...(params.search ? { search: params.search } : {}),
     },
   });
@@ -897,7 +897,7 @@ export async function fetchAfterSales(params: FilterParams = {}): Promise<Pagina
   const { data: envelope } = await api.get('/after-sales', {
     params: {
       page: params.page ?? 1,
-      page_size: params.pageSize ?? 10,
+      page_size: params.pageSize ?? 20,
       status: apiStatus || undefined,
     },
   });
@@ -947,7 +947,7 @@ export async function fetchClothingIntakes(params: FilterParams = {}): Promise<P
   const { data: envelope } = await api.get('/clothing-intakes', {
     params: {
       page: params.page ?? 1,
-      page_size: params.pageSize ?? 10,
+      page_size: params.pageSize ?? 20,
       status: params.status || undefined,
     },
   });

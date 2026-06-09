@@ -103,7 +103,7 @@ export default function CampaignPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['campaigns', page, statusFilter],
-    queryFn: () => fetchCampaigns({ page, pageSize: 10, status: statusFilter || undefined }),
+    queryFn: () => fetchCampaigns({ page, pageSize: 20, status: statusFilter || undefined }),
   });
 
   const createMutation = useMutation({
@@ -508,7 +508,7 @@ export default function CampaignPage() {
       </div>
 
       <DataTable columns={columns} data={data?.data || []} rowKey="id" loading={isLoading} />
-      <Pagination page={page} totalPages={data?.totalPages || 1} total={data?.total || 0} pageSize={10} onPageChange={setPage} />
+      <Pagination page={page} totalPages={data?.totalPages || 1} total={data?.total || 0} pageSize={20} onPageChange={setPage} />
 
       {/* Create Modal */}
       <Modal
