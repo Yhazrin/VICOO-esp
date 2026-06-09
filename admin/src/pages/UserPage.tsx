@@ -126,7 +126,7 @@ export default function UserPage() {
       key: 'status',
       title: t('user.colAvailability'),
       width: 100,
-      render: (v) => <StatusBadge status={v} />,
+      render: (v) => <StatusBadge status={v} context="user" />,
     },
     {
       key: 'createdAt',
@@ -178,17 +178,17 @@ export default function UserPage() {
 
       {/* Summary Cards */}
       <div className="dashboard-summary-grid" style={{ marginBottom: 24 }}>
-        <SummaryCard title={isZh ? '用户总数' : 'Total Users'} subtitle={isZh ? '总计' : 'All'} icon={UsersIcon}>
-          <MiniStat label={isZh ? '全部用户' : 'All Users'} value={summaryStats.total} />
+        <SummaryCard title={t('user.summaryTotalTitle')} subtitle={t('user.summaryTotalSubtitle')} icon={UsersIcon}>
+          <MiniStat label={t('user.summaryAllUsers')} value={summaryStats.total} />
           <MiniStat label={t('common.miniStatNew')} value={summaryStats.recent} change={summaryStats.recent > 0 ? 5 : 0} />
         </SummaryCard>
-        <SummaryCard title={isZh ? '管理员' : 'Admins'} subtitle={isZh ? '权限' : 'Roles'} icon={ShieldIcon}>
-          <MiniStat label={isZh ? '管理员' : 'Admins'} value={summaryStats.admins} />
-          <MiniStat label={isZh ? '编辑者' : 'Editors'} value={users.filter((u: User) => u.role === 'editor').length} />
+        <SummaryCard title={t('user.summaryAdminsTitle')} subtitle={t('user.summaryAdminsSubtitle')} icon={ShieldIcon}>
+          <MiniStat label={t('user.summaryAdminCount')} value={summaryStats.admins} />
+          <MiniStat label={t('user.summaryEditors')} value={users.filter((u: User) => u.role === 'editor').length} />
         </SummaryCard>
-        <SummaryCard title={isZh ? '活跃' : 'Active'} subtitle={isZh ? '状态' : 'Status'} icon={ActivityIcon}>
-          <MiniStat label={isZh ? '活跃' : 'Active'} value={summaryStats.active} />
-          <MiniStat label={isZh ? '已禁用' : 'Disabled'} value={users.filter((u: User) => u.status === 'banned').length} trend="error" />
+        <SummaryCard title={t('user.summaryActiveTitle')} subtitle={t('user.summaryActiveSubtitle')} icon={ActivityIcon}>
+          <MiniStat label={t('user.summaryActiveUsers')} value={summaryStats.active} />
+          <MiniStat label={t('user.summaryDisabled')} value={users.filter((u: User) => u.status === 'banned').length} trend="error" />
         </SummaryCard>
       </div>
 

@@ -16,8 +16,7 @@ interface AuditActivityChartProps {
 }
 
 export function AuditActivityChart({ data = [], height = 180 }: AuditActivityChartProps) {
-  const { i18n } = useTranslation();
-  const isZh = i18n.language === 'zh';
+  const { t } = useTranslation();
   const chartData = data.length > 0 ? data : [];
   const total = chartData.reduce((sum, d) => sum + d.count, 0);
 
@@ -25,12 +24,12 @@ export function AuditActivityChart({ data = [], height = 180 }: AuditActivityCha
     <div className="chart-card">
       <div className="chart-card-header">
         <div className="chart-card-title">
-          <span className="chart-card-label">{isZh ? '操作趋势' : 'Activity Trend'}</span>
-          <span className="chart-card-sublabel">7 DAYS</span>
+          <span className="chart-card-label">{t('dashboard.chartActivityTrend')}</span>
+          <span className="chart-card-sublabel">{t('dashboard.chartSevenDays')}</span>
         </div>
         <div className="chart-card-stat">
           <span className="chart-stat-value">{total}</span>
-          <span className="chart-stat-sub">{isZh ? '本周事件' : 'Events'}</span>
+          <span className="chart-stat-sub">{t('dashboard.chartEventsThisWeek')}</span>
         </div>
       </div>
       <div className="chart-card-body" style={{ height }}>
@@ -60,7 +59,7 @@ export function AuditActivityChart({ data = [], height = 180 }: AuditActivityCha
                 fontSize: 12,
                 fontFamily: 'var(--font-mono)',
               }}
-              formatter={(value: number) => [value, isZh ? '操作次数' : 'Operations']}
+              formatter={(value: number) => [value, t('dashboard.chartOperations')]}
               labelStyle={{ color: 'var(--color-text-2)' }}
             />
             <Bar dataKey="count" fill="var(--color-primary)" radius={[3, 3, 0, 0]} barSize={20} />
@@ -78,8 +77,7 @@ interface EventTypeChartProps {
 }
 
 export function EventTypeChart({ data = [], height = 180 }: EventTypeChartProps) {
-  const { i18n } = useTranslation();
-  const isZh = i18n.language === 'zh';
+  const { t } = useTranslation();
   const chartData = data.length > 0 ? data : [];
   const total = chartData.reduce((sum, d) => sum + d.count, 0);
 
@@ -87,12 +85,12 @@ export function EventTypeChart({ data = [], height = 180 }: EventTypeChartProps)
     <div className="chart-card">
       <div className="chart-card-header">
         <div className="chart-card-title">
-          <span className="chart-card-label">{isZh ? '事件类型' : 'Event Type'}</span>
-          <span className="chart-card-sublabel">BREAKDOWN</span>
+          <span className="chart-card-label">{t('dashboard.chartEventType')}</span>
+          <span className="chart-card-sublabel">{t('dashboard.chartBreakdown')}</span>
         </div>
         <div className="chart-card-stat">
           <span className="chart-stat-value">{total}</span>
-          <span className="chart-stat-sub">{isZh ? '总计' : 'Total'}</span>
+          <span className="chart-stat-sub">{t('dashboard.total')}</span>
         </div>
       </div>
       <div className="chart-card-body" style={{ height }}>
@@ -125,7 +123,7 @@ export function EventTypeChart({ data = [], height = 180 }: EventTypeChartProps)
                 fontSize: 12,
                 fontFamily: 'var(--font-mono)',
               }}
-              formatter={(value: number) => [value, isZh ? '次数' : 'Count']}
+              formatter={(value: number) => [value, t('dashboard.chartTimes')]}
               labelStyle={{ color: 'var(--color-text-2)' }}
             />
             <Bar dataKey="count" radius={[0, 3, 3, 0]} barSize={14}>

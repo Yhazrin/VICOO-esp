@@ -15,8 +15,7 @@ interface ReviewStatusChartProps {
 }
 
 export function ReviewStatusChart({ data = [], height = 180 }: ReviewStatusChartProps) {
-  const { t, i18n } = useTranslation();
-  const isZh = i18n.language === 'zh';
+  const { t } = useTranslation();
   const chartData = data.length > 0 ? data : [];
   const total = chartData.reduce((sum, d) => sum + (d.value as number), 0);
 
@@ -24,12 +23,12 @@ export function ReviewStatusChart({ data = [], height = 180 }: ReviewStatusChart
     <div className="chart-card">
       <div className="chart-card-header">
         <div className="chart-card-title">
-          <span className="chart-card-label">{t('dashboard.reviewStatus') || 'Review Status'}</span>
-          <span className="chart-card-sublabel">DISTRIBUTION</span>
+          <span className="chart-card-label">{t('dashboard.reviewStatus')}</span>
+          <span className="chart-card-sublabel">{t('dashboard.chartDistribution')}</span>
         </div>
         <div className="chart-card-stat">
           <span className="chart-stat-value">{total}</span>
-          <span className="chart-stat-sub">{t('dashboard.total') || 'Total'}</span>
+          <span className="chart-stat-sub">{t('dashboard.total')}</span>
         </div>
       </div>
       <div className="chart-card-body" style={{ height }}>
@@ -62,7 +61,7 @@ export function ReviewStatusChart({ data = [], height = 180 }: ReviewStatusChart
                 fontSize: 12,
                 fontFamily: 'var(--font-mono)',
               }}
-              formatter={(value: number) => [value, isZh ? '数量' : 'Count']}
+              formatter={(value: number) => [value, t('dashboard.chartCount')]}
               labelStyle={{ color: 'var(--color-text-2)' }}
             />
             <Bar dataKey="value" radius={[0, 3, 3, 0]} barSize={16}>

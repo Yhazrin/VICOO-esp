@@ -160,7 +160,7 @@ export default function ClothingDonationPage() {
       {/* Detail Modal */}
       <Modal
         open={!!selected}
-        title={isZh ? '衣物捐赠详情' : 'Donation Details'}
+        title={t('clothingDonation.detailTitle')}
         onClose={() => setSelected(null)}
         width={500}
       >

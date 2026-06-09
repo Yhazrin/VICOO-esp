@@ -7,8 +7,7 @@ interface OrderActivityChartProps {
 }
 
 export function OrderActivityChart({ data = [], height = 180 }: OrderActivityChartProps) {
-  const { i18n } = useTranslation();
-  const isZh = i18n.language === 'zh';
+  const { t } = useTranslation();
   const chartData = data.length > 0 ? data : [];
   const totalOrders = chartData.reduce((sum, d) => sum + d.orders, 0);
 
@@ -16,12 +15,12 @@ export function OrderActivityChart({ data = [], height = 180 }: OrderActivityCha
     <div className="chart-card">
       <div className="chart-card-header">
         <div className="chart-card-title">
-          <span className="chart-card-label">{isZh ? '订单活动' : 'Order Activity'}</span>
-          <span className="chart-card-sublabel">7 DAYS</span>
+          <span className="chart-card-label">{t('dashboard.chartOrderActivity')}</span>
+          <span className="chart-card-sublabel">{t('dashboard.chartSevenDays')}</span>
         </div>
         <div className="chart-card-stat">
           <span className="chart-stat-value">{totalOrders}</span>
-          <span className="chart-stat-sub">{isZh ? '本周订单' : 'Orders'}</span>
+          <span className="chart-stat-sub">{t('dashboard.chartOrdersThisWeek')}</span>
         </div>
       </div>
       <div className="chart-card-body" style={{ height }}>
@@ -53,7 +52,7 @@ export function OrderActivityChart({ data = [], height = 180 }: OrderActivityCha
               }}
               formatter={(value: number, name: string) => [
                 value,
-                name === 'orders' ? (isZh ? '订单' : 'Orders') : (isZh ? '已完成' : 'Completed')
+                name === 'orders' ? t('dashboard.chartOrders') : t('dashboard.chartCompleted')
               ]}
               labelStyle={{ color: 'var(--color-text-2)' }}
             />

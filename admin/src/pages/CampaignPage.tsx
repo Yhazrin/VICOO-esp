@@ -137,10 +137,10 @@ export default function CampaignPage() {
     mutationFn: deleteCampaign,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
-      toast.success(t('common.deleteSuccess', '删除成功'));
+      toast.success(t('common.deleteSuccess'));
     },
     onError: (err: any) => {
-      const msg = err?.response?.data?.detail || err?.message || t('common.deleteFailed', '删除失败');
+      const msg = err?.response?.data?.detail || err?.message || t('common.deleteFailed');
       toast.error(msg);
     },
   });
@@ -202,7 +202,7 @@ export default function CampaignPage() {
               setDeleteConfirmOpen(true);
             }}
           >
-            {t('common.delete', '删除')}
+            {t('common.delete')}
           </Button>
           {record.status === 'draft' && (
             <Button size="sm" variant="primary" onClick={(e) => {
@@ -476,16 +476,16 @@ export default function CampaignPage() {
 
       {/* Summary Cards */}
       <div className="dashboard-summary-grid" style={{ marginBottom: 24 }}>
-        <SummaryCard title={isZh ? '活动总数' : 'Total Campaigns'} subtitle={isZh ? '总计' : 'All'} icon={ChartIcon}>
-          <MiniStat label={isZh ? '全部活动' : 'All Campaigns'} value={summaryStats.total} />
-          <MiniStat label={isZh ? '草稿' : 'Drafts'} value={summaryStats.drafts} trend="warning" />
+        <SummaryCard title={t('campaign.summaryTotalTitle')} subtitle={t('campaign.summaryTotalSubtitle')} icon={ChartIcon}>
+          <MiniStat label={t('campaign.summaryAllCampaigns')} value={summaryStats.total} />
+          <MiniStat label={t('campaign.summaryDrafts')} value={summaryStats.drafts} trend="warning" />
         </SummaryCard>
-        <SummaryCard title={isZh ? '进行中' : 'Active'} subtitle={isZh ? '活跃' : 'Ongoing'} icon={TargetIcon}>
-          <MiniStat label={isZh ? '进行中' : 'Active'} value={summaryStats.active} />
-          <MiniStat label={isZh ? '已结束' : 'Ended'} value={campaigns.filter((c: Campaign) => c.status === 'ended').length} />
+        <SummaryCard title={t('campaign.summaryActiveTitle')} subtitle={t('campaign.summaryActiveSubtitle')} icon={TargetIcon}>
+          <MiniStat label={t('campaign.summaryActiveCampaigns')} value={summaryStats.active} />
+          <MiniStat label={t('campaign.summaryEnded')} value={campaigns.filter((c: Campaign) => c.status === 'ended').length} />
         </SummaryCard>
-        <SummaryCard title={isZh ? '已筹款' : 'Raised'} subtitle={isZh ? '金额' : 'Amount'} icon={MoneyIcon}>
-          <MiniStat label={isZh ? '已筹款' : 'Raised'} value={`¥${summaryStats.raised.toLocaleString('zh-CN')}`} trend="up" />
+        <SummaryCard title={t('campaign.summaryRaisedTitle')} subtitle={t('campaign.summaryRaisedSubtitle')} icon={MoneyIcon}>
+          <MiniStat label={t('campaign.summaryRaisedAmount')} value={`¥${summaryStats.raised.toLocaleString('zh-CN')}`} trend="up" />
           <MiniStat label={t('common.miniStatWeeklyGrowth')} value="+¥8,500" change={15} />
         </SummaryCard>
       </div>
@@ -570,8 +570,8 @@ export default function CampaignPage() {
           setDeleteConfirmOpen(false);
           setDeleteCampaignId(null);
         }}
-        title={t('campaign.confirmDelete', '确认删除活动？')}
-        description={t('common.confirmDeleteDesc', 'This action cannot be undone.')}
+        title={t('campaign.confirmDelete')}
+        description={t('common.confirmDelete')}
         variant="danger"
         loading={deleteMutation.isPending}
       />

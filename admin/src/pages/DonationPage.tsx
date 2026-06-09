@@ -324,17 +324,17 @@ export default function DonationPage() {
 
       {/* Summary Cards */}
       <div className="dashboard-summary-grid" style={{ marginBottom: 24 }}>
-        <SummaryCard title={isZh ? '总计' : 'Total'} subtitle={isZh ? '捐赠总额' : 'Donations'} icon={HeartIcon}>
-          <MiniStat label={isZh ? '记录数' : 'Records'} value={displaySummary.selectionTotal} />
+        <SummaryCard title={t('donation.summaryTotalTitle')} subtitle={t('donation.summaryTotalSubtitle')} icon={HeartIcon}>
+          <MiniStat label={t('donation.summaryRecords')} value={displaySummary.selectionTotal} />
           <MiniStat label={t('common.miniStatWeeklyGrowth')} value="+12%" change={12} />
         </SummaryCard>
-        <SummaryCard title={isZh ? '已认证' : 'Verified'} subtitle={isZh ? '完成' : 'Completed'} icon={CheckIcon}>
-          <MiniStat label={isZh ? '已完成' : 'Completed'} value={displaySummary.completedCount} />
-          <MiniStat label={isZh ? '金额' : 'Amount'} value={`¥${displaySummary.completedAmount.toLocaleString()}`} />
+        <SummaryCard title={t('donation.summaryVerified')} subtitle={t('donation.summaryVerifiedSubtitle')} icon={CheckIcon}>
+          <MiniStat label={t('donation.summaryCompleted')} value={displaySummary.completedCount} />
+          <MiniStat label={t('donation.summaryAmount')} value={`¥${displaySummary.completedAmount.toLocaleString()}`} />
         </SummaryCard>
-        <SummaryCard title={isZh ? '活动' : 'Campaigns'} subtitle={isZh ? '关联' : 'Linked'} icon={ChartIcon}>
-          <MiniStat label={isZh ? '关联活动' : 'Linked'} value={filteredData.filter((d) => d.campaignTitle).length} />
-          <MiniStat label={isZh ? '失败记录' : 'Failed'} value={displaySummary.failedCount} trend="error" />
+        <SummaryCard title={t('donation.summaryCampaignsTitle')} subtitle={t('donation.summaryCampaignsSubtitle')} icon={ChartIcon}>
+          <MiniStat label={t('donation.summaryLinked')} value={filteredData.filter((d) => d.campaignTitle).length} />
+          <MiniStat label={t('donation.summaryFailed')} value={displaySummary.failedCount} trend="error" />
         </SummaryCard>
       </div>
 

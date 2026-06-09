@@ -53,12 +53,12 @@ export default function AfterSalesPage() {
       invalidate();
       toast.success(
         variables.action === 'approve'
-          ? t('afterSales.toastApproved', '申请已通过')
-          : t('afterSales.toastRejected', '申请已拒绝'),
+          ? t('afterSales.toastApproved')
+          : t('afterSales.toastRejected'),
       );
     },
     onError: () => {
-      toast.error(t('afterSales.toastError', 'Update failed'));
+      toast.error(t('afterSales.toastError'));
     },
   });
 
@@ -70,7 +70,7 @@ export default function AfterSalesPage() {
       toast.success(t('afterSales.toastUpdated', 'Status updated'));
     },
     onError: () => {
-      toast.error(t('afterSales.toastError', 'Update failed'));
+      toast.error(t('afterSales.toastError'));
     },
   });
 
@@ -78,10 +78,10 @@ export default function AfterSalesPage() {
     mutationFn: (orderId: string) => updateOrderStatus(orderId, 'shipped'),
     onSuccess: () => {
       invalidate();
-      toast.success(t('afterSales.toastShipped', '换货订单已发货'));
+      toast.success(t('afterSales.toastShipped'));
     },
     onError: () => {
-      toast.error(t('afterSales.toastShipError', '发货失败'));
+      toast.error(t('afterSales.toastShipError'));
     },
   });
 
@@ -89,10 +89,10 @@ export default function AfterSalesPage() {
     mutationFn: (orderId: string) => updateOrderStatus(orderId, 'completed'),
     onSuccess: () => {
       invalidate();
-      toast.success(t('afterSales.toastDelivered', '换货订单已确认送达'));
+      toast.success(t('afterSales.toastDelivered'));
     },
     onError: () => {
-      toast.error(t('afterSales.toastError', 'Update failed'));
+      toast.error(t('afterSales.toastError'));
     },
   });
 
@@ -144,7 +144,7 @@ export default function AfterSalesPage() {
     },
     {
       key: 'replacementOrderNo',
-      title: t('afterSales.colReplacementOrder', '换货订单'),
+      title: t('afterSales.colReplacementOrder'),
       width: 160,
       render: (_v, record) =>
         record.replacementOrderNo ? (
@@ -160,7 +160,7 @@ export default function AfterSalesPage() {
     },
     {
       key: 'replacementOrderStatus',
-      title: t('afterSales.colReplacementStatus', '换货状态'),
+      title: t('afterSales.colReplacementStatus'),
       width: 120,
       render: (_v, record) =>
         record.replacementOrderStatus ? (
@@ -178,7 +178,7 @@ export default function AfterSalesPage() {
     { key: 'createdAt', title: t('afterSales.colApplyTime'), width: 180, render: (v) => formatDateTime(v) },
     {
       key: '_actions',
-      title: t('afterSales.colActions', 'Actions'),
+      title: t('afterSales.colActions'),
       width: 280,
       render: (_v, record) => {
         if (record.status === 'pending') {
@@ -191,8 +191,8 @@ export default function AfterSalesPage() {
                 onClick={() => reviewMutation.mutate({ id: record.id, action: 'approve' })}
               >
                 {record.category === 'exchange'
-                  ? t('afterSales.btnApproveExchange', '同意换货')
-                  : t('afterSales.btnApprove', 'Approve')}
+                  ? t('afterSales.btnApproveExchange')
+                  : t('afterSales.btnApprove')}
               </Button>
               <Button
                 variant="danger"
@@ -200,7 +200,7 @@ export default function AfterSalesPage() {
                 loading={reviewMutation.isPending}
                 onClick={() => reviewMutation.mutate({ id: record.id, action: 'reject' })}
               >
-                {t('afterSales.btnReject', 'Reject')}
+                {t('afterSales.btnReject')}
               </Button>
             </div>
           );
@@ -216,7 +216,7 @@ export default function AfterSalesPage() {
                   loading={shipMutation.isPending}
                   onClick={() => shipMutation.mutate(record.replacementOrderId!)}
                 >
-                  {t('afterSales.btnShip', '发货')}
+                  {t('afterSales.btnShip')}
                 </Button>
               )}
               {record.replacementOrderId && record.replacementOrderStatus === 'shipped' && (
@@ -226,7 +226,7 @@ export default function AfterSalesPage() {
                   loading={deliverMutation.isPending}
                   onClick={() => deliverMutation.mutate(record.replacementOrderId!)}
                 >
-                  {t('afterSales.btnConfirmDelivery', '确认送达')}
+                  {t('afterSales.btnConfirmDelivery')}
                 </Button>
               )}
               <Button
@@ -235,7 +235,7 @@ export default function AfterSalesPage() {
                 loading={statusMutation.isPending}
                 onClick={() => statusMutation.mutate({ id: record.id, status: 'completed' })}
               >
-                {t('afterSales.btnComplete', '标记完成')}
+                {t('afterSales.btnComplete')}
               </Button>
             </div>
           );

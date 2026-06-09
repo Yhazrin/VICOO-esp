@@ -152,17 +152,17 @@ export default function OrderPage() {
 
       {/* Summary Cards */}
       <div className="dashboard-summary-grid" style={{ marginBottom: 24 }}>
-        <SummaryCard title={isZh ? '订单总数' : 'Total Orders'} subtitle={isZh ? '总计' : 'All'} icon={OrdersIcon}>
+        <SummaryCard title={t('order.summaryTotalTitle')} subtitle={t('order.summaryTotalSubtitle')} icon={OrdersIcon}>
           <MiniStat label={t('common.miniStatThisWeek')} value={summaryStats.total} change={12} />
           <MiniStat label={t('common.miniStatPending')} value={summaryStats.pending} />
         </SummaryCard>
-        <SummaryCard title={isZh ? '待处理' : 'Pending'} subtitle={isZh ? '处理中' : 'Processing'} icon={PendingIcon}>
-          <MiniStat label={isZh ? '待发货' : 'To Ship'} value={orders.filter((o: Order) => o.status === 'paid').length} />
-          <MiniStat label={isZh ? '运输中' : 'Shipping'} value={orders.filter((o: Order) => o.status === 'shipped').length} />
+        <SummaryCard title={t('order.summaryPendingTitle')} subtitle={t('order.summaryPendingSubtitle')} icon={PendingIcon}>
+          <MiniStat label={t('order.summaryPendingToShip')} value={orders.filter((o: Order) => o.status === 'paid').length} />
+          <MiniStat label={t('order.summaryPendingShipping')} value={orders.filter((o: Order) => o.status === 'shipped').length} />
         </SummaryCard>
-        <SummaryCard title={isZh ? '已完成' : 'Completed'} subtitle={isZh ? '完成' : 'Done'} icon={CompletedIcon}>
-          <MiniStat label={isZh ? '已完成' : 'Completed'} value={summaryStats.completed} />
-          <MiniStat label={isZh ? '取消/退款' : 'Cancelled'} value={summaryStats.cancelled} trend="error" />
+        <SummaryCard title={t('order.summaryCompletedTitle')} subtitle={t('order.summaryCompletedSubtitle')} icon={CompletedIcon}>
+          <MiniStat label={t('order.summaryCompletedCount')} value={summaryStats.completed} />
+          <MiniStat label={t('order.summaryCancelled')} value={summaryStats.cancelled} trend="error" />
         </SummaryCard>
       </div>
 

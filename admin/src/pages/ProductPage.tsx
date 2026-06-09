@@ -479,7 +479,7 @@ export default function ProductPage() {
     { key: 'stock', title: t('product.colStock'), width: 70 },
     {
       key: 'status', title: t('product.colStatus'), width: 90,
-      render: (v) => <StatusBadge status={v as string} />,
+      render: (v) => <StatusBadge status={v as string} context="product" />,
     },
     {
       key: 'isImpactProduct', title: t('product.colImpact'), width: 80,
@@ -818,17 +818,17 @@ export default function ProductPage() {
 
       {/* Summary Cards */}
       <div className="dashboard-summary-grid" style={{ marginBottom: 24 }}>
-        <SummaryCard title={isZh ? '商品总数' : 'Total Products'} subtitle={isZh ? '总计' : 'All'} icon={PackageIcon}>
-          <MiniStat label={isZh ? '全部商品' : 'All Products'} value={summaryStats.total} />
+        <SummaryCard title={t('product.summaryTotalTitle')} subtitle={t('product.summaryTotalSubtitle')} icon={PackageIcon}>
+          <MiniStat label={t('product.summaryTotalProducts')} value={summaryStats.total} />
           <MiniStat label={t('common.miniStatNew')} value="+3" change={8} />
         </SummaryCard>
-        <SummaryCard title={isZh ? '在售' : 'Active'} subtitle={isZh ? '销售' : 'Selling'} icon={LayersIcon}>
-          <MiniStat label={isZh ? '在售' : 'Active'} value={summaryStats.active} />
-          <MiniStat label={isZh ? '缺货' : 'Sold Out'} value={summaryStats.soldOut} trend="warning" />
+        <SummaryCard title={t('product.summaryActiveTitle')} subtitle={t('product.summaryActiveSubtitle')} icon={LayersIcon}>
+          <MiniStat label={t('product.summaryActiveProducts')} value={summaryStats.active} />
+          <MiniStat label={t('product.summarySoldOut')} value={summaryStats.soldOut} trend="warning" />
         </SummaryCard>
-        <SummaryCard title={isZh ? '公益' : 'Impact'} subtitle={isZh ? '商品' : 'Products'} icon={DollarIcon}>
-          <MiniStat label={isZh ? '公益商品' : 'Impact'} value={summaryStats.impact} trend="up" />
-          <MiniStat label={isZh ? '普通商品' : 'Regular'} value={summaryStats.total - summaryStats.impact} />
+        <SummaryCard title={t('product.summaryImpactTitle')} subtitle={t('product.summaryImpactSubtitle')} icon={DollarIcon}>
+          <MiniStat label={t('product.summaryImpactProducts')} value={summaryStats.impact} trend="up" />
+          <MiniStat label={t('product.summaryRegular')} value={summaryStats.total - summaryStats.impact} />
         </SummaryCard>
       </div>
 

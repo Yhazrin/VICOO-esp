@@ -1000,7 +1000,7 @@ function SystemHealthCard() {
             color: 'var(--color-text-3)',
             textTransform: 'uppercase',
           }}>
-            {isZh ? '已刷新' : 'Updated'} {lastChecked}
+            {t('settings.healthUpdated')} {lastChecked}
           </div>
           <Button
             variant="secondary"
@@ -1095,10 +1095,10 @@ function SystemHealthCard() {
         gap: '12px',
       }}>
         {[
-          { label: isZh ? '服务' : 'Service', value: health?.backend?.service ?? 'FastAPI' },
-          { label: isZh ? '运行时' : 'Runtime', value: health?.backend?.runtime ?? 'Uvicorn' },
-          { label: isZh ? '引擎' : 'Engine', value: health?.database?.engine ?? 'MySQL' },
-          { label: isZh ? '版本' : 'DB Version', value: health?.database?.version ?? '--' },
+          { label: t('settings.healthService'), value: health?.backend?.service ?? 'FastAPI' },
+          { label: t('settings.healthRuntime'), value: health?.backend?.runtime ?? 'Uvicorn' },
+          { label: t('settings.healthEngine'), value: health?.database?.engine ?? 'MySQL' },
+          { label: t('settings.healthVersion'), value: health?.database?.version ?? '--' },
         ].map((item) => (
           <div key={item.label} style={{
             padding: '12px 16px',
@@ -1166,7 +1166,7 @@ function SystemHealthCard() {
               letterSpacing: '0.08em',
               marginBottom: '4px',
             }}>
-              {isZh ? '系统可用性' : 'Availability'}
+              {t('settings.healthAvailability')}
             </div>
             <div style={{
               fontSize: '24px',
@@ -1193,7 +1193,7 @@ function SystemHealthCard() {
             letterSpacing: '0.08em',
             marginBottom: '12px',
           }}>
-            {isZh ? '最近检查' : 'Recent Checks'}
+            {t('settings.healthRecentChecks')}
           </div>
           <div style={{ display: 'flex', gap: '20px' }}>
             {checks.slice(0, 4).map((check, idx) => (
@@ -1232,9 +1232,9 @@ function SystemHealthCard() {
         gap: '20px',
       }}>
         {[
-          { label: isZh ? '部署模式' : 'Mode', value: health?.deployment?.mode ?? 'Docker Compose' },
-          { label: isZh ? '公共健康检查' : 'Public Health', value: health?.deployment?.publicHealth ?? '/health' },
-          { label: isZh ? '管理员端点' : 'Admin Endpoint', value: health?.deployment?.adminHealth ?? '/api/v1/system/health' },
+          { label: t('settings.healthDeploymentMode'), value: health?.deployment?.mode ?? 'Docker Compose' },
+          { label: t('settings.healthPublicHealth'), value: health?.deployment?.publicHealth ?? '/health' },
+          { label: t('settings.healthAdminEndpoint'), value: health?.deployment?.adminHealth ?? '/api/v1/system/health' },
         ].map((item) => (
           <div key={item.label} style={{ textAlign: 'center' }}>
             <div style={{
@@ -1275,7 +1275,7 @@ function SystemHealthCard() {
           background: '#10b981',
           animation: 'pulse 2s infinite',
         }} />
-        {isZh ? '每 2 小时自动刷新' : 'Auto-refreshes every 2h'}
+        {t('settings.healthAutoRefresh')}
       </div>
     </div>
   );

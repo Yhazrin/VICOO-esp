@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import 'dayjs/locale/zh-cn';
+import 'dayjs/locale/en';
 import { MetricCard } from '../components/ui/MetricCard';
 import { Card } from '../components/ui/Card';
 import StatusBadge from '../components/ui/StatusBadge';
@@ -163,7 +165,7 @@ export default function DashboardPage() {
           icon={Icons.works}
           color="primary"
           loading={isLoading}
-          subtitle={isZh ? '作品总数' : 'Total Works'}
+          subtitle={t('dashboard.metricTotalWorksSubtitle')}
           href="/artworks"
         />
         <MetricCard
@@ -172,7 +174,7 @@ export default function DashboardPage() {
           icon={Icons.pending}
           color="warning"
           loading={isLoading}
-          subtitle={isZh ? '待审核' : 'Pending'}
+          subtitle={t('dashboard.metricPendingSubtitle')}
           href="/artworks"
         />
         <MetricCard
@@ -181,7 +183,7 @@ export default function DashboardPage() {
           icon={Icons.orders}
           color="info"
           loading={isLoading}
-          subtitle={isZh ? '订单总数' : 'Total Orders'}
+          subtitle={t('dashboard.metricOrdersSubtitle')}
           href="/orders"
         />
         <MetricCard
@@ -190,7 +192,7 @@ export default function DashboardPage() {
           icon={Icons.users}
           color="success"
           loading={isLoading}
-          subtitle={isZh ? '授权用户' : 'Users'}
+          subtitle={t('dashboard.metricUsersSubtitle')}
           href="/users"
         />
         <MetricCard
@@ -199,7 +201,7 @@ export default function DashboardPage() {
           icon={Icons.donations}
           color="primary"
           loading={isLoading}
-          subtitle={isZh ? '捐赠总额' : 'Total'}
+          subtitle={t('dashboard.metricDonationsSubtitle')}
           href="/donations"
         />
       </div>
@@ -214,8 +216,8 @@ export default function DashboardPage() {
       <div className="dashboard-summary-grid">
         {/* Pending Artworks Summary */}
         <SummaryCard
-          title={isZh ? '待审核作品' : 'Pending Reviews'}
-          subtitle={isZh ? 'Pending Artworks' : '待审核'}
+          title={t('dashboard.sectionPendingTitle')}
+          subtitle={t('dashboard.sectionPendingSubtitle')}
           linkTo="/artworks"
           icon={Icons.alert}
         >
@@ -224,42 +226,42 @@ export default function DashboardPage() {
               key={artwork.id}
               title={artwork.title}
               meta={artwork.childName}
-              status={<StatusBadge status={artwork.status || 'pending'} />}
-              time={artwork.submittedAt || 'recently'}
+              status={<StatusBadge status={artwork.status || 'pending'} context="artwork" />}
+              time={artwork.submittedAt || t('dashboard.recently')}
             />
           ))}
         </SummaryCard>
 
         {/* Financial Summary */}
         <SummaryCard
-          title={isZh ? '财务概览' : 'Financial Overview'}
-          subtitle={isZh ? '财务' : '财务概览'}
+          title={t('dashboard.sectionFinancialsTitle')}
+          subtitle={t('dashboard.sectionFinancialsSubtitle')}
           linkTo="/donations"
           icon={Icons.wallet}
         >
           <MiniStat
-            label={isZh ? '本周捐赠' : 'Weekly Donation'}
+            label={t('dashboard.weeklyDonation')}
             value={`¥${(metrics?.totalDonationAmount ? Number(metrics.totalDonationAmount) * 0.15 : 0).toFixed(0)}`}
             change={8}
           />
-          <MiniStat label={isZh ? '活跃活动' : 'Active Campaigns'} value={metrics?.activeCampaigns ?? 0} />
-          <MiniStat label={isZh ? '待处理订单' : 'Pending Orders'} value={metrics?.totalOrders ?? 0} />
-          <MiniStat label={isZh ? '本周增长' : 'Weekly Growth'} value="+8%" change={8} />
+          <MiniStat label={t('dashboard.activeCampaignsShort')} value={metrics?.activeCampaigns ?? 0} />
+          <MiniStat label={t('dashboard.pendingOrdersShort')} value={metrics?.totalOrders ?? 0} />
+          <MiniStat label={t('dashboard.weeklyGrowthShort')} value="+8%" change={8} />
         </SummaryCard>
 
         {/* Audit Log Summary */}
         <SummaryCard
-          title={isZh ? '最近动态' : 'Recent Activity'}
-          subtitle={isZh ? '最近' : '最近动态'}
+          title={t('dashboard.sectionRecentTitle')}
+          subtitle={t('dashboard.sectionRecentSubtitle')}
           linkTo="/audit-log"
           icon={Icons.check}
         >
           {auditLogs.slice(0, 3).map((log: any) => (
             <PendingItem
               key={log.id}
-              title={log.action || log.userName || 'Unknown'}
+              title={log.action ? t(`auditLog.action${log.action.charAt(0).toUpperCase() + log.action.slice(1)}`) : (log.userName || 'Unknown')}
               meta={log.resource || '-'}
-              time={dayjs(log.timestamp).fromNow()}
+              time={dayjs(log.timestamp).locale(isZh ? 'zh-cn' : 'en').fromNow()}
             />
           ))}
         </SummaryCard>

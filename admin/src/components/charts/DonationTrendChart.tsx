@@ -8,8 +8,7 @@ interface DonationTrendChartProps {
 }
 
 export function DonationTrendChart({ data = [], height = 180 }: DonationTrendChartProps) {
-  const { t, i18n } = useTranslation();
-  const isZh = i18n.language === 'zh';
+  const { t } = useTranslation();
   const chartData = data.length > 0 ? data : [];
   const total = chartData.reduce((sum, d) => sum + (d.value as number), 0);
 
@@ -17,12 +16,12 @@ export function DonationTrendChart({ data = [], height = 180 }: DonationTrendCha
     <div className="chart-card">
       <div className="chart-card-header">
         <div className="chart-card-title">
-          <span className="chart-card-label">{t('dashboard.donationTrend') || 'Donation Trend'}</span>
-          <span className="chart-card-sublabel">7 DAYS</span>
+          <span className="chart-card-label">{t('dashboard.donationTrend')}</span>
+          <span className="chart-card-sublabel">{t('dashboard.chartSevenDays')}</span>
         </div>
         <div className="chart-card-stat">
           <span className="chart-stat-value">¥{total.toLocaleString()}</span>
-          <span className="chart-stat-change positive">+12%</span>
+          <span className="chart-stat-change positive">{t('dashboard.chartChangePositive', { value: 12 })}</span>
         </div>
       </div>
       <div className="chart-card-body" style={{ height }}>
@@ -59,7 +58,7 @@ export function DonationTrendChart({ data = [], height = 180 }: DonationTrendCha
                 fontSize: 12,
                 fontFamily: 'var(--font-mono)',
               }}
-              formatter={(value: number) => [`¥${value.toLocaleString()}`, isZh ? '捐赠' : 'Donation']}
+              formatter={(value: number) => [`¥${value.toLocaleString()}`, t('dashboard.chartDonation')]}
               labelStyle={{ color: 'var(--color-text-2)' }}
             />
             <Area

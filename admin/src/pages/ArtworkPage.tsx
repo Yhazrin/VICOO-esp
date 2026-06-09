@@ -106,10 +106,10 @@ export default function ArtworkPage() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['artworks'] });
-      toast.success(t('common.saveSuccess', '保存成功'));
+      toast.success(t('common.saveSuccess'));
     },
     onError: () => {
-      toast.error(t('common.saveFailed', '保存失败'));
+      toast.error(t('common.saveFailed'));
     },
   });
 
@@ -119,10 +119,10 @@ export default function ArtworkPage() {
       queryClient.invalidateQueries({ queryKey: ['artworks'] });
       setDetailModal(false);
       setSelectedArtwork(null);
-      toast.success(t('common.deleteSuccess', '删除成功'));
+      toast.success(t('common.deleteSuccess'));
     },
     onError: () => {
-      toast.error(t('common.deleteFailed', '删除失败'));
+      toast.error(t('common.deleteFailed'));
     },
   });
 
@@ -168,9 +168,9 @@ export default function ArtworkPage() {
     try {
       const result = await uploadTraceMedia(file);
       setEditingImageUrl(result.url);
-      toast.success(t('common.uploadSuccess', '上传成功'));
+      toast.success(t('common.uploadSuccess'));
     } catch {
-      toast.error(t('common.uploadFailed', '上传失败'));
+      toast.error(t('common.uploadFailed'));
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -218,7 +218,7 @@ export default function ArtworkPage() {
       key: 'status',
       title: t('artwork.colStatus'),
       width: 100,
-      render: (v) => <StatusBadge status={v} />,
+      render: (v) => <StatusBadge status={v} context="artwork" />,
     },
     {
       key: 'createdAt',
@@ -263,7 +263,7 @@ export default function ArtworkPage() {
               deleteArtworkMutation.mutate(record.id);
             }}
           >
-            {t('common.delete', '删除')}
+            {t('common.delete')}
           </Button>
         </div>
       ),
@@ -276,17 +276,17 @@ export default function ArtworkPage() {
 
       {/* Summary Cards */}
       <div className="dashboard-summary-grid" style={{ marginBottom: 24 }}>
-        <SummaryCard title={isZh ? '作品总数' : 'Total Works'} subtitle={isZh ? '总计' : 'All'} icon={LayersIcon}>
-          <MiniStat label={isZh ? '全部作品' : 'All Works'} value={summaryStats.total} />
+        <SummaryCard title={t('artwork.summaryTotalTitle')} subtitle={t('artwork.summaryTotalSubtitle')} icon={LayersIcon}>
+          <MiniStat label={t('artwork.summaryAllWorks')} value={summaryStats.total} />
           <MiniStat label={t('common.miniStatThisWeek')} value={artworks.filter((a: Artwork) => dayjs(a.createdAt).isAfter(dayjs().subtract(7, 'day'))).length} change={8} />
         </SummaryCard>
-        <SummaryCard title={isZh ? '待审核' : 'Pending'} subtitle={isZh ? '待审核' : 'Review'} icon={AlertIcon}>
-          <MiniStat label={isZh ? '待审核' : 'Pending'} value={summaryStats.pending} trend="warning" />
-          <MiniStat label={isZh ? '需处理' : 'To Handle'} value={`${summaryStats.pending} ${isZh ? '项' : 'items'}`} />
+        <SummaryCard title={t('artwork.summaryPendingTitle')} subtitle={t('artwork.summaryPendingSubtitle')} icon={AlertIcon}>
+          <MiniStat label={t('artwork.summaryPendingWorks')} value={summaryStats.pending} trend="warning" />
+          <MiniStat label={t('artwork.summaryToHandle')} value={`${summaryStats.pending} ${t('artwork.summaryItems')}`} />
         </SummaryCard>
-        <SummaryCard title={isZh ? '已审核' : 'Reviewed'} subtitle={isZh ? '审核' : 'Done'} icon={CheckIcon}>
-          <MiniStat label={isZh ? '已通过' : 'Approved'} value={summaryStats.approved} trend="up" />
-          <MiniStat label={isZh ? '已拒绝' : 'Rejected'} value={summaryStats.rejected} />
+        <SummaryCard title={t('artwork.summaryReviewedTitle')} subtitle={t('artwork.summaryReviewedSubtitle')} icon={CheckIcon}>
+          <MiniStat label={t('artwork.summaryApproved')} value={summaryStats.approved} trend="up" />
+          <MiniStat label={t('artwork.summaryRejected')} value={summaryStats.rejected} />
         </SummaryCard>
       </div>
 
@@ -391,7 +391,7 @@ export default function ArtworkPage() {
                 onClick={() => deleteArtworkMutation.mutate(selectedArtwork.id)}
                 loading={deleteArtworkMutation.isPending}
               >
-                {t('common.delete', '删除')}
+                {t('common.delete')}
               </Button>
             )}
           </div>
@@ -405,7 +405,7 @@ export default function ArtworkPage() {
             </div>
             <div className="modal-detail-row">
               <span className="modal-detail-label">{t('artwork.colStatus')}</span>
-              <StatusBadge status={selectedArtwork.status} />
+              <StatusBadge status={selectedArtwork.status} context="artwork" />
             </div>
             <div className="modal-detail-full">
               <span className="modal-detail-label">{t('artwork.colWorkTitle')}</span>
@@ -454,7 +454,7 @@ export default function ArtworkPage() {
                   style={{ display: 'none' }}
                 />
                 <Button variant="secondary" onClick={() => fileInputRef.current?.click()} loading={uploading}>
-                  {t('common.uploadImage', '上传图片')}
+                  {t('common.uploadImage')}
                 </Button>
                 <Button
                   variant="primary"
@@ -467,7 +467,7 @@ export default function ArtworkPage() {
                   }}
                   loading={updateArtworkMutation.isPending}
                 >
-                  {t('common.save', '保存')}
+                  {t('common.save')}
                 </Button>
               </div>
               {editingImageUrl && (
