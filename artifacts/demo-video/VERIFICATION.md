@@ -35,8 +35,16 @@
 
 ## 演示视频
 
+### 云电脑真实操作录屏（推荐）
+
+Cursor Cloud Agent 云桌面 X11 屏幕捕获，可见终端 + Chrome 浏览器：
+
+- **MP4：** `artifacts/cloud-screencast/vicoo-cloud-agent-demo.mp4`（约 1分26秒）
+- **录制命令：** `./scripts/record-cloud-desktop.sh`
+
+### Playwright 无头浏览器录屏（备选）
+
 - **MP4：** `artifacts/demo-video/vicoo-demo.mp4`（约 3分33秒）
-- **WebM：** `artifacts/demo-video/vicoo-demo-full.webm`
 - **录制命令：** `./scripts/record-demo-video.sh`
 
 ## 测试账号
