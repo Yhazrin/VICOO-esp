@@ -14,6 +14,8 @@ import { fetchAuditLogs } from '../services/api';
 import type { AuditLogEntry } from '../types';
 import { formatDateTime, formatDateTimeFull } from '../utils/dateTime';
 import dayjs from 'dayjs';
+import 'dayjs/locale/zh-cn';
+import 'dayjs/locale/en';
 
 // Icons
 const Icons = {
@@ -54,6 +56,10 @@ const ACTION_TYPE_MAP: Record<string, 'success' | 'warning' | 'error' | 'neutral
   update_order_status: 'neutral',
   view_child_info: 'neutral',
   delete_data: 'error',
+  approve_artwork: 'success',
+  approve: 'success',
+  create: 'success',
+  update: 'neutral',
 };
 
 export default function AuditLogPage() {
@@ -74,6 +80,7 @@ export default function AuditLogPage() {
 
   const logs = data?.data || [];
   const total = data?.total || 0;
+  dayjs.locale(isZh ? 'zh-cn' : 'en');
 
   // Aggregate logs into chart data
   const activityTrendData = (() => {
@@ -87,7 +94,7 @@ export default function AuditLogPage() {
 
   const eventTypeData = (() => {
     const grouped: Record<string, { type: string; count: number; key: string }> = {};
-    const labels: Record<string, string> = {
+       const labels: Record<string, string> = {
       login: t('auditLog.actionLogin'),
       review_artwork: t('auditLog.actionReview'),
       update_order_status: t('auditLog.actionOrder'),
@@ -95,6 +102,10 @@ export default function AuditLogPage() {
       modify_user_role: t('auditLog.actionUser'),
       create_campaign: t('auditLog.actionCampaign'),
       delete_data: t('auditLog.actionDelete'),
+      approve_artwork: t('auditLog.actionApprove'),
+      approve: t('auditLog.actionApprove'),
+      create: t('auditLog.actionCreate'),
+      update: t('auditLog.actionUpdate'),
     };
     logs.forEach((l: AuditLogEntry) => {
       const key = l.action.split('_')[0];
@@ -126,6 +137,10 @@ export default function AuditLogPage() {
       update_order_status: t('auditLog.actionUpdateOrderStatus'),
       view_child_info: t('auditLog.actionViewChildInfo'),
       delete_data: t('auditLog.actionDeleteData'),
+      approve_artwork: t('auditLog.actionApprove'),
+      approve: t('auditLog.actionApprove'),
+      create: t('auditLog.actionCreate'),
+      update: t('auditLog.actionUpdate'),
     };
     return map[v] || v;
   };

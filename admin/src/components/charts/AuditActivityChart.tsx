@@ -1,5 +1,8 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { useTranslation } from 'react-i18next';
+import dayjs from 'dayjs';
+import 'dayjs/locale/zh-cn';
+import 'dayjs/locale/en';
 
 const TYPE_COLORS: Record<string, string> = {
   login: 'var(--color-text-3)',
@@ -16,9 +19,11 @@ interface AuditActivityChartProps {
 }
 
 export function AuditActivityChart({ data = [], height = 180 }: AuditActivityChartProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const chartData = data.length > 0 ? data : [];
   const total = chartData.reduce((sum, d) => sum + d.count, 0);
+  const isZh = i18n.language === 'zh';
+  dayjs.locale(isZh ? 'zh-cn' : 'en');
 
   return (
     <div className="chart-card">
