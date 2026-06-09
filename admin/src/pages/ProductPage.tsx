@@ -296,21 +296,40 @@ export default function ProductPage() {
   });
 
   /* ── Helpers ── */
+  function numOrNull(v: string): number | null {
+    if (v === '' || v === null || v === undefined) return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function timestampOrNow(v: string): string {
+    if (!v) return new Date().toISOString();
+    // <input type="datetime-local"> returns "YYYY-MM-DDTHH:MM" (no seconds, no timezone).
+    // Treat the value as local time and convert to a full ISO 8601 timestamp.
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/.test(v)) {
+      const d = new Date(v);
+      if (!Number.isNaN(d.getTime())) return d.toISOString();
+    }
+    // Already ISO or any parseable string — pass through
+    const d = new Date(v);
+    return Number.isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
+  }
+
   function serializeNode(n: typeof emptyNode) {
     return {
       stage: n.stage,
-      description: n.description,
-      descriptionEn: n.descriptionEn,
-      location: n.location,
-      locationEn: n.locationEn,
-      latitude: n.latitude ? Number(n.latitude) : undefined,
-      longitude: n.longitude ? Number(n.longitude) : undefined,
+      description: n.description?.trim() || undefined,
+      descriptionEn: n.descriptionEn?.trim() || undefined,
+      location: n.location?.trim() || undefined,
+      locationEn: n.locationEn?.trim() || undefined,
+      latitude: numOrNull(n.latitude as unknown as string),
+      longitude: numOrNull(n.longitude as unknown as string),
       certified: n.certified,
-      certImageUrl: n.certImageUrl || undefined,
-      carbonKg: n.carbonKg ? Number(n.carbonKg) : undefined,
-      carbonNote: n.carbonNote || undefined,
-      timestamp: n.timestamp || new Date().toISOString(),
-      gallery: n.gallery,
+      certImageUrl: n.certImageUrl?.trim() || undefined,
+      carbonKg: numOrNull(n.carbonKg as unknown as string),
+      carbonNote: n.carbonNote?.trim() || undefined,
+      timestamp: timestampOrNow(n.timestamp as unknown as string),
+      gallery: n.gallery ?? [],
     };
   }
 
@@ -366,9 +385,9 @@ export default function ProductPage() {
     setEditingNode(record);
     setNodeForm({
       stage: record.stage,
-      description: record.description,
+      description: record.description ?? '',
       descriptionEn: record.descriptionEn ?? '',
-      location: record.location,
+      location: record.location ?? '',
       locationEn: record.locationEn ?? '',
       latitude: record.latitude != null ? String(record.latitude) : '',
       longitude: record.longitude != null ? String(record.longitude) : '',
@@ -376,10 +395,18 @@ export default function ProductPage() {
       certImageUrl: record.certImageUrl ?? '',
       carbonKg: record.carbonKg != null ? String(record.carbonKg) : '',
       carbonNote: record.carbonNote ?? '',
-      timestamp: record.timestamp ? record.timestamp.slice(0, 10) : '',
+      timestamp: record.timestamp ? toDateTimeLocalValue(record.timestamp) : '',
       gallery: record.gallery ?? [],
     });
     setNodeModalOpen(true);
+  }
+
+  /** Convert ISO timestamp → "YYYY-MM-DDTHH:MM" for <input type="datetime-local">. */
+  function toDateTimeLocalValue(iso: string): string {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '';
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
 
   function closeNodeModal() {
@@ -984,7 +1011,7 @@ export default function ProductPage() {
               </div>
               <div>
                 <label style={labelStyle}>{t('product.nodeTimestamp')}</label>
-                <input type="date" value={nodeForm.timestamp} onChange={(e) => setNodeForm({ ...nodeForm, timestamp: e.target.value })} style={inputStyle} />
+                <input type="datetime-local" value={nodeForm.timestamp} onChange={(e) => setNodeForm({ ...nodeForm, timestamp: e.target.value })} style={inputStyle} />
               </div>
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={labelStyle}>{t('product.nodeLocation')}</label>
