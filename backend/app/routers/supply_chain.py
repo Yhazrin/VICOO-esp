@@ -46,7 +46,7 @@ from app.services.supply_chain.service import SupplyChainService
 @router.post("/media/upload", response_model=ApiResponse)
 async def upload_trace_media(
     file: UploadFile = File(...),
-    _current_user: dict = Depends(require_role("admin", "editor")),
+    _current_user: dict = Depends(require_role("admin")),
 ):
     """上传溯源节点图片/视频至本地 static，返回可供写入 gallery 的相对 URL（/static/...）。"""
     body = await file.read()
@@ -140,7 +140,7 @@ async def trace_product(
 async def create_record(
     body: SupplyChainRecordCreate,
     db: AsyncSession = Depends(get_db),
-    _current_user: dict = Depends(require_role("admin", "editor")),
+    _current_user: dict = Depends(require_role("admin")),
 ):
     """Create a new supply chain record (admin/editor only). (Refactored)"""
     sc_service = SupplyChainService(db)
@@ -163,7 +163,7 @@ async def patch_record(
     record_id: int,
     body: SupplyChainRecordUpdate,
     db: AsyncSession = Depends(get_db),
-    _current_user: dict = Depends(require_role("admin", "editor")),
+    _current_user: dict = Depends(require_role("admin")),
 ):
     """Update a supply chain record (admin/editor). Gallery replaces entire list when sent."""
     sc_service = SupplyChainService(db)
@@ -184,7 +184,7 @@ async def patch_record(
 async def delete_record(
     record_id: int,
     db: AsyncSession = Depends(get_db),
-    _current_user: dict = Depends(require_role("admin", "editor")),
+    _current_user: dict = Depends(require_role("admin")),
 ):
     """Delete a supply chain record (admin/editor)."""
     try:

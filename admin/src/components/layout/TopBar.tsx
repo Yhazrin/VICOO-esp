@@ -36,6 +36,8 @@ export default function TopBar() {
     return name?.slice(0, 2).toUpperCase() || 'AD';
   };
 
+  const displayName = user?.role === 'admin' ? 'Admin' : (user?.username || user?.nickname || 'admin');
+
   return (
     <header className="topbar">
       <div className="topbar-controls">
@@ -77,19 +79,19 @@ export default function TopBar() {
           aria-label="Toggle language"
           className="topbar-btn topbar-btn--pill"
         >
-          {i18n.language === 'zh' ? 'EN' : '中文'}
+          {i18n.language === 'zh' ? t('topbar.switchToEn') : t('topbar.switchToZh')}
         </button>
 
         {/* User info */}
         <div className="topbar-user">
           {/* Avatar */}
           <div className="topbar-avatar">
-            {getInitials(user?.username || 'admin')}
+            {getInitials(displayName)}
           </div>
 
           <div className="topbar-user-info">
             <div className="topbar-user-name">
-              {user?.username || 'admin'}
+              {displayName}
             </div>
             <div className="topbar-user-role">
               {user?.role || 'Admin'}

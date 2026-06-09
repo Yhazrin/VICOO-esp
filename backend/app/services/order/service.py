@@ -255,3 +255,61 @@ class OrderService(BaseService):
         await self.db.flush()
         await self.db.refresh(order)
         return order
+
+    def _maybe_complete(self, order: Order) -> None:
+        """If both user_confirmed_at and admin_delivered_at are set, mark order completed."""
+        if order.user_confirmed_at and order.admin_delivered_at and order.status == "shipped":
+            order.status = "completed"
+
+    @audit_action(action="confirm_receipt_user", resource_type="order")
+    async def confirm_receipt_by_user(self, order_id: int, user_id: int) -> Order:
+        """User clicks 'Confirm Receipt'. Sets user_confirmed_at; if admin has already
+        marked delivered, status transitions shipped -> completed."""
+        order = await self.get_order_detail(order_id)
+        if order.user_id != user_id:
+            raise HTTPException(status_code=403, detail="Not your order")
+        if order.status not in ("shipped", "completed"):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Order must be shipped to confirm receipt (current: {order.status})",
+            )
+        if order.status == "completed":
+            return order
+        order.user_confirmed_at = datetime.utcnow()
+        self._maybe_complete(order)
+        await self.db.flush()
+        await self.db.refresh(order)
+        return order
+
+    @audit_action(action="confirm_delivery_admin", resource_type="order")
+    async def mark_delivered_by_admin(self, order_id: int, admin_user_id: int) -> Order:
+        """Admin clicks 'Confirm Delivery'. Sets admin_delivered_at; if user has
+        already confirmed receipt, status transitions shipped -> completed."""
+        order = await self.get_order_detail(order_id)
+        if order.status not in ("shipped", "completed"):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Order must be shipped before admin can confirm delivery (current: {order.status})",
+            )
+        if order.status == "completed":
+            return order
+        order.admin_delivered_at = datetime.utcnow()
+        self._maybe_complete(order)
+        await self.db.flush()
+        await self.db.refresh(order)
+        return order
+
+    async def ship_order(self, order_id: int, carrier: str, tracking_number: str) -> Order:
+        """Mark order as shipped (admin op)."""
+        order = await self.get_order_detail(order_id)
+        if order.status != "paid":
+            raise HTTPException(
+                status_code=400,
+                detail=f"Only paid orders can be shipped (current: {order.status})",
+            )
+        order.status = "shipped"
+        order.carrier = carrier
+        order.tracking_number = tracking_number
+        await self.db.flush()
+        await self.db.refresh(order)
+        return order

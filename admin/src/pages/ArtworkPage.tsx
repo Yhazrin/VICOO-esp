@@ -8,10 +8,11 @@ import Pagination from '../components/ui/Pagination';
 import StatusBadge from '../components/ui/StatusBadge';
 import Modal from '../components/ui/Modal';
 import Button from '../components/ui/Button';
+import ImageUploadField from '../components/ui/ImageUploadField';
 import { PageHeader } from '../components/ui/PageHeader';
 import { SummaryCard, MiniStat } from '../components/ui/SummaryCard';
 import { ReviewStatusChart } from '../components/charts/ReviewStatusChart';
-import { fetchArtworks, updateArtworkStatus, updateArtwork, deleteArtwork, analyzeArtwork, uploadTraceMedia } from '../services/api';
+import { fetchArtworks, updateArtworkStatus, updateArtwork, deleteArtwork, analyzeArtwork, uploadTraceMedia, adminCreateArtwork } from '../services/api';
 import type { Artwork } from '../types';
 import dayjs from 'dayjs';
 import { formatDateTime } from '../utils/dateTime';
@@ -82,6 +83,17 @@ export default function ArtworkPage() {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Create-artwork modal state
+  const [createModal, setCreateModal] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    title: '',
+    description: '',
+    imageUrl: '',
+    artistName: 'Admin',
+  });
+  const [createImageUploading, setCreateImageUploading] = useState(false);
+  const createFileInputRef = useRef<HTMLInputElement>(null);
+
   const { data, isLoading } = useQuery({
     queryKey: ['artworks', page, statusFilter, search, sortBy, sortOrder],
     queryFn: () => fetchArtworks({ page, pageSize: 10, status: statusFilter || undefined, search: search || undefined, sortBy, sortOrder }),
@@ -123,6 +135,20 @@ export default function ArtworkPage() {
     },
     onError: () => {
       toast.error(t('common.deleteFailed'));
+    },
+  });
+
+  const createArtworkMutation = useMutation({
+    mutationFn: (payload: { title: string; description?: string; image_url: string; artist_name: string }) =>
+      adminCreateArtwork(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['artworks'] });
+      setCreateModal(false);
+      setCreateForm({ title: '', description: '', imageUrl: '', artistName: 'Admin' });
+      toast.success(t('common.saveSuccess', '添加成功'));
+    },
+    onError: () => {
+      toast.error(t('common.saveFailed', '添加失败'));
     },
   });
 
@@ -175,6 +201,35 @@ export default function ArtworkPage() {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
+  };
+
+  const handleCreateImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCreateImageUploading(true);
+    try {
+      const result = await uploadTraceMedia(file);
+      setCreateForm({ ...createForm, imageUrl: result.url });
+      toast.success(t('common.uploadSuccess'));
+    } catch {
+      toast.error(t('common.uploadFailed'));
+    } finally {
+      setCreateImageUploading(false);
+      if (createFileInputRef.current) createFileInputRef.current.value = '';
+    }
+  };
+
+  const handleCreateSubmit = () => {
+    if (!createForm.title || !createForm.imageUrl) {
+      toast.error(t('campaign.errorRequiredFields', '请填写必填字段'));
+      return;
+    }
+    createArtworkMutation.mutate({
+      title: createForm.title,
+      description: createForm.description || undefined,
+      image_url: createForm.imageUrl,
+      artist_name: createForm.artistName || 'Admin',
+    });
   };
 
   const columns: Column<Artwork>[] = [
@@ -272,7 +327,21 @@ export default function ArtworkPage() {
 
   return (
     <div>
-      <PageHeader title={t('artwork.title')} description={t('artwork.description')} />
+      <PageHeader
+        title={t('artwork.title')}
+        description={t('artwork.description')}
+        actions={
+          <Button
+            variant="primary"
+            onClick={() => {
+              setCreateForm({ title: '', description: '', imageUrl: '', artistName: 'Admin' });
+              setCreateModal(true);
+            }}
+          >
+            + {t('artwork.btnCreate', '添加作品')}
+          </Button>
+        }
+      />
 
       {/* Summary Cards */}
       <div className="dashboard-summary-grid" style={{ marginBottom: 24 }}>
@@ -480,6 +549,68 @@ export default function ArtworkPage() {
             </div>
           </div>
         )}
+      </Modal>
+
+      {/* Create Artwork Modal */}
+      <Modal
+        open={createModal}
+        title={t('artwork.modalCreateTitle', '添加作品')}
+        onClose={() => setCreateModal(false)}
+        width={560}
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setCreateModal(false)}>
+              {t('common.cancel', '取消')}
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleCreateSubmit}
+              loading={createArtworkMutation.isPending}
+            >
+              {t('common.save', '保存')}
+            </Button>
+          </>
+        }
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 500, marginBottom: 5, color: 'var(--color-text-2)' }}>
+              {t('artwork.colWorkTitle', '标题')} *
+            </label>
+            <input
+              value={createForm.title}
+              onChange={(e) => setCreateForm({ ...createForm, title: e.target.value })}
+              style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--color-border)', borderRadius: 6, fontSize: 13, boxSizing: 'border-box', background: 'var(--color-bg)', color: 'var(--color-text)' }}
+            />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 500, marginBottom: 5, color: 'var(--color-text-2)' }}>
+              {t('artwork.colArtist', '作者')}
+            </label>
+            <input
+              value={createForm.artistName}
+              onChange={(e) => setCreateForm({ ...createForm, artistName: e.target.value })}
+              style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--color-border)', borderRadius: 6, fontSize: 13, boxSizing: 'border-box', background: 'var(--color-bg)', color: 'var(--color-text)' }}
+            />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 500, marginBottom: 5, color: 'var(--color-text-2)' }}>
+              {t('artwork.colDescription', '描述')}
+            </label>
+            <textarea
+              value={createForm.description}
+              onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
+              style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--color-border)', borderRadius: 6, fontSize: 13, minHeight: 60, boxSizing: 'border-box', background: 'var(--color-bg)', color: 'var(--color-text)' }}
+            />
+          </div>
+          <div>
+            <ImageUploadField
+              label={t('artwork.colImage', '图片') + ' *'}
+              value={createForm.imageUrl}
+              onChange={(url) => setCreateForm({ ...createForm, imageUrl: url })}
+            />
+          </div>
+        </div>
       </Modal>
     </div>
   );

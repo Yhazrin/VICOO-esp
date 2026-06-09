@@ -16,6 +16,7 @@ from app.schemas import (
     OrderOut,
     OrderCreate,
     OrderStatusUpdate,
+    OrderShipRequest,
     OrderLogisticsUpdate,
     ReturnRequestCreate,
 )
@@ -418,7 +419,7 @@ async def get_order(
 
 @router.post("/{order_id}/cancel", response_model=ApiResponse)
 async def cancel_order(
-    order_id: int, 
+    order_id: int,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -441,6 +442,85 @@ async def cancel_order(
         raise
     except Exception as e:
         logger.error(f"Cancellation failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@router.post("/{order_id}/confirm-receipt", response_model=ApiResponse)
+async def confirm_receipt(
+    order_id: int,
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """User confirms receipt of a shipped order. Order is marked completed only
+    after the admin has also confirmed delivery."""
+    order_service = OrderService(db)
+    try:
+        order = await order_service.confirm_receipt_by_user(
+            order_id, user_id=current_user["id"]
+        )
+        item_stmt = select(OrderItem).where(OrderItem.order_id == order_id)
+        items = (await db.execute(item_stmt)).scalars().all()
+        product_map = await _build_product_map(db, items)
+        out = order_to_out_dict(order, list(items), product_map)
+        return ApiResponse(data=out)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"confirm-receipt failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@router.post("/{order_id}/confirm-delivery", response_model=ApiResponse)
+async def confirm_delivery(
+    order_id: int,
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Admin confirms delivery of a shipped order. Order is marked completed only
+    after the user has also confirmed receipt."""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin only")
+    order_service = OrderService(db)
+    try:
+        order = await order_service.mark_delivered_by_admin(
+            order_id, admin_user_id=current_user["id"]
+        )
+        item_stmt = select(OrderItem).where(OrderItem.order_id == order_id)
+        items = (await db.execute(item_stmt)).scalars().all()
+        product_map = await _build_product_map(db, items)
+        out = order_to_out_dict(order, list(items), product_map)
+        return ApiResponse(data=out)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"confirm-delivery failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@router.post("/{order_id}/ship", response_model=ApiResponse)
+async def ship_order(
+    order_id: int,
+    body: OrderShipRequest,
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Admin marks a paid order as shipped with carrier and tracking number."""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin only")
+    order_service = OrderService(db)
+    try:
+        order = await order_service.ship_order(
+            order_id, carrier=body.carrier, tracking_number=body.tracking_number
+        )
+        item_stmt = select(OrderItem).where(OrderItem.order_id == order_id)
+        items = (await db.execute(item_stmt)).scalars().all()
+        product_map = await _build_product_map(db, items)
+        out = order_to_out_dict(order, list(items), product_map)
+        return ApiResponse(data=out)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"ship_order failed: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error")
 
 

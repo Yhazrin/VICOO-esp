@@ -19,6 +19,7 @@ import asyncio
 import json
 from datetime import datetime
 from decimal import Decimal
+import os
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -144,10 +145,11 @@ async def demo_data_is_complete(session: AsyncSession) -> bool:
 
 
 async def maybe_seed_demo() -> None:
-    """Load demo catalog when products are missing or update existing products.
+    """Load demo catalog in a non-destructive way.
 
-    - If no products exist: full seed (clear and recreate)
+    - If no products exist: full seed (insert only, no truncate)
     - If products exist: upsert products only (don't touch orders/logs)
+    - Destructive clear-and-reseed is opt-in via SEED_FORCE_RESET=1.
     """
     from sqlalchemy import func, select
 
@@ -155,6 +157,8 @@ async def maybe_seed_demo() -> None:
     if not want:
         print("Skip seed (APP_ENV/SEED_IF_EMPTY).")
         return
+
+    force_reset = getattr(settings, "SEED_FORCE_RESET", False) or os.environ.get("SEED_FORCE_RESET") == "1"
 
     async with AsyncSessionLocal() as session:
         if await demo_data_is_complete(session):
@@ -165,10 +169,14 @@ async def maybe_seed_demo() -> None:
             return
 
         user_exists = (await session.execute(select(User.id).limit(1))).scalar_one_or_none() is not None
-        if user_exists:
-            print("Partial demo data detected; clearing before re-seed...")
+        if user_exists and force_reset:
+            print("SEED_FORCE_RESET=1; clearing before re-seed...")
             await clear_demo_data(session)
             await session.commit()
+        elif user_exists:
+            print("Partial demo data detected; running idempotent seed (no clear).")
+            await upsert_products_only()
+            return
 
     print("Running demo seed before uvicorn...")
     await seed()
@@ -423,7 +431,7 @@ async def seed():
             User(
                 email="admin@tonghua.org",
                 password_hash=hash_password(settings.SEED_ADMIN_PASSWORD),
-                nickname="管理员",
+                nickname="Admin",
                 role="admin",
                 status="active",
             ),

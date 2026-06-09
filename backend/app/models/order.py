@@ -33,6 +33,9 @@ class Order(Base):
     postal_code = Column(String(20), nullable=True)
     country = Column(String(100), nullable=True)
     country_code = Column(String(10), nullable=True)
+    # Dual confirmation: only mark completed when both user AND admin have confirmed
+    user_confirmed_at = Column(DateTime, nullable=True, comment="User clicked 'Confirm Receipt' timestamp")
+    admin_delivered_at = Column(DateTime, nullable=True, comment="Admin clicked 'Confirm Delivery' timestamp")
     created_at = Column(DateTime, server_default=func.now(), nullable=False, index=True)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
 

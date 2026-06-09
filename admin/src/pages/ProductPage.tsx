@@ -12,6 +12,7 @@ import StatusBadge from '../components/ui/StatusBadge';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 import { PageHeader } from '../components/ui/PageHeader';
 import { SummaryCard, MiniStat } from '../components/ui/SummaryCard';
+import ImageUploadField from '../components/ui/ImageUploadField';
 import type { AdminProduct, SupplyChainRecord, TraceMediaItem } from '../types';
 import {
   createProduct, updateProduct, deleteProduct,
@@ -575,20 +576,14 @@ export default function ProductPage() {
               </select>
             </div>
             <div>
-              <label style={labelStyle}>{t('product.labelImageUrl')}</label>
-              <input value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} style={inputStyle} placeholder="https://..." />
-            </div>
-          </div>
-          {form.imageUrl && (
-            <div style={{ marginTop: 10 }}>
-              <img
-                src={form.imageUrl}
-                alt="preview"
-                style={{ height: 80, borderRadius: 8, objectFit: 'cover', border: '1px solid var(--color-border)' }}
-                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              <ImageUploadField
+                label={t('product.labelImageUrl')}
+                value={form.imageUrl}
+                onChange={(url) => setForm({ ...form, imageUrl: url })}
+                placeholder="点击或拖拽上传商品图片"
               />
             </div>
-          )}
+          </div>
         </div>
       </div>
     );
@@ -982,11 +977,13 @@ export default function ProductPage() {
           {/* Certification */}
           <div>
             <SectionHeader title={t('product.sectionNodeCert')} />
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 12, alignItems: 'end' }}>
-              <div>
-                <label style={labelStyle}>{t('product.nodeCertImageUrl')}</label>
-                <input value={nodeForm.certImageUrl} onChange={(e) => setNodeForm({ ...nodeForm, certImageUrl: e.target.value })} style={inputStyle} />
-              </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 12, alignItems: 'start' }}>
+              <ImageUploadField
+                label={t('product.nodeCertImageUrl')}
+                value={nodeForm.certImageUrl}
+                onChange={(url) => setNodeForm({ ...nodeForm, certImageUrl: url })}
+                placeholder="点击或拖拽上传证书图片"
+              />
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingBottom: 2 }}>
                 <input
                   type="checkbox" id="node-certified"

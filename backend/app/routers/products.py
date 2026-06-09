@@ -438,7 +438,7 @@ async def get_product(product_id: int, locale: str = Query("zh", pattern="^(zh|e
 
 
 @router.post("", response_model=ApiResponse, status_code=201)
-async def create_product(body: ProductCreate, db: AsyncSession = Depends(get_db), current_user: dict = Depends(require_role("admin", "editor"))):
+async def create_product(body: ProductCreate, db: AsyncSession = Depends(get_db), current_user: dict = Depends(require_role("admin"))):
     """Create a new product."""
     try:
         payload = body.model_dump()
@@ -462,7 +462,7 @@ async def create_product(body: ProductCreate, db: AsyncSession = Depends(get_db)
 
 
 @router.put("/{product_id}", response_model=ApiResponse)
-async def update_product(product_id: int, body: ProductUpdate, db: AsyncSession = Depends(get_db), current_user: dict = Depends(require_role("admin", "editor"))):
+async def update_product(product_id: int, body: ProductUpdate, db: AsyncSession = Depends(get_db), current_user: dict = Depends(require_role("admin"))):
     """Update a product."""
     try:
         stmt = select(Product).where(Product.id == product_id)
@@ -496,7 +496,7 @@ async def update_product(product_id: int, body: ProductUpdate, db: AsyncSession 
 async def delete_product(
     product_id: int,
     db: AsyncSession = Depends(get_db),
-    _current_user: dict = Depends(require_role("admin", "editor")),
+    _current_user: dict = Depends(require_role("admin")),
 ):
     """Delete a product when it has no order or impact-fund linkage."""
     try:

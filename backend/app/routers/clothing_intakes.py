@@ -67,7 +67,7 @@ async def list_all_intakes(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     status: str | None = Query(None),
-    _staff: dict = Depends(require_role("admin", "editor")),
+    _staff: dict = Depends(require_role("admin")),
     db: AsyncSession = Depends(get_db),
 ):
     stmt = select(ClothingIntake)
@@ -87,7 +87,7 @@ async def list_all_intakes(
 async def update_intake_status(
     intake_id: int,
     body: ClothingIntakeStatusUpdate,
-    staff: dict = Depends(require_role("admin", "editor")),
+    staff: dict = Depends(require_role("admin")),
     db: AsyncSession = Depends(get_db),
     request: Request = None,
 ):
@@ -121,7 +121,7 @@ async def update_intake_status(
 async def publish_product_from_intake(
     intake_id: int,
     body: PublishFromIntakeBody,
-    staff: dict = Depends(require_role("admin", "editor")),
+    staff: dict = Depends(require_role("admin")),
     db: AsyncSession = Depends(get_db),
     request: Request = None,
 ):

@@ -50,7 +50,7 @@ from app.services.donation.service import DonationService
 @router.get("/dashboard", response_model=ApiResponse)
 async def dashboard(
     db: AsyncSession = Depends(get_db),
-    _current_user: dict = Depends(require_role("admin", "editor")),
+    _current_user: dict = Depends(require_role("admin")),
 ):
     """Get aggregated dashboard statistics for admin. (Refactored)"""
     admin_service = AdminService(db)
@@ -81,7 +81,7 @@ async def dashboard(
 async def approve_donation_admin(
     donation_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(require_role("admin", "editor")),
+    current_user: dict = Depends(require_role("admin")),
 ):
     """Manually approve a pending donation after offline / manual payment review."""
     donation_service = DonationService(db)
@@ -94,7 +94,7 @@ async def approve_donation_admin(
 @router.get("/analytics/ai", response_model=ApiResponse)
 async def ai_analytics(
     db: AsyncSession = Depends(get_db),
-    _current_user: dict = Depends(require_role("admin", "editor")),
+    _current_user: dict = Depends(require_role("admin")),
 ):
     """Get AI rollout metrics for quality gates and handoff tracking."""
     admin_service = AdminService(db)
@@ -112,7 +112,7 @@ async def batch_moderate_artworks(
     artwork_ids: List[int],
     status: str,
     db: AsyncSession = Depends(get_db),
-    _current_user: dict = Depends(require_role("admin", "editor")),
+    _current_user: dict = Depends(require_role("admin")),
 ):
     """Batch approve or reject artworks."""
     admin_service = AdminService(db)
@@ -130,7 +130,7 @@ async def batch_moderate_children(
     child_ids: List[int],
     status: str,
     db: AsyncSession = Depends(get_db),
-    _current_user: dict = Depends(require_role("admin", "compliance")),
+    _current_user: dict = Depends(require_role("admin")),
 ):
     """Batch approve or withdraw child participants."""
     admin_service = AdminService(db)

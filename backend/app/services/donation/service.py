@@ -174,6 +174,7 @@ class DonationService(BaseService):
         await self.db.flush()
         return donation
 
+    @audit_action(action="admin_approve_donation", resource_type="donation")
     async def admin_approve_donation(
         self, donation_id: int, admin_user_id: Optional[int] = None
     ) -> Donation:

@@ -30,7 +30,7 @@ async def get_editorial_feed(limit: int = 10, db: AsyncSession = Depends(get_db)
 async def create_editorial_article(
     body: EditorialArticleCreate,
     db: AsyncSession = Depends(get_db),
-    _admin: dict = Depends(require_role("admin", "editor")),
+    _admin: dict = Depends(require_role("admin")),
 ):
     """Create a new editorial article (admin/editor only)."""
     from datetime import datetime

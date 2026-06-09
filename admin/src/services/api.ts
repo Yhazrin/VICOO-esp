@@ -330,6 +330,36 @@ export async function deleteArtwork(id: string): Promise<void> {
 }
 
 /**
+ * Admin-direct artwork creation (bypasses child consent).
+ * POST /artworks/admin
+ */
+export async function adminCreateArtwork(payload: {
+  title: string;
+  description?: string;
+  image_url: string;
+  thumbnail_url?: string;
+  artist_name: string;
+  campaign_id?: number;
+  child_participant_id?: number;
+}): Promise<Artwork> {
+  const { data: envelope } = await api.post('/artworks/admin', payload);
+  const item = envelope.data;
+  return {
+    id: String(item.id),
+    title: item.title ?? '',
+    description: item.description ?? '',
+    childName: item.artist_name ?? '',
+    childAge: 0,
+    imageUrl: item.image_url ?? item.imageUrl ?? '',
+    category: '',
+    status: item.status ?? 'pending',
+    votes: item.like_count ?? item.vote_count ?? 0,
+    campaignId: item.campaign_id ? String(item.campaign_id) : undefined,
+    createdAt: item.created_at ?? '',
+  };
+}
+
+/**
  * Fetch orders from GET /orders (business route, no /admin prefix).
  */
 export async function fetchOrders(params: FilterParams = {}): Promise<PaginatedResponse<Order>> {

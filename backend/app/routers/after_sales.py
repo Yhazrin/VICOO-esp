@@ -103,7 +103,7 @@ async def list_tickets_admin(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     status: str | None = Query(None),
-    _admin: dict = Depends(require_role("admin", "editor")),
+    _admin: dict = Depends(require_role("admin")),
     db: AsyncSession = Depends(get_db),
 ):
     normalized_status = normalize_status_filter(status)
@@ -131,7 +131,7 @@ async def list_tickets_admin(
 async def review_ticket(
     ticket_id: int,
     body: AfterSaleReviewRequest,
-    _staff: dict = Depends(require_role("admin", "editor")),
+    _staff: dict = Depends(require_role("admin")),
     db: AsyncSession = Depends(get_db),
 ):
     stmt = select(AfterSaleTicket).where(AfterSaleTicket.id == ticket_id)
@@ -185,7 +185,7 @@ async def review_ticket(
 async def update_ticket_status(
     ticket_id: int,
     body: AfterSaleStatusUpdate,
-    _staff: dict = Depends(require_role("admin", "editor")),
+    _staff: dict = Depends(require_role("admin")),
     db: AsyncSession = Depends(get_db),
 ):
     stmt = select(AfterSaleTicket).where(AfterSaleTicket.id == ticket_id)
@@ -202,7 +202,7 @@ async def update_ticket_status(
 async def update_ticket_status_legacy(
     ticket_id: int,
     body: AfterSaleStatusUpdate,
-    _staff: dict = Depends(require_role("admin", "editor")),
+    _staff: dict = Depends(require_role("admin")),
     db: AsyncSession = Depends(get_db),
 ):
     """Legacy admin path alias for status updates."""

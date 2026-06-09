@@ -46,6 +46,12 @@ class OrderStatusUpdate(BaseModel):
     status: str = Field(..., pattern="^(pending|paid|shipped|completed|cancelled)$", description="New order status")
 
 
+class OrderShipRequest(BaseModel):
+    """Body for POST /orders/{id}/ship — admin-only."""
+    carrier: str = Field(..., min_length=1, max_length=100, description="Logistics carrier name")
+    tracking_number: str = Field(..., min_length=1, max_length=120, description="Carrier tracking number")
+
+
 class OrderListItem(BaseModel):
     id: int
     user_id: int
