@@ -55,11 +55,11 @@ async def get_current_user(
         payload = decode_token(token)
         if payload.get("type") != "access":
             raise HTTPException(status_code=401, detail="Invalid token type")
-        
+
         # Check blacklist
         if await is_token_blacklisted(payload.get("jti")):
             raise HTTPException(status_code=401, detail="Token has been invalidated (logged out)")
-            
+
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
@@ -81,16 +81,20 @@ async def get_current_user(
             raise HTTPException(status_code=401, detail="User not found")
         if user.status == "banned":
             raise HTTPException(status_code=403, detail="User is banned")
-        
+
         # Return the actual user object or a dict with the role value
         role_value = user.role.value if hasattr(user.role, "value") else str(user.role)
-        return {
-            "id": user.id, 
-            "email": user.email, 
-            "role": role_value, 
+        result_dict = {
+            "id": user.id,
+            "email": user.email,
+            "role": role_value,
             "nickname": user.nickname,
             "user_obj": user  # Include the full object for complex checks
         }
+        # Expose to the audit decorator for services that don't take current_user
+        from app.core.audit import set_current_user
+        set_current_user(result_dict)
+        return result_dict
     except HTTPException:
         raise
     except Exception:

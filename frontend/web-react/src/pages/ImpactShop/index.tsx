@@ -88,6 +88,7 @@ export default function ImpactShop() {
         category: activeCategory === 'all' ? undefined : activeCategory,
         isImpactProduct: true,
         locale: i18n.language,
+        page_size: 100,
       });
       return result;
     },

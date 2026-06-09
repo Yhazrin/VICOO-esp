@@ -140,16 +140,16 @@ async def trace_product(
 async def create_record(
     body: SupplyChainRecordCreate,
     db: AsyncSession = Depends(get_db),
-    _current_user: dict = Depends(require_role("admin")),
+    current_user: dict = Depends(require_role("admin")),
 ):
-    """Create a new supply chain record (admin/editor only). (Refactored)"""
+    """Create a new supply chain record (admin only). (Refactored)"""
     sc_service = SupplyChainService(db)
     try:
         payload = body.model_dump()
         if payload.get("gallery"):
             payload["gallery_json"] = json.dumps(payload["gallery"])
         payload.pop("gallery", None)
-        record = await sc_service.add_record(body.product_id, payload)
+        record = await sc_service.add_record(body.product_id, payload, current_user=current_user)
         return ApiResponse(data=supply_chain_record_to_out(record).model_dump())
     except HTTPException:
         raise
@@ -163,13 +163,13 @@ async def patch_record(
     record_id: int,
     body: SupplyChainRecordUpdate,
     db: AsyncSession = Depends(get_db),
-    _current_user: dict = Depends(require_role("admin")),
+    current_user: dict = Depends(require_role("admin")),
 ):
-    """Update a supply chain record (admin/editor). Gallery replaces entire list when sent."""
+    """Update a supply chain record (admin). Gallery replaces entire list when sent."""
     sc_service = SupplyChainService(db)
     try:
         payload = body.model_dump(exclude_unset=True)
-        record = await sc_service.update_record(record_id, payload)
+        record = await sc_service.update_record(record_id, payload, current_user=current_user)
         if not record:
             raise HTTPException(status_code=404, detail="Record not found")
         return ApiResponse(data=supply_chain_record_to_out(record).model_dump())

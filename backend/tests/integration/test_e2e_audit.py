@@ -127,3 +127,38 @@ async def test_audit_log_admin_approve_donation_shows_admin(app):
         for e in entries:
             if e.user_id == 2:
                 assert e.user_name == "Admin"
+
+
+@pytest.mark.asyncio
+async def test_audit_log_regular_user_donation_shows_nickname(client, user_auth_headers):
+    """普通用户通过 HTTP 创建捐赠 → 审计日志 user_name 应该是其 nickname。"""
+    from app.database import AsyncSessionLocal
+    from app.models.audit import AuditLog
+    from sqlalchemy import select
+
+    r = await client.post(
+        "/api/v1/donations",
+        json={
+            "donor_name": "Test Donor",
+            "amount": "50.00",
+            "currency": "CNY",
+            "payment_method": "wechat",
+            "campaign_id": 1,
+        },
+        headers=user_auth_headers,
+    )
+    assert r.status_code in (200, 201), r.text
+    donation_id = r.json()["data"]["id"]
+
+    async with AsyncSessionLocal() as db:
+        logs = (await db.execute(
+            select(AuditLog)
+            .where(AuditLog.action == "create_donation")
+            .where(AuditLog.resource_id == str(donation_id))
+        )).scalars().all()
+        assert len(logs) >= 1
+        for e in logs:
+            assert e.user_id is not None
+            # Regular user → their nickname
+            assert e.user_name != "Admin" or e.user_id == 2  # not 'Admin' unless they ARE admin
+            assert e.user_name is not None and e.user_name != ""

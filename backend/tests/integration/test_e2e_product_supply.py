@@ -80,3 +80,37 @@ async def test_admin_can_add_supply_chain_node(client, admin_auth_headers):
     )
     assert r4.status_code == 200, r4.text
     assert "已升级工艺" in r4.json()["data"]["description"]
+
+
+@pytest.mark.asyncio
+async def test_supply_chain_node_save_records_admin_audit_log(client, admin_auth_headers):
+    """保存供应链节点 → 审计日志应记录 admin 操作人。"""
+    from app.database import AsyncSessionLocal
+    from app.models.audit import AuditLog
+    from sqlalchemy import select
+
+    r = await client.post(
+        "/api/v1/products",
+        json={"name": "审计测试商品", "price": "88.00", "stock": 10, "category": "apparel"},
+        headers=admin_auth_headers,
+    )
+    assert r.status_code == 201
+    pid = r.json()["data"]["id"]
+
+    r2 = await client.post(
+        "/api/v1/supply-chain/records",
+        json={"product_id": pid, "stage": "manufacturing", "description": "audit", "location": "Beijing"},
+        headers=admin_auth_headers,
+    )
+    assert r2.status_code == 201
+
+    async with AsyncSessionLocal() as db:
+        logs = (await db.execute(
+            select(AuditLog)
+            .where(AuditLog.action == "create_traceability_record")
+            .where(AuditLog.resource_id == str(r2.json()["data"]["id"]))
+        )).scalars().all()
+        assert len(logs) >= 1
+        for e in logs:
+            assert e.user_id is not None
+            assert e.user_name in ("Admin",)  # admin is normalised

@@ -19,6 +19,7 @@ import {
   fetchProducts, fetchOriginCountries, fetchOriginRegions,
   fetchSupplyChainRecords, createSupplyChainRecord,
   updateSupplyChainRecord, deleteSupplyChainRecord,
+  fetchCampaigns, fetchArtworks,
   uploadTraceMedia,
 } from '../services/api';
 import { resolveApiAssetUrl } from '../utils/resolveApiAssetUrl';
@@ -205,6 +206,19 @@ export default function ProductPage() {
     enabled: !!editingId && modalOpen,
   });
 
+  // For selectors: fetch up to 200 campaigns + artworks
+  const { data: allCampaignsResp } = useQuery({
+    queryKey: ['campaigns-all'],
+    queryFn: () => fetchCampaigns({ page: 1, pageSize: 200 }),
+  });
+  const allCampaigns: any[] = allCampaignsResp?.data ?? [];
+
+  const { data: allArtworksResp } = useQuery({
+    queryKey: ['artworks-all'],
+    queryFn: () => fetchArtworks({ page: 1, pageSize: 200 } as any),
+  });
+  const allArtworks: any[] = allArtworksResp?.data ?? [];
+
   /* ── Mutations ── */
   const createMut = useMutation({
     mutationFn: createProduct,
@@ -243,6 +257,12 @@ export default function ProductPage() {
       toast.success(t('product.toastNodeCreated'));
       closeNodeModal();
     },
+    onError: (e: any) =>
+      toast.error(
+        e?.response?.data?.detail
+          ? String(e.response.data.detail)
+          : t('product.toastNodeCreateFailed', '保存节点失败'),
+      ),
   });
 
   const updateNodeMut = useMutation({
@@ -253,6 +273,12 @@ export default function ProductPage() {
       toast.success(t('product.toastNodeUpdated'));
       closeNodeModal();
     },
+    onError: (e: any) =>
+      toast.error(
+        e?.response?.data?.detail
+          ? String(e.response.data.detail)
+          : t('product.toastNodeUpdateFailed', '更新节点失败'),
+      ),
   });
 
   const deleteNodeMut = useMutation({
@@ -261,6 +287,12 @@ export default function ProductPage() {
       queryClient.invalidateQueries({ queryKey: ['supply-chain'] });
       toast.success(t('product.toastNodeDeleted'));
     },
+    onError: (e: any) =>
+      toast.error(
+        e?.response?.data?.detail
+          ? String(e.response.data.detail)
+          : t('product.toastNodeDeleteFailed', '删除节点失败'),
+      ),
   });
 
   /* ── Helpers ── */
@@ -612,11 +644,33 @@ export default function ProductPage() {
             </div>
             <div>
               <label style={labelStyle}>{t('product.labelCampaignId')}</label>
-              <input value={form.campaignId} onChange={(e) => setForm({ ...form, campaignId: e.target.value })} style={inputStyle} />
+              <select
+                value={form.campaignId || ''}
+                onChange={(e) => setForm({ ...form, campaignId: e.target.value })}
+                style={inputStyle}
+              >
+                <option value="">— {t('common.none', '无')} —</option>
+                {allCampaigns.map((c) => (
+                  <option key={c.id} value={String(c.id)}>
+                    #{c.id} · {c.title}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
               <label style={labelStyle}>{t('product.labelArtworkId')}</label>
-              <input value={form.artworkId} onChange={(e) => setForm({ ...form, artworkId: e.target.value })} style={inputStyle} />
+              <select
+                value={form.artworkId || ''}
+                onChange={(e) => setForm({ ...form, artworkId: e.target.value })}
+                style={inputStyle}
+              >
+                <option value="">— {t('common.none', '无')} —</option>
+                {allArtworks.map((a) => (
+                  <option key={a.id} value={String(a.id)}>
+                    #{a.id} · {a.title}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </div>

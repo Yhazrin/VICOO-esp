@@ -1,6 +1,7 @@
 import functools
 import logging
 import json
+from contextvars import ContextVar
 from typing import Any, Callable, Optional
 
 from fastapi import Request
@@ -10,6 +11,19 @@ from app.models.audit import AuditLog
 from app.models.user import User
 
 logger = logging.getLogger("vicoo.audit")
+
+# Set by the auth dependency on every authenticated request; read by the
+# audit decorator so it can attribute actions to the calling user even when
+# the service method signature does not include `current_user`.
+_current_user_var: ContextVar[Optional[dict]] = ContextVar("current_user", default=None)
+
+
+def set_current_user(user: Optional[dict]) -> None:
+    _current_user_var.set(user)
+
+
+def get_current_user() -> Optional[dict]:
+    return _current_user_var.get()
 
 
 async def _resolve_user_name(db: AsyncSession, user_id: Optional[int]) -> Optional[str]:
@@ -90,6 +104,11 @@ def audit_action(action: str, resource_type: str):
             current_user = kwargs.get("current_user")
             if current_user and isinstance(current_user, dict):
                 user_id = current_user.get("id")
+            elif user_id is None:
+                # Fall back to context-var set by the auth dependency
+                ctx_user = get_current_user()
+                if ctx_user and isinstance(ctx_user, dict):
+                    user_id = ctx_user.get("id") or ctx_user.get("sub")
 
             # Service methods may pass the user id under a different name
             # (e.g. admin_user_id) — scan kwargs and known param aliases.

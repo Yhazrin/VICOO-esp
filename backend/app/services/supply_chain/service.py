@@ -64,7 +64,13 @@ class SupplyChainService(BaseService):
         return out
 
     @audit_action(action="create_traceability_record", resource_type="supply_chain")
-    async def add_record(self, product_id: int, record_data: Dict[str, Any]) -> SupplyChainRecord:
+    async def add_record(
+        self,
+        product_id: int,
+        record_data: Dict[str, Any],
+        *,
+        current_user: Optional[Dict[str, Any]] = None,
+    ) -> SupplyChainRecord:
         """
         Add a new stage to a product's supply chain (Admin action).
         """
@@ -94,7 +100,13 @@ class SupplyChainService(BaseService):
         return record
 
     @audit_action(action="update_traceability_record", resource_type="supply_chain")
-    async def update_record(self, record_id: int, data: Dict[str, Any]) -> Optional[SupplyChainRecord]:
+    async def update_record(
+        self,
+        record_id: int,
+        data: Dict[str, Any],
+        *,
+        current_user: Optional[Dict[str, Any]] = None,
+    ) -> Optional[SupplyChainRecord]:
         """Partial update (admin/editor)."""
         record = await self.db.get(SupplyChainRecord, record_id)
         if not record:
