@@ -43,6 +43,7 @@ export function DonationTrendChart({ data = [], height = 180 }: DonationTrendCha
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 10, fill: 'var(--color-text-3)' }}
+              tickFormatter={(v) => t(`dashboard.chart${v.charAt(0).toUpperCase() + v.slice(1)}`)}
             />
             <YAxis
               axisLine={false}
@@ -60,6 +61,7 @@ export function DonationTrendChart({ data = [], height = 180 }: DonationTrendCha
               }}
               formatter={(value: number) => [`¥${value.toLocaleString()}`, t('dashboard.chartDonation')]}
               labelStyle={{ color: 'var(--color-text-2)' }}
+              labelFormatter={(label) => t(`dashboard.chart${label.charAt(0).toUpperCase() + label.slice(1)}`)}
             />
             <Area
               type="monotone"

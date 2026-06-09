@@ -51,6 +51,7 @@ export function ReviewStatusChart({ data = [], height = 180 }: ReviewStatusChart
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 11, fill: 'var(--color-text-2)' }}
+              tickFormatter={(v) => t(`dashboard.chart${v.charAt(0).toUpperCase() + v.slice(1)}`)}
               width={60}
             />
             <Tooltip
@@ -63,6 +64,7 @@ export function ReviewStatusChart({ data = [], height = 180 }: ReviewStatusChart
               }}
               formatter={(value: number) => [value, t('dashboard.chartCount')]}
               labelStyle={{ color: 'var(--color-text-2)' }}
+              labelFormatter={(label) => t(`dashboard.chart${label.charAt(0).toUpperCase() + label.slice(1)}`)}
             />
             <Bar dataKey="value" radius={[0, 3, 3, 0]} barSize={16}>
               {chartData.map((entry, index) => (
