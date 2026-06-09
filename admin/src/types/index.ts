@@ -3,9 +3,15 @@ export interface User {
   username: string;
   email: string;
   phone?: string;
+<<<<<<< HEAD
   /** Matches backend users.role enum */
   role: 'admin' | 'editor' | 'user' | 'guardian' | 'compliance';
   /** Matches backend users.status enum: active | banned */
+=======
+  /** 与后端 users.role 枚举一致 */
+  role: 'admin' | 'user';
+  /** 与后端 users.status 枚举一致：active | banned */
+>>>>>>> bd8a9ee5 (fix(admin): drop editor/guardian/compliance roles from UI + access)
   status: 'active' | 'banned';
   avatar?: string;
   createdAt: string;
@@ -148,6 +154,7 @@ export interface FilterParams {
   page?: number;
   pageSize?: number;
   search?: string;
+  action?: string;
   status?: string;
   paymentMethod?: string;
   sortBy?: string;

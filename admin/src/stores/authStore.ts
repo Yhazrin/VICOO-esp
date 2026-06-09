@@ -5,7 +5,7 @@ export interface AuthUser {
   id: string;
   username: string;
   email: string;
-  role: 'admin' | 'editor' | 'user' | 'guardian' | 'compliance';
+  role: 'admin' | 'user';
   avatar?: string;
   provider?: 'password' | 'oauth' | 'adfs';
   permissions?: string[];
@@ -44,7 +44,7 @@ function isExternalUrl(path: string): boolean {
  * Check if user has admin access
  */
 export function hasAdminAccess(role: AuthUser['role']): boolean {
-  return ['admin', 'editor', 'compliance'].includes(role);
+  return role === 'admin';
 }
 
 /**

@@ -57,10 +57,7 @@ export default function UserPage() {
   const getRoleLabel = (v: string) => {
     const map: Record<string, string> = {
       admin: t('user.roleAdmin'),
-      editor: t('user.roleEditor'),
       user: t('user.roleViewer'),
-      guardian: t('user.roleGuardian'),
-      compliance: t('user.roleAuditor'),
     };
     return map[v] || v;
   };
@@ -100,7 +97,7 @@ export default function UserPage() {
   // Calculate summary stats
   const summaryStats = {
     total: users.length,
-    admins: users.filter((u: User) => u.role === 'admin' || u.role === 'compliance').length,
+    admins: users.filter((u: User) => u.role === 'admin').length,
     active: users.filter((u: User) => u.status === 'active').length,
     recent: users.filter((u: User) => dayjs(u.createdAt).isAfter(dayjs().subtract(7, 'day'))).length,
   };
@@ -187,7 +184,7 @@ export default function UserPage() {
         </SummaryCard>
         <SummaryCard title={t('user.summaryAdminsTitle')} subtitle={t('user.summaryAdminsSubtitle')} icon={ShieldIcon}>
           <MiniStat label={t('user.summaryAdminCount')} value={summaryStats.admins} />
-          <MiniStat label={t('user.summaryEditors')} value={users.filter((u: User) => u.role === 'editor').length} />
+          <MiniStat label={t('user.summaryActiveUsers')} value={summaryStats.active} />
         </SummaryCard>
         <SummaryCard title={t('user.summaryActiveTitle')} subtitle={t('user.summaryActiveSubtitle')} icon={ActivityIcon}>
           <MiniStat label={t('user.summaryActiveUsers')} value={summaryStats.active} />
@@ -262,10 +259,7 @@ export default function UserPage() {
                 style={{ width: '100%' }}
               >
                 <option value="admin">{t('user.optionAdmin')}</option>
-                <option value="editor">{t('user.optionEditor')}</option>
                 <option value="user">{t('user.optionViewer')}</option>
-                <option value="guardian">{t('user.optionGuardian')}</option>
-                <option value="compliance">{t('user.optionAuditor')}</option>
               </select>
             </div>
             <div className="modal-detail-full">
