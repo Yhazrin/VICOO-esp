@@ -181,6 +181,10 @@ export default function ProductPage() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ['admin-products', page, status],
     queryFn: () => fetchProducts({ page, pageSize: 20, status: status || undefined }),
+    placeholderData: (prev) => prev,
+    staleTime: 0,
+    gcTime: 5 * 60 * 1000,
+    retry: 1,
   });
 
   const { data: countries = [] } = useQuery({
@@ -505,7 +509,7 @@ export default function ProductPage() {
   /* ── Table columns ── */
   const products = data?.data || [];
   const summaryStats = {
-    total: products.length,
+    total: data?.total ?? products.length,
     active: products.filter((p: AdminProduct) => p.status === 'active').length,
     soldOut: products.filter((p: AdminProduct) => p.status === 'sold_out').length,
     impact: products.filter((p: AdminProduct) => p.isImpactProduct).length,
@@ -924,7 +928,13 @@ export default function ProductPage() {
         </div>
       </div>
 
-      <DataTable columns={columns} data={products} rowKey="id" loading={isLoading} />
+      <DataTable columns={columns} data={products} rowKey="id" loading={isLoading || isFetching} />
+      {isError && (
+        <div style={{ padding: 12, marginTop: 8, background: 'var(--color-error-bg)', color: 'var(--color-error)', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span>{t('product.loadFailedHint', { detail: (error as any)?.response?.data?.detail ?? (error as Error)?.message ?? 'unknown' })}</span>
+          <Button variant="secondary" onClick={() => refetch()}>{t('common.retry')}</Button>
+        </div>
+      )}
       <Pagination page={page} totalPages={data?.totalPages || 1} total={data?.total || 0} pageSize={20} onPageChange={setPage} />
 
       {/* ══════════════════════════════════════════════════════════════════
