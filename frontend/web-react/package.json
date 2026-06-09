@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test:perf": "playwright test e2e/perf-impact-toggle.spec.ts",
-    "screenshots:manual": "playwright test e2e/manual-screenshots.spec.ts --config=playwright.manual-figures.config.ts"
+    "screenshots:manual": "playwright test e2e/manual-screenshots.spec.ts --config=playwright.manual-figures.config.ts",
+    "demo:video": "playwright test e2e/demo-video.spec.ts --config=playwright.demo-video.config.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.17.19",
