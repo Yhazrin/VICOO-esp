@@ -135,7 +135,7 @@ async def test_donation_admin_full_chain(client, admin_auth_headers, user_auth_h
         )).scalars().all()
         assert len(log) >= 1
         for e in log:
-            assert e.user_name == "Admin"
+            assert e.user_name == "Test Admin"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -191,7 +191,7 @@ async def test_order_admin_full_chain(client, admin_auth_headers, user_auth_head
         )).scalars().all()
         assert len(confirm_admin) >= 1
         for e in confirm_admin:
-            assert e.user_name == "Admin"
+            assert e.user_name == "Test Admin"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -237,7 +237,7 @@ async def test_user_admin_full_chain(client, admin_auth_headers):
         )).scalars().all()
         assert len(log) >= 1
         for e in log:
-            assert e.user_name == "Admin"
+            assert e.user_name == "Test Admin"
 
 
 # ─────────────────────────────────────────────────────────────────────────────

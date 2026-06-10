@@ -113,4 +113,4 @@ async def test_supply_chain_node_save_records_admin_audit_log(client, admin_auth
         assert len(logs) >= 1
         for e in logs:
             assert e.user_id is not None
-            assert e.user_name in ("Admin",)  # admin is normalised
+            assert e.user_name in ("Test Admin",)  # admin nickname resolved via DB

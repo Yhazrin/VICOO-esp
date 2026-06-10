@@ -10,7 +10,7 @@ import StatusBadge from '../components/ui/StatusBadge';
 import { PageHeader } from '../components/ui/PageHeader';
 import { SummaryCard, MiniStat } from '../components/ui/SummaryCard';
 import { AuditActivityChart, EventTypeChart } from '../components/charts/AuditActivityChart';
-import { fetchAuditLogs } from '../services/api';
+import { fetchAuditLogs, fetchAuditSummary } from '../services/api';
 import type { AuditLogEntry } from '../types';
 import { formatDateTime, formatDateTimeFull } from '../utils/dateTime';
 import dayjs from 'dayjs';
@@ -54,50 +54,60 @@ const Icons = {
 };
 
 const ACTION_TYPE_MAP: Record<string, 'success' | 'warning' | 'error' | 'neutral'> = {
+  // System
   login: 'neutral',
-  review_artwork: 'success',
-  modify_user_role: 'warning',
-  export_data: 'neutral',
-  modify_settings: 'warning',
-  create_campaign: 'success',
-  process_donation: 'success',
-  update_order_status: 'neutral',
-  view_child_info: 'neutral',
-  delete_data: 'error',
-  approve_artwork: 'success',
-  approve: 'success',
-  create: 'success',
-  update: 'neutral',
   register: 'success',
+  // User management
   update_role: 'warning',
-  update_status: 'neutral',
+  modify_user_role: 'warning',
   update_user_status: 'warning',
+  update_status: 'neutral',
   update_profile: 'neutral',
+  // Artwork / voting
   submit_artwork: 'success',
   moderate_artwork: 'success',
+  approve_artwork: 'success',
+  approve: 'success',
   batch_moderate_artworks: 'success',
   batch_moderate_children: 'success',
+  review_artwork: 'success',
   vote_artwork: 'success',
+  // Campaign
+  create_campaign: 'success',
+  create: 'success',
+  update: 'neutral',
+  // Donations
   create_donation: 'success',
   complete_donation: 'success',
   admin_approve_donation: 'success',
+  process_donation: 'success',
   allocate_impact_fund: 'success',
+  // Orders
   place_order: 'success',
   cancel_order: 'warning',
+  update_order_status: 'neutral',
   confirm_delivery_admin: 'success',
   confirm_receipt_user: 'success',
+  // Payments
   create_payment_intent: 'neutral',
   payment_callback_success: 'success',
+  // Supply chain
   create_traceability_record: 'success',
   update_traceability_record: 'warning',
   generate_design: 'success',
   publish_design_as_product: 'success',
   publish_product_from_intake: 'success',
   update_clothing_intake_status: 'warning',
+  // AI / children
   ai_chat: 'neutral',
   ai_feedback: 'neutral',
   register_child: 'success',
   child_consent_approved: 'success',
+  view_child_info: 'neutral',
+  // Settings / data
+  modify_settings: 'warning',
+  export_data: 'neutral',
+  delete_data: 'error',
 };
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
@@ -121,38 +131,37 @@ export default function AuditLogPage() {
     staleTime: 0,
   });
 
+  // Summary query: aggregates across ALL filtered rows (not paginated)
+  const { data: summary } = useQuery({
+    queryKey: ['auditSummary', actionFilter],
+    queryFn: () => fetchAuditSummary({ action: actionFilter || undefined }),
+    staleTime: 30 * 1000,
+  });
+
   const logs = data?.data || [];
   const total = data?.total || 0;
   dayjs.locale(isZh ? 'zh-cn' : 'en');
 
-  // Aggregate logs into chart data — over the current page only (with hint that explains).
-  const activityTrendData = (() => {
-    const grouped: Record<string, number> = {};
-    logs.forEach((l: AuditLogEntry) => {
-      const day = dayjs(l.timestamp).format('ddd');
-      grouped[day] = (grouped[day] || 0) + 1;
-    });
-    return Object.entries(grouped).map(([date, count]) => ({ date, count }));
-  })();
+  // Activity trend: 7-day daily counts from summary (not just current page)
+  const activityTrendData = (summary?.dailyTrend ?? []).map((d) => ({
+    date: dayjs(d.date).format('MM/DD'),
+    count: d.count,
+  }));
 
-  const eventTypeData = (() => {
-    const grouped: Record<string, { type: string; count: number; key: string }> = {};
-    logs.forEach((l: AuditLogEntry) => {
-      // Use full action name (not truncated prefix) for chart bucketing
-      const key = l.action;
-      if (!grouped[key]) {
-        grouped[key] = { type: getActionLabel(l.action), count: 0, key };
-      }
-      grouped[key].count++;
-    });
-    return Object.values(grouped).sort((a, b) => b.count - a.count);
-  })();
+  // Event type chart: from summary (not current page)
+  const eventTypeData = (summary?.eventTypes ?? []).map((e) => ({
+    type: getActionLabel(e.action),
+    count: e.count,
+    key: e.action,
+  }));
 
   const summaryStats = {
-    totalEvents: total,
-    highRisk: logs.filter((l: AuditLogEntry) => ['delete_data', 'update_role', 'update_user_status', 'cancel_order'].includes(l.action)).length,
-    adminActions: logs.filter((l: AuditLogEntry) => l.action !== 'login').length,
-    last24h: logs.filter((l: AuditLogEntry) => dayjs(l.timestamp).isAfter(dayjs().subtract(24, 'hour'))).length,
+    totalEvents: summary?.total ?? total,
+    highRisk: summary?.highRisk ?? 0,
+    adminActions: summary?.adminActions ?? 0,
+    last24h: summary?.last24h ?? 0,
+    todayLogin: summary?.todayLogin ?? 0,
+    reviewOps: summary?.reviewOps ?? 0,
   };
 
   function getActionLabel(v: string) {
@@ -181,18 +190,7 @@ export default function AuditLogPage() {
       render: (v) => {
         const label = getActionLabel(v);
         const full = `${v} — ${label}`;
-        return (
-          <span title={full} style={{
-            display: 'inline-block',
-            maxWidth: 200,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            verticalAlign: 'middle',
-          }}>
-            <StatusBadge status={v} label={label} />
-          </span>
-        );
+        return <StatusBadge status={getActionBadgeType(v)} label={label} title={full} />;
       }
     },
     { key: 'resource', title: t('auditLog.detailResource'), width: 100 },
@@ -235,8 +233,8 @@ export default function AuditLogPage() {
           <MiniStat label={t('common.miniStatAdminOps')} value={summaryStats.adminActions} />
         </SummaryCard>
         <SummaryCard title={t('auditLog.summaryActivityTitle')} subtitle={t('auditLog.summaryActivitySubtitle')} icon={Icons.clock}>
-          <MiniStat label={t('auditLog.todayLogin')} value={logs.filter((l: AuditLogEntry) => l.action === 'login').length} />
-          <MiniStat label={t('auditLog.reviewOps')} value={logs.filter((l: AuditLogEntry) => l.action.includes('review') || l.action === 'moderate_artwork' || l.action === 'approve_artwork' || l.action === 'batch_moderate_artworks').length} />
+          <MiniStat label={t('auditLog.todayLogin')} value={summaryStats.todayLogin} />
+          <MiniStat label={t('auditLog.reviewOps')} value={summaryStats.reviewOps} />
         </SummaryCard>
       </div>
 
@@ -304,7 +302,7 @@ export default function AuditLogPage() {
             <DetailRow label={t('auditLog.detailUserId')} value={<code className="table-text-mono">{selected.userId}</code>} />
             <DetailRow label={t('auditLog.detailAction')} value={
               <span title={selected.action}>
-                <StatusBadge status={selected.action} label={getActionLabel(selected.action)} />
+                <StatusBadge status={getActionBadgeType(selected.action)} label={getActionLabel(selected.action)} />
               </span>
             } />
             <DetailRow label={t('auditLog.detailResource')} value={selected.resource} />

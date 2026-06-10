@@ -169,3 +169,71 @@ async def test_impact_products_pagination_walk_all_pages(client, admin_auth_head
     # All items returned by walking must have is_impact_product=True
     # (re-check: any of them could be false negatives in normalizeIsImpactProduct but backend-side filter is exact)
     assert body["total"] >= 5, f"expected ≥5 impact products, got {body['total']}"
+
+
+@pytest.mark.asyncio
+async def test_audit_summary_returns_required_fields(client, admin_auth_headers):
+    """审计日志 summary 端点必须返回全部聚合字段。"""
+    r = await client.get(f"{API}/admin/audit-logs/summary", headers=admin_auth_headers)
+    assert r.status_code == 200, r.text
+    body = r.json()
+    for field in ("total", "highRisk", "adminActions", "last24h", "todayLogin", "reviewOps", "eventTypes", "dailyTrend"):
+        assert field in body, f"missing field: {field}"
+    assert isinstance(body["eventTypes"], list)
+    assert isinstance(body["dailyTrend"], list)
+
+
+@pytest.mark.asyncio
+async def test_audit_summary_event_types_match_actual_data(client, admin_auth_headers):
+    """eventTypes 的 count 之和必须等于 total。"""
+    r = await client.get(f"{API}/admin/audit-logs/summary", headers=admin_auth_headers)
+    body = r.json()
+    type_sum = sum(e["count"] for e in body["eventTypes"])
+    assert type_sum == body["total"], f"eventTypes sum {type_sum} != total {body['total']}"
+
+
+@pytest.mark.asyncio
+async def test_audit_summary_respects_action_filter(client, admin_auth_headers):
+    """summary 端点按 action 过滤后，total 必须对应减少。"""
+    r_all = await client.get(f"{API}/admin/audit-logs/summary", headers=admin_auth_headers)
+    total_all = r_all.json()["total"]
+    r_login = await client.get(f"{API}/admin/audit-logs/summary?action=login", headers=admin_auth_headers)
+    assert r_login.status_code == 200
+    body_login = r_login.json()
+    assert body_login["total"] <= total_all, "filtered total must not exceed unfiltered total"
+    for et in body_login["eventTypes"]:
+        assert et["action"] == "login", f"filtered eventTypes should only contain 'login', got {et['action']}"
+
+
+@pytest.mark.asyncio
+async def test_audit_summary_today_login_non_negative(client, admin_auth_headers):
+    """todayLogin 必须 ≥ 0 且 ≤ total。"""
+    r = await client.get(f"{API}/admin/audit-logs/summary", headers=admin_auth_headers)
+    body = r.json()
+    assert body["todayLogin"] >= 0
+    assert body["todayLogin"] <= body["total"]
+
+
+@pytest.mark.asyncio
+async def test_audit_summary_unauthenticated_rejected(client):
+    """无认证请求 summary 端点 → 401/403。"""
+    r = await client.get(f"{API}/admin/audit-logs/summary")
+    assert r.status_code in (401, 403, 422)
+
+
+@pytest.mark.asyncio
+async def test_resolve_user_name_returns_nickname_not_hardcoded_admin(client, admin_auth_headers):
+    """admin 用户的 user_name 必须是其真实昵称，不能硬编码 'Admin'。"""
+    # 先做一次会触发 audit 写入的操作（login 会产生审计记录）
+    r = await client.get(f"{API}/admin/audit-logs?page=1&page_size=50", headers=admin_auth_headers)
+    assert r.status_code == 200
+    body = r.json()
+    # Find admin user's records - the test admin user id is 2 (from conftest)
+    admin_entries = [e for e in body["data"] if e.get("userId") == "2"]
+    # If we have any admin entries, none should have userName == "Admin"
+    # (the old code hardcoded "Admin" for admin-role users)
+    for entry in admin_entries:
+        assert entry.get("userName") != "Admin", (
+            f"userName is hardcoded 'Admin' for admin user, "
+            f"should be their actual nickname: {entry}"
+        )

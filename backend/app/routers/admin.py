@@ -250,6 +250,112 @@ async def update_settings(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
+@router.get("/audit-logs/summary")
+async def audit_logs_summary(
+    action: Optional[str] = Query(None),
+    resource: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+    _current_user: dict = Depends(require_role("admin")),
+):
+    """Aggregated audit stats across all filtered rows (not paginated).
+
+    Returns total, highRisk, adminActions, last24h, todayLogin, reviewOps
+    and a full eventTypes breakdown — so the frontend charts always reflect
+    the complete dataset, not just the current page.
+    """
+    try:
+        base = _exclude_health_audit_logs(select(AuditLog))
+        if action:
+            base = base.where(AuditLog.action == action)
+        if resource:
+            base = base.where(AuditLog.resource == resource)
+
+        # Full filtered total
+        total = (await db.execute(
+            _exclude_health_audit_logs(select(func.count(AuditLog.id)))
+            .where(AuditLog.action == action) if action else _exclude_health_audit_logs(select(func.count(AuditLog.id)))
+        )).scalar() or 0
+
+        # Re-apply filters to count stmt (avoid duplicating logic)
+        def _count_with(where_clause=None):
+            stmt = _exclude_health_audit_logs(select(func.count(AuditLog.id)))
+            if action:
+                stmt = stmt.where(AuditLog.action == action)
+            if resource:
+                stmt = stmt.where(AuditLog.resource == resource)
+            if where_clause is not None:
+                stmt = stmt.where(where_clause)
+            return stmt
+
+        HIGH_RISK_ACTIONS = ['delete_data', 'update_role', 'update_user_status', 'cancel_order']
+        now = datetime.now(timezone.utc)
+        from datetime import timedelta
+        cutoff_24h = now - timedelta(hours=24)
+
+        total       = (await db.execute(_count_with())).scalar() or 0
+        high_risk   = (await db.execute(_count_with(AuditLog.action.in_(HIGH_RISK_ACTIONS)))).scalar() or 0
+        login_total = (await db.execute(_count_with(AuditLog.action == 'login'))).scalar() or 0
+        last_24h    = (await db.execute(_count_with(AuditLog.timestamp >= cutoff_24h))).scalar() or 0
+        admin_actions = total - login_total
+
+        REVIEW_ACTIONS = [
+            'review_artwork', 'moderate_artwork', 'approve_artwork',
+            'batch_moderate_artworks', 'approve',
+        ]
+        review_ops = (await db.execute(_count_with(AuditLog.action.in_(REVIEW_ACTIONS)))).scalar() or 0
+
+        # Daily trend: counts per day for the last 7 days (all filtered rows)
+        cutoff_7d = now - timedelta(days=7)
+        daily_stmt = (
+            _exclude_health_audit_logs(
+                select(
+                    func.date(AuditLog.timestamp).label("day"),
+                    func.count(AuditLog.id).label("cnt"),
+                )
+            )
+            .where(AuditLog.timestamp >= cutoff_7d)
+            .group_by(func.date(AuditLog.timestamp))
+            .order_by(func.date(AuditLog.timestamp))
+        )
+        if action:
+            daily_stmt = daily_stmt.where(AuditLog.action == action)
+        if resource:
+            daily_stmt = daily_stmt.where(AuditLog.resource == resource)
+        daily_rows = (await db.execute(daily_stmt)).all()
+        daily_trend = [{"date": str(row[0]), "count": row[1]} for row in daily_rows]
+
+        # Event type breakdown (all filtered rows, no pagination)
+        type_stmt = (
+            _exclude_health_audit_logs(
+                select(AuditLog.action, func.count(AuditLog.id).label("cnt"))
+            )
+            .group_by(AuditLog.action)
+            .order_by(func.count(AuditLog.id).desc())
+        )
+        if action:
+            type_stmt = type_stmt.where(AuditLog.action == action)
+        if resource:
+            type_stmt = type_stmt.where(AuditLog.resource == resource)
+        type_rows = (await db.execute(type_stmt)).all()
+        event_types = [{"action": row[0], "count": row[1]} for row in type_rows]
+
+        return {
+            "total": total,
+            "highRisk": high_risk,
+            "adminActions": admin_actions,
+            "last24h": last_24h,
+            "todayLogin": login_total,
+            "reviewOps": review_ops,
+            "eventTypes": event_types,
+            "dailyTrend": daily_trend,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Audit summary failed: %s", e, exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+
+
 @router.get("/audit-logs", response_model=PaginatedResponse)
 async def list_audit_logs(
     page: int = Query(1, ge=1),

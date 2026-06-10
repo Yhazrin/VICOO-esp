@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next';
+import type { HTMLAttributes } from 'react';
 import './StatusBadge.css';
 
-interface StatusBadgeProps {
+interface StatusBadgeProps extends HTMLAttributes<HTMLSpanElement> {
   status: string;
   label?: string;
   context?: 'artwork' | 'order' | 'donation' | 'campaign' | 'afterSales' | 'product' | 'user';
@@ -45,7 +46,7 @@ const STATUS_TYPE_MAP: Record<string, string> = {
   processing: 'info',
 };
 
-export default function StatusBadge({ status, label, context }: StatusBadgeProps) {
+export default function StatusBadge({ status, label, context, ...rest }: StatusBadgeProps) {
   const { t } = useTranslation();
 
   const i18nKey = context
@@ -56,7 +57,7 @@ export default function StatusBadge({ status, label, context }: StatusBadgeProps
   const type = STATUS_TYPE_MAP[status] || 'neutral';
 
   return (
-    <span className={`status-badge status-badge--${type}`}>
+    <span className={`status-badge status-badge--${type}`} {...rest}>
       <span className="status-badge__dot" />
       {label || t(i18nKey, { defaultValue: status })}
     </span>

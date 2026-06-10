@@ -29,10 +29,8 @@ def get_current_user() -> Optional[dict]:
 async def _resolve_user_name(db: AsyncSession, user_id: Optional[int]) -> Optional[str]:
     """Resolve the user nickname for the audit log.
 
-    For admin users, return the literal 'Admin' to keep the audit trail
-    consistent with the rest of the management console. For other users,
-    look up the nickname. Returns None if user_id is None or the user no
-    longer exists.
+    Returns the user's actual nickname regardless of role. Returns None if
+    user_id is None or the user no longer exists.
     """
     if user_id is None:
         return None
@@ -41,8 +39,6 @@ async def _resolve_user_name(db: AsyncSession, user_id: Optional[int]) -> Option
         user = (await db.execute(stmt)).scalar_one_or_none()
         if not user:
             return None
-        if user.role == "admin":
-            return "Admin"
         return user.nickname
     except Exception as e:  # pragma: no cover - defensive
         logger.warning(f"Audit: failed to resolve user_name for id={user_id}: {e}")
@@ -64,7 +60,7 @@ async def log_audit(
     Manually log an audit event to the database.
 
     If user_name is not provided, the system will resolve it from the users
-    table (admin users are normalised to the literal "Admin" display name).
+    table using the user's nickname.
     """
     try:
         if user_name is None and user_id is not None:

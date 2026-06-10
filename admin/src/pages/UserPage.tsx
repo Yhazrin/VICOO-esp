@@ -108,10 +108,7 @@ export default function UserPage() {
     onError: (err: unknown) => {
       const detail = (err as any)?.response?.data?.detail;
       const msg = typeof detail === 'string' ? detail : t('user.toastUpdateFailed');
-      toast.error(t('user.toastRoleFailedFmt', { detail: msg }));
-    },
-    onError: (e: any) => {
-      toast.error(e?.response?.data?.detail ?? t('generic.error'));
+      toast.error(msg);
     },
   });
 

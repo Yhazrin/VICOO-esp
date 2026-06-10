@@ -178,7 +178,7 @@ export default function ProductPage() {
   const [confirmTarget, setConfirmTarget] = useState<{ type: 'product' | 'node'; id: string } | null>(null);
 
   /* ── Queries ── */
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, isFetching, error, refetch } = useQuery({
     queryKey: ['admin-products', page, status],
     queryFn: () => fetchProducts({ page, pageSize: 20, status: status || undefined }),
     placeholderData: (prev) => prev,

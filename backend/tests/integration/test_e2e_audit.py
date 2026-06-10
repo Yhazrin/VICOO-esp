@@ -1,4 +1,4 @@
-"""端到端集成测试：审计日志操作人列匹配到对应用户，且 admin 显示为 "Admin"。
+"""端到端集成测试：审计日志操作人列匹配到对应用户 nickname。
 
 覆盖 Goal 子任务 #8。
 """
@@ -12,10 +12,13 @@ from app.services.order.service import OrderService
 from app.services.donation.service import DonationService
 from sqlalchemy import select
 
+# Admin user (id=2) seeded with nickname "Test Admin" in conftest
+ADMIN_NICKNAME = "Test Admin"
+
 
 @pytest.mark.asyncio
 async def test_audit_log_resolves_user_name_for_admin(app):
-    """admin 操作的审计日志 user_name 应为 'Admin'。"""
+    """admin 操作的审计日志 user_name 应为其真实 nickname。"""
     from app.database import AsyncSessionLocal
 
     async with AsyncSessionLocal() as db:
@@ -32,7 +35,7 @@ async def test_audit_log_resolves_user_name_for_admin(app):
         stmt = select(AuditLog).where(AuditLog.action == "test_action_admin")
         entry = (await db.execute(stmt)).scalar_one()
         assert entry.user_id == 2
-        assert entry.user_name == "Admin"
+        assert entry.user_name == ADMIN_NICKNAME
 
 
 @pytest.mark.asyncio
@@ -59,7 +62,7 @@ async def test_audit_log_resolves_user_name_for_regular_user(app):
 
 @pytest.mark.asyncio
 async def test_audit_log_for_order_creation_resolves_admin(app):
-    """admin 完成订单的 confirm_delivery 写审计日志，user_name 应为 'Admin'。"""
+    """admin 完成订单的 confirm_delivery 写审计日志，user_name 应为其真实 nickname。"""
     from app.database import AsyncSessionLocal
     async with AsyncSessionLocal() as db:
         # 准备一个 paid 订单
@@ -96,12 +99,12 @@ async def test_audit_log_for_order_creation_resolves_admin(app):
         assert len(entries) >= 1
         for e in entries:
             assert e.user_id == 2
-            assert e.user_name == "Admin"
+            assert e.user_name == ADMIN_NICKNAME
 
 
 @pytest.mark.asyncio
 async def test_audit_log_admin_approve_donation_shows_admin(app):
-    """admin 批准捐赠后审计日志操作人为 Admin。"""
+    """admin 批准捐赠后审计日志操作人为其真实 nickname。"""
     from app.database import AsyncSessionLocal
     async with AsyncSessionLocal() as db:
         donation_service = DonationService(db)
@@ -126,7 +129,7 @@ async def test_audit_log_admin_approve_donation_shows_admin(app):
         assert len(entries) >= 1
         for e in entries:
             if e.user_id == 2:
-                assert e.user_name == "Admin"
+                assert e.user_name == ADMIN_NICKNAME
 
 
 @pytest.mark.asyncio
@@ -159,6 +162,5 @@ async def test_audit_log_regular_user_donation_shows_nickname(client, user_auth_
         assert len(logs) >= 1
         for e in logs:
             assert e.user_id is not None
-            # Regular user → their nickname
-            assert e.user_name != "Admin" or e.user_id == 2  # not 'Admin' unless they ARE admin
+            # user_name must be non-empty (resolved via nickname)
             assert e.user_name is not None and e.user_name != ""

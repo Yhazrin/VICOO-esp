@@ -207,6 +207,31 @@ export async function fetchUserGrowth(): Promise<ChartDataPoint[]> {
  * Fetch audit logs from GET /admin/audit-logs.
  * Backend uses snake_case (AuditLogOut), frontend uses camelCase (AuditLogEntry).
  */
+/**
+ * Fetch aggregated audit summary from GET /admin/audit-logs/summary.
+ * Returns totals across ALL filtered rows (not paginated).
+ */
+export interface AuditSummary {
+  total: number;
+  highRisk: number;
+  adminActions: number;
+  last24h: number;
+  todayLogin: number;
+  reviewOps: number;
+  eventTypes: Array<{ action: string; count: number }>;
+  dailyTrend: Array<{ date: string; count: number }>;
+}
+
+export async function fetchAuditSummary(params: { action?: string; resource?: string } = {}): Promise<AuditSummary> {
+  const { data } = await api.get('/admin/audit-logs/summary', {
+    params: {
+      action: params.action || undefined,
+      resource: params.resource || undefined,
+    },
+  });
+  return data as AuditSummary;
+}
+
 export async function fetchAuditLogs(params: FilterParams = {}): Promise<PaginatedResponse<AuditLogEntry>> {
   const { data: envelope } = await api.get('/admin/audit-logs', {
     params: {

@@ -118,7 +118,7 @@ export function EventTypeChart({ data = [], height = 180 }: EventTypeChartProps)
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 11, fill: 'var(--color-text-2)' }}
-              width={60}
+              width={110}
             />
             <Tooltip
               contentStyle={{
