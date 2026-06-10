@@ -212,7 +212,7 @@ export async function fetchAuditLogs(params: FilterParams = {}): Promise<Paginat
     params: {
       page: params.page ?? 1,
       page_size: params.pageSize ?? 20,
-      action: params.search || undefined,
+      action: params.action || params.search || undefined,
       resource: params.status || undefined,
     },
   });

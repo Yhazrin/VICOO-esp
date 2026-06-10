@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
@@ -49,10 +49,20 @@ export default function UserPage() {
   const isZh = i18n.language === 'zh';
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
+  const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [editRole, setEditRole] = useState('');
   const [statusConfirm, setStatusConfirm] = useState<User | null>(null);
+
+  // Debounce search input → query value (300ms)
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      setSearch(searchInput.trim());
+      setPage(1);
+    }, 300);
+    return () => window.clearTimeout(id);
+  }, [searchInput]);
 
   const getRoleLabel = (v: string) => {
     const map: Record<string, string> = {
@@ -71,15 +81,16 @@ export default function UserPage() {
 
   const roleMutation = useMutation({
     mutationFn: ({ id, role }: { id: string; role: User['role'] }) => updateUserRole(id, role),
-    onSuccess: () => {
+    onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast.success(t('user.toastRoleUpdated'));
+      const label = vars.role === 'admin' ? t('user.roleAdmin') : t('user.roleViewer');
+      toast.success(t('user.toastRoleUpdatedFmt', { role: label }));
       setSelectedUser(null);
     },
     onError: (err: unknown) => {
       const detail = (err as any)?.response?.data?.detail;
       const msg = typeof detail === 'string' ? detail : t('user.toastRoleFailed');
-      toast.error(msg);
+      toast.error(t('user.toastRoleFailedFmt', { detail: msg }));
     },
   });
 
@@ -87,7 +98,17 @@ export default function UserPage() {
     mutationFn: ({ id, status }: { id: string; status: User['status'] }) => updateUserStatus(id, status),
     onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast.success(vars.status === 'banned' ? t('user.toastUserDisabled') : t('user.toastUserEnabled'));
+      toast.success(
+        vars.status === 'banned'
+          ? t('user.toastUserDisabledFmt', { username: statusConfirm?.username ?? '' })
+          : t('user.toastUserEnabledFmt', { username: statusConfirm?.username ?? '' })
+      );
+      setStatusConfirm(null);
+    },
+    onError: (err: unknown) => {
+      const detail = (err as any)?.response?.data?.detail;
+      const msg = typeof detail === 'string' ? detail : t('user.toastUpdateFailed');
+      toast.error(t('user.toastRoleFailedFmt', { detail: msg }));
     },
     onError: (e: any) => {
       toast.error(e?.response?.data?.detail ?? t('generic.error'));
@@ -200,15 +221,38 @@ export default function UserPage() {
             <input
               type="text"
               placeholder={t('user.searchPlaceholder')}
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              aria-label={t('user.searchAriaLabel')}
             />
+            {searchInput && (
+              <button
+                type="button"
+                className="table-search__clear"
+                aria-label={t('user.clearSearchAriaLabel')}
+                onClick={() => setSearchInput('')}
+              >
+                ×
+              </button>
+            )}
           </div>
         </div>
+        <div className="table-toolbar__info">
+          {search
+            ? t('user.searchResultCount', { count: data?.total ?? 0, keyword: search })
+            : t('user.recordCount', { count: data?.total ?? 0 })}
+        </div>
       </div>
+
+      {/* Empty-state hint when search yields no results */}
+      {!isLoading && users.length === 0 && search && (
+        <div className="table-empty-state">
+          <p>{t('user.searchEmptyHint', { keyword: search })}</p>
+          <Button size="sm" variant="secondary" onClick={() => setSearchInput('')}>
+            {t('user.clearSearch')}
+          </Button>
+        </div>
+      )}
 
       <DataTable columns={columns} data={users} rowKey="id" loading={isLoading} />
       <div style={{ marginTop: 24 }}>

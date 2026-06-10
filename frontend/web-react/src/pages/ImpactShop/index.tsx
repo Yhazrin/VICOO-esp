@@ -11,7 +11,7 @@ import { productsApi } from '@/services/products';
 import { campaignsApi } from '@/services/campaigns';
 import { donationsApi } from '@/services/donations';
 import { artworksApi } from '@/services/artworks';
-import type { Campaign } from '@/types';
+import type { Campaign, Product } from '@/types';
 import { matchesProductSearch } from '@/utils/productSearch';
 
 type Category = 'all' | 'apparel' | 'accessories' | 'stationery' | 'prints' | 'lifestyle' | 'footwear' | 'home' | 'gift_box';
@@ -80,26 +80,48 @@ export default function ImpactShop() {
   const [activeCategory, setActiveCategory] = useState<Category>('all');
   const [activeCampaignId, setActiveCampaignId] = useState<number | 'all'>('all');
 
-  // Fetch impact products
-  const { data, isLoading, error: productsError } = useQuery({
-    queryKey: ['products', 'impact', { category: activeCategory, isImpactProduct: true, locale: i18n.language }],
-    queryFn: async () => {
-      const result = await productsApi.getAll({
-        category: activeCategory === 'all' ? undefined : activeCategory,
-        isImpactProduct: true,
-        locale: i18n.language,
-        page_size: 100,
-      });
-      return result;
-    },
-    staleTime: 5 * 60 * 1000,
-  });
+  // Fetch ALL impact products by walking pages (backend caps page_size at 100,
+// but the impact store has no pagination UI, so we need every record).
+const PAGE_SIZE = 100;
 
-  /** Welfare shop: only displays welfare-attribute products (separated from the UNIQLO regular-store catalog) */
-  const impactItems = useMemo(
-    () => (data?.items ?? []).filter((p) => p.isImpactProduct),
-    [data?.items]
-  );
+async function fetchAllImpactProducts(
+  category: Category | undefined,
+  locale: string,
+): Promise<Product[]> {
+  const items: Product[] = [];
+  let page = 1;
+  // Hard cap at 50 pages (5000 items) to avoid infinite loop on bad data
+  while (page <= 50) {
+    const result = await productsApi.getAll({
+      category,
+      isImpactProduct: true,
+      locale,
+      page,
+      page_size: PAGE_SIZE,
+    });
+    items.push(...result.items);
+    if (items.length >= result.total || result.items.length === 0) break;
+    page += 1;
+  }
+  return items;
+}
+
+// Fetch impact products
+const { data, isLoading, error: productsError } = useQuery({
+  queryKey: ['products', 'impact', { category: activeCategory, isImpactProduct: true, locale: i18n.language }],
+  queryFn: () => fetchAllImpactProducts(
+    activeCategory === 'all' ? undefined : activeCategory,
+    i18n.language,
+  ),
+  staleTime: 5 * 60 * 1000,
+});
+
+/** 公益商店：仅展示公益属性商品（与优衣库常规店目录分离） */
+const impactItems = useMemo(
+  () => (data ?? []).filter((p) => p.isImpactProduct),
+  [data]
+);
+
 
   // Fetch campaigns for filter
   const { data: campaignsData, isError: _campaignsError } = useQuery({

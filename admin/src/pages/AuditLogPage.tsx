@@ -16,6 +16,7 @@ import { formatDateTime, formatDateTimeFull } from '../utils/dateTime';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
 import 'dayjs/locale/en';
+import { AUDIT_ACTIONS } from '../utils/auditActions';
 
 // Icons
 const Icons = {
@@ -43,6 +44,13 @@ const Icons = {
       <polyline points="12 6 12 12 16 14" />
     </svg>
   ),
+  info: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="16" x2="12" y2="12" />
+      <line x1="12" y1="8" x2="12.01" y2="8" />
+    </svg>
+  ),
 };
 
 const ACTION_TYPE_MAP: Record<string, 'success' | 'warning' | 'error' | 'neutral'> = {
@@ -60,29 +68,64 @@ const ACTION_TYPE_MAP: Record<string, 'success' | 'warning' | 'error' | 'neutral
   approve: 'success',
   create: 'success',
   update: 'neutral',
+  register: 'success',
+  update_role: 'warning',
+  update_status: 'neutral',
+  update_user_status: 'warning',
+  update_profile: 'neutral',
+  submit_artwork: 'success',
+  moderate_artwork: 'success',
+  batch_moderate_artworks: 'success',
+  batch_moderate_children: 'success',
+  vote_artwork: 'success',
+  create_donation: 'success',
+  complete_donation: 'success',
+  admin_approve_donation: 'success',
+  allocate_impact_fund: 'success',
+  place_order: 'success',
+  cancel_order: 'warning',
+  confirm_delivery_admin: 'success',
+  confirm_receipt_user: 'success',
+  create_payment_intent: 'neutral',
+  payment_callback_success: 'success',
+  create_traceability_record: 'success',
+  update_traceability_record: 'warning',
+  generate_design: 'success',
+  publish_design_as_product: 'success',
+  publish_product_from_intake: 'success',
+  update_clothing_intake_status: 'warning',
+  ai_chat: 'neutral',
+  ai_feedback: 'neutral',
+  register_child: 'success',
+  child_consent_approved: 'success',
 };
+
+const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
 export default function AuditLogPage() {
   const { t, i18n } = useTranslation();
   const isZh = i18n.language === 'zh';
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const [actionFilter, setActionFilter] = useState('');
   const [selected, setSelected] = useState<AuditLogEntry | null>(null);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['auditLogs', page, actionFilter],
+    queryKey: ['auditLogs', page, pageSize, actionFilter],
     queryFn: () => fetchAuditLogs({
       page,
-      pageSize: 100,  // Get more data for charts
-      search: actionFilter || undefined
+      pageSize,
+      action: actionFilter || undefined,
     }),
+    placeholderData: (prev) => prev,
+    staleTime: 0,
   });
 
   const logs = data?.data || [];
   const total = data?.total || 0;
   dayjs.locale(isZh ? 'zh-cn' : 'en');
 
-  // Aggregate logs into chart data
+  // Aggregate logs into chart data — over the current page only (with hint that explains).
   const activityTrendData = (() => {
     const grouped: Record<string, number> = {};
     logs.forEach((l: AuditLogEntry) => {
@@ -94,56 +137,29 @@ export default function AuditLogPage() {
 
   const eventTypeData = (() => {
     const grouped: Record<string, { type: string; count: number; key: string }> = {};
-       const labels: Record<string, string> = {
-      login: t('auditLog.actionLogin'),
-      review_artwork: t('auditLog.actionReview'),
-      update_order_status: t('auditLog.actionOrder'),
-      modify_settings: t('auditLog.actionSettings'),
-      modify_user_role: t('auditLog.actionUser'),
-      create_campaign: t('auditLog.actionCampaign'),
-      delete_data: t('auditLog.actionDelete'),
-      approve_artwork: t('auditLog.actionApprove'),
-      approve: t('auditLog.actionApprove'),
-      create: t('auditLog.actionCreate'),
-      update: t('auditLog.actionUpdate'),
-    };
     logs.forEach((l: AuditLogEntry) => {
-      const key = l.action.split('_')[0];
+      // Use full action name (not truncated prefix) for chart bucketing
+      const key = l.action;
       if (!grouped[key]) {
-        grouped[key] = { type: labels[l.action] || l.action, count: 0, key };
+        grouped[key] = { type: getActionLabel(l.action), count: 0, key };
       }
       grouped[key].count++;
     });
     return Object.values(grouped).sort((a, b) => b.count - a.count);
   })();
 
-  // Calculate summary stats
   const summaryStats = {
     totalEvents: total,
-    highRisk: logs.filter((l: AuditLogEntry) => ['delete_data', 'modify_user_role'].includes(l.action)).length,
+    highRisk: logs.filter((l: AuditLogEntry) => ['delete_data', 'update_role', 'update_user_status', 'cancel_order'].includes(l.action)).length,
     adminActions: logs.filter((l: AuditLogEntry) => l.action !== 'login').length,
     last24h: logs.filter((l: AuditLogEntry) => dayjs(l.timestamp).isAfter(dayjs().subtract(24, 'hour'))).length,
   };
 
-  const getActionLabel = (v: string) => {
-    const map: Record<string, string> = {
-      login: t('auditLog.actionLogin'),
-      review_artwork: t('auditLog.actionReviewArtwork'),
-      modify_user_role: t('auditLog.actionModifyUserRole'),
-      export_data: t('auditLog.actionExportData'),
-      modify_settings: t('auditLog.actionModifySettings'),
-      create_campaign: t('auditLog.actionCreateCampaign'),
-      process_donation: t('auditLog.actionProcessDonation'),
-      update_order_status: t('auditLog.actionUpdateOrderStatus'),
-      view_child_info: t('auditLog.actionViewChildInfo'),
-      delete_data: t('auditLog.actionDeleteData'),
-      approve_artwork: t('auditLog.actionApprove'),
-      approve: t('auditLog.actionApprove'),
-      create: t('auditLog.actionCreate'),
-      update: t('auditLog.actionUpdate'),
-    };
-    return map[v] || v;
-  };
+  function getActionLabel(v: string) {
+    const meta = AUDIT_ACTIONS.find((a) => a[0] === v);
+    if (meta) return isZh ? meta[2] : meta[1];
+    return t('auditLog.actionGeneric', { action: v });
+  }
 
   const getActionBadgeType = (v: string): 'success' | 'warning' | 'error' | 'neutral' => {
     return ACTION_TYPE_MAP[v] || 'neutral';
@@ -161,15 +177,30 @@ export default function AuditLogPage() {
     {
       key: 'action',
       title: t('auditLog.detailAction'),
-      width: 140,
-      render: (v) => <StatusBadge status={v} label={getActionLabel(v)} />
+      width: 200,
+      render: (v) => {
+        const label = getActionLabel(v);
+        const full = `${v} — ${label}`;
+        return (
+          <span title={full} style={{
+            display: 'inline-block',
+            maxWidth: 200,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            verticalAlign: 'middle',
+          }}>
+            <StatusBadge status={v} label={label} />
+          </span>
+        );
+      }
     },
     { key: 'resource', title: t('auditLog.detailResource'), width: 100 },
     {
       key: 'details',
       title: t('common.detail'),
       render: (v) => (
-        <span className="table-text-truncate" style={{ maxWidth: 300 }}>
+        <span className="table-text-truncate" style={{ maxWidth: 300 }} title={typeof v === 'string' ? v : undefined}>
           {v}
         </span>
       )
@@ -205,7 +236,7 @@ export default function AuditLogPage() {
         </SummaryCard>
         <SummaryCard title={t('auditLog.summaryActivityTitle')} subtitle={t('auditLog.summaryActivitySubtitle')} icon={Icons.clock}>
           <MiniStat label={t('auditLog.todayLogin')} value={logs.filter((l: AuditLogEntry) => l.action === 'login').length} />
-          <MiniStat label={t('auditLog.reviewOps')} value={logs.filter((l: AuditLogEntry) => l.action.includes('review')).length} />
+          <MiniStat label={t('auditLog.reviewOps')} value={logs.filter((l: AuditLogEntry) => l.action.includes('review') || l.action === 'moderate_artwork' || l.action === 'approve_artwork' || l.action === 'batch_moderate_artworks').length} />
         </SummaryCard>
       </div>
 
@@ -222,27 +253,47 @@ export default function AuditLogPage() {
             className="table-select"
             value={actionFilter}
             onChange={(e) => { setActionFilter(e.target.value); setPage(1); }}
+            aria-label={t('auditLog.filterActionAriaLabel')}
           >
             <option value="">{t('auditLog.filterAllActions')}</option>
-            <option value="login">{t('auditLog.actionLogin')}</option>
-            <option value="review_artwork">{t('auditLog.actionReviewArtwork')}</option>
-            <option value="modify_user_role">{t('auditLog.actionModifyUserRole')}</option>
-            <option value="export_data">{t('auditLog.actionExportData')}</option>
-            <option value="modify_settings">{t('auditLog.actionModifySettings')}</option>
-            <option value="create_campaign">{t('auditLog.actionCreateCampaign')}</option>
-            <option value="process_donation">{t('auditLog.actionProcessDonation')}</option>
-            <option value="update_order_status">{t('auditLog.actionUpdateOrderStatus')}</option>
-            <option value="view_child_info">{t('auditLog.actionViewChildInfo')}</option>
-            <option value="delete_data">{t('auditLog.actionDeleteData')}</option>
+            {AUDIT_ACTIONS.map(([key, en, zh]) => (
+              <option key={key} value={key}>
+                {isZh ? zh : en} ({key})
+              </option>
+            ))}
           </select>
+          <select
+            className="table-select"
+            value={pageSize}
+            onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
+            aria-label={t('auditLog.pageSizeAriaLabel')}
+            style={{ marginLeft: 8 }}
+          >
+            {PAGE_SIZE_OPTIONS.map((n) => (
+              <option key={n} value={n}>
+                {t('auditLog.pageSizeOption', { count: n })}
+              </option>
+            ))}
+          </select>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+            marginLeft: 12, fontSize: 12, color: 'var(--color-text-3)',
+          }} title={t('auditLog.filterHelpTooltip')}>
+            {Icons.info}
+            {actionFilter
+              ? t('auditLog.filterHelpActiveFmt', { action: getActionLabel(actionFilter) })
+              : t('auditLog.filterHelpIdle')}
+          </span>
         </div>
         <div className="table-toolbar__info">
-          {t('auditLog.recordCount', { count: total })}
+          {actionFilter
+            ? t('auditLog.filteredCountFmt', { count: total, action: getActionLabel(actionFilter) })
+            : t('auditLog.recordCount', { count: total })}
         </div>
       </div>
 
       <DataTable columns={columns} data={logs} rowKey="id" loading={isLoading} />
-      <Pagination page={page} totalPages={data?.totalPages || 1} total={total} pageSize={15} onPageChange={setPage} />
+      <Pagination page={page} totalPages={data?.totalPages || 1} total={total} pageSize={pageSize} onPageChange={setPage} />
 
       <Modal open={!!selected} title={t('auditLog.modalTitle')} onClose={() => setSelected(null)} width={600}>
         {selected && (
@@ -251,7 +302,11 @@ export default function AuditLogPage() {
             <DetailRow label={t('auditLog.detailTimestamp')} value={<span className="table-text-mono">{formatDateTimeFull(selected.timestamp)}</span>} />
             <DetailRow label={t('auditLog.detailOperator')} value={selected.userName} />
             <DetailRow label={t('auditLog.detailUserId')} value={<code className="table-text-mono">{selected.userId}</code>} />
-            <DetailRow label={t('auditLog.detailAction')} value={<StatusBadge status={selected.action} label={getActionLabel(selected.action)} />} />
+            <DetailRow label={t('auditLog.detailAction')} value={
+              <span title={selected.action}>
+                <StatusBadge status={selected.action} label={getActionLabel(selected.action)} />
+              </span>
+            } />
             <DetailRow label={t('auditLog.detailResource')} value={selected.resource} />
             <DetailRow label={t('auditLog.detailResourceId')} value={selected.resourceId ? <code className="table-text-mono">{selected.resourceId}</code> : '-'} />
             <DetailRow label={t('auditLog.detailIpAddress')} value={<code className="table-text-mono">{selected.ipAddress}</code>} />
