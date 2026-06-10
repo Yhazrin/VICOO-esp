@@ -32,8 +32,8 @@ admin/node_modules/
 .env.*
 !.env.example
 
-# Deploy configs (not needed inside image)
-deploy/
+# Deploy secrets (not needed inside image)
+deploy/docker/secrets/
 
 # OS files
 .DS_Store
