@@ -56,7 +56,8 @@ class SupplyChainService(BaseService):
             if r.gallery_json:
                 try:
                     row["gallery"] = json.loads(r.gallery_json)
-                except Exception:
+                except Exception as e:
+                    logger.warning("Failed to parse gallery_json for record %s: %s", r.id, e)
                     row["gallery"] = []
             else:
                 row["gallery"] = []
@@ -108,6 +109,8 @@ class SupplyChainService(BaseService):
         current_user: Optional[Dict[str, Any]] = None,
     ) -> Optional[SupplyChainRecord]:
         """Partial update (admin/editor)."""
+        _UPDATABLE_FIELDS = {"stage", "description", "location", "latitude", "longitude", "certified", "timestamp", "cert_image_url", "carbon_kg", "carbon_note"}
+
         record = await self.db.get(SupplyChainRecord, record_id)
         if not record:
             return None
@@ -117,9 +120,18 @@ class SupplyChainService(BaseService):
             record.gallery_json = json.dumps(g) if g else None
 
         for key, val in data.items():
-            if not hasattr(record, key):
-                continue
-            setattr(record, key, val)
+            if key in _UPDATABLE_FIELDS:
+                setattr(record, key, val)
 
         await self.db.flush()
         return record
+
+    @audit_action(action="delete_traceability_record", resource_type="supply_chain")
+    async def delete_record(self, record_id: int) -> bool:
+        """Delete a supply chain record (admin/editor). Returns True if deleted."""
+        record = await self.db.get(SupplyChainRecord, record_id)
+        if not record:
+            return False
+        await self.db.delete(record)
+        await self.db.flush()
+        return True

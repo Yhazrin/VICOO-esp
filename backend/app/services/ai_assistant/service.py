@@ -24,6 +24,13 @@ from app.services.ai_assistant.prompts import (
 )
 
 logger = logging.getLogger("vicoo.ai_service")
+
+
+def _escape_like(term: str) -> str:
+    """Escape SQL LIKE wildcards to prevent pattern injection."""
+    return term.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
 _SYNONYM_CONFIG_PATH = Path(__file__).resolve().parents[2] / "data" / "ai_search_synonyms.json"
 _DEFAULT_SYNONYM_CONFIG = {
     "aliases": {},
@@ -39,7 +46,7 @@ def _read_synonym_config() -> Dict[str, Any]:
             if isinstance(loaded, dict):
                 return loaded
     except Exception as exc:
-        logger.warning(f"Failed to load AI synonym config: {exc}")
+        logger.warning("Failed to load AI synonym config: %s", exc)
     return _DEFAULT_SYNONYM_CONFIG
 
 
@@ -161,7 +168,7 @@ class AIAssistantService(BaseService):
                     "source": "openai-compatible"
                 }
         except Exception as e:
-            logger.error(f"AI call failed: {e}")
+            logger.error("AI call failed: %s", e)
             raise HTTPException(status_code=502, detail="AI Assistant is temporarily unavailable")
 
     async def get_chat_completion_stream(
@@ -247,7 +254,7 @@ class AIAssistantService(BaseService):
                 async with client.stream("POST", url, headers=headers, json=payload) as response:
                     if response.status_code != 200:
                         body = await response.aread()
-                        logger.error(f"Anthropic stream error {response.status_code}: {body.decode()[:300]}")
+                        logger.error("Anthropic stream error %s: %s", response.status_code, body.decode()[:300])
                         yield f"data: {json.dumps({'type': 'error', 'error': f'Upstream returned {response.status_code}'})}\n\n"
                         return
 
@@ -285,8 +292,8 @@ class AIAssistantService(BaseService):
                     yield f"data: {json.dumps({'type': 'message_stop', 'model': settings.OPENAI_MODEL, 'source': 'anthropic-stream'})}\n\n"
 
         except Exception as e:
-            logger.error(f"Anthropic stream failed: {e}")
-            yield f"data: {json.dumps({'type': 'error', 'error': str(e)})}\n\n"
+            logger.error("Anthropic stream failed: %s", e)
+            yield f"data: {json.dumps({'type': 'error', 'error': 'Stream processing failed'})}\n\n"
 
     async def moderate_content(self, text: str) -> Dict[str, Any]:
         """
@@ -320,10 +327,9 @@ class AIAssistantService(BaseService):
                     "flagged_categories": categories
                 }
         except Exception as e:
-            logger.error(f"Moderation call failed: {e}")
-            # Fail safe: if moderation fails, we might want to flag it for human review 
-            # or allow it if it's not critical. Here we assume safe but log error.
-            return {"is_safe": True, "reason": f"Moderation error: {e}", "flagged_categories": []}
+            logger.exception("Moderation call failed")
+            # Fail closed: for a children's platform, flag unmoderated content for manual review
+            return {"is_safe": False, "reason": "Moderation service temporarily unavailable — flagged for manual review", "flagged_categories": []}
 
     async def analyze_artwork(self, image_url: str, description: Optional[str] = None) -> Dict[str, Any]:
         """
@@ -371,13 +377,13 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                 analysis = json.loads(data["choices"][0]["message"]["content"])
                 return analysis
         except Exception as e:
-            logger.error(f"Artwork analysis failed: {e}")
+            logger.error("Artwork analysis failed: %s", e)
             return {
                 "suggested_title": None,
                 "suggested_tags": [],
                 "style_description": "Analysis unavailable",
                 "safety_rating": "safe",
-                "moderation_notes": f"Error during analysis: {e}"
+                "moderation_notes": "Analysis temporarily unavailable"
             }
 
     async def _get_business_context(self, user_id: Optional[int] = None) -> str:
@@ -411,7 +417,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
             
             return context
         except Exception as e:
-            logger.error(f"Failed to fetch business context for AI: {e}")
+            logger.error("Failed to fetch business context for AI: %s", e)
             return "[Business context unavailable]"
 
     async def _get_donation_context(self, user_id: Optional[int] = None) -> str:
@@ -422,30 +428,30 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
         try:
             svc = DonationService(self.db)
             stats = await svc.get_stats()
-            ctx = f"平台捐赠统计: 总金额 {stats.get('total_amount', 0)} {stats.get('currency', 'CNY')}, 总捐赠人次 {stats.get('total_donors', 0)}\n"
+            ctx = f"Platform donation stats: total {stats.get('total_amount', 0)} {stats.get('currency', 'CNY')}, {stats.get('total_donors', 0)} donors\n"
             tiers = [
-                {"name": "铜牌 Bronze", "amount": 50},
-                {"name": "银牌 Silver", "amount": 200},
-                {"name": "金牌 Gold", "amount": 500},
-                {"name": "铂金 Platinum", "amount": 2000},
+                {"name": "Bronze", "amount": 50},
+                {"name": "Silver", "amount": 200},
+                {"name": "Gold", "amount": 500},
+                {"name": "Platinum", "amount": 2000},
             ]
-            ctx += "捐赠档位: " + ", ".join(f"{t['name']}({t['amount']}元)" for t in tiers) + "\n"
-            ctx += "捐赠流程: 选择档位 → 支付 → 自动生成电子证书\n"
+            ctx += "Donation tiers: " + ", ".join(f"{t['name']}({t['amount']} CNY)" for t in tiers) + "\n"
+            ctx += "Donation flow: select tier → pay → auto-generate e-certificate\n"
             if user_id:
                 stmt = select(Donation).where(
                     and_(Donation.donor_user_id == user_id, Donation.status == "completed")
                 ).order_by(Donation.created_at.desc()).limit(5)
                 donations = (await self.db.execute(stmt)).scalars().all()
                 if donations:
-                    ctx += f"用户最近捐赠记录:\n"
+                    ctx += "User recent donation history:\n"
                     for d in donations:
                         ts = d.created_at.strftime("%Y-%m-%d") if d.created_at else "N/A"
                         ctx += f"  - {ts} | {d.amount} {d.currency} | {d.payment_method or 'N/A'} | {d.status}\n"
                 else:
-                    ctx += "该用户暂无捐赠记录。\n"
+                    ctx += "No donation history for this user.\n"
             return ctx
         except Exception as e:
-            logger.error(f"Failed to get donation context: {e}")
+            logger.error("Failed to get donation context: %s", e)
             return ""
 
     async def _get_campaign_context(self) -> str:
@@ -456,14 +462,14 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
             campaign = await svc.get_active_campaign()
             if campaign:
                 progress = (campaign.current_amount / campaign.goal_amount * 100) if campaign.goal_amount else 0
-                ctx = f"当前活动: {campaign.title}\n"
-                ctx += f"筹款目标: {campaign.goal_amount} CNY, 当前已筹: {campaign.current_amount} CNY ({progress:.1f}%)\n"
+                ctx = f"Active campaign: {campaign.title}\n"
+                ctx += f"Goal: {campaign.goal_amount} CNY, Raised: {campaign.current_amount} CNY ({progress:.1f}%)\n"
                 if campaign.description:
-                    ctx += f"活动简介: {campaign.description[:200]}\n"
+                    ctx += f"Description: {campaign.description[:200]}\n"
                 return ctx
-            return "当前暂无进行中的筹款活动。\n"
+            return "No active fundraising campaigns at the moment.\n"
         except Exception as e:
-            logger.error(f"Failed to get campaign context: {e}")
+            logger.error("Failed to get campaign context: %s", e)
             return ""
 
     async def _get_impact_fund_context(self) -> str:
@@ -472,27 +478,27 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
         try:
             svc = ImpactFundService(self.db)
             summary = await svc.get_fund_summary()
-            ctx = f"影响力基金总分配: {summary.get('total_amount', 0)} CNY, 共 {summary.get('total_entries', 0)} 笔\n"
+            ctx = f"Impact fund total allocated: {summary.get('total_amount', 0)} CNY, {summary.get('total_entries', 0)} entries\n"
             by_type = summary.get("by_type", {})
             for t in by_type:
-                ctx += f"  - {t.get('type', 'N/A')}: {t.get('amount', 0)} CNY ({t.get('count', 0)} 笔)\n"
-            ctx += "分配机制: 每笔公益商品销售额的捐赠比例 → 60% 艺术家 / 30% 学校 / 10% 慈善池\n"
+                ctx += f"  - {t.get('type', 'N/A')}: {t.get('amount', 0)} CNY ({t.get('count', 0)} entries)\n"
+            ctx += "Allocation: each impact product sale → 60% artist / 30% school / 10% charity pool\n"
             return ctx
         except Exception as e:
-            logger.error(f"Failed to get impact fund context: {e}")
+            logger.error("Failed to get impact fund context: %s", e)
             return ""
 
     def _get_clothing_recycle_context(self) -> str:
         """Return clothing recycle flow info for AI context."""
         base_url = self._resolve_frontend_base_url()
         return (
-            "旧衣回收流程:\n"
-            "1. 用户在「旧衣回收」页面提交回收申请\n"
-            "2. 平台安排上门取件或用户自行寄送\n"
-            "3. 旧衣经过分拣、清洗、消毒处理\n"
-            "4. 可穿用衣物捐赠给需要的儿童，不可穿用的进行环保再生\n"
-            f"入口: {urljoin(base_url, 'clothing-recycle')}\n"
-            f"旧衣捐赠入口: {urljoin(base_url, 'donate-clothing')}\n"
+            "Clothing recycling flow:\n"
+            "1. User submits recycling request on the Clothing Recycle page\n"
+            "2. Platform arranges pickup or user ships items\n"
+            "3. Items go through sorting, cleaning, and sanitization\n"
+            "4. Wearable items donated to children; non-wearable recycled sustainably\n"
+            f"Recycle entry: {urljoin(base_url, 'clothing-recycle')}\n"
+            f"Donate clothing entry: {urljoin(base_url, 'donate-clothing')}\n"
         )
 
     def _get_last_user_message(self, messages: List[Dict[str, str]]) -> str:
@@ -717,7 +723,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                     out += "\n(Source: supply_chain records, product table)"
                     return out
                 except Exception as e:
-                    logger.error(f"Tool invocation by metadata failed: {e}")
+                    logger.error("Tool invocation by metadata failed: %s", e)
 
         last_user = self._get_last_user_message(messages)
 
@@ -774,7 +780,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
             if m:
                 try:
                     pid = int(m.group(1))
-                except Exception:
+                except (ValueError, TypeError):
                     continue
 
                 # fetch product and supply chain timeline
@@ -849,12 +855,13 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                     )
                     token_filters = []
                     for t in terms[:4]:
+                        et = _escape_like(t)
                         token_filters.extend([
-                            Product.name.ilike(f"%{t}%"),
-                            Product.name_en.ilike(f"%{t}%"),
-                            Product.description.ilike(f"%{t}%"),
-                            Product.description_en.ilike(f"%{t}%"),
-                            Product.category.ilike(f"%{t}%"),
+                            Product.name.ilike(f"%{et}%", escape="\\"),
+                            Product.name_en.ilike(f"%{et}%", escape="\\"),
+                            Product.description.ilike(f"%{et}%", escape="\\"),
+                            Product.description_en.ilike(f"%{et}%", escape="\\"),
+                            Product.category.ilike(f"%{et}%", escape="\\"),
                         ])
                     if token_filters:
                         stmt = stmt.where(or_(*token_filters))
@@ -862,7 +869,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                     try:
                         res = (await self.db.execute(stmt)).scalars().all()
                     except Exception as e:
-                        logger.error(f"{scope} product search failed: {e}")
+                        logger.error("%s product search failed: %s", scope, e)
                         res = []
                     if not res:
                         continue
@@ -889,20 +896,20 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                             else Product.is_impact_product.is_(False)
                         )
                         fallback_stmt = fallback_stmt.where(
-                            Product.name.ilike("%包%")
-                            | Product.name.ilike("%袋%")
-                            | Product.name.ilike("%bag%")
-                            | Product.name_en.ilike("%bag%")
-                            | Product.name_en.ilike("%tote%")
-                            | Product.description.ilike("%包%")
-                            | Product.description.ilike("%bag%")
-                            | Product.description_en.ilike("%bag%")
-                            | Product.category.ilike("%accessories%")
+                            Product.name.ilike("%包%", escape="\\")
+                            | Product.name.ilike("%袋%", escape="\\")
+                            | Product.name.ilike("%bag%", escape="\\")
+                            | Product.name_en.ilike("%bag%", escape="\\")
+                            | Product.name_en.ilike("%tote%", escape="\\")
+                            | Product.description.ilike("%包%", escape="\\")
+                            | Product.description.ilike("%bag%", escape="\\")
+                            | Product.description_en.ilike("%bag%", escape="\\")
+                            | Product.category.ilike("%accessories%", escape="\\")
                         ).limit(5)
                         try:
                             fallback_res = (await self.db.execute(fallback_stmt)).scalars().all()
                         except Exception as e:
-                            logger.error(f"{scope} bag fallback search failed: {e}")
+                            logger.error("%s bag fallback search failed: %s", scope, e)
                             fallback_res = []
                         if not fallback_res:
                             continue
@@ -961,12 +968,13 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                     )
                     token_filters = []
                     for t in terms[:4]:
+                        et = _escape_like(t)
                         token_filters.extend([
-                            Product.name.ilike(f"%{t}%"),
-                            Product.name_en.ilike(f"%{t}%"),
-                            Product.description.ilike(f"%{t}%"),
-                            Product.description_en.ilike(f"%{t}%"),
-                            Product.category.ilike(f"%{t}%"),
+                            Product.name.ilike(f"%{et}%", escape="\\"),
+                            Product.name_en.ilike(f"%{et}%", escape="\\"),
+                            Product.description.ilike(f"%{et}%", escape="\\"),
+                            Product.description_en.ilike(f"%{et}%", escape="\\"),
+                            Product.category.ilike(f"%{et}%", escape="\\"),
                         ])
                     if token_filters:
                         stmt = stmt.where(or_(*token_filters))
@@ -985,7 +993,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                     if prods:
                         break
                 except Exception as e:
-                    logger.debug(f"RAG {scope} product search error: {e}")
+                    logger.debug("RAG %s product search error: %s", scope, e)
 
             # 2) Campaign + supply-chain retrieval is mainly relevant to impact/sustainability
             is_impact_scope = (
@@ -999,8 +1007,9 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                     stmt = select(Campaign)
                     filters = []
                     for t in terms[:3]:
-                        filters.append(Campaign.title.ilike(f"%{t}%"))
-                        filters.append(Campaign.description.ilike(f"%{t}%"))
+                        et = _escape_like(t)
+                        filters.append(Campaign.title.ilike(f"%{et}%", escape="\\"))
+                        filters.append(Campaign.description.ilike(f"%{et}%", escape="\\"))
                     if filters:
                         stmt = stmt.where(or_(*filters)).limit(3)
                         camps = (await self.db.execute(stmt)).scalars().all()
@@ -1014,13 +1023,13 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                                     "url": urljoin(base_url, f"campaigns/{c.id}"),
                                 }
                             )
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug("RAG campaign retrieval error: %s", e)
 
                 try:
                     from app.models.supply_chain import SupplyChainRecord
                     stmt = select(SupplyChainRecord)
-                    filters = [SupplyChainRecord.description.ilike(f"%{t}%") for t in terms[:3]]
+                    filters = [SupplyChainRecord.description.ilike(f"%{_escape_like(t)}%", escape="\\") for t in terms[:3]]
                     if filters:
                         stmt = stmt.where(or_(*filters)).limit(5)
                         recs = (await self.db.execute(stmt)).scalars().all()
@@ -1034,8 +1043,8 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                                     "url": urljoin(base_url, f"impact/shop/{r.product_id}"),
                                 }
                             )
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug("RAG supply chain retrieval error: %s", e)
 
             if not results:
                 return ""
@@ -1046,9 +1055,10 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
             out += "\n(End of retrieval results)\n"
             return out
         except Exception as e:
-            logger.error(f"RAG retrieval failed: {e}")
+            logger.error("RAG retrieval failed: %s", e)
             return ""
 
+    @audit_action(action="ai_feedback", resource_type="ai_assistant")
     async def record_feedback(self, is_helpful: bool, messages: List[Dict[str, Any]], metadata: Optional[Dict[str, Any]] = None, user_id: Optional[int] = None, reason: Optional[str] = None) -> Dict[str, Any]:
         """Record user feedback. If not helpful, escalate by creating a ContactMessage for follow-up.
         Returns a dict describing whether an escalation/contact was created.
@@ -1120,7 +1130,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
             logger.info("Created contact message from AI feedback id=%s", contact.id)
             return {"escalated": True, "contact_id": contact.id}
         except Exception as e:
-            logger.error(f"Failed to record AI feedback: {e}")
-            return {"escalated": False, "error": str(e)}
+            logger.error("Failed to record AI feedback: %s", e)
+            return {"escalated": False, "error": "Failed to record feedback"}
 
     # End of class

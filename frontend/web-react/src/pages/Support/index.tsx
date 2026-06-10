@@ -45,7 +45,7 @@ export default function Support() {
       setDescription('');
       setOrderId('');
     },
-    onError: () => setSubmitError(t('support.submitError', '提交失败，请重试')),
+    onError: () => setSubmitError(t('support.submitError', 'Submission failed — please retry')),
   });
 
   if (!isAuthenticated) {
@@ -54,7 +54,7 @@ export default function Support() {
         <SectionContainer noTopSpacing>
           <div className="pt-16 md:pt-24 pb-12 text-center">
             <p className="font-body text-body text-ink-faded mb-6">
-              {t('support.loginRequired', '登录后提交售后工单')}
+              {t('support.loginRequired', 'Log in to submit a support ticket')}
             </p>
             <Link to="/login" className="font-body text-caption text-rust tracking-[0.1em] uppercase hover:underline">
               {t('nav.login')} &rarr;
@@ -101,7 +101,7 @@ export default function Support() {
               onSubmit={(e) => {
                 e.preventDefault();
                 if (!/^\d+$/.test(orderId.trim())) {
-                  setFieldError(t('support.invalidOrderId', '订单 ID 必须为数字'));
+                  setFieldError(t('support.invalidOrderId', 'Order ID must be a number'));
                   return;
                 }
                 setFieldError('');

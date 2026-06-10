@@ -24,6 +24,15 @@
     "group": {
       "company": "Company",
       "impact": "Impact"
+    },
+    "settings": {
+      "aiBallStyle": "AI Ball Style",
+      "orbRings": "Orb Rings",
+      "orbRingsDesc": "Rotating concentric rings + gradient core",
+      "orbShort": "Orb",
+      "particlePlanet": "Particle Planet",
+      "particlePlanetDesc": "Canvas particle orbit animation",
+      "particlesShort": "Particles"
     }
   },
   "auth": {

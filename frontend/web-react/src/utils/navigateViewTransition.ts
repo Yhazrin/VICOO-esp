@@ -6,10 +6,12 @@ export function supportsViewTransition(): boolean {
 }
 
 /**
- * SPA 导航 + View Transitions API：共享元素（如商品图）在路由切换时变形过渡。
+ * SPA navigation + View Transitions API: shared elements (e.g. product images)
+ * morph during route transitions.
  *
- * **必须**在回调里先 `await prefetch()` 再 `navigate`：ProductDetail 为 lazy 时，
- * 否则新快照会拍到 Suspense fallback，没有带 view-transition-name 的节点，过渡等于失效。
+ * **Must** `await prefetch()` before `navigate` inside the callback: when
+ * ProductDetail is lazy-loaded, otherwise the new snapshot captures the Suspense
+ * fallback with no view-transition-name nodes, effectively breaking the transition.
  */
 export function navigateWithViewTransition(
   navigate: NavigateFunction,
@@ -29,7 +31,7 @@ export function navigateWithViewTransition(
     try {
       await prefetch?.();
     } catch {
-      /* 预加载失败仍继续导航 */
+      /* Continue navigation even if prefetch fails */
     }
     flushSync(() => {
       navigate(to, options);

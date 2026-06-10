@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import json
+import logging
 from datetime import datetime
 from decimal import Decimal
 from typing import Any, List, Literal, Optional
 
 from pydantic import BaseModel, Field
+
+logger = logging.getLogger(__name__)
 
 
 class TraceMediaItem(BaseModel):
@@ -24,7 +27,8 @@ def parse_gallery_json(raw: Optional[str]) -> List[TraceMediaItem]:
         if not isinstance(data, list):
             return []
         return [TraceMediaItem.model_validate(x) for x in data]
-    except Exception:
+    except Exception as e:
+        logger.debug("parse_gallery_json failed: %s", e)
         return []
 
 
@@ -41,10 +45,10 @@ class SupplyChainRecordCreate(BaseModel):
     location_en: Optional[str] = Field(None, max_length=300, description="English geographic location of this stage")
     certified: bool = Field(False, description="Whether this stage has certification")
     cert_image_url: Optional[str] = Field(None, max_length=500, description="Certification document image URL")
-    carbon_kg: Optional[Decimal] = None
+    carbon_kg: Optional[Decimal] = Field(None, ge=0, description="Carbon emissions in kg (non-negative)")
     carbon_note: Optional[str] = Field(None, max_length=500)
-    latitude: Optional[float] = Field(None, description="WGS84 latitude in degrees")
-    longitude: Optional[float] = Field(None, description="WGS84 longitude in degrees")
+    latitude: Optional[float] = Field(None, ge=-90, le=90, description="WGS84 latitude in degrees")
+    longitude: Optional[float] = Field(None, ge=-180, le=180, description="WGS84 longitude in degrees")
     timestamp: Optional[datetime] = Field(None, description="Actual date/time of this stage")
     gallery: Optional[List[TraceMediaItem]] = Field(
         None,

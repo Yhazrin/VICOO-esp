@@ -10,10 +10,10 @@ from pydantic import BaseModel, Field
 class ProductCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=300, description="Product name (primary locale, usually zh-CN)")
     name_en: Optional[str] = Field(None, max_length=300, description="English product name")
-    description: Optional[str] = Field(None, description="Product description")
-    description_en: Optional[str] = Field(None, description="English description")
+    description: Optional[str] = Field(None, max_length=10000, description="Product description")
+    description_en: Optional[str] = Field(None, max_length=10000, description="English description")
     price: Decimal = Field(..., gt=0, description="Price in CNY")
-    currency: str = Field("CNY", description="Currency code")
+    currency: str = Field("CNY", pattern="^(CNY|USD)$", description="Currency code")
     image_url: Optional[str] = Field(None, max_length=500, description="Product image URL")
     category: Optional[str] = Field(None, max_length=100, description="Product category. Valid values: apparel, accessories, stationery, prints, lifestyle, footwear, home, gift_box")
     stock: int = Field(0, ge=0, description="Available stock quantity")
@@ -24,16 +24,16 @@ class ProductCreate(BaseModel):
     origin_country_id: Optional[int] = Field(None, description="Origin country dictionary ID")
     origin_region_id: Optional[int] = Field(None, description="Origin region dictionary ID")
     trace_story_title: Optional[str] = Field(None, max_length=300, description="Trace story title")
-    trace_story_content: Optional[str] = Field(None, description="Trace story rich text/plain content")
+    trace_story_content: Optional[str] = Field(None, max_length=10000, description="Trace story rich text/plain content")
     trace_story_title_en: Optional[str] = Field(None, max_length=300, description="Trace story title (English)")
-    trace_story_content_en: Optional[str] = Field(None, description="Trace story (English)")
+    trace_story_content_en: Optional[str] = Field(None, max_length=10000, description="Trace story (English)")
 
 
 class ProductUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=300)
     name_en: Optional[str] = Field(None, max_length=300)
-    description: Optional[str] = None
-    description_en: Optional[str] = None
+    description: Optional[str] = Field(None, max_length=10000)
+    description_en: Optional[str] = Field(None, max_length=10000)
     price: Optional[Decimal] = Field(None, gt=0)
     image_url: Optional[str] = Field(None, max_length=500)
     category: Optional[str] = Field(None, max_length=100, description="Product category. Valid values: apparel, accessories, stationery, prints, lifestyle, footwear, home, gift_box")
@@ -46,9 +46,19 @@ class ProductUpdate(BaseModel):
     origin_country_id: Optional[int] = None
     origin_region_id: Optional[int] = None
     trace_story_title: Optional[str] = Field(None, max_length=300)
-    trace_story_content: Optional[str] = None
+    trace_story_content: Optional[str] = Field(None, max_length=10000)
     trace_story_title_en: Optional[str] = Field(None, max_length=300)
-    trace_story_content_en: Optional[str] = None
+    trace_story_content_en: Optional[str] = Field(None, max_length=10000)
+
+
+class DesignPublish(BaseModel):
+    """Schema for publishing a design draft as a product."""
+    price: Decimal = Field(..., gt=0, description="Price in CNY")
+    currency: str = Field("CNY", pattern="^(CNY|USD)$", description="Currency code")
+    name: Optional[str] = Field(None, max_length=300)
+    description: Optional[str] = Field(None, max_length=10000)
+    category: Optional[str] = Field(None, max_length=100)
+    stock: int = Field(0, ge=0)
 
 
 class ProductListItem(BaseModel):

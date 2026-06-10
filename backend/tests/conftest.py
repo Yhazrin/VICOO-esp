@@ -545,25 +545,19 @@ class MockProductFactory:
     @staticmethod
     def create(
         product_id: Optional[str] = None,
-        title: str = "Rainbow Tote Bag",
+        name: str = "Rainbow Tote Bag",
         price: float = 128.00,
         category: str = "bags",
     ) -> dict:
         return {
             "id": product_id or generate_uuid(),
-            "title": title,
+            "name": name,
             "description": "Handcrafted from organic cotton with natural dyes",
             "price": price,
-            "materials": "100% organic cotton, natural dyes",
-            "sustainability_info": "GOTS certified, carbon neutral shipping",
-            "welfare_contribution": 15.00,
-            "image_urls": [
-                f"https://cdn.vicoo.org/products/{product_id or 'test'}_1.jpg",
-                f"https://cdn.vicoo.org/products/{product_id or 'test'}_2.jpg",
-            ],
+            "image_url": f"https://cdn.vicoo.org/products/{product_id or 'test'}_1.jpg",
             "category": category,
             "stock": 45,
-            "is_active": True,
+            "status": "active",
         }
 
 
@@ -575,7 +569,7 @@ class MockOrderFactory:
         order_id: Optional[str] = None,
         user_id: Optional[str] = None,
         product_id: Optional[str] = None,
-        status: str = "pending_payment",
+        status: str = "pending",
     ) -> dict:
         return {
             "id": order_id or generate_uuid(),

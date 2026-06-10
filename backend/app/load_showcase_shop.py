@@ -1,7 +1,7 @@
 """
-将路演/课程展示用商品写入数据库（幂等：按商品名更新或插入）。
+Idempotently insert/update showcase products for demos and courses (upsert by product name).
 
-运行（本地或容器内）:
+Run locally or inside container:
   cd backend && python -m app.load_showcase_shop
 
 Docker:
@@ -35,7 +35,7 @@ async def main() -> None:
             c_res = await session.execute(select(Campaign.id).order_by(Campaign.id))
             campaign_ids = list(c_res.scalars().all())
             if not campaign_ids:
-                print("错误：无 campaigns，请先运行 python -m app.seed 或创建活动。")
+                print("Error: no campaigns — please run python -m app.seed or create campaigns first.")
                 return
 
             a_res = await session.execute(
@@ -46,7 +46,7 @@ async def main() -> None:
                 a2 = await session.execute(select(Artwork.id).order_by(Artwork.id).limit(12))
                 artwork_ids = list(dict.fromkeys(artwork_ids + list(a2.scalars().all())))
             if not artwork_ids:
-                print("错误：无 artworks，请先运行种子。")
+                print("Error: no artworks — please run seed first.")
                 return
 
             n_supply = 0
@@ -143,8 +143,8 @@ async def main() -> None:
 
             await session.commit()
             print(
-                f"展示商品已同步：常规 {len(SHOWCASE_REGULAR)} 条，公益 {len(SHOWCASE_IMPACT)} 条；"
-                f"本次新增供应链记录 {n_supply} 条（仅对无溯源的商品补写）。"
+                f"Showcase products synced: {len(SHOWCASE_REGULAR)} regular, {len(SHOWCASE_IMPACT)} impact; "
+                f"added {n_supply} supply chain records (only for products without trace data)."
             )
     finally:
         await engine.dispose()

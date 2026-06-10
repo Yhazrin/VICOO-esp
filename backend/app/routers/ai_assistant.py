@@ -6,7 +6,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.deps import get_optional_current_user
+from app.deps import get_optional_current_user, require_role
 from app.schemas import (
     AIChatRequest,
     AIChatResponse,
@@ -47,10 +47,10 @@ async def ai_chat(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Chat failed: {e}")
+        logger.error("Chat failed: %s", e)
         return ApiResponse(
             data=AIChatResponse(
-                reply="智能助手暂时不可用，请稍后再试或通过联系页提交问题。",
+                reply="The AI assistant is temporarily unavailable. Please try again later or submit a question via the contact page.",
                 model="error",
                 source="system"
             ).model_dump()
@@ -90,26 +90,40 @@ async def ai_chat_stream(
 @router.post("/analyze-artwork", response_model=ApiResponse)
 async def analyze_artwork(
     body: ArtworkAnalysisRequest,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    _admin: dict = Depends(require_role("admin", "editor")),
 ):
     """Analyze artwork style and safety."""
-    ai_service = AIAssistantService(db)
-    result = await ai_service.analyze_artwork(
-        image_url=body.image_url,
-        description=body.description
-    )
-    return ApiResponse(data=ArtworkAnalysisResponse(**result).model_dump())
+    try:
+        ai_service = AIAssistantService(db)
+        result = await ai_service.analyze_artwork(
+            image_url=body.image_url,
+            description=body.description
+        )
+        return ApiResponse(data=ArtworkAnalysisResponse(**result).model_dump())
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Artwork analysis failed: %s", e, exc_info=True)
+        raise HTTPException(status_code=503, detail="AI service temporarily unavailable")
 
 
 @router.post("/moderate-content", response_model=ApiResponse)
 async def moderate_content(
     body: ContentModerationRequest,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    _admin: dict = Depends(require_role("admin", "editor")),
 ):
     """Moderate text content for safety."""
-    ai_service = AIAssistantService(db)
-    result = await ai_service.moderate_content(text=body.text)
-    return ApiResponse(data=ContentModerationResponse(**result).model_dump())
+    try:
+        ai_service = AIAssistantService(db)
+        result = await ai_service.moderate_content(text=body.text)
+        return ApiResponse(data=ContentModerationResponse(**result).model_dump())
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Content moderation failed: %s", e, exc_info=True)
+        raise HTTPException(status_code=503, detail="AI service temporarily unavailable")
 
 
 @router.post("/feedback", response_model=ApiResponse)
@@ -135,5 +149,5 @@ async def ai_feedback(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to record AI feedback: {e}")
+        logger.error("Failed to record AI feedback: %s", e)
         return ApiResponse(data={"escalated": False, "error": "feedback_failed"})

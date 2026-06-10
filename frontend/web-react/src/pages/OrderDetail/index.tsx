@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useParams, Navigate } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/authStore';
 import { useTranslation } from 'react-i18next';
@@ -19,6 +19,10 @@ import type { SupplyChainTimelineRecord } from '@/types';
 
 const ORDER_STATUSES = ['pending', 'paid', 'shipped', 'completed'] as const;
 
+function currencySymbol(paymentMethod?: string | null) {
+  return paymentMethod === 'paypal' || paymentMethod === 'stripe' ? '$' : '¥';
+}
+
 const STATUS_COLORS: Record<string, string> = {
   pending: 'text-sepia-mid border-warm-gray/30 bg-warm-gray/5',
   paid: 'text-archive-brown border-archive-brown/30 bg-archive-brown/5',
@@ -34,11 +38,7 @@ export default function OrderDetail() {
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: `/orders/${id}` }} replace />;
-  }
-
-  // Return/exchange modal state
+  // Return/exchange modal state — hooks must be called before any conditional return
   const [showReturnModal, setShowReturnModal] = useState(false);
   const [returnType, setReturnType] = useState<'return' | 'exchange'>('return');
   const [selectedItems, setSelectedItems] = useState<Record<number, number>>({});
@@ -53,13 +53,13 @@ export default function OrderDetail() {
   const { data: order, isLoading, isError } = useQuery({
     queryKey: ['order', id],
     queryFn: () => ordersApi.getById(id!),
-    enabled: !!id,
+    enabled: !!id && isAuthenticated,
   });
 
-  const { data: impactEntries = [] } = useQuery({
+  const { data: impactEntries = [], isError: _impactError } = useQuery({
     queryKey: ['impact-fund', id],
     queryFn: () => impactFundApi.getOrderEntries(id!),
-    enabled: !!id && (order?.status === 'paid' || order?.status === 'completed' || order?.status === 'shipped'),
+    enabled: !!id && isAuthenticated && (order?.status === 'paid' || order?.status === 'completed' || order?.status === 'shipped'),
     retry: false,
   });
 
@@ -95,7 +95,7 @@ export default function OrderDetail() {
       await ordersApi.cancel(String(order.id));
       queryClient.invalidateQueries({ queryKey: ['order', id] });
     } catch {
-      setErrorMessage(t('orderDetail.cancelError', '取消订单失败，请重试'));
+      setErrorMessage(t('orderDetail.cancelError', 'Failed to cancel order — please retry'));
     } finally {
       setIsCancelling(false);
     }
@@ -134,7 +134,7 @@ export default function OrderDetail() {
       queryClient.invalidateQueries({ queryKey: ['my-after-sales'] });
       queryClient.invalidateQueries({ queryKey: ['order-after-sales', id] });
     } catch {
-      setErrorMessage(t('orderDetail.returnError', '提交退换货申请失败，请重试'));
+      setErrorMessage(t('orderDetail.returnError', 'Failed to submit return request — please retry'));
     }
     finally {
       setIsSubmittingReturn(false);
@@ -176,7 +176,7 @@ export default function OrderDetail() {
       <PageWrapper>
         <PaperTextureBackground variant="paper" className="py-20">
           <SectionContainer>
-            <p className="font-body text-rust">{t('orderDetail.error', '无法加载订单')}</p>
+            <p className="font-body text-rust">{t('orderDetail.error', 'Failed to load order')}</p>
             <Link to="/profile" className="font-body text-caption text-rust mt-4 inline-block">
               ← {t('profile.title')}
             </Link>
@@ -214,7 +214,7 @@ export default function OrderDetail() {
           <div className="flex items-end justify-between mb-8">
             <div>
               <span className="font-body text-overline tracking-[0.3em] uppercase text-sepia-mid block mb-2">
-                {t('orderDetail.title', '订单与物流')}
+                {t('orderDetail.title', 'Order & Logistics')}
               </span>
               <h1 className="font-display text-2xl md:text-3xl font-bold text-ink leading-tight">
                 {order.order_no}
@@ -282,7 +282,7 @@ export default function OrderDetail() {
             {/* Main: items */}
             <div className="lg:col-span-7">
               <h2 className="font-body text-overline tracking-[0.2em] uppercase text-sepia-mid mb-4">
-                {t('orderDetail.items', '明细')}
+                {t('orderDetail.items', 'Items')}
               </h2>
               <div className="space-y-4">
                 {order.items.map((item) => (
@@ -301,7 +301,7 @@ export default function OrderDetail() {
                         {item.product_name || `Product #${item.product_id}`}
                       </Link>
                       <p className="font-mono text-[11px] text-sepia-mid mt-0.5">
-                        ¥{Number(item.price).toFixed(2)} × {item.quantity}
+                        {currencySymbol(order.payment_method)}{Number(item.price).toFixed(2)} × {item.quantity}
                       </p>
                     </div>
                     <div className="flex flex-col items-end gap-2 flex-shrink-0">
@@ -327,8 +327,8 @@ export default function OrderDetail() {
 
               {/* Total */}
               <div className="flex items-center justify-between pt-5 mt-4 border-t border-warm-gray/20">
-                <span className="font-body text-label text-sepia-mid tracking-wide uppercase">{t('orderDetail.total', '合计')}</span>
-                <span className="font-display text-xl font-bold text-ink">¥{Number(order.total_amount).toFixed(2)}</span>
+                <span className="font-body text-label text-sepia-mid tracking-wide uppercase">{t('orderDetail.total', 'Total')}</span>
+                <span className="font-display text-xl font-bold text-ink">{currencySymbol(order.payment_method)}{Number(order.total_amount).toFixed(2)}</span>
               </div>
 
               {/* Actions */}
@@ -339,7 +339,7 @@ export default function OrderDetail() {
                     disabled={isCancelling}
                     className="font-body text-label tracking-wide text-rust hover:text-rust-light transition-colors cursor-pointer border border-rust/30 px-6 py-2.5 hover:bg-rust/5 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isCancelling ? t('common.loading', '处理中...') : t('profile.cancelOrder', '取消订单')}
+                    {isCancelling ? t('common.loading', 'Processing...') : t('profile.cancelOrder', 'Cancel Order')}
                   </button>
                 )}
                 {order.status === 'completed' && order.items.length > 0 && (
@@ -357,7 +357,7 @@ export default function OrderDetail() {
                     onClick={() => setShowReturnModal(true)}
                     className="font-body text-label tracking-wide text-ink hover:text-rust transition-colors cursor-pointer border border-warm-gray/30 px-6 py-2.5 hover:border-rust/30"
                   >
-                    {t('orderDetail.returnExchange.title', '申请退换')}
+                    {t('orderDetail.returnExchange.title', 'Request Return')}
                   </button>
                 )}
               </div>
@@ -370,7 +370,7 @@ export default function OrderDetail() {
                 {order.shipping_address && (
                   <div>
                     <p className="font-body text-overline tracking-[0.15em] uppercase text-sepia-mid mb-1.5">
-                      {t('orderDetail.address', '收货地址')}
+                      {t('orderDetail.address', 'Shipping Address')}
                     </p>
                     <p className="font-body text-body-sm text-ink leading-relaxed">{order.shipping_address}</p>
                   </div>
@@ -380,7 +380,7 @@ export default function OrderDetail() {
                 {order.payment_method && (
                   <div>
                     <p className="font-body text-overline tracking-[0.15em] uppercase text-sepia-mid mb-1.5">
-                      {t('checkout.paymentMethod', '支付方式')}
+                      {t('checkout.paymentMethod', 'Payment Method')}
                     </p>
                     <p className="font-body text-body-sm text-ink capitalize">{order.payment_method}</p>
                   </div>
@@ -390,7 +390,7 @@ export default function OrderDetail() {
                 {(order.carrier || order.tracking_number) && (
                   <div>
                     <p className="font-body text-overline tracking-[0.15em] uppercase text-sepia-mid mb-1.5">
-                      {t('orderDetail.logistics', '物流轨迹')}
+                      {t('orderDetail.logistics', 'Logistics')}
                     </p>
                     <p className="font-body text-body-sm text-ink">
                       {order.carrier && <span>{order.carrier} · </span>}
@@ -402,7 +402,7 @@ export default function OrderDetail() {
                 {/* Date */}
                 <div>
                   <p className="font-body text-overline tracking-[0.15em] uppercase text-sepia-mid mb-1.5">
-                    {t('orderDetail.orderDate', '下单时间')}
+                    {t('orderDetail.orderDate', 'Order Date')}
                   </p>
                   <p className="font-body text-body-sm text-ink">
                     {formatDateTime(order.created_at)}
@@ -419,7 +419,7 @@ export default function OrderDetail() {
         <PaperTextureBackground variant="aged" className="py-16 md:py-24">
           <SectionContainer>
             <h2 className="font-display text-h3 font-bold text-ink mb-8">
-              {t('orderDetail.logistics', '物流轨迹')}
+              {t('orderDetail.logistics', 'Logistics Timeline')}
             </h2>
             <TraceabilityTimeline records={logisticsAsTimeline} />
           </SectionContainer>
@@ -431,25 +431,25 @@ export default function OrderDetail() {
         <PaperTextureBackground variant="paper" className="py-16 md:py-24">
           <SectionContainer>
             <h2 className="font-display text-h3 font-bold text-ink mb-2">
-              {t('orderDetail.impactFund', '公益回馈')}
+              {t('orderDetail.impactFund', 'Impact Fund')}
             </h2>
             <p className="font-body text-body-sm text-ink-faded mb-8">
-              {t('orderDetail.impactFundDesc', '本订单中公益商品的部分收益将按以下比例分配')}
+              {t('orderDetail.impactFundDesc', 'A portion of the impact product revenue from this order is allocated as follows')}
             </p>
             <div className="space-y-3">
               {impactEntries.map((entry) => (
                 <div key={entry.id} className="flex items-center justify-between border-b border-warm-gray/10 pb-3 last:border-b-0">
                   <div>
                     <span className="font-body text-body-sm text-ink">
-                      {entry.beneficiary_type === 'artist' && t('orderDetail.fund.artist', '小画家')}
-                      {entry.beneficiary_type === 'school' && t('orderDetail.fund.school', '学校')}
-                      {entry.beneficiary_type === 'charity_pool' && t('orderDetail.fund.charity', '公益池')}
+                      {entry.beneficiary_type === 'artist' && t('orderDetail.fund.artist', 'Young Artist')}
+                      {entry.beneficiary_type === 'school' && t('orderDetail.fund.school', 'School')}
+                      {entry.beneficiary_type === 'charity_pool' && t('orderDetail.fund.charity', 'Charity Pool')}
                     </span>
                     {entry.beneficiary_name && (
                       <span className="font-body text-caption text-ink-faded ml-2">({entry.beneficiary_name})</span>
                     )}
                   </div>
-                  <span className="font-mono text-sm text-archive-brown">¥{Number(entry.allocated_amount).toFixed(2)}</span>
+                  <span className="font-mono text-sm text-archive-brown">{currencySymbol(order.payment_method)}{Number(entry.allocated_amount).toFixed(2)}</span>
                 </div>
               ))}
             </div>
@@ -480,22 +480,22 @@ export default function OrderDetail() {
                     <svg className="w-6 h-6 text-sage" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" /></svg>
                   </div>
                   <h3 className="font-display text-lg font-bold text-ink mb-2">
-                    {t('orderDetail.returnExchange.success', '申请已提交')}
+                    {t('orderDetail.returnExchange.success', 'Request Submitted')}
                   </h3>
                   <p className="font-body text-body-sm text-ink-faded mb-6">
-                    {t('orderDetail.returnExchange.successDesc', '我们将在1-3个工作日内处理您的申请')}
+                    {t('orderDetail.returnExchange.successDesc', 'We will process your request within 1-3 business days')}
                   </p>
                   <button onClick={resetReturnModal} className="font-body text-label tracking-wide bg-ink text-paper px-8 py-3 hover:bg-rust transition-colors cursor-pointer">
-                    {t('common.close', '关闭')}
+                    {t('common.close', 'Close')}
                   </button>
                 </div>
               ) : (
                 <>
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="font-display text-lg font-bold text-ink">
-                      {t('orderDetail.returnExchange.title', '申请退换')}
+                      {t('orderDetail.returnExchange.title', 'Request Return')}
                     </h3>
-                    <button onClick={resetReturnModal} className="text-sepia-mid hover:text-ink transition-colors cursor-pointer">
+                    <button aria-label={t('common.close', 'Close')} onClick={resetReturnModal} className="text-sepia-mid hover:text-ink transition-colors cursor-pointer">
                       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" /></svg>
                     </button>
                   </div>
@@ -512,14 +512,14 @@ export default function OrderDetail() {
                             : 'border-warm-gray/25 text-sepia-mid hover:border-warm-gray/40'
                         }`}
                       >
-                        {t(`orderDetail.returnExchange.${type}`, type === 'return' ? '退货' : '换货')}
+                        {t(`orderDetail.returnExchange.${type}`, type === 'return' ? 'Return' : 'Exchange')}
                       </button>
                     ))}
                   </div>
 
                   {/* Item selection */}
                   <p className="font-body text-caption text-sepia-mid tracking-wider uppercase mb-3">
-                    {t('orderDetail.returnExchange.selectItems', '选择商品')}
+                    {t('orderDetail.returnExchange.selectItems', 'Select Items')}
                   </p>
                   <div className="space-y-3 mb-6">
                     {order.items.map((item) => (
@@ -531,17 +531,17 @@ export default function OrderDetail() {
                           className="accent-rust cursor-pointer"
                         />
                         <div className="w-10 h-12 flex-shrink-0 overflow-hidden border border-warm-gray/10 bg-aged-stock">
-                          {item.product_image && <img src={item.product_image} alt="" className="w-full h-full object-cover" loading="lazy" />}
+                          {item.product_image && <img src={item.product_image} alt={item.product_name || ''} className="w-full h-full object-cover" loading="lazy" />}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-body text-body-sm text-ink truncate">{item.product_name || `#${item.product_id}`}</p>
-                          <p className="font-mono text-[11px] text-sepia-mid">¥{Number(item.price).toFixed(2)} × {item.quantity}</p>
+                          <p className="font-mono text-[11px] text-sepia-mid">{currencySymbol(order.payment_method)}{Number(item.price).toFixed(2)} × {item.quantity}</p>
                         </div>
                         {selectedItems[item.id] !== undefined && (
                           <div className="flex items-center gap-1">
-                            <button onClick={() => updateItemQty(item.id, selectedItems[item.id] - 1, item.quantity)} className="w-6 h-6 border border-warm-gray/25 flex items-center justify-center text-sepia-mid hover:text-ink cursor-pointer">−</button>
+                            <button aria-label="Decrease quantity" onClick={() => updateItemQty(item.id, selectedItems[item.id] - 1, item.quantity)} className="w-6 h-6 border border-warm-gray/25 flex items-center justify-center text-sepia-mid hover:text-ink cursor-pointer">−</button>
                             <span className="font-mono text-xs w-6 text-center">{selectedItems[item.id]}</span>
-                            <button onClick={() => updateItemQty(item.id, selectedItems[item.id] + 1, item.quantity)} className="w-6 h-6 border border-warm-gray/25 flex items-center justify-center text-sepia-mid hover:text-ink cursor-pointer">+</button>
+                            <button aria-label="Increase quantity" onClick={() => updateItemQty(item.id, selectedItems[item.id] + 1, item.quantity)} className="w-6 h-6 border border-warm-gray/25 flex items-center justify-center text-sepia-mid hover:text-ink cursor-pointer">+</button>
                           </div>
                         )}
                       </div>
@@ -551,14 +551,14 @@ export default function OrderDetail() {
                   {/* Reason */}
                   <div className="mb-6">
                     <label className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
-                      {t('orderDetail.returnExchange.reason', '原因')}
+                      {t('orderDetail.returnExchange.reason', 'Reason')}
                     </label>
                     <textarea
                       value={returnReason}
                       onChange={(e) => setReturnReason(e.target.value)}
                       rows={3}
                       className="w-full px-3 py-2 border border-warm-gray/30 bg-transparent font-body text-body-sm text-ink focus:outline-none focus:border-rust/50 resize-none"
-                      placeholder={t('orderDetail.returnExchange.reasonPlaceholder', '请说明退换原因...')}
+                      placeholder={t('orderDetail.returnExchange.reasonPlaceholder', 'Please describe the reason for return...')}
                     />
                   </div>
 
@@ -568,7 +568,7 @@ export default function OrderDetail() {
                     disabled={Object.keys(selectedItems).length === 0 || isSubmittingReturn}
                     className="w-full font-body text-label tracking-[0.1em] uppercase bg-ink text-paper py-3 hover:bg-rust transition-colors cursor-pointer disabled:opacity-40"
                   >
-                    {isSubmittingReturn ? t('checkout.processing', '处理中...') : t('orderDetail.returnExchange.submit', '提交申请')}
+                    {isSubmittingReturn ? t('checkout.processing', 'Processing...') : t('orderDetail.returnExchange.submit', 'Submit Request')}
                   </button>
                 </>
               )}

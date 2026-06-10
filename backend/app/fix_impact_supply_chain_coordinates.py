@@ -1,8 +1,8 @@
 """
-将「公益溯源 demo 四件套」供应链节点的经纬度修正为与 add_impact_products_demo 一致。
-对已存在数据按 product.name + stage + location 精确匹配后更新。
+Fix supply chain coordinates for the four impact demo products to match add_impact_products_demo.
+Updates existing records by matching product.name + stage + location.
 
-运行: cd /app/backend && python -m app.fix_impact_supply_chain_coordinates
+Run: cd /app/backend && python -m app.fix_impact_supply_chain_coordinates
 """
 
 from __future__ import annotations
@@ -41,7 +41,7 @@ async def main() -> None:
                         rec.longitude = lon
                         updated += 1
             await session.commit()
-            print(f"已校正 {updated} 条 supply_chain_records 的 latitude/longitude。")
+            print(f"Fixed latitude/longitude on {updated} supply_chain_records.")
     finally:
         await engine.dispose()
 

@@ -1,7 +1,7 @@
 import logging
-from typing import Optional
+from typing import Optional, Tuple, List
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 
@@ -17,6 +17,7 @@ logger = logging.getLogger("vicoo.design_draft")
 class DesignDraftService(BaseService):
     """Service for managing AI-assisted design drafts from artworks."""
 
+    @audit_action(action="create_design_draft", resource_type="design_draft")
     async def create_draft(self, artwork_id: int, user_id: int, data: dict) -> DesignDraft:
         """Create a new design draft from an artwork."""
         # Verify artwork exists
@@ -59,6 +60,7 @@ class DesignDraftService(BaseService):
         await self.db.flush()
         return draft
 
+    @audit_action(action="approve_design_draft", resource_type="design_draft")
     async def approve_draft(self, draft_id: int, review_note: Optional[str] = None) -> DesignDraft:
         """Approve a draft for publishing."""
         draft = await self._get_draft(draft_id)
@@ -70,6 +72,7 @@ class DesignDraftService(BaseService):
         await self.db.flush()
         return draft
 
+    @audit_action(action="reject_design_draft", resource_type="design_draft")
     async def reject_draft(self, draft_id: int, review_note: Optional[str] = None) -> DesignDraft:
         """Reject a draft."""
         draft = await self._get_draft(draft_id)
@@ -109,14 +112,28 @@ class DesignDraftService(BaseService):
     async def get_draft(self, draft_id: int) -> DesignDraft:
         return await self._get_draft(draft_id)
 
-    async def list_drafts(self, status: Optional[str] = None, artwork_id: Optional[int] = None) -> list[DesignDraft]:
+    async def list_drafts(
+        self,
+        status: Optional[str] = None,
+        artwork_id: Optional[int] = None,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> Tuple[List[DesignDraft], int]:
+        count_stmt = select(func.count(DesignDraft.id))
+        if status:
+            count_stmt = count_stmt.where(DesignDraft.status == status)
+        if artwork_id:
+            count_stmt = count_stmt.where(DesignDraft.artwork_id == artwork_id)
+        total = (await self.db.execute(count_stmt)).scalar() or 0
+
         stmt = select(DesignDraft)
         if status:
             stmt = stmt.where(DesignDraft.status == status)
         if artwork_id:
             stmt = stmt.where(DesignDraft.artwork_id == artwork_id)
-        stmt = stmt.order_by(DesignDraft.created_at.desc())
-        return (await self.db.execute(stmt)).scalars().all()
+        stmt = stmt.order_by(DesignDraft.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
+        rows = (await self.db.execute(stmt)).scalars().all()
+        return rows, total
 
     async def _get_draft(self, draft_id: int) -> DesignDraft:
         stmt = select(DesignDraft).where(DesignDraft.id == draft_id)

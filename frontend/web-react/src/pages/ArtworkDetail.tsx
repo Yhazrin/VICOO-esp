@@ -41,7 +41,7 @@ export default function ArtworkDetail() {
     },
     onError: (err) => {
       if (err.message !== 'not authenticated') {
-        setVoteError(t('vote.error', '投票失败，请重试'));
+        setVoteError(t('vote.error', 'Vote failed — please retry'));
       }
     },
   });

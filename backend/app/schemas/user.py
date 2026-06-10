@@ -10,7 +10,7 @@ class UserCreate(BaseModel):
     email: EmailStr = Field(..., description="User email address")
     password: str = Field(..., min_length=8, max_length=128, description="Password (min 8 chars)")
     nickname: str = Field(..., min_length=1, max_length=100, description="Display nickname")
-    phone: Optional[str] = Field(None, description="Phone number (will be encrypted at rest)")
+    phone: Optional[str] = Field(None, max_length=20, pattern=r"^[\d\s\-\+\(\)]{5,20}$", description="Phone number (will be encrypted at rest)")
 
 
 class UserUpdate(BaseModel):
@@ -49,8 +49,8 @@ class ChildParticipantCreate(BaseModel):
     display_name: str = Field(..., min_length=1, max_length=100, description="Public display name")
     age: int = Field(..., ge=1, le=17, description="Child's age (must be under 18)")
     guardian_name: str = Field(..., min_length=1, max_length=100, description="Guardian's name")
-    guardian_phone: Optional[str] = Field(None, description="Guardian phone (encrypted)")
-    guardian_email: Optional[str] = Field(None, description="Guardian email (encrypted)")
+    guardian_phone: Optional[str] = Field(None, max_length=20, pattern=r"^[\d\s\-\+\(\)]{5,20}$", description="Guardian phone (encrypted)")
+    guardian_email: Optional[EmailStr] = Field(None, description="Guardian email (encrypted)")
     region: Optional[str] = Field(None, max_length=200, description="Geographic region")
     school: Optional[str] = Field(None, max_length=200, description="School name")
 

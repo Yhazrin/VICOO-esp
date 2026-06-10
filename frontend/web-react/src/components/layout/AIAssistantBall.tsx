@@ -130,6 +130,7 @@ export const AIAssistantBall: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const handleSendRef = useRef<(text?: string) => void>(() => {});
+  const abortRef = useRef<AbortController | null>(null);
   const route = useLocation().pathname;
   const isImpactSurface = impactMode || route.startsWith('/impact');
   const suggestions = getAIAssistantSuggestions(isImpactSurface, route);
@@ -146,6 +147,11 @@ export const AIAssistantBall: React.FC = () => {
     }
   }, [messages]);
 
+  // Abort streaming on unmount
+  useEffect(() => {
+    return () => { abortRef.current?.abort(); };
+  }, []);
+
   const handleSend = async (overrideText?: string) => {
     const text = (overrideText ?? input).trim();
     if (!text || isLoading) return;
@@ -160,6 +166,9 @@ export const AIAssistantBall: React.FC = () => {
     setMessages(prev => [...prev, { id: assistantId, role: 'assistant', content: '' }]);
 
     try {
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
       const chatMessages: AIChatMessage[] = [...messages, userMsg].map((m) => ({
         role: m.role as AIChatMessage['role'],
         content: m.content,
@@ -175,12 +184,17 @@ export const AIAssistantBall: React.FC = () => {
         'general',
         requestMetadata,
         (fullText) => {
-          setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, content: fullText } : m));
+          if (!controller.signal.aborted) {
+            setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, content: fullText } : m));
+          }
         },
+        controller.signal,
       );
-    } catch {
-      // Replace the empty assistant message with an error
-      setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, role: 'system', content: t('aiAssistant.connectionError') } : m));
+    } catch (err) {
+      if (!(err instanceof DOMException && err.name === 'AbortError')) {
+        // Replace the empty assistant message with an error (skip if intentionally aborted)
+        setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, role: 'system', content: t('aiAssistant.connectionError') } : m));
+      }
     } finally {
       setIsLoading(false);
     }

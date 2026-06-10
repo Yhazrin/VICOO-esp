@@ -1,22 +1,23 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func, not_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime
-from typing import Optional, Any
+from datetime import datetime, timezone
+from typing import Optional
+import hmac
 import logging
+import os
 
 from app.config import settings
 from app.database import get_db
 from app.models.user import User, ChildParticipant
 from app.models.artwork import Artwork
-from app.models.campaign import Campaign
 from app.models.donation import Donation
-from app.models.product import Product
 from app.models.order import Order
 from app.models.audit import AuditLog
-from app.schemas import ApiResponse, AuditLogOut, DashboardMetrics, PaginatedResponse, DonationOut
+from app.schemas import ApiResponse, AuditLogOut, PaginatedResponse, DonationOut, SettingsUpdate, VerifyAccessRequest
 from app.deps import require_role
 from app.models.settings import SiteSettings
+from app.utils.masking import mask_name
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -60,21 +61,8 @@ async def dashboard(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Dashboard stats failed: {e}")
-        if not settings.DEMO_MODE:
-            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
-        return ApiResponse(
-            data={
-                "total_donation_amount": "0",
-                "total_donations": 0,
-                "pending_artworks": 0,
-                "active_campaigns": 0,
-                "total_users": 0,
-                "total_artworks": 0,
-                "total_orders": 0,
-                "total_clothing_donations": 0,
-            }
-        )
+        logger.error("Dashboard stats failed: %s", e)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.get("/donations", response_model=PaginatedResponse)
@@ -112,11 +100,17 @@ async def approve_donation_admin(
     current_user: dict = Depends(require_role("admin")),
 ):
     """Manually approve a pending donation after offline / manual payment review."""
-    donation_service = DonationService(db)
-    donation = await donation_service.admin_approve_donation(
-        donation_id, admin_user_id=current_user.get("id")
-    )
-    return ApiResponse(data=DonationOut.model_validate(donation).model_dump(mode="json"))
+    try:
+        donation_service = DonationService(db)
+        donation = await donation_service.admin_approve_donation(
+            donation_id, admin_user_id=current_user.get("id")
+        )
+        return ApiResponse(data=DonationOut.model_validate(donation).model_dump(mode="json"))
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Approve donation %s failed", donation_id)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/analytics/ai", response_model=ApiResponse)
@@ -132,8 +126,12 @@ async def ai_analytics(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"AI analytics failed: {e}")
-        return ApiResponse(data={"chat_count": 0, "feedback_total": 0, "handoff_count": 0})
+        logger.error("AI analytics failed: %s", e)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+
+_VALID_ARTWORK_STATUSES = {"draft", "pending", "approved", "rejected", "featured"}
+_VALID_CHILD_STATUSES = {"active", "withdrawn", "pending_review"}
+
 
 @router.post("/artworks/batch-moderate", response_model=ApiResponse)
 async def batch_moderate_artworks(
@@ -143,6 +141,10 @@ async def batch_moderate_artworks(
     _current_user: dict = Depends(require_role("admin")),
 ):
     """Batch approve or reject artworks."""
+    if not artwork_ids:
+        raise HTTPException(status_code=400, detail="artwork_ids must not be empty")
+    if status not in _VALID_ARTWORK_STATUSES:
+        raise HTTPException(status_code=400, detail=f"Invalid status. Allowed: {', '.join(sorted(_VALID_ARTWORK_STATUSES))}")
     admin_service = AdminService(db)
     try:
         result = await admin_service.batch_moderate_artworks(artwork_ids, status)
@@ -150,7 +152,7 @@ async def batch_moderate_artworks(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Batch moderation failed: {e}")
+        logger.error("Batch moderation failed: %s", e)
         raise HTTPException(status_code=500, detail="Batch operation failed")
 
 @router.post("/children/batch-moderate", response_model=ApiResponse)
@@ -161,6 +163,10 @@ async def batch_moderate_children(
     _current_user: dict = Depends(require_role("admin")),
 ):
     """Batch approve or withdraw child participants."""
+    if not child_ids:
+        raise HTTPException(status_code=400, detail="child_ids must not be empty")
+    if status not in _VALID_CHILD_STATUSES:
+        raise HTTPException(status_code=400, detail=f"Invalid status. Allowed: {', '.join(sorted(_VALID_CHILD_STATUSES))}")
     admin_service = AdminService(db)
     try:
         result = await admin_service.batch_moderate_children(child_ids, status)
@@ -168,22 +174,20 @@ async def batch_moderate_children(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Batch child moderation failed: {e}")
+        logger.error("Batch child moderation failed: %s", e)
         raise HTTPException(status_code=500, detail="Batch operation failed")
 
 
 @router.post("/auth/verify-access", response_model=ApiResponse)
 async def verify_audit_access(
-    body: dict[str, str],
+    body: VerifyAccessRequest,
     _current_user: dict = Depends(require_role("admin")),
 ):
     """Verify admin audit access code."""
-    access_code = body.get("accessCode", "")
-    if not access_code:
-        raise HTTPException(status_code=400, detail="Access code required")
-    import os
-    expected = os.environ.get("ADMIN_AUDIT_CODE", "vicoo-admin-2025")
-    if access_code != expected:
+    expected = os.environ.get("ADMIN_AUDIT_CODE")
+    if not expected:
+        raise HTTPException(status_code=500, detail="Audit access code not configured")
+    if not hmac.compare_digest(body.access_code, expected):
         raise HTTPException(status_code=403, detail="Invalid access code")
     return ApiResponse(data={"verified": True})
 
@@ -194,46 +198,56 @@ async def get_settings(
     _current_user: dict = Depends(require_role("admin")),
 ):
     """Get admin settings."""
-    result = await db.execute(select(SiteSettings))
-    rows = result.scalars().all()
-    settings_dict = {}
-    for row in rows:
-        settings_dict[row.key] = row.value
-    # Defaults if no settings exist yet
-    defaults = {
-        "site_name": "Uniqlo × VICOO 公益",
-        "site_tagline": "Welfare Action for a Better World",
-        "contact_email": "admin@vicoo.test",
-        "donation_enabled": True,
-        "shop_enabled": True,
-        "registration_enabled": True,
-        "maintenance_mode": False,
-    }
-    for k, v in defaults.items():
-        if k not in settings_dict:
-            settings_dict[k] = v
-    return ApiResponse(data=settings_dict)
+    try:
+        result = await db.execute(select(SiteSettings))
+        rows = result.scalars().all()
+        settings_dict = {}
+        for row in rows:
+            settings_dict[row.key] = row.value
+        # Defaults if no settings exist yet
+        defaults = {
+            "site_name": "Uniqlo × VICOO Charity",
+            "site_tagline": "Welfare Action for a Better World",
+            "contact_email": "admin@vicoo.test",
+            "donation_enabled": True,
+            "shop_enabled": True,
+            "registration_enabled": True,
+            "maintenance_mode": False,
+        }
+        for k, v in defaults.items():
+            if k not in settings_dict:
+                settings_dict[k] = v
+        return ApiResponse(data=settings_dict)
+    except Exception as e:
+        logger.exception("Failed to load settings")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.put("/settings", response_model=ApiResponse)
 async def update_settings(
-    body: dict[str, Any],
+    body: SettingsUpdate,
     db: AsyncSession = Depends(get_db),
     _current_user: dict = Depends(require_role("admin")),
 ):
     """Update admin settings."""
-    for key, value in body.items():
-        result = await db.execute(select(SiteSettings).where(SiteSettings.key == key))
-        row = result.scalar_one_or_none()
-        if row:
-            row.value = value
-        else:
-            db.add(SiteSettings(key=key, value=value))
-    await db.flush()
-    # Return updated settings
-    result = await db.execute(select(SiteSettings))
-    rows = result.scalars().all()
-    return ApiResponse(data={r.key: r.value for r in rows})
+    try:
+        for key, value in body.model_dump(exclude_unset=True).items():
+            result = await db.execute(select(SiteSettings).where(SiteSettings.key == key))
+            row = result.scalar_one_or_none()
+            if row:
+                row.value = value
+            else:
+                db.add(SiteSettings(key=key, value=value))
+        await db.flush()
+        # Return updated settings
+        result = await db.execute(select(SiteSettings))
+        rows = result.scalars().all()
+        return ApiResponse(data={r.key: r.value for r in rows})
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Failed to update settings")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/audit-logs", response_model=PaginatedResponse)
@@ -270,8 +284,8 @@ async def list_audit_logs(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Audit logs failed: {e}", exc_info=True)
-        return PaginatedResponse(data=[], total=0, page=page, page_size=page_size)
+        logger.error("Audit logs failed: %s", e, exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.get("/child-participants", response_model=PaginatedResponse)
@@ -280,11 +294,12 @@ async def list_child_participants(
     page_size: int = Query(20, ge=1, le=100),
     status: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
-    _current_user: dict = Depends(require_role("admin")),
+    _current_user: dict = Depends(require_role("admin", "compliance")),
 ):
-    """List child participants (admin only, sensitive data)."""
+    """List child participants (admin/compliance only, sensitive data)."""
     try:
-        stmt = select(ChildParticipant)
+        is_compliance_only = _current_user.get("role") == "compliance"
+        stmt = select(ChildParticipant).order_by(ChildParticipant.id.desc())
         if status:
             stmt = stmt.where(ChildParticipant.status == status)
         count_stmt = select(func.count(ChildParticipant.id))
@@ -297,10 +312,10 @@ async def list_child_participants(
         data = [
             {
                 "id": p.id,
-                "child_name": p.child_name,
+                "child_name": mask_name(p.child_name_decrypted) if is_compliance_only else p.child_name_decrypted,
                 "display_name": p.display_name,
                 "age": p.age,
-                "guardian_name": p.guardian_name,
+                "guardian_name": mask_name(p.guardian_name_decrypted) if is_compliance_only else p.guardian_name_decrypted,
                 "region": p.region,
                 "school": p.school,
                 "consent_given": p.consent_given,
@@ -314,8 +329,8 @@ async def list_child_participants(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Child participants list failed: {e}", exc_info=True)
-        return PaginatedResponse(data=[], total=0, page=page, page_size=page_size)
+        logger.error("Child participants list failed: %s", e, exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.put("/child-participants/{child_id}/consent", response_model=ApiResponse)
@@ -332,7 +347,7 @@ async def approve_child_consent(
         if not child:
             raise HTTPException(status_code=404, detail="Child participant not found")
         child.consent_given = True
-        child.consent_date = datetime.now()
+        child.consent_date = datetime.now(timezone.utc)
         child.status = "active"
         await db.flush()
 
@@ -352,7 +367,7 @@ async def approve_child_consent(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"DB write failed during approve_child_consent: {e}", exc_info=True)
+        logger.error("DB write failed during approve_child_consent: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
@@ -391,11 +406,8 @@ async def donation_analytics(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Donation analytics failed: {e}", exc_info=True)
-        return ApiResponse(data={
-            "by_method": [],
-            "by_campaign": [],
-        })
+        logger.error("Donation analytics failed: %s", e, exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.get("/analytics/artworks", response_model=ApiResponse)
@@ -420,12 +432,8 @@ async def artwork_analytics(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Artwork analytics failed: {e}", exc_info=True)
-        return ApiResponse(data={
-            "by_status": {},
-            "total_views": 0,
-            "total_likes": 0,
-        })
+        logger.error("Artwork analytics failed: %s", e, exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.get("/analytics/orders", response_model=ApiResponse)
@@ -450,11 +458,8 @@ async def order_analytics(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Order analytics failed: {e}", exc_info=True)
-        return ApiResponse(data={
-            "by_status": {},
-            "total_revenue": "0",
-        })
+        logger.error("Order analytics failed: %s", e, exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.get("/analytics/users", response_model=ApiResponse)
@@ -468,14 +473,19 @@ async def user_analytics(
         role_result = await db.execute(role_stmt)
         by_role = {row[0]: row[1] for row in role_result.all()}
 
-        monthly_users = (await db.execute(select(User.created_at))).all()
-        month_counts: dict[str, int] = {}
-        for (created_at,) in monthly_users:
-            if not created_at:
-                continue
-            key = created_at.strftime("%Y-%m")
-            month_counts[key] = month_counts.get(key, 0) + 1
-        by_month = [{"month": k, "count": v} for k, v in sorted(month_counts.items())]
+        # Cross-dialect monthly grouping
+        dialect = db.bind.dialect.name if db.bind else "mysql"
+        if dialect == "mysql":
+            from sqlalchemy import text
+            monthly_result = await db.execute(
+                text("SELECT DATE_FORMAT(created_at, '%Y-%m') AS month, COUNT(*) AS cnt FROM users WHERE created_at IS NOT NULL GROUP BY month ORDER BY month")
+            )
+        else:
+            from sqlalchemy import text
+            monthly_result = await db.execute(
+                text("SELECT strftime('%Y-%m', created_at) AS month, COUNT(*) AS cnt FROM users WHERE created_at IS NOT NULL GROUP BY month ORDER BY month")
+            )
+        by_month = [{"month": row[0], "count": row[1]} for row in monthly_result.all()]
 
         return ApiResponse(data={
             "by_role": by_role,
@@ -484,8 +494,5 @@ async def user_analytics(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"User analytics failed: {e}", exc_info=True)
-        return ApiResponse(data={
-            "by_role": {},
-            "by_month": [],
-        })
+        logger.error("User analytics failed: %s", e, exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")

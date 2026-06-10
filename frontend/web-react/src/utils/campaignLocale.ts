@@ -1,7 +1,7 @@
 import type { TFunction, i18n as I18nType } from 'i18next';
 import type { Campaign } from '@/types';
 
-/** 与 seed / add_campaigns_demo 中 title 字面值一致，不依赖自增 id */
+/** Matches the title literals in seed / add_campaigns_demo; does not rely on auto-increment IDs */
 export const CAMPAIGN_TITLE_TO_KEY: Record<string, string> = {
   '春天的色彩 — 乡村儿童画展': 'springExhibition',
   '我的家乡 — 故土记忆': 'hometownMemories',
@@ -17,8 +17,9 @@ function excerptText(text: string, max: number): string {
 }
 
 /**
- * 英文界面使用 en.json 中 campaigns.items.<key>；其它语言用接口原文。
- * 无映射的活动始终使用接口 title/description；副标题缺省时用 description 截断。
+ * English locale uses campaigns.items.<key> from en.json; other languages use the raw API text.
+ * Campaigns without a mapping always use the API title/description;
+ * when subtitle is missing, a truncated description is used.
  */
 export function getLocalizedCampaignCopy(
   campaign: Campaign,

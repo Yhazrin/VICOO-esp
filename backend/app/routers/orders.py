@@ -120,7 +120,7 @@ _mock_orders = [
         "order_no": "TH2025040110001",
         "total_amount": "257.00",
         "status": "completed",
-        "shipping_address": "北京市朝阳区建国路88号",
+        "shipping_address": "88 Jianguo Road, Chaoyang District, Beijing",
         "payment_method": "wechat",
         "payment_id": "wx_order_001",
         "items": [{"id": 1, "product_id": 1, "product_name": "彩虹鱼棉质 T 恤", "product_image": _mock_impact_item_image("彩虹鱼棉质 T 恤"), "quantity": 1, "price": "168.00"}, {"id": 2, "product_id": 4, "product_name": "妈妈的手棉麻衬衫", "product_image": _mock_impact_item_image("妈妈的手棉麻衬衫"), "quantity": 2, "price": "39.00"}],
@@ -133,10 +133,10 @@ _mock_orders = [
         "order_no": "TH2025040514002",
         "total_amount": "258.00",
         "status": "shipped",
-        "shipping_address": "上海市浦东新区陆家嘴环路1000号",
+        "shipping_address": "1000 Lujiazui Ring Road, Pudong New Area, Shanghai",
         "payment_method": "alipay",
         "payment_id": "ali_order_002",
-        "items": [{"id": 3, "product_id": 3, "product_name": "春天的花园丝巾", "product_image": _mock_impact_item_image("春天的花园丝巾"), "quantity": 1, "price": "258.00"}],
+        "items": [{"id": 3, "product_id": 3, "product_name": "Spring Garden Silk Scarf", "product_image": _mock_impact_item_image("Spring Garden Silk Scarf"), "quantity": 1, "price": "258.00"}],
         "created_at": "2025-04-05T14:00:00",
         "updated_at": "2025-04-06T09:00:00",
     },
@@ -146,7 +146,7 @@ _mock_orders = [
         "order_no": "TH2025041016003",
         "total_amount": "368.00",
         "status": "paid",
-        "shipping_address": "广州市天河区体育西路103号",
+        "shipping_address": "103 Tiyu West Road, Tianhe District, Guangzhou",
         "payment_method": "wechat",
         "payment_id": "wx_order_003",
         "items": [{"id": 4, "product_id": 8, "product_name": "过年了针织开衫", "product_image": _mock_impact_item_image("过年了针织开衫"), "quantity": 1, "price": "368.00"}],
@@ -159,7 +159,7 @@ _mock_orders = [
         "order_no": "TH2025041511004",
         "total_amount": "157.00",
         "status": "pending",
-        "shipping_address": "北京市朝阳区建国路88号",
+        "shipping_address": "88 Jianguo Road, Chaoyang District, Beijing",
         "payment_method": None,
         "payment_id": None,
         "items": [{"id": 5, "product_id": 2, "product_name": "星星之夜帆布托特包", "product_image": _mock_impact_item_image("星星之夜帆布托特包"), "quantity": 1, "price": "89.00"}, {"id": 6, "product_id": 5, "product_name": "太空旅行圆领卫衣", "product_image": _mock_impact_item_image("太空旅行圆领卫衣"), "quantity": 1, "price": "68.00"}],
@@ -172,7 +172,7 @@ _mock_orders = [
         "order_no": "TH2025042009005",
         "total_amount": "326.00",
         "status": "completed",
-        "shipping_address": "上海市浦东新区陆家嘴环路1000号",
+        "shipping_address": "1000 Lujiazui Ring Road, Pudong New Area, Shanghai",
         "payment_method": "alipay",
         "payment_id": "ali_order_005",
         "items": [{"id": 7, "product_id": 1, "product_name": "彩虹鱼棉质 T 恤", "product_image": _mock_impact_item_image("彩虹鱼棉质 T 恤"), "quantity": 1, "price": "168.00"}, {"id": 8, "product_id": 7, "product_name": "未来城市连帽卫衣", "product_image": _mock_impact_item_image("未来城市连帽卫衣"), "quantity": 1, "price": "128.00"}],
@@ -188,7 +188,7 @@ _mock_orders = [
         "shipping_address": "Test Address",
         "payment_method": "wechat",
         "payment_id": None,
-        "items": [{"id": 9, "product_id": 1, "product_name": "彩虹鱼棉质 T 恤", "product_image": _mock_impact_item_image("彩虹鱼棉质 T 恤"), "quantity": 1, "price": "128.00"}],
+        "items": [{"id": 9, "product_id": 1, "product_name": "Rainbow Fish Cotton T-Shirt", "product_image": _mock_impact_item_image("Rainbow Fish Cotton T-Shirt"), "quantity": 1, "price": "128.00"}],
         "created_at": "2025-04-25T12:00:00",
         "updated_at": "2025-04-25T12:00:00",
     },
@@ -201,11 +201,11 @@ for _mo in _mock_orders:
     _mo.setdefault(
         "logistics_events",
         [
-            {"at": _mo["created_at"], "status": "created", "description": "订单已创建", "location": None},
-            {"at": _mo["updated_at"], "status": _mo["status"], "description": "状态更新", "location": None},
+            {"at": _mo["created_at"], "status": "created", "description": "Order created", "location": None},
+            {"at": _mo["updated_at"], "status": _mo["status"], "description": "Status updated", "location": None},
         ]
         if _mo.get("status") in ("shipped", "completed", "paid")
-        else [{"at": _mo["created_at"], "status": "created", "description": "订单已创建", "location": None}],
+        else [{"at": _mo["created_at"], "status": "created", "description": "Order created", "location": None}],
     )
 
 
@@ -252,8 +252,8 @@ async def list_orders(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error listing orders: {e}")
-        return PaginatedResponse(data=[], total=0, page=page, page_size=page_size)
+        logger.error("Error listing orders: %s", e)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 @router.get("/mine", response_model=PaginatedResponse)
 async def my_orders(
@@ -297,8 +297,8 @@ async def my_orders(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error listing user orders: {e}")
-        return PaginatedResponse(data=[], total=0, page=page, page_size=page_size)
+        logger.error("Error listing user orders: %s", e)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.post("", response_model=ApiResponse, status_code=201)
@@ -392,8 +392,7 @@ async def create_order(
         raise
     except Exception as e:
         logger.exception("Order placement failed: %s", e)
-        detail = str(e) if settings.DEBUG else "Internal server error"
-        raise HTTPException(status_code=500, detail=detail)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.get("/{order_id}", response_model=ApiResponse)
 async def get_order(
@@ -414,7 +413,8 @@ async def get_order(
         return ApiResponse(data=order_to_out_dict(order, list(items), product_map))
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
+        logger.error("Failed to get order %d: %s", order_id, e)
         raise HTTPException(status_code=404, detail="Order not found")
 
 @router.post("/{order_id}/cancel", response_model=ApiResponse)
@@ -441,7 +441,7 @@ async def cancel_order(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Cancellation failed: {e}", exc_info=True)
+        logger.error("Cancellation failed: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
@@ -531,8 +531,10 @@ async def update_order_status(
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Update order status (admin or owner)."""
+    """Update order status (admin only for non-cancel; owner can cancel via dedicated /cancel endpoint)."""
     try:
+        if current_user.get("role") != "admin":
+            raise HTTPException(status_code=403, detail="Only admins can update order status")
         stmt = select(Order).where(Order.id == order_id)
         result = await db.execute(stmt)
         order = result.scalar_one_or_none()
@@ -553,7 +555,7 @@ async def update_order_status(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"DB write failed during update_order_status: {e}", exc_info=True)
+        logger.error("DB write failed during update_order_status: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
@@ -597,72 +599,78 @@ async def request_return(
     db: AsyncSession = Depends(get_db),
 ):
     """Request a return or exchange for a completed order."""
-    from app.models.circular_commerce import AfterSaleTicket
+    try:
+        from app.models.circular_commerce import AfterSaleTicket
 
-    # Validate order exists and belongs to user
-    stmt = select(Order).where(Order.id == order_id)
-    result = await db.execute(stmt)
-    order = result.scalar_one_or_none()
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
-    if order.user_id != current_user["id"] and current_user.get("role") != "admin":
-        raise HTTPException(status_code=403, detail="Access denied")
-    if order.status != "completed":
-        raise HTTPException(status_code=400, detail="Can only request returns for completed orders")
+        # Validate order exists and belongs to user
+        stmt = select(Order).where(Order.id == order_id)
+        result = await db.execute(stmt)
+        order = result.scalar_one_or_none()
+        if not order:
+            raise HTTPException(status_code=404, detail="Order not found")
+        if order.user_id != current_user["id"] and current_user.get("role") != "admin":
+            raise HTTPException(status_code=403, detail="Access denied")
+        if order.status != "completed":
+            raise HTTPException(status_code=400, detail="Can only request returns for completed orders")
 
-    # Validate items belong to this order
-    item_stmt = select(OrderItem).where(OrderItem.order_id == order_id)
-    order_items = {i.id: i for i in (await db.execute(item_stmt)).scalars().all()}
+        # Validate items belong to this order
+        item_stmt = select(OrderItem).where(OrderItem.order_id == order_id)
+        order_items = {i.id: i for i in (await db.execute(item_stmt)).scalars().all()}
 
-    for ri in body.items:
-        if ri.order_item_id not in order_items:
-            raise HTTPException(status_code=400, detail=f"Order item {ri.order_item_id} not found in this order")
-        if ri.quantity > order_items[ri.order_item_id].quantity:
-            raise HTTPException(status_code=400, detail=f"Return quantity exceeds ordered quantity for item {ri.order_item_id}")
+        for ri in body.items:
+            if ri.order_item_id not in order_items:
+                raise HTTPException(status_code=400, detail=f"Order item {ri.order_item_id} not found in this order")
+            if ri.quantity > order_items[ri.order_item_id].quantity:
+                raise HTTPException(status_code=400, detail=f"Return quantity exceeds ordered quantity for item {ri.order_item_id}")
 
-    # Build structured description
-    items_desc = []
-    for ri in body.items:
-        oi = order_items[ri.order_item_id]
-        items_desc.append({
-            "order_item_id": ri.order_item_id,
-            "product_id": oi.product_id,
-            "quantity": ri.quantity,
-            "price": str(oi.price),
-        })
+        # Build structured description
+        items_desc = []
+        for ri in body.items:
+            oi = order_items[ri.order_item_id]
+            items_desc.append({
+                "order_item_id": ri.order_item_id,
+                "product_id": oi.product_id,
+                "quantity": ri.quantity,
+                "price": str(oi.price),
+            })
 
-    import json as _json
-    ticket_items_payload = {
-        "items": items_desc,
-        "type": body.type,
-        "exchange_product_id": body.exchange_product_id,
-        "exchange_size": body.exchange_size,
-        "exchange_color": body.exchange_color,
-        "reason": body.reason,
-    }
-    description_parts = [f"Items: {_json.dumps(items_desc, ensure_ascii=False)}"]
-    if body.reason:
-        description_parts.append(f"Reason: {body.reason}")
-    if body.type == "exchange":
-        if body.exchange_product_id:
-            description_parts.append(f"Exchange product ID: {body.exchange_product_id}")
-        if body.exchange_size:
-            description_parts.append(f"Exchange size: {body.exchange_size}")
-        if body.exchange_color:
-            description_parts.append(f"Exchange color: {body.exchange_color}")
+        import json as _json
+        ticket_items_payload = {
+            "items": items_desc,
+            "type": body.type,
+            "exchange_product_id": body.exchange_product_id,
+            "exchange_size": body.exchange_size,
+            "exchange_color": body.exchange_color,
+            "reason": body.reason,
+        }
+        description_parts = [f"Items: {_json.dumps(items_desc, ensure_ascii=False)}"]
+        if body.reason:
+            description_parts.append(f"Reason: {body.reason}")
+        if body.type == "exchange":
+            if body.exchange_product_id:
+                description_parts.append(f"Exchange product ID: {body.exchange_product_id}")
+            if body.exchange_size:
+                description_parts.append(f"Exchange size: {body.exchange_size}")
+            if body.exchange_color:
+                description_parts.append(f"Exchange color: {body.exchange_color}")
 
-    ticket = AfterSaleTicket(
-        user_id=current_user["id"],
-        order_id=order_id,
-        category=body.type,
-        status="open",
-        subject=f"{'退货' if body.type == 'return' else '换货'}申请 - {order.order_no}",
-        description="\n".join(description_parts),
-        items=_json.dumps(ticket_items_payload, ensure_ascii=False),
-    )
-    db.add(ticket)
-    await db.flush()
-    await db.refresh(ticket)
+        ticket = AfterSaleTicket(
+            user_id=current_user["id"],
+            order_id=order_id,
+            category=body.type,
+            status="open",
+            subject=f"{'退货' if body.type == 'return' else '换货'}申请 - {order.order_no}",
+            description="\n".join(description_parts),
+            items=_json.dumps(ticket_items_payload, ensure_ascii=False),
+        )
+        db.add(ticket)
+        await db.flush()
+        await db.refresh(ticket)
 
-    from app.services.after_sales.service import enrich_tickets
-    return ApiResponse(data=(await enrich_tickets(db, [ticket]))[0])
+        from app.services.after_sales.service import enrich_tickets
+        return ApiResponse(data=(await enrich_tickets(db, [ticket]))[0])
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Failed to create after-sale ticket: %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to create after-sale ticket")

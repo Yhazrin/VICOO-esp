@@ -1,5 +1,6 @@
 import logging
 import hmac
+import secrets
 import time
 
 import httpx
@@ -25,8 +26,7 @@ from app.security import (
     decode_token,
 )
 from app.services.auth.service import AuthService
-from app.services.mailer import send_welcome_email, send_password_recovery_email
-from app.core.errors import ServiceUnavailableException
+from app.services.mailer import send_password_recovery_email
 
 logger = logging.getLogger("vicoo.auth")
 
@@ -54,7 +54,7 @@ def _set_auth_cookies(response: JSONResponse, access_token: str, refresh_token: 
     return response
 
 
-@router.post("/login")
+@router.post("/login", response_model=ApiResponse)
 async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
     """Login via email+password or WeChat code."""
     auth_service = AuthService(db)
@@ -90,11 +90,11 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Login error: {e}")
+        logger.error("Login error: %s", e)
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
 
-@router.post("/register", status_code=201)
+@router.post("/register", response_model=ApiResponse, status_code=201)
 async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
     """Register a new user account."""
     auth_service = AuthService(db)
@@ -116,11 +116,11 @@ async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Register error: {e}")
+        logger.error("Register error: %s", e)
         raise HTTPException(status_code=400, detail="Registration failed")
 
 
-@router.post("/refresh")
+@router.post("/refresh", response_model=ApiResponse)
 async def refresh(request: Request, db: AsyncSession = Depends(get_db)):
     """Refresh access token."""
     refresh_token = request.cookies.get("refresh_token")
@@ -157,11 +157,11 @@ async def refresh(request: Request, db: AsyncSession = Depends(get_db)):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Refresh error: {e}")
+        logger.error("Refresh error: %s", e)
         raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
 
 
-@router.post("/forgot-password")
+@router.post("/forgot-password", response_model=ApiResponse)
 async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
     """
     Recover password.
@@ -173,47 +173,40 @@ async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depend
     result = await db.execute(stmt)
     user = result.scalar_one_or_none()
 
+    # Always return the same message to prevent email enumeration
+    _generic_msg = "If an account exists with this email, a recovery email has been sent."
+
     if not user:
-        # Return success to prevent email enumeration
-        return ApiResponse(
-            message="If an account exists with this email, a recovery email has been sent.",
-            data={"email": body.email, "is_mock": False}
-        )
+        return ApiResponse(message=_generic_msg, data={"email": body.email})
 
     # 1. Logic for Mock / Test accounts (only in DEMO_MODE)
     is_mock = False
-    mock_password = None
 
     if settings.DEMO_MODE and (body.email.endswith("@vicoo.test") or body.email.endswith("@vicoo.org") or body.email.startswith("vicoo-")):
         is_mock = True
-        if "admin" in body.email: mock_password = "vicoo-admin"
-        elif "editor" in body.email: mock_password = "vicoo-editor"
-        else: mock_password = "vicoo-user"
 
     if is_mock:
         return ApiResponse(
-            message="Recovery successful (Mock Mode)",
-            data={"password_hint": mock_password, "is_mock": True}
+            message=_generic_msg,
+            data={"email": body.email}
         )
 
     # 2. Logic for Real accounts
-    recovery_hint = "VICOO-RECOVERY-ACCESS-2026" 
+    # Generate per-request random hint — never use a static shared secret
+    recovery_hint = f"VICOO-{secrets.token_hex(8).upper()}"
     try:
         await send_password_recovery_email(
             to_email=user.email,
             password_hint=recovery_hint,
             locale="zh"
         )
-        return ApiResponse(
-            message="Password recovery email has been sent.",
-            data={"email": user.email, "is_mock": False}
-        )
     except Exception as e:
-        logger.error(f"Recovery mail failed: {e}")
-        raise ServiceUnavailableException(message="Failed to send recovery email")
+        logger.error("Recovery mail failed: %s", e)
+    # Always return success regardless of email send outcome
+    return ApiResponse(message=_generic_msg, data={"email": body.email})
 
 
-@router.post("/logout")
+@router.post("/logout", response_model=ApiResponse)
 async def logout(request: Request):
     """Invalidate the current session."""
     from app.deps import get_redis_client
@@ -236,8 +229,8 @@ async def logout(request: Request):
                 if jti and exp:
                     ttl = max(int(exp - time.time()), 60)
                     await redis.setex(f"blacklist:{jti}", ttl, "1")
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning("Failed to blacklist token during logout: %s", e)
 
     json_response = JSONResponse(
         status_code=200,

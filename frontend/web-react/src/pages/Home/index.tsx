@@ -75,7 +75,7 @@ export default function Home() {
 
   return (
     <PageWrapper>
-      {/* 3D Planar Scene — 略延迟挂载，避免与首页地球同时抢 GPU/主线程 */}
+      {/* 3D Planar Scene -- slightly delayed mount to avoid competing with the homepage globe for GPU/main thread */}
       {showPlanar && <Planar3DScene />}
 
       {/* Globe — supply chain traceability hero */}

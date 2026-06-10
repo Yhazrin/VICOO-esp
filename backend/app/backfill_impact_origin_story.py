@@ -1,7 +1,7 @@
 """
-为已有公益商品回填「溯源故事 + 国家/地区外键」。
+Backfill trace stories and origin country/region foreign keys for existing impact products.
 
-用法:
+Usage:
   cd backend && python -m app.backfill_impact_origin_story
 """
 

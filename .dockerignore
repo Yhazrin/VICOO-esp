@@ -1,0 +1,44 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Documentation
+docs/
+*.md
+LICENSE
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+.pytest_cache
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+frontend/web-react/node_modules/
+admin/node_modules/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Deploy configs (not needed inside image)
+deploy/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test artifacts
+backend/tests/
+backend/.pytest_cache/

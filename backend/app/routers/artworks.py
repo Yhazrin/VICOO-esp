@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, 
 from sqlalchemy import select, func, update
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime
 import secrets
 import logging
 
@@ -59,26 +58,26 @@ _mock_artworks = [
     }
     for i, (t, d, a, s, l, v, c) in enumerate(
         [
-            ("春天的花园", "用蜡笔描绘的五彩花园", "小明", "approved", 128, 560, 1),
-            ("彩虹鱼", "水彩画出的深海彩虹鱼", "小红", "approved", 95, 430, 1),
-            ("我的家", "温暖的家，有爸爸妈妈和小狗", "小丽", "approved", 210, 890, 2),
-            ("星星之夜", "梵高风格的星空临摹", "小刚", "featured", 350, 1200, 1),
-            ("山间小溪", "写生画：家乡的小溪", "小芳", "approved", 78, 320, 2),
-            ("小猫咪", "我的第一只猫咪朋友", "小杰", "approved", 160, 670, 3),
-            ("丰收的秋天", "金黄色的稻田和农民伯伯", "小雨", "pending", 45, 180, None),
-            ("雪人一家", "冬天堆的雪人全家福", "小雪", "approved", 190, 780, 1),
-            ("海豚之歌", "蓝色大海中跳跃的海豚", "小海", "approved", 130, 520, 2),
-            ("老房子", "记录村里即将拆除的老房子", "小石", "approved", 88, 390, 3),
-            ("妈妈的手", "画妈妈做家务的双手", "小花", "featured", 280, 1050, 1),
-            ("夏日池塘", "荷叶上的青蛙和蜻蜓", "小田", "approved", 105, 440, 2),
-            ("我的梦想", "穿上白大褂当医生", "小医", "approved", 175, 710, 3),
-            ("田野之歌", "风吹麦浪的田野", "小麦", "approved", 62, 290, None),
-            ("太空旅行", "坐火箭去月球", "小宇", "approved", 140, 580, 1),
-            ("好朋友", "和朋友们在操场上玩", "小朋", "pending", 30, 120, None),
-            ("雨后彩虹", "暴雨过后的双彩虹", "小雨", "approved", 92, 410, 2),
-            ("过年了", "放鞭炮贴春联的热闹场面", "小年", "approved", 220, 900, 3),
-            ("未来城市", "飞行汽车和太阳能大楼", "小未", "approved", 115, 470, 1),
-            ("牧羊曲", "草原上的小牧童和羊群", "小牧", "approved", 85, 350, 2),
+            ("Spring Garden", "A colorful garden drawn with crayons", "Xiao Ming", "approved", 128, 560, 1),
+            ("Rainbow Fish", "A deep-sea rainbow fish painted in watercolor", "Xiao Hong", "approved", 95, 430, 1),
+            ("My Home", "A warm home with parents and a puppy", "Xiao Li", "approved", 210, 890, 2),
+            ("Starry Night", "A Van Gogh-style starry sky reproduction", "Xiao Gang", "featured", 350, 1200, 1),
+            ("Mountain Stream", "A plein air painting of a hometown stream", "Xiao Fang", "approved", 78, 320, 2),
+            ("Little Cat", "My first kitten friend", "Xiao Jie", "approved", 160, 670, 3),
+            ("Autumn Harvest", "Golden rice fields and farmers", "Xiao Yu", "pending", 45, 180, None),
+            ("Snowman Family", "A snowman family portrait from winter", "Xiao Xue", "approved", 190, 780, 1),
+            ("Song of Dolphins", "Dolphins jumping in the blue ocean", "Xiao Hai", "approved", 130, 520, 2),
+            ("Old House", "Recording a village house about to be demolished", "Xiao Shi", "approved", 88, 390, 3),
+            ("Mother's Hands", "Drawing mom's hands doing housework", "Xiao Hua", "featured", 280, 1050, 1),
+            ("Summer Pond", "Frogs and dragonflies on lotus leaves", "Xiao Tian", "approved", 105, 440, 2),
+            ("My Dream", "Wearing a white coat to become a doctor", "Xiao Yi", "approved", 175, 710, 3),
+            ("Field Song", "Wheat fields swaying in the wind", "Xiao Mai", "approved", 62, 290, None),
+            ("Space Travel", "Riding a rocket to the moon", "Xiao Yu", "approved", 140, 580, 1),
+            ("Best Friends", "Playing with friends on the playground", "Xiao Peng", "pending", 30, 120, None),
+            ("Rainbow After Rain", "A double rainbow after a storm", "Xiao Yu", "approved", 92, 410, 2),
+            ("Chinese New Year", "Firecrackers and Spring Festival couplets", "Xiao Nian", "approved", 220, 900, 3),
+            ("Future City", "Flying cars and solar-powered buildings", "Xiao Wei", "approved", 115, 470, 1),
+            ("Shepherd's Song", "A little shepherd and sheep on the grassland", "Xiao Mu", "approved", 85, 350, 2),
         ],
         start=1,
     )
@@ -96,22 +95,24 @@ async def list_artworks(
 ):
     """List artworks with optional filtering and pagination."""
     try:
-        stmt = select(Artwork).options(selectinload(Artwork.child_participant))
+        stmt = select(Artwork).options(selectinload(Artwork.child_participant)).order_by(Artwork.id.desc())
         if status:
             stmt = stmt.where(Artwork.status == status)
         if campaign_id is not None:
             stmt = stmt.where(Artwork.campaign_id == campaign_id)
         if search:
-            like = f"%{search}%"
-            stmt = stmt.where(Artwork.title.ilike(like) | Artwork.description.ilike(like))
+            safe = search.strip().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+            like = f"%{safe}%"
+            stmt = stmt.where(Artwork.title.ilike(like, escape="\\") | Artwork.description.ilike(like, escape="\\"))
         count_stmt = select(func.count(Artwork.id))
         if status:
             count_stmt = count_stmt.where(Artwork.status == status)
         if campaign_id is not None:
             count_stmt = count_stmt.where(Artwork.campaign_id == campaign_id)
         if search:
-            like = f"%{search}%"
-            count_stmt = count_stmt.where(Artwork.title.ilike(like) | Artwork.description.ilike(like))
+            safe = search.strip().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+            like = f"%{safe}%"
+            count_stmt = count_stmt.where(Artwork.title.ilike(like, escape="\\") | Artwork.description.ilike(like, escape="\\"))
         total = (await db.execute(count_stmt)).scalar() or 0
         stmt = stmt.offset((page - 1) * page_size).limit(page_size)
         result = await db.execute(stmt)
@@ -128,22 +129,24 @@ async def list_artworks(
         logger.warning("list_artworks primary query failed (%s), retrying without child_participant", e)
         # Fallback: query without selectinload if child_participants relationship breaks
         try:
-            stmt = select(Artwork)
+            stmt = select(Artwork).order_by(Artwork.id.desc())
             if status:
                 stmt = stmt.where(Artwork.status == status)
             if campaign_id is not None:
                 stmt = stmt.where(Artwork.campaign_id == campaign_id)
             if search:
-                like = f"%{search}%"
-                stmt = stmt.where(Artwork.title.ilike(like) | Artwork.description.ilike(like))
+                safe = search.strip().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+                like = f"%{safe}%"
+                stmt = stmt.where(Artwork.title.ilike(like, escape="\\") | Artwork.description.ilike(like, escape="\\"))
             count_stmt = select(func.count(Artwork.id))
             if status:
                 count_stmt = count_stmt.where(Artwork.status == status)
             if campaign_id is not None:
                 count_stmt = count_stmt.where(Artwork.campaign_id == campaign_id)
             if search:
-                like = f"%{search}%"
-                count_stmt = count_stmt.where(Artwork.title.ilike(like) | Artwork.description.ilike(like))
+                safe = search.strip().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+                like = f"%{safe}%"
+                count_stmt = count_stmt.where(Artwork.title.ilike(like, escape="\\") | Artwork.description.ilike(like, escape="\\"))
             total = (await db.execute(count_stmt)).scalar() or 0
             stmt = stmt.offset((page - 1) * page_size).limit(page_size)
             result = await db.execute(stmt)
@@ -156,41 +159,38 @@ async def list_artworks(
             )
         except Exception as e2:
             logger.error("list_artworks fallback also failed: %s", e2, exc_info=True)
-            filtered = _mock_artworks
-            if status:
-                filtered = [a for a in filtered if a["status"] == status]
-            if campaign_id is not None:
-                filtered = [a for a in filtered if a.get("campaign_id") == campaign_id]
-            start = (page - 1) * page_size
-            return PaginatedResponse(
-                data=filtered[start : start + page_size],
-                total=len(filtered),
-                page=page,
-                page_size=page_size,
-            )
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
-@router.get("/mine", response_model=ApiResponse)
+@router.get("/mine", response_model=PaginatedResponse)
 async def list_my_artworks(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """List artworks submitted by the current user."""
     try:
-        stmt = (
+        base = (
             select(Artwork)
             .options(selectinload(Artwork.child_participant))
             .where(Artwork.user_id == current_user["id"])
-            .order_by(Artwork.created_at.desc())
         )
+        total = (await db.execute(
+            select(func.count(Artwork.id)).where(Artwork.user_id == current_user["id"])
+        )).scalar() or 0
+        stmt = base.order_by(Artwork.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
         result = await db.execute(stmt)
         artworks = result.scalars().all()
-        return ApiResponse(data=[_serialize_artwork(a) for a in artworks])
+        return PaginatedResponse(
+            data=[_serialize_artwork(a) for a in artworks],
+            total=total, page=page, page_size=page_size,
+        )
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to list user artworks: {e}", exc_info=True)
-        return ApiResponse(data=[])
+        logger.error("Failed to list user artworks: %s", e, exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.get("/featured", response_model=ApiResponse)
@@ -203,9 +203,9 @@ async def list_featured_artworks(db: AsyncSession = Depends(get_db)):
         return ApiResponse(data=[_serialize_artwork(a) for a in artworks])
     except HTTPException:
         raise
-    except Exception:
-        featured = [a for a in _mock_artworks if a["status"] == "featured"][:8]
-        return ApiResponse(data=featured)
+    except Exception as e:
+        logger.error("Failed to list featured artworks: %s", e)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.get("/{artwork_id}", response_model=ApiResponse)
@@ -235,28 +235,30 @@ async def get_artwork(artwork_id: int, db: AsyncSession = Depends(get_db)):
         return ApiResponse(data=_serialize_artwork(artwork))
     except HTTPException:
         raise
-    except Exception:
-        for a in _mock_artworks:
-            if a["id"] == artwork_id:
-                return ApiResponse(data=a)
-        raise HTTPException(status_code=404, detail="Artwork not found")
+    except Exception as e:
+        logger.error("Failed to get artwork %s: %s", artwork_id, e)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.post("", response_model=ApiResponse, status_code=201)
 async def create_artwork(
-    title: str = Form(...),
+    title: str = Form(..., max_length=300),
     image: UploadFile = File(...),
-    description: str = Form(None),
+    description: str = Form(None, max_length=5000),
     campaign_id: int = Form(None),
-    child_display_name: str = Form(None),
-    guardian_consent: str = Form(None),
+    child_display_name: str = Form(None, max_length=100),
+    guardian_consent: str = Form(None, max_length=500),
     db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
     """Create a new artwork (multipart/form-data support)."""
+    # Validate image content-type
+    _ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+    ct = (image.content_type or "").split(";")[0].strip().lower()
+    if ct not in _ALLOWED_IMAGE_TYPES:
+        raise HTTPException(status_code=400, detail="Unsupported image type; use jpeg/png/webp/gif")
+
     # Check for guardian consent if child participant is involved
-    # For this test scenario, if child_display_name is provided, consent is required
-    # Handle string boolean values like "true"/"false"
     consent_given = guardian_consent and guardian_consent.lower() not in ["false", "0", "no"]
     if child_display_name and not consent_given:
         raise HTTPException(status_code=403, detail="Guardian consent is required for child participants")
@@ -291,7 +293,7 @@ async def create_artwork(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"DB write failed during create_artwork: {e}", exc_info=True)
+        logger.error("DB write failed during create_artwork: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
@@ -336,15 +338,17 @@ async def update_artwork(artwork_id: int, body: ArtworkUpdate, db: AsyncSession 
         artwork = result.scalar_one_or_none()
         if not artwork:
             raise HTTPException(status_code=404, detail="Artwork not found")
+        _ARTWORK_UPDATABLE = {"title", "description", "image_url", "thumbnail_url", "status"}
         for k, v in body.model_dump(exclude_unset=True).items():
-            setattr(artwork, k, v)
+            if k in _ARTWORK_UPDATABLE:
+                setattr(artwork, k, v)
         await db.flush()
         await db.refresh(artwork, ["created_at", "updated_at"])
         return ApiResponse(data=_serialize_artwork(artwork))
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"DB write failed during update_artwork: {e}", exc_info=True)
+        logger.error("DB write failed during update_artwork: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
@@ -360,11 +364,9 @@ async def get_artwork_status(artwork_id: int, db: AsyncSession = Depends(get_db)
         return ApiResponse(data={"id": artwork.id, "status": artwork.status})
     except HTTPException:
         raise
-    except Exception:
-        for a in _mock_artworks:
-            if a["id"] == artwork_id:
-                return ApiResponse(data={"id": a["id"], "status": a["status"]})
-        raise HTTPException(status_code=404, detail="Artwork not found")
+    except Exception as e:
+        logger.error("Failed to get artwork status %s: %s", artwork_id, e)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.put("/{artwork_id}/status", response_model=ApiResponse)
@@ -383,7 +385,7 @@ async def update_artwork_status(artwork_id: int, body: ArtworkStatusUpdate, db: 
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"DB write failed during update_artwork_status: {e}", exc_info=True)
+        logger.error("DB write failed during update_artwork_status: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
@@ -413,10 +415,12 @@ async def vote_artwork(artwork_id: int, db: AsyncSession = Depends(get_db), redi
         # Re-fetch with child_participant for response serialization
         stmt2 = select(Artwork).options(selectinload(Artwork.child_participant)).where(Artwork.id == artwork_id)
         result2 = await db.execute(stmt2)
-        artwork = result2.scalar_one()
+        artwork = result2.scalar_one_or_none()
+        if not artwork:
+            raise HTTPException(status_code=404, detail="Artwork not found")
 
         # Mark as voted in Redis
-        await redis_client.setex(vote_key, 3600, "1")
+        await redis_client.setex(vote_key, 2592000, "1")  # 30 days
 
         response_data = _serialize_artwork(artwork)
         response_data["has_voted"] = True
@@ -424,12 +428,12 @@ async def vote_artwork(artwork_id: int, db: AsyncSession = Depends(get_db), redi
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"DB write failed during vote_artwork: {e}", exc_info=True)
+        logger.error("DB write failed during vote_artwork: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.delete("/{artwork_id}", response_model=ApiResponse)
-async def delete_artwork(artwork_id: int, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user), _admin: dict = Depends(require_role("admin"))):
+async def delete_artwork(artwork_id: int, db: AsyncSession = Depends(get_db), _admin: dict = Depends(require_role("admin"))):
     """Delete an artwork."""
     try:
         stmt = select(Artwork).where(Artwork.id == artwork_id)
@@ -443,5 +447,5 @@ async def delete_artwork(artwork_id: int, db: AsyncSession = Depends(get_db), cu
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"DB write failed during delete_artwork: {e}", exc_info=True)
+        logger.error("DB write failed during delete_artwork: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")

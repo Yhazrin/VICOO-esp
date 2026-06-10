@@ -1,8 +1,11 @@
 from pydantic_settings import BaseSettings
 from typing import Optional, List
 from pydantic import model_validator
+import logging
 import secrets
 import json
+
+_config_logger = logging.getLogger("vicoo.config")
 
 
 def _gen_secret(length: int = 32) -> str:
@@ -78,7 +81,7 @@ class Settings(BaseSettings):
     # CORS - receives raw string from env, parsed to list in model_validator
     CORS_ORIGINS: str = "http://localhost,http://localhost:5173,http://localhost:9111,http://localhost:9112"
 
-    # 首次部署生产库无数据时，设为 true 可在「用户表为空」时跑一次 app.seed（与 development 行为一致）
+    # For first production deployment with empty DB: set to true to run app.seed when user table is empty (same as development behavior)
     SEED_IF_EMPTY: bool = False
 
     # Seed passwords
@@ -116,6 +119,38 @@ class Settings(BaseSettings):
                 self.CORS_ORIGINS = [o.strip() for o in raw.split(",") if o.strip()]
         else:
             self.CORS_ORIGINS = [o.strip() for o in raw.split(",") if o.strip()]
+        return self
+
+    @model_validator(mode="after")
+    def validate_secret_key_env(self):
+        """Warn if APP_SECRET_KEY was auto-generated (not set via env/.env)."""
+        if "APP_SECRET_KEY" not in self.model_fields_set:
+            if self.APP_ENV == "production":
+                raise ValueError(
+                    "APP_SECRET_KEY must be explicitly set in production. "
+                    "Auto-generated keys invalidate JWT tokens on every restart."
+                )
+            _config_logger.warning(
+                "APP_SECRET_KEY not set via env — using auto-generated key. "
+                "JWT tokens will be invalidated on restart. "
+                "Set APP_SECRET_KEY in .env for stable tokens."
+            )
+        return self
+
+    @model_validator(mode="after")
+    def validate_encryption_key_env(self):
+        """Warn if ENCRYPTION_KEY was auto-generated (not set via env/.env)."""
+        if "ENCRYPTION_KEY" not in self.model_fields_set:
+            if self.APP_ENV == "production":
+                raise ValueError(
+                    "ENCRYPTION_KEY must be explicitly set in production. "
+                    "Auto-generated keys make previously encrypted data permanently undecryptable after restart."
+                )
+            _config_logger.warning(
+                "ENCRYPTION_KEY not set via env — using auto-generated key. "
+                "Encrypted data (phone numbers, etc.) will be lost on restart. "
+                "Set ENCRYPTION_KEY in .env for persistent encryption."
+            )
         return self
 
     @model_validator(mode="after")

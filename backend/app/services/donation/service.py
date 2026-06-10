@@ -35,7 +35,8 @@ class DonationService(BaseService):
         if payment_method:
             conds.append(Donation.payment_method == payment_method)
         if search and search.strip():
-            conds.append(Donation.donor_name.ilike(f"%{search.strip()}%"))
+            safe = search.strip().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+            conds.append(Donation.donor_name.ilike(f"%{safe}%", escape="\\"))
         return conds
 
     async def donation_list_summary(
@@ -115,7 +116,7 @@ class DonationService(BaseService):
         # Security: Anomaly Detection
         if user_id:
             if await anomaly_service.is_transaction_risky(user_id, float(amount_val)):
-                logger.warning(f"Blocking potentially risky donation from User {user_id}")
+                logger.warning("Blocking potentially risky donation from User %s", user_id)
                 await anomaly_service.log_anomaly(
                     user_id, "RISKY_DONATION", f"Frequent small donations or unusual activity. Amount: {amount_val}"
                 )
@@ -126,19 +127,14 @@ class DonationService(BaseService):
 
         amount = Decimal(str(amount_val)).quantize(Decimal("0.00"))
         donation_data["amount"] = amount
-        
-        donation = Donation(**donation_data)
-        self.db.add(donation)
 
-        if donation.campaign_id:
-            # Atomic update for campaign current_amount
-            stmt = (
-                update(Campaign)
-                .where(Campaign.id == donation.campaign_id)
-                .values(current_amount=Campaign.current_amount + amount)
-            )
-            await self.db.execute(stmt)
-        
+        _ALLOWED_FIELDS = {
+            "donor_user_id", "donor_name", "amount", "currency",
+            "payment_method", "campaign_id", "is_anonymous", "message",
+        }
+        safe_data = {k: v for k, v in donation_data.items() if k in _ALLOWED_FIELDS}
+        donation = Donation(**safe_data)
+        self.db.add(donation)
         await self.db.flush()
         return donation
 
@@ -157,21 +153,41 @@ class DonationService(BaseService):
     async def complete_donation(self, donation_id: int, payment_id: str) -> Donation:
         """
         Mark donation as completed and generate an electronic certificate.
+        Uses atomic status guard to prevent duplicate certificate generation.
         """
         donation = await self.get_donation_by_id(donation_id)
         if donation.status == "completed":
             return donation
 
-        donation.status = "completed"
-        donation.payment_id = payment_id
-        
-        # Automatic certificate generation logic
-        # Format: TH-DON-YYYYMMDD-ID
-        date_str = datetime.now().strftime("%Y%m%d")
-        donation.certificate_no = f"TH-DON-{date_str}-{donation.id:06d}"
-        donation.certificate_url = build_certificate_payload(donation)["certificate_url"]
-        
-        await self.db.flush()
+        # Atomic status transition — prevents concurrent double-completion
+        result = await self.db.execute(
+            update(Donation)
+            .where(Donation.id == donation_id, Donation.status != "completed")
+            .values(status="completed", payment_id=payment_id)
+        )
+        if result.rowcount == 0:
+            # Already completed by a concurrent request
+            await self.db.refresh(donation)
+            return donation
+
+        await self.db.refresh(donation)
+
+        # Use savepoint so campaign amount update and cert generation are atomic
+        async with self.db.begin_nested():
+            # Update campaign amount now that payment is confirmed
+            if donation.campaign_id:
+                await self.db.execute(
+                    update(Campaign)
+                    .where(Campaign.id == donation.campaign_id)
+                    .values(current_amount=Campaign.current_amount + donation.amount)
+                )
+
+            # Automatic certificate generation logic
+            date_str = datetime.now().strftime("%Y%m%d")
+            donation.certificate_no = f"TH-DON-{date_str}-{donation.id:06d}"
+            donation.certificate_url = build_certificate_payload(donation)["certificate_url"]
+
+            await self.db.flush()
         return donation
 
     @audit_action(action="admin_approve_donation", resource_type="donation")
@@ -180,7 +196,7 @@ class DonationService(BaseService):
     ) -> Donation:
         """
         Admin manual approval: pending -> completed.
-        Campaign current_amount is already updated at create time; do not add again.
+        Uses atomic status guard to prevent duplicate approvals.
         """
         donation = await self.get_donation_by_id(donation_id)
         if donation.status == "completed":
@@ -190,12 +206,31 @@ class DonationService(BaseService):
                 status_code=400,
                 detail=f"Only pending donations can be approved; current status is '{donation.status}'",
             )
-        donation.status = "completed"
-        if not donation.payment_id:
-            donation.payment_id = f"admin_approved:{admin_user_id or 0}"
+
+        payment_id = donation.payment_id or f"admin_approved:{admin_user_id or 0}"
+
+        # Atomic status transition — prevents concurrent double-approve
+        result = await self.db.execute(
+            update(Donation)
+            .where(Donation.id == donation_id, Donation.status == "pending")
+            .values(status="completed", payment_id=payment_id)
+        )
+        if result.rowcount == 0:
+            raise HTTPException(status_code=400, detail="Donation was already processed or status changed")
+
+        await self.db.refresh(donation)
+
+        # Update campaign amount (same as complete_donation)
+        if donation.campaign_id:
+            await self.db.execute(
+                update(Campaign)
+                .where(Campaign.id == donation.campaign_id)
+                .values(current_amount=Campaign.current_amount + donation.amount)
+            )
+
         date_str = datetime.now().strftime("%Y%m%d")
         donation.certificate_no = f"TH-DON-{date_str}-{donation.id:06d}"
-        donation.certificate_url = f"/api/donations/{donation.id}/certificate"
+        donation.certificate_url = f"/api/v1/donations/{donation.id}/certificate"
         await self.db.flush()
         return donation
 

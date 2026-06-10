@@ -37,7 +37,7 @@ logging.getLogger("vicoo.auth").setLevel(_log_level)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Auto-seed demo data：development 默认执行；production/staging 需 SEED_IF_EMPTY=true 且库中无用户时执行
+    # Auto-seed demo data: runs by default in development; in production/staging requires SEED_IF_EMPTY=true and empty user table
     _seed_if_empty = settings.APP_ENV == "development" or getattr(
         settings, "SEED_IF_EMPTY", False
     )
@@ -75,7 +75,7 @@ async def lifespan(app: FastAPI):
     except Exception:
         logger.warning("Product i18n backfill failed (non-critical)", exc_info=True)
 
-    # 修复旧库：中文类目、is_impact_product 未维护时，公益 / 优衣库常规分流错误（幂等，全环境执行）
+    # Repair legacy data: Chinese categories and misclassified impact/regular products (idempotent, all environments)
     try:
         from app.db_repair import repair_product_catalog
 
@@ -116,22 +116,6 @@ if settings.APP_ENV != "development":
 # GZip compression — reduces API response size by ~60%
 app.add_middleware(GZipMiddleware, minimum_size=500)
 
-# CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=[
-        "Authorization",
-        "Content-Type",
-        "X-Requested-With",
-        "X-Signature",
-        "X-Timestamp",
-        "X-Nonce",
-    ],
-)
-
 # Request size limit
 @app.middleware("http")
 async def request_size_limit_middleware(request: Request, call_next):
@@ -139,19 +123,22 @@ async def request_size_limit_middleware(request: Request, call_next):
     if content_length:
         try:
             size = int(content_length)
-            if size > MAX_REQUEST_BODY_SIZE:
-                return JSONResponse(
-                    status_code=413,
-                    content={"success": False, "data": None, "message": "Request body too large"},
-                )
         except ValueError:
-            pass
+            return JSONResponse(
+                status_code=400,
+                content={"success": False, "data": None, "message": "Invalid Content-Length header"},
+            )
+        if size > MAX_REQUEST_BODY_SIZE:
+            return JSONResponse(
+                status_code=413,
+                content={"success": False, "data": None, "message": "Request body too large"},
+            )
     return await call_next(request)
 
 # Rate Limiting — fail-open: let the request through when rate-limit infra is broken
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
-    if "/health" in request.url.path:
+    if request.url.path in ("/health", "/api/v1/health", "/api/health"):
         return await call_next(request)
 
     try:
@@ -168,10 +155,12 @@ async def rate_limit_middleware(request: Request, call_next):
 @app.middleware("http")
 async def security_headers_middleware(request: Request, call_next):
     response = await call_next(request)
-    response.headers["Content-Security-Policy"] = "default-src 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+    response.headers["Content-Security-Policy"] = "default-src 'self'; img-src 'self' data: https:; frame-ancestors 'none'; upgrade-insecure-requests"
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
-    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["X-XSS-Protection"] = "0"
+    if settings.APP_ENV == "production":
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     return response
 
@@ -336,8 +325,8 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             err = errors[0]
             if "msg" in err:
                 message = err["msg"]
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("Could not extract validation error message: %s", e)
 
     # Sanitize errors to ensure JSON serializability
     sanitized_errors = jsonable_encoder(_serialize_error(exc.errors()))
@@ -359,6 +348,13 @@ async def internal_server_error_handler(request: Request, exc):
     return JSONResponse(
         status_code=500,
         content={"success": False, "data": None, "message": "Internal server error", "code": "INTERNAL_SERVER_ERROR"},
+    )
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"success": False, "data": None, "message": exc.detail, "code": f"HTTP_{exc.status_code}"},
     )
 
 # ── Register routers ─────────────────────────────────────────────
@@ -563,10 +559,26 @@ async def legacy_api_redirect_middleware(request: Request, call_next):
             request.scope["raw_path"] = new_path.encode("utf-8")
     return await call_next(request)
 
+# CORS — must be outermost (last added) so preflight and error responses carry CORS headers
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+        "X-Requested-With",
+        "X-Signature",
+        "X-Timestamp",
+        "X-Nonce",
+    ],
+)
+
 for router in routers:
     app.include_router(router, prefix="/api/v1")
 
-# 静态资源：溯源媒体上传、证书图等（/static/...）
+# Static assets: trace media uploads, certificate images, etc. (/static/...)
 _STATIC_ROOT = Path(__file__).resolve().parent.parent / "static"
 _STATIC_ROOT.mkdir(parents=True, exist_ok=True)
 (_STATIC_ROOT / "uploads" / "traceability").mkdir(parents=True, exist_ok=True)

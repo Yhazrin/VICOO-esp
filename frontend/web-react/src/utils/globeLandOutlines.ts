@@ -27,10 +27,10 @@ export type LandOutlineStyle = {
   lineWidthPx?: number;
 };
 
-/** Traceability 产品页地球：陆地轮廓线宽（屏幕空间 px，`Line2`） */
+/** Traceability product page globe: land outline line width (screen-space px, `Line2`) */
 export const LAND_OUTLINE_WIDTH_TRACEABILITY_PX = 2;
 
-/** 首页供应链地球：与 `lineWidthPx` 一致时用 `Line2` */
+/** Homepage supply-chain globe: use `Line2` when matching `lineWidthPx` */
 export const LAND_OUTLINE_WIDTH_SUPPLY_CHAIN_PX = 1.35;
 
 function addRing(

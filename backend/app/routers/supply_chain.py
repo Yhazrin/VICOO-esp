@@ -14,7 +14,6 @@ from app.schemas import (
     ApiResponse,
     SupplyChainRecordCreate,
     SupplyChainRecordUpdate,
-    SupplyChainTrace,
     PaginatedResponse,
     supply_chain_record_to_out,
 )
@@ -48,7 +47,7 @@ async def upload_trace_media(
     file: UploadFile = File(...),
     _current_user: dict = Depends(require_role("admin")),
 ):
-    """上传溯源节点图片/视频至本地 static，返回可供写入 gallery 的相对 URL（/static/...）。"""
+    """Upload traceability node image/video to local static, returns relative URL for gallery (/static/...)."""
     body = await file.read()
     if len(body) > _MAX_TRACE_UPLOAD:
         raise HTTPException(status_code=413, detail="File too large (max 10MB)")
@@ -104,8 +103,8 @@ async def list_records(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error listing records: {e}")
-        return PaginatedResponse(data=[], total=0, page=page, page_size=page_size)
+        logger.error("Error listing records: %s", e)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 @router.get("/trace/{product_id}", response_model=ApiResponse)
 async def trace_product(
@@ -133,8 +132,8 @@ async def trace_product(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Tracing failed: {e}")
-        return ApiResponse(data={"product_id": product_id, "records": []})
+        logger.error("Tracing failed: %s", e)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 @router.post("/records", response_model=ApiResponse, status_code=201)
 async def create_record(
@@ -154,7 +153,7 @@ async def create_record(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to create record: {e}")
+        logger.error("Failed to create record: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
@@ -176,7 +175,7 @@ async def patch_record(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to update record: {e}")
+        logger.error("Failed to update record: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
@@ -187,17 +186,14 @@ async def delete_record(
     _current_user: dict = Depends(require_role("admin")),
 ):
     """Delete a supply chain record (admin/editor)."""
+    sc_service = SupplyChainService(db)
     try:
-        stmt = select(SupplyChainRecord).where(SupplyChainRecord.id == record_id)
-        result = await db.execute(stmt)
-        record = result.scalar_one_or_none()
-        if not record:
+        deleted = await sc_service.delete_record(record_id)
+        if not deleted:
             raise HTTPException(status_code=404, detail="Record not found")
-        await db.delete(record)
-        await db.flush()
         return ApiResponse(data={"deleted": True})
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to delete record: {e}")
+        logger.error("Failed to delete record: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error")

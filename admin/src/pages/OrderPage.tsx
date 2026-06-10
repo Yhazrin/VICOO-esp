@@ -71,6 +71,9 @@ export default function OrderPage() {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       toast.success(t('order.toastUpdated'));
     },
+    onError: (e: any) => {
+      toast.error(e?.response?.data?.detail ?? t('generic.error'));
+    },
   });
 
   // Calculate summary stats
@@ -123,7 +126,7 @@ export default function OrderPage() {
             {t('order.btnDetail')}
           </Button>
           {record.status === 'paid' && (
-            <Button size="sm" variant="primary" onClick={(e) => {
+            <Button size="sm" variant="primary" loading={updateMutation.isPending && updateMutation.variables?.id === record.id} onClick={(e) => {
               e.stopPropagation();
               updateMutation.mutate({ id: record.id, status: 'shipped' });
             }}>
@@ -131,7 +134,7 @@ export default function OrderPage() {
             </Button>
           )}
           {record.status === 'shipped' && (
-            <Button size="sm" variant="secondary" onClick={(e) => {
+            <Button size="sm" variant="secondary" loading={updateMutation.isPending && updateMutation.variables?.id === record.id} onClick={(e) => {
               e.stopPropagation();
               updateMutation.mutate({ id: record.id, status: 'completed' });
             }}>

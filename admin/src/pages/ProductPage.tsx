@@ -178,7 +178,7 @@ export default function ProductPage() {
   const [confirmTarget, setConfirmTarget] = useState<{ type: 'product' | 'node'; id: string } | null>(null);
 
   /* ── Queries ── */
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['admin-products', page, status],
     queryFn: () => fetchProducts({ page, pageSize: 20, status: status || undefined }),
   });
@@ -411,7 +411,7 @@ export default function ProductPage() {
     setNodeForm((prev) => ({ ...prev, gallery: prev.gallery.filter((_, i) => i !== idx) }));
   }
 
-  function submitForm(e: React.FormEvent) {
+  function submitForm(e: React.FormEvent | React.MouseEvent) {
     e.preventDefault();
     if (!form.name || !form.price) {
       toast.error(t('product.errorRequired'));
@@ -437,7 +437,7 @@ export default function ProductPage() {
     }
   }
 
-  function submitNode(e: React.FormEvent) {
+  function submitNode(e: React.FormEvent | React.MouseEvent) {
     e.preventDefault();
     if (!editingId) return;
     if (editingNode) {
@@ -963,7 +963,7 @@ export default function ProductPage() {
         footer={
           <>
             <Button variant="secondary" onClick={closeNodeModal}>{t('common.cancel')}</Button>
-            <Button variant="primary" loading={createNodeMut.isPending || updateNodeMut.isPending} onClick={(e) => submitNode(e as any)}>
+            <Button variant="primary" loading={createNodeMut.isPending || updateNodeMut.isPending} onClick={(e) => submitNode(e)}>
               {t('product.btnSaveNode')}
             </Button>
           </>

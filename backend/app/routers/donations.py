@@ -1,9 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
-from sqlalchemy import select, func, update
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
-from decimal import Decimal
-from datetime import datetime
 import logging
 
 from app.database import get_db
@@ -61,7 +59,7 @@ def _serialize_donation(donation: Donation) -> dict:
 def _redact_name(name: str | None, is_anonymous: bool | None = None) -> str:
     """Redact donor name for unauthenticated viewers."""
     if is_anonymous or not name:
-        return "匿名爱心人士"
+        return "Anonymous Donor"
     # Show first character only, rest as asterisks
     if len(name) <= 1:
         return "*"
@@ -92,12 +90,15 @@ async def list_donations(
             page, page_size, campaign_id, status, payment_method, search
         )
         items = []
+        is_admin = current_user and current_user.get("role") in ("admin", "editor")
         for d in donations:
             item = DonationOut.model_validate(d).model_dump()
-            if not current_user:
-                item["donor_name"] = mask_name(item.get("donor_name")) if not item.get("is_anonymous") else "匿名爱心人士"
-                item.pop("message", None)
-                item.pop("donor_user_id", None)
+            if not is_admin:
+                is_owner = current_user and item.get("donor_user_id") == current_user.get("id")
+                if not is_owner:
+                    item["donor_name"] = mask_name(item.get("donor_name")) if not item.get("is_anonymous") else "Anonymous Donor"
+                    item.pop("message", None)
+                    item.pop("donor_user_id", None)
             items.append(item)
         return DonationListPageResponse(
             data=items,
@@ -109,14 +110,8 @@ async def list_donations(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error listing donations: {e}")
-        return DonationListPageResponse(
-            data=[],
-            total=0,
-            page=page,
-            page_size=page_size,
-            summary=DonationListSummaryOut(),
-        )
+        logger.error("Error listing donations: %s", e)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 @router.get("/stats", response_model=ApiResponse)
 async def donation_stats(db: AsyncSession = Depends(get_db)):
@@ -127,8 +122,9 @@ async def donation_stats(db: AsyncSession = Depends(get_db)):
         return ApiResponse(data=stats)
     except HTTPException:
         raise
-    except Exception:
-        return ApiResponse(data={"total_amount": "0.00", "total_donors": 0, "currency": "CNY"})
+    except Exception as e:
+        logger.error("Donation stats query failed: %s", e)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 @router.get("/tiers", response_model=ApiResponse)
 async def donation_tiers():
@@ -149,16 +145,22 @@ async def my_donations(
     current_user: dict = Depends(get_current_user),
 ):
     """Get current user's donations."""
-    stmt = select(Donation).where(Donation.donor_user_id == current_user["id"])
-    count_stmt = select(func.count(Donation.id)).where(Donation.donor_user_id == current_user["id"])
-    total = (await db.execute(count_stmt)).scalar() or 0
-    stmt = stmt.order_by(Donation.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
-    result = await db.execute(stmt)
-    donations = result.scalars().all()
-    return PaginatedResponse(
-        data=[_serialize_donation(d) for d in donations],
-        total=total, page=page, page_size=page_size,
-    )
+    try:
+        stmt = select(Donation).where(Donation.donor_user_id == current_user["id"])
+        count_stmt = select(func.count(Donation.id)).where(Donation.donor_user_id == current_user["id"])
+        total = (await db.execute(count_stmt)).scalar() or 0
+        stmt = stmt.order_by(Donation.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
+        result = await db.execute(stmt)
+        donations = result.scalars().all()
+        return PaginatedResponse(
+            data=[_serialize_donation(d) for d in donations],
+            total=total, page=page, page_size=page_size,
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Failed to list user donations: %s", e, exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
 @router.get("/{donation_id}", response_model=ApiResponse)
@@ -173,7 +175,8 @@ async def get_donation(donation_id: int, db: AsyncSession = Depends(get_db), cur
         return ApiResponse(data=DonationOut.model_validate(donation).model_dump())
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
+        logger.error("Failed to get donation %d: %s", donation_id, e)
         raise HTTPException(status_code=404, detail="Donation not found")
 
 @router.post("", response_model=ApiResponse, status_code=201)
@@ -183,8 +186,7 @@ async def create_donation(body: DonationCreate, db: AsyncSession = Depends(get_d
     donation_service = DonationService(db)
     try:
         donation_data = body.model_dump()
-        if donation_data.get("donor_user_id") is None:
-            donation_data["donor_user_id"] = current_user["id"]
+        donation_data["donor_user_id"] = current_user["id"]
 
         donation = await donation_service.create_donation(donation_data)
         await db.refresh(donation)
@@ -205,10 +207,10 @@ async def create_donation(body: DonationCreate, db: AsyncSession = Depends(get_d
 
         if body.payment_method == "wechat":
             try:
-                payment_params = get_payment_service().create_unified_order(
+                payment_params = await get_payment_service().create_unified_order(
                     order_no=f"DON{donation.id}",
                     amount=body.amount,
-                    description="公益捐赠" if body.is_anonymous else f"公益捐赠 - {body.donor_name}",
+                    description="Charitable Donation" if body.is_anonymous else f"Charitable Donation - {body.donor_name}",
                     trade_type="JSAPI",
                     donation_id=donation.id
                 )
@@ -216,9 +218,9 @@ async def create_donation(body: DonationCreate, db: AsyncSession = Depends(get_d
             except HTTPException:
                 raise
             except Exception as pay_error:
-                logger.error(f"Payment parameter generation failed: {pay_error}")
+                logger.error("Payment parameter generation failed: %s", pay_error)
                 if settings.APP_ENV == "development":
-                    response_data["payment_error"] = str(pay_error)
+                    response_data["payment_error"] = "Payment configuration error"
                     response_data["simulation_mode"] = True
                 else:
                     raise HTTPException(status_code=400, detail="Payment initialization failed. Please check configuration.")
@@ -245,7 +247,7 @@ async def create_donation(body: DonationCreate, db: AsyncSession = Depends(get_d
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Donation creation failed: {e}")
+        logger.error("Donation creation failed: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
@@ -258,7 +260,8 @@ async def get_donation_certificate(donation_id: int, db: AsyncSession = Depends(
         
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
+        logger.error("Failed to get certificate for donation %d: %s", donation_id, e)
         raise HTTPException(status_code=404, detail="Donation not found")
 
 
@@ -284,5 +287,5 @@ async def download_donation_certificate_pdf(
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error(f"Certificate PDF generation failed for donation {donation_id}: {exc}")
+        logger.error("Certificate PDF generation failed for donation %s: %s", donation_id, exc)
         raise HTTPException(status_code=500, detail="Certificate PDF generation failed")

@@ -92,7 +92,7 @@ function validatePostalCode(postalCode: string, country: string): boolean {
 }
 
 // Get error message for phone by country
-function getPhoneError(country: string, t: (key: string) => string): string {
+function getPhoneError(country: string, t: ReturnType<typeof useTranslation>['t']): string {
   const errorMap: Record<string, string> = {
     'China': t('clothingRecycle.phoneErrorCn', '请输入有效的11位中国手机号码'),
     'Taiwan, China': t('clothingRecycle.phoneErrorTw', '請輸入有效的10位台灣手機號碼'),
@@ -112,7 +112,7 @@ function getPhoneError(country: string, t: (key: string) => string): string {
 }
 
 // Get dynamic placeholder for phone by country
-function getPhonePlaceholder(country: string, t: (key: string) => string): string {
+function getPhonePlaceholder(country: string, t: ReturnType<typeof useTranslation>['t']): string {
   const placeholders: Record<string, string> = {
     'China': t('clothingRecycle.phonePlaceholderCn', '请输入11位手机号'),
     'Taiwan, China': t('clothingRecycle.phonePlaceholderTw', '請輸入10位手機號碼'),
@@ -132,7 +132,7 @@ function getPhonePlaceholder(country: string, t: (key: string) => string): strin
 }
 
 // Get error message for field by country
-function getFieldError(field: string, country: string, t: (key: string) => string): string {
+function getFieldError(field: string, country: string, t: ReturnType<typeof useTranslation>['t']): string {
   const errors: Record<string, Record<string, string>> = {
     name: {
       'China': t('clothingRecycle.nameErrorCn', '请输入2-50位中英文姓名'),
@@ -184,11 +184,7 @@ export default function RecycleForm({ onSubmitted }: RecycleFormProps) {
   const [submitted, setSubmitted] = useState(false);
   const mountedRef = useRef(true);
 
-  // Validation
-  const canSubmit = isAuthenticated && description.trim() && validateName(contactName) &&
-    phone.trim() && validatePhone(phone, country) && address.trim() && validateAddress(address) &&
-    (!postalCode.trim() || validatePostalCode(postalCode, country));
-
+  // Validation (used in handleSubmit)
   useEffect(() => {
     mountedRef.current = true;
     return () => { mountedRef.current = false; };

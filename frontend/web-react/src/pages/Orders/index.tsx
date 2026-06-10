@@ -36,7 +36,7 @@ export default function Orders() {
   const prefersReducedMotion = useReducedMotion();
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const [searchParams] = useSearchParams();
+  const [_searchParams] = useSearchParams();
 
   const [orderStatus, setOrderStatus] = useState('');
   const [orderKeyword, setOrderKeyword] = useState('');

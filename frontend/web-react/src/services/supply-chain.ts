@@ -105,7 +105,7 @@ export const supplyChainApi = {
     return response.data.data as SupplyChainRecord;
   },
 
-  /** 本地上传图片/视频，返回写入 gallery 用的相对路径（/static/...） */
+  /** Locally uploads an image/video and returns a relative path (/static/...) for writing into the gallery */
   uploadTraceMedia: async (file: File): Promise<{ url: string; mime: string }> => {
     const form = new FormData();
     form.append('file', file);

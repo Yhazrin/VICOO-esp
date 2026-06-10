@@ -7,7 +7,7 @@ interface StoryQuoteBlockProps {
   author?: string;
   role?: string;
   className?: string;
-  /** 条带式排布：无大号引号与左侧重边框，适合页面顶部或窄栏 */
+  /** Strip layout: no large quotation marks or heavy left border; suitable for the top of a page or narrow columns */
   variant?: 'default' | 'strip';
 }
 

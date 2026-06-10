@@ -65,10 +65,10 @@ class OrderListItem(BaseModel):
 
 
 class LogisticsEvent(BaseModel):
-    at: str
-    status: str
-    description: Optional[str] = None
-    location: Optional[str] = None
+    at: str = Field(..., max_length=50)
+    status: str = Field(..., max_length=50)
+    description: Optional[str] = Field(None, max_length=500)
+    location: Optional[str] = Field(None, max_length=200)
 
 
 class OrderLogisticsUpdate(BaseModel):

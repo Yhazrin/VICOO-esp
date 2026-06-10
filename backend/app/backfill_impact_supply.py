@@ -1,7 +1,8 @@
 """
-为已有数据库中「前 10 个公益商品（按 id 升序）」补写优衣库式溯源（若该商品尚无任一条 supply_chain 记录则跳过整组，避免重复）。
+Backfill supply chain trace records for the first 10 impact products (by id).
+Skips products that already have any supply_chain records to avoid duplicates.
 
-用法: cd backend && python -m app.backfill_impact_supply
+Usage: cd backend && python -m app.backfill_impact_supply
 """
 
 from __future__ import annotations

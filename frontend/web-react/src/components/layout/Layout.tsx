@@ -41,7 +41,7 @@ export default function Layout() {
   const currentTheme = useUIStore((s) => s.currentTheme);
   const location = useLocation();
   const isImpactShopRoute = Boolean(useMatch({ path: '/impact/shop', end: false }));
-  /** 仅在首页 `/` 且开启公益壳时用 tab 内容；`/shop`、`/about` 等必须走 `<Outlet />`，否则常规店被挡住 */
+  /** Only use tab content on the homepage `/` when the welfare shell is active; `/shop`, `/about`, etc. must render via `<Outlet />`, otherwise the regular store is blocked */
   const renderImpactShell = impactMode && location.pathname === '/';
   const mainContent = renderImpactShell ? <ImpactContent /> : <Outlet />;
 
@@ -51,11 +51,16 @@ export default function Layout() {
     void import('@/data/world-land-110m.json');
   }, [renderImpactShell]);
   /**
-   * 与「公司」下整站共用 `company-outlet`：在**同一 URL `/`** 上切换优衣库与公益时不再更换外层 key。
-   * 若仍用 `company-outlet`↔`impact-${tab}`，KeyedRouteContent 会多卸一屏，与 Outlet↔ImpactContent 子树切换叠加，主线程/双 WebGL 冷启动会明显更卡。
-   * tab 子页面刷新由 `ImpactContent` 内部 `switch` 完成，外无需再包一层 `impact-${tab}`。
+   * Shares `company-outlet` with the entire company site: no outer key change when
+   * switching between UNIQLO and welfare on the **same URL `/`**.
+   * If `company-outlet`↔`impact-${tab}` were still used, KeyedRouteContent would unmount
+   * an extra screen; combined with the Outlet↔ImpactContent subtree switch, main-thread /
+   * dual-WebGL cold starts would be noticeably laggier.
+   * Tab sub-page refresh is handled by the `switch` inside `ImpactContent`; no need to
+   * wrap an additional `impact-${tab}` layer.
    *
-   * 公益商店：列表与详情共用 `impact-shop-route`（与既有 View Transitions 设计一致）。
+   * Welfare shop: list and detail share `impact-shop-route` (consistent with the existing
+   * View Transitions design).
    */
   const impactShopUnifiedKey =
     location.pathname.startsWith('/impact/shop') ||

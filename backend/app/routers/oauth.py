@@ -1,4 +1,6 @@
 """OAuth authentication routes for GitHub and Google."""
+import asyncio
+import hmac
 import logging
 import secrets
 from urllib.parse import urlencode
@@ -6,14 +8,15 @@ from urllib.parse import urlencode
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse, JSONResponse
-from sqlalchemy import select, or_
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.database import get_db
 from app.models.user import User
-from app.schemas import ApiResponse, TokenResponse
+from app.schemas import ApiResponse
 from app.security import create_access_token, create_refresh_token
+from app.services.mailer import send_welcome_email
 
 logger = logging.getLogger("vicoo.oauth")
 
@@ -43,16 +46,23 @@ async def _find_or_create_oauth_user(
     email: str | None,
     nickname: str,
     avatar: str | None = None,
+    email_verified: bool = True,
 ) -> User:
-    """Find existing user by OAuth provider ID or email, or create a new one."""
+    """Find existing user by OAuth provider ID or email, or create a new one.
+
+    Args:
+        email_verified: Only auto-link to existing accounts when the email
+            has been verified by the OAuth provider.  Unverified emails
+            (e.g. GitHub public email) are used only for new account creation.
+    """
     id_column = User.github_id if provider == "github" else User.google_id
 
     # 1. Try to find by OAuth provider ID
     result = await db.execute(select(User).where(id_column == provider_id))
     user = result.scalar_one_or_none()
-    
-    if not user and email:
-        # 2. Try by email (link accounts)
+
+    if not user and email and email_verified:
+        # 2. Try by email (link accounts) — only for verified emails
         result = await db.execute(select(User).where(User.email == email))
         user = result.scalar_one_or_none()
         if user:
@@ -62,6 +72,7 @@ async def _find_or_create_oauth_user(
                 user.avatar = avatar
             await db.flush()
 
+    is_new_user = False
     if not user:
         # 3. Create new user
         user = User(
@@ -75,16 +86,22 @@ async def _find_or_create_oauth_user(
         setattr(user, f"{provider}_id", provider_id)
         db.add(user)
         await db.flush()
-        logger.info(f"New OAuth user created: {user.email}")
+        is_new_user = True
+        logger.info("New OAuth user created: %s", user.email)
     else:
-        logger.info(f"Existing OAuth user logged in: {user.email}")
+        logger.info("Existing OAuth user logged in: %s", user.email)
 
-    # 4. Trigger welcome email (EVERY LOGIN for development testing)
-    if user.email and not user.email.endswith("@oauth.vicoo.org"):
-        import asyncio
-        from app.services.mailer import send_welcome_email
-        logger.info(f"Triggering welcome email for {user.email} (Dev Mode: Every Login)")
-        asyncio.create_task(send_welcome_email(user.email, user.nickname))
+    # 4. Trigger welcome email only for new users
+    if is_new_user and user.email and not user.email.endswith("@oauth.vicoo.org"):
+        logger.info("Triggering welcome email for new user %s", user.email)
+
+        async def _safe_welcome_email(email: str, nickname: str):
+            try:
+                await send_welcome_email(email, nickname)
+            except Exception as e:
+                logger.error("Welcome email failed for %s: %s", email, e)
+
+        asyncio.create_task(_safe_welcome_email(user.email, user.nickname))
 
     return user
 
@@ -95,11 +112,13 @@ def _build_auth_redirect(user: User) -> RedirectResponse:
     access = create_access_token(subject=str(user.id), role=user.role)
     refresh = create_refresh_token(subject=str(user.id), role=user.role)
 
-    # Redirect to frontend callback page with token in fragment (not query param for security)
-    redirect_url = f"{settings.FRONTEND_URL}/auth/callback?access_token={access}"
+    # Redirect to frontend callback page with token in URL fragment (never sent to servers)
+    redirect_url = f"{settings.FRONTEND_URL}/auth/callback#access_token={access}"
 
     response = RedirectResponse(url=redirect_url, status_code=302)
     _set_auth_cookies(response, access, refresh)
+    # Clear the one-time CSRF state cookie
+    response.delete_cookie("oauth_state")
     return response
 
 
@@ -131,8 +150,12 @@ async def github_login(request: Request):
 
 
 @router.get("/github/callback")
-async def github_callback(code: str, state: str = "", request: Request = None, db: AsyncSession = Depends(get_db)):
+async def github_callback(code: str, state: str, request: Request, db: AsyncSession = Depends(get_db)):
     """Handle GitHub OAuth callback."""
+    # CSRF protection: verify state parameter matches cookie
+    expected_state = request.cookies.get("oauth_state", "")
+    if not expected_state or not hmac.compare_digest(state, expected_state):
+        raise HTTPException(status_code=403, detail="Invalid OAuth state parameter")
     if not settings.GITHUB_CLIENT_ID or not settings.GITHUB_CLIENT_SECRET:
         raise HTTPException(status_code=500, detail="GitHub OAuth is not configured")
 
@@ -149,13 +172,13 @@ async def github_callback(code: str, state: str = "", request: Request = None, d
         )
 
         if token_resp.status_code != 200:
-            logger.error(f"GitHub token exchange failed: {token_resp.status_code}")
+            logger.error("GitHub token exchange failed: %s", token_resp.status_code)
             raise HTTPException(status_code=401, detail="GitHub authentication failed")
 
         token_data = token_resp.json()
         gh_access_token = token_data.get("access_token")
         if not gh_access_token:
-            logger.error(f"GitHub token missing: {token_data}")
+            logger.error("GitHub token missing: %s", token_data)
             raise HTTPException(status_code=401, detail="GitHub authentication failed")
 
         # Fetch user profile
@@ -168,34 +191,42 @@ async def github_callback(code: str, state: str = "", request: Request = None, d
         github_id = str(gh_user["id"])
         nickname = gh_user.get("name") or gh_user.get("login") or f"gh_{github_id}"
         avatar = gh_user.get("avatar_url")
-        email = gh_user.get("email")
 
-        # If email not public, fetch from emails endpoint
-        if not email:
-            emails_resp = await client.get(GITHUB_EMAILS_URL, headers=headers)
-            if emails_resp.status_code == 200:
+        # Always prefer verified email from /user/emails endpoint.
+        # The public profile email is unverified — anyone can set it to
+        # any address, so we must NOT trust it for account auto-linking.
+        email = None
+        email_verified = False
+        emails_resp = await client.get(GITHUB_EMAILS_URL, headers=headers)
+        if emails_resp.status_code == 200:
+            for em in emails_resp.json():
+                if em.get("primary") and em.get("verified"):
+                    email = em["email"]
+                    email_verified = True
+                    break
+            # No primary verified email — fall back to any verified email
+            if not email:
                 for em in emails_resp.json():
-                    if em.get("primary") and em.get("verified"):
+                    if em.get("verified"):
                         email = em["email"]
+                        email_verified = True
                         break
+        # Last resort: use public profile email but mark as unverified
+        if not email:
+            email = gh_user.get("email")
 
     try:
-        user = await _find_or_create_oauth_user(db, "github", github_id, email, nickname, avatar)
+        user = await _find_or_create_oauth_user(
+            db, "github", github_id, email, nickname, avatar,
+            email_verified=email_verified,
+        )
         if user.status == "banned":
             raise HTTPException(status_code=403, detail="Account is banned")
         return _build_auth_redirect(user)
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"GitHub OAuth DB error: {e}", exc_info=True)
-        # Fallback for development: create mock response
-        if settings.APP_ENV == "development":
-            access = create_access_token(subject=github_id, role="user")
-            refresh = create_refresh_token(subject=github_id, role="user")
-            redirect_url = f"{settings.FRONTEND_URL}/auth/callback?access_token={access}&nickname={nickname}&email={email or ''}&avatar={avatar or ''}&provider=github"
-            response = RedirectResponse(url=redirect_url, status_code=302)
-            _set_auth_cookies(response, access, refresh)
-            return response
+        logger.error("GitHub OAuth DB error: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Authentication service unavailable")
 
 
@@ -228,8 +259,12 @@ async def google_login(request: Request):
 
 
 @router.get("/google/callback")
-async def google_callback(code: str, state: str = "", request: Request = None, db: AsyncSession = Depends(get_db)):
+async def google_callback(code: str, state: str, request: Request, db: AsyncSession = Depends(get_db)):
     """Handle Google OAuth callback."""
+    # CSRF protection: verify state parameter matches cookie
+    expected_state = request.cookies.get("oauth_state", "")
+    if not expected_state or not hmac.compare_digest(state, expected_state):
+        raise HTTPException(status_code=403, detail="Invalid OAuth state parameter")
     if not settings.GOOGLE_CLIENT_ID or not settings.GOOGLE_CLIENT_SECRET:
         raise HTTPException(status_code=500, detail="Google OAuth is not configured")
 
@@ -247,7 +282,7 @@ async def google_callback(code: str, state: str = "", request: Request = None, d
         )
 
         if token_resp.status_code != 200:
-            logger.error(f"Google token exchange failed: {token_resp.status_code}")
+            logger.error("Google token exchange failed: %s", token_resp.status_code)
             raise HTTPException(status_code=401, detail="Google authentication failed")
 
         token_data = token_resp.json()
@@ -266,23 +301,20 @@ async def google_callback(code: str, state: str = "", request: Request = None, d
         g_user = user_resp.json()
         google_id = g_user["id"]
         email = g_user.get("email")
+        email_verified = bool(g_user.get("email_verified", True))  # Google typically marks verified
         nickname = g_user.get("name") or email or f"google_{google_id}"
         avatar = g_user.get("picture")
 
     try:
-        user = await _find_or_create_oauth_user(db, "google", google_id, email, nickname, avatar)
+        user = await _find_or_create_oauth_user(
+            db, "google", google_id, email, nickname, avatar,
+            email_verified=email_verified,
+        )
         if user.status == "banned":
             raise HTTPException(status_code=403, detail="Account is banned")
         return _build_auth_redirect(user)
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Google OAuth DB error: {e}", exc_info=True)
-        if settings.APP_ENV == "development":
-            access = create_access_token(subject=google_id, role="user")
-            refresh = create_refresh_token(subject=google_id, role="user")
-            redirect_url = f"{settings.FRONTEND_URL}/auth/callback?access_token={access}&nickname={nickname}&email={email or ''}&avatar={avatar or ''}&provider=google"
-            response = RedirectResponse(url=redirect_url, status_code=302)
-            _set_auth_cookies(response, access, refresh)
-            return response
+        logger.error("Google OAuth DB error: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Authentication service unavailable")

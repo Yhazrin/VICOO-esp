@@ -205,6 +205,7 @@ export default function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('wechat');
   const [isProcessing, setIsProcessing] = useState(false);
   const placingRef = useRef(false);
+  const finalizeOnceRef = useRef(false);
   const [orderResult, setOrderResult] = useState<{ orderId: string; orderNo: string } | null>(null);
   const [error, setError] = useState('');
   const [pendingPayOrder, setPendingPayOrder] = useState<{
@@ -215,7 +216,7 @@ export default function Checkout() {
     payUrl: string;
   } | null>(null);
 
-  const { data: savedAddresses = [] } = useQuery({
+  const { data: savedAddresses = [], isError: addressesError } = useQuery({
     queryKey: ['my-addresses'],
     queryFn: () => addressesApi.getAll(),
     enabled: isAuthenticated,
@@ -270,6 +271,8 @@ export default function Checkout() {
   selectedAddressIdRef.current = selectedAddressId;
 
   const finalizeOrder = useCallback(async (result: { orderId: string; orderNo: string }) => {
+    if (finalizeOnceRef.current) return;
+    finalizeOnceRef.current = true;
     setOrderResult(result);
     const addr = addressRef.current;
     const shouldSave = saveAddressRef.current;
@@ -316,6 +319,7 @@ export default function Checkout() {
         if (cancelled) return;
         if (o.status === 'paid') {
           setPendingPayOrder(null);
+          if (cancelled) return;
           await finalizeOrder({ orderId, orderNo: o.order_no });
         }
       } catch {
@@ -328,6 +332,13 @@ export default function Checkout() {
       window.clearInterval(id);
     };
   }, [pendingPayOrder, finalizeOrder, t]);
+
+  // Reset placingRef when polling finishes (pendingPayOrder cleared)
+  useEffect(() => {
+    if (!pendingPayOrder) {
+      placingRef.current = false;
+    }
+  }, [pendingPayOrder]);
 
   if (!isAuthenticated) {
     return (
@@ -373,6 +384,10 @@ export default function Checkout() {
 
   const handlePlaceOrder = async () => {
     if (placingRef.current) return;
+    if (!selectedAddressId && !/^1\d{10}$/.test(address.phone.trim())) {
+      setError(t('checkout.phoneInvalid', 'Please enter a valid 11-digit phone number'));
+      return;
+    }
     placingRef.current = true;
     setIsProcessing(true);
     setError('');
@@ -405,6 +420,7 @@ export default function Checkout() {
       ) as string | undefined;
       if (!token) {
         setError(t('checkout.error'));
+        placingRef.current = false;
         return;
       }
 
@@ -422,16 +438,17 @@ export default function Checkout() {
         mockPayToken: token,
         payUrl,
       });
+      // Keep placingRef = true — polling will handle reset via pendingPayOrder change
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : '';
       if (msg.includes('422') || msg.includes('stock')) {
-        setError(t('checkout.outOfStock', '部分商品库存不足，请修改购物车'));
+        setError(t('checkout.outOfStock', 'Some items are out of stock — please update your cart'));
       } else {
         setError(t('checkout.error'));
       }
+      placingRef.current = false;
     } finally {
       setIsProcessing(false);
-      placingRef.current = false;
     }
   };
 
@@ -522,10 +539,15 @@ export default function Checkout() {
                     <h2 className="font-display text-h3 font-semibold text-ink mb-6">{t('checkout.step1')}</h2>
 
                     {/* Saved addresses */}
+                    {addressesError && (
+                      <p className="font-body text-caption text-rust mb-2">
+                        {t('checkout.addressesLoadError', 'Could not load saved addresses')}
+                      </p>
+                    )}
                     {savedAddresses.length > 0 && !showManualAddress && (
                       <div className="space-y-3 mb-4">
                         <p className="font-body text-caption text-sepia-mid tracking-wider uppercase">
-                          {t('checkout.savedAddresses', '已保存的地址')}
+                          {t('checkout.savedAddresses', 'Saved addresses')}
                         </p>
                         {savedAddresses.map((addr) => (
                           <button
@@ -542,7 +564,7 @@ export default function Checkout() {
                                 <span className="font-body text-[10px] tracking-wider uppercase text-sepia-mid">{addr.label}</span>
                               )}
                               {addr.is_default && (
-                                <span className="font-body text-[10px] tracking-wider uppercase text-sage">{t('profile.addresses.defaultBadge', '默认')}</span>
+                                <span className="font-body text-[10px] tracking-wider uppercase text-sage">{t('profile.addresses.defaultBadge', 'Default')}</span>
                               )}
                             </div>
                             <p className="font-body text-body-sm text-ink">{addr.recipient_name} · {addr.phone}</p>
@@ -555,7 +577,7 @@ export default function Checkout() {
                           onClick={() => { setShowManualAddress(true); setSelectedAddressId(null); }}
                           className="font-body text-caption text-rust hover:text-rust-light transition-colors cursor-pointer"
                         >
-                          + {t('checkout.enterNewAddress', '输入新地址')}
+                          + {t('checkout.enterNewAddress', 'Enter new address')}
                         </button>
                       </div>
                     )}
@@ -565,10 +587,11 @@ export default function Checkout() {
                     <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
+                        <label htmlFor="checkout-name" className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
                           {t('checkout.fullName')}
                         </label>
                         <input
+                          id="checkout-name"
                           type="text"
                           required
                           value={address.recipient_name}
@@ -581,10 +604,11 @@ export default function Checkout() {
                         )}
                       </div>
                       <div>
-                        <label className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
+                        <label htmlFor="checkout-phone" className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
                           {t('checkout.phone')}
                         </label>
                         <input
+                          id="checkout-phone"
                           type="tel"
                           required
                           pattern="1[3-9]\d{9}"
@@ -600,10 +624,11 @@ export default function Checkout() {
                     </div>
 
                     <div>
-                      <label className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
+                      <label htmlFor="checkout-street" className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
                         {t('checkout.street')}
                       </label>
                       <input
+                        id="checkout-street"
                         type="text"
                         required
                         value={address.detail_address}
@@ -618,10 +643,11 @@ export default function Checkout() {
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                       <div>
-                        <label className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
+                        <label htmlFor="checkout-city" className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
                           {t('checkout.city')}
                         </label>
                         <input
+                          id="checkout-city"
                           type="text"
                           required
                           value={address.city}
@@ -631,10 +657,11 @@ export default function Checkout() {
                         />
                       </div>
                       <div>
-                        <label className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
+                        <label htmlFor="checkout-province" className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
                           {t('checkout.province')}
                         </label>
                         <input
+                          id="checkout-province"
                           type="text"
                           required
                           value={address.province}
@@ -644,10 +671,11 @@ export default function Checkout() {
                         />
                       </div>
                       <div>
-                        <label className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
+                        <label htmlFor="checkout-postal" className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
                           {t('checkout.postalCode')}
                         </label>
                         <input
+                          id="checkout-postal"
                           type="text"
                           value={address.postalCode}
                           onChange={(e) => setAddress({ ...address, postalCode: e.target.value })}
@@ -678,7 +706,7 @@ export default function Checkout() {
                     {!selectedAddressId && (
                       <label className="flex items-center gap-2 cursor-pointer mt-2">
                         <input type="checkbox" checked={saveAddress} onChange={(e) => setSaveAddress(e.target.checked)} className="accent-rust" />
-                        <span className="font-body text-caption text-ink">{t('checkout.saveAddress', '保存到地址簿')}</span>
+                        <span className="font-body text-caption text-ink">{t('checkout.saveAddress', 'Save to address book')}</span>
                       </label>
                     )}
                     </>
@@ -918,6 +946,7 @@ export default function Checkout() {
         <PaymentQRModal
           payUrl={pendingPayOrder.payUrl}
           amount={pendingPayOrder.amount}
+          currency={paymentMethod === 'paypal' || paymentMethod === 'stripe' ? 'USD' : 'CNY'}
           onSuccess={handleSimulatePaid}
           onFailure={handlePayModalClose}
           isProcessing={isProcessing}

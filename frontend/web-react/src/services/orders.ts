@@ -1,7 +1,7 @@
 import api from './api';
 import type { CreateOrderRequest } from '@/types';
 
-/** 与后端 OrderOut 对齐 */
+/** Aligned with the backend OrderOut */
 export interface OrderLineItem {
   id: number;
   product_id: number;
@@ -80,7 +80,9 @@ export const ordersApi = {
     if (filters?.page_size != null) params.append('page_size', String(filters.page_size));
     const qs = params.toString();
     const response = await api.get(`/orders/mine${qs ? `?${qs}` : ''}`);
-    return response.data.data;
+    // Backend returns PaginatedResponse { data, total, page, page_size }
+    const envelope = response.data.data;
+    return Array.isArray(envelope) ? envelope : (envelope?.data ?? []);
   },
 
   cancel: async (id: string): Promise<OrderDetail> => {

@@ -1,10 +1,11 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any, Tuple
 from sqlalchemy import select, func, and_, or_
 from app.models.campaign import Campaign
 from app.services.base import BaseService
 from app.utils.cache import invalidate_cache
+from app.core.audit import audit_action
 from app.core.errors import ResourceNotFoundException, ServiceUnavailableException
 
 logger = logging.getLogger("vicoo.campaign_service")
@@ -15,8 +16,9 @@ class CampaignService(BaseService):
     Implements Redis caching for high-traffic listing endpoints.
     """
 
-    # 不在此使用 @cached：返回值含 ORM 对象，原 cache 层 json.dumps 无法稳定往返，易污染 Redis
-    # 并导致 Pydantic 转换失败，在 DEMO_MODE 下会落入 routes 的 except 而返回空列表（前端见「无活动」）。
+    # Do NOT use @cached here: return values contain ORM objects that cannot survive
+    # json.dumps round-trip, which corrupts Redis and causes Pydantic conversion failures.
+    # In DEMO_MODE this falls through to the router's except block, returning empty list.
     async def list_campaigns(
         self, 
         page: int = 1, 
@@ -26,10 +28,10 @@ class CampaignService(BaseService):
         """List campaigns with pagination."""
         try:
             stmt = select(Campaign)
-            # 前端有「即将开始」tab；表枚举无 upcoming，用开始时间在未来近似
+            # Frontend has an "upcoming" tab; DB enum has no 'upcoming', approximate with future start_date
             if status:
                 if status == "upcoming":
-                    now = datetime.utcnow()
+                    now = datetime.now(timezone.utc)
                     upcoming_cond = and_(
                         Campaign.start_date > now,
                         or_(Campaign.status == "active", Campaign.status == "draft"),
@@ -42,7 +44,7 @@ class CampaignService(BaseService):
             count_stmt = select(func.count(Campaign.id))
             if status:
                 if status == "upcoming":
-                    now = datetime.utcnow()
+                    now = datetime.now(timezone.utc)
                     ucond = and_(
                         Campaign.start_date > now,
                         or_(Campaign.status == "active", Campaign.status == "draft"),
@@ -53,13 +55,13 @@ class CampaignService(BaseService):
             total = (await self.db.execute(count_stmt)).scalar() or 0
             
             # Get items
-            stmt = stmt.offset((page - 1) * page_size).limit(page_size)
+            stmt = stmt.order_by(Campaign.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
             result = await self.db.execute(stmt)
             campaigns = result.scalars().all()
             
             return campaigns, total
         except Exception as e:
-            logger.error(f"Error in list_campaigns: {e}")
+            logger.error("Error in list_campaigns: %s", e)
             raise ServiceUnavailableException(message="Database query failed")
 
     async def get_active_campaign(self) -> Campaign:
@@ -80,10 +82,14 @@ class CampaignService(BaseService):
             raise ResourceNotFoundException(message=f"Campaign {campaign_id} not found")
         return campaign
 
+    _CREATABLE_FIELDS = {"title", "description", "goal_amount", "start_date", "end_date", "status", "cover_image"}
+
+    @audit_action(action="create_campaign", resource_type="campaign")
     async def create_campaign(self, data: Dict[str, Any]) -> Campaign:
         """Create a new campaign and invalidate cache."""
         try:
-            campaign = Campaign(**data)
+            safe = {k: v for k, v in data.items() if k in self._CREATABLE_FIELDS}
+            campaign = Campaign(**safe)
             self.db.add(campaign)
             await self.db.flush()
             await self.db.refresh(campaign, ["created_at"])
@@ -91,20 +97,25 @@ class CampaignService(BaseService):
             await invalidate_cache("campaigns:")
             return campaign
         except Exception as e:
-            logger.error(f"Error creating campaign: {e}")
+            logger.error("Error creating campaign: %s", e)
             raise ServiceUnavailableException()
 
+    _UPDATABLE_FIELDS = {"title", "description", "goal_amount", "start_date", "end_date", "status", "cover_image"}
+
+    @audit_action(action="update_campaign", resource_type="campaign")
     async def update_campaign(self, campaign_id: int, data: Dict[str, Any]) -> Campaign:
         """Update a campaign and invalidate cache."""
         campaign = await self.get_campaign_by_id(campaign_id)
         for k, v in data.items():
-            setattr(campaign, k, v)
+            if k in self._UPDATABLE_FIELDS:
+                setattr(campaign, k, v)
         await self.db.flush()
         await self.db.refresh(campaign, ["created_at"])
         # Invalidate listing caches
         await invalidate_cache("campaigns:")
         return campaign
 
+    @audit_action(action="delete_campaign", resource_type="campaign")
     async def delete_campaign(self, campaign_id: int):
         """Delete a campaign and invalidate cache."""
         campaign = await self.get_campaign_by_id(campaign_id)

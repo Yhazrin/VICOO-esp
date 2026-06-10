@@ -13,8 +13,11 @@ const ADMIN_ROLES = ['admin', 'editor', 'compliance'];
  * OAuth Callback Page
  *
  * After GitHub/Google OAuth, the backend redirects here with an access_token
- * in the query string. This page:
- * 1. Extracts the token
+ * in the URL fragment (#access_token=...). The fragment is never sent to servers,
+ * preventing token leakage in logs, Referer headers, and browser history.
+ *
+ * This page:
+ * 1. Extracts the token from the URL fragment
  * 2. Stores it in the auth store
  * 3. Redirects to home
  */

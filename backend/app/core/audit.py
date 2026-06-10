@@ -79,8 +79,10 @@ async def log_audit(
             ip_address=ip_address,
         )
         db.add(audit_entry)
+        # Do NOT flush here — let the caller's transaction boundary handle persistence.
+        # Flushing independently would create audit entries for operations that later roll back.
     except Exception as e:
-        logger.error(f"Failed to write audit log: {e}", exc_info=True)
+        logger.error("Failed to write audit log: %s", e, exc_info=True)
 
 
 def audit_action(action: str, resource_type: str):
@@ -142,7 +144,7 @@ def audit_action(action: str, resource_type: str):
                         resource=resource_type,
                         resource_id=None,
                         status="failed",
-                        details={"error": str(e)},
+                        details={"error": "Operation failed"},
                     )
                 raise e
 

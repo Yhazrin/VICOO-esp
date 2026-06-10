@@ -54,19 +54,21 @@ RUN chown -R vicoo:vicoo /app
 # Switch to non-root user
 USER vicoo
 
+# Set PYTHONPATH so `app.main` resolves correctly
+ENV PYTHONPATH=/app/backend:$PYTHONPATH
+
 # Expose port
 EXPOSE 8000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')" || exit 1
 
 # Run the application with uvicorn
-CMD ["python", "-m", "uvicorn", "backend.main:app", \
+CMD ["python", "-m", "uvicorn", "app.main:app", \
      "--host", "0.0.0.0", \
      "--port", "8000", \
      "--workers", "4", \
      "--log-level", "info", \
      "--access-log", \
-     "--proxy-headers", \
-     "--forwarded-allow-ips", "*"]
+     "--proxy-headers"]

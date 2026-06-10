@@ -1,9 +1,10 @@
-"""商品评价。"""
+"""Product reviews."""
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+import logging
 
 from app.database import get_db
 from app.deps import get_current_user
@@ -81,8 +82,10 @@ async def create_review(
     return ApiResponse(data=_review_to_out(row, current_user.get("nickname")))
 
 
-@router.get("/mine", response_model=ApiResponse)
+@router.get("/mine", response_model=PaginatedResponse)
 async def my_reviews(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):

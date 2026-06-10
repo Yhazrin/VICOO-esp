@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo, useEffect, type ChangeEvent } from 'rea
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useMutation } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import { motion, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
@@ -123,6 +124,10 @@ export default function ArtworkSubmitPage() {
       });
     },
     onSuccess: () => setIsSubmitted(true),
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : t('artworkSubmit.error', 'Submission failed — please retry');
+      toast.error(msg);
+    },
   });
 
   const handleArtworkFile = useCallback(
@@ -149,7 +154,7 @@ export default function ArtworkSubmitPage() {
       <PageWrapper>
         <PaperTextureBackground variant="paper" className="py-24 text-center">
           <p className="font-body text-ink-faded mb-6">
-            {t('submitArtwork.loginRequired', '请先登录以提交画作')}
+            {t('submitArtwork.loginRequired', 'Please log in to submit artwork')}
           </p>
           <Link to="/login" className="font-body text-rust uppercase tracking-widest text-sm">
             {t('nav.login')} →
@@ -300,7 +305,7 @@ export default function ArtworkSubmitPage() {
                     className="mt-1 cursor-pointer"
                   />
                   <span className="font-body text-body-sm text-ink-faded">
-                    {t('submitArtwork.consentLabel', '我确认已获得该未成年人监护人的同意')}
+                    {t('submitArtwork.consentLabel', 'I confirm I have obtained guardian consent for this minor')}
                   </span>
                 </label>
               )}
@@ -370,7 +375,7 @@ export default function ArtworkSubmitPage() {
               {/* Error */}
               {mutation.isError && (
                 <p className="font-body text-caption text-rust" role="alert">
-                  {t('submitArtwork.error', '提交失败，请稍后再试')}
+                  {t('submitArtwork.error', 'Submission failed — please try again later')}
                 </p>
               )}
 

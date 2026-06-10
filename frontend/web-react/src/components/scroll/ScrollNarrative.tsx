@@ -46,15 +46,17 @@ export default function ScrollNarrative() {
 
     handleScroll();
     let ticking = false;
+    let rafId = 0;
     const onScroll = () => {
       if (!ticking) {
-        requestAnimationFrame(() => { handleScroll(); ticking = false; });
+        rafId = requestAnimationFrame(() => { handleScroll(); ticking = false; });
         ticking = true;
       }
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', handleScroll, { passive: true });
     return () => {
+      cancelAnimationFrame(rafId);
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', handleScroll);
     };

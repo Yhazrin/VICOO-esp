@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from io import BytesIO
 from typing import Any, Dict, Optional
@@ -18,15 +18,21 @@ from app.models.donation import Donation
 
 API_PREFIX = "/api/v1"
 
+import logging as _logging
+
+_cert_logger = _logging.getLogger(__name__)
+
 try:
     pdfmetrics.registerFont(TTFont("SimHei", "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc"))
     pdfmetrics.registerFont(TTFont("SimSun", "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc"))
     _CHINESE_FONT = "SimHei"
-except Exception:
+except Exception as _e:
+    _cert_logger.debug("SimHei font not available (%s), trying Arial fallback", _e)
     try:
         pdfmetrics.registerFont(TTFont("Arial", "/System/Library/Fonts/Arial.ttf"))
         _CHINESE_FONT = "Arial"
-    except Exception:
+    except Exception as _e2:
+        _cert_logger.debug("Arial font not available (%s), using Helvetica fallback", _e2)
         _CHINESE_FONT = "Helvetica"
 
 _styles = getSampleStyleSheet()
@@ -77,7 +83,7 @@ def build_certificate_payload(
     campaign_title: Optional[str] = None,
 ) -> Dict[str, Any]:
     certificate_no = donation.certificate_no or f"TH-DON-{donation.id:06d}"
-    issued_at = donation.created_at or datetime.utcnow()
+    issued_at = donation.created_at or datetime.now(timezone.utc)
     donor_name = "Anonymous Donor" if donation.is_anonymous else donation.donor_name
     amount = Decimal(str(donation.amount)).quantize(Decimal("0.00"))
     amount_display = f"{amount:,.2f} {donation.currency}"

@@ -443,7 +443,7 @@ export default function Traceability() {
         }
       });
     return () => { cancelled = true; };
-  }, [t]);
+  }, []);
 
   // Cleanup search debounce timer on unmount
   useEffect(() => {

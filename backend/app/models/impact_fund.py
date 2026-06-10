@@ -1,9 +1,13 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text, DECIMAL, ForeignKey, Enum, func
+from sqlalchemy import Column, Integer, String, DateTime, Text, DECIMAL, ForeignKey, Enum, UniqueConstraint, func
 from app.database import Base
 
 
 class ImpactFundEntry(Base):
     __tablename__ = "impact_fund_entries"
+
+    __table_args__ = (
+        UniqueConstraint("order_id", "order_item_id", "beneficiary_type", name="uq_impact_fund_order_item_beneficiary"),
+    )
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     order_id = Column(Integer, ForeignKey("orders.id"), nullable=False, index=True)

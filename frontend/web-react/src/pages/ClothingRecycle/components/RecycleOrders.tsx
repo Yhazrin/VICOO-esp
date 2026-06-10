@@ -27,7 +27,7 @@ const RecycleOrders = forwardRef<RecycleOrdersHandle>(function RecycleOrders(_pr
 
   const [activeTab, setActiveTab] = useState<OrderStatus>('all');
 
-  const { data: intakeOrders = [], isLoading } = useQuery({
+  const { data: intakeOrders = [], isLoading, isError: ordersError } = useQuery({
     queryKey: ['my-clothing-intakes'],
     queryFn: () => clothingIntakesApi.mine(),
     enabled: isAuthenticated,
@@ -106,6 +106,10 @@ const RecycleOrders = forwardRef<RecycleOrdersHandle>(function RecycleOrders(_pr
               {isLoading ? (
                 <p className="font-body text-body-sm text-sepia-mid text-center py-12">
                   {t('common.loading', 'Loading...')}
+                </p>
+              ) : ordersError ? (
+                <p className="font-body text-body-sm text-rust text-center py-12">
+                  {t('common.loadError', 'Failed to load orders. Please try again.')}
                 </p>
               ) : filteredOrders.map((order, i) => (
                 <motion.div

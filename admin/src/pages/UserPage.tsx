@@ -65,7 +65,7 @@ export default function UserPage() {
     return map[v] || v;
   };
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['users', page, search],
     queryFn: () => fetchUsers({ page, pageSize: 20, search: search || undefined }),
   });
@@ -91,6 +91,9 @@ export default function UserPage() {
     onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       toast.success(vars.status === 'banned' ? t('user.toastUserDisabled') : t('user.toastUserEnabled'));
+    },
+    onError: (e: any) => {
+      toast.error(e?.response?.data?.detail ?? t('generic.error'));
     },
   });
 

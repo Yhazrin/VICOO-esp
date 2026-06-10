@@ -95,14 +95,14 @@ export default function ImpactShop() {
     staleTime: 5 * 60 * 1000,
   });
 
-  /** 公益商店：仅展示公益属性商品（与优衣库常规店目录分离） */
+  /** Welfare shop: only displays welfare-attribute products (separated from the UNIQLO regular-store catalog) */
   const impactItems = useMemo(
     () => (data?.items ?? []).filter((p) => p.isImpactProduct),
     [data?.items]
   );
 
   // Fetch campaigns for filter
-  const { data: campaignsData } = useQuery({
+  const { data: campaignsData, isError: _campaignsError } = useQuery({
     queryKey: ['campaigns-list'],
     queryFn: async () => {
       const result = await campaignsApi.getAll();
@@ -112,7 +112,7 @@ export default function ImpactShop() {
   });
 
   // Fetch live impact stats
-  const { data: impactStats } = useQuery({
+  const { data: impactStats, isError: _impactStatsError } = useQuery({
     queryKey: ['impact-shop-stats'],
     queryFn: async () => {
       const [stats, artworks] = await Promise.all([
@@ -171,12 +171,12 @@ export default function ImpactShop() {
         <div className="pt-6 md:pt-8">
           {productsError && (
             <div className="flex items-center gap-3 bg-rust/10 border border-rust/20 px-4 py-3 mb-4">
-              <p className="font-body text-body-sm text-rust flex-1">{t('impactShop.loadError', '加载商品失败，请刷新重试')}</p>
+              <p className="font-body text-body-sm text-rust flex-1">{t('impactShop.loadError', 'Failed to load products — please refresh')}</p>
             </div>
           )}
           {isLoading && (
             <div className="py-16 text-center">
-              <p className="font-body text-sepia-mid">{t('impactShop.loading', '加载中...')}</p>
+              <p className="font-body text-sepia-mid">{t('impactShop.loading', 'Loading...')}</p>
             </div>
           )}
           {/* Filters */}

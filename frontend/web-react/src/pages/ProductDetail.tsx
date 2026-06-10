@@ -80,7 +80,7 @@ export default function ProductDetail() {
   const { isAuthenticated } = useAuthStore();
   const prefersReducedMotion = useReducedMotion();
   const currentTheme = useUIStore((s) => s.currentTheme);
-  const { data: product, isLoading: loading } = useQuery({
+  const { data: product, isLoading: loading, isError: productError } = useQuery({
     queryKey: ['product', id, i18n.language],
     queryFn: () => productsApi.getById(id!, i18n.language),
     enabled: !!id,
@@ -249,7 +249,7 @@ export default function ProductDetail() {
                   <motion.div initial={{ opacity: 1 }} animate={{ opacity: 1 }} transition={{ duration: 0 }}>
                     <SepiaImageFrame
                       src={impactHeroPreview}
-                      alt=""
+                      alt={safeProduct.name}
                       aspectRatio="portrait"
                       size="full"
                       viewTransitionName={`impact-product-${id}`}
@@ -271,6 +271,18 @@ export default function ProductDetail() {
         <PaperTextureBackground variant="paper" className="py-16 md:py-24">
           <SectionContainer>
             <p className="font-body text-sepia-mid">{t('shop.detail.loading')}</p>
+          </SectionContainer>
+        </PaperTextureBackground>
+      </PageWrapper>
+    );
+  }
+
+  if (productError) {
+    return (
+      <PageWrapper>
+        <PaperTextureBackground variant="paper" className="py-16 md:py-24">
+          <SectionContainer>
+            <p className="font-body text-red-600">{t('shop.detail.error', 'Failed to load product')}</p>
           </SectionContainer>
         </PaperTextureBackground>
       </PageWrapper>
@@ -335,7 +347,7 @@ export default function ProductDetail() {
               )}
             </div>
 
-            {/* Details — 桌面端与左栏等高；叙事在上，购买区 mt-auto 贴底 */}
+            {/* Details -- desktop: equal height to the left column; narrative on top, purchase area pinned to bottom with mt-auto */}
             <div className="md:col-span-5 md:col-start-8 lg:col-span-5 lg:col-start-8 flex flex-col md:h-full md:min-h-0">
               <div className="flex flex-col md:flex-1 md:min-h-0 md:h-full">
                 <div className="space-y-7 md:space-y-9">
@@ -538,7 +550,7 @@ export default function ProductDetail() {
       >
         {product.isImpactProduct && isImpactProductDetail && timelineRecords.length > 0 && (
           <>
-            {/* 全幅背景地球仪：横纵铺满视口感，不受 Paper 区块 padding / max-h 限制；时间线单独留白 */}
+            {/* Full-bleed background globe: fills the viewport edge to edge, not constrained by Paper block padding / max-height; timeline has its own margin */}
             <section className="relative isolate w-full overflow-visible">
               <div className="relative min-h-[100dvh] w-full">
                 <div className="absolute inset-0 z-0 w-[100vw] max-w-none min-h-[100dvh] left-1/2 -translate-x-1/2 pointer-events-none">

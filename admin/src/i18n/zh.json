@@ -45,6 +45,10 @@
         "miniStatWeeklyGrowth": "本周增长",
         "miniStatVerified": "已验证"
     },
+    "generic": {
+        "error": "发生错误，请重试。",
+        "retry": "重试"
+    },
     "sidebar": {
         "dashboard": "仪表盘",
         "artworks": "作品管理",
@@ -96,7 +100,8 @@
         "errorRequired": "请输入用户名和密码",
         "errorInvalidCredentials": "用户名或密码错误",
         "errorLoginFailed": "登录失败，请重试",
-        "toastSuccess": "登录成功"
+        "toastSuccess": "登录成功",
+        "footerText": "VICOO 管理后台 v1.0"
     },
     "dashboard": {
         "issueLabel": "授权访问 — 第 01 号",
@@ -171,6 +176,8 @@
         "colArtist": "创作者",
         "colMedium": "媒介",
         "colImpact": "影响力",
+        "pts": "分",
+        "years": "岁",
         "colStatus": "状态",
         "colSubmitted": "提交时间",
         "colCommand": "操作",
@@ -461,6 +468,8 @@
         "nodeDescription": "描述",
         "nodeTimestamp": "日期",
         "nodeCertified": "已认证",
+        "nodeCertifiedBadge": "已认证",
+        "carbonUnit": "kg CO2",
         "nodeGallery": "媒体库",
         "nodeLatitude": "纬度",
         "nodeLongitude": "经度",
@@ -619,6 +628,7 @@
         "title": "售后管理",
         "description": "处理用户的退货、换货、维修申请",
         "filterAllStatuses": "全部状态",
+        "colId": "ID",
         "colOrderId": "订单 ID",
         "colUserId": "用户 ID",
         "colType": "类型",
@@ -687,6 +697,8 @@
         "description": "管理 VICOO 平台运营状态、资金路由和安全协议的核心参数。修改这些值可能立即影响活跃的用户会话。",
         "btnCommit": "保存更改",
         "toastSaved": "配置已保存",
+        "errorSiteName": "站点名称不能为空",
+        "errorInvalidEmail": "邮箱格式不正确",
         "tabGeneral": "全局参数",
         "tabPayment": "支付网关",
         "tabSecurity": "安全与约束",

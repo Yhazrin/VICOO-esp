@@ -18,7 +18,7 @@ class I18nManager:
     def load_translations(cls):
         """Load all JSON files from the locales directory into memory."""
         if not os.path.exists(LOCALES_DIR):
-            logger.warning(f"Locales directory not found at {LOCALES_DIR}")
+            logger.warning("Locales directory not found at %s", LOCALES_DIR)
             return
         
         for filename in os.listdir(LOCALES_DIR):
@@ -27,9 +27,9 @@ class I18nManager:
                 try:
                     with open(os.path.join(LOCALES_DIR, filename), "r", encoding="utf-8") as f:
                         cls._translations[locale] = json.load(f)
-                        logger.debug(f"Loaded translations for: {locale}")
+                        logger.debug("Loaded translations for: %s", locale)
                 except Exception as e:
-                    logger.error(f"Failed to load translations for {locale}: {e}")
+                    logger.error("Failed to load translations for %s: %s", locale, e)
         cls._loaded = True
 
     @classmethod
@@ -50,14 +50,14 @@ class I18nManager:
             if isinstance(current, dict) and part in current:
                 current = current[part]
             else:
-                logger.warning(f"Translation key '{key}' not found for locale '{locale}'")
+                logger.warning("Translation key '%s' not found for locale '%s'", key, locale)
                 return key
         
         if isinstance(current, str):
             try:
                 return current.format(**kwargs)
             except KeyError as e:
-                logger.warning(f"Missing placeholder {e} for translation key '{key}'")
+                logger.warning("Missing placeholder %s for translation key '%s'", e, key)
                 return current
         return str(current)
 

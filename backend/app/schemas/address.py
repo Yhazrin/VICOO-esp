@@ -11,7 +11,7 @@ class AddressCreate(BaseModel):
     province: str = Field(..., max_length=50, description="Province/State")
     city: str = Field(..., max_length=50, description="City")
     district: Optional[str] = Field(None, max_length=50, description="District")
-    detail_address: str = Field(..., description="Detailed address")
+    detail_address: str = Field(..., max_length=500, description="Detailed address")
     postal_code: Optional[str] = Field(None, max_length=20, description="Postal code")
     # P1: Country field for international support
     country: Optional[str] = Field(None, max_length=100, description="Country")
@@ -52,7 +52,7 @@ class AddressUpdate(BaseModel):
     province: Optional[str] = Field(None, max_length=50)
     city: Optional[str] = Field(None, max_length=50)
     district: Optional[str] = Field(None, max_length=50)
-    detail_address: Optional[str] = None
+    detail_address: Optional[str] = Field(None, max_length=500)
     postal_code: Optional[str] = Field(None, max_length=20)
     # P1: Country field for international support
     country: Optional[str] = Field(None, max_length=100)

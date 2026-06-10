@@ -11,9 +11,9 @@ class Donation(Base):
     amount = Column(DECIMAL(12, 2), nullable=False)
     currency = Column(Enum("CNY", "USD", name="donation_currency"), default="CNY", nullable=False)
     payment_method = Column(
-        Enum("wechat", "alipay", "stripe", "paypal", name="payment_method"), nullable=False
+        Enum("wechat", "alipay", "stripe", "paypal", name="payment_method"), nullable=False, index=True
     )
-    payment_id = Column(String(200), nullable=True)
+    payment_id = Column(String(200), nullable=True, index=True)
     campaign_id = Column(Integer, ForeignKey("campaigns.id"), nullable=True, index=True)
     status = Column(
         Enum("pending", "completed", "failed", "refunded", name="donation_status"),

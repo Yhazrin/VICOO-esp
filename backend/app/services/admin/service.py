@@ -9,6 +9,7 @@ from app.models.donation import Donation
 from app.models.contact import ContactMessage
 from app.models.order import Order
 from app.models.campaign import Campaign
+from app.models.circular_commerce import ClothingIntake
 from app.services.base import BaseService
 from app.core.audit import audit_action
 
@@ -43,7 +44,6 @@ class AdminService(BaseService):
     Service handling administrative tasks, bulk operations, and dashboard stats.
     """
 
-    @cached(prefix="admin:audit_logs", ttl=60)
     async def list_audit_logs(
         self, 
         page: int = 1, 
@@ -101,7 +101,7 @@ class AdminService(BaseService):
         total_orders = (await self.db.execute(select(func.count(Order.id)))).scalar() or 0
 
         total_clothing_donations = (
-            await self.db.execute(select(func.count(ChildParticipant.id)))
+            await self.db.execute(select(func.count(ClothingIntake.id)))
         ).scalar() or 0
 
         return {
@@ -135,14 +135,14 @@ class AdminService(BaseService):
             select(func.count(AuditLog.id)).where(
                 AuditLog.resource == "ai_assistant",
                 AuditLog.action == "ai_feedback",
-                AuditLog.details.like('%"is_helpful": true%'),
+                AuditLog.details.like('%\\"is_helpful\\": true%', escape="\\"),
             )
         )).scalar() or 0
 
         negative_feedback = max(feedback_total - helpful_feedback, 0)
         handoff_count = (await self.db.execute(
             select(func.count(ContactMessage.id)).where(
-                ContactMessage.subject.like("AI assistant feedback:%")
+                ContactMessage.subject.like("AI assistant feedback:%", escape="\\")
             )
         )).scalar() or 0
 
@@ -169,12 +169,12 @@ class AdminService(BaseService):
             .where(Artwork.id.in_(artwork_ids))
             .values(status=status)
         )
-        await self.db.execute(stmt)
-        
-        # If approving, we might want to also sync count back to children, 
+        result = await self.db.execute(stmt)
+
+        # If approving, we might want to also sync count back to children,
         # but for bulk we'll do a simple update for now.
-        
-        return {"modified_count": len(artwork_ids), "status": status}
+
+        return {"modified_count": result.rowcount, "status": status}
 
     @audit_action(action="batch_moderate_children", resource_type="child_participant")
     async def batch_moderate_children(self, child_ids: List[int], status: str) -> Dict[str, Any]:
@@ -186,5 +186,5 @@ class AdminService(BaseService):
             .where(ChildParticipant.id.in_(child_ids))
             .values(status=status)
         )
-        await self.db.execute(stmt)
-        return {"modified_count": len(child_ids), "status": status}
+        result = await self.db.execute(stmt)
+        return {"modified_count": result.rowcount, "status": status}

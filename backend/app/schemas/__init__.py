@@ -12,6 +12,7 @@ from app.schemas.common import (
     RegisterRequest,
     SettingsUpdate,
     TokenResponse,
+    VerifyAccessRequest,
 )
 
 # User & Child participant
@@ -158,6 +159,7 @@ __all__ = [
     "AuditLogOut",
     "DashboardMetrics",
     "SettingsUpdate",
+    "VerifyAccessRequest",
     # User
     "UserCreate",
     "UserUpdate",

@@ -15,6 +15,7 @@ interface CartState {
   setCartOpen: (open: boolean) => void;
   checkStock: (productId: number, quantity: number, selectedSize?: string, selectedColor?: string) => Promise<boolean>;
   dismissStockWarning: (key: string) => void;
+  refreshCart: () => Promise<void>;
 }
 
 function matchesItem(item: CartItem, productId: number, selectedSize?: string, selectedColor?: string) {
@@ -105,6 +106,22 @@ export const useCartStore = create<CartState>()(
         set((state) => ({
           stockWarnings: { ...state.stockWarnings, [key]: '' },
         }));
+      },
+
+      refreshCart: async () => {
+        const { items } = _get();
+        if (items.length === 0) return;
+        const updatedItems = await Promise.all(
+          items.map(async (item) => {
+            try {
+              const fresh = await productsApi.getById(String(item.product.id));
+              return { ...item, product: { ...item.product, ...fresh } };
+            } catch {
+              return item;
+            }
+          })
+        );
+        set({ items: updatedItems });
       },
     }),
     {

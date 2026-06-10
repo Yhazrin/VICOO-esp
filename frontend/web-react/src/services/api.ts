@@ -97,6 +97,8 @@ api.interceptors.response.use(
         isRefreshing = false;
         // Reject all waiting subscribers so they propagate the error immediately
         onRefreshFailed(refreshError);
+        // Clear auth state so the user is redirected to login
+        useAuthStore.getState().logout();
         return Promise.reject(refreshError);
       }
     }

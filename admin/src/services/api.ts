@@ -7,7 +7,7 @@ import type {
   DonationListSummary,
   AdminProduct, OriginCountry, OriginRegion,
   SupplyChainRecord, TraceMediaItem,
-  AfterSalesItem, ClothingDonationItem,
+  AfterSalesItem, ClothingDonationItem, PaymentMethodConfig,
 } from '../types';
 
 
@@ -94,7 +94,7 @@ api.interceptors.response.use(
 // ---------------------------------------------------------------------------
 function adaptPaginated<T>(raw: any): PaginatedResponse<T> {
   const total: number = raw.total ?? 0;
-  const pageSize: number = raw.pageSize ?? raw.page_size ?? 20;
+  const pageSize: number = Math.max(1, raw.pageSize ?? raw.page_size ?? 20);
   return {
     data: raw.data ?? [],
     total,
@@ -968,7 +968,7 @@ export async function fetchClothingIntakes(params: FilterParams = {}): Promise<P
 }
 
 export async function updateClothingIntakeStatus(id: string, status: string): Promise<void> {
-  await api.patch(`/clothing-intakes/${id}`, { status });
+  await api.patch(`/clothing-intakes/${id}/status`, { status });
 }
 
 // ---------------------------------------------------------------------------
@@ -1011,7 +1011,8 @@ export async function updateSystemSettings(data: Partial<SystemSettings>): Promi
   if (data.paymentMethods !== undefined) {
     body.payment_methods = {};
     for (const [k, v] of Object.entries(data.paymentMethods)) {
-      body.payment_methods[k] = { enabled: v.enabled, appId: (v as any).appId, merchantId: (v as any).merchantId, publicKey: (v as any).publicKey, clientId: (v as any).clientId };
+      const pm = v as PaymentMethodConfig;
+      body.payment_methods[k] = { enabled: pm.enabled, appId: pm.appId, merchantId: pm.merchantId, publicKey: pm.publicKey, clientId: pm.clientId };
     }
   }
   if (data.accessTokenTtlMinutes !== undefined) body.access_token_ttl_minutes = data.accessTokenTtlMinutes;

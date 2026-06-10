@@ -94,7 +94,7 @@ export default function ArtworkPage() {
   const [createImageUploading, setCreateImageUploading] = useState(false);
   const createFileInputRef = useRef<HTMLInputElement>(null);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['artworks', page, statusFilter, search, sortBy, sortOrder],
     queryFn: () => fetchArtworks({ page, pageSize: 20, status: statusFilter || undefined, search: search || undefined, sortBy, sortOrder }),
   });
@@ -106,6 +106,9 @@ export default function ArtworkPage() {
     onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: ['artworks'] });
       toast.success(vars.status === 'approved' ? t('artwork.toastApproved') : t('artwork.toastRejected'));
+    },
+    onError: (e: any) => {
+      toast.error(e?.response?.data?.detail ?? t('generic.error'));
     },
   });
 
@@ -396,6 +399,12 @@ export default function ArtworkPage() {
         </div>
       </div>
 
+      {isError && (
+        <div style={{ padding: 16, marginBottom: 16, background: 'var(--color-danger-bg, #fef2f2)', border: '1px solid var(--color-danger-border, #fecaca)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ color: 'var(--color-danger, #dc2626)', fontSize: 14 }}>{t('generic.error')}</span>
+          <button onClick={() => queryClient.invalidateQueries({ queryKey: ['artworks'] })} style={{ padding: '4px 12px', fontSize: 13, cursor: 'pointer', border: '1px solid var(--color-border)', borderRadius: 4, background: 'transparent' }}>{t('generic.retry', 'Retry')}</button>
+        </div>
+      )}
       <DataTable
         columns={columns}
         data={artworks}

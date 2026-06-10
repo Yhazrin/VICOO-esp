@@ -2,6 +2,7 @@ import { useState, type ChangeEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useMutation } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
@@ -33,6 +34,10 @@ export default function SubmitArtwork() {
       });
     },
     onSuccess: () => navigate('/profile'),
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : t('submitArtwork.error', 'Submission failed — please retry');
+      toast.error(msg);
+    },
   });
 
   if (!isAuthenticated) {
@@ -41,7 +46,7 @@ export default function SubmitArtwork() {
         <PaperTextureBackground variant="paper" className="py-24 text-center">
 
           <p className="font-body text-ink-faded mb-6">
-            {t('submitArtwork.loginRequired', '请先登录以提交画作')}
+            {t('submitArtwork.loginRequired', 'Please log in to submit artwork')}
           </p>
           <Link to="/login" className="font-body text-rust uppercase tracking-widest text-sm">
             {t('nav.login')} →
@@ -59,10 +64,10 @@ export default function SubmitArtwork() {
 
         <SectionContainer>
           <h2 className="font-display text-h3 font-bold text-ink mb-8">
-            {t('submitArtwork.title', '提交画作')}
+            {t('submitArtwork.title', 'Submit Artwork')}
           </h2>
           <p className="font-body text-body-sm text-ink-faded mt-2 mb-8">
-            {t('submitArtwork.subtitle', '上传孩子的画作，参与公益活动与投票')}
+            {t('submitArtwork.subtitle', 'Upload your child\'s artwork to participate in charity campaigns and voting')}
           </p>
           <form
             className="max-w-xl space-y-6 border border-warm-gray/30 p-6 md:p-8 bg-paper/90"
@@ -72,14 +77,14 @@ export default function SubmitArtwork() {
             }}
           >
             <VintageInput
-              label={t('submitArtwork.titleLabel', '画作标题 *')}
+              label={t('submitArtwork.titleLabel', 'Artwork Title *')}
               value={title}
               onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setTitle(e.target.value)}
               required
             />
             <VintageInput
               type="textarea"
-              label={t('submitArtwork.descriptionLabel', '画作描述')}
+              label={t('submitArtwork.descriptionLabel', 'Artwork Description')}
               value={description}
               onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setDescription(e.target.value)}
             />
@@ -87,7 +92,7 @@ export default function SubmitArtwork() {
             {/* Image upload */}
             <div>
               <label className="font-body text-overline text-sepia-mid block mb-2">
-                {t('submitArtwork.imageLabel', '上传画作图片 *')}
+                {t('submitArtwork.imageLabel', 'Upload Artwork Image *')}
               </label>
               <input
                 type="file"
@@ -101,7 +106,7 @@ export default function SubmitArtwork() {
             </div>
 
             <VintageInput
-              label={t('submitArtwork.childNameLabel', '小画家姓名（可选）')}
+              label={t('submitArtwork.childNameLabel', 'Young Artist Name (optional)')}
               value={childDisplayName}
               onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setChildDisplayName(e.target.value)}
             />
@@ -115,14 +120,14 @@ export default function SubmitArtwork() {
                   className="mt-1 cursor-pointer"
                 />
                 <span className="font-body text-body-sm text-ink-faded">
-                  {t('submitArtwork.consentLabel', '我确认已获得该未成年人监护人的同意')}
+                  {t('submitArtwork.consentLabel', 'I confirm I have obtained guardian consent for this minor')}
                 </span>
               </label>
             )}
 
             {mutation.isError && (
               <p className="font-body text-caption text-rust" role="alert">
-                {t('submitArtwork.error', '提交失败，请稍后再试')}
+                {t('submitArtwork.error', 'Submission failed — please try again later')}
               </p>
             )}
 
@@ -131,7 +136,7 @@ export default function SubmitArtwork() {
               disabled={mutation.isPending || !canSubmit}
               className="w-full font-body text-body-sm tracking-[0.15em] uppercase py-4 bg-ink text-paper hover:bg-rust disabled:opacity-50 cursor-pointer"
             >
-              {mutation.isPending ? t('common.loading', '…') : t('submitArtwork.submit', '提交画作')}
+              {mutation.isPending ? t('common.loading', '...') : t('submitArtwork.submit', 'Submit Artwork')}
             </button>
           </form>
         </SectionContainer>

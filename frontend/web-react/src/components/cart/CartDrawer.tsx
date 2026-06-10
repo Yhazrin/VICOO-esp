@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
@@ -12,6 +13,11 @@ export default function CartDrawer() {
   const isOpen = useCartStore((s) => s.isOpen);
   const items = useCartStore((s) => s.items);
   const setCartOpen = useCartStore((s) => s.setCartOpen);
+  const refreshCart = useCartStore((s) => s.refreshCart);
+
+  useEffect(() => {
+    if (isOpen) refreshCart();
+  }, [isOpen, refreshCart]);
   const removeItem = useCartStore((s) => s.removeItem);
   const updateQuantity = useCartStore((s) => s.updateQuantity);
   const totalItems = useCartStore(selectTotalItems);
@@ -127,6 +133,11 @@ export default function CartDrawer() {
                         <h3 className="font-display text-sm font-semibold text-ink leading-tight truncate">
                           {lineName}
                         </h3>
+                        {item.product.inStock === false && (
+                          <p className="font-body text-[10px] text-rust uppercase tracking-wider mt-0.5">
+                            {t('cart.outOfStock', 'Out of stock')}
+                          </p>
+                        )}
                         {(item.selectedSize || item.selectedColor) && (
                           <p className="font-body text-[11px] text-sepia-mid mt-0.5">
                             {[item.selectedSize, item.selectedColor].filter(Boolean).join(' / ')}
@@ -191,7 +202,7 @@ export default function CartDrawer() {
                     {t('cart.subtotal')}
                   </span>
                   <span className="font-display text-xl font-bold text-ink">
-                    {items[0]?.product.currency === 'USD' ? '$' : '¥'}{totalPrice.toFixed(2)}
+                    {items[0]?.product.currency === 'CNY' ? '¥' : '$'}{totalPrice.toFixed(2)}
                   </span>
                 </div>
                 <p className="font-body text-caption text-sepia-mid mb-4">
@@ -210,7 +221,7 @@ export default function CartDrawer() {
                   onClick={() => { setCartOpen(false); navigate('/login', { state: { from: '/checkout' } }); }}
                   className="block w-full text-center font-body text-label tracking-[0.15em] uppercase bg-ink text-paper py-3.5 hover:bg-rust transition-colors cursor-pointer"
                 >
-                  {t('cart.loginToCheckout', '登录后结算')}
+                  {t('cart.loginToCheckout', 'Log in to checkout')}
                 </button>
                 )}
               </div>

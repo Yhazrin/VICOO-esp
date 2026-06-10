@@ -4,7 +4,7 @@ import './StatusBadge.css';
 interface StatusBadgeProps {
   status: string;
   label?: string;
-  context?: 'artwork' | 'order' | 'donation' | 'campaign' | 'afterSales';
+  context?: 'artwork' | 'order' | 'donation' | 'campaign' | 'afterSales' | 'product' | 'user';
 }
 
 const STATUS_TYPE_MAP: Record<string, string> = {

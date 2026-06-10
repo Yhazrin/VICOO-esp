@@ -6,8 +6,10 @@ import { useUIStore } from '@/stores/uiStore';
 const SupplyChainGlobe = lazy(() => import('@/components/scroll/SupplyChainGlobe'));
 
 /**
- * 公益壳下的大地球：挂在 Layout 上，与 Impact tab 子树平级，切 tab 不卸载 WebGL。
- * home 为可见+交互，其它 tab 仅暂停 rAF + 不接收指针。
+ * Large globe under the welfare shell: mounted in Layout at the same level as the
+ * Impact tab subtree; switching tabs does not unmount WebGL.
+ * Visible and interactive on the home tab; on other tabs only rAF is paused and
+ * pointer events are disabled.
  */
 export default function ImpactWelfareGlobeLayer() {
   const activeImpactTab = useUIStore((s) => s.activeImpactTab);

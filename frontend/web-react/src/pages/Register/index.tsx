@@ -22,6 +22,17 @@ export default function Register() {
     e.preventDefault();
     setLocalError('');
 
+    if (!email.trim()) {
+      setLocalError(t('register.errors.emailRequired', 'Please enter your email'));
+      return;
+    }
+
+    // Basic email format validation
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setLocalError(t('register.errors.invalidEmail', 'Please enter a valid email address'));
+      return;
+    }
+
     if (password !== confirmPassword) {
       setLocalError(t('register.errors.passwordMismatch'));
       return;
@@ -84,42 +95,48 @@ export default function Register() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Nickname */}
             <div>
-              <label className="block font-body text-label tracking-[0.15em] uppercase text-sepia-mid mb-2">
+              <label htmlFor="register-nickname" className="block font-body text-label tracking-[0.15em] uppercase text-sepia-mid mb-2">
                 {t('register.nickname')}
               </label>
               <input
+                id="register-nickname"
                 type="text"
                 value={nickname}
                 onChange={(e) => setNickname(e.target.value)}
                 required
+                aria-required="true"
                 className="w-full px-4 py-3 rounded-full bg-aged-stock/60 border border-warm-gray/30 font-body text-body-sm text-ink placeholder:text-ink-faded/40 focus:outline-none focus:ring-2 focus:ring-rust/30 focus:border-rust/50 transition-all"
               />
             </div>
 
             {/* Email */}
             <div>
-              <label className="block font-body text-label tracking-[0.15em] uppercase text-sepia-mid mb-2">
+              <label htmlFor="register-email" className="block font-body text-label tracking-[0.15em] uppercase text-sepia-mid mb-2">
                 {t('register.email')}
               </label>
               <input
+                id="register-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                aria-required="true"
                 className="w-full px-4 py-3 rounded-full bg-aged-stock/60 border border-warm-gray/30 font-body text-body-sm text-ink placeholder:text-ink-faded/40 focus:outline-none focus:ring-2 focus:ring-rust/30 focus:border-rust/50 transition-all"
               />
             </div>
 
             {/* Password */}
             <div>
-              <label className="block font-body text-label tracking-[0.15em] uppercase text-sepia-mid mb-2">
+              <label htmlFor="register-password" className="block font-body text-label tracking-[0.15em] uppercase text-sepia-mid mb-2">
                 {t('register.password')}
               </label>
               <input
+                id="register-password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                aria-required="true"
                 placeholder="••••••••"
                 className="w-full px-4 py-3 rounded-full bg-aged-stock/60 border border-warm-gray/30 font-body text-body-sm text-ink placeholder:text-ink-faded/40 focus:outline-none focus:ring-2 focus:ring-rust/30 focus:border-rust/50 transition-all"
               />
@@ -127,14 +144,16 @@ export default function Register() {
 
             {/* Confirm Password */}
             <div>
-              <label className="block font-body text-label tracking-[0.15em] uppercase text-sepia-mid mb-2">
+              <label htmlFor="register-confirm-password" className="block font-body text-label tracking-[0.15em] uppercase text-sepia-mid mb-2">
                 {t('register.confirmPassword')}
               </label>
               <input
+                id="register-confirm-password"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
+                aria-required="true"
                 placeholder="••••••••"
                 className="w-full px-4 py-3 rounded-full bg-aged-stock/60 border border-warm-gray/30 font-body text-body-sm text-ink placeholder:text-ink-faded/40 focus:outline-none focus:ring-2 focus:ring-rust/30 focus:border-rust/50 transition-all"
               />

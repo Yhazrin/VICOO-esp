@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from decimal import Decimal
 import logging
 
 from app.config import settings
@@ -182,11 +181,11 @@ def _merge_product_mock_i18n(rows: list[dict]) -> None:
 _merge_product_mock_i18n(_mock_products)
 
 _mock_supply_chain = [
-    {"id": 1, "product_id": 1, "stage": "material_sourcing", "description": "有机棉来自新疆阿克苏有机棉田，GOTS 认证", "location": "新疆阿克苏", "latitude": 41.17, "longitude": 80.26, "certified": True, "cert_image_url": "/static/certs/gots_cert.jpg", "timestamp": "2025-02-01T08:00:00", "created_at": "2025-02-01T08:00:00"},
-    {"id": 2, "product_id": 1, "stage": "processing", "description": "纱线纺织与面料染色，使用植物染料，无有害化学品", "location": "浙江绍兴", "latitude": 30.0, "longitude": 120.58, "certified": True, "cert_image_url": "/static/certs/oeko_cert.jpg", "timestamp": "2025-02-15T08:00:00", "created_at": "2025-02-15T08:00:00"},
-    {"id": 3, "product_id": 1, "stage": "manufacturing", "description": "成衣裁剪与缝制，ISO 9001 质量管理体系工厂", "location": "广东深圳", "latitude": 22.55, "longitude": 114.05, "certified": True, "cert_image_url": "/static/certs/iso9001.jpg", "timestamp": "2025-03-01T08:00:00", "created_at": "2025-03-01T08:00:00"},
-    {"id": 4, "product_id": 1, "stage": "quality_check", "description": "成品质量检验，甲醛含量、色牢度等 12 项指标检测", "location": "广东深圳", "latitude": 22.55, "longitude": 114.08, "certified": True, "cert_image_url": None, "timestamp": "2025-03-10T08:00:00", "created_at": "2025-03-10T08:00:00"},
-    {"id": 5, "product_id": 1, "stage": "shipping", "description": "使用可降解包装材料，碳中和物流", "location": "全国配送", "latitude": 35.86, "longitude": 104.2, "certified": False, "cert_image_url": None, "timestamp": "2025-03-15T08:00:00", "created_at": "2025-03-15T08:00:00"},
+    {"id": 1, "product_id": 1, "stage": "material_sourcing", "description": "Organic cotton from Aksu, Xinjiang — GOTS certified", "location": "Aksu, Xinjiang", "latitude": 41.17, "longitude": 80.26, "certified": True, "cert_image_url": "/static/certs/gots_cert.jpg", "timestamp": "2025-02-01T08:00:00", "created_at": "2025-02-01T08:00:00"},
+    {"id": 2, "product_id": 1, "stage": "processing", "description": "Yarn spinning and fabric dyeing using plant-based pigments, no harmful chemicals", "location": "Shaoxing, Zhejiang", "latitude": 30.0, "longitude": 120.58, "certified": True, "cert_image_url": "/static/certs/oeko_cert.jpg", "timestamp": "2025-02-15T08:00:00", "created_at": "2025-02-15T08:00:00"},
+    {"id": 3, "product_id": 1, "stage": "manufacturing", "description": "Garment cutting and sewing in an ISO 9001 certified factory", "location": "Shenzhen, Guangdong", "latitude": 22.55, "longitude": 114.05, "certified": True, "cert_image_url": "/static/certs/iso9001.jpg", "timestamp": "2025-03-01T08:00:00", "created_at": "2025-03-01T08:00:00"},
+    {"id": 4, "product_id": 1, "stage": "quality_check", "description": "Finished product quality inspection — 12 tests including formaldehyde content and color fastness", "location": "Shenzhen, Guangdong", "latitude": 22.55, "longitude": 114.08, "certified": True, "cert_image_url": None, "timestamp": "2025-03-10T08:00:00", "created_at": "2025-03-10T08:00:00"},
+    {"id": 5, "product_id": 1, "stage": "shipping", "description": "Biodegradable packaging materials, carbon-neutral logistics", "location": "Nationwide delivery", "latitude": 35.86, "longitude": 104.2, "certified": False, "cert_image_url": None, "timestamp": "2025-03-15T08:00:00", "created_at": "2025-03-15T08:00:00"},
 ]
 
 
@@ -202,7 +201,7 @@ async def list_products(
 ):
     """List products with optional filtering."""
     try:
-        stmt = _apply_product_filters(select(Product), category, status, is_impact_product)
+        stmt = _apply_product_filters(select(Product), category, status, is_impact_product).order_by(Product.id.desc())
         count_stmt = _apply_product_filters(select(func.count(Product.id)), category, status, is_impact_product)
         total = (await db.execute(count_stmt)).scalar() or 0
         stmt = stmt.offset((page - 1) * page_size).limit(page_size)
@@ -218,6 +217,8 @@ async def list_products(
         raise
     except Exception:
         logger.exception("list_products: database query failed")
+        if settings.APP_ENV != "demo":
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         filtered = _mock_products
         if category:
             filtered = [p for p in filtered if p["category"] == category]
@@ -250,10 +251,13 @@ async def list_categories(db: AsyncSession = Depends(get_db)):
         return ApiResponse(data=categories)
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
+        logger.exception("Product query failed: %s", e)
+        if settings.APP_ENV != "demo":
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         cat_counts: dict[str, int] = {}
         for p in _mock_products:
-            cat = p.get("category", "未分类")
+            cat = p.get("category", "Uncategorized")
             cat_counts[cat] = cat_counts.get(cat, 0) + 1
         categories = [{"name": k, "count": v} for k, v in cat_counts.items()]
         return ApiResponse(data=categories)
@@ -279,7 +283,10 @@ async def list_origin_countries(db: AsyncSession = Depends(get_db)):
         )
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
+        logger.exception("Product query failed: %s", e)
+        if settings.APP_ENV != "demo":
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         return ApiResponse(data=_mock_countries)
 
 
@@ -309,7 +316,10 @@ async def list_origin_regions(
         )
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
+        logger.exception("Product query failed: %s", e)
+        if settings.APP_ENV != "demo":
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         data = _mock_regions
         if country_id is not None:
             data = [r for r in data if r["country_id"] == country_id]
@@ -326,7 +336,10 @@ async def list_featured_products(locale: str = Query("zh", pattern="^(zh|en)$"),
         return ApiResponse(data=await _products_to_out_dicts(db, list(products), locale=locale))
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
+        logger.exception("Product query failed: %s", e)
+        if settings.APP_ENV != "demo":
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         featured = [p for p in _mock_products if p["status"] == "active" and p["stock"] > 0][:8]
         for p in featured:
             _localize_product_dict(p, locale)
@@ -394,20 +407,21 @@ async def get_product_artwork(
         return ApiResponse(data=data)
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
+        logger.exception("Product artwork query failed: %s", e)
         # DEMO_MODE fallback
         _aw = "https://images.unsplash.com"
         mock_artworks = {
-            1: {"id": 1, "title": "春天的花园", "artist_name": "小明", "image_url": f"{_aw}/photo-1549887557-07aa9327f35d?auto=format&fit=crop&w=800&q=80", "status": "approved"},
-            2: {"id": 2, "title": "彩虹鱼", "artist_name": "小红", "image_url": f"{_aw}/photo-1502082554558-074e87f815bc?auto=format&fit=crop&w=800&q=80", "status": "approved"},
-            3: {"id": 3, "title": "我的家", "artist_name": "小丽", "image_url": f"{_aw}/photo-1511895426328-dc8714191300?auto=format&fit=crop&w=800&q=80", "status": "approved"},
-            4: {"id": 4, "title": "星星之夜", "artist_name": "小刚", "image_url": f"{_aw}/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=800&q=80", "status": "featured"},
-            8: {"id": 8, "title": "海豚之歌", "artist_name": "小海", "image_url": f"{_aw}/photo-1559827260-dc66d52bef19?auto=format&fit=crop&w=800&q=80", "status": "approved"},
-            11: {"id": 11, "title": "妈妈的手", "artist_name": "小花", "image_url": f"{_aw}/photo-1513542789411-b6b5fbdb320b?auto=format&fit=crop&w=800&q=80", "status": "featured"},
-            15: {"id": 15, "title": "太空旅行", "artist_name": "小刚", "image_url": f"{_aw}/photo-1457364887197-9150188c107b?auto=format&fit=crop&w=800&q=80", "status": "approved"},
-            18: {"id": 18, "title": "过年了", "artist_name": "小雪", "image_url": f"{_aw}/photo-1482517967863-00e15c9b44be?auto=format&fit=crop&w=800&q=80", "status": "approved"},
-            19: {"id": 19, "title": "未来城市", "artist_name": "小海", "image_url": f"{_aw}/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=800&q=80", "status": "approved"},
-            20: {"id": 20, "title": "牧羊曲", "artist_name": "小芳", "image_url": f"{_aw}/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=800&q=80", "status": "approved"},
+            1: {"id": 1, "title": "Spring Garden", "artist_name": "Xiao Ming", "image_url": f"{_aw}/photo-1549887557-07aa9327f35d?auto=format&fit=crop&w=800&q=80", "status": "approved"},
+            2: {"id": 2, "title": "Rainbow Fish", "artist_name": "Xiao Hong", "image_url": f"{_aw}/photo-1502082554558-074e87f815bc?auto=format&fit=crop&w=800&q=80", "status": "approved"},
+            3: {"id": 3, "title": "My Home", "artist_name": "Xiao Li", "image_url": f"{_aw}/photo-1511895426328-dc8714191300?auto=format&fit=crop&w=800&q=80", "status": "approved"},
+            4: {"id": 4, "title": "Starry Night", "artist_name": "Xiao Gang", "image_url": f"{_aw}/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=800&q=80", "status": "featured"},
+            8: {"id": 8, "title": "Dolphin Song", "artist_name": "Xiao Hai", "image_url": f"{_aw}/photo-1559827260-dc66d52bef19?auto=format&fit=crop&w=800&q=80", "status": "approved"},
+            11: {"id": 11, "title": "Mother's Hands", "artist_name": "Xiao Hua", "image_url": f"{_aw}/photo-1513542789411-b6b5fbdb320b?auto=format&fit=crop&w=800&q=80", "status": "featured"},
+            15: {"id": 15, "title": "Space Journey", "artist_name": "Xiao Gang", "image_url": f"{_aw}/photo-1457364887197-9150188c107b?auto=format&fit=crop&w=800&q=80", "status": "approved"},
+            18: {"id": 18, "title": "Chinese New Year", "artist_name": "Xiao Xue", "image_url": f"{_aw}/photo-1482517967863-00e15c9b44be?auto=format&fit=crop&w=800&q=80", "status": "approved"},
+            19: {"id": 19, "title": "Future City", "artist_name": "Xiao Hai", "image_url": f"{_aw}/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=800&q=80", "status": "approved"},
+            20: {"id": 20, "title": "Shepherd's Song", "artist_name": "Xiao Fang", "image_url": f"{_aw}/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=800&q=80", "status": "approved"},
         }
         for p in _mock_products:
             if p["id"] == product_id and p.get("artwork_id"):
@@ -430,7 +444,10 @@ async def get_product(product_id: int, locale: str = Query("zh", pattern="^(zh|e
         return ApiResponse(data=data)
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
+        logger.exception("Product query failed: %s", e)
+        if settings.APP_ENV != "demo":
+            raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         for p in _mock_products:
             if p["id"] == product_id:
                 return ApiResponse(data=_localize_product_dict(dict(p), locale))
@@ -457,7 +474,7 @@ async def create_product(body: ProductCreate, db: AsyncSession = Depends(get_db)
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"DB write failed during create_product: {e}", exc_info=True)
+        logger.error("DB write failed during create_product: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
@@ -480,15 +497,22 @@ async def update_product(product_id: int, body: ProductUpdate, db: AsyncSession 
             payload["origin_country_id"] = origin_country_id
             payload["origin_region_id"] = origin_region_id
 
+        _PRODUCT_UPDATABLE = {
+            "name", "name_en", "description", "description_en", "price", "image_url",
+            "category", "stock", "status", "is_impact_product", "campaign_id",
+            "donation_percentage", "artwork_id", "origin_country_id", "origin_region_id",
+            "trace_story_title", "trace_story_content", "trace_story_title_en", "trace_story_content_en",
+        }
         for k, v in payload.items():
-            setattr(product, k, v)
+            if k in _PRODUCT_UPDATABLE:
+                setattr(product, k, v)
         await db.flush()
         await db.refresh(product, ["created_at"])
         return ApiResponse(data=ProductOut.model_validate(product).model_dump())
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"DB write failed during update_product: {e}", exc_info=True)
+        logger.error("DB write failed during update_product: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
@@ -533,5 +557,5 @@ async def delete_product(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"DB write failed during delete_product: {e}", exc_info=True)
+        logger.error("DB write failed during delete_product: %s", e, exc_info=True)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")

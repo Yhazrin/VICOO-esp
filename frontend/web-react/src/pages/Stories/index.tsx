@@ -309,12 +309,12 @@ export default function Stories() {
       <SectionContainer noTopSpacing>
         {feedError && (
           <div className="flex items-center gap-3 bg-rust/10 border border-rust/20 px-4 py-3 mt-4 mb-2">
-            <p className="font-body text-body-sm text-rust flex-1">{t('stories.loadError', '加载故事失败，请刷新重试')}</p>
+            <p className="font-body text-body-sm text-rust flex-1">{t('stories.loadError', 'Failed to load stories — please refresh')}</p>
           </div>
         )}
         {isLoading && (
           <div className="py-24 text-center">
-            <p className="font-body text-sepia-mid">{t('stories.loading', '加载中...')}</p>
+            <p className="font-body text-sepia-mid">{t('stories.loading', 'Loading...')}</p>
           </div>
         )}
         {/* Category filter — capsule style */}

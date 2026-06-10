@@ -50,7 +50,7 @@ RUN rm /etc/nginx/conf.d/default.conf
 RUN apk add --no-cache gettext
 
 # Copy custom nginx configuration template
-COPY ../../deploy/docker/nginx/nginx.conf /etc/nginx/conf.d/vicoo.conf.template
+COPY deploy/docker/nginx/nginx.conf /etc/nginx/conf.d/vicoo.conf.template
 
 # Copy built web-react app from builder stage
 COPY --from=web-builder /build/web-react/dist /usr/share/nginx/html

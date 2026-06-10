@@ -461,6 +461,8 @@
         "nodeDescription": "Description",
         "nodeTimestamp": "Date",
         "nodeCertified": "Certified",
+        "nodeCertifiedBadge": "Certified",
+        "carbonUnit": "kg CO2",
         "nodeGallery": "Media Gallery",
         "nodeLatitude": "Latitude",
         "nodeLongitude": "Longitude",

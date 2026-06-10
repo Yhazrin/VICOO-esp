@@ -3,9 +3,9 @@ export interface User {
   username: string;
   email: string;
   phone?: string;
-  /** 与后端 users.role 枚举一致 */
+  /** Matches backend users.role enum */
   role: 'admin' | 'editor' | 'user' | 'guardian' | 'compliance';
-  /** 与后端 users.status 枚举一致：active | banned */
+  /** Matches backend users.status enum: active | banned */
   status: 'active' | 'banned';
   avatar?: string;
   createdAt: string;
@@ -158,6 +158,14 @@ export interface FilterParams {
   isImpactProduct?: boolean;
 }
 
+export interface PaymentMethodConfig {
+  enabled: boolean;
+  appId?: string;
+  merchantId?: string;
+  publicKey?: string;
+  clientId?: string;
+}
+
 export interface SystemSettings {
   siteName: string;
   siteDescription: string;
@@ -166,12 +174,7 @@ export interface SystemSettings {
   shopEnabled: boolean;
   registrationEnabled: boolean;
   maintenanceMode: boolean;
-  paymentMethods: {
-    wechat: { enabled: boolean; appId?: string; merchantId?: string };
-    alipay: { enabled: boolean; appId?: string };
-    stripe: { enabled: boolean; publicKey?: string };
-    paypal: { enabled: boolean; clientId?: string };
-  };
+  paymentMethods: Record<'wechat' | 'alipay' | 'stripe' | 'paypal', PaymentMethodConfig>;
   accessTokenTtlMinutes: number;
   refreshTokenTtlDays: number;
   globalRateLimit: number;

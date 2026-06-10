@@ -10,12 +10,13 @@ class User(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     email = Column(String(255), unique=True, nullable=True, index=True)
     password_hash = Column(String(255), nullable=True)  # Nullable for OAuth users
-    nickname = Column(String(100), nullable=False, default="用户")
+    nickname = Column(String(100), nullable=False, default="User")
     avatar = Column(String(500), nullable=True)
     role = Column(
         Enum("admin", "editor", "user", "guardian", "compliance", name="user_role"),
         default="user",
         nullable=False,
+        index=True,
     )
     phone_encrypted = Column(Text, nullable=True)  # AES-256-GCM encrypted
     status = Column(Enum("active", "banned", name="user_status"), default="active", nullable=False)
@@ -49,6 +50,7 @@ class ChildParticipant(Base):
         Enum("active", "withdrawn", "pending_review", name="child_status"),
         default="pending_review",
         nullable=False,
+        index=True,
     )
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
 

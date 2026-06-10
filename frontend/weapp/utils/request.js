@@ -144,7 +144,7 @@ function upload(url, filePath, name, formData) {
         }
       },
       fail: function(err) {
-        wx.showToast({ title: '网络错误', icon: 'none' });
+        wx.showToast({ title: 'Network Error', icon: 'none' });
         reject(err);
       }
     });

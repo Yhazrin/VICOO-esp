@@ -204,7 +204,7 @@ REGULAR_CATALOG: list[dict] = [
 
 
 def build_sku_extra_by_product_name() -> dict[str, dict]:
-    """按商品名称索引的 SKU 扩展（尺码/颜色），供列表/详情 API 在 ORM 无列时合并返回。"""
+    """SKU extras (sizes/colors) indexed by product name, merged by API when ORM has no columns."""
     m: dict[str, dict] = {}
     for row in REGULAR_CATALOG:
         name = str(row.get("name", "")).strip()
@@ -225,7 +225,7 @@ SKU_EXTRA_BY_PRODUCT_NAME = build_sku_extra_by_product_name()
 
 
 def regular_catalog_for_orm() -> list[dict]:
-    """供 Product(**kwargs) 使用，剔除 ORM 不认识的 sizes/colors（由 API 合并 SKU_EXTRA_BY_PRODUCT_NAME）。"""
+    """For Product(**kwargs) use — strips sizes/colors unknown to ORM (merged via SKU_EXTRA_BY_PRODUCT_NAME by API)."""
     out = []
     for row in REGULAR_CATALOG:
         d = {k: v for k, v in row.items() if k not in ("sizes", "colors")}

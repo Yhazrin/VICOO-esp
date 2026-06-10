@@ -22,8 +22,11 @@ export function useSessionRestore() {
   const [isInitialized, setIsInitialized] = useState(false);
   const [accessToken, setAccessTokenState] = useState<string | null>(null);
 
-  // Don't attempt refresh on auth pages (login/register) to avoid redirect loops
-  const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+  // Don't attempt refresh on auth pages to avoid redirect loops
+  const isAuthPage = location.pathname === '/login'
+    || location.pathname === '/register'
+    || location.pathname === '/forgot-password'
+    || location.pathname.startsWith('/auth/callback');
 
   // Attempt session restoration via /auth/refresh on mount
   useEffect(() => {

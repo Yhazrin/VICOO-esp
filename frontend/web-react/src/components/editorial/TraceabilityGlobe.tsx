@@ -140,7 +140,7 @@ type GlobeCtx = {
   animationId: number;
   focus: null | { endCam: THREE.Vector3; endTarget: THREE.Vector3 };
   landGroup: THREE.Group | null;
-  /** 用于射线检测「是否在星球上」——内层实心球 */
+  /** Used for raycasting "is on the globe" -- inner solid sphere */
   globeHitMesh: THREE.Mesh;
   initialCameraPosition: THREE.Vector3;
   initialTarget: THREE.Vector3;
@@ -206,7 +206,8 @@ export interface TraceabilityGlobeProps {
   themeKey?: ThemeId | string;
   className?: string;
   /**
-   * 作为全幅背景层：填满父级，不再用固定「卡片高度」约束，由外层控制占位与叠层。
+   * As a full-width background layer: fills the parent; no longer constrained by a
+   * fixed "card height"; positioning and stacking are controlled by the outer layer.
    */
   ambientBackdrop?: boolean;
 }

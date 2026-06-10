@@ -101,7 +101,7 @@ export default function CampaignPage() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteCampaignId, setDeleteCampaignId] = useState<string | null>(null);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['campaigns', page, statusFilter],
     queryFn: () => fetchCampaigns({ page, pageSize: 20, status: statusFilter || undefined }),
   });
@@ -205,7 +205,7 @@ export default function CampaignPage() {
             {t('common.delete')}
           </Button>
           {record.status === 'draft' && (
-            <Button size="sm" variant="primary" onClick={(e) => {
+            <Button size="sm" variant="primary" loading={updateMutation.isPending && updateMutation.variables?.id === record.id} onClick={(e) => {
               e.stopPropagation();
               updateMutation.mutate({ id: record.id, data: { status: 'active' } });
             }}>
@@ -217,17 +217,23 @@ export default function CampaignPage() {
     },
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const validateForm = (): boolean => {
     if (!form.title || !form.startDate || !form.endDate) {
       toast.error(t('campaign.errorRequiredFields'));
-      return;
+      return false;
     }
     const goalAmount = Number(form.targetAmount);
     if (!form.targetAmount || isNaN(goalAmount) || goalAmount <= 0) {
       toast.error(t('campaign.errorGoalAmount'));
-      return;
+      return false;
     }
+    return true;
+  };
+
+  const handleSubmit = (e: React.FormEvent | React.MouseEvent) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+    const goalAmount = Number(form.targetAmount);
     createMutation.mutate({
       title: form.title,
       subtitle: form.subtitle || undefined,
@@ -501,12 +507,18 @@ export default function CampaignPage() {
           <option value="">{t('campaign.filterAllStatuses')}</option>
           <option value="draft">{t('campaign.filterDraft')}</option>
           <option value="active">{t('campaign.filterActive')}</option>
-          <option value="ended">{t('campaign.filterEnded')}</option>
-          <option value="archived">{t('campaign.filterArchived')}</option>
+          <option value="completed">{t('campaign.filterCompleted', 'Completed')}</option>
+          <option value="cancelled">{t('campaign.filterCancelled', 'Cancelled')}</option>
         </select>
         </div>
       </div>
 
+      {isError && (
+        <div style={{ padding: 16, marginBottom: 16, background: 'var(--color-danger-bg, #fef2f2)', border: '1px solid var(--color-danger-border, #fecaca)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ color: 'var(--color-danger, #dc2626)', fontSize: 14 }}>{t('generic.error')}</span>
+          <button onClick={() => queryClient.invalidateQueries({ queryKey: ['campaigns'] })} style={{ padding: '4px 12px', fontSize: 13, cursor: 'pointer', border: '1px solid var(--color-border)', borderRadius: 4, background: 'transparent' }}>{t('generic.retry', 'Retry')}</button>
+        </div>
+      )}
       <DataTable columns={columns} data={data?.data || []} rowKey="id" loading={isLoading} />
       <Pagination page={page} totalPages={data?.totalPages || 1} total={data?.total || 0} pageSize={20} onPageChange={setPage} />
 

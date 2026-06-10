@@ -5,7 +5,7 @@ import ImageSkeleton from '@/components/editorial/ImageSkeleton';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 
 interface EditorialCardProps {
-  title: string;
+  title?: string;
   subtitle?: string;
   description?: string;
   image?: string;
@@ -15,6 +15,7 @@ interface EditorialCardProps {
   children?: React.ReactNode;
   onClick?: () => void;
   hoverEffect?: 'lift' | 'glow' | 'border';
+  variant?: 'default' | 'text';
 }
 
 export const EditorialCard = ({
@@ -28,6 +29,7 @@ export const EditorialCard = ({
   children,
   onClick,
   hoverEffect = 'lift',
+  variant: _variant = 'default',
 }: EditorialCardProps) => {
   const [ref, isVisible] = useScrollReveal<HTMLDivElement>();
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -93,9 +95,11 @@ export const EditorialCard = ({
           </span>
         )}
 
+        {title && (
         <h3 className="font-display text-lg font-semibold text-ink leading-tight mb-2">
           {title}
         </h3>
+        )}
 
         {description && (
           <p className="font-body text-caption text-ink-faded leading-relaxed mb-4">

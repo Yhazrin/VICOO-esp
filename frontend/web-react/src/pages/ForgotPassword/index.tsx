@@ -128,14 +128,16 @@ export default function ForgotPassword() {
             >
               {/* Email */}
               <div>
-                <label className="block font-body text-label tracking-[0.15em] uppercase text-sepia-mid mb-2">
+                <label htmlFor="forgot-email" className="block font-body text-label tracking-[0.15em] uppercase text-sepia-mid mb-2">
                   {t('forgotPassword.email')}
                 </label>
                 <input
+                  id="forgot-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  aria-required="true"
                   placeholder="name@email.com"
                   className="w-full px-4 py-3 rounded-full bg-aged-stock/60 border border-warm-gray/30 font-body text-body-sm text-ink placeholder:text-ink-faded/40 focus:outline-none focus:ring-2 focus:ring-rust/30 focus:border-rust/50 transition-all"
                 />

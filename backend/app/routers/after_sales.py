@@ -1,4 +1,6 @@
-"""售后服务工单。"""
+"""After-sales service tickets."""
+
+import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func
@@ -23,6 +25,7 @@ from app.services.after_sales.service import (
 )
 from app.services.order.service import OrderService
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/after-sales", tags=["After-sales"])
 
 VALID_STATUSES = frozenset({"open", "in_progress", "resolved", "closed"})
@@ -61,8 +64,10 @@ async def create_ticket(
     return ApiResponse(data=(await enrich_tickets(db, [row]))[0])
 
 
-@router.get("/mine", response_model=ApiResponse)
+@router.get("/mine", response_model=PaginatedResponse)
 async def my_tickets(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):

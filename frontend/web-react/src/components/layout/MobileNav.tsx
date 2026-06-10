@@ -146,8 +146,10 @@ export default function MobileNav() {
         >
           <nav className="flex flex-col items-start px-8 gap-0">
             {/*
-              不再用 key=impact/company 驱动 AnimatePresence：该模式会整片卸载/重挂导航，与公益/优衣库切换同帧时放大卡顿。
-              同一稳定容器内切换列表，由内部链接重渲染即可。
+              No longer using key=impact/company to drive AnimatePresence: that pattern causes
+              full unmount/remount of the nav, amplifying jank when switching between
+              Impact/Uniqlo in the same frame.
+              Instead, keep one stable container and let the inner links re-render.
             */}
             <div className="w-full">
               <p className="font-body text-caption text-sepia-mid tracking-[0.25em] uppercase pt-4 pb-2">
@@ -239,7 +241,7 @@ export default function MobileNav() {
                     onClick={() => setMobileNavOpen(false)}
                     className="inline-block font-body text-body-sm text-ink-faded border border-warm-gray/40 px-6 py-3 rounded-full hover:text-ink transition-colors cursor-pointer"
                   >
-                    {t('nav.supplyChainStudio', '溯源媒体')}
+                    {t('nav.supplyChainStudio', 'Traceability Studio')}
                   </Link>
                 )}
                 <button

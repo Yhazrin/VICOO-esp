@@ -44,9 +44,10 @@ class OrderService(BaseService):
             stmt = stmt.where(Order.status == status)
             count_stmt = count_stmt.where(Order.status == status)
         if keyword:
-            like = f"%{keyword}%"
-            stmt = stmt.where(Order.order_no.ilike(like))
-            count_stmt = count_stmt.where(Order.order_no.ilike(like))
+            safe = keyword.strip().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+            like = f"%{safe}%"
+            stmt = stmt.where(Order.order_no.ilike(like, escape="\\"))
+            count_stmt = count_stmt.where(Order.order_no.ilike(like, escape="\\"))
         if date_from:
             from datetime import datetime as dt
             try:
@@ -165,27 +166,40 @@ class OrderService(BaseService):
     @audit_action(action="cancel_order", resource_type="order")
     async def cancel_order(self, order_id: int) -> Order:
         """
-        Cancel an order and return stock.
+        Cancel an order and return stock. Uses atomic status check to prevent
+        double-restoration from concurrent cancel requests.
         """
         order = await self.get_order_detail(order_id)
         if order.status != "pending":
             raise HTTPException(status_code=400, detail=f"Cannot cancel order in {order.status} status")
 
+        # Atomic status transition — prevents concurrent double-cancel
+        cancel_stmt = (
+            update(Order)
+            .where(Order.id == order_id, Order.status == "pending")
+            .values(status="cancelled")
+        )
+        result = await self.db.execute(cancel_stmt)
+        if result.rowcount == 0:
+            raise HTTPException(status_code=400, detail="Order was already cancelled or status changed")
+
         order.status = "cancelled"
-        
+
         # Return stock
-        # (This would be more robust in a separate method)
         stmt = select(OrderItem).where(OrderItem.order_id == order_id)
         result = await self.db.execute(stmt)
         items = result.scalars().all()
-        
+
         for item in items:
             await self.db.execute(
                 update(Product)
-                .where(Product.id == item.product_id)
-                .values(stock=Product.stock + item.quantity, status="active")
+                .where(Product.id == item.product_id, Product.status != "inactive")
+                .values(
+                    stock=Product.stock + item.quantity,
+                    status="active",
+                )
             )
-            
+
         await self.db.flush()
         return order
 

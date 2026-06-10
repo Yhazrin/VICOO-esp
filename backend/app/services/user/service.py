@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, List, Dict, Any, Tuple
+from typing import Optional, Dict, Any
 
 from fastapi import HTTPException
 from sqlalchemy import select, func
@@ -18,12 +18,23 @@ class UserService(BaseService):
     Service handling user profile management and administrative actions.
     """
 
-    async def list_users(self, page: int = 1, page_size: int = 20) -> tuple[list[User], int]:
-        """List users with pagination."""
+    async def list_users(self, page: int = 1, page_size: int = 20, search: Optional[str] = None) -> tuple[list[User], int]:
+        """List users with pagination and optional search."""
         count_stmt = select(func.count(User.id))
-        total = (await self.db.execute(count_stmt)).scalar() or 0
+        stmt = select(User)
 
-        stmt = select(User).order_by(User.id.desc()).offset((page - 1) * page_size).limit(page_size)
+        if search:
+            safe = search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+            like = f"%{safe}%"
+            count_stmt = count_stmt.where(
+                User.nickname.ilike(like, escape="\\") | User.email.ilike(like, escape="\\")
+            )
+            stmt = stmt.where(
+                User.nickname.ilike(like, escape="\\") | User.email.ilike(like, escape="\\")
+            )
+
+        total = (await self.db.execute(count_stmt)).scalar() or 0
+        stmt = stmt.order_by(User.id.desc()).offset((page - 1) * page_size).limit(page_size)
         result = await self.db.execute(stmt)
         users = list(result.scalars().all())
         return users, total

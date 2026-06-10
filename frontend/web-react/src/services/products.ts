@@ -11,7 +11,7 @@ const CATEGORY_MAP: Record<string, Product['category']> = {
   footwear: 'footwear',
   home: 'home',
   gift_box: 'gift_box',
-  /** 旧版 / 中文 API 类目 */
+  /** Legacy / Chinese API categories */
   服装: 'apparel',
   配饰: 'accessories',
   文具: 'stationery',
@@ -28,9 +28,10 @@ function normalizeCategory(raw: unknown): Product['category'] {
 }
 
 /**
- * 后端若未返回 is_impact_product（本地旧库常见），仅靠「关联字段」不够；
- * 用 VICOO 公益 SKU 常见名称/文案识别，避免与优衣库常规店混列。
- * 若接口显式返回 false，以接口为准。
+ * If the backend does not return is_impact_product (common with the local legacy DB),
+ * relying on "related fields" alone is insufficient; identify using common VICOO
+ * welfare SKU names/copy to avoid mixing with UNIQLO regular-store products.
+ * If the API explicitly returns false, defer to the API.
  */
 function normalizeIsImpactProduct(raw: any): boolean {
   const v = raw?.is_impact_product ?? raw?.isImpactProduct;
@@ -103,9 +104,9 @@ export const productsApi = {
     page?: number;
     page_size?: number;
     category?: string;
-    /** 与公益商店分流；务必传给后端。部分 HTTP 客户端会丢弃布尔 false，故序列化为字符串。 */
+    /** Used for welfare shop routing; must be sent to the backend. Some HTTP clients drop boolean false, so it is serialized as a string. */
     isImpactProduct?: boolean;
-    /** 语言区域，传给后端以返回对应语言的产品名称。默认取 i18n.language */
+    /** Locale passed to the backend to return product names in the corresponding language. Defaults to i18n.language */
     locale?: string;
     /** 公益活动 ID，用于筛选特定活动下的商品 */
     campaignId?: number;

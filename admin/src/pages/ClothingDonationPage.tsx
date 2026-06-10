@@ -1,11 +1,11 @@
 /**
- * 衣物捐献管理页面 (Clothing Donation Page)
+ * Clothing Donation Management Page
  *
- * 功能说明：
- * - 展示用户提交的衣物捐献申请列表
- * - 支持按状态筛选（待处理、已收到、处理中、已转化、未通过）
- * - 支持状态流转操作：标记已收到、开始处理、标记转化、拒绝
- * - 提供分页浏览功能
+ * Features:
+ * - Display user-submitted clothing donation intake list
+ * - Filter by status (pending, received, processing, converted, rejected)
+ * - Status transition actions: mark received, start processing, mark converted, reject
+ * - Paginated browsing
  */
 
 import { useState } from 'react';
@@ -30,7 +30,7 @@ export default function ClothingDonationPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [selected, setSelected] = useState<ClothingDonationItem | null>(null);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['clothing-intakes', page, statusFilter],
     queryFn: () => fetchClothingIntakes({ page, pageSize: 20, status: statusFilter || undefined }),
   });
@@ -102,7 +102,7 @@ export default function ClothingDonationPage() {
               variant="primary"
               size="sm"
               loading={statusMutation.isPending}
-              onClick={() => statusMutation.mutate({ id: record.id, status: 'converted' })}
+              onClick={() => statusMutation.mutate({ id: record.id, status: 'listed' })}
             >
               {t('clothingDonation.btnConvert')}
             </Button>
@@ -137,14 +137,20 @@ export default function ClothingDonationPage() {
           }}
         >
           <option value="">{t('clothingDonation.filterAllStatuses')}</option>
-          <option value="pending">{t('clothingDonation.statusPending')}</option>
+          <option value="submitted">{t('clothingDonation.statusSubmitted', 'Submitted')}</option>
           <option value="received">{t('clothingDonation.statusReceived')}</option>
           <option value="processing">{t('clothingDonation.statusProcessing')}</option>
-          <option value="converted">{t('clothingDonation.statusConverted')}</option>
+          <option value="listed">{t('clothingDonation.statusListed', 'Listed')}</option>
           <option value="rejected">{t('clothingDonation.statusRejected')}</option>
         </select>
       </div>
 
+      {isError && (
+        <div style={{ padding: 16, marginBottom: 16, background: 'var(--color-danger-bg, #fef2f2)', border: '1px solid var(--color-danger-border, #fecaca)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ color: 'var(--color-danger, #dc2626)', fontSize: 14 }}>{t('generic.error')}</span>
+          <button onClick={() => queryClient.invalidateQueries({ queryKey: ['clothing-intakes'] })} style={{ padding: '4px 12px', fontSize: 13, cursor: 'pointer', border: '1px solid var(--color-border)', borderRadius: 4, background: 'transparent' }}>{t('generic.retry', 'Retry')}</button>
+        </div>
+      )}
       <DataTable columns={columns} data={items} loading={isLoading} rowKey="id" />
 
       <div style={{ marginTop: 24 }}>

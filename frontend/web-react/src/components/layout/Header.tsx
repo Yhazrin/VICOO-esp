@@ -30,11 +30,11 @@ const SLIDING_PILL_SIZE_SPRING = {
  * Mode morph: single duration + cubic-bezier for every driven property.
  * Springs settle at different rates per channel — tween keeps radius/width/margin/x in phase.
  */
-/** 略短于旧 520ms：产品里顶栏形态切换多在 380–450ms，体感更跟手、长任务窗更短 */
+/** Slightly shorter than the old 520ms: header morph transitions in the product are typically 380-450ms, feels more responsive with a shorter long-task window */
 const MODE_MORPH_DURATION = 0.44;
 const MODE_MORPH_EASE = [0.22, 1, 0.36, 1] as const;
 
-/** 与 MODE_MORPH 同步的圆角过渡（避免 class 瞬间切换与容器 motion 不同步） */
+/** Border-radius transition synced with MODE_MORPH (prevents class snap changes from desyncing with container motion) */
 const PILL_CORNER_TRANSITION_CLASS =
   'transition-[border-radius] duration-[440ms] ease-[cubic-bezier(0.22,1,0.36,1)]';
 
@@ -156,7 +156,7 @@ function PillWindow({
     return () => window.removeEventListener('resize', measure);
   }, [measure]);
 
-  // 公益 ↔ 优衣库切换时外层胶囊宽度依赖 companyW/impactW；仅 mount 时 measure 一次会在模式切换后留下错误宽度（刷新后更明显）
+  // The outer capsule width depends on companyW/impactW during welfare/UNIQLO switch; measuring only on mount leaves an incorrect width after mode switch (more noticeable after refresh)
   useLayoutEffect(() => {
     measure();
   }, [impactMode, measure]);
@@ -225,7 +225,7 @@ function PillWindow({
   const PADDING = 16;
   const xOffset = impactMode ? -companyW : 0;
   const activeRailW = impactMode ? impactW : companyW;
-  // innerW 为 0 时不要用 0+PADDING 当成真实宽度，否则 Framer 会动画到极窄宽度，切回优衣库后导航条样式像「丢失」
+  // When innerW is 0, do not use 0+PADDING as the real width; otherwise Framer animates to a very narrow width and the nav bar looks "lost" after switching back to UNIQLO
   const capsuleW = activeRailW > 0 ? activeRailW + PADDING : 0;
 
   // Easing must match MODE_MORPH_EASE so width and x-offset stay in phase during the morph.
@@ -233,7 +233,7 @@ function PillWindow({
     ? undefined
     : `width ${MODE_MORPH_DURATION}s cubic-bezier(${MODE_MORPH_EASE.join(',')}), border-radius ${MODE_MORPH_DURATION}s cubic-bezier(${MODE_MORPH_EASE.join(',')})`;
 
-  // 外层不用 motion 驱动 width：Framer 在 width 数字与 "auto" 间切换时，公益↔优衣库偶发卡在中间态；改为 CSS transition + 像素宽度
+  // Do not drive the outer width with motion: Framer occasionally gets stuck mid-transition between a numeric width and "auto" during welfare/UNIQLO switch; use CSS transition + pixel width instead
   return (
     <div
       className={`
@@ -357,7 +357,7 @@ function PillWindow({
                 aria-current={isActive ? 'page' : undefined}
                 onClick={() => {
                   setActiveImpactTab(tab.key);
-                  // 公益内容只能在首页显示，非首页时切换 tab 需要先跳回首页
+                  // Welfare content can only be shown on the homepage; switching tabs on a non-home page requires navigating back to the homepage first
                   if (locationPathname !== '/') {
                     navigate('/', { replace: true });
                   }
@@ -515,7 +515,7 @@ export default function Header() {
     } else {
       setImpactMode(true);
       setActiveImpactTab('home');
-      // 仍在 /shop、/about 等公司路径时，同步 effect 会立刻关掉 impact；先回首页再展示公益壳
+      // When still on /shop, /about or other company paths, the sync effect immediately disables impact; navigate to the homepage first, then show the welfare shell
       const companySubPaths = COMPANY_NAV.filter((n) => n.path !== '/').map((n) => n.path);
       const onCompanySubRoute = companySubPaths.some(
         (p) => location.pathname === p || location.pathname.startsWith(p + '/')
@@ -527,7 +527,7 @@ export default function Header() {
   };
 
   const modeMorphTransition = getModeMorphTransition(Boolean(prefersReducedMotion));
-  /** 顶栏玻璃+大圆角：blur 与 margin 同帧很吃合成；升层减轻跟手时的掉帧 */
+  /** Header glass + large border-radius: blur and margin in the same frame are expensive for compositing; promoting to a layer reduces frame drops during interaction */
   const headerBarGpuClass = 'transform-gpu [backface-visibility:hidden] [isolation:isolate]';
 
   const iconDisc = impactMode

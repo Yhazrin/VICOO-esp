@@ -1,4 +1,4 @@
-"""衣物捐献受理：登记 → 运营处理 → 发布为商品。"""
+"""Clothing donation intake: register → process → publish as product."""
 
 import logging
 
@@ -31,35 +31,55 @@ async def create_intake(
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    row = ClothingIntake(
-        user_id=current_user["id"],
-        summary=body.summary,
-        garment_types=body.garment_types,
-        quantity_estimate=body.quantity_estimate,
-        condition_notes=body.condition_notes,
-        pickup_address=body.pickup_address,
-        contact_phone=body.contact_phone,
-        status="submitted",
-    )
-    db.add(row)
-    await db.flush()
-    await db.refresh(row)
-    return ApiResponse(data=ClothingIntakeOut.model_validate(row).model_dump())
+    try:
+        row = ClothingIntake(
+            user_id=current_user["id"],
+            summary=body.summary,
+            garment_types=body.garment_types,
+            quantity_estimate=body.quantity_estimate,
+            condition_notes=body.condition_notes,
+            pickup_address=body.pickup_address,
+            contact_phone=body.contact_phone,
+            status="submitted",
+        )
+        db.add(row)
+        await db.flush()
+        await db.refresh(row)
+        return ApiResponse(data=ClothingIntakeOut.model_validate(row).model_dump())
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Failed to create clothing intake")
+        raise HTTPException(status_code=500, detail="Failed to create intake")
 
 
-@router.get("/mine", response_model=ApiResponse)
+@router.get("/mine", response_model=PaginatedResponse)
 async def list_my_intakes(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    stmt = (
-        select(ClothingIntake)
-        .where(ClothingIntake.user_id == current_user["id"])
-        .order_by(ClothingIntake.created_at.desc())
-        .limit(100)
-    )
-    rows = (await db.execute(stmt)).scalars().all()
-    return ApiResponse(data=[ClothingIntakeOut.model_validate(r).model_dump() for r in rows])
+    try:
+        total = (await db.execute(
+            select(func.count(ClothingIntake.id)).where(ClothingIntake.user_id == current_user["id"])
+        )).scalar() or 0
+        stmt = (
+            select(ClothingIntake)
+            .where(ClothingIntake.user_id == current_user["id"])
+            .order_by(ClothingIntake.created_at.desc())
+            .offset((page - 1) * page_size).limit(page_size)
+        )
+        rows = (await db.execute(stmt)).scalars().all()
+        return PaginatedResponse(
+            data=[ClothingIntakeOut.model_validate(r).model_dump() for r in rows],
+            total=total, page=page, page_size=page_size,
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Failed to list user clothing intakes")
+        raise HTTPException(status_code=500, detail="Failed to list intakes")
 
 
 @router.get("", response_model=PaginatedResponse)
@@ -70,17 +90,23 @@ async def list_all_intakes(
     _staff: dict = Depends(require_role("admin")),
     db: AsyncSession = Depends(get_db),
 ):
-    stmt = select(ClothingIntake)
-    if status:
-        stmt = stmt.where(ClothingIntake.status == status)
-    count_stmt = select(func.count(ClothingIntake.id))
-    if status:
-        count_stmt = count_stmt.where(ClothingIntake.status == status)
-    total = (await db.execute(count_stmt)).scalar() or 0
-    stmt = stmt.order_by(ClothingIntake.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
-    rows = (await db.execute(stmt)).scalars().all()
-    data = [ClothingIntakeOut.model_validate(r).model_dump() for r in rows]
-    return PaginatedResponse(data=data, total=total, page=page, page_size=page_size)
+    try:
+        stmt = select(ClothingIntake)
+        if status:
+            stmt = stmt.where(ClothingIntake.status == status)
+        count_stmt = select(func.count(ClothingIntake.id))
+        if status:
+            count_stmt = count_stmt.where(ClothingIntake.status == status)
+        total = (await db.execute(count_stmt)).scalar() or 0
+        stmt = stmt.order_by(ClothingIntake.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
+        rows = (await db.execute(stmt)).scalars().all()
+        data = [ClothingIntakeOut.model_validate(r).model_dump() for r in rows]
+        return PaginatedResponse(data=data, total=total, page=page, page_size=page_size)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Failed to list clothing intakes")
+        raise HTTPException(status_code=500, detail="Failed to list intakes")
 
 
 @router.patch("/{intake_id}/status", response_model=ApiResponse)
@@ -125,50 +151,56 @@ async def publish_product_from_intake(
     db: AsyncSession = Depends(get_db),
     request: Request = None,
 ):
-    """将受理单关联为已上架商品（完成 捐献→商品 闭环）。"""
-    stmt = select(ClothingIntake).where(ClothingIntake.id == intake_id)
-    intake = (await db.execute(stmt)).scalar_one_or_none()
-    if not intake:
-        raise HTTPException(status_code=404, detail="Intake not found")
-    if intake.status == "listed" and intake.product_id:
-        raise HTTPException(status_code=400, detail="Intake already linked to a product")
-    if intake.status == "rejected":
-        raise HTTPException(status_code=400, detail="Cannot publish from rejected intake")
+    """Link intake record to a listed product (completing the donation-to-product loop)."""
+    try:
+        stmt = select(ClothingIntake).where(ClothingIntake.id == intake_id)
+        intake = (await db.execute(stmt)).scalar_one_or_none()
+        if not intake:
+            raise HTTPException(status_code=404, detail="Intake not found")
+        if intake.status == "listed" and intake.product_id:
+            raise HTTPException(status_code=400, detail="Intake already linked to a product")
+        if intake.status == "rejected":
+            raise HTTPException(status_code=400, detail="Cannot publish from rejected intake")
 
-    product = Product(
-        name=body.name,
-        description=body.description,
-        price=body.price,
-        currency=body.currency,
-        image_url=body.image_url,
-        category=body.category,
-        stock=body.stock,
-        status="active",
-    )
-    db.add(product)
-    await db.flush()
+        product = Product(
+            name=body.name,
+            description=body.description,
+            price=body.price,
+            currency=body.currency,
+            image_url=body.image_url,
+            category=body.category,
+            stock=body.stock,
+            status="active",
+        )
+        db.add(product)
+        await db.flush()
 
-    intake.product_id = product.id
-    intake.status = "listed"
-    await db.flush()
-    await db.refresh(intake)
-    await db.refresh(product)
+        intake.product_id = product.id
+        intake.status = "listed"
+        await db.flush()
+        await db.refresh(intake)
+        await db.refresh(product)
 
-    # Audit log
-    ip = request.client.host if request else None
-    await log_audit(
-        db=db,
-        user_id=staff.get("id"),
-        action="publish_product_from_intake",
-        resource="clothing_intake",
-        resource_id=str(intake_id),
-        details={"product_id": product.id, "product_name": body.name},
-        ip_address=ip,
-    )
+        # Audit log
+        ip = request.client.host if request else None
+        await log_audit(
+            db=db,
+            user_id=staff.get("id"),
+            action="publish_product_from_intake",
+            resource="clothing_intake",
+            resource_id=str(intake_id),
+            details={"product_id": product.id, "product_name": body.name},
+            ip_address=ip,
+        )
 
-    return ApiResponse(
-        data={
-            "intake": ClothingIntakeOut.model_validate(intake).model_dump(),
-            "product": ProductOut.model_validate(product).model_dump(),
-        }
-    )
+        return ApiResponse(
+            data={
+                "intake": ClothingIntakeOut.model_validate(intake).model_dump(),
+                "product": ProductOut.model_validate(product).model_dump(),
+            }
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Failed to publish product from intake")
+        raise HTTPException(status_code=500, detail="Failed to publish product")

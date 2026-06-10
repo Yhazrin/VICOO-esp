@@ -11,7 +11,7 @@ class ClothingIntakeCreate(BaseModel):
     summary: str = Field(..., min_length=1, max_length=500)
     garment_types: Optional[str] = Field(None, max_length=300)
     quantity_estimate: int = Field(1, ge=1, le=999)
-    condition_notes: Optional[str] = None
+    condition_notes: Optional[str] = Field(None, max_length=2000)
     pickup_address: Optional[str] = Field(None, max_length=2000)
     contact_phone: Optional[str] = Field(None, max_length=30)
 
@@ -21,7 +21,7 @@ class ClothingIntakeStatusUpdate(BaseModel):
         ...,
         pattern="^(submitted|received|processing|listed|rejected)$",
     )
-    admin_note: Optional[str] = None
+    admin_note: Optional[str] = Field(None, max_length=2000)
 
 
 class ClothingIntakeOut(BaseModel):
@@ -43,10 +43,10 @@ class ClothingIntakeOut(BaseModel):
 
 
 class PublishFromIntakeBody(BaseModel):
-    """由衣物受理单生成上架商品（运营/编辑）。"""
+    """Create a listed product from a clothing intake record (admin/editor)."""
 
     name: str = Field(..., min_length=1, max_length=300)
-    description: Optional[str] = None
+    description: Optional[str] = Field(None, max_length=10000)
     price: Decimal = Field(..., gt=0)
     currency: str = Field("CNY", max_length=10)
     image_url: Optional[str] = Field(None, max_length=500)
@@ -59,7 +59,7 @@ class ProductReviewCreate(BaseModel):
     order_id: Optional[int] = None
     rating: int = Field(..., ge=1, le=5)
     title: Optional[str] = Field(None, max_length=200)
-    body: Optional[str] = None
+    body: Optional[str] = Field(None, max_length=5000)
 
 
 class ProductReviewOut(BaseModel):
@@ -80,7 +80,7 @@ class AfterSaleCreate(BaseModel):
     order_id: int
     category: str = Field(..., pattern="^(return|exchange|quality|logistics|other)$")
     subject: str = Field(..., min_length=1, max_length=200)
-    description: Optional[str] = None
+    description: Optional[str] = Field(None, max_length=5000)
 
 
 class AfterSaleStatusUpdate(BaseModel):

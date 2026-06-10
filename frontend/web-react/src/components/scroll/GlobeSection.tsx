@@ -31,8 +31,8 @@ export default function GlobeSection() {
   const currentTheme = useUIStore((s) => s.currentTheme);
   const isDark = impactMode && DARK_THEMES.has(currentTheme);
   const isEnglish = i18n.resolvedLanguage?.startsWith('en');
-  /** 公益首页与文字先 paint，再 idle 时拉 chunk + 起 WebGL，避免首帧与 Planar3D 抢主线程 */
-  /** 公益壳下大球由 Layout 的 ImpactWelfareGlobeLayer 常驻，此处不挂第二套 WebGL */
+  /** Paint the welfare homepage and text first; load the chunk + init WebGL on idle to avoid the first frame competing with Planar3D for the main thread */
+  /** Under the welfare shell the large globe is persistent via Layout's ImpactWelfareGlobeLayer; do not mount a second WebGL instance here */
   const [mountGlobe, setMountGlobe] = useState(!impactMode);
 
   const routes = useMemo(() => SUPPLY_CHAIN_ROUTES, []);

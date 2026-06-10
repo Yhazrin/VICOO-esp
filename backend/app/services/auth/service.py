@@ -1,7 +1,6 @@
 import hmac
-import time
 import logging
-from typing import Optional, Tuple, Dict, Any
+from typing import Tuple
 
 from fastapi import HTTPException
 from sqlalchemy import select
@@ -37,12 +36,13 @@ class AuthService(BaseService):
         user = result.scalar_one_or_none()
 
         if user:
-            if verify_password(password, user.password_hash):
+            if user.password_hash and verify_password(password, user.password_hash):
                 if user.status == "banned":
                     raise HTTPException(status_code=403, detail="Account is banned")
                 
-                access_token = create_access_token(subject=str(user.id), role=user.role.value if hasattr(user.role, "value") else str(user.role))
-                refresh_token = create_refresh_token(subject=str(user.id), role=user.role.value if hasattr(user.role, "value") else str(user.role))
+                role = str(user.role)
+                access_token = create_access_token(subject=str(user.id), role=role)
+                refresh_token = create_refresh_token(subject=str(user.id), role=role)
                 return user, access_token, refresh_token
             else:
                 raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -66,7 +66,8 @@ class AuthService(BaseService):
         """
         existing = (await self.db.execute(select(User).where(User.email == email))).scalar_one_or_none()
         if existing:
-            raise HTTPException(status_code=400, detail="Registration failed. Email already exists.")
+            # Generic message to prevent email enumeration
+            raise HTTPException(status_code=400, detail="Registration failed.")
 
         user = User(
             email=email,
@@ -104,7 +105,7 @@ class AuthService(BaseService):
             if user.status == "banned":
                 raise HTTPException(status_code=403, detail="Account is banned")
             
-            role = user.role.value if hasattr(user.role, "value") else str(user.role)
+            role = str(user.role)
             
             new_access = create_access_token(subject=sub, role=role)
             new_refresh = create_refresh_token(subject=sub, role=role)

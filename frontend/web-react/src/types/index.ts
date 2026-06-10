@@ -32,6 +32,7 @@ export interface Artwork {
   status: 'pending' | 'approved' | 'featured' | 'rejected';
   vote_count: number;
   like_count?: number;
+  view_count?: number;
   created_at: string;
   tags?: string[];
 }
@@ -39,12 +40,12 @@ export interface Artwork {
 export interface Campaign {
   id: number;
   title: string;
-  subtitle: string;
+  subtitle?: string;
   description: string;
   coverImageUrl: string;
   startDate: string;
   endDate: string;
-  status: 'upcoming' | 'active' | 'completed';
+  status: 'upcoming' | 'active' | 'completed' | 'draft' | 'cancelled';
   artworkCount: number;
   participantCount: number;
   goalAmount: number;
@@ -130,6 +131,8 @@ export interface Product {
   sizes?: string[];
   /** Available colors for this product (name + hex) */
   colors?: { name: string; hex: string }[];
+  created_at?: string;
+  status?: 'active' | 'draft' | 'archived';
 }
 
 /** Image / video attached to a trace node (URLs from API) */
@@ -156,7 +159,7 @@ export interface SupplyChainTimelineRecord {
   /** WGS84 — when set, globe pins use exact coordinates */
   latitude?: number;
   longitude?: number;
-  /** 溯源点现场图 / 视频等 */
+  /** Traceability point field photos / videos */
   gallery?: TraceMediaItem[];
 }
 
@@ -216,7 +219,7 @@ export interface CartItem {
   selectedColor?: string;
 }
 
-/** @deprecated 请使用 services/orders 的 OrderDetail（与 API 字段一致） */
+/** @deprecated Use OrderDetail from services/orders (matches API fields) */
 export interface Order {
   id: number;
   user_id: number;

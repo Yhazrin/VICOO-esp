@@ -45,6 +45,10 @@ type TabKey = 'orders' | 'donations' | 'clothing' | 'support' | 'addresses';
 
 const ORDER_STATUSES = ['', 'pending', 'paid', 'shipped', 'completed', 'cancelled'] as const;
 
+function currencySymbol(paymentMethod?: string | null) {
+  return paymentMethod === 'paypal' || paymentMethod === 'stripe' ? '$' : '¥';
+}
+
 export default function Profile() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -129,7 +133,7 @@ export default function Profile() {
     enabled: isAuthenticated,
   });
 
-  const { data: addresses = [], isLoading: loadingAddresses } = useQuery({
+  const { data: addresses = [], isLoading: loadingAddresses, isError: addressError } = useQuery({
     queryKey: ['my-addresses'],
     queryFn: () => addressesApi.getAll(),
     enabled: isAuthenticated,
@@ -158,7 +162,7 @@ export default function Profile() {
       queryClient.invalidateQueries({ queryKey: ['my-addresses'] });
       resetAddressForm();
     } catch {
-      setErrorMessage(t('profile.addressSaveError', '保存地址失败，请重试'));
+      setErrorMessage(t('profile.addressSaveError', 'Failed to save address — please retry'));
     }
   };
 
@@ -168,7 +172,7 @@ export default function Profile() {
       await addressesApi.remove(id);
       queryClient.invalidateQueries({ queryKey: ['my-addresses'] });
     } catch {
-      setErrorMessage(t('profile.addressDeleteError', '删除地址失败，请重试'));
+      setErrorMessage(t('profile.addressDeleteError', 'Failed to delete address — please retry'));
     }
   };
 
@@ -178,7 +182,7 @@ export default function Profile() {
       await addressesApi.setDefault(id);
       queryClient.invalidateQueries({ queryKey: ['my-addresses'] });
     } catch {
-      setErrorMessage(t('profile.setDefaultError', '设置默认地址失败，请重试'));
+      setErrorMessage(t('profile.setDefaultError', 'Failed to set default address — please retry'));
     }
   };
 
@@ -476,7 +480,7 @@ export default function Profile() {
                               </p>
                             </div>
                             <span className="font-mono text-sm text-ink flex-shrink-0">
-                              ¥{(Number(item.price) * item.quantity).toFixed(2)}
+                              {currencySymbol(order.payment_method)}{(Number(item.price) * item.quantity).toFixed(2)}
                             </span>
                           </div>
                         ))}
@@ -487,7 +491,7 @@ export default function Profile() {
                         <div className="flex items-center gap-3">
                           <span className="font-body text-caption text-sepia-mid">{t('profile.total')}</span>
                           <span className="font-display text-base font-bold text-ink">
-                            ¥{Number(order.total_amount).toFixed(2)}
+                            {currencySymbol(order.payment_method)}{Number(order.total_amount).toFixed(2)}
                           </span>
                         </div>
                         <div className="flex items-center gap-3">
@@ -503,14 +507,14 @@ export default function Profile() {
                                   await ordersApi.cancel(String(order.id));
                                   queryClient.invalidateQueries({ queryKey: ['my-orders'] });
                                 } catch {
-                                  setErrorMessage(t('profile.cancelOrderError', '取消订单失败，请重试'));
+                                  setErrorMessage(t('profile.cancelOrderError', 'Failed to cancel order — please retry'));
                                 } finally {
                                   setCancellingOrderId(null);
                                 }
                               }}
                               className="font-body text-caption text-rust hover:text-rust-light transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              {cancellingOrderId === order.id ? t('common.loading', '处理中...') : t('profile.cancelOrder', '取消订单')}
+                              {cancellingOrderId === order.id ? t('common.loading', 'Processing...') : t('profile.cancelOrder', 'Cancel order')}
                             </button>
                           )}
                           {order.status === 'completed' && order.items?.length > 0 && (
@@ -531,7 +535,7 @@ export default function Profile() {
                             to={`/orders/${order.id}`}
                             className="font-body text-overline tracking-[0.1em] uppercase text-rust hover:text-rust-light transition-colors"
                           >
-                            {t('profile.viewLogistics', '查看物流与详情')} →
+                            {t('profile.viewLogistics', 'View logistics & details')} →
                           </Link>
                         </div>
                       </div>
@@ -611,15 +615,15 @@ export default function Profile() {
               {loadingIntakes ? (
                 <p className="font-body text-body-sm text-ink-faded">{t('common.loading', 'Loading...')}</p>
               ) : errorIntakes ? (
-                <p className="font-body text-body-sm text-rust">{t('profile.intakesError', '暂时无法加载衣物登记。')}</p>
+                <p className="font-body text-body-sm text-rust">{t('profile.intakesError', 'Unable to load clothing intakes at the moment.')}</p>
               ) : intakes.length === 0 ? (
-                <p className="font-body text-body-sm text-ink-faded">{t('profile.noIntakes', '暂无登记')}</p>
+                <p className="font-body text-body-sm text-ink-faded">{t('profile.noIntakes', 'No intakes yet')}</p>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {intakes.map((row: ClothingIntake, index: number) => (
                     <EditorialCard
                       key={row.id}
-                      title={row.summary.slice(0, 48) + (row.summary.length > 48 ? '…' : '')}
+                      title={(row.summary ?? '').slice(0, 48) + ((row.summary?.length ?? 0) > 48 ? '…' : '')}
                       subtitle={row.created_at}
                       index={index}
                       hoverEffect="border"
@@ -627,7 +631,7 @@ export default function Profile() {
                       <p className={`font-body text-overline uppercase ${STATUS_COLORS[row.status] ?? 'text-sepia-mid'}`}>{t(`donateClothing.statusLabels.${row.status}`, row.status)}</p>
                       {row.product_id && (
                         <Link to={`/shop/${row.product_id}`} className="font-body text-caption text-rust mt-2 inline-block">
-                          {t('profile.viewLinkedProduct', '查看关联商品')} →
+                          {t('profile.viewLinkedProduct', 'View linked product')} →
                         </Link>
                       )}
                     </EditorialCard>
@@ -650,9 +654,9 @@ export default function Profile() {
               {loadingTickets ? (
                 <p className="font-body text-body-sm text-ink-faded">{t('common.loading', 'Loading...')}</p>
               ) : errorTickets ? (
-                <p className="font-body text-body-sm text-rust">{t('profile.ticketsError', '暂时无法加载售后单。')}</p>
+                <p className="font-body text-body-sm text-rust">{t('profile.ticketsError', 'Unable to load support tickets at the moment.')}</p>
               ) : tickets.length === 0 ? (
-                <p className="font-body text-body-sm text-ink-faded">{t('profile.noTickets', '暂无工单')}</p>
+                <p className="font-body text-body-sm text-ink-faded">{t('profile.noTickets', 'No tickets yet')}</p>
               ) : (
                 <div className="space-y-6">
                   {tickets.map((tk: AfterSaleTicket) => (
@@ -683,14 +687,14 @@ export default function Profile() {
             <div role="tabpanel" id="panel-addresses" aria-labelledby="tab-addresses">
               <div className="flex items-center justify-between mb-8">
                 <h2 className="font-display text-h3 font-bold text-ink">
-                  {t('profile.addresses.title', '收货地址')}
+                  {t('profile.addresses.title', 'Shipping addresses')}
                 </h2>
                 {!showAddressForm && (
                   <button
                     onClick={() => { resetAddressForm(); setShowAddressForm(true); }}
                     className="font-body text-overline tracking-[0.1em] uppercase text-rust hover:text-rust-light transition-colors cursor-pointer"
                   >
-                    + {t('profile.addresses.addAddress', '添加地址')}
+                    + {t('profile.addresses.addAddress', 'Add address')}
                   </button>
                 )}
               </div>
@@ -705,40 +709,40 @@ export default function Profile() {
                     className="border border-warm-gray/25 bg-paper p-6 mb-8 overflow-hidden"
                   >
                     <h3 className="font-body text-label text-ink mb-4">
-                      {editingAddress ? t('profile.addresses.editAddress', '编辑地址') : t('profile.addresses.addAddress', '添加地址')}
+                      {editingAddress ? t('profile.addresses.editAddress', 'Edit address') : t('profile.addresses.addAddress', 'Add address')}
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block font-body text-[10px] tracking-wider uppercase text-sepia-mid mb-1">{t('profile.addresses.label', '标签')}</label>
-                        <input type="text" value={addressForm.label} onChange={(e) => setAddressForm({ ...addressForm, label: e.target.value })} placeholder={t('profile.addresses.labelPlaceholder', '家 / 公司')} className="w-full px-3 py-2 border border-warm-gray/30 bg-transparent font-body text-body-sm text-ink focus:outline-none focus:border-rust/50" />
+                        <label htmlFor="addr-label" className="block font-body text-[10px] tracking-wider uppercase text-sepia-mid mb-1">{t('profile.addresses.label', 'Label')}</label>
+                        <input id="addr-label" type="text" value={addressForm.label} onChange={(e) => setAddressForm({ ...addressForm, label: e.target.value })} placeholder={t('profile.addresses.labelPlaceholder', 'Home / Office')} className="w-full px-3 py-2 border border-warm-gray/30 bg-transparent font-body text-body-sm text-ink focus:outline-none focus:border-rust/50" />
                       </div>
                       <div>
-                        <label className="block font-body text-[10px] tracking-wider uppercase text-sepia-mid mb-1">{t('profile.addresses.recipient', '收件人')}</label>
-                        <input type="text" value={addressForm.recipient_name} onChange={(e) => setAddressForm({ ...addressForm, recipient_name: e.target.value })} className="w-full px-3 py-2 border border-warm-gray/30 bg-transparent font-body text-body-sm text-ink focus:outline-none focus:border-rust/50" />
+                        <label htmlFor="addr-recipient" className="block font-body text-[10px] tracking-wider uppercase text-sepia-mid mb-1">{t('profile.addresses.recipient', 'Recipient')}</label>
+                        <input id="addr-recipient" type="text" value={addressForm.recipient_name} onChange={(e) => setAddressForm({ ...addressForm, recipient_name: e.target.value })} className="w-full px-3 py-2 border border-warm-gray/30 bg-transparent font-body text-body-sm text-ink focus:outline-none focus:border-rust/50" />
                       </div>
                       <div>
-                        <label className="block font-body text-[10px] tracking-wider uppercase text-sepia-mid mb-1">{t('profile.addresses.phone', '电话')}</label>
-                        <input type="tel" value={addressForm.phone} onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })} className="w-full px-3 py-2 border border-warm-gray/30 bg-transparent font-body text-body-sm text-ink focus:outline-none focus:border-rust/50" />
+                        <label htmlFor="addr-phone" className="block font-body text-[10px] tracking-wider uppercase text-sepia-mid mb-1">{t('profile.addresses.phone', 'Phone')}</label>
+                        <input id="addr-phone" type="tel" value={addressForm.phone} onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })} className="w-full px-3 py-2 border border-warm-gray/30 bg-transparent font-body text-body-sm text-ink focus:outline-none focus:border-rust/50" />
                       </div>
                       <div>
-                        <label className="block font-body text-[10px] tracking-wider uppercase text-sepia-mid mb-1">{t('profile.addresses.province', '省份')}</label>
-                        <input type="text" value={addressForm.province} onChange={(e) => setAddressForm({ ...addressForm, province: e.target.value })} className="w-full px-3 py-2 border border-warm-gray/30 bg-transparent font-body text-body-sm text-ink focus:outline-none focus:border-rust/50" />
+                        <label htmlFor="addr-province" className="block font-body text-[10px] tracking-wider uppercase text-sepia-mid mb-1">{t('profile.addresses.province', 'Province')}</label>
+                        <input id="addr-province" type="text" value={addressForm.province} onChange={(e) => setAddressForm({ ...addressForm, province: e.target.value })} className="w-full px-3 py-2 border border-warm-gray/30 bg-transparent font-body text-body-sm text-ink focus:outline-none focus:border-rust/50" />
                       </div>
                       <div>
-                        <label className="block font-body text-[10px] tracking-wider uppercase text-sepia-mid mb-1">{t('profile.addresses.city', '城市')}</label>
-                        <input type="text" value={addressForm.city} onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })} className="w-full px-3 py-2 border border-warm-gray/30 bg-transparent font-body text-body-sm text-ink focus:outline-none focus:border-rust/50" />
+                        <label htmlFor="addr-city" className="block font-body text-[10px] tracking-wider uppercase text-sepia-mid mb-1">{t('profile.addresses.city', 'City')}</label>
+                        <input id="addr-city" type="text" value={addressForm.city} onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })} className="w-full px-3 py-2 border border-warm-gray/30 bg-transparent font-body text-body-sm text-ink focus:outline-none focus:border-rust/50" />
                       </div>
                       <div>
-                        <label className="block font-body text-[10px] tracking-wider uppercase text-sepia-mid mb-1">{t('profile.addresses.district', '区/县')}</label>
-                        <input type="text" value={addressForm.district} onChange={(e) => setAddressForm({ ...addressForm, district: e.target.value })} className="w-full px-3 py-2 border border-warm-gray/30 bg-transparent font-body text-body-sm text-ink focus:outline-none focus:border-rust/50" />
+                        <label htmlFor="addr-district" className="block font-body text-[10px] tracking-wider uppercase text-sepia-mid mb-1">{t('profile.addresses.district', 'District')}</label>
+                        <input id="addr-district" type="text" value={addressForm.district} onChange={(e) => setAddressForm({ ...addressForm, district: e.target.value })} className="w-full px-3 py-2 border border-warm-gray/30 bg-transparent font-body text-body-sm text-ink focus:outline-none focus:border-rust/50" />
                       </div>
                       <div className="sm:col-span-2">
-                        <label className="block font-body text-[10px] tracking-wider uppercase text-sepia-mid mb-1">{t('profile.addresses.detailAddress', '详细地址')}</label>
-                        <input type="text" value={addressForm.detail_address} onChange={(e) => setAddressForm({ ...addressForm, detail_address: e.target.value })} className="w-full px-3 py-2 border border-warm-gray/30 bg-transparent font-body text-body-sm text-ink focus:outline-none focus:border-rust/50" />
+                        <label htmlFor="addr-detail" className="block font-body text-[10px] tracking-wider uppercase text-sepia-mid mb-1">{t('profile.addresses.detailAddress', 'Address')}</label>
+                        <input id="addr-detail" type="text" value={addressForm.detail_address} onChange={(e) => setAddressForm({ ...addressForm, detail_address: e.target.value })} className="w-full px-3 py-2 border border-warm-gray/30 bg-transparent font-body text-body-sm text-ink focus:outline-none focus:border-rust/50" />
                       </div>
                       <div>
-                        <label className="block font-body text-[10px] tracking-wider uppercase text-sepia-mid mb-1">{t('profile.addresses.postalCode', '邮编')}</label>
-                        <input type="text" value={addressForm.postal_code} onChange={(e) => setAddressForm({ ...addressForm, postal_code: e.target.value })} className="w-full px-3 py-2 border border-warm-gray/30 bg-transparent font-body text-body-sm text-ink focus:outline-none focus:border-rust/50" />
+                        <label htmlFor="addr-postal" className="block font-body text-[10px] tracking-wider uppercase text-sepia-mid mb-1">{t('profile.addresses.postalCode', 'Postal Code')}</label>
+                        <input id="addr-postal" type="text" value={addressForm.postal_code} onChange={(e) => setAddressForm({ ...addressForm, postal_code: e.target.value })} className="w-full px-3 py-2 border border-warm-gray/30 bg-transparent font-body text-body-sm text-ink focus:outline-none focus:border-rust/50" />
                       </div>
                       <div>
                         <label className="block font-body text-[10px] tracking-wider uppercase text-sepia-mid mb-1">{t('checkout.country', 'Country')}</label>
@@ -760,28 +764,30 @@ export default function Profile() {
                       <div className="flex items-end">
                         <label className="flex items-center gap-2 cursor-pointer">
                           <input type="checkbox" checked={addressForm.is_default} onChange={(e) => setAddressForm({ ...addressForm, is_default: e.target.checked })} className="accent-rust" />
-                          <span className="font-body text-caption text-ink">{t('profile.addresses.setDefault', '设为默认')}</span>
+                          <span className="font-body text-caption text-ink">{t('profile.addresses.setDefault', 'Set as default')}</span>
                         </label>
                       </div>
                     </div>
                     <div className="flex gap-3 mt-6">
                       <button onClick={handleSaveAddress} disabled={!addressForm.recipient_name || !addressForm.phone || !addressForm.province || !addressForm.city || !addressForm.detail_address} className="font-body text-label tracking-wide bg-ink text-paper px-6 py-2.5 hover:bg-rust transition-colors cursor-pointer disabled:opacity-40">
-                        {t('common.save', '保存')}
+                        {t('common.save', 'Save')}
                       </button>
                       <button onClick={resetAddressForm} className="font-body text-label tracking-wide text-sepia-mid hover:text-ink transition-colors cursor-pointer">
-                        {t('common.cancel', '取消')}
+                        {t('common.cancel', 'Cancel')}
                       </button>
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              {loadingAddresses ? (
+              {addressError ? (
+                <p className="font-body text-body-sm text-rust">{t('common.error', 'Failed to load addresses')}</p>
+              ) : loadingAddresses ? (
                 <p className="font-body text-body-sm text-ink-faded">{t('common.loading', 'Loading...')}</p>
               ) : addresses.length === 0 && !showAddressForm ? (
                 <div className="text-center py-12">
                   <p className="font-body text-body-sm text-ink-faded mb-4">
-                    {t('profile.addresses.noAddresses', '暂无保存的地址')}
+                    {t('profile.addresses.noAddresses', 'No saved addresses')}
                   </p>
                 </div>
               ) : (
@@ -797,16 +803,16 @@ export default function Profile() {
                           )}
                           {addr.is_default && (
                             <span className="font-body text-[10px] tracking-wider uppercase text-sage border border-sage/30 bg-sage/5 px-2 py-0.5">
-                              {t('profile.addresses.defaultBadge', '默认')}
+                              {t('profile.addresses.defaultBadge', 'Default')}
                             </span>
                           )}
                         </div>
                         <div className="flex items-center gap-2">
                           <button onClick={() => startEditAddress(addr)} className="font-body text-[11px] text-sepia-mid hover:text-ink transition-colors cursor-pointer">
-                            {t('common.edit', '编辑')}
+                            {t('common.edit', 'Edit')}
                           </button>
                           <button onClick={() => handleDeleteAddress(addr.id)} className="font-body text-[11px] text-rust hover:text-rust-light transition-colors cursor-pointer">
-                            {t('common.delete', '删除')}
+                            {t('common.delete', 'Delete')}
                           </button>
                         </div>
                       </div>
@@ -817,7 +823,7 @@ export default function Profile() {
                       </p>
                       {!addr.is_default && (
                         <button onClick={() => handleSetDefault(addr.id)} className="font-body text-[11px] text-rust hover:text-rust-light transition-colors cursor-pointer mt-2">
-                          {t('profile.addresses.setDefault', '设为默认')}
+                          {t('profile.addresses.setDefault', 'Set as default')}
                         </button>
                       )}
                     </div>

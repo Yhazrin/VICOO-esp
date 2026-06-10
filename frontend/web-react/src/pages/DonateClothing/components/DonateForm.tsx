@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import SectionContainer from '@/components/layout/SectionContainer';
 import { VintageInput } from '@/components/editorial/VintageInput';
 import { VintageSelect } from '@/components/editorial/VintageSelect';
@@ -90,6 +91,9 @@ export default function DonateForm({ onSubmitted }: DonateFormProps) {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!isAuthenticated) { navigate('/login'); return; }
+    if (!description.trim()) { toast.error(t('donateClothing.descriptionRequired', 'Please describe the clothing')); return; }
+    if (!address.trim()) { toast.error(t('donateClothing.addressRequired', 'Please provide a pickup address')); return; }
+    if (!phone.trim() || !/^1\d{10}$/.test(phone.trim())) { toast.error(t('donateClothing.phoneRequired', 'Please enter a valid 11-digit phone number')); return; }
     createIntakeMutation.mutate();
   };
 

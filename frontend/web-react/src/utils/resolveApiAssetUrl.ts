@@ -1,7 +1,8 @@
 /**
- * 将 API 返回的相对资源路径补全为可加载的绝对 URL。
- * 例：库存 cover_image 为 /static/campaigns/x.jpg 时，若前端与 API 不同源，
- * 浏览器用相对路径会请求到 **站点域名** 而非 API，导致 404。生产环境常见。
+ * Completes relative asset paths returned by the API into loadable absolute URLs.
+ * e.g. when a stock cover_image is /static/campaigns/x.jpg and the frontend and API
+ * are on different origins, the browser requests the relative path against the site
+ * domain instead of the API, causing a 404. Common in production.
  */
 export function resolveApiAssetUrl(href: string | undefined | null): string {
   if (href == null) return '';

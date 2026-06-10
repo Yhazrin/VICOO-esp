@@ -1,6 +1,7 @@
-"""可持续性聚合指标（与供应链、衣物闭环联动）。"""
+"""Sustainability aggregate metrics (linked with supply chain and clothing circular commerce)."""
 
 from decimal import Decimal
+import logging
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func, select
@@ -13,12 +14,14 @@ from app.models.product import Product
 from app.models.supply_chain import SupplyChainRecord
 from app.schemas import ApiResponse
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/sustainability", tags=["Sustainability"])
 
 
 @router.get("/summary", response_model=ApiResponse)
 async def sustainability_summary(db: AsyncSession = Depends(get_db)):
-    """公开摘要：捐赠、再生上架、供应链核验覆盖等。"""
+    """Public summary: donations, recycled listings, supply chain verification coverage, etc."""
     try:
         donation_total = (
             await db.execute(select(func.coalesce(func.sum(Donation.amount), 0)).where(Donation.status == "completed"))
@@ -50,21 +53,11 @@ async def sustainability_summary(db: AsyncSession = Depends(get_db)):
                 "supply_chain_certified_nodes": certified_nodes,
                 "supply_chain_verification_rate_percent": verification_rate,
                 "methodology_url": "/traceability",
-                "notes": "指标来自可核验的链路与运营数据；上线后请以审计报告为准。",
+                "notes": "Metrics are derived from verifiable supply chain and operational data. Post-launch, audited reports should be treated as authoritative.",
             }
         )
     except HTTPException:
         raise
     except Exception:
-        return ApiResponse(
-            data={
-                "donation_total_completed": "0",
-                "clothing_intakes_listed": 0,
-                "active_products": 0,
-                "supply_chain_nodes": 0,
-                "supply_chain_certified_nodes": 0,
-                "supply_chain_verification_rate_percent": 0.0,
-                "methodology_url": "/traceability",
-                "notes": "数据服务暂不可用，返回占位指标。",
-            }
-        )
+        logger.exception("Sustainability summary query failed")
+        raise HTTPException(status_code=503, detail="Sustainability data service temporarily unavailable")

@@ -32,6 +32,7 @@ class Product(Base):
         Enum("active", "inactive", "sold_out", name="product_status"),
         default="active",
         nullable=False,
+        index=True,
     )
     # Circular commerce: sustainability fields
     source_clothing_intake_id = Column(Integer, ForeignKey("clothing_intakes.id"), nullable=True, index=True)

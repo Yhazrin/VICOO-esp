@@ -13,12 +13,12 @@ if settings.RESEND_API_KEY:
 async def send_welcome_email(to_email: str, nickname: str, locale: str = "en"):
     """Send a rich, editorial-style welcome email to a new user via Resend."""
     if not settings.RESEND_API_KEY:
-        logger.warning(f"RESEND_API_KEY not configured. Skipping welcome email to {to_email}")
+        logger.warning("RESEND_API_KEY not configured. Skipping welcome email to %s", to_email)
         return
 
     # Don't send to internal placeholder emails
     if to_email.endswith("@oauth.vicoo.org"):
-        logger.info(f"Skipping welcome email for placeholder address: {to_email}")
+        logger.info("Skipping welcome email for placeholder address: %s", to_email)
         return
 
     # Localized content
@@ -132,16 +132,16 @@ async def send_welcome_email(to_email: str, nickname: str, locale: str = "en"):
             })
 
         response = await loop.run_in_executor(None, _send)
-        logger.info(f"Editorial welcome email sent to {to_email}. ID: {response.get('id')}")
+        logger.info("Editorial welcome email sent to %s. ID: %s", to_email, response.get('id'))
         return response
     except Exception as e:
-        logger.error(f"Failed to send welcome email to {to_email}: {e}", exc_info=True)
-        return None
+        logger.error("Failed to send welcome email to %s: %s", to_email, e, exc_info=True)
+        raise
 
 async def send_password_recovery_email(to_email: str, password_hint: str, locale: str = "en"):
     """Send a password recovery email via Resend."""
     if not settings.RESEND_API_KEY:
-        logger.warning(f"RESEND_API_KEY not configured. Skipping password recovery for {to_email}")
+        logger.warning("RESEND_API_KEY not configured. Skipping password recovery for %s", to_email)
         return
 
     subject = t("emails.recovery.subject", locale=locale)
@@ -168,6 +168,7 @@ async def send_password_recovery_email(to_email: str, password_hint: str, locale
                 """
             })
         await loop.run_in_executor(None, _send)
-        logger.info(f"Recovery email sent to {to_email}")
+        logger.info("Recovery email sent to %s", to_email)
     except Exception as e:
-        logger.error(f"Failed to send recovery email to {to_email}: {e}")
+        logger.error("Failed to send recovery email to %s: %s", to_email, e)
+        raise

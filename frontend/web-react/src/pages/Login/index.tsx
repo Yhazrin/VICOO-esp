@@ -365,6 +365,7 @@ export default function Login() {
                 {t('login.email')}
               </label>
               <input
+                id="login-email"
                 type="email"
                 value={email}
                 onChange={(e) => {
@@ -384,11 +385,12 @@ export default function Login() {
             </div>
 
             <div>
-              <label className="block font-body text-label tracking-[0.15em] uppercase text-sepia-mid mb-2">
+              <label htmlFor="login-password" className="block font-body text-label tracking-[0.15em] uppercase text-sepia-mid mb-2">
                 {t('login.password')}
               </label>
               <div className="relative">
                 <input
+                  id="login-password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => {
@@ -398,6 +400,7 @@ export default function Login() {
                   onFocus={() => setAmbientMode('password')}
                   onClick={() => nudgeAmbient('password')}
                   required
+                  aria-required="true"
                   placeholder="••••••••"
                   className="w-full px-4 py-3 pr-12 rounded-full bg-aged-stock/60 border border-warm-gray/30 font-body text-body-sm text-ink placeholder:text-ink-faded/40 focus:outline-none focus:ring-2 focus:ring-rust/30 focus:border-rust/50 transition-all"
                 />

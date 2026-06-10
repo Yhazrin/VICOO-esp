@@ -14,9 +14,9 @@ interface SepiaImageFrameProps {
   showCornerAccents?: boolean;
   accentPosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'diagonal';
   accentSize?: 'sm' | 'md' | 'lg';
-  /** View Transitions API：与列表页同名的共享元素过渡 */
+  /** View Transitions API: shared-element transition with the same name as the list page */
   viewTransitionName?: string;
-  /** 跳过滚动揭示与入场动画（详情首屏 / 过渡衔接） */
+  /** Skip scroll-reveal and entrance animation (detail first screen / transition handoff) */
   instantReveal?: boolean;
 }
 
@@ -51,7 +51,7 @@ export default function SepiaImageFrame({
   const prefersReducedMotion = useReducedMotion();
   const [imageLoaded, setImageLoaded] = useState(false);
   const skipEntrance = instantReveal || prefersReducedMotion;
-  /** 参与 View Transitions 时首帧必须可见，否则新快照拍到 opacity:0，共享元素 morph 会失效 */
+  /** When participating in View Transitions, the first frame must be visible; otherwise the new snapshot captures opacity:0 and the shared-element morph breaks */
   const imgVisible = imageLoaded || Boolean(viewTransitionName);
 
   // Determine corner accent positions based on accentPosition

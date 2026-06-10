@@ -1,3 +1,4 @@
+from decimal import Decimal
 from sqlalchemy import Column, Integer, String, DateTime, Text, Enum, DECIMAL, func, Index
 from app.database import Base
 
@@ -18,7 +19,7 @@ class Campaign(Base):
     start_date = Column(DateTime, nullable=False)
     end_date = Column(DateTime, nullable=False)
     goal_amount = Column(DECIMAL(12, 2), nullable=False)
-    current_amount = Column(DECIMAL(12, 2), default=0, nullable=False)
+    current_amount = Column(DECIMAL(12, 2), default=Decimal("0.00"), nullable=False)
     status = Column(
         Enum("draft", "active", "completed", "cancelled", name="campaign_status"),
         default="draft",

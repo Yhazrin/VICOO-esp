@@ -6,8 +6,8 @@ import './TopBar.css';
 
 export default function TopBar() {
   const { t, i18n } = useTranslation();
-  const user = useAuthStore((s: any) => s.user);
-  const logout = useAuthStore((s: any) => s.logout);
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
   const setLocale = useUIStore((s) => s.setLocale);
   const theme = useUIStore((s) => s.theme);
   const toggleTheme = useUIStore((s) => s.toggleTheme);
@@ -36,7 +36,7 @@ export default function TopBar() {
     return name?.slice(0, 2).toUpperCase() || 'AD';
   };
 
-  const displayName = user?.role === 'admin' ? 'Admin' : (user?.username || user?.nickname || 'admin');
+  const displayName = user?.role === 'admin' ? 'Admin' : (user?.username || 'admin');
 
   return (
     <header className="topbar">

@@ -1,5 +1,5 @@
 /**
- * 售后服务管理页面 (AfterSales Page)
+ * After-Sales Service Management Page
  *
  * 功能说明：
  * - 展示所有售后工单列表（退货、换货、维修）
@@ -33,7 +33,7 @@ export default function AfterSalesPage() {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['after-sales', page, statusFilter],
     queryFn: () => fetchAfterSales({ page, pageSize: 20, status: statusFilter || undefined }),
   });
@@ -181,7 +181,7 @@ export default function AfterSalesPage() {
       title: t('afterSales.colActions'),
       width: 280,
       render: (_v, record) => {
-        if (record.status === 'pending') {
+        if (record.status === 'open') {
           return (
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               <Button
@@ -272,13 +272,19 @@ export default function AfterSalesPage() {
           }}
         >
           <option value="">{t('afterSales.filterAllStatuses')}</option>
-          <option value="pending">{t('afterSales.statusPending')}</option>
-          <option value="approved">{t('afterSales.statusApproved')}</option>
-          <option value="rejected">{t('afterSales.statusRejected')}</option>
-          <option value="completed">{t('afterSales.statusCompleted')}</option>
+          <option value="open">{t('afterSales.statusOpen', 'Open')}</option>
+          <option value="in_progress">{t('afterSales.statusInProgress', 'In Progress')}</option>
+          <option value="resolved">{t('afterSales.statusResolved', 'Resolved')}</option>
+          <option value="closed">{t('afterSales.statusClosed', 'Closed')}</option>
         </select>
       </div>
 
+      {isError && (
+        <div style={{ padding: 16, marginBottom: 16, background: 'var(--color-danger-bg, #fef2f2)', border: '1px solid var(--color-danger-border, #fecaca)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ color: 'var(--color-danger, #dc2626)', fontSize: 14 }}>{t('generic.error')}</span>
+          <button onClick={() => queryClient.invalidateQueries({ queryKey: ['after-sales'] })} style={{ padding: '4px 12px', fontSize: 13, cursor: 'pointer', border: '1px solid var(--color-border)', borderRadius: 4, background: 'transparent' }}>{t('generic.retry', 'Retry')}</button>
+        </div>
+      )}
       <DataTable columns={columns} data={items} loading={isLoading} rowKey="id" />
 
       <div style={{ marginTop: 24 }}>
