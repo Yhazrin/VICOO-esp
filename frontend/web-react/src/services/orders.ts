@@ -22,7 +22,7 @@ export interface OrderDetail {
   id: number;
   user_id: number;
   order_no: string;
-  total_amount: string | number;
+  total_amount: number;
   status: string;
   /** Signed token for demo QR payment (create order response only). */
   mock_pay_token?: string;
@@ -57,7 +57,11 @@ export interface ReturnRequestData {
 
 export const ordersApi = {
   create: async (data: CreateOrderRequest): Promise<OrderDetail> => {
-    const response = await api.post('/orders', data);
+    // P1: Idempotency key to prevent duplicate orders on rapid submit
+    const idempotencyKey = crypto.randomUUID();
+    const response = await api.post('/orders', data, {
+      headers: { 'Idempotency-Key': idempotencyKey },
+    });
     return response.data.data;
   },
 

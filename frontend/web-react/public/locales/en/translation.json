@@ -48,6 +48,33 @@
     "error": {
       "invalidCredentials": "Invalid email or password",
       "userNotFound": "User not found"
+    },
+    "testAccounts": {
+      "show": "View demo test accounts",
+      "hide": "Hide test accounts",
+      "title": "Demo test accounts",
+      "subtitle": "For reviewers and local demos only. Tap an account to fill the sign-in form.",
+      "close": "Close",
+      "fillForm": "Tap to fill",
+      "filled": "Credentials filled in the form",
+      "copyEmail": "Copy email",
+      "copyPassword": "Copy password",
+      "copied": "Copied",
+      "adminPanelSection": "Admin console (:8080)",
+      "openAdminPanel": "Open admin sign-in",
+      "adminPanelNote": "For the admin SPA — not this sign-in page",
+      "roles": {
+        "admin": "Admin (website)",
+        "editor": "Editor",
+        "user": "Regular user",
+        "adminPanel": "Admin console"
+      },
+      "hints": {
+        "admin": "Full access: products, campaigns, orders, users, and more.",
+        "editor": "Content: campaigns, editorial, artwork review.",
+        "user": "Shop, donate, vote, and manage profile.",
+        "adminPanel": "Sign in at localhost:8080 — separate from website accounts above."
+      }
     }
   },
   "register": {
@@ -205,6 +232,58 @@
       "donate": "Make a Donation",
       "shop": "Shop Sustainably"
     },
+    "impactHero": {
+      "eyebrow": "SDG 12 · Responsible Consumption and Production",
+      "title": "Every Action Leaves a Trace.",
+      "subtitle": "In collaboration with UNIQLO, VICOO connects everyday essentials with recycled materials, traceable product journeys, and responsible consumption aligned with SDG 12.",
+      "subtitleShort": "VICOO × UNIQLO — traceable journeys, recycled materials, and responsible consumption under SDG 12.",
+      "tagsAria": "Focus areas",
+      "tags": {
+        "collab": "VICOO × UNIQLO",
+        "sdg12": "SDG 12 Responsible Consumption",
+        "recycled": "Recycled Materials",
+        "traceable": "Traceable Products",
+        "circular": "Circular Impact"
+      },
+      "cta": {
+        "explore": "Explore Impact",
+        "shop": "Shop the Collaboration"
+      },
+      "scrollHint": "Scroll",
+      "cards": {
+        "everyday": {
+          "title": "Everyday Wear, Made Responsible",
+          "body": "Essentials designed for longer wear and lighter footprint."
+        },
+        "trace": {
+          "title": "Trace Every Product Journey",
+          "body": "Follow materials from source to finished piece."
+        },
+        "recycle": {
+          "title": "Recycle Materials Back",
+          "body": "Return fibers into the loop instead of waste."
+        },
+        "circularFashion": {
+          "title": "Support Circular Fashion",
+          "body": "Choose pieces that keep value in motion."
+        }
+      }
+    },
+    "impactNarrative": {
+      "scene01": {
+        "line1": "Every Action",
+        "line2": "Leaves a",
+        "line3": "Trace.",
+        "subtitle": "VICOO × UNIQLO — recycled materials, traceable journeys, circular choices under SDG 12."
+      },
+      "scene04": {
+        "title": "Every Action Leaves a Trace.",
+        "subtitle": "Responsible consumption, made visible — from essentials to recycled fibers."
+      }
+    },
+    "impactCta": {
+      "title": "Every Action Leaves a Trace."
+    },
     "globe": {
       "label": "Model A — Traceability",
       "title": "Every Thread, Traced",
@@ -222,6 +301,8 @@
       },
       "scene02": {
         "quote": "Where imagination meets fabric, stories are worn.",
+        "title": "Proof does not need to flood the frame.",
+        "body": "Each supply-chain waypoint becomes a quiet verified signal, orbiting the same material journey so the opening globe can keep carrying the story forward.",
         "artworkAlt": "Children's artwork {{n}}"
       },
       "scene03": {
@@ -625,7 +706,8 @@
       "notifyEmailLabel": "Email",
       "send": "Send",
       "artworkBy": "Artwork by {{name}}, age {{age}}",
-      "campaign": "campaign"
+      "campaign": "campaign",
+      "sustainabilityBadge": "Sustainability {{score}} · {{tier}}"
     },
     "detail": {
       "addToCart": "Add to Cart",
@@ -646,14 +728,43 @@
       "viewImageAria": "View image {{n}}",
       "loading": "Loading...",
       "reviews": "Reviews",
-      "reviewsLead": "Real feedback from buyers, for reference only.",
+      "reviewsEyebrow": "Community feedback",
+      "reviewsLead": "Real feedback from wearers, focused on comfort, quality, packaging, and impact.",
+      "reviewsCommunityTitle": "Community Reviews",
+      "reviewsCommunityLead": "Real feedback on fit, comfort, packaging, and traceable impact.",
+      "reviewsVerifiedOnly": "Verified feedback only",
+      "reviewsCount": "{{count}} reviews",
+      "reviewsCountOne": "{{count}} review",
+      "reviewsSignInLead": "Sign in to share how this piece fits and what impact you noticed.",
+      "reviewsSignInCta": "Sign in to review",
       "noReviews": "No reviews yet",
+      "noReviewsBody": "Be the first to share how this piece feels, fits, and contributes to a more responsible wardrobe.",
       "rating": "Rating",
       "writeReview": "Write a Review",
+      "writeReviewLead": "Your feedback helps others make thoughtful choices.",
+      "reviewTitleLabel": "Review title",
+      "reviewTitlePlaceholder": "Summarize your experience",
+      "reviewBodyLabel": "Your review",
+      "reviewBodyPlaceholder": "Share your thoughts on wearing, packaging, material quality, or impact.",
+      "reviewChipsLabel": "Highlights (optional)",
+      "reviewChips": {
+        "trueToSize": "True to size",
+        "comfortableFabric": "Comfortable fabric",
+        "thoughtfulPackaging": "Thoughtful packaging",
+        "impactVisible": "Impact feels visible"
+      },
+      "reviewDimensions": {
+        "fitComfort": "Fit & Comfort",
+        "packaging": "Packaging",
+        "traceableImpact": "Traceable Impact"
+      },
       "reviewTitle": "Title (optional)",
       "reviewBody": "Share your wearing or packaging experience",
       "reviewError": "You may have already reviewed this product",
-      "submitReview": "Submit",
+      "reviewSubmitFailed": "Could not submit your review. Please try again.",
+      "reviewSuccess": "Thank you — your review has been published.",
+      "reviewAuthorAnonymous": "Verified buyer",
+      "submitReview": "Submit Review",
       "backToShop": "Back to shop",
       "backToImpactShop": "Back to impact shop",
       "globeTitle": "Global traceability",
@@ -769,7 +880,7 @@
       "votes": "{{count}} votes"
     },
     "donationBadge": "{{percentage}}% donated",
-    "supportsCampaign": "Supports: {{campaign}}",
+    "supportsCampaign": "Charity: {{campaign}}",
     "viewTraceability": "Trace to Source",
     "filterByCampaign": "Filter by Campaign",
     "allCampaigns": "All Campaigns",
@@ -1159,6 +1270,60 @@
     "clothingHint": "Idle clothing can also be donated, processed into welfare products, with proceeds supporting rural arts education.",
     "clothingHintShort": "Clothing reuse program",
     "donateLink": "Donate Clothing →",
+    "nameError": "Name must be 2-50 characters",
+    "nameErrorCn": "请输入2-50位姓名",
+    "nameErrorTw": "請輸入2-50位姓名",
+    "phoneError": "Invalid phone number",
+    "phoneErrorCn": "请输入有效的11位手机号码",
+    "phoneErrorTw": "請輸入有效的10位台灣手機號碼",
+    "addressError": "Address must be 5-200 characters",
+    "addressErrorCn": "地址长度需在5-200字符",
+    "addressErrorTw": "地址長度需在5-200字符",
+    "postalCodeError": "Invalid postal code format",
+    "postalCodeErrorCn": "请输入6位邮政编码",
+    "postalCodeErrorTw": "請輸入3-5位郵遞區號",
+    "phoneErrorHk": "请输入有效的8位香港手机号码",
+    "phoneErrorSg": "请输入有效的8位新加坡手机号码",
+    "phoneErrorJp": "请输入有效的日本电话号码",
+    "phoneErrorKr": "请输入有效的韩国手机号码",
+    "phoneErrorUs": "请输入有效的美国电话号码",
+    "phoneErrorCa": "请输入有效的加拿大电话号码",
+    "phoneErrorUk": "请输入有效的英国电话号码",
+    "phoneErrorDe": "请输入有效的德国电话号码",
+    "phoneErrorFr": "请输入有效的法国电话号码",
+    "phoneErrorAu": "请输入有效的澳大利亚电话号码",
+    "postalCodeErrorJp": "格式: 123-4567 或 1234567",
+    "postalCodeErrorKr": "请输入5位邮政编码",
+    "postalCodeErrorUs": "格式: 12345 或 12345-6789",
+    "postalCodeErrorCa": "格式: A1A 1A1",
+    "postalCodeErrorUk": "格式: SW1A 1AA",
+    "nameErrorHk": "请输入2-50位中英文姓名",
+    "phonePlaceholderCn": "Enter 11-digit mobile number",
+    "phonePlaceholderTw": "Enter 10-digit mobile number",
+    "phonePlaceholderHk": "Enter 8-digit phone number",
+    "phonePlaceholderSg": "Enter 8-digit phone number",
+    "phonePlaceholderJp": "Enter phone number",
+    "phonePlaceholderKr": "Enter 10/11-digit mobile number",
+    "phonePlaceholderUs": "Enter 10-digit phone number",
+    "phonePlaceholderCa": "Enter 10-digit phone number",
+    "phonePlaceholderUk": "Enter 11-digit phone number",
+    "phonePlaceholderDe": "Enter 10/11-digit phone number",
+    "phonePlaceholderFr": "Enter 10-digit phone number",
+    "phonePlaceholderAu": "Enter 9/10-digit phone number",
+    "namePlaceholder": "Enter your name",
+    "postalCodePlaceholder": "Enter postal code",
+    "fieldCountry": "Country/Region",
+    "fieldContactName": "Contact Name",
+    "phoneErrorHk": "Please enter a valid 8-digit Hong Kong mobile number",
+    "phoneErrorSg": "Please enter a valid 8-digit Singapore mobile number",
+    "phoneErrorJp": "Please enter a valid Japanese phone number",
+    "phoneErrorKr": "Please enter a valid South Korean mobile number",
+    "phoneErrorUs": "Please enter a valid 10-digit US phone number",
+    "phoneErrorCa": "Please enter a valid 10-digit Canadian phone number",
+    "phoneErrorUk": "Please enter a valid 10-digit UK phone number",
+    "phoneErrorDe": "Please enter a valid 10/11-digit German phone number",
+    "phoneErrorFr": "Please enter a valid 10-digit French phone number",
+    "phoneErrorAu": "Please enter a valid 9/10-digit Australian phone number",
     "heroTitle": "Circular Fashion",
     "heroSubtitle": "Give old garments a second life, from submission and review to relisting and reuse.",
     "statRecycled": "Garments Recovered",
@@ -1393,7 +1558,6 @@
     },
     "actionCard": {
       "donationList": "Donation Records",
-      "campaignProgress": "Campaign Progress",
       "impactFund": "Impact Fund"
     }
   },
@@ -1423,7 +1587,26 @@
       "successDesc": "We will process your request within 1-3 business days."
     },
     "cancelError": "Failed to cancel order. Please try again.",
-    "returnError": "Failed to submit return/exchange request. Please try again."
+    "returnError": "Failed to submit return/exchange request. Please try again.",
+    "writeReview": "Write a Review",
+    "reviewSuccessHint": "Your review will appear in the product's community feedback section",
+    "afterSale": {
+      "title": "After-Sales Progress",
+      "typeReturn": "Return",
+      "typeExchange": "Exchange",
+      "rejected": "Rejected",
+      "completed": "Completed",
+      "inProgress": "In Progress",
+      "replacementOrder": "Replacement Order",
+      "viewReplacementOrder": "View replacement logistics",
+      "steps": {
+        "submitted": "Submitted",
+        "reviewing": "Under Review",
+        "processing": "Processing",
+        "exchangeShipping": "Exchange Shipping",
+        "completed": "Completed"
+      }
+    }
   },
   "cart": {
     "title": "Shopping Bag",
@@ -1505,7 +1688,32 @@
     "linkCopied": "Link copied",
     "copyFailed": "Copy failed — select the link manually",
     "qrFallbackHint": "If scanning fails, open the link above on your phone (browser or chat).",
-    "localhostQrWarning": "You are on localhost — phones cannot open it. Set VITE_PUBLIC_SITE_ORIGIN in .env to your LAN or public site URL (e.g. http://192.168.x.x:9111)."
+    "localhostQrWarning": "You are on localhost — phones cannot open it. Set VITE_PUBLIC_SITE_ORIGIN in .env to your LAN or public site URL (e.g. http://192.168.x.x:9111).",
+    "phoneErrorChina": "Please enter a valid 11-digit Chinese mobile number",
+    "phoneErrorTaiwan": "Please enter a valid 10-digit Taiwanese mobile number",
+    "phoneErrorHongKong": "Please enter a valid 8-digit Hong Kong mobile number",
+    "phoneErrorSingapore": "Please enter a valid 8-digit Singapore mobile number",
+    "phoneErrorJapan": "Please enter a valid Japanese phone number",
+    "phoneErrorKr": "Please enter a valid South Korean mobile number",
+    "phoneErrorUs": "Please enter a valid 10-digit US phone number",
+    "phoneErrorCa": "Please enter a valid 10-digit Canadian phone number",
+    "phoneErrorUk": "Please enter a valid 10-digit UK phone number",
+    "phoneErrorDe": "Please enter a valid 10/11-digit German phone number",
+    "phoneErrorFr": "Please enter a valid 10-digit French phone number",
+    "phoneErrorAu": "Please enter a valid 9/10-digit Australian phone number",
+    "phoneErrorDefault": "Please enter a valid phone number",
+    "nameError": "Invalid name format. Please use Chinese or English characters.",
+    "nameErrorChina": "Name must be 2-50 characters in Chinese or English",
+    "nameErrorTaiwan": "Name must be 2-50 characters in Chinese or English",
+    "addressError": "Invalid address format",
+    "addressErrorChina": "Address must be 5-200 characters",
+    "addressErrorTaiwan": "Address must be 5-200 characters",
+    "postalCodeError": "Invalid postal code format",
+    "postalCodeErrorChina": "Please enter 6-digit postal code",
+    "postalCodeErrorTaiwan": "Please enter 3-5 digit postal code",
+    "postalCodeErrorUS": "Format: 12345 or 12345-6789",
+    "postalCodeErrorCA": "Format: A1A 1A1",
+    "postalCodeErrorUK": "Format: SW1A 1AA"
   },
   "submitArtwork": {
     "loginRequired": "Please log in to submit artwork",
@@ -1745,6 +1953,33 @@
     "addressPlaceholder": "Enter the full pickup address",
     "fieldPhone": "Contact Phone *",
     "phonePlaceholder": "11-digit mobile number",
+    "fieldCountry": "Country/Region",
+    "fieldContactName": "Contact Name",
+    "namePlaceholder": "Enter your name",
+    "postalCodePlaceholder": "Enter postal code",
+    "phoneError": "Invalid phone number",
+    "phoneErrorCn": "Please enter a valid 11-digit Chinese mobile number",
+    "phoneErrorTw": "Please enter a valid 10-digit Taiwanese mobile number",
+    "phoneErrorHk": "Please enter a valid 8-digit Hong Kong mobile number",
+    "phoneErrorSg": "Please enter a valid 8-digit Singapore mobile number",
+    "phoneErrorJp": "Please enter a valid Japanese phone number",
+    "phoneErrorKr": "Please enter a valid South Korean mobile number",
+    "phoneErrorUs": "Please enter a valid 10-digit US phone number",
+    "phoneErrorCa": "Please enter a valid 10-digit Canadian phone number",
+    "phoneErrorUk": "Please enter a valid 10-digit UK phone number",
+    "phoneErrorDe": "Please enter a valid 10/11-digit German phone number",
+    "phoneErrorFr": "Please enter a valid 10-digit French phone number",
+    "phoneErrorAu": "Please enter a valid 9/10-digit Australian phone number",
+    "nameError": "Name must be 2-50 characters",
+    "nameErrorCn": "Please enter 2-50 characters name",
+    "nameErrorTw": "Please enter 2-50 characters name",
+    "nameErrorHk": "Please enter 2-50 characters name",
+    "addressError": "Address must be 5-200 characters",
+    "addressErrorCn": "Address must be 5-200 characters",
+    "addressErrorTw": "Address must be 5-200 characters",
+    "postalCodeError": "Invalid postal code format",
+    "postalCodeErrorCn": "Please enter 6-digit postal code",
+    "postalCodeErrorTw": "Please enter 3-5 digit postal code",
     "submitBtn": "Submit Recycling Request",
     "submitSuccess": "Submitted Successfully!",
     "submitError": "Submission failed. Please try again later.",

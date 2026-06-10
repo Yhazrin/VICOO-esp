@@ -44,33 +44,58 @@ body::before {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse at 15% 30%, var(--paper-texture-1, rgba(196, 164, 90, 0.05)) 0%, transparent 45%),
-    radial-gradient(ellipse at 85% 15%, var(--paper-texture-2, rgba(139, 58, 42, 0.04)) 0%, transparent 40%),
-    radial-gradient(ellipse at 50% 85%, var(--paper-texture-3, rgba(92, 64, 51, 0.03)) 0%, transparent 55%),
-    radial-gradient(ellipse at 70% 60%, var(--paper-texture-4, rgba(212, 207, 196, 0.08)) 0%, transparent 50%);
+    radial-gradient(ellipse at 15% 30%, var(--paper-texture-1, rgba(0, 0, 0, 0.02)) 0%, transparent 45%),
+    radial-gradient(ellipse at 85% 15%, var(--paper-texture-2, rgba(0, 0, 0, 0.02)) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 85%, var(--paper-texture-3, rgba(0, 0, 0, 0.015)) 0%, transparent 55%),
+    radial-gradient(ellipse at 70% 60%, var(--paper-texture-4, rgba(0, 0, 0, 0.03)) 0%, transparent 50%);
 }
 
 /* ── 公益壳：现代玻璃质感（与常规店 editorial 低饱和区分） ── */
+/* ⚠️ 不再覆盖 --color-* / --theme-* 变量 —— 主题切换由 data-theme 独立控制 */
+/* ⚠️ 公益专属颜色使用 --welfare-* 变量，组件需使用 welfare- 相关 class */
 html[data-welfare-vivid] {
-  --color-paper: #ffffff;
-  --color-aged-stock: #f8f9fa;
-  --color-warm-gray: #e2e5e9;
-  --color-muted-gray: #9ca3af;
-  --color-ink: #111827;
-  --color-ink-faded: #4b5563;
-  --color-ink-light: #6b7280;
-  --color-sepia-dark: #1f2937;
-  --color-sepia-mid: #6b7280;
-  --color-sepia-light: #9ca3af;
-  --color-rust: #ef4444;
-  --color-rust-light: #f87171;
-  --color-rust-dark: #dc2626;
-  --color-sage: #059669;
-  --color-sage-light: #34d399;
-  --color-sage-lighter: #6ee7b7;
-  --color-sage-muted: #a7f3d0;
-  --color-sage-pale: #d1fae5;
-  --color-sage-dark: #047857;
+  /* 公益壳背景与面板 — 独立变量，不污染主题 */
+  --welfare-bg: #ffffff;
+  --welfare-bg-elevated: #f8f9fa;
+  /* 公益壳顶栏玻璃色 */
+  --welfare-header-bg: rgba(255, 255, 255, 0.92);
+  --welfare-bg-subtle: rgba(255, 255, 255, 0.85);
+  --welfare-panel: rgba(255, 255, 255, 0.85);
+  --welfare-panel-border: rgba(0, 0, 0, 0.06);
+
+  /* 公益壳文字色 */
+  --welfare-text: #111827;
+  --welfare-text-muted: #4b5563;
+  --welfare-text-light: #6b7280;
+
+  /* 公益壳主色调（替代 editorial 的 rust） */
+  --welfare-primary: #ef4444;
+  --welfare-primary-light: #f87171;
+  --welfare-primary-dark: #dc2626;
+
+  /* 公益壳成功/安全色（替代 editorial 的 sage） */
+  --welfare-success: #059669;
+  --welfare-success-light: #34d399;
+  --welfare-success-lighter: #6ee7b7;
+  --welfare-success-muted: #a7f3d0;
+  --welfare-success-pale: #d1fae5;
+  --welfare-success-dark: #047857;
+
+  /* 公益壳中性色 */
+  --welfare-gray: #e2e5e9;
+  --welfare-gray-muted: #9ca3af;
+
+  /* 公益壳圆角/阴影 */
+  --welfare-radius-sm: 8px;
+  --welfare-radius-md: 12px;
+  --welfare-radius-lg: 16px;
+  --welfare-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --welfare-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.03);
+  --welfare-shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.06), 0 4px 10px rgba(0, 0, 0, 0.04);
+
+  /* 公益壳图片滤镜 */
+  --welfare-img-filter: none;
+  --welfare-img-filter-hover: none;
 }
 
 html[data-welfare-vivid] body::before {
@@ -80,7 +105,63 @@ html[data-welfare-vivid] body::before {
     linear-gradient(135deg, rgba(248, 249, 250, 0.5) 0%, rgba(255, 255, 255, 0) 100%);
 }
 
-/* 公益壳 — 现代玻璃质感覆盖 */
+/* ── 公益壳 × 暗色主题：dark-pink 进入 impact 模式时的纯黑底 ── */
+html[data-welfare-vivid][data-dark-theme] {
+  --color-paper: #000000;
+  --color-aged-stock: #0A0A0E;
+  --theme-bg: #000000;
+  --theme-bg-elevated: #0A0A0E;
+  --theme-bg-subtle: #000000;
+
+  --welfare-bg: #000000;
+  --welfare-bg-elevated: #0A0A0E;
+  --welfare-header-bg: rgba(0, 0, 0, 0.8);
+  --welfare-bg-subtle: rgba(10, 10, 14, 0.9);
+  --welfare-panel: rgba(18, 18, 24, 0.85);
+  --welfare-panel-border: rgba(255, 255, 255, 0.06);
+
+  --welfare-text: #F0ECE8;
+  --welfare-text-muted: #9A969C;
+  --welfare-text-light: #6A666C;
+
+  --welfare-primary: #E6397C;
+  --welfare-primary-light: #FF5090;
+  --welfare-primary-dark: #C42060;
+
+  --welfare-success: #5CBD5C;
+  --welfare-success-light: #34d399;
+  --welfare-success-lighter: #6ee7b7;
+  --welfare-success-muted: #1A3A1A;
+  --welfare-success-pale: #0A2E0A;
+  --welfare-success-dark: #3A8A3A;
+
+  --welfare-gray: #3A3A44;
+  --welfare-gray-muted: #55555E;
+
+  --welfare-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --welfare-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.25);
+  --welfare-shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.4), 0 4px 10px rgba(0, 0, 0, 0.3);
+
+  --welfare-img-filter: brightness(0.9) contrast(1.1);
+  --welfare-img-filter-hover: brightness(0.95) contrast(1.1);
+}
+
+/* 暗色公益壳：纸纹关掉，防止底色被抬灰 */
+html[data-welfare-vivid][data-dark-theme] body::before {
+  background: none;
+}
+
+/* 暗色公益壳：滚动条暗化 */
+html[data-welfare-vivid][data-dark-theme] ::-webkit-scrollbar-thumb {
+  background: var(--welfare-gray, #3A3A44);
+  border-radius: var(--welfare-radius-sm, 8px);
+  border: 2px solid var(--welfare-bg, #000000);
+}
+html[data-welfare-vivid][data-dark-theme] ::-webkit-scrollbar-thumb:hover {
+  background: var(--welfare-gray-muted, #55555E);
+}
+
+/* 公益壳 — 现代玻璃质感覆盖（仅覆盖结构变量，不污染颜色） */
 html[data-welfare-vivid] {
   --img-filter: none;
   --img-filter-hover: none;
@@ -92,38 +173,111 @@ html[data-welfare-vivid] {
   --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.06), 0 4px 10px rgba(0, 0, 0, 0.04);
 }
 
-/* 公益壳 — 卡片玻璃化 */
-html[data-welfare-vivid] .vintage-card,
-html[data-welfare-vivid] .editorial-card {
-  border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+/* 公益壳 — 卡片玻璃化（使用 welfare- 相关 class） */
+html[data-welfare-vivid] .welfare-glass-card {
+  border-radius: var(--welfare-radius-md, 12px);
+  border: 1px solid var(--welfare-panel-border, rgba(0, 0, 0, 0.06));
+  box-shadow: var(--welfare-shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.04));
   backdrop-filter: blur(8px);
-  background: rgba(255, 255, 255, 0.85);
-}
-
-html[data-welfare-vivid] .vintage-card::before,
-html[data-welfare-vivid] .vintage-card::after {
-  display: none;
+  background: var(--welfare-panel, rgba(255, 255, 255, 0.85));
 }
 
 /* 公益壳 — 图片去掉 sepia 滤镜 */
 html[data-welfare-vivid] img {
-  filter: none;
+  filter: var(--welfare-img-filter, none);
 }
 html[data-welfare-vivid] img:hover {
-  filter: none;
+  filter: var(--welfare-img-filter-hover, none);
 }
 
 /* 公益壳 — 滚动条现代化 */
 html[data-welfare-vivid] ::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 8px;
-  border: 2px solid #f8f9fa;
+  background: var(--welfare-gray, #d1d5db);
+  border-radius: var(--welfare-radius-sm, 8px);
+  border: 2px solid var(--welfare-bg-elevated, #f8f9fa);
 }
 html[data-welfare-vivid] ::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
+  background: var(--welfare-gray-muted, #9ca3af);
 }
+
+/* ── Welfare 模式专用工具类 ── */
+/* ⚠️ 这些类仅在 data-welfare-vivid 存在时生效，使用 --welfare-* 变量不污染主题系统 */
+html[data-welfare-vivid] {
+  /* Welfare 背景色 */
+  --welfare-bg-rgb: 255, 255, 255;
+  --welfare-bg-elevated-rgb: 248, 249, 250;
+}
+html[data-welfare-vivid] .welfare-bg { background-color: var(--welfare-bg, #ffffff); }
+html[data-welfare-vivid] .welfare-bg-elevated { background-color: var(--welfare-bg-elevated, #f8f9fa); }
+html[data-welfare-vivid] .welfare-bg-subtle { background-color: var(--welfare-bg-subtle, rgba(255, 255, 255, 0.85)); }
+html[data-welfare-vivid] .welfare-bg-white\/20 { background-color: rgba(255, 255, 255, 0.2); }
+html[data-welfare-vivid] .welfare-bg-white\/22 { background-color: rgba(255, 255, 255, 0.22); }
+html[data-welfare-vivid] .welfare-bg-white\/45 { background-color: rgba(255, 255, 255, 0.45); }
+html[data-welfare-vivid] .welfare-bg-white\/80 { background-color: rgba(255, 255, 255, 0.8); }
+html[data-welfare-vivid] .welfare-bg-white\/92 { background-color: rgba(252, 250, 246, 0.92); }
+
+/* Welfare 文字色 */
+html[data-welfare-vivid] .welfare-text { color: var(--welfare-text, #111827); }
+html[data-welfare-vivid] .welfare-text-muted { color: var(--welfare-text-muted, #4b5563); }
+html[data-welfare-vivid] .welfare-text-light { color: var(--welfare-text-light, #6b7280); }
+html[data-welfare-vivid] .welfare-text-white { color: #ffffff; }
+
+/* Welfare 主色（替代 editorial rust） */
+html[data-welfare-vivid] .welfare-primary { color: var(--welfare-primary, #ef4444); }
+html[data-welfare-vivid] .welfare-primary-light { color: var(--welfare-primary-light, #f87171); }
+html[data-welfare-vivid] .welfare-bg-primary { background-color: var(--welfare-primary, #ef4444); }
+html[data-welfare-vivid] .welfare-bg-primary-light { background-color: var(--welfare-primary-light, #f87171); }
+
+/* Welfare 成功色（替代 editorial sage） */
+html[data-welfare-vivid] .welfare-success { color: var(--welfare-success, #059669); }
+html[data-welfare-vivid] .welfare-bg-success { background-color: var(--welfare-success, #059669); }
+html[data-welfare-vivid] .welfare-bg-success-light { background-color: var(--welfare-success-light, #34d399); }
+html[data-welfare-vivid] .welfare-bg-sage\/5 { background-color: rgba(5, 150, 105, 0.05); }
+html[data-welfare-vivid] .welfare-border-sage\/35 { border-color: rgba(5, 150, 105, 0.35); }
+
+/* Welfare 边框色 */
+html[data-welfare-vivid] .welfare-border-white\/20 { border-color: rgba(255, 255, 255, 0.2); }
+html[data-welfare-vivid] .welfare-border-white\/35 { border-color: rgba(255, 255, 255, 0.35); }
+html[data-welfare-vivid] .welfare-border-rust\/25 { border-color: rgba(239, 68, 68, 0.25); }
+html[data-welfare-vivid] .welfare-border-warm-gray\/15 { border-color: rgba(226, 229, 233, 0.15); }
+html[data-welfare-vivid] .welfare-border-warm-gray\/20 { border-color: rgba(226, 229, 233, 0.2); }
+
+/* Welfare 阴影 */
+html[data-welfare-vivid] .welfare-shadow-inner-white\/45 { box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.45); }
+html[data-welfare-vivid] .welfare-shadow-sm { box-shadow: var(--welfare-shadow-sm); }
+html[data-welfare-vivid] .welfare-shadow-md { box-shadow: var(--welfare-shadow-md); }
+html[data-welfare-vivid] .welfare-shadow-lg { box-shadow: var(--welfare-shadow-lg); }
+
+/* Welfare 圆角 */
+html[data-welfare-vivid] .welfare-rounded-md { border-radius: var(--welfare-radius-md, 12px); }
+html[data-welfare-vivid] .welfare-rounded-lg { border-radius: var(--welfare-radius-lg, 16px); }
+html[data-welfare-vivid] .welfare-rounded-full { border-radius: 9999px; }
+
+/* Welfare 模糊 */
+html[data-welfare-vivid] .welfare-backdrop-blur-md { backdrop-filter: blur(12px); }
+html[data-welfare-vivid] .welfare-backdrop-blur-xl { backdrop-filter: blur(20px); }
+
+/* Welfare 环形进度条颜色 */
+html[data-welfare-vivid] .welfare-ring-success { --tw-ring-color: var(--welfare-success, #059669); }
+
+/* ── 暗色公益壳：工具类反转 ── */
+html[data-welfare-vivid][data-dark-theme] {
+  --welfare-bg-rgb: 0, 0, 0;
+  --welfare-bg-elevated-rgb: 10, 10, 14;
+}
+html[data-welfare-vivid][data-dark-theme] .welfare-bg-white\/20 { background-color: rgba(255, 255, 255, 0.04); }
+html[data-welfare-vivid][data-dark-theme] .welfare-bg-white\/22 { background-color: rgba(255, 255, 255, 0.05); }
+html[data-welfare-vivid][data-dark-theme] .welfare-bg-white\/45 { background-color: rgba(255, 255, 255, 0.08); }
+html[data-welfare-vivid][data-dark-theme] .welfare-bg-white\/80 { background-color: rgba(255, 255, 255, 0.12); }
+html[data-welfare-vivid][data-dark-theme] .welfare-bg-white\/92 { background-color: rgba(10, 10, 14, 0.92); }
+html[data-welfare-vivid][data-dark-theme] .welfare-shadow-inner-white\/45 { box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.06); }
+html[data-welfare-vivid][data-dark-theme] .welfare-border-white\/20 { border-color: rgba(255, 255, 255, 0.06); }
+html[data-welfare-vivid][data-dark-theme] .welfare-border-white\/35 { border-color: rgba(255, 255, 255, 0.08); }
+html[data-welfare-vivid][data-dark-theme] .welfare-border-warm-gray\/15 { border-color: rgba(255, 255, 255, 0.05); }
+html[data-welfare-vivid][data-dark-theme] .welfare-border-warm-gray\/20 { border-color: rgba(255, 255, 255, 0.06); }
+html[data-welfare-vivid][data-dark-theme] .welfare-border-rust\/25 { border-color: rgba(230, 57, 124, 0.25); }
+html[data-welfare-vivid][data-dark-theme] .welfare-bg-sage\/5 { background-color: rgba(92, 189, 92, 0.08); }
+html[data-welfare-vivid][data-dark-theme] .welfare-border-sage\/35 { border-color: rgba(92, 189, 92, 0.25); }
 
 /* ── Scrollbar — Editorial Style ── */
 ::-webkit-scrollbar {

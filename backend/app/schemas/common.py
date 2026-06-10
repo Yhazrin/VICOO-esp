@@ -71,6 +71,7 @@ class AuditLogOut(BaseModel):
     resource_id: Optional[str] = None
     details: Optional[str] = None
     ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
     timestamp: datetime
 
     model_config = {"from_attributes": True}

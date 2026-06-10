@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Locale } from '@/types';
 
-export type ThemeId = 'editorial' | 'morandi' | 'sepia' | 'monochrome' | 'ink' | 'forest' | 'autumn' | 'mist-blue' | 'deep-sea' | 'dopamine';
+export type ThemeId = 'monochrome' | 'sweet-cyan' | 'deep-sea' | 'aurora' | 'dark-pink' | 'soft-pink';
 export type AIBallStyle = 'orb' | 'particles';
 
 export interface ThemeConfig {
@@ -15,81 +15,66 @@ export interface ThemeConfig {
 
 export const THEMES: ThemeConfig[] = [
   {
-    id: 'editorial',
-    name: 'Editorial Paper',
-    nameCn: '编辑纸张',
-    description: 'Classic warm paper aesthetic',
-    preview: 'linear-gradient(135deg, #F7F5F2 0%, #E8E4E0 100%)',
-  },
-  {
-    id: 'morandi',
-    name: 'Morandi',
-    nameCn: '莫兰迪灰',
-    description: 'Soft muted tones inspired by Giorgio Morandi',
-    preview: 'linear-gradient(135deg, #8B8178 0%, #C4BDB4 100%)',
-  },
-  {
-    id: 'sepia',
-    name: 'Sepia Tone',
-    nameCn: '复古 Sepia',
-    description: 'Warm vintage brown tones',
-    preview: 'linear-gradient(135deg, #8B7355 0%, #D4C4B0 100%)',
-  },
-  {
     id: 'monochrome',
     name: 'Pure Mono',
     nameCn: '纯粹黑白',
     description: 'Stark black and white contrast',
-    preview: 'linear-gradient(135deg, #1A1A1A 0%, #F5F5F5 100%)',
+    preview: 'linear-gradient(135deg, #1A1A1D 0%, #FFFFFF 100%)',
   },
   {
-    id: 'ink',
-    name: 'Ink Wash',
-    nameCn: '水墨风格',
-    description: 'Traditional Chinese ink painting aesthetic',
-    preview: 'linear-gradient(135deg, #2D2A26 0%, #6B6560 100%)',
-  },
-  {
-    id: 'forest',
-    name: 'Forest Floor',
-    nameCn: '森林苔藓',
-    description: 'Natural greens and earth tones',
-    preview: 'linear-gradient(135deg, #5A6A56 0%, #96A692 100%)',
-  },
-  {
-    id: 'autumn',
-    name: 'Autumn Leaves',
-    nameCn: '秋日枫红',
-    description: 'Rich warm amber and rust tones',
-    preview: 'linear-gradient(135deg, #A65D4E 0%, #D4A574 100%)',
-  },
-  {
-    id: 'mist-blue',
-    name: 'Mist Blue',
-    nameCn: '雾蓝主题',
-    description: 'Calm, versatile, suitable as default theme',
-    preview: 'linear-gradient(135deg, #8FB4B5 0%, #C4CED6 100%)',
+    id: 'sweet-cyan',
+    name: 'Sweet Cyan',
+    nameCn: '甜酷青',
+    description: 'Vibrant pink meets cyan',
+    preview: 'linear-gradient(135deg, #E6397C 0%, #01847F 100%)',
   },
   {
     id: 'deep-sea',
     name: 'Deep Sea',
-    nameCn: '深海静蓝',
-    description: 'Professional, engineering-focused, suitable for backend systems',
-    preview: 'linear-gradient(135deg, #647684 0%, #B4C0CA 100%)',
+    nameCn: '深海蓝',
+    description: 'Deep ocean blue with clarity',
+    preview: 'linear-gradient(135deg, #122E8A 0%, #FFFFFF 100%)',
   },
   {
-    id: 'dopamine',
-    name: 'Dopamine',
-    nameCn: '多巴胺红蓝',
-    description: 'Vibrant red-blue-white energy palette',
-    preview: 'linear-gradient(135deg, #2668FD 0%, #FD4401 100%)',
+    id: 'aurora',
+    name: 'Aurora Purple',
+    nameCn: '极光紫',
+    description: 'Dreamy aurora purple haze',
+    preview: 'linear-gradient(135deg, #9F82FD 0%, #FFFFFF 100%)',
+  },
+  {
+    id: 'dark-pink',
+    name: 'Dark Pink',
+    nameCn: '甜酷粉',
+    description: 'Bold pink on deep black',
+    preview: 'linear-gradient(135deg, #1A1A1D 0%, #E6397C 100%)',
+  },
+  {
+    id: 'soft-pink',
+    name: 'Soft Pink',
+    nameCn: '柔粉',
+    description: 'Gentle pink cotton candy',
+    preview: 'linear-gradient(135deg, #F1DDDF 0%, #F9D2E4 100%)',
   },
 ];
 
-// Apply theme to document root
-function applyTheme(theme: ThemeId) {
-  document.documentElement.setAttribute('data-theme', theme);
+export const DARK_THEMES: ReadonlySet<ThemeId> = new Set<ThemeId>(['dark-pink']);
+
+/**
+ * Apply theme to document root — mode-aware.
+ * UNIQLO view (impactMode=false) always forces 'monochrome'.
+ */
+function applyThemeToDOM(theme: ThemeId, inImpactMode: boolean) {
+  const effective = inImpactMode ? theme : 'monochrome';
+  document.documentElement.setAttribute('data-theme', effective);
+  if (inImpactMode && DARK_THEMES.has(theme)) {
+    document.documentElement.setAttribute('data-dark-theme', '');
+  } else {
+    document.documentElement.removeAttribute('data-dark-theme');
+  }
 }
+
+export { applyThemeToDOM };
 
 function applyLocale(locale: Locale) {
   document.documentElement.lang = locale;
@@ -137,7 +122,7 @@ function getStoredUISettings(): {
       const rawBallStyle = parsed.state?.aiBallStyle;
       const aiBallStyle = rawBallStyle === 'particles' ? 'particles' : 'orb';
       return {
-        currentTheme: (parsed.state?.currentTheme as ThemeId) || 'editorial',
+        currentTheme: (parsed.state?.currentTheme as ThemeId) || 'monochrome',
         currentLocale: (parsed.state?.currentLocale as Locale) || 'en',
         impactMode: typeof parsed.state?.impactMode === 'boolean' ? parsed.state.impactMode : false,
         activeImpactTab,
@@ -149,7 +134,7 @@ function getStoredUISettings(): {
   }
 
   return {
-    currentTheme: 'editorial',
+    currentTheme: 'monochrome',
     currentLocale: 'en',
     impactMode: false,
     activeImpactTab: 'home',
@@ -166,8 +151,11 @@ interface UIState {
   impactMode: boolean;
   activeImpactTab: string;
   aiBallStyle: AIBallStyle;
+  /** Dev-only: hide top header bar for clean marketing screenshots (not persisted). */
+  headerHiddenForCapture: boolean;
   setMobileNavOpen: (open: boolean) => void;
   toggleMobileNav: () => void;
+  toggleHeaderHiddenForCapture: () => void;
   setLocale: (locale: Locale) => void;
   setMenuTriggerRef: (ref: React.RefObject<HTMLButtonElement>) => void;
   setTheme: (theme: ThemeId) => void;
@@ -182,7 +170,7 @@ const initialUI = getStoredUISettings();
 
 export const useUIStore = create<UIState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       mobileNavOpen: false,
       currentLocale: initialUI.currentLocale,
       currentTheme: initialUI.currentTheme,
@@ -191,8 +179,11 @@ export const useUIStore = create<UIState>()(
       impactMode: initialUI.impactMode,
       activeImpactTab: initialUI.activeImpactTab,
       aiBallStyle: initialUI.aiBallStyle,
+      headerHiddenForCapture: false,
 
       setMobileNavOpen: (mobileNavOpen) => set({ mobileNavOpen }),
+      toggleHeaderHiddenForCapture: () =>
+        set((state) => ({ headerHiddenForCapture: !state.headerHiddenForCapture })),
       toggleMobileNav: () =>
         set((state) => ({ mobileNavOpen: !state.mobileNavOpen })),
       setLocale: (currentLocale) => {
@@ -201,7 +192,7 @@ export const useUIStore = create<UIState>()(
       },
       setMenuTriggerRef: (menuTriggerRef) => set({ menuTriggerRef }),
       setTheme: (currentTheme) => {
-        applyTheme(currentTheme);
+        applyThemeToDOM(currentTheme, get().impactMode);
         set({ currentTheme });
       },
       setSettingsMenuOpen: (settingsMenuOpen) => set({ settingsMenuOpen }),
@@ -241,14 +232,12 @@ export const useUIStore = create<UIState>()(
         };
       },
       onRehydrateStorage: () => (state) => {
-        // Apply persisted theme after rehydration to avoid flash
         if (state?.currentTheme) {
-          applyTheme(state.currentTheme);
+          applyThemeToDOM(state.currentTheme, state.impactMode ?? false);
         }
         if (state?.currentLocale) {
           applyLocale(state.currentLocale);
         }
-        // Re-calibrate attributes that were set in sync with first render, to avoid desync between DOM attributes and in-memory impactMode after merge / async hydration
         if (state) {
           applyWelfareVivid(Boolean(state.impactMode));
         }
@@ -258,6 +247,6 @@ export const useUIStore = create<UIState>()(
 );
 
 // Apply theme + document lang on first load (before hydration) to prevent flash
-applyTheme(initialUI.currentTheme);
+applyThemeToDOM(initialUI.currentTheme, initialUI.impactMode);
 applyLocale(initialUI.currentLocale);
 applyWelfareVivid(initialUI.impactMode);

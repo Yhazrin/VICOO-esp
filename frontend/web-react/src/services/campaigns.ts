@@ -20,6 +20,20 @@ function normalizeCampaign(raw: Record<string, unknown>): Campaign {
     raisedAmount: Number(raw.current_amount ?? raw.raisedAmount ?? 0),
     featured: (raw.featured as boolean) ?? false,
     featuredChild: raw.featuredChild as Campaign['featuredChild'],
+    sustainabilityEyebrow: (raw.sustainability_eyebrow as string) ?? undefined,
+    sustainabilityTitle: (raw.sustainability_title as string) ?? undefined,
+    sustainabilitySubtitle: (raw.sustainability_subtitle as string) ?? undefined,
+    sustainabilityP1Title: (raw.sustainability_p1_title as string) ?? undefined,
+    sustainabilityP1Body: (raw.sustainability_p1_body as string) ?? undefined,
+    sustainabilityP2Title: (raw.sustainability_p2_title as string) ?? undefined,
+    sustainabilityP2Body: (raw.sustainability_p2_body as string) ?? undefined,
+    sustainabilityP3Title: (raw.sustainability_p3_title as string) ?? undefined,
+    sustainabilityP3Body: (raw.sustainability_p3_body as string) ?? undefined,
+    sustainabilityP4Title: (raw.sustainability_p4_title as string) ?? undefined,
+    sustainabilityP4Body: (raw.sustainability_p4_body as string) ?? undefined,
+    sustainabilityFootnote: (raw.sustainability_footnote as string) ?? undefined,
+    sustainabilityCtaTraceability: (raw.sustainability_cta_traceability as string) ?? undefined,
+    sustainabilityCtaShop: (raw.sustainability_cta_shop as string) ?? undefined,
   };
 }
 

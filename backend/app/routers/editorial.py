@@ -39,7 +39,7 @@ async def get_editorial_feed(limit: int = Query(10, ge=1, le=20), db: AsyncSessi
 async def create_editorial_article(
     body: EditorialArticleCreate,
     db: AsyncSession = Depends(get_db),
-    _admin: dict = Depends(require_role("admin", "editor")),
+    _admin: dict = Depends(require_role("admin")),
 ):
     """Create a new editorial article (admin/editor only)."""
     try:

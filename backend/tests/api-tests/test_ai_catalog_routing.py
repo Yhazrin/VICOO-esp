@@ -43,10 +43,10 @@ def test_build_product_url_uses_surface_path():
     assert "/shop/9" in uniqlo_url
 
 
-def test_build_product_url_falls_back_to_vm_domain_for_localhost():
+def test_build_product_url_falls_back_to_localhost_for_dev():
     svc = _service()
     url = svc._build_product_url(3, False)
-    assert "http://csi420-02-vm8.ucd.ie/" in url
+    assert "http://localhost:9111/" in url
 
 
 def test_sanitize_assistant_reply_removes_think_block():

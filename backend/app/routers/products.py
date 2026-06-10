@@ -22,6 +22,7 @@ from app.schemas import (
     ProductUpdate,
     supply_chain_record_to_out,
 )
+from app.utils.content_locale import localize_artwork_dict, localize_supply_chain_row, normalize_locale
 from app.deps import require_role, get_current_user
 from app.data.default_regular_products import regular_catalog_mock_dicts, SKU_EXTRA_BY_PRODUCT_NAME
 from app.data.product_i18n_seed import PRODUCT_I18N_BY_NAME_ZH
@@ -91,16 +92,18 @@ def _apply_product_filters(stmt, category: str | None, status: str | None, is_im
 
 def _localize_product_dict(d: dict, locale: str) -> dict:
     """When locale=en and *_en fields are non-empty, override the primary fields."""
-    if locale == "en":
-        if d.get("name_en"):
-            d["name"] = d["name_en"]
-        if d.get("description_en"):
-            d["description"] = d["description_en"]
-        if d.get("trace_story_title_en"):
-            d["trace_story_title"] = d["trace_story_title_en"]
-        if d.get("trace_story_content_en"):
-            d["trace_story_content"] = d["trace_story_content_en"]
-    return d
+    out = dict(d)
+    loc = normalize_locale(locale)
+    if loc == "en":
+        if out.get("name_en"):
+            out["name"] = out["name_en"]
+        if out.get("description_en"):
+            out["description"] = out["description_en"]
+        if out.get("trace_story_title_en"):
+            out["trace_story_title"] = out["trace_story_title_en"]
+        if out.get("trace_story_content_en"):
+            out["trace_story_content"] = out["trace_story_content_en"]
+    return out
 
 
 async def _artwork_image_fallback_map(db: AsyncSession, products: list[Product]) -> dict[int, str]:
@@ -134,15 +137,15 @@ async def _products_to_out_dicts(db: AsyncSession, products: list[Product], *, l
 
 _mock_products = [
     {"id": 1, "name": "彩虹鱼棉质 T 恤", "description": "采用有机棉面料，印有获奖作品《彩虹鱼》。每件 T 恤的收益 30% 用于乡村美育基金。", "price": "168.00", "currency": "CNY", "image_url": _IMPACT_IMG["彩虹鱼棉质 T 恤"], "category": "apparel", "stock": 200, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "30.00", "artwork_id": 2, "origin_country_id": 1, "origin_region_id": 1, "trace_story_title": "从新疆棉田到东京衣橱", "trace_story_content": "这件 T 恤的棉纤维以中国新疆阿克苏为主源，辅以全球认证棉花配比。纺纱与织造在华东完成，最终以透明溯源方式进入日本东京联名渠道，讲述一条跨区域公益供应链。", "sizes": ["S", "M", "L", "XL"], "colors": [{"name": "White", "hex": "#F5F0E8"}, {"name": "Navy", "hex": "#1C2841"}, {"name": "Rust", "hex": "#8B3A2A"}], "created_at": "2025-04-01T10:00:00"},
-    {"id": 2, "name": "星星之夜帆布袋", "description": "再生帆布材质，印有《星星之夜》星空画作。环保材质，公益行动。", "price": "89.00", "currency": "CNY", "image_url": _IMPACT_IMG["星星之夜帆布袋"], "category": "accessories", "stock": 150, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "25.00", "artwork_id": 4, "origin_country_id": 3, "origin_region_id": 4, "trace_story_title": "全球棉花的二次生命", "trace_story_content": "帆布包原料采用全球来源的可追溯棉花纤维与再生棉混纺，重点覆盖巴西马托格罗索与美国得州供应批次。通过再生工艺与短链物流，形成更低碳足迹的公益商品故事。", "created_at": "2025-04-05T10:00:00"},
+    {"id": 2, "name": "星星之夜帆布托特包", "description": "GRS 认证再生棉帆布，印有获奖画作《星星之夜》。可溯源再生棉帆布，日常通勤与公益表达兼得。", "price": "89.00", "currency": "CNY", "image_url": _IMPACT_IMG["星星之夜帆布托特包"], "category": "accessories", "stock": 150, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "25.00", "artwork_id": 4, "origin_country_id": 3, "origin_region_id": 4, "trace_story_title": "全球棉花的二次生命", "trace_story_content": "帆布包原料采用全球来源的可追溯棉花纤维与再生棉混纺，重点覆盖巴西马托格罗索与美国得州供应批次。通过再生工艺与短链物流，形成更低碳足迹的公益商品故事。", "created_at": "2025-04-05T10:00:00"},
     {"id": 3, "name": "春天的花园丝巾", "description": "100% 真丝面料，孩子们的画作化为丝巾图案，每一条都是独一无二的艺术品。", "price": "258.00", "currency": "CNY", "image_url": _IMPACT_IMG["春天的花园丝巾"], "category": "accessories", "stock": 80, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "30.00", "artwork_id": 1, "created_at": "2025-04-10T10:00:00"},
-    {"id": 4, "name": "妈妈的手环保笔记本", "description": "再生纸制作，封面印有《妈妈的手》。可用于记录生活中的美好瞬间。", "price": "39.00", "currency": "CNY", "image_url": _IMPACT_IMG["妈妈的手环保笔记本"], "category": "stationery", "stock": 500, "status": "active", "is_impact_product": True, "campaign_id": 2, "donation_percentage": "20.00", "artwork_id": 11, "created_at": "2025-04-15T10:00:00"},
-    {"id": 5, "name": "太空旅行马克杯", "description": "陶瓷马克杯，印有《太空旅行》画作。送给每个梦想家。", "price": "68.00", "currency": "CNY", "image_url": _IMPACT_IMG["太空旅行马克杯"], "category": "lifestyle", "stock": 120, "status": "active", "is_impact_product": True, "campaign_id": 3, "donation_percentage": "25.00", "artwork_id": 15, "created_at": "2025-04-20T10:00:00"},
+    {"id": 4, "name": "妈妈的手棉麻衬衫", "description": "天然棉麻混纺面料，胸前手绘线稿刺绣风印花源自获奖画作《妈妈的手》。强调天然纤维原料可溯源。", "price": "198.00", "currency": "CNY", "image_url": _IMPACT_IMG["妈妈的手棉麻衬衫"], "category": "apparel", "stock": 160, "status": "active", "is_impact_product": True, "campaign_id": 2, "donation_percentage": "25.00", "artwork_id": 11, "created_at": "2025-04-15T10:00:00"},
+    {"id": 5, "name": "太空旅行圆领卫衣", "description": "中厚卫衣面料，胸前满印儿童宇宙涂鸦《太空旅行》。送给每个仰望星空的梦想家。", "price": "228.00", "currency": "CNY", "image_url": _IMPACT_IMG["太空旅行圆领卫衣"], "category": "apparel", "stock": 120, "status": "active", "is_impact_product": True, "campaign_id": 3, "donation_percentage": "25.00", "artwork_id": 15, "created_at": "2025-04-20T10:00:00"},
     {"id": 6, "name": "我的家帆布鞋", "description": "有机棉帆布鞋面，可降解鞋底。鞋侧印有《我的家》画作。", "price": "198.00", "currency": "CNY", "image_url": _IMPACT_IMG["我的家帆布鞋"], "category": "footwear", "stock": 0, "status": "sold_out", "is_impact_product": True, "campaign_id": 2, "donation_percentage": "30.00", "artwork_id": 3, "sizes": ["36", "37", "38", "39", "40", "41", "42", "43"], "colors": [{"name": "White", "hex": "#F5F0E8"}, {"name": "Black", "hex": "#1A1A16"}], "created_at": "2025-04-25T10:00:00"},
-    {"id": 7, "name": "画出未来环保抱枕", "description": "再生棉填充，有机棉外套。《未来城市》画作点亮客厅角落。", "price": "128.00", "currency": "CNY", "image_url": _IMPACT_IMG["画出未来环保抱枕"], "category": "home", "stock": 90, "status": "active", "is_impact_product": True, "campaign_id": 3, "donation_percentage": "25.00", "artwork_id": 19, "created_at": "2025-05-01T10:00:00"},
-    {"id": 8, "name": "过年了限定礼盒", "description": "包含 T 恤、帆布袋、笔记本三件套，精美包装。限量 100 套。", "price": "368.00", "currency": "CNY", "image_url": _IMPACT_IMG["过年了限定礼盒"], "category": "gift_box", "stock": 35, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "30.00", "artwork_id": 18, "sizes": ["S", "M", "L", "XL"], "created_at": "2025-05-05T10:00:00"},
-    {"id": 13, "name": "海豚之歌·再生纤维披肩", "description": "海洋主题儿童画作《海豚之歌》授权印花，再生聚酯与有机棉混纺，收益 28% 捐入「春天的色彩」美育项目。", "price": "198.00", "currency": "CNY", "image_url": _IMPACT_IMG["海豚之歌·再生纤维披肩"], "category": "accessories", "stock": 110, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "28.00", "artwork_id": 8, "created_at": "2025-05-08T10:00:00"},
-    {"id": 14, "name": "牧羊曲·手工拼布壁挂", "description": "甘肃定西合作工坊手工缝制，图案来自《牧羊曲》画作，每件附带溯源卡，捐赠比例 22% 用于乡村儿童画材。", "price": "158.00", "currency": "CNY", "image_url": _IMPACT_IMG["牧羊曲·手工拼布壁挂"], "category": "home", "stock": 45, "status": "active", "is_impact_product": True, "campaign_id": 2, "donation_percentage": "22.00", "artwork_id": 20, "created_at": "2025-05-09T10:00:00"},
+    {"id": 7, "name": "未来城市连帽卫衣", "description": "加绒连帽卫衣，背后满印儿童手绘未来城市画作《未来城市》。适合秋冬联名穿搭。", "price": "268.00", "currency": "CNY", "image_url": _IMPACT_IMG["未来城市连帽卫衣"], "category": "apparel", "stock": 90, "status": "active", "is_impact_product": True, "campaign_id": 3, "donation_percentage": "25.00", "artwork_id": 19, "created_at": "2025-05-01T10:00:00"},
+    {"id": 8, "name": "过年了针织开衫", "description": "可溯源羊毛与再生纤维混纺针织开衫，正面提花织入儿童节日画作《过年了》。温暖的公益穿搭。", "price": "328.00", "currency": "CNY", "image_url": _IMPACT_IMG["过年了针织开衫"], "category": "apparel", "stock": 60, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "28.00", "artwork_id": 18, "sizes": ["S", "M", "L", "XL"], "created_at": "2025-05-05T10:00:00"},
+    {"id": 13, "name": "海豚之歌再生纤维披肩", "description": "海洋主题儿童画作《海豚之歌》授权印花，再生聚酯与有机棉混纺，收益 28% 捐入「春天的色彩」美育项目。", "price": "198.00", "currency": "CNY", "image_url": _IMPACT_IMG["海豚之歌再生纤维披肩"], "category": "accessories", "stock": 110, "status": "active", "is_impact_product": True, "campaign_id": 1, "donation_percentage": "28.00", "artwork_id": 8, "created_at": "2025-05-08T10:00:00"},
+    {"id": 14, "name": "牧羊曲手绘方巾", "description": "牧羊主题儿童画作《牧羊曲》转化为穿搭用方巾，可作头巾或颈巾。有机棉面料，甘肃定西工坊手工印制。", "price": "88.00", "currency": "CNY", "image_url": _IMPACT_IMG["牧羊曲手绘方巾"], "category": "accessories", "stock": 180, "status": "active", "is_impact_product": True, "campaign_id": 2, "donation_percentage": "22.00", "artwork_id": 20, "created_at": "2025-05-09T10:00:00"},
     # 常规店 SKU（id 从 20 起，避免与公益 mock id 13/14 区间重叠）
     *regular_catalog_mock_dicts(20),
 ]
@@ -344,25 +347,47 @@ async def list_featured_products(locale: str = Query("zh", pattern="^(zh|en)$"),
 
 
 @router.get("/{product_id}/supply-chain", response_model=ApiResponse)
-async def get_product_supply_chain(product_id: int, db: AsyncSession = Depends(get_db)):
+async def get_product_supply_chain(
+    product_id: int,
+    locale: str = Query("zh", pattern="^(zh|en)$"),
+    db: AsyncSession = Depends(get_db),
+):
     """Get supply chain records for a product."""
     try:
-        stmt = select(SupplyChainRecord).where(SupplyChainRecord.product_id == product_id).order_by(SupplyChainRecord.timestamp.asc())
+        product = (await db.execute(select(Product).where(Product.id == product_id))).scalar_one_or_none()
+        product_name = product.name if product else ""
+        stmt = select(SupplyChainRecord).where(SupplyChainRecord.product_id == product_id)
         result = await db.execute(stmt)
         records = result.scalars().all()
-        return ApiResponse(data=[supply_chain_record_to_out(r).model_dump() for r in records])
+        rows = [
+            localize_supply_chain_row(supply_chain_record_to_out(r).model_dump(), product_name, locale)
+            for r in records
+        ]
+        return ApiResponse(data=rows)
     except HTTPException:
         raise
-    except Exception as e:
-        logger.exception("Product query failed: %s", e)
-        if settings.APP_ENV != "demo":
+    except Exception:
+        if not settings.DEMO_MODE:
             raise HTTPException(status_code=503, detail="Service temporarily unavailable")
-        records = [r for r in _mock_supply_chain if r["product_id"] == product_id]
+        product_name = ""
+        for p in _mock_products:
+            if p["id"] == product_id:
+                product_name = str(p.get("name") or "")
+                break
+        records = [
+            localize_supply_chain_row(dict(r), product_name, locale)
+            for r in _mock_supply_chain
+            if r["product_id"] == product_id
+        ]
         return ApiResponse(data=records)
 
 
 @router.get("/{product_id}/artwork", response_model=ApiResponse)
-async def get_product_artwork(product_id: int, db: AsyncSession = Depends(get_db)):
+async def get_product_artwork(
+    product_id: int,
+    locale: str = Query("zh", pattern="^(zh|en)$"),
+    db: AsyncSession = Depends(get_db),
+):
     """Get the artwork linked to a product."""
     try:
         stmt = select(Product).where(Product.id == product_id)
@@ -378,7 +403,8 @@ async def get_product_artwork(product_id: int, db: AsyncSession = Depends(get_db
         if not artwork:
             raise HTTPException(status_code=404, detail="Linked artwork not found")
         from app.schemas.artwork import ArtworkOut
-        return ApiResponse(data=ArtworkOut.model_validate(artwork).model_dump())
+        data = localize_artwork_dict(ArtworkOut.model_validate(artwork).model_dump(), locale)
+        return ApiResponse(data=data)
     except HTTPException:
         raise
     except Exception as e:
@@ -401,7 +427,7 @@ async def get_product_artwork(product_id: int, db: AsyncSession = Depends(get_db
             if p["id"] == product_id and p.get("artwork_id"):
                 aw = mock_artworks.get(p["artwork_id"])
                 if aw:
-                    return ApiResponse(data=aw)
+                    return ApiResponse(data=localize_artwork_dict(aw, locale))
         raise HTTPException(status_code=404, detail="No artwork linked to this product")
 
 
@@ -424,13 +450,12 @@ async def get_product(product_id: int, locale: str = Query("zh", pattern="^(zh|e
             raise HTTPException(status_code=503, detail="Service temporarily unavailable")
         for p in _mock_products:
             if p["id"] == product_id:
-                _localize_product_dict(p, locale)
-                return ApiResponse(data=p)
+                return ApiResponse(data=_localize_product_dict(dict(p), locale))
         raise HTTPException(status_code=404, detail="Product not found")
 
 
 @router.post("", response_model=ApiResponse, status_code=201)
-async def create_product(body: ProductCreate, db: AsyncSession = Depends(get_db), current_user: dict = Depends(require_role("admin", "editor"))):
+async def create_product(body: ProductCreate, db: AsyncSession = Depends(get_db), current_user: dict = Depends(require_role("admin"))):
     """Create a new product."""
     try:
         payload = body.model_dump()
@@ -454,7 +479,7 @@ async def create_product(body: ProductCreate, db: AsyncSession = Depends(get_db)
 
 
 @router.put("/{product_id}", response_model=ApiResponse)
-async def update_product(product_id: int, body: ProductUpdate, db: AsyncSession = Depends(get_db), current_user: dict = Depends(require_role("admin", "editor"))):
+async def update_product(product_id: int, body: ProductUpdate, db: AsyncSession = Depends(get_db), current_user: dict = Depends(require_role("admin"))):
     """Update a product."""
     try:
         stmt = select(Product).where(Product.id == product_id)
@@ -495,7 +520,7 @@ async def update_product(product_id: int, body: ProductUpdate, db: AsyncSession 
 async def delete_product(
     product_id: int,
     db: AsyncSession = Depends(get_db),
-    _current_user: dict = Depends(require_role("admin", "editor")),
+    _current_user: dict = Depends(require_role("admin")),
 ):
     """Delete a product when it has no order or impact-fund linkage."""
     try:

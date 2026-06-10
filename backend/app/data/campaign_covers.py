@@ -1,7 +1,7 @@
 """
-公益活动封面 — 使用可直连的 Unsplash 图（VPS 上无 /static/campaigns 文件时仍可用）。
+公益活动封面 — Unsplash 兜底图（本地无 /static/campaigns/campaign_*.jpg 时使用）。
 
-与 app/seed.py、app/add_campaigns_demo.py 保持同步。
+正式演示数据见 app/data/campaign_catalog_seed.py 与 backend/static/campaigns/。
 """
 _U = "https://images.unsplash.com"
 # 儿童 / 教育 / 自然 / 乡村 主题，固定参数便于缓存

@@ -21,12 +21,6 @@ interface ProductCardProps {
   detailContext?: 'company' | 'impact';
 }
 
-function getSustainabilityTier(score: number): { labelKey: string; colorClass: string; barColor: string } {
-  if (score >= 90) return { labelKey: 'shop.card.exceptional', colorClass: 'text-rust', barColor: 'bg-rust' };
-  if (score >= 80) return { labelKey: 'shop.card.excellent', colorClass: 'text-sage', barColor: 'bg-sage' };
-  return { labelKey: 'shop.card.good', colorClass: 'text-sepia-mid', barColor: 'bg-sepia-mid' };
-}
-
 function ProductCard({
   product,
   index = 0,
@@ -70,8 +64,6 @@ function ProductCard({
   const [showNotifyInput, setShowNotifyInput] = useState(false);
   const [notifyEmail, setNotifyEmail] = useState('');
   const [notifySubmitted, setNotifySubmitted] = useState(false);
-
-  const sustainability = getSustainabilityTier(product.sustainabilityScore);
 
   const handleNotifySubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -183,7 +175,7 @@ function ProductCard({
         {/* Info */}
         <div className="px-1">
           <div className="flex items-start justify-between gap-2 mb-1">
-            <h3 className="font-display text-base md:text-lg font-semibold text-ink group-hover:text-rust transition-colors leading-tight">
+            <h3 className="font-display text-base md:text-lg font-semibold text-ink group-hover:text-rust transition-colors leading-tight line-clamp-2 min-h-[2.5em]">
               {displayName}
             </h3>
             <span className="font-body text-overline text-sepia-mid uppercase tracking-wider flex-shrink-0 mt-1">
@@ -199,60 +191,42 @@ function ProductCard({
             </p>
           )}
 
-          {/* Impact: donation badge */}
-          {product.isImpactProduct && product.donationPercentage != null && (
-            <div className="flex items-center gap-1.5 mb-2">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-sage" />
-              <span className="font-body text-overline text-sage tracking-wider">
-                {t('impactShop.donationBadge', { percentage: product.donationPercentage })}
-              </span>
-            </div>
-          )}
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex flex-col gap-1.5">
+              {/* Impact: donation badge */}
+              {product.isImpactProduct && product.donationPercentage != null && (
+                <div className="flex items-center gap-1.5">
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-sage" />
+                  <span className="font-body text-overline text-sage tracking-wider">
+                    {t('impactShop.donationBadge', { percentage: product.donationPercentage })}
+                  </span>
+                </div>
+              )}
 
-          {/* Traceability badge */}
-          {product.isImpactProduct && (
-            <div className="flex items-center gap-1.5 mb-2">
-              <svg className="w-3 h-3 text-sepia-mid" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
-                <path d="M2 8h12M5 4l-3 4 3 4M11 4l3 4-3 4" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              <span className="font-body text-overline text-sepia-mid tracking-wider">
-                {t('impactShop.traceable', 'Traceable Supply Chain')}
-              </span>
-            </div>
-          )}
-
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col">
-              <span className="font-body text-body-sm text-ink font-medium">
-                {product.currency === 'CNY' ? '¥' : '$'}
-                {product.price.toLocaleString()}
-              </span>
-              {/* Impact: campaign link */}
-              {product.isImpactProduct && product.campaignId && (
-                <span className="font-body text-overline text-rust tracking-wider mt-0.5">
-                  {t('impactShop.supportsCampaign', { campaign: `#${product.campaignId}` })}
-                </span>
+              {/* Traceability badge */}
+              {product.isImpactProduct && (
+                <div className="flex items-center gap-1.5">
+                  <svg className="w-3 h-3 text-sepia-mid" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+                    <path d="M2 8h12M5 4l-3 4 3 4M11 4l3 4-3 4" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <span className="font-body text-overline text-sepia-mid tracking-wider">
+                    {t('impactShop.traceable', 'Traceable Supply Chain')}
+                  </span>
+                </div>
               )}
             </div>
 
-            {/* Sustainability score with tier */}
-            <div className="flex flex-col items-end">
-              <div className="flex items-center gap-1.5">
-                <span className="font-body text-overline text-sepia-mid">
-                  {product.sustainabilityScore}
+            <div className="flex flex-col items-end justify-end h-full">
+              <span className="font-body text-body-md text-ink font-medium">
+                {product.currency === 'CNY' ? '¥' : '$'}
+                {product.price.toLocaleString()}
+              </span>
+              {/* Impact: linked charity campaign (name only; hide raw DB id like #1) */}
+              {product.isImpactProduct && product.artworkBy?.campaign && (
+                <span className="font-body text-overline text-rust tracking-wider mt-0.5">
+                  {t('impactShop.supportsCampaign', { campaign: product.artworkBy.campaign })}
                 </span>
-                <span className={`font-body text-overline tracking-wide ${sustainability.colorClass}`}>
-                  {t(sustainability.labelKey)}
-                </span>
-              </div>
-              <div className="w-12 h-px bg-warm-gray/30 mt-0.5 overflow-hidden">
-                <motion.div
-                  className={`h-full origin-left ${sustainability.barColor}`}
-                  initial={prefersReducedMotion ? { scaleX: product.sustainabilityScore / 100 } : { scaleX: 0 }}
-                  animate={isVisible ? { scaleX: product.sustainabilityScore / 100 } : {}}
-                  transition={{ duration: 0.8, delay: 0.3, ease: [0, 0, 0.2, 1] }}
-                />
-              </div>
+              )}
             </div>
           </div>
         </div>
@@ -314,15 +288,6 @@ function ProductCard({
             )}
           </div>
         )}
-
-        {/* Decorative divider */}
-        <div className="flex items-center gap-2 mt-3 px-1">
-          <div className="flex-1 h-px bg-ink/20" />
-          <span className="font-body text-overline text-sepia-mid tracking-widest">
-            {String(product.id).padStart(3, '0')}
-          </span>
-          <div className="flex-1 h-px bg-ink/20" />
-        </div>
       </motion.article>
     </TiltCard>
   );

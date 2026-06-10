@@ -4,6 +4,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 import { useUIStore } from '@/stores/uiStore';
 import UniqloLogo from './UniqloLogo';
+import vicooLogo from '@/assets/vicoo-logo.png';
 
 const CORE_LINKS = [
   { key: 'shop', path: '/shop' },
@@ -67,16 +68,16 @@ export default function EditorialFooter() {
                       exit={{ opacity: 0, x: -20 }}
                       transition={{ type: 'spring', stiffness: 280, damping: 24, delay: 0.05 }}
                       className="
-                        font-display font-bold
-                        tracking-[-0.03em] leading-[0.85]
-                        text-[var(--color-ink)]
-                        hover:text-[var(--color-rust)]
-                        transition-colors duration-300
                         whitespace-nowrap
+                        flex items-center
                       "
                       style={{ fontSize: 'clamp(40px, 7vw, 90px)' }}
                     >
-                      × VICOO
+                      <img
+                        src={vicooLogo}
+                        alt="VICOO"
+                        className="h-[1.2em] w-auto align-middle"
+                      />
                     </motion.span>
                   )}
                 </AnimatePresence>

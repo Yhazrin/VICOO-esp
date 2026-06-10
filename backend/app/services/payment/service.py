@@ -1,12 +1,10 @@
 import logging
-from typing import Optional, Dict, Any, Tuple
+from typing import Optional, Dict
 from decimal import Decimal
 from datetime import datetime, timedelta, timezone
 
 from fastapi import HTTPException
 from sqlalchemy import select, func, update
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.payment import PaymentTransaction
 from app.models.order import Order
@@ -15,7 +13,6 @@ from app.services.base import BaseService
 from app.services.donation.service import DonationService
 from app.services.impact_fund.service import ImpactFundService
 from app.core.audit import audit_action
-from app.config import settings
 
 logger = logging.getLogger("vicoo.payment_service")
 
@@ -81,7 +78,8 @@ class PaymentService(BaseService):
         """
         Process a successful payment callback from a provider.
         Handles status updates for orders/donations and creates/updates the transaction record.
-        Uses savepoints to isolate side effects so concurrent webhooks don't corrupt the session.
+
+        Security: Verifies callback amount matches the order/donation amount from database.
         """
         # Idempotency check: has this provider transaction already been processed?
         existing_stmt = select(PaymentTransaction).where(PaymentTransaction.provider_transaction_id == provider_tx_id)
@@ -97,6 +95,11 @@ class PaymentService(BaseService):
             order_stmt = select(Order).where(Order.order_no == order_no)
             order = (await self.db.execute(order_stmt)).scalar_one_or_none()
             if order:
+                # P0 Security: Verify callback amount matches order total_amount from database
+                if order.total_amount != amount:
+                    logger.error(f"Payment amount mismatch for order {order_no}: callback={amount}, expected={order.total_amount}")
+                    raise HTTPException(status_code=400, detail="Payment amount mismatch")
+
                 order_id = order.id
                 await self.db.execute(
                     update(Order)
@@ -115,6 +118,13 @@ class PaymentService(BaseService):
 
         # 2. Handle Donation
         if donation_id:
+            # P0 Security: Verify callback amount matches donation amount from database
+            donation_stmt = select(Donation).where(Donation.id == donation_id)
+            donation = (await self.db.execute(donation_stmt)).scalar_one_or_none()
+            if donation and donation.amount != amount:
+                logger.error(f"Payment amount mismatch for donation {donation_id}: callback={amount}, expected={donation.amount}")
+                raise HTTPException(status_code=400, detail="Payment amount mismatch")
+
             donation_service = DonationService(self.db)
             await donation_service.complete_donation(donation_id, provider_tx_id)
 

@@ -398,6 +398,17 @@ def no_auth_headers():
     return {"Content-Type": "application/json"}
 
 
+@pytest_asyncio.fixture
+def user_auth_headers():
+    """Return authorization headers for a regular (non-admin) user."""
+    from app.security import create_access_token
+    token = create_access_token(subject="1", role="user")
+    return {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+    }
+
+
 # ---------------------------------------------------------------------------
 # Mock data factories
 # ---------------------------------------------------------------------------

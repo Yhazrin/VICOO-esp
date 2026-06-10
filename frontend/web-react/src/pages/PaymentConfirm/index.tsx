@@ -9,7 +9,15 @@ import { resolvePayApiBaseFromSearchParam } from '@/utils/payApiBaseOverride';
 export default function PaymentConfirm() {
   const { t } = useTranslation();
   const [params] = useSearchParams();
-  const token = params.get('t')?.trim() || '';
+  const token = (
+    params.get('t') ||
+    params.get('token') ||
+    params.get('mock_pay_token') ||
+    params.get('mockPayToken') ||
+    params.get('payment_token') ||
+    params.get('paymentToken') ||
+    ''
+  ).trim();
 
   const payApiBase = useMemo(
     () => resolvePayApiBaseFromSearchParam(params.get('apiBase')),
@@ -22,6 +30,11 @@ export default function PaymentConfirm() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const previewStatus = (preview?.status || '').toLowerCase();
+  const isPendingLike = previewStatus === 'pending' || previewStatus === 'unpaid' || previewStatus === 'created';
+  const isPaidLike = previewStatus === 'paid' || previewStatus === 'success' || previewStatus === 'completed';
+  const previewOrderNo = preview ? (preview.order_no || preview.orderNo || '') : '';
+  const previewTotalAmount = preview ? (preview.total_amount || preview.totalAmount || '') : '';
 
   useEffect(() => {
     if (!token) {
@@ -79,11 +92,11 @@ export default function PaymentConfirm() {
             <p className="font-body text-body text-rust">{loadError}</p>
           )}
 
-          {!loading && !loadError && preview && !done && preview.status !== 'pending' && preview.status !== 'paid' && (
+          {!loading && !loadError && preview && !done && !isPendingLike && !isPaidLike && (
             <p className="font-body text-body text-sepia-mid">{t('paymentConfirm.notPending')}</p>
           )}
 
-          {!loading && !loadError && preview && !done && preview.status === 'paid' && (
+          {!loading && !loadError && preview && !done && isPaidLike && (
             <div className="space-y-6">
               <p className="font-body text-body text-ink-faded">{t('paymentConfirm.alreadyPaid')}</p>
               <Link
@@ -95,20 +108,20 @@ export default function PaymentConfirm() {
             </div>
           )}
 
-          {!loading && !loadError && preview && !done && preview.status === 'pending' && (
+          {!loading && !loadError && preview && !done && isPendingLike && (
             <div className="border border-warm-gray/20 p-6 text-left space-y-4 mb-8">
               <div>
                 <span className="font-body text-overline text-sepia-mid tracking-wider uppercase">
                   {t('checkout.orderNumber')}
                 </span>
-                <p className="font-mono text-sm text-ink mt-1">{preview.order_no}</p>
+                <p className="font-mono text-sm text-ink mt-1">{previewOrderNo}</p>
               </div>
               <div>
                 <span className="font-body text-overline text-sepia-mid tracking-wider uppercase">
                   {t('checkout.total')}
                 </span>
                 <p className="font-display text-xl font-bold text-ink mt-1">
-                  {preview.payment_method === 'paypal' || preview.payment_method === 'stripe' ? '$' : '¥'}{Number(preview.total_amount).toFixed(2)}
+                  ¥{Number(previewTotalAmount).toFixed(2)}
                 </p>
               </div>
               <button

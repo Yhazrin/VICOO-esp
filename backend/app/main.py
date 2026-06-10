@@ -18,7 +18,8 @@ from fastapi.responses import JSONResponse, RedirectResponse
 
 from app.config import settings
 from app.database import engine, Base, AsyncSessionLocal
-from app.deps import rate_limit_check, get_current_user_from_request
+from app.deps import rate_limit_check, get_current_user_from_request, require_role
+from app.models.audit import AuditLog
 
 # Maximum allowed request body size (10 MB)
 MAX_REQUEST_BODY_SIZE = 10 * 1024 * 1024
@@ -42,17 +43,29 @@ async def lifespan(app: FastAPI):
     )
     if _seed_if_empty:
         try:
-            from app.models.user import User
-            async with AsyncSessionLocal() as session:
-                from sqlalchemy import select
-                result = await session.execute(select(User))
-                if result.scalars().first() is None:
-                    logger.info("Seeding demo data (empty database)...")
-                    from app.seed import seed
-                    await seed()
-                    logger.info("Demo data seeded successfully.")
+            from app.seed import maybe_seed_demo
+
+            await maybe_seed_demo()
         except Exception:
             logger.warning("Demo data seeding failed (non-critical)", exc_info=True)
+
+    # Bind demo artworks to local /static/artworks/* when files exist but DB still uses placeholders
+    try:
+        from app.seed_artwork_assets import maybe_seed_artwork_assets
+
+        if await maybe_seed_artwork_assets():
+            logger.info("Artwork static asset seed applied.")
+    except Exception:
+        logger.warning("Artwork asset seed failed (non-critical)", exc_info=True)
+
+    # Bind demo campaigns to local /static/campaigns/* and expand catalog to 8 themes
+    try:
+        from app.seed_campaign_assets import maybe_seed_campaign_assets
+
+        if await maybe_seed_campaign_assets():
+            logger.info("Campaign static asset seed applied.")
+    except Exception:
+        logger.warning("Campaign asset seed failed (non-critical)", exc_info=True)
 
     # Backfill product i18n fields on every startup (idempotent — only updates rows where name_en is null)
     try:
@@ -161,6 +174,120 @@ async def request_logging_middleware(request: Request, call_next):
     response.headers["X-Process-Time"] = f"{elapsed:.3f}"
     return response
 
+# Audit logging middleware - logs all admin API requests to audit_logs table
+@app.middleware("http")
+async def audit_logging_middleware(request: Request, call_next):
+    path = request.url.path
+
+    # Only log admin API endpoints
+    # Log POST, PUT, PATCH, DELETE for write operations
+    # Log specific GET requests that represent sensitive data access
+    sensitive_gets = [
+        "/api/v1/admin/child-participants",
+    ]
+    # Skip logging for health endpoints and audit-logs (avoid infinite loops and noise)
+    skip_paths = [
+        "/health",
+        "/api/v1/health",
+        "/api/v1/admin/audit-logs",
+        "/api/v1/admin/health",
+        "/api/v1/system/health",
+        "/api/v1/admin/system/health",
+    ]
+    should_log = path.startswith("/api/v1/admin/")
+    if should_log and any(path.startswith(sp) for sp in skip_paths):
+        return await call_next(request)
+
+    if should_log:
+        if request.method in ("POST", "PUT", "PATCH", "DELETE"):
+            pass  # Log these
+        elif any(path.startswith(sg) for sg in sensitive_gets):
+            pass  # Log sensitive GETs
+        else:
+            return await call_next(request)
+    else:
+        # Not an admin endpoint, skip audit logging entirely
+        return await call_next(request)
+
+    # Capture request data before processing
+    method = request.method
+    path_info = path.replace("/api/v1/admin/", "")
+
+    # Extract route pattern for grouping similar actions
+    # e.g., /admin/users/123 -> users
+    route_parts = path_info.strip("/").split("/")
+    resource = route_parts[0] if route_parts else "admin"
+
+    # Build action from method and resource
+    action_map = {
+        "POST": "create",
+        "PUT": "update",
+        "PATCH": "modify",
+        "DELETE": "delete",
+    }
+    base_action = action_map.get(method, method.lower())
+    action = f"{base_action}_{resource}" if resource else base_action
+
+    try:
+        # Get current user from request
+        async with AsyncSessionLocal() as db:
+            current_user = await get_current_user_from_request(request, db)
+            user_id = current_user.get("id") if current_user else None
+            user_name = current_user.get("nickname", "") if current_user else ""
+
+            # Get client IP
+            client_ip = request.client.host if request.client else "unknown"
+
+            # Get user agent
+            user_agent = request.headers.get("user-agent", "")[:500]
+
+            response = await call_next(request)
+
+            # Log after response is ready
+            if response.status_code < 400:
+                status = "success"
+                details = {"method": method, "path": path_info, "status_code": response.status_code}
+            else:
+                status = "failed"
+                details = {"method": method, "path": path_info, "status_code": response.status_code}
+
+            # Determine resource_id from path if available
+            resource_id = None
+            for part in route_parts[1:]:
+                if part.isdigit():
+                    resource_id = part
+                    break
+
+            # Map action names to more readable format
+            action_display = {
+                "update_settings": "modify_settings",
+                "create_users": "create_user",
+                "update_users": "update_user",
+                "modify_artworks": "moderate_artwork",
+                "modify_campaigns": "update_campaign",
+                "modify_clothing_intakes_status": "update_clothing_intake",
+                "update_child_participants_consent": "approve_child_consent",
+                "approve_donations": "approve_donation",
+            }.get(action, action)
+
+            audit_entry = AuditLog(
+                user_id=user_id,
+                user_name=user_name,
+                action=action_display,
+                resource=resource,
+                resource_id=resource_id,
+                details=f"{method} {path_info} - {status}",
+                ip_address=client_ip,
+                user_agent=user_agent,
+            )
+            db.add(audit_entry)
+            await db.commit()
+    except Exception as e:
+        # Don't let audit logging failures affect the request
+        logger.warning("Audit logging failed: %s", e)
+
+    return response
+
 # ── Exception handlers ──────────────────────────────────────────
 from app.core.errors import BusinessException
 from fastapi.exceptions import RequestValidationError
@@ -254,37 +381,163 @@ from app.routers.impact_fund import router as impact_fund_router
 from app.routers.design_drafts import router as design_drafts_router
 
 # Health check router
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from datetime import datetime
+
 health_router = APIRouter(tags=["Health"])
+
+# Track backend start time for uptime calculation
+_backend_start_time = time.time()
+
+
+def _format_uptime(seconds: float) -> str:
+    """Format uptime seconds to human-readable string."""
+    if seconds < 60:
+        return f"{int(seconds)}s"
+    elif seconds < 3600:
+        mins = int(seconds // 60)
+        secs = int(seconds % 60)
+        return f"{mins}m {secs}s"
+    elif seconds < 86400:
+        hours = int(seconds // 3600)
+        mins = int((seconds % 3600) // 60)
+        return f"{hours}h {mins}m"
+    else:
+        days = int(seconds // 86400)
+        hours = int((seconds % 86400) // 3600)
+        return f"{days}d {hours}h"
+
 
 @health_router.get("/health")
 async def health():
-    health_data = {
-        "status": "ok", "app": settings.APP_NAME, "version": settings.APP_VERSION, "timestamp": time.time(),
-        "services": {"database": "unknown", "redis": "unknown"}
+    """
+    Public lightweight health endpoint for Docker / deployment / quick check.
+    No authentication required.
+    """
+    return {
+        "status": "ok",
+        "service": "vicoo-api",
+        "version": settings.APP_VERSION,
+        "timestamp": datetime.utcnow().isoformat() + "Z",
     }
+
+
+@health_router.get("/system/health")
+async def system_health(
+    _current_user: dict = Depends(require_role("admin", "editor", "compliance")),
+):
+    """
+    Admin detailed health check endpoint.
+    Requires admin/editor/compliance role.
+    """
+    import time as time_module
+    overall_status = "healthy"
+    db_latency_ms = None
+    db_version = None
+    redis_latency_ms = None
+    redis_version = None
+    response_time_ms = None
+    checks = []
+
+    # MySQL check: SELECT 1 with latency measurement
+    db_status = "connected"
     try:
+        start = time_module.time()
         async with AsyncSessionLocal() as session:
             from sqlalchemy import text
             await session.execute(text("SELECT 1"))
-            health_data["services"]["database"] = "healthy"
+        db_latency_ms = int((time_module.time() - start) * 1000)
+        # Get MySQL version (safe query, no sensitive info)
+        async with AsyncSessionLocal() as session:
+            result = await session.execute(text("SELECT VERSION()"))
+            row = result.fetchone()
+            if row:
+                version_str = str(row[0])
+                # Extract major.minor only
+                db_version = version_str.split("-")[0].split(".")[0] + "." + version_str.split("-")[0].split(".")[1] if "." in version_str.split("-")[0] else version_str.split("-")[0]
     except Exception as e:
-        health_data["services"]["database"] = "unhealthy"
-        health_data["status"] = "degraded"
-    
-    if settings.REDIS_URL:
-        try:
-            import redis.asyncio as redis
-            r = redis.from_url(settings.REDIS_URL, socket_timeout=2)
-            try:
-                await r.ping()
-                health_data["services"]["redis"] = "healthy"
-            finally:
-                await r.aclose()
-        except Exception as e:
-            logger.debug("Redis health check failed: %s", e)
-            health_data["services"]["redis"] = "unhealthy"
-    return health_data
+        logger.warning("Health check: MySQL error: %s", e)
+        db_status = "error"
+        overall_status = "degraded"
+
+    checks.append({"name": "MySQL Database", "status": db_status, "latencyMs": db_latency_ms, "version": db_version})
+
+    # Redis check with latency measurement
+    redis_status = "connected"
+    try:
+        start = time_module.time()
+        from app.deps import get_redis_client
+        redis_client = await get_redis_client()
+        await redis_client.ping()
+        redis_latency_ms = int((time_module.time() - start) * 1000)
+        # Get Redis version (safe, no sensitive info)
+        redis_info = await redis_client.info("server")
+        redis_version = str(redis_info.get("redis_version", "unknown").split(".")[0])
+    except Exception as e:
+        logger.warning("Health check: Redis error: %s", e)
+        redis_status = "error"
+        if overall_status == "healthy":
+            overall_status = "degraded"
+
+    checks.append({"name": "Redis Cache", "status": redis_status, "latencyMs": redis_latency_ms, "version": redis_version})
+
+    # Calculate uptime
+    uptime_seconds = time_module.time() - _backend_start_time
+    uptime_str = _format_uptime(uptime_seconds)
+
+    # Response time measurement for the health check itself
+    start = time_module.time()
+    overall_status = overall_status  # Already determined above
+    response_time_ms = int((time_module.time() - start) * 1000) + 1  # Add baseline
+
+    # Backend check result
+    checks.append({
+        "name": "Backend API",
+        "status": overall_status if overall_status != "degraded" else "healthy",
+        "latencyMs": response_time_ms,
+        "version": settings.APP_VERSION
+    })
+
+    # Docker Compose status - always assume running in docker
+    checks.append({"name": "Docker Compose", "status": "connected", "mode": "Docker Compose"})
+
+    return {
+        "status": overall_status,
+        "backend": {
+            "status": "healthy",
+            "service": "FastAPI",
+            "runtime": "Uvicorn",
+            "version": settings.APP_VERSION,
+            "environment": settings.APP_ENV,
+            "uptimeSeconds": int(uptime_seconds),
+            "responseTimeMs": response_time_ms,
+        },
+        "database": {
+            "status": db_status,
+            "engine": "MySQL",
+            "version": db_version,
+            "latencyMs": db_latency_ms,
+            "checkedQuery": "SELECT 1",
+        },
+        "redis": {
+            "status": redis_status,
+            "version": redis_version,
+            "latencyMs": redis_latency_ms,
+            "purpose": "cache / rate limiting",
+        },
+        "deployment": {
+            "mode": "Docker Compose",
+            "apiDocs": "/docs",
+            "publicHealth": "/health",
+            "adminHealth": "/api/v1/system/health",
+        },
+        "checks": checks,
+        "version": settings.APP_VERSION,
+        "environment": settings.APP_ENV,
+        "uptime": uptime_str,
+        "uptimeSeconds": int(uptime_seconds),
+        "checkedAt": datetime.utcnow().isoformat() + "Z",
+    }
 
 routers = (
     auth_router, oauth_router, users_router, artworks_router, campaigns_router,

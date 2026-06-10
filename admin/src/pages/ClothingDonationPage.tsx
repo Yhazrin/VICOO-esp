@@ -15,21 +15,24 @@ import toast from 'react-hot-toast';
 import DataTable from '../components/ui/DataTable';
 import type { Column } from '../components/ui/DataTable';
 import Pagination from '../components/ui/Pagination';
+import Modal from '../components/ui/Modal';
 import StatusBadge from '../components/ui/StatusBadge';
 import Button from '../components/ui/Button';
 import { fetchClothingIntakes, updateClothingIntakeStatus } from '../services/api';
 import type { ClothingDonationItem } from '../types';
-import dayjs from 'dayjs';
+import { formatDateTime } from '../utils/dateTime';
 
 export default function ClothingDonationPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isZh = i18n.language === 'zh';
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
+  const [selected, setSelected] = useState<ClothingDonationItem | null>(null);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['clothing-intakes', page, statusFilter],
-    queryFn: () => fetchClothingIntakes({ page, pageSize: 10, status: statusFilter || undefined }),
+    queryFn: () => fetchClothingIntakes({ page, pageSize: 20, status: statusFilter || undefined }),
   });
 
   const items: ClothingDonationItem[] = data?.data ?? [];
@@ -39,10 +42,10 @@ export default function ClothingDonationPage() {
     mutationFn: ({ id, status }: { id: string; status: string }) => updateClothingIntakeStatus(id, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clothing-intakes'] });
-      toast.success(t('clothingDonation.toastUpdated', 'Status updated'));
+      toast.success(t('clothingDonation.toastUpdated'));
     },
     onError: () => {
-      toast.error(t('clothingDonation.toastError', 'Update failed'));
+      toast.error(t('clothingDonation.toastError'));
     },
   });
 
@@ -52,24 +55,27 @@ export default function ClothingDonationPage() {
     { key: 'quantityEstimate', title: t('clothingDonation.colItemCount'), width: 80, render: (v) => v ?? '-' },
     { key: 'conditionNotes', title: t('clothingDonation.colDescription'), width: 200, render: (v) => (v ? String(v).slice(0, 50) + (String(v).length > 50 ? '…' : '') : '-') },
     { key: 'contactPhone', title: t('clothingDonation.colPhone'), width: 120, render: (v) => v || '-' },
-    { key: 'pickupAddress', title: t('clothingDonation.colAddress', 'Pickup Address'), width: 160, render: (v) => (v ? String(v).slice(0, 40) + (String(v).length > 40 ? '…' : '') : '-') },
+    { key: 'pickupAddress', title: t('clothingDonation.colAddress'), width: 160, render: (v) => (v ? String(v).slice(0, 40) + (String(v).length > 40 ? '…' : '') : '-') },
     { key: 'status', title: t('clothingDonation.colStatus'), width: 100, render: (v) => <StatusBadge status={v} /> },
-    { key: 'createdAt', title: t('clothingDonation.colSubmittedAt'), width: 160, render: (v) => dayjs(v).format('YYYY-MM-DD HH:mm') },
+    { key: 'createdAt', title: t('clothingDonation.colSubmittedAt'), width: 160, render: (v) => formatDateTime(v) },
     {
       key: '_actions',
-      title: t('clothingDonation.colActions', 'Actions'),
-      width: 220,
-      render: (_v, record) => {
-        if (record.status === 'submitted') {
-          return (
-            <div style={{ display: 'flex', gap: 6 }}>
+      title: t('clothingDonation.colActions'),
+      width: 280,
+      render: (_v, record) => (
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <Button variant="secondary" size="sm" onClick={() => setSelected(record)}>
+            {t('common.detail')}
+          </Button>
+          {record.status === 'pending' && (
+            <>
               <Button
                 variant="primary"
                 size="sm"
                 loading={statusMutation.isPending}
                 onClick={() => statusMutation.mutate({ id: record.id, status: 'received' })}
               >
-                {t('clothingDonation.btnReceive', 'Receive')}
+                {t('clothingDonation.btnReceive')}
               </Button>
               <Button
                 variant="danger"
@@ -77,37 +83,32 @@ export default function ClothingDonationPage() {
                 loading={statusMutation.isPending}
                 onClick={() => statusMutation.mutate({ id: record.id, status: 'rejected' })}
               >
-                {t('clothingDonation.btnReject', 'Reject')}
+                {t('clothingDonation.btnReject')}
               </Button>
-            </div>
-          );
-        }
-        if (record.status === 'received') {
-          return (
+            </>
+          )}
+          {record.status === 'received' && (
             <Button
               variant="secondary"
               size="sm"
               loading={statusMutation.isPending}
               onClick={() => statusMutation.mutate({ id: record.id, status: 'processing' })}
             >
-              {t('clothingDonation.btnProcess', 'Process')}
+              {t('clothingDonation.btnProcess')}
             </Button>
-          );
-        }
-        if (record.status === 'processing') {
-          return (
+          )}
+          {record.status === 'processing' && (
             <Button
               variant="primary"
               size="sm"
               loading={statusMutation.isPending}
               onClick={() => statusMutation.mutate({ id: record.id, status: 'listed' })}
             >
-              {t('clothingDonation.btnConvert', 'Convert')}
+              {t('clothingDonation.btnConvert')}
             </Button>
-          );
-        }
-        return <span style={{ color: 'var(--color-text-2)', fontSize: 12 }}>—</span>;
-      },
+          )}
+        </div>
+      ),
     },
   ];
 
@@ -156,11 +157,63 @@ export default function ClothingDonationPage() {
         <Pagination
           page={page}
           totalPages={Math.ceil(total / 10)}
-          pageSize={10}
+          pageSize={20}
           total={total}
           onPageChange={setPage}
         />
       </div>
+
+      {/* Detail Modal */}
+      <Modal
+        open={!!selected}
+        title={t('clothingDonation.detailTitle')}
+        onClose={() => setSelected(null)}
+        width={500}
+      >
+        {selected && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{t('clothingDonation.colId')}</div>
+                <div style={{ fontSize: 13, fontWeight: 500 }}>{selected.id}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{t('clothingDonation.colStatus')}</div>
+                <StatusBadge status={selected.status} />
+              </div>
+              <div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{t('clothingDonation.colType')}</div>
+                <div style={{ fontSize: 13 }}>{selected.garmentTypes || '-'}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{t('clothingDonation.colItemCount')}</div>
+                <div style={{ fontSize: 13 }}>{selected.quantityEstimate ?? '-'}</div>
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: 11, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{t('clothingDonation.colPhone')}</div>
+              <div style={{ fontSize: 13 }}>{selected.contactPhone || '-'}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 11, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{t('clothingDonation.colAddress')}</div>
+              <div style={{ fontSize: 13 }}>{selected.pickupAddress || '-'}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 11, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{t('clothingDonation.colDescription')}</div>
+              <div style={{ fontSize: 13, padding: 12, background: 'var(--color-bg)', borderRadius: 6 }}>{selected.conditionNotes || '-'}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 11, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{t('clothingDonation.colSubmittedAt')}</div>
+              <div style={{ fontSize: 13 }}>{formatDateTime(selected.createdAt)}</div>
+            </div>
+            <div style={{ marginTop: 8 }}>
+              <Button variant="secondary" size="sm" onClick={() => setSelected(null)}>
+                {t('common.close')}
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

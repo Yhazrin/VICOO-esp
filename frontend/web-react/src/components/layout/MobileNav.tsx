@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { useUIStore } from '@/stores/uiStore';
+import { useUIStore, DARK_THEMES } from '@/stores/uiStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useAuth } from '@/hooks/useAuth';
 import { useRef, useEffect, useState } from 'react';
@@ -11,7 +11,6 @@ import { COMPANY_NAV } from '@/constants/companyNav';
 const IMPACT_TABS = [
   { key: 'home' },
   { key: 'campaigns' },
-  { key: 'donate' },
   { key: 'clothing-recycle' },
   { key: 'shop' },
 ];
@@ -27,6 +26,8 @@ export default function MobileNav() {
   const setImpactMode = useUIStore((s) => s.setImpactMode);
   const activeImpactTab = useUIStore((s) => s.activeImpactTab);
   const setActiveImpactTab = useUIStore((s) => s.setActiveImpactTab);
+  const currentTheme = useUIStore((s) => s.currentTheme);
+  const isDark = DARK_THEMES.has(currentTheme);
   const { user, isAuthenticated } = useAuthStore();
   const { logout } = useAuth();
   const [_userMenuOpen, setUserMenuOpen] = useState(false);
@@ -184,7 +185,9 @@ export default function MobileNav() {
               className={`
                 group mt-6 w-full flex items-center px-4 py-4 rounded-xl transition-all duration-200 cursor-pointer text-left
                 ${impactMode
-                  ? 'border border-warm-gray/25 bg-white/70 text-ink shadow-sm backdrop-blur-md hover:bg-white/85'
+                  ? isDark
+                    ? 'border border-[rgba(255,255,255,0.08)] bg-[rgba(42,42,48,0.7)] text-[#F0ECE8] shadow-sm backdrop-blur-md hover:bg-[rgba(42,42,48,0.85)]'
+                    : 'border border-warm-gray/25 bg-white/70 text-ink shadow-sm backdrop-blur-md hover:bg-white/85'
                   : 'border-2 border-[#E60012] bg-white text-[#E60012] shadow-sm hover:bg-[#E60012] hover:text-white'
                 }
               `}

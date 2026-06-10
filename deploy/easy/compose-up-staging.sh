@@ -9,6 +9,45 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
+_read_env_value() {
+  local key="$1"
+  local line value
+
+  line="$(
+    awk -v key="$key" '
+      /^[[:space:]]*(#|$)/ { next }
+      {
+        line = $0
+        sub(/^[[:space:]]*export[[:space:]]+/, "", line)
+        if (line ~ "^[[:space:]]*" key "[[:space:]]*=") {
+          sub(/^[^=]*=/, "", line)
+          value = line
+        }
+      }
+      END {
+        if (value != "") {
+          print value
+        }
+      }
+    ' .env
+  )"
+
+  [[ -n "$line" ]] || return 1
+  value="$line"
+  value="${value#"${value%%[![:space:]]*}"}"
+  value="${value%"${value##*[![:space:]]}"}"
+  if [[ "${value:0:1}" == '"' && "${value: -1}" == '"' ]]; then
+    value="${value:1:${#value}-2}"
+  elif [[ "${value:0:1}" == "'" && "${value: -1}" == "'" ]]; then
+    value="${value:1:${#value}-2}"
+  fi
+  printf '%s' "$value"
+}
+
+if [[ -z "${VICOO_USE_HOST_NGINX:-}" && -f .env ]]; then
+  VICOO_USE_HOST_NGINX="$(_read_env_value VICOO_USE_HOST_NGINX || true)"
+fi
+
 # 用法: ./compose-up-staging.sh           # 拉镜像后 up
 #       ./compose-up-staging.sh --build  # 等同 up -d --build（开发机常用）
 WITH_BUILD=""
@@ -54,4 +93,3 @@ if [[ -n "$WITH_BUILD" ]]; then
 else
   _compose up -d
 fi
-

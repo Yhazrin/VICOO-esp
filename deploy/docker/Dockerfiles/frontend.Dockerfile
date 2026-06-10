@@ -1,12 +1,12 @@
 # ============================================
 # Uniqlo × VICOO Welfare — Frontend Dockerfile
-# Multi-stage build for React SPA
+# Multi-stage build for React SPA + Admin Panel
 # ============================================
 
-# ---- Stage 1: Build React application ----
-FROM node:18-alpine AS builder
+# ---- Stage 1: Build web-react application ----
+FROM node:18-alpine AS web-builder
 
-WORKDIR /build
+WORKDIR /build/web-react
 
 # Copy package files for dependency caching
 COPY frontend/web-react/package.json frontend/web-react/package-lock.json* ./
@@ -15,12 +15,29 @@ COPY frontend/web-react/package.json frontend/web-react/package-lock.json* ./
 RUN npm ci --legacy-peer-deps
 
 # Copy source code
-COPY frontend/web-react/ .
+COPY frontend/web-react/. .
 
 # Build the production bundle
 RUN npm run build
 
-# ---- Stage 2: Serve with Nginx ----
+# ---- Stage 2: Build admin panel ----
+FROM node:18-alpine AS admin-builder
+
+WORKDIR /build/admin
+
+# Copy package files for dependency caching
+COPY admin/package.json admin/package-lock.json* ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy source code
+COPY admin/. .
+
+# Build admin panel (base: /admin/)
+RUN npm run build
+
+# ---- Stage 3: Serve with Nginx ----
 FROM nginx:alpine AS production
 
 LABEL maintainer="VICOO Welfare Team"
@@ -35,8 +52,11 @@ RUN apk add --no-cache gettext
 # Copy custom nginx configuration template
 COPY deploy/docker/nginx/nginx.conf /etc/nginx/conf.d/vicoo.conf.template
 
-# Copy built React app from builder stage
-COPY --from=builder /build/dist /usr/share/nginx/html
+# Copy built web-react app from builder stage
+COPY --from=web-builder /build/web-react/dist /usr/share/nginx/html
+
+# Copy built admin panel to /admin directory
+COPY --from=admin-builder /build/admin/dist /usr/share/nginx/html/admin
 
 # Create nginx cache directories
 RUN mkdir -p /var/cache/nginx/client_temp \

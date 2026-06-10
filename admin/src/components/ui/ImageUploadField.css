@@ -1,0 +1,87 @@
+.iuf-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.iuf-label {
+  font-size: 13px;
+  color: var(--color-text-secondary, #555);
+  font-weight: 500;
+}
+
+.iuf-dropzone {
+  position: relative;
+  width: 100%;
+  min-height: 160px;
+  border: 2px dashed #d0d5dd;
+  border-radius: 8px;
+  background: #fafbfc;
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.iuf-dropzone:hover {
+  border-color: #5b8def;
+  background: #f5f8ff;
+}
+
+.iuf-dropzone--over {
+  border-color: #5b8def;
+  background: #eaf1ff;
+}
+
+.iuf-dropzone--disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.iuf-preview {
+  max-width: 100%;
+  max-height: 220px;
+  object-fit: contain;
+}
+
+.iuf-placeholder {
+  color: #98a2b3;
+  text-align: center;
+  font-size: 13px;
+  padding: 16px;
+}
+
+.iuf-icon {
+  font-size: 28px;
+  margin-bottom: 4px;
+}
+
+.iuf-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5b8def;
+  font-weight: 500;
+}
+
+.iuf-url {
+  padding: 8px 10px;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+}
+
+.iuf-url:focus {
+  border-color: #5b8def;
+}
+
+.iuf-error {
+  font-size: 12px;
+  color: #d92d20;
+}

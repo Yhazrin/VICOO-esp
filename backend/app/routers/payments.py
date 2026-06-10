@@ -15,12 +15,21 @@ from app.database import get_db
 from app.models.payment import PaymentTransaction
 from app.models.order import Order
 from app.models.donation import Donation
-from app.schemas import ApiResponse, PaymentCreate, PaymentOut, PaginatedResponse, WeChatPaymentParams
-from app.schemas.payment import MockPayConfirmBody, MockPayPreviewOut, MockPayConfirmOut
+from app.schemas import ApiResponse, PaymentCreate, PaymentOut
+from app.schemas.payment import (
+    MockPayConfirmBody,
+    MockPayPreviewOut,
+    MockPayConfirmOut,
+    MockDonationPayPreviewOut,
+    MockDonationPayConfirmOut,
+)
 from app.deps import get_current_user
-from app.utils.mock_pay_token import parse_mock_pay_token
+from app.utils.mock_pay_token import parse_mock_pay_token, parse_mock_donation_pay_token
+from app.services.donation.service import DonationService
 from app.services.payment_service import get_payment_service
+from app.services.payment.service import PaymentService
 from app.routers.orders import _mock_orders
+
 _mock_donations: list = []
 
 logger = logging.getLogger(__name__)
@@ -38,8 +47,6 @@ _mock_payments = [
     {"id": 7, "order_id": 6, "donation_id": None, "amount": "128.00", "method": "wechat", "provider_transaction_id": "wx2025060100007", "status": "pending", "created_at": "2025-06-01T00:00:00"},
 ]
 
-
-from app.services.payment.service import PaymentService
 
 @router.post("/create", response_model=ApiResponse, status_code=201)
 async def create_payment(body: PaymentCreate, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
@@ -167,7 +174,6 @@ async def alipay_notify(request: Request, db: AsyncSession = Depends(get_db)):
             return PlainTextResponse("failure")
 
         # Filter out sign and sign_type, sort remaining params
-        sign_type = params.get("sign_type", "RSA2")
         filtered = {k: v for k, v in params.items() if k not in ("sign", "sign_type")}
 
         # Filter out empty values (Alipay spec)
@@ -252,10 +258,23 @@ async def alipay_notify(request: Request, db: AsyncSession = Depends(get_db)):
                 logger.warning("Alipay callback amount mismatch: callback=%s, db=%s for order %s", total_amount, order.total_amount, out_trade_no)
                 return PlainTextResponse("failure")
 
-        # --- Delegate to PaymentService (atomic status guard + impact fund allocation) ---
-        payment_service = PaymentService(db)
-        await payment_service.process_successful_payment(
-            provider_tx_id=trade_no,
+        if order:
+            # P0: Verify callback amount matches order total (prevents forged callbacks)
+            if total_amount != order.total_amount:
+                logger.warning(f"Alipay amount mismatch: callback={total_amount} != order={order.total_amount}")
+                return PlainTextResponse("failure")
+            # Update order status
+            await db.execute(
+                update(Order)
+                .where(Order.id == order.id)
+                .values(status="paid", payment_id=trade_no, payment_method="alipay", updated_at=func.now())
+            )
+            logger.info(f"Updated order {order.id} status to 'paid' (Alipay)")
+
+        # --- Create payment transaction record ---
+        payment_tx = PaymentTransaction(
+            order_id=order.id if order else None,
+            donation_id=None,
             amount=total_amount,
             method="alipay",
             order_no=out_trade_no if not donation_id else None,
@@ -356,6 +375,107 @@ async def mock_pay_confirm(body: MockPayConfirmBody, db: AsyncSession = Depends(
     return ApiResponse(
         data=MockPayConfirmOut(
             order_no=order.order_no, status="paid", already_paid=False
+        ).model_dump()
+    )
+
+
+@router.post("/mock-confirm-by-order-id", response_model=ApiResponse)
+async def mock_pay_confirm_by_order_id(order_id: int, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    """Mock payment confirmation by order ID (no token required).
+
+    Simplified flow for development/testing without APP_SECRET_KEY.
+    Only the order owner or admin can confirm payment.
+    """
+    order = (
+        await db.execute(select(Order).where(Order.id == order_id))
+    ).scalar_one_or_none()
+
+    if not order:
+        raise HTTPException(status_code=404, detail="订单不存在")
+
+    # Only order owner or admin can confirm
+    if order.user_id != current_user["id"] and current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="无权限确认此订单支付")
+
+    if order.status == "paid":
+        return ApiResponse(
+            data=MockPayConfirmOut(
+                order_no=order.order_no, status=order.status, already_paid=True
+            ).model_dump()
+        )
+
+    if order.status != "pending":
+        raise HTTPException(status_code=400, detail=f"订单状态不允许支付 (当前: {order.status})")
+
+    # Process successful payment
+    payment_service = PaymentService(db)
+    provider_id = f"mock-{secrets.token_hex(16)}"
+    method = (order.payment_method or "wechat").strip().lower() or "wechat"
+    if method not in ("wechat", "alipay", "stripe", "paypal"):
+        method = "wechat"
+
+    await payment_service.process_successful_payment(
+        provider_tx_id=provider_id,
+        amount=Decimal(str(order.total_amount)),
+        method=method,
+        order_no=order.order_no,
+        raw_data={"demo": True, "mock_pay": True, "confirmed_by": current_user["id"]},
+    )
+
+    return ApiResponse(
+        data=MockPayConfirmOut(
+            order_no=order.order_no, status="paid", already_paid=False
+        ).model_dump()
+    )
+
+
+@router.get("/mock-donation-preview", response_model=ApiResponse)
+async def mock_donation_pay_preview(token: str = Query(..., min_length=10), db: AsyncSession = Depends(get_db)):
+    """Demo: load donation summary for mobile pay page (token-signed, no auth)."""
+    payload = parse_mock_donation_pay_token(token, settings.APP_SECRET_KEY)
+    if not payload:
+        raise HTTPException(status_code=400, detail="无效或已过期的支付链接")
+    donation = (
+        await db.execute(select(Donation).where(Donation.id == int(payload["did"])))
+    ).scalar_one_or_none()
+    if not donation or donation.donor_user_id != int(payload["uid"]):
+        raise HTTPException(status_code=404, detail="捐赠记录不存在")
+    out = MockDonationPayPreviewOut(
+        donation_id=donation.id,
+        amount=str(donation.amount),
+        status=donation.status,
+        payment_method=donation.payment_method,
+        campaign_id=donation.campaign_id,
+    )
+    return ApiResponse(data=out.model_dump())
+
+
+@router.post("/mock-donation-confirm", response_model=ApiResponse)
+async def mock_donation_pay_confirm(body: MockPayConfirmBody, db: AsyncSession = Depends(get_db)):
+    """Demo: mark donation completed after user confirms on mobile pay page."""
+    payload = parse_mock_donation_pay_token(body.token.strip(), settings.APP_SECRET_KEY)
+    if not payload:
+        raise HTTPException(status_code=400, detail="无效或已过期的支付链接")
+    donation = (
+        await db.execute(select(Donation).where(Donation.id == int(payload["did"])))
+    ).scalar_one_or_none()
+    if not donation or donation.donor_user_id != int(payload["uid"]):
+        raise HTTPException(status_code=404, detail="捐赠记录不存在")
+    if donation.status == "completed":
+        return ApiResponse(
+            data=MockDonationPayConfirmOut(
+                donation_id=donation.id, status=donation.status, already_paid=True
+            ).model_dump()
+        )
+    if donation.status != "pending":
+        raise HTTPException(status_code=400, detail="捐赠状态不允许支付")
+
+    donation_service = DonationService(db)
+    provider_id = f"mock-don-{secrets.token_hex(16)}"
+    await donation_service.complete_donation(donation.id, provider_id)
+    return ApiResponse(
+        data=MockDonationPayConfirmOut(
+            donation_id=donation.id, status="completed", already_paid=False
         ).model_dump()
     )
 

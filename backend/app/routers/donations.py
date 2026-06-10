@@ -12,6 +12,7 @@ from app.schemas import ApiResponse, DonationCreate, DonationOut, DonationListPa
 from app.deps import get_current_user, get_optional_current_user
 from app.services.payment_service import get_payment_service
 from app.services.donation.certificate import build_certificate_payload, generate_certificate_pdf
+from app.utils.mock_pay_token import issue_mock_donation_pay_token
 
 router = APIRouter(prefix="/donations", tags=["Donations"])
 
@@ -193,6 +194,16 @@ async def create_donation(body: DonationCreate, db: AsyncSession = Depends(get_d
         response_data = _serialize_donation(donation)
         response_data["donationId"] = donation.id
         response_data["simulation_mode"] = False
+        secret_key = settings.APP_SECRET_KEY
+        if isinstance(secret_key, bytes):
+            secret_key = secret_key.decode("utf-8", errors="replace")
+        elif secret_key is None:
+            secret_key = ""
+        response_data["mock_pay_token"] = issue_mock_donation_pay_token(
+            donation_id=donation.id,
+            user_id=int(current_user["id"]),
+            secret=secret_key,
+        )
 
         if body.payment_method == "wechat":
             try:
@@ -226,14 +237,11 @@ async def create_donation(body: DonationCreate, db: AsyncSession = Depends(get_d
                 response_data["payment_notice"] = "Alipay web payment is not configured in this environment yet."
                 response_data["simulation_mode"] = True
         elif body.payment_method in {"stripe", "paypal"} and settings.APP_ENV != "production":
-            simulated_payment_id = f"sim_{body.payment_method}_{donation.id}"
-            donation = await donation_service.complete_donation(donation.id, simulated_payment_id)
-            await db.refresh(donation)
-            response_data = _serialize_donation(donation)
-            response_data["donationId"] = donation.id
             response_data["simulation_mode"] = True
-            response_data["payment_notice"] = f"{body.payment_method} payment is running in local simulation mode."
-            response_data.update(build_certificate_payload(donation))
+            response_data["payment_notice"] = (
+                f"{body.payment_method} payment is running in local simulation mode. "
+                "Please complete payment via the mock pay flow."
+            )
 
         return ApiResponse(data=response_data)
     except HTTPException:

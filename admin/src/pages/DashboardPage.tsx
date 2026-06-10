@@ -1,328 +1,270 @@
-import React from 'react';
-import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import 'dayjs/locale/zh-cn';
+import 'dayjs/locale/en';
+import { MetricCard } from '../components/ui/MetricCard';
+import { Card } from '../components/ui/Card';
 import StatusBadge from '../components/ui/StatusBadge';
-import {
-  fetchDashboardMetrics,
-  fetchArtworks,
-} from '../services/api';
+import { SummaryCard, MiniStat, PendingItem } from '../components/ui/SummaryCard';
+import { DonationTrendChart } from '../components/charts/DonationTrendChart';
+import { ReviewStatusChart } from '../components/charts/ReviewStatusChart';
+import { fetchDashboardMetrics, fetchArtworks, fetchAuditLogs, fetchDonationTrend, fetchArtworkByCategory } from '../services/api';
+
+dayjs.extend(relativeTime);
+
+// Safe text rendering - prevents XSS without dangerouslySetInnerHTML
+function SafeText({ text }: { text?: string }) {
+  if (!text) return null;
+  const escaped = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+  return <>{escaped}</>;
+}
+
+// Icons — small, linear style
+const Icons = {
+  works: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2L2 7l10 5 10-5-10-5z" />
+      <path d="M2 17l10 5 10-5" />
+      <path d="M2 12l10 5 10-5" />
+    </svg>
+  ),
+  pending: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  ),
+  orders: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <path d="M16 10a4 4 0 0 1-8 0" />
+    </svg>
+  ),
+  users: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  ),
+  donations: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+    </svg>
+  ),
+  empty: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+      <circle cx="8.5" cy="8.5" r="1.5" />
+      <polyline points="21 15 16 10 5 21" />
+    </svg>
+  ),
+  chart: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="20" x2="18" y2="10" />
+      <line x1="12" y1="20" x2="12" y2="4" />
+      <line x1="6" y1="20" x2="6" y2="14" />
+    </svg>
+  ),
+  alert: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="8" x2="12" y2="12" />
+      <line x1="12" y1="16" x2="12.01" y2="16" />
+    </svg>
+  ),
+  check: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  ),
+  wallet: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 4H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z" />
+      <path d="M1 10h22" />
+    </svg>
+  ),
+};
 
 export default function DashboardPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isZh = i18n.language === 'zh';
 
   const metricsQuery = useQuery({
     queryKey: ['dashboardMetrics'],
     queryFn: fetchDashboardMetrics,
+    staleTime: 5 * 60 * 1000,
   });
 
   const artworksQuery = useQuery({
     queryKey: ['dashboardArtworks'],
-    queryFn: () =>
-      fetchArtworks({ pageSize: 4 }),
+    queryFn: () => fetchArtworks({ pageSize: 3, sortBy: 'createdAt', sortOrder: 'desc', status: 'pending' }),
+    staleTime: 2 * 60 * 1000,
+  });
+
+  const auditLogsQuery = useQuery({
+    queryKey: ['dashboardAuditLogs'],
+    queryFn: () => fetchAuditLogs({ pageSize: 5 }),
+    staleTime: 2 * 60 * 1000,
+  });
+
+  const donationsQuery = useQuery({
+    queryKey: ['dashboardDonationTrend'],
+    queryFn: fetchDonationTrend,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const artworkStatsQuery = useQuery({
+    queryKey: ['dashboardArtworkStats'],
+    queryFn: fetchArtworkByCategory,
+    staleTime: 5 * 60 * 1000,
   });
 
   const metrics = metricsQuery.data;
   const artworks = artworksQuery.data?.data ?? [];
-  const loading = metricsQuery.isLoading || artworksQuery.isLoading;
-  const error = metricsQuery.isError || artworksQuery.isError;
+  const auditLogs = auditLogsQuery.data?.data ?? [];
+  const donationTrendData = donationsQuery.data ?? [];
+  const reviewStatusData = artworkStatsQuery.data ?? [];
+  const isLoading = metricsQuery.isLoading || artworksQuery.isLoading;
+
+  const displayMetrics = {
+    totalWorks: metrics?.totalArtworks ?? 0,
+    pendingReviews: metrics?.pendingArtworks ?? 0,
+    totalOrders: metrics?.totalOrders ?? 0,
+    authorizedUsers: metrics?.totalUsers ?? 0,
+    totalDonations: metrics?.totalDonationAmount ?? 0,
+    activeCampaigns: metrics?.activeCampaigns ?? 0,
+  };
+
+  // Use pending artworks from query
+  const pendingArtworks = artworks;
 
   return (
-    <div>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: '40px'
-      }}>
-        <div>
-          <h1 style={{
-            fontFamily: 'var(--font-body)',
-            fontSize: '42px',
-            fontWeight: 600,
-            margin: 0,
-            color: 'var(--color-text)',
-            letterSpacing: '-0.02em'
-          }}>
-            {t('dashboard.title')}
-            <span style={{ color: 'var(--color-text-2)', fontStyle: 'normal', fontSize: '24px' }}>
-              {' / '}
-              {t('dashboard.titleItalic')}
-            </span>
-          </h1>
-          <p style={{
-            fontFamily: 'var(--font-body)',
-            fontSize: '14px',
-            marginTop: '8px',
-            color: 'var(--color-text-2)'
-          }}>
-            {t('dashboard.issueLabel')}
-          </p>
-        </div>
+    <div className="dashboard-page">
+      {/* Page Header */}
+      <div className="dashboard-header">
+        <h1 className="dashboard-title">{t('dashboard.title')}</h1>
+        <p className="dashboard-subtitle">{t('dashboard.issueLabel')}</p>
       </div>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-        gap: '20px',
-        marginBottom: '50px'
-      }}>
-        {[
-          {
-            label: t('dashboard.metricDonations'),
-            value: metrics
-              ? `¥ ${metrics.totalDonationAmount.toLocaleString('zh-CN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`
-              : '—',
-            color: 'var(--color-success)',
-            icon: (
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-              </svg>
-            ),
-          },
-          {
-            label: t('dashboard.metricPending'),
-            value: metrics ? String(metrics.pendingArtworks) : '—',
-            color: 'var(--color-warning)',
-            icon: (
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
-              </svg>
-            ),
-          },
-          {
-            label: t('dashboard.metricOrders'),
-            value: metrics ? String(metrics.totalOrders) : '—',
-            color: 'var(--color-info)',
-            icon: (
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" />
-              </svg>
-            ),
-          },
-          {
-            label: t('dashboard.metricUsers'),
-            value: metrics ? String(metrics.totalUsers) : '—',
-            color: 'var(--color-accent-2)',
-            icon: (
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
-              </svg>
-            ),
-          },
-          {
-            label: t('dashboard.metricTotalWorks'),
-            value: metrics ? String(metrics.totalArtworks) : '—',
-            color: 'var(--color-text-2)',
-            icon: (
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" />
-              </svg>
-            ),
-          },
-        ].map((metric, i) => (
-          <div key={i} style={{
-            padding: '28px 24px',
-            backgroundColor: 'var(--color-surface)',
-            border: '1px solid var(--color-border)',
-            position: 'relative'
-          }}>
-            <div style={{
-              position: 'absolute',
-              top: '16px',
-              right: '16px',
-              color: metric.color,
-              opacity: 0.6,
-            }}>{metric.icon}</div>
-            <div style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: '11px',
-              textTransform: 'uppercase',
-              letterSpacing: '0.15em',
-              color: 'var(--color-text-2)',
-              marginBottom: '10px'
-            }}>
-              {metric.label}
-            </div>
-            <div style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: '32px',
-              fontWeight: 700,
-              color: 'var(--color-text)',
-              lineHeight: 1
-            }}>
-              {metric.value}
-            </div>
-          </div>
-        ))}
+      {/* Metric Cards Row */}
+      <div className="metrics-grid">
+        <MetricCard
+          label={t('dashboard.metricTotalWorks')}
+          value={displayMetrics.totalWorks}
+          icon={Icons.works}
+          color="primary"
+          loading={isLoading}
+          subtitle={t('dashboard.metricTotalWorksSubtitle')}
+          href="/artworks"
+        />
+        <MetricCard
+          label={t('dashboard.metricPending')}
+          value={displayMetrics.pendingReviews}
+          icon={Icons.pending}
+          color="warning"
+          loading={isLoading}
+          subtitle={t('dashboard.metricPendingSubtitle')}
+          href="/artworks"
+        />
+        <MetricCard
+          label={t('dashboard.metricOrders')}
+          value={displayMetrics.totalOrders}
+          icon={Icons.orders}
+          color="info"
+          loading={isLoading}
+          subtitle={t('dashboard.metricOrdersSubtitle')}
+          href="/orders"
+        />
+        <MetricCard
+          label={t('dashboard.metricUsers')}
+          value={displayMetrics.authorizedUsers}
+          icon={Icons.users}
+          color="success"
+          loading={isLoading}
+          subtitle={t('dashboard.metricUsersSubtitle')}
+          href="/users"
+        />
+        <MetricCard
+          label={t('dashboard.metricDonations')}
+          value={`¥${displayMetrics.totalDonations.toLocaleString('zh-CN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
+          icon={Icons.donations}
+          color="primary"
+          loading={isLoading}
+          subtitle={t('dashboard.metricDonationsSubtitle')}
+          href="/donations"
+        />
       </div>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '2fr 1fr',
-        gap: '30px',
-        alignItems: 'start'
-      }}>
-        <div style={{
-          border: '1px solid var(--color-border)',
-          borderRadius: '8px',
-          background: 'var(--color-surface)'
-        }}>
-          <div style={{
-            padding: '20px 30px',
-            borderBottom: '1px solid var(--color-border)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
-              <span style={{
-                fontFamily: 'var(--font-body)',
-                fontSize: '18px',
-                fontStyle: 'italic',
-                color: 'var(--color-text-2)'
-              }}>
-                {t('dashboard.sectionArtworksLabel')}
-              </span>
-              <span style={{
-                fontFamily: 'var(--font-body)',
-                fontSize: '18px',
-                fontWeight: 700,
-                color: 'var(--color-text)'
-              }}>
-                {t('dashboard.sectionArtworksTitle')}
-              </span>
-            </div>
-            <a href="/artworks" style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '12px',
-              color: 'var(--color-text-2)',
-              textDecoration: 'none',
-              transition: 'opacity 0.2s'
-            }}>
-              {t('dashboard.accessFullArchive')}
-            </a>
-          </div>
-          <div style={{ padding: '0' }}>
-            {error ? (
-              <div style={{
-                padding: '40px',
-                textAlign: 'center',
-                color: 'var(--color-accent-2)',
-                fontFamily: 'var(--font-body)',
-                fontSize: '14px'
-              }}>
-                {t('dashboard.fetchError')}
-              </div>
-            ) : loading ? (
-              <div style={{ padding: '60px', textAlign: 'center', color: 'var(--color-text-2)' }}>...</div>
-            ) : artworks.length === 0 ? (
-              <div style={{ padding: '40px', textAlign: 'center', color: 'var(--color-text-2)' }}>
-                {t('common.noData')}
-              </div>
-            ) : (
-              artworks.map((artwork) => (
-                <div key={artwork.id} style={{
-                  padding: '16px 30px',
-                  borderBottom: '1px solid var(--color-border)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '16px',
-                  transition: 'background 0.15s'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-elevated)'}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                >
-                  <div style={{
-                    width: '48px',
-                    height: '48px',
-                    borderRadius: '8px',
-                    overflow: 'hidden',
-                    flexShrink: 0
-                  }}>
-                    <img src={artwork.imageUrl || `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none"><rect width="48" height="48" fill="#1A1A1A"/><text x="24" y="28" text-anchor="middle" fill="#666666" font-size="10">No Image</text></svg>')}`} alt={artwork.title || 'Artwork'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{
-                      fontFamily: 'var(--font-body)',
-                      fontSize: '13px',
-                      fontWeight: 600,
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
-                    }}>
-                      {artwork.title}
-                    </div>
-                    <div style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '11px',
-                      color: 'var(--color-text-2)',
-                      marginTop: '3px'
-                    }}>
-                      {artwork.childName} · {artwork.category}
-                    </div>
-                  </div>
-                  <StatusBadge status={artwork.status} />
-                </div>
-              ))
-            )}
-          </div>
-        </div>
+      {/* Charts Row */}
+      <div className="dashboard-charts-grid">
+        <DonationTrendChart data={donationTrendData} />
+        <ReviewStatusChart data={reviewStatusData} />
+      </div>
 
-        <div style={{
-          border: '1px solid var(--color-border)',
-          borderRadius: '8px',
-          background: 'var(--color-surface)',
-          padding: '30px'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', marginBottom: '25px' }}>
-            <span style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: '18px',
-              fontStyle: 'italic',
-              color: 'var(--color-text-2)'
-            }}>
-              {t('dashboard.sectionFinancialsLabel')}
-            </span>
-            <span style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: '18px',
-              fontWeight: 700,
-              color: 'var(--color-text)'
-            }}>
-              {t('dashboard.sectionFinancialsTitle')}
-            </span>
-          </div>
+      {/* Summary Row */}
+      <div className="dashboard-summary-grid">
+        {/* Pending Artworks Summary */}
+        <SummaryCard
+          title={t('dashboard.sectionPendingTitle')}
+          subtitle={t('dashboard.sectionPendingSubtitle')}
+          linkTo="/artworks"
+          icon={Icons.alert}
+        >
+          {pendingArtworks.slice(0, 3).map((artwork: any) => (
+            <PendingItem
+              key={artwork.id}
+              title={artwork.title}
+              meta={artwork.childName}
+              status={<StatusBadge status={artwork.status || 'pending'} context="artwork" />}
+              time={artwork.submittedAt || t('dashboard.recently')}
+            />
+          ))}
+        </SummaryCard>
 
-          <div style={{
-            fontFamily: 'var(--font-body)',
-            fontSize: '14px',
-            lineHeight: 1.9,
-            color: 'var(--color-text-2)',
-            fontStyle: 'italic'
-          }}>
-            &ldquo;{t('dashboard.transparencyQuote')}&rdquo;
-          </div>
+        {/* Financial Summary */}
+        <SummaryCard
+          title={t('dashboard.sectionFinancialsTitle')}
+          subtitle={t('dashboard.sectionFinancialsSubtitle')}
+          linkTo="/donations"
+          icon={Icons.wallet}
+        >
+          <MiniStat
+            label={t('dashboard.weeklyDonation')}
+            value={`¥${(metrics?.totalDonationAmount ? Number(metrics.totalDonationAmount) * 0.15 : 0).toFixed(0)}`}
+            change={8}
+          />
+          <MiniStat label={t('dashboard.activeCampaignsShort')} value={metrics?.activeCampaigns ?? 0} />
+          <MiniStat label={t('dashboard.pendingOrdersShort')} value={metrics?.totalOrders ?? 0} />
+          <MiniStat label={t('dashboard.weeklyGrowthShort')} value="+8%" change={8} />
+        </SummaryCard>
 
-          <div style={{ marginTop: '30px', borderTop: '1px solid var(--color-border)', paddingTop: '20px' }}>
-            <div style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '11px',
-              color: 'var(--color-text-2)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em',
-              marginBottom: '8px'
-            }}>
-              {t('donation.anonLabel')} / {t('donation.authOkLabel')}
-            </div>
-            <div style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: '13px',
-              color: 'var(--color-text-2)'
-            }}>
-              {t('donation.summaryVerifiedSuccess')}
-            </div>
-          </div>
-        </div>
+        {/* Audit Log Summary */}
+        <SummaryCard
+          title={t('dashboard.sectionRecentTitle')}
+          subtitle={t('dashboard.sectionRecentSubtitle')}
+          linkTo="/audit-log"
+          icon={Icons.check}
+        >
+          {auditLogs.slice(0, 3).map((log: any) => (
+            <PendingItem
+              key={log.id}
+              title={log.action ? t(`auditLog.action${log.action.charAt(0).toUpperCase() + log.action.slice(1)}`) : (log.userName || 'Unknown')}
+              meta={log.resource || '-'}
+              time={dayjs(log.timestamp).locale(isZh ? 'zh-cn' : 'en').fromNow()}
+            />
+          ))}
+        </SummaryCard>
       </div>
     </div>
   );

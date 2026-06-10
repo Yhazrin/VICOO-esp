@@ -1,9 +1,10 @@
 import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
-import { useRef } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import type { SupplyChainTimelineRecord } from '@/types';
 import { useTranslation } from 'react-i18next';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 import TraceMediaGallery from '@/components/editorial/TraceMediaGallery';
+import { formatDate } from '@/utils/dateTime';
 
 interface TraceabilityTimelineProps {
   records: SupplyChainTimelineRecord[];
@@ -24,15 +25,29 @@ export default function TraceabilityTimeline({
   const dateLocale = i18n.language?.startsWith('zh') ? 'zh-CN' : 'en-US';
   const prefersReducedMotion = useReducedMotion();
   const containerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [contentHeight, setContentHeight] = useState(0);
 
-  // Scroll-linked animation for the vertical path line
+  // Measure actual content height for the path
+  useEffect(() => {
+    if (!contentRef.current) return;
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setContentHeight(entry.contentRect.height);
+      }
+    });
+    observer.observe(contentRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  // Scroll-linked animation — track window scroll through the container
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ['start end', 'end start'],
+    offset: ['start start', 'end end'],
   });
 
   // Calculate the total height needed for the path
-  const pathHeight = records.length * 200; // Approximate height per record
+  const pathHeight = contentHeight || records.length * 200;
   const strokeDashoffset = useTransform(scrollYProgress, [0, 1], [pathHeight, 0]);
 
   if (records.length === 0) {
@@ -49,9 +64,10 @@ export default function TraceabilityTimeline({
     <div ref={containerRef} className={`relative pl-12 ${className}`}>
       {/* Animated decorative path line - draws on scroll */}
       <svg
-        className="absolute left-[15px] top-0 w-4 h-full overflow-visible pointer-events-none"
+        className="absolute left-[15px] top-0 w-4 overflow-visible pointer-events-none"
         aria-hidden="true"
         preserveAspectRatio="none"
+        style={{ height: contentHeight }}
       >
         {/* Main animated vertical line */}
         <motion.path
@@ -111,7 +127,7 @@ export default function TraceabilityTimeline({
         />
       </svg>
 
-      <div className="space-y-0">
+      <div ref={contentRef} className="space-y-0">
         {records.map((record, index) => {
           const isGlobeLinked = linkedFromGlobeId != null && record.id === linkedFromGlobeId;
           return (
@@ -188,12 +204,12 @@ export default function TraceabilityTimeline({
                 </div>
 
                 <p className="font-body text-body-sm text-ink-faded leading-[1.85] mb-5 max-w-2xl">
-                  {record.description}
+                  {(i18n.language?.startsWith('en') && record.description_en) ? record.description_en : record.description}
                 </p>
 
                 {record.gallery && record.gallery.length > 0 && (
                   <div className="mb-6 max-w-2xl">
-                    <TraceMediaGallery items={record.gallery} />
+                    <TraceMediaGallery items={record.gallery} horizontal />
                   </div>
                 )}
 
@@ -202,7 +218,9 @@ export default function TraceabilityTimeline({
                     <span className="uppercase tracking-[0.16em] block text-[10px] mb-0.5 opacity-90">
                       {t('traceability.location')}
                     </span>
-                    <span className="text-ink-faded font-medium">{record.location}</span>
+                    <span className="text-ink-faded font-medium">
+                      {(i18n.language?.startsWith('en') && record.location_en) ? record.location_en : record.location}
+                    </span>
                   </div>
                   <div className="font-body text-[11px] text-sepia-mid leading-snug">
                     <span className="uppercase tracking-[0.16em] block text-[10px] mb-0.5 opacity-90">
@@ -215,11 +233,7 @@ export default function TraceabilityTimeline({
                       {t('traceability.date')}
                     </span>
                     <span className="font-mono text-[11px] text-ink-faded">
-                      {new Date(record.date).toLocaleDateString(dateLocale, {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })}
+                      {formatDate(record.date, dateLocale)}
                     </span>
                   </div>
                   {record.carbonFootprint !== undefined && (

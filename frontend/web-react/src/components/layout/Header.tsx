@@ -1,21 +1,29 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence, useReducedMotion, type Transition } from 'framer-motion';
-import { useUIStore, THEMES, type ThemeId, type AIBallStyle } from '@/stores/uiStore';
+import { useUIStore, THEMES, DARK_THEMES, type ThemeId } from '@/stores/uiStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useCartStore, selectTotalItems } from '@/stores/cartStore';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { useRef, useEffect, useState, useCallback, useLayoutEffect, useMemo } from 'react';
 import UniqloLogo from './UniqloLogo';
+import vicooLogo from '@/assets/vicoo-logo.png';
 import { COMPANY_NAV, matchCompanyNavKey } from '@/constants/companyNav';
 
-/** Spring for sliding nav pill — bouncier settle (non-linear). */
+/** Spring for sliding nav pill — elastic settle between tabs. */
 const SLIDING_PILL_SPRING = {
   type: 'spring' as const,
-  stiffness: 400,
-  damping: 22,
-  mass: 0.72,
+  stiffness: 420,
+  damping: 24,
+  mass: 0.62,
+};
+
+const SLIDING_PILL_SIZE_SPRING = {
+  type: 'spring' as const,
+  stiffness: 520,
+  damping: 30,
+  mass: 0.56,
 };
 
 /**
@@ -46,7 +54,6 @@ function getModeMorphTransition(reduceMotion: boolean): Transition {
 const IMPACT_TABS = [
   { key: 'home' },
   { key: 'campaigns' },
-  { key: 'donate' },
   { key: 'clothing-recycle' },
   { key: 'shop' },
 ];
@@ -65,6 +72,7 @@ function PillWindow({
   setImpactMode,
   locationPathname,
   modeMorphTransition,
+  isDark,
 }: {
   impactMode: boolean;
   activeImpactTab: string;
@@ -72,6 +80,7 @@ function PillWindow({
   setImpactMode: (on: boolean) => void;
   locationPathname: string;
   modeMorphTransition: Transition;
+  isDark: boolean;
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -85,6 +94,7 @@ function PillWindow({
   const [impactW, setImpactW] = useState(0);
   const [companyHl, setCompanyHl] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
   const [impactHl, setImpactHl] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+  const [pendingCompanyKey, setPendingCompanyKey] = useState<string | null>(null);
 
   /**
    * Company rail: only one “active” item when NOT in impact mode.
@@ -95,6 +105,7 @@ function PillWindow({
     if (impactMode) return null;
     return matchCompanyNavKey(locationPathname);
   }, [locationPathname, impactMode]);
+  const activeCompanyVisualKey = !impactMode && pendingCompanyKey ? pendingCompanyKey : activeCompanyKey;
 
   const measure = useCallback(() => {
     if (companyRef.current) setCompanyW(companyRef.current.offsetWidth);
@@ -122,12 +133,22 @@ function PillWindow({
     // Only measure the rail that is logically active — avoids two pills / wrong slides when modes share `/`.
     if (!impactMode) {
       setImpactHl(null);
-      setCompanyHl(measureHighlight(companyRef.current, activeCompanyKey, companyItemRefs.current));
+      setCompanyHl(measureHighlight(companyRef.current, activeCompanyVisualKey, companyItemRefs.current));
     } else {
       setCompanyHl(null);
       setImpactHl(measureHighlight(impactRef.current, activeImpactTab, impactItemRefs.current));
     }
-  }, [activeCompanyKey, activeImpactTab, impactMode, measureHighlight]);
+  }, [activeCompanyVisualKey, activeImpactTab, impactMode, measureHighlight]);
+
+  useEffect(() => {
+    if (impactMode) {
+      setPendingCompanyKey(null);
+      return;
+    }
+    if (pendingCompanyKey && activeCompanyKey === pendingCompanyKey) {
+      setPendingCompanyKey(null);
+    }
+  }, [activeCompanyKey, impactMode, pendingCompanyKey]);
 
   useEffect(() => {
     measure();
@@ -194,6 +215,9 @@ function PillWindow({
   const pillTransition = prefersReducedMotion
     ? { duration: 0.12, ease: [0.25, 0.1, 0.25, 1] as const }
     : SLIDING_PILL_SPRING;
+  const pillSizeTransition = prefersReducedMotion
+    ? { duration: 0.12, ease: [0.25, 0.1, 0.25, 1] as const }
+    : SLIDING_PILL_SIZE_SPRING;
 
   // Capsule has px-2 (8px each side = 16px padding).
   // Offset uses pure content width; capsule width adds padding so
@@ -215,7 +239,9 @@ function PillWindow({
       className={`
         flex items-center overflow-hidden px-2 py-1 shadow-sm
         ${impactMode
-          ? 'border border-warm-gray/20 bg-white/80 backdrop-blur-xl'
+          ? isDark
+            ? 'border border-[rgba(255,255,255,0.08)] bg-[rgba(8,8,12,0.86)] backdrop-blur-xl'
+            : 'border border-warm-gray/20 bg-white/80 backdrop-blur-xl'
           : 'border border-white/30 bg-white/15 backdrop-blur-md'
         }
       `}
@@ -238,27 +264,27 @@ function PillWindow({
           {companyHl && (
             <motion.div
               aria-hidden
-              className={`pointer-events-none absolute z-0 bg-white ${PILL_CORNER_TRANSITION_CLASS} ${impactMode ? 'rounded-full' : 'rounded-sm'} ${prefersReducedMotion ? '' : 'will-change-transform'}`}
+              className={`pointer-events-none absolute z-0 ${impactMode ? (isDark ? 'bg-[rgba(230,57,124,0.2)]' : 'bg-ink') : 'bg-white shadow-sm ring-1 ring-black/10'} ${PILL_CORNER_TRANSITION_CLASS} ${impactMode ? 'rounded-full' : 'rounded-sm'} ${prefersReducedMotion ? '' : 'will-change-transform'}`}
               initial={false}
               animate={{
                 x: companyHl.x,
                 y: companyHl.y,
-                scaleX: companyHl.w / 100,
-                scaleY: companyHl.h / 100,
+                width: companyHl.w,
+                height: companyHl.h,
                 borderRadius: impactMode ? 9999 : 4,
               }}
               transition={{
                 x: pillTransition,
                 y: pillTransition,
-                scaleX: pillTransition,
-                scaleY: pillTransition,
+                width: pillSizeTransition,
+                height: pillSizeTransition,
                 borderRadius: modeMorphTransition,
               }}
-              style={{ width: 100, height: 100, transformOrigin: 'top left' }}
+              style={{ left: 0, top: 0, transformOrigin: 'top left' }}
             />
           )}
           {COMPANY_NAV.map((item) => {
-            const isActive = !impactMode && activeCompanyKey === item.key;
+            const isActive = !impactMode && activeCompanyVisualKey === item.key;
             return (
               <Link
                 key={item.key}
@@ -268,9 +294,10 @@ function PillWindow({
                 }}
                 to={item.path}
                 onClick={() => {
-                  // `/` is shared between the welfare shell and the UNIQLO homepage: an effect that only depends on pathname will not turn off welfare mode when clicking "Home".
-                  // Set unconditionally to false: even if other company paths have been handled by useEffect, repeating the set is a side-effect-free synchronous operation,
-                  // and actually helps avoid transient stale closures from zustand persist hydration and local refresh.
+                  setPendingCompanyKey(item.key);
+                  // `/` 是公益壳与优衣库首页共用 URL：仅依赖 pathname 的 effect 不会在点「首页」时关闭公益模式。
+                  // 无条件设 false：即使其他公司路径已经被 useEffect 处理过，重复 set 是无副作用同步操作，
+                  // 反而能避免 zustand persist hydrate 与本地刷新带来的瞬时 stale closure。
                   setImpactMode(false);
                 }}
                 aria-current={isActive ? 'page' : undefined}
@@ -279,9 +306,11 @@ function PillWindow({
                   ${PILL_CORNER_TRANSITION_CLASS}
                   ${impactMode ? 'rounded-full' : 'rounded-sm'}
                   ${isActive
-                    ? 'font-medium bg-white text-[#E60012] shadow-sm ring-1 ring-black/10'
+                    ? impactMode
+                      ? isDark ? 'font-medium text-[#F0ECE8]' : 'font-medium text-paper'
+                      : 'font-medium text-[#E60012]'
                     : impactMode
-                      ? 'text-ink-faded hover:text-ink'
+                      ? isDark ? 'text-[#9A969C] hover:text-[#F0ECE8]' : 'text-ink-faded hover:text-ink'
                       : 'text-white/90 hover:bg-white/10 hover:text-white'
                   }
                 `}
@@ -296,22 +325,23 @@ function PillWindow({
           {impactHl && (
             <motion.div
               aria-hidden
-              className={`pointer-events-none absolute z-0 rounded-full bg-ink ${PILL_CORNER_TRANSITION_CLASS} ${prefersReducedMotion ? '' : 'will-change-transform'}`}
+              className={`pointer-events-none absolute z-0 rounded-full ${isDark ? 'bg-[#E6397C]' : 'bg-ink shadow-sm ring-1 ring-black/10'} ${PILL_CORNER_TRANSITION_CLASS} ${prefersReducedMotion ? '' : 'will-change-transform'}`}
               initial={false}
               animate={{
                 x: impactHl.x,
                 y: impactHl.y,
-                scaleX: impactHl.w / 100,
-                scaleY: impactHl.h / 100,
+                width: impactHl.w,
+                height: impactHl.h,
                 borderRadius: 9999,
               }}
               transition={{
                 x: pillTransition,
                 y: pillTransition,
-                scaleX: pillTransition,
-                scaleY: pillTransition,
+                width: pillSizeTransition,
+                height: pillSizeTransition,
                 borderRadius: modeMorphTransition,
               }}
+              style={{ left: 0, top: 0, transformOrigin: 'top left' }}
             />
           )}
           {IMPACT_TABS.map((tab) => {
@@ -337,9 +367,9 @@ function PillWindow({
                   ${PILL_CORNER_TRANSITION_CLASS}
                   ${impactMode ? 'rounded-full' : 'rounded-sm'}
                   ${isActive
-                    ? 'font-medium bg-ink text-paper shadow-sm ring-1 ring-black/10'
+                    ? isDark ? 'font-medium text-[#FFFFFF]' : 'font-medium text-paper'
                     : impactMode
-                      ? 'text-ink-faded hover:text-ink'
+                      ? isDark ? 'text-[#9A969C] hover:text-[#F0ECE8]' : 'text-ink-faded hover:text-ink'
                       : 'text-white/40'
                   }
                 `}
@@ -374,8 +404,9 @@ export default function Header() {
   const setImpactMode = useUIStore((s) => s.setImpactMode);
   const activeImpactTab = useUIStore((s) => s.activeImpactTab);
   const setActiveImpactTab = useUIStore((s) => s.setActiveImpactTab);
-  const aiBallStyle = useUIStore((s) => s.aiBallStyle);
-  const setAIBallStyle = useUIStore((s) => s.setAIBallStyle);
+  const headerHiddenForCapture = useUIStore((s) => s.headerHiddenForCapture);
+  const toggleHeaderHiddenForCapture = useUIStore((s) => s.toggleHeaderHiddenForCapture);
+  const captureDebugEnabled = import.meta.env.DEV;
 
   const user = useAuthStore((s) => s.user);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -383,7 +414,7 @@ export default function Header() {
   const toggleCart = useCartStore((s) => s.toggleCart);
   const totalCartItems = useCartStore(selectTotalItems);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [activeSubmenu, setActiveSubmenu] = useState<'main' | 'theme' | 'aiBall' | null>(null);
+  const [activeSubmenu, setActiveSubmenu] = useState<'theme' | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -446,6 +477,7 @@ export default function Header() {
     setActiveSubmenu(null);
   };
 
+  const isDark = DARK_THEMES.has(currentTheme);
   const currentThemeConfig = THEMES.find((theme) => theme.id === currentTheme);
 
   useEffect(() => {
@@ -499,25 +531,44 @@ export default function Header() {
   const headerBarGpuClass = 'transform-gpu [backface-visibility:hidden] [isolation:isolate]';
 
   const iconDisc = impactMode
-    ? 'bg-white text-ink-faded shadow-sm hover:shadow-md border border-warm-gray/15'
+    ? isDark
+      ? 'bg-[rgba(255,255,255,0.05)] text-[#B8B4AE] shadow-sm hover:shadow-md border border-[rgba(255,255,255,0.08)] hover:text-[#F0ECE8]'
+      : 'bg-white text-ink-faded shadow-sm hover:shadow-md border border-warm-gray/15'
     : 'border border-white/25 bg-white/20 text-white shadow-none hover:bg-white/30';
 
   return (
     <header className="pointer-events-none fixed top-0 left-0 right-0 z-50">
+      {captureDebugEnabled && (
+        <button
+          type="button"
+          data-testid="header-capture-toggle"
+          onClick={toggleHeaderHiddenForCapture}
+          className="pointer-events-auto fixed top-0 right-0 z-[60] h-14 w-14 cursor-pointer border-0 bg-transparent opacity-0 md:h-[4.25rem] md:w-16"
+          aria-hidden="true"
+          tabIndex={-1}
+          title={headerHiddenForCapture ? 'Show header (dev)' : 'Hide header (dev)'}
+        />
+      )}
       <motion.div
-        className={`pointer-events-auto ${headerBarGpuClass}`}
+        className={`${headerHiddenForCapture ? 'pointer-events-none' : 'pointer-events-auto'} ${headerBarGpuClass}`}
         initial={false}
         animate={{
+          y: headerHiddenForCapture ? -120 : 0,
+          opacity: headerHiddenForCapture ? 0 : 1,
           marginTop: impactMode ? 10 : 0,
           marginLeft: impactMode ? 12 : 0,
           marginRight: impactMode ? 12 : 0,
           borderRadius: impactMode ? 9999 : 0,
-          backgroundColor: impactMode ? 'rgba(252, 250, 246, 0.92)' : '#E60012',
+          backgroundColor: impactMode
+            ? isDark ? 'rgba(0, 0, 0, 0.8)' : 'var(--welfare-header-bg, rgba(255, 255, 255, 0.92))'
+            : '#E60012',
         }}
         transition={modeMorphTransition}
         style={{
           boxShadow: impactMode
-            ? '0 8px 32px rgba(0, 0, 0, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.58)'
+            ? isDark
+              ? '0 10px 36px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05)'
+              : '0 8px 32px rgba(0, 0, 0, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.58)'
             : 'inset 0 -1px 0 rgba(0, 0, 0, 0.2)',
           backdropFilter: impactMode ? 'saturate(180%) blur(14px)' : 'none',
           WebkitBackdropFilter: impactMode ? 'saturate(180%) blur(14px)' : 'none',
@@ -538,7 +589,7 @@ export default function Header() {
             setImpactMode(false);
           }}
         >
-          <motion.div animate={{ x: impactMode ? -6 : 0 }} transition={modeMorphTransition}>
+          <motion.div animate={{ x: impactMode ? -6 : 0 }} transition={modeMorphTransition} className="mr-2">
             <UniqloLogo variant={impactMode ? 'default' : 'onRed'} />
           </motion.div>
           <AnimatePresence mode="wait">
@@ -549,9 +600,9 @@ export default function Header() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -8 }}
                 transition={{ type: 'spring', stiffness: 420, damping: 28, delay: 0.04 }}
-                className="font-display text-sm font-medium tracking-wide whitespace-nowrap text-ink select-none md:text-base"
+                className="font-display text-base font-medium text-ink select-none flex items-center gap-1"
               >
-                × VICOO
+                × <img src={vicooLogo} alt="VICOO" className="inline h-[1.4em] w-auto align-middle" />
               </motion.span>
             )}
           </AnimatePresence>
@@ -570,6 +621,7 @@ export default function Header() {
                 setImpactMode={setImpactMode}
                 locationPathname={location.pathname}
                 modeMorphTransition={modeMorphTransition}
+                isDark={isDark}
               />
 
               {/* Impact toggle: UNIQLO = classic red/white; Impact shell = glass card */}
@@ -582,16 +634,22 @@ export default function Header() {
                   rounded-full px-5 py-1.5 font-body text-label font-medium tracking-wide transition-all duration-300 cursor-pointer
                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
                   ${impactMode
-                    ? `
-                      border border-warm-gray/25 bg-white/75 text-ink shadow-sm backdrop-blur-xl
-                      hover:bg-white/90 hover:border-warm-gray/35 hover:shadow-md
-                      focus-visible:ring-[#E60012]/40 focus-visible:ring-offset-paper
-                    `
+                    ? isDark
+                      ? `
+                        border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.05)] text-[#F0ECE8] shadow-sm backdrop-blur-xl
+                        hover:bg-[rgba(255,255,255,0.08)] hover:border-[rgba(255,255,255,0.12)] hover:shadow-md
+                        focus-visible:ring-[#E6397C]/40 focus-visible:ring-offset-[#1A1A1D]
+                      `
+                      : `
+                        border border-warm-gray/25 bg-white/75 text-ink shadow-sm backdrop-blur-xl
+                        hover:bg-white/90 hover:border-warm-gray/35 hover:shadow-md
+                        focus-visible:ring-[#E60012]/40 focus-visible:ring-offset-paper
+                      `
                     : `
-                      border-0 bg-white text-[#E60012] shadow-md
-                      hover:bg-white/95
-                      focus-visible:ring-white/80 focus-visible:ring-offset-[#E60012]
-                    `
+                        border-0 bg-white text-[#E60012] shadow-md
+                        hover:bg-white/95
+                        focus-visible:ring-white/80 focus-visible:ring-offset-[#E60012]
+                      `
                   }
                 `}
               >
@@ -619,7 +677,11 @@ export default function Header() {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder={t('search.placeholder', 'Search products...')}
-                      className="w-[200px] px-4 py-1.5 rounded-full bg-white/90 backdrop-blur-xl shadow-sm font-body text-sm text-ink placeholder:text-warm-gray/60 focus:outline-none focus:ring-1 focus:ring-rust/30"
+                      className={`w-[200px] px-4 py-1.5 rounded-full backdrop-blur-xl shadow-sm font-body text-sm focus:outline-none focus:ring-1 ${
+                        impactMode && isDark
+                          ? 'bg-[rgba(255,255,255,0.06)] text-[#F0ECE8] placeholder:text-[#6A666C] focus:ring-[#E6397C]/40'
+                          : 'bg-white/90 text-ink placeholder:text-warm-gray/60 focus:ring-rust/30'
+                      }`}
                       onBlur={() => {
                         if (!searchQuery.trim()) setSearchOpen(false);
                       }}
@@ -662,7 +724,9 @@ export default function Header() {
             {totalCartItems > 0 && (
               <span
                 className={`absolute -right-1 -top-1 flex h-4.5 min-h-[18px] w-4.5 min-w-[18px] items-center justify-center rounded-full font-mono text-[10px] leading-none ${
-                  impactMode ? 'bg-rust text-paper' : 'bg-white text-[#E60012]'
+                  impactMode
+                    ? isDark ? 'bg-[#E6397C] text-white' : 'bg-rust text-paper'
+                    : 'bg-white text-[#E60012]'
                 }`}
               >
                 {totalCartItems > 99 ? '99+' : totalCartItems}
@@ -762,49 +826,6 @@ export default function Header() {
                         ))}
                       </div>
                     </div>
-                  ) : activeSubmenu === 'aiBall' ? (
-                    <div className="py-2">
-                      <div className="px-4 py-2 border-b border-warm-gray/20 flex items-center gap-2">
-                        <button
-                          onClick={() => setActiveSubmenu(null)}
-                          className="text-sepia-mid hover:text-ink cursor-pointer"
-                          aria-label="Back to main menu"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                          </svg>
-                        </button>
-                        <span className="font-body text-caption text-sepia-mid">
-                          {t('nav.settings.aiBallStyle', 'AI Ball Style')}
-                        </span>
-                      </div>
-                      {([
-                        { id: 'orb' as AIBallStyle, nameKey: 'nav.settings.orbRings', descKey: 'nav.settings.orbRingsDesc' },
-                        { id: 'particles' as AIBallStyle, nameKey: 'nav.settings.particlePlanet', descKey: 'nav.settings.particlePlanetDesc' },
-                      ]).map((opt) => (
-                        <button
-                          key={opt.id}
-                          onClick={() => { setAIBallStyle(opt.id); setActiveSubmenu(null); }}
-                          className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-warm-gray/10 transition-colors cursor-pointer ${
-                            aiBallStyle === opt.id ? 'bg-warm-gray/10' : ''
-                          }`}
-                        >
-                          <div className="text-left flex-1 min-w-0">
-                            <p className="font-body text-body-sm text-ink truncate">
-                              {t(opt.nameKey)}
-                            </p>
-                            <p className="font-body text-caption text-sepia-mid truncate">
-                              {t(opt.descKey)}
-                            </p>
-                          </div>
-                          {aiBallStyle === opt.id && (
-                            <svg className="w-4 h-4 text-rust flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-                            </svg>
-                          )}
-                        </button>
-                      ))}
-                    </div>
                   ) : (
                     <div className="py-2">
                       {isAuthenticated && user ? (
@@ -835,27 +856,6 @@ export default function Header() {
                             </div>
                           </button>
 
-                          <button
-                            onClick={() => setActiveSubmenu('aiBall')}
-                            className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-warm-gray/10 transition-colors cursor-pointer"
-                          >
-                            <span className="flex items-center gap-2">
-                              <svg className="w-4 h-4 text-sepia-mid" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <circle cx="12" cy="12" r="10" strokeWidth={2} />
-                                <circle cx="12" cy="12" r="4" strokeWidth={2} />
-                              </svg>
-                              <span className="font-body text-body-sm text-ink">{t('nav.settings.aiBallStyle', 'AI Ball Style')}</span>
-                            </span>
-                            <div className="flex items-center gap-2">
-                              <span className="font-body text-caption text-sepia-mid">
-                                {aiBallStyle === 'orb' ? t('nav.settings.orbShort') : t('nav.settings.particlesShort')}
-                              </span>
-                              <svg className="w-3 h-3 text-sepia-mid" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                              </svg>
-                            </div>
-                          </button>
-
                           <Link
                             to="/profile"
                             role="menuitem"
@@ -869,43 +869,16 @@ export default function Header() {
                           </Link>
 
                           <Link
-                            to="/submit-artwork"
+                            to="/orders"
                             role="menuitem"
                             className="flex items-center gap-2 px-4 py-2.5 hover:bg-warm-gray/10 transition-colors cursor-pointer"
                             onClick={() => setUserMenuOpen(false)}
                           >
                             <svg className="w-4 h-4 text-sepia-mid" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                             </svg>
-                            <span className="font-body text-body-sm text-ink">{t('nav.submitArtwork', 'Submit Artwork')}</span>
+                            <span className="font-body text-body-sm text-ink">{t('nav.orders', 'Orders')}</span>
                           </Link>
-
-                          {(user.role === 'admin' || user.role === 'editor') && (
-                            <Link
-                              to="/ai-design"
-                              role="menuitem"
-                              className="flex items-center gap-2 px-4 py-2.5 hover:bg-warm-gray/10 transition-colors cursor-pointer"
-                              onClick={() => setUserMenuOpen(false)}
-                            >
-                              <svg className="w-4 h-4 text-sepia-mid" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                              </svg>
-                              <span className="font-body text-body-sm text-ink">{t('nav.aiDesign', 'AI Design')}</span>
-                            </Link>
-                          )}
-                          {(user.role === 'admin' || user.role === 'editor') && (
-                            <Link
-                              to="/studio/supply-chain"
-                              role="menuitem"
-                              className="flex items-center gap-2 px-4 py-2.5 hover:bg-warm-gray/10 transition-colors cursor-pointer"
-                              onClick={() => setUserMenuOpen(false)}
-                            >
-                              <svg className="w-4 h-4 text-sepia-mid" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                              <span className="font-body text-body-sm text-ink">{t('nav.supplyChainStudio', 'Traceability Studio')}</span>
-                            </Link>
-                          )}
 
                           <button
                             onClick={handleLogout}
@@ -976,15 +949,15 @@ export default function Header() {
             >
               <motion.span
                 animate={prefersReducedMotion ? {} : (mobileNavOpen ? { rotate: 45, y: 6 } : { rotate: 0, y: 0 })}
-                className={`block h-px w-6 ${impactMode ? 'bg-ink' : 'bg-white'}`}
+                className={`block h-px w-6 ${impactMode ? (isDark ? 'bg-[#F0ECE8]' : 'bg-ink') : 'bg-white'}`}
               />
               <motion.span
                 animate={prefersReducedMotion ? {} : (mobileNavOpen ? { opacity: 0 } : { opacity: 1 })}
-                className={`block h-px w-6 ${impactMode ? 'bg-ink' : 'bg-white'}`}
+                className={`block h-px w-6 ${impactMode ? (isDark ? 'bg-[#F0ECE8]' : 'bg-ink') : 'bg-white'}`}
               />
               <motion.span
                 animate={prefersReducedMotion ? {} : (mobileNavOpen ? { rotate: -45, y: -6 } : { rotate: 0, y: 0 })}
-                className={`block h-px w-6 ${impactMode ? 'bg-ink' : 'bg-white'}`}
+                className={`block h-px w-6 ${impactMode ? (isDark ? 'bg-[#F0ECE8]' : 'bg-ink') : 'bg-white'}`}
               />
             </button>
           )}

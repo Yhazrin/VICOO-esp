@@ -69,26 +69,38 @@ export default function Campaigns() {
   return (
     <PageWrapper>
       <SectionContainer noTopSpacing>
-        {/* Search bar */}
-        <div className="mb-6 max-w-md pt-2">
-          <VintageInput
-            type="text"
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            placeholder={t('campaigns.search.placeholder')}
-            icon="search"
-            className="py-2"
-            aria-label={t('campaigns.search.placeholder')}
-          />
-        </div>
+        {/* Page hero + search */}
+        <header className="pt-4 pb-8 md:pb-10 border-b border-warm-gray/25 mb-6 md:mb-8">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 md:gap-6">
+            <div>
+              <h1 className="font-display text-h1 md:text-[clamp(2.25rem,5vw,3.25rem)] font-bold text-ink leading-[1.05] tracking-tight max-w-3xl">
+                {t('campaigns.hero.title')}
+              </h1>
+              <p className="font-body text-body-sm md:text-body text-ink-faded leading-relaxed mt-4 max-w-2xl">
+                {t('campaigns.hero.subtitle')}
+              </p>
+            </div>
+            <div className="w-full md:max-w-xs lg:max-w-sm">
+              <VintageInput
+                type="text"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
+                placeholder={t('campaigns.search.placeholder')}
+                icon="search"
+                className="py-2"
+                aria-label={t('campaigns.search.placeholder')}
+              />
+            </div>
+          </div>
+        </header>
 
         {/* Filter tabs — capsule style */}
         {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
         <div
-          className="flex items-center mb-8 rounded-full bg-white/80 backdrop-blur-xl shadow-sm px-2 py-1 overflow-x-auto"
+          className="flex items-center rounded-full bg-white/80 backdrop-blur-xl shadow-sm px-2 py-1 overflow-x-auto w-full sm:w-fit"
           role="tablist"
           onKeyDown={(e) => {
             const tabs = e.currentTarget.querySelectorAll('[role="tab"]');
@@ -183,7 +195,7 @@ export default function Campaigns() {
               animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="space-y-16"
+              className="space-y-10 md:space-y-14"
             >
               {paginated.map((campaign, index) => {
                 const copy = getLocalizedCampaignCopy(campaign, t, i18n);
@@ -191,6 +203,7 @@ export default function Campaigns() {
                 const fundingPercent = campaign.goalAmount > 0
                   ? Math.round((campaign.raisedAmount / campaign.goalAmount) * 100)
                   : 0;
+                const imageOnRight = index % 2 === 1;
 
                 return (
                   <motion.article
@@ -200,9 +213,9 @@ export default function Campaigns() {
                     transition={{ duration: 0.7, ease: [0, 0, 0.2, 1] }}
                   >
                     <Link to={`/campaigns/${campaign.id}`} className="group block cursor-pointer">
-                      <div className={`grid grid-cols-1 md:grid-cols-12 gap-8 items-center ${index % 2 === 1 ? '' : ''}`}>
+                      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-10 items-start md:items-center">
                         {/* Image */}
-                        <div className={`md:col-span-7 ${index % 2 === 1 ? 'md:order-2' : ''}`}>
+                        <div className={`md:col-span-7 ${imageOnRight ? 'md:order-2' : ''}`}>
                           <div className={isCompleted ? 'opacity-85 grayscale-[15%]' : ''}>
                             <SepiaImageFrame
                               src={campaign.coverImageUrl}
@@ -214,8 +227,8 @@ export default function Campaigns() {
                         </div>
 
                         {/* Info */}
-                        <div className={`md:col-span-5 ${index % 2 === 1 ? 'md:order-1' : ''}`}>
-                          <div className="flex items-center gap-3 mb-4">
+                        <div className={`md:col-span-5 flex flex-col justify-center py-1 ${imageOnRight ? 'md:order-1 md:pr-2' : 'md:pl-2'}`}>
+                          <div className="flex flex-wrap items-center gap-2 mb-4">
                             <span className={`
                               font-body text-overline tracking-[0.2em] uppercase px-3 py-1 border
                               ${campaign.status === 'active' ? 'border-rust text-rust' : ''}
@@ -234,11 +247,11 @@ export default function Campaigns() {
                             )}
                           </div>
 
-                          <h3 className="font-display text-h3 md:text-h2 font-bold text-ink mb-3 group-hover:text-rust transition-colors">
+                          <h3 className="font-display text-h3 md:text-[1.75rem] font-bold text-ink mb-2 group-hover:text-rust transition-colors leading-tight">
                             {copy.title}
                           </h3>
 
-                          <p className="font-body text-body-sm text-ink-faded leading-relaxed mb-6">
+                          <p className="font-body text-body-sm text-ink-faded leading-relaxed mb-5 line-clamp-2 md:line-clamp-3">
                             {copy.subtitle}
                           </p>
 
@@ -287,7 +300,7 @@ export default function Campaigns() {
                             </motion.div>
                           )}
 
-                          <div className="flex gap-6 font-body text-caption text-sepia-mid mt-4">
+                          <div className="flex flex-wrap gap-x-6 gap-y-1 font-body text-caption text-sepia-mid mt-5 pt-4 border-t border-warm-gray/20">
                             <span>{campaign.artworkCount} {t('campaigns.detail.artworks')}</span>
                             <span>{campaign.participantCount} {t('campaigns.detail.participants')}</span>
                           </div>
@@ -296,7 +309,7 @@ export default function Campaigns() {
                     </Link>
 
                     {index < paginated.length - 1 && (
-                      <div className="editorial-divider mt-16" />
+                      <div className="editorial-divider mt-10 md:mt-14" />
                     )}
                   </motion.article>
                 );
@@ -362,32 +375,6 @@ export default function Campaigns() {
             </div>
           </nav>
         )}
-
-        {/* CTA */}
-        <div className="pt-8">
-          <motion.div
-            {...(prefersReducedMotion ? {} : { initial: { opacity: 0, y: 20 }, whileInView: { opacity: 1, y: 0 } })}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="border border-warm-gray/30 p-10 md:p-14 text-center"
-          >
-            <p className="font-body text-overline tracking-[0.3em] uppercase text-sepia-mid mb-4">
-              {t('campaigns.cta.eyebrow', 'Every Thread Tells a Story')}
-            </p>
-            <h2 className="font-display text-h2 md:text-[32px] text-ink font-medium mb-4">
-              {t('campaigns.cta.title', 'Start a Campaign')}
-            </h2>
-            <p className="font-body text-body-sm text-ink-faded max-w-[480px] mx-auto mb-8 leading-relaxed">
-              {t('campaigns.cta.body', 'Are you a school, community center, or organization? Partner with us to bring sustainable fashion education to your community.')}
-            </p>
-            <Link
-              to="/contact"
-              className="inline-block font-mono text-[10px] tracking-[0.18em] uppercase bg-ink text-paper px-8 py-4 hover:bg-rust transition-colors duration-300 cursor-pointer"
-            >
-              {t('campaigns.cta.button', 'Get in Touch')}
-            </Link>
-          </motion.div>
-        </div>
       </SectionContainer>
 
       <div className="editorial-divider" />

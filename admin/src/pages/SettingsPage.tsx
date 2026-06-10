@@ -1,12 +1,13 @@
 /**
  * System Settings Page
  *
- * Features:
- * - Display and edit global system configuration parameters
- * - Three config tabs: global parameters, payment gateway, security settings
- * - Payment channel integration config (WeChat, Alipay, Stripe, PayPal)
- * - Editable security settings (token expiry, rate limiting, etc.)
- * - Real-time config save
+ * 功能说明：
+ * - 展示和编辑系统全局配置参数
+ * - 支持四个配置标签页：全局参数、支付网关、安全设置、系统状态
+ * - 提供各支付渠道的集成配置（微信、支付宝、Stripe、PayPal）
+ * - 安全配置可编辑（令牌有效期、频率限制等）
+ * - 实时保存配置更新
+ * - 系统状态监控（健康检查）
  *
  * Usage:
  * Super admin configures and adjusts core platform operational parameters
@@ -20,8 +21,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import Button from '../components/ui/Button';
 import { useTranslation } from 'react-i18next';
-import { fetchSystemSettings, updateSystemSettings } from '../services/api';
-import type { SystemSettings, PaymentMethodConfig } from '../types';
+
+// 导入 API 服务函数
+import { fetchSystemSettings, updateSystemSettings, fetchSystemHealth } from '../services/api';
+
+// 导入系统设置类型定义
+import type { SystemSettings, SystemHealth, PaymentMethodConfig } from '../types';
 
 export default function SettingsPage() {
   const { t } = useTranslation();
@@ -32,7 +37,8 @@ export default function SettingsPage() {
   const [form, setForm] = useState<SystemSettings | null>(null);
   const [activeTab, setActiveTab] = useState('general');
 
-  const { data, isError: settingsError } = useQuery({
+  // 获取系统设置数据
+  const { data, isError, error } = useQuery({
     queryKey: ['settings'],
     queryFn: fetchSystemSettings
   });
@@ -57,16 +63,39 @@ export default function SettingsPage() {
     },
   });
 
-  if (settingsError) {
+  // 请求失败时显示明确错误，避免页面一直停在 loading。
+  if (isError) {
+    const message = error instanceof Error ? error.message : t('settings.loadFailed', 'Failed to load settings');
     return (
-      <div style={{ padding: 16, background: 'var(--color-danger-bg, #fef2f2)', border: '1px solid var(--color-danger-border, #fecaca)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ color: 'var(--color-danger, #dc2626)', fontSize: 14 }}>{t('generic.error')}</span>
-        <button onClick={() => queryClient.invalidateQueries({ queryKey: ['settings'] })} style={{ padding: '4px 12px', fontSize: 13, cursor: 'pointer', border: '1px solid var(--color-border)', borderRadius: 4, background: 'transparent' }}>{t('generic.retry', 'Retry')}</button>
+      <div style={{ maxWidth: '760px' }}>
+        <h1 style={{
+          fontSize: 28,
+          fontWeight: 600,
+          marginBottom: 8,
+          fontFamily: 'var(--font-body)'
+        }}>
+          {t('settings.title')}
+        </h1>
+        <div style={{
+          marginTop: 24,
+          padding: 24,
+          background: 'var(--color-surface)',
+          border: '1px solid var(--color-error)',
+          borderRadius: 8,
+          color: 'var(--color-text)'
+        }}>
+          <div style={{ fontWeight: 600, marginBottom: 8 }}>
+            {t('settings.loadFailed', 'Failed to load settings')}
+          </div>
+          <div style={{ fontSize: 13, color: 'var(--color-text-2)', lineHeight: 1.6 }}>
+            {message}
+          </div>
+        </div>
       </div>
     );
   }
 
-  // Show loading state while data is being fetched
+  // 数据加载中显示加载状态
   if (!form) {
     return (
       <div style={{
@@ -114,6 +143,7 @@ export default function SettingsPage() {
     { key: 'general', label: t('settings.tabGeneral') },
     { key: 'payment', label: t('settings.tabPayment') },
     { key: 'security', label: t('settings.tabSecurity') },
+    { key: 'health', label: t('settings.tabHealth', 'System Health') },
   ];
 
   return (
@@ -489,6 +519,9 @@ export default function SettingsPage() {
             </Section>
           </div>
         )}
+
+        {/* 系统状态标签页内容 */}
+        {activeTab === 'health' && <SystemHealthCard />}
       </div>
     </div>
   );
@@ -635,3 +668,605 @@ const inputStyle: React.CSSProperties = {
   fontFamily: 'var(--font-mono)',
   transition: 'all 0.2s',
 };
+
+// ---------------------------------------------------------------------------
+// System Health Card Component
+// ---------------------------------------------------------------------------
+
+function SystemHealthCard() {
+  const { t, i18n } = useTranslation();
+  const isZh = i18n.language === 'zh';
+  const queryClient = useQueryClient();
+
+  const { data: health, isLoading, isError, dataUpdatedAt } = useQuery({
+    queryKey: ['system-health'],
+    queryFn: fetchSystemHealth,
+    staleTime: 7200000,
+    refetchInterval: 7200000,  // 2 hours
+  });
+
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ['system-health'] });
+    toast.success(t('settings.healthRefreshed'));
+  };
+
+  const getStatusColor = (status: string): string => {
+    switch (status) {
+      case 'healthy':
+      case 'connected':
+        return '#10b981';
+      case 'degraded':
+        return '#f59e0b';
+      case 'error':
+        return '#ef4444';
+      default:
+        return '#6b7280';
+    }
+  };
+
+  const getStatusBg = (status: string): string => {
+    switch (status) {
+      case 'healthy':
+      case 'connected':
+        return 'rgba(16, 185, 129, 0.1)';
+      case 'degraded':
+        return 'rgba(245, 158, 11, 0.1)';
+      case 'error':
+        return 'rgba(239, 68, 68, 0.1)';
+      default:
+        return 'rgba(107, 114, 128, 0.1)';
+    }
+  };
+
+  const formatUptime = (seconds: number): string => {
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    if (days > 0) return `${days}d ${hours}h`;
+    if (hours > 0) return `${hours}h ${mins}m`;
+    return `${mins}m`;
+  };
+
+  const formatLatency = (ms: number | null | undefined): string => {
+    if (ms === null || ms === undefined) return '--';
+    return `${ms}ms`;
+  };
+
+  if (isLoading) {
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '80px 40px',
+        gap: '16px',
+      }}>
+        <div style={{
+          width: '32px',
+          height: '32px',
+          border: '2px solid var(--color-border)',
+          borderTopColor: 'var(--color-text)',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite',
+        }} />
+        <div style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: '12px',
+          color: 'var(--color-text-3)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.1em',
+        }}>
+          {t('settings.healthChecking')}
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div style={{
+        padding: '24px',
+        background: 'rgba(239, 68, 68, 0.05)',
+        border: '1px solid rgba(239, 68, 68, 0.2)',
+        borderRadius: '12px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '16px',
+      }}>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        <div>
+          <div style={{ fontWeight: 600, color: '#ef4444', marginBottom: '4px' }}>
+            {t('settings.healthError')}
+          </div>
+          <div style={{ fontSize: '12px', color: 'var(--color-text-2)' }}>
+            {t('settings.healthErrorHint')}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Build checks from health data
+  const checks = health?.checks ?? [];
+  const dbCheck = checks.find(c => c.name.includes('MySQL') || c.name.includes('Database'));
+  const redisCheck = checks.find(c => c.name.includes('Redis') || c.name.includes('Cache'));
+  const backendCheck = checks.find(c => c.name.includes('Backend') || c.name.includes('API'));
+
+  // Reliability metrics calculation
+  const totalChecks = checks.length;
+  const healthyCount = checks.filter(c => c.status === 'connected' || c.status === 'healthy').length;
+  const reliabilityPct = totalChecks > 0 ? Math.round((healthyCount / totalChecks) * 100) : 0;
+
+  // Service grid data from checks
+  const serviceItems = [
+    {
+      name: 'Backend API',
+      icon: 'backend',
+      status: health?.backend?.status ?? 'degraded',
+      latency: health?.backend?.responseTimeMs,
+      version: health?.backend?.version ?? health?.version,
+    },
+    {
+      name: isZh ? 'MySQL 数据库' : 'MySQL Database',
+      icon: 'database',
+      status: dbCheck?.status ?? 'error',
+      latency: dbCheck?.latencyMs,
+      version: dbCheck?.version ?? null,
+    },
+    {
+      name: isZh ? 'Redis 缓存' : 'Redis Cache',
+      icon: 'redis',
+      status: redisCheck?.status ?? 'error',
+      latency: redisCheck?.latencyMs,
+      version: redisCheck?.version ?? null,
+    },
+    {
+      name: isZh ? 'Docker 容器' : 'Docker Compose',
+      icon: 'docker',
+      status: 'connected',
+      latency: null,
+      version: null,
+    },
+  ];
+
+  // Status icon SVG
+  const StatusIcon = ({ status }: { status: string }) => {
+    const color = getStatusColor(status);
+    return (
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        {status === 'connected' || status === 'healthy' ? (
+          <path d="M20 6L9 17l-5-5" />
+        ) : status === 'degraded' ? (
+          <>
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </>
+        ) : (
+          <>
+            <circle cx="12" cy="12" r="10" />
+            <line x1="15" y1="9" x2="9" y2="15" />
+            <line x1="9" y1="9" x2="15" y2="15" />
+          </>
+        )}
+      </svg>
+    );
+  };
+
+  // Service icon SVG
+  const ServiceIcon = ({ name }: { name: string }) => {
+    const iconColor = 'var(--color-text-2)';
+    if (name.includes('Backend')) {
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="2" y="3" width="20" height="14" rx="2" />
+          <line x1="8" y1="21" x2="16" y2="21" />
+          <line x1="12" y1="17" x2="12" y2="21" />
+        </svg>
+      );
+    }
+    if (name.includes('MySQL') || name.includes('Database') || name.includes('数据')) {
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <ellipse cx="12" cy="5" rx="9" ry="3" />
+          <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+          <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+        </svg>
+      );
+    }
+    if (name.includes('Redis') || name.includes('Cache') || name.includes('缓存')) {
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5" />
+          <line x1="12" y1="22" x2="12" y2="15.5" />
+          <polyline points="22 8.5 12 15.5 2 8.5" />
+          <polyline points="2 15.5 12 8.5 22 15.5" />
+          <line x1="12" y1="2" x2="12" y2="8.5" />
+        </svg>
+      );
+    }
+    // Docker icon
+    return (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M22 12.5v-5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v5c0 1.5.5 3 2 4.5M22 12.5a2.5 2.5 0 0 1-5 0c0-1.5-.5-3-2-4.5" />
+        <path d="M6 7.5V5a2 2 0 0 0-2-2h12a2 2 0 0 0-2 2v2.5" />
+        <rect x="8" y="12" width="8" height="6" rx="1" />
+      </svg>
+    );
+  };
+
+  const lastChecked = dataUpdatedAt ? new Date(dataUpdatedAt).toLocaleTimeString() : (health?.checkedAt ? new Date(health.checkedAt).toLocaleTimeString() : '--:--:--');
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {/* Health Overview */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          {/* Status indicator */}
+          <div style={{
+            width: '56px',
+            height: '56px',
+            borderRadius: '14px',
+            background: getStatusBg(health?.status ?? 'unhealthy'),
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <StatusIcon status={health?.status ?? 'unhealthy'} />
+          </div>
+          <div>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginBottom: '6px',
+            }}>
+              <span style={{
+                fontSize: '22px',
+                fontWeight: 600,
+                color: 'var(--color-text)',
+                textTransform: 'capitalize',
+              }}>
+                {health?.status ?? 'unhealthy'}
+              </span>
+              {health?.environment && (
+                <span style={{
+                  padding: '3px 8px',
+                  borderRadius: '4px',
+                  fontSize: '10px',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  background: health.environment === 'production'
+                    ? 'rgba(239, 68, 68, 0.1)'
+                    : 'rgba(16, 185, 129, 0.1)',
+                  color: health.environment === 'production'
+                    ? '#ef4444'
+                    : '#10b981',
+                }}>
+                  {health.environment}
+                </span>
+              )}
+            </div>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '16px',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '11px',
+              color: 'var(--color-text-3)',
+            }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ color: 'var(--color-text-2)' }}>v</span>{health?.version ?? '1.0.0'}
+              </span>
+              {health?.uptimeSeconds && (
+                <>
+                  <span style={{ opacity: 0.4 }}>|</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    {formatUptime(health.uptimeSeconds)}
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <div style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '10px',
+            color: 'var(--color-text-3)',
+            textTransform: 'uppercase',
+          }}>
+            {t('settings.healthUpdated')} {lastChecked}
+          </div>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleRefresh}
+            style={{ minWidth: '90px' }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
+              <polyline points="23 4 23 10 17 10" />
+              <polyline points="1 20 1 14 7 14" />
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+            </svg>
+            {t('settings.btnRefresh')}
+          </Button>
+        </div>
+      </div>
+
+      {/* Service Status Grid */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(2, 1fr)',
+        gap: '10px',
+      }}>
+        {serviceItems.map((service) => (
+          <div
+            key={service.name}
+            style={{
+              padding: '14px 16px',
+              background: 'var(--color-elevated)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '10px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{
+                width: '30px',
+                height: '30px',
+                borderRadius: '8px',
+                background: getStatusBg(service.status),
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <ServiceIcon name={service.name} />
+              </div>
+              <span style={{
+                fontFamily: 'var(--font-body)',
+                fontSize: '13px',
+                color: 'var(--color-text)',
+              }}>
+                {service.name}
+              </span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              {service.latency !== null && (
+                <span style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '10px',
+                  color: 'var(--color-text-3)',
+                }}>
+                  {formatLatency(service.latency)}
+                </span>
+              )}
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '4px 8px',
+                borderRadius: '5px',
+                fontSize: '10px',
+                fontWeight: 600,
+                textTransform: 'capitalize',
+                fontFamily: 'var(--font-mono)',
+                backgroundColor: getStatusBg(service.status),
+                color: getStatusColor(service.status),
+              }}>
+                <StatusIcon status={service.status} />
+                {service.status}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Runtime Summary Row */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gap: '12px',
+      }}>
+        {[
+          { label: t('settings.healthService'), value: health?.backend?.service ?? 'FastAPI' },
+          { label: t('settings.healthRuntime'), value: health?.backend?.runtime ?? 'Uvicorn' },
+          { label: t('settings.healthEngine'), value: health?.database?.engine ?? 'MySQL' },
+          { label: t('settings.healthVersion'), value: health?.database?.version ?? '--' },
+        ].map((item) => (
+          <div key={item.label} style={{
+            padding: '12px 16px',
+            background: 'var(--color-bg)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '8px',
+            textAlign: 'center',
+          }}>
+            <div style={{
+              fontSize: '9px',
+              color: 'var(--color-text-3)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              marginBottom: '4px',
+            }}>
+              {item.label}
+            </div>
+            <div style={{
+              fontSize: '12px',
+              fontWeight: 600,
+              color: 'var(--color-text)',
+              fontFamily: 'var(--font-mono)',
+            }}>
+              {item.value}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Mini Reliability Metrics */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 2fr',
+        gap: '16px',
+      }}>
+        {/* Availability metric */}
+        <div style={{
+          padding: '16px 20px',
+          background: 'var(--color-elevated)',
+          border: '1px solid var(--color-border)',
+          borderRadius: '10px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+        }}>
+          <div style={{
+            width: '44px',
+            height: '44px',
+            borderRadius: '10px',
+            background: reliabilityPct >= 90 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={reliabilityPct >= 90 ? '#10b981' : '#f59e0b'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+          </div>
+          <div>
+            <div style={{
+              fontSize: '10px',
+              color: 'var(--color-text-3)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              marginBottom: '4px',
+            }}>
+              {t('settings.healthAvailability')}
+            </div>
+            <div style={{
+              fontSize: '24px',
+              fontWeight: 700,
+              fontFamily: 'var(--font-mono)',
+              color: reliabilityPct >= 90 ? '#10b981' : '#f59e0b',
+            }}>
+              {reliabilityPct}%
+            </div>
+          </div>
+        </div>
+
+        {/* Recent checks summary */}
+        <div style={{
+          padding: '16px 20px',
+          background: 'var(--color-elevated)',
+          border: '1px solid var(--color-border)',
+          borderRadius: '10px',
+        }}>
+          <div style={{
+            fontSize: '10px',
+            color: 'var(--color-text-3)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+            marginBottom: '12px',
+          }}>
+            {t('settings.healthRecentChecks')}
+          </div>
+          <div style={{ display: 'flex', gap: '20px' }}>
+            {checks.slice(0, 4).map((check, idx) => (
+              <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <StatusIcon status={check.status} />
+                <span style={{
+                  fontSize: '11px',
+                  color: 'var(--color-text)',
+                  fontFamily: 'var(--font-mono)',
+                }}>
+                  {check.name}
+                </span>
+                {check.latencyMs !== undefined && check.latencyMs !== null && (
+                  <span style={{
+                    fontSize: '9px',
+                    color: 'var(--color-text-3)',
+                    fontFamily: 'var(--font-mono)',
+                  }}>
+                    {formatLatency(check.latencyMs)}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Deployment Info */}
+      <div style={{
+        padding: '16px 20px',
+        background: 'var(--color-bg)',
+        border: '1px dashed var(--color-border)',
+        borderRadius: '10px',
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, 1fr)',
+        gap: '20px',
+      }}>
+        {[
+          { label: t('settings.healthDeploymentMode'), value: health?.deployment?.mode ?? 'Docker Compose' },
+          { label: t('settings.healthPublicHealth'), value: health?.deployment?.publicHealth ?? '/health' },
+          { label: t('settings.healthAdminEndpoint'), value: health?.deployment?.adminHealth ?? '/api/v1/system/health' },
+        ].map((item) => (
+          <div key={item.label} style={{ textAlign: 'center' }}>
+            <div style={{
+              fontSize: '9px',
+              color: 'var(--color-text-3)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              marginBottom: '4px',
+            }}>
+              {item.label}
+            </div>
+            <div style={{
+              fontSize: '11px',
+              fontWeight: 500,
+              color: 'var(--color-text)',
+              fontFamily: 'var(--font-mono)',
+            }}>
+              {item.value}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Auto-refresh indicator */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: '8px',
+        fontSize: '10px',
+        color: 'var(--color-text-3)',
+        fontFamily: 'var(--font-mono)',
+      }}>
+        <div style={{
+          width: '6px',
+          height: '6px',
+          borderRadius: '50%',
+          background: '#10b981',
+          animation: 'pulse 2s infinite',
+        }} />
+        {t('settings.healthAutoRefresh')}
+      </div>
+    </div>
+  );
+}

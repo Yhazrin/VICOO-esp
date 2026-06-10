@@ -86,9 +86,6 @@ export default function DonateForm({ onSubmitted }: DonateFormProps) {
       setNotes(''); setPhotos([]); setAddress(''); setPhone('');
       setTimeout(() => { if (mountedRef.current) onSubmitted(); }, 300);
     },
-    onError: (err: Error) => {
-      toast.error(err.message || t('donateClothing.error', 'Submission failed — please retry'));
-    },
   });
 
   const handleSubmit = (e: FormEvent) => {

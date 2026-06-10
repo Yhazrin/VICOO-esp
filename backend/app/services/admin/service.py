@@ -1,6 +1,6 @@
 import logging
 from typing import List, Dict, Any, Optional
-from sqlalchemy import select, func, update
+from sqlalchemy import select, func, update, not_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User, ChildParticipant
@@ -17,6 +17,27 @@ from app.models.audit import AuditLog
 from app.utils.cache import cached
 
 logger = logging.getLogger("vicoo.admin_service")
+
+
+def _exclude_health_audit_logs(stmt):
+    health_details = [
+        "GET /health%",
+        "GET health%",
+        "GET /api/v1/health%",
+        "GET /api/v1/admin/health%",
+        "GET /api/v1/system/health%",
+        "GET /api/v1/admin/system/health%",
+        "GET system/health%",
+    ]
+    return stmt.where(
+        not_(
+            or_(
+                AuditLog.resource == "health",
+                *[func.coalesce(AuditLog.details, "").like(pattern) for pattern in health_details],
+            )
+        )
+    )
+
 
 class AdminService(BaseService):
     """
@@ -35,7 +56,7 @@ class AdminService(BaseService):
         Uses late association logic for better performance on large offsets.
         """
         # 1. Build base query
-        stmt = select(AuditLog)
+        stmt = _exclude_health_audit_logs(select(AuditLog))
         if user_id:
             stmt = stmt.where(AuditLog.user_id == user_id)
         if action:

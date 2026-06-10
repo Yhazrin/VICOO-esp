@@ -71,6 +71,7 @@ class ProductReviewOut(BaseModel):
     title: Optional[str] = None
     body: Optional[str] = None
     created_at: datetime
+    author_nickname: Optional[str] = None
 
     model_config = {"from_attributes": True}
 
@@ -86,14 +87,26 @@ class AfterSaleStatusUpdate(BaseModel):
     status: str = Field(..., pattern="^(open|in_progress|resolved|closed)$")
 
 
+class AfterSaleReviewRequest(BaseModel):
+    action: str = Field(..., pattern="^(approve|reject)$")
+    admin_note: Optional[str] = Field(None, max_length=1000)
+
+
 class AfterSaleOut(BaseModel):
     id: int
     user_id: int
     order_id: int
+    order_no: Optional[str] = None
     category: str
     status: str
     subject: str
+    reason: Optional[str] = None
     description: Optional[str] = None
+    replacement_order_id: Optional[int] = None
+    replacement_order_status: Optional[str] = None
+    replacement_order_no: Optional[str] = None
+    replacement_carrier: Optional[str] = None
+    replacement_tracking_number: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -112,7 +125,10 @@ class AIChatRequest(BaseModel):
         description="可选业务上下文：donation / shop / logistics / sustainability",
         max_length=64,
     )
-    metadata: Optional[dict] = Field(None, description="附加元数据：product_id, impactMode, route 等，将转发给后端工具层")
+    metadata: Optional[dict] = Field(
+        None,
+        description="附加元数据：product_id, impactMode, route, locale/language（zh|en，驱动助手回复语言）等",
+    )
 
 
 class AIChatResponse(BaseModel):

@@ -1,0 +1,158 @@
+/* ─────────────────────────────────────────────────────────────
+   Button — Brand-aligned pill style
+   Consistent button variants with VICOO editorial feel
+   ───────────────────────────────────────────────────────────── */
+
+.admin-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all var(--duration-fast);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* ── Sizes ── */
+.admin-btn--sm {
+  padding: 5px 10px;
+  font-size: 11px;
+  border-radius: var(--radius-pill);
+}
+
+.admin-btn--md {
+  padding: 7px 14px;
+  font-size: 12px;
+  border-radius: var(--radius-pill);
+}
+
+.admin-btn--lg {
+  padding: 9px 18px;
+  font-size: 13px;
+  border-radius: var(--radius-pill);
+}
+
+/* Square option (non-pill) */
+.admin-btn:not(.admin-btn--pill) {
+  border-radius: var(--radius-md);
+}
+
+/* ── Variants ── */
+
+/* Primary — muted sage green */
+.admin-btn--primary {
+  background: var(--color-primary);
+  color: var(--color-primary-text);
+  border-color: var(--color-primary);
+}
+
+.admin-btn--primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+/* Secondary — outline with light bg */
+.admin-btn--secondary {
+  background: transparent;
+  color: var(--color-text-2);
+  border-color: var(--color-border);
+}
+
+.admin-btn--secondary:hover:not(:disabled) {
+  background: var(--color-elevated);
+  color: var(--color-text);
+  border-color: var(--color-border-hi);
+}
+
+/* Danger — muted red */
+.admin-btn--danger {
+  background: var(--color-error-bg);
+  color: var(--color-error);
+  border-color: var(--color-error-border);
+}
+
+.admin-btn--danger:hover:not(:disabled) {
+  background: var(--color-error);
+  color: white;
+  border-color: var(--color-error);
+}
+
+/* Warning — muted amber */
+.admin-btn--warning {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+  border-color: var(--color-warning-border);
+}
+
+.admin-btn--warning:hover:not(:disabled) {
+  background: var(--color-warning);
+  color: white;
+  border-color: var(--color-warning);
+}
+
+/* Ghost — minimal */
+.admin-btn--ghost {
+  background: transparent;
+  color: var(--color-text-3);
+  border-color: transparent;
+}
+
+.admin-btn--ghost:hover:not(:disabled) {
+  background: var(--color-elevated);
+  color: var(--color-text-2);
+}
+
+/* ── States ── */
+.admin-btn--disabled,
+.admin-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.admin-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ── Icon ── */
+.admin-btn__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.admin-btn__icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.admin-btn--sm .admin-btn__icon svg {
+  width: 12px;
+  height: 12px;
+}
+
+.admin-btn--lg .admin-btn__icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ── Spinner ── */
+.admin-btn__spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: admin-btn-spin 0.6s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes admin-btn-spin {
+  to { transform: rotate(360deg); }
+}

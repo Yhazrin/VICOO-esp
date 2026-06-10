@@ -8,10 +8,19 @@ import { getRecordLatLng } from '@/utils/supplyChainGeo';
 import { latLngToVector3, createArcCurve } from '@/components/scroll/globeUtils';
 import {
   buildLandOutlinesFromGeoJson,
+  createLandTextureSphere,
   landOutlineRadius,
   LAND_OUTLINE_WIDTH_TRACEABILITY_PX,
   syncLandOutlineLine2Resolution,
 } from '@/utils/globeLandOutlines';
+import { resolveGlobeColors } from '@/utils/globeThemeColors';
+import {
+  globePinCardClassNames,
+  resolveGlobePinCardTone,
+  sampleWebGlBackdropLuminance,
+  type GlobePinCardTone,
+} from '@/utils/globePinCardContrast';
+import type { ThemeId } from '@/stores/uiStore';
 
 const GLOBE_RADIUS = 1.85;
 const STAGE_ORDER = ['material_sourcing', 'processing', 'manufacturing', 'quality_check', 'shipping'];
@@ -136,11 +145,13 @@ type GlobeCtx = {
   initialCameraPosition: THREE.Vector3;
   initialTarget: THREE.Vector3;
   themeMats: ThemeMats;
+  oceanMat: THREE.MeshBasicMaterial | null;
+  landSphere: THREE.Mesh | null;
 };
 
-/** Only updates materials/fog when switching themes, without rebuilding the entire scene (avoids re-parsing GeoJSON / WebGL cold-start lag) */
-function applyTraceabilityTheme(ctx: GlobeCtx, theme: ThemeSnapshot) {
-  const { themeMats: tm, scene, landGroup, markers } = ctx;
+/** 切换主题时只改材质/雾，不整场景重建（避免再解析 GeoJSON / WebGL 冷启动卡） */
+function applyTraceabilityTheme(ctx: GlobeCtx, theme: ThemeSnapshot, themeId?: ThemeId) {
+  const { themeMats: tm, scene, landGroup, markers, globeGroup } = ctx;
   tm.wire.color.copy(theme.wire);
   tm.inner.color.copy(theme.ink);
   tm.grid.color.copy(theme.wire);
@@ -161,6 +172,29 @@ function applyTraceabilityTheme(ctx: GlobeCtx, theme: ThemeSnapshot) {
     const mat = mesh.material as THREE.MeshStandardMaterial;
     mat.emissive.copy(theme.ink);
   });
+
+  const tc = resolveGlobeColors((themeId ?? 'monochrome') as ThemeId);
+
+  if (ctx.oceanMat) {
+    ctx.oceanMat.color.setHex(tc.ocean);
+    ctx.oceanMat.opacity = tc.oceanOpacity;
+  }
+
+  if (ctx.landSphere) {
+    globeGroup.remove(ctx.landSphere);
+    (ctx.landSphere.material as THREE.Material).dispose();
+    ctx.landSphere.geometry.dispose();
+    const isMobile = window.innerWidth < 768;
+    const newLand = createLandTextureSphere(
+      GLOBE_RADIUS * 0.998,
+      tc.land,
+      tc.landAlpha,
+      isMobile ? 512 : 1024,
+      GLOBE_RADIUS * 0.014,
+    );
+    globeGroup.add(newLand);
+    ctx.landSphere = newLand;
+  }
 }
 
 export interface TraceabilityGlobeProps {
@@ -169,7 +203,7 @@ export interface TraceabilityGlobeProps {
   onSelect: (id: number | null) => void;
   getStageLabel: (stage: string) => string;
   prefersReducedMotion?: boolean;
-  themeKey?: string;
+  themeKey?: ThemeId | string;
   className?: string;
   /**
    * As a full-width background layer: fills the parent; no longer constrained by a
@@ -211,8 +245,27 @@ export default function TraceabilityGlobe({
 
   const [webglOk, setWebglOk] = useState(() => canUseWebGL());
   const [touchHintVisible, setTouchHintVisible] = useState(false);
+  const resolvedThemeId = (themeKey ?? 'monochrome') as ThemeId;
+  const [cardTone, setCardTone] = useState<GlobePinCardTone>(() =>
+    resolveGlobePinCardTone({ themeId: resolvedThemeId }),
+  );
+  const cardClasses = useMemo(() => globePinCardClassNames(cardTone), [cardTone]);
+
+  const themeKeyRef = useRef(resolvedThemeId);
+  themeKeyRef.current = resolvedThemeId;
+  const setCardToneRef = useRef(setCardTone);
+  setCardToneRef.current = setCardTone;
+  const cardToneRef = useRef(cardTone);
+  cardToneRef.current = cardTone;
+  const lastBackdropSampleAtRef = useRef(0);
 
   const sorted = useMemo(() => sortSupplyRecords(records), [records]);
+
+  useEffect(() => {
+    const next = resolveGlobePinCardTone({ themeId: resolvedThemeId });
+    cardToneRef.current = next;
+    setCardTone(next);
+  }, [resolvedThemeId]);
 
   const setFocus = useCallback((recordId: number | null) => {
     const ctx = ctxRef.current;
@@ -385,14 +438,37 @@ export default function TraceabilityGlobe({
     const isMobile = window.innerWidth < 768;
     const wireSegs = isMobile ? [24, 18] : [32, 24];
 
+    const tc = resolveGlobeColors((themeKey ?? 'monochrome') as ThemeId);
+
     const wireGeo = new THREE.SphereGeometry(GLOBE_RADIUS, wireSegs[0], wireSegs[1]);
     const wireMat = new THREE.MeshBasicMaterial({
       color: theme.wire,
       wireframe: true,
       transparent: true,
       opacity: 0.34,
+      depthWrite: false,
     });
     globeGroup.add(new THREE.Mesh(wireGeo, wireMat));
+
+    /* ── Ocean sphere ── */
+    const oceanGeo = new THREE.SphereGeometry(GLOBE_RADIUS * 0.998, isMobile ? 32 : 48, isMobile ? 24 : 36);
+    const oceanMat = new THREE.MeshBasicMaterial({
+      color: tc.ocean,
+      transparent: true,
+      opacity: tc.oceanOpacity,
+      depthWrite: false,
+    });
+    globeGroup.add(new THREE.Mesh(oceanGeo, oceanMat));
+
+    /* ── Land fill (canvas texture + vertex displacement) ── */
+    const landSphere = createLandTextureSphere(
+      GLOBE_RADIUS * 0.998,
+      tc.land,
+      tc.landAlpha,
+      isMobile ? 512 : 1024,
+      GLOBE_RADIUS * 0.014,
+    );
+    globeGroup.add(landSphere);
 
     const innerGeo = new THREE.SphereGeometry(GLOBE_RADIUS * 0.98, 32, 24);
     const innerMat = new THREE.MeshBasicMaterial({
@@ -408,6 +484,7 @@ export default function TraceabilityGlobe({
       color: theme.wire,
       transparent: true,
       opacity: 0.14,
+      depthWrite: false,
     });
     const rustMats: THREE.MeshBasicMaterial[] = [];
     for (let lat = -60; lat <= 60; lat += 30) {
@@ -442,7 +519,7 @@ export default function TraceabilityGlobe({
       globeGroup.add(g);
       const ctx0 = ctxRef.current;
       ctx0.landGroup = g;
-      applyTraceabilityTheme(ctx0, themeRef.current);
+      applyTraceabilityTheme(ctx0, themeRef.current, themeKey as ThemeId);
       if (container) {
         syncLandOutlineLine2Resolution(
           g,
@@ -641,6 +718,8 @@ export default function TraceabilityGlobe({
       initialCameraPosition,
       initialTarget,
       themeMats,
+      oceanMat,
+      landSphere,
     };
     ctxRef.current = ctx;
 
@@ -687,6 +766,27 @@ export default function TraceabilityGlobe({
       el.style.left = `${x}px`;
       el.style.top = `${y}px`;
       el.style.transform = transform;
+
+      const nowSample = performance.now();
+      if (nowSample - lastBackdropSampleAtRef.current >= 140) {
+        lastBackdropSampleAtRef.current = nowSample;
+        let sampleX = x;
+        let sampleY = y - (gap + halfH);
+        if (nx < 0.38 || nx > 0.62) {
+          sampleY = y;
+        } else if (ny < 0.32) {
+          sampleY = y + gap + halfH;
+        }
+        const sampled = sampleWebGlBackdropLuminance(gc.renderer, rect, sampleX, sampleY);
+        const nextTone = resolveGlobePinCardTone({
+          themeId: themeKeyRef.current,
+          sampledLuminance: sampled,
+        });
+        if (nextTone !== cardToneRef.current) {
+          cardToneRef.current = nextTone;
+          setCardToneRef.current(nextTone);
+        }
+      }
     };
 
     let time = 0;
@@ -849,7 +949,7 @@ export default function TraceabilityGlobe({
     const next = readThemeColors();
     themeRef.current = next;
     const c = ctxRef.current;
-    if (c) applyTraceabilityTheme(c, next);
+    if (c) applyTraceabilityTheme(c, next, themeKey as ThemeId);
   }, [themeKey]);
 
   useEffect(() => {
@@ -948,12 +1048,14 @@ export default function TraceabilityGlobe({
           style={{ opacity: 0, left: 0, top: 0 }}
           aria-live="polite"
         >
-          <div className="pointer-events-auto relative overflow-x-hidden overflow-y-auto max-h-[min(72dvh,520px)] border border-warm-gray/30 bg-paper/96 px-4 py-3.5 shadow-[0_12px_40px_-16px_rgba(26,26,22,0.18)] backdrop-blur-md rounded-sm space-y-2">
+          <div
+            className={`pointer-events-auto relative overflow-x-hidden overflow-y-auto max-h-[min(72dvh,520px)] px-4 py-3.5 backdrop-blur-md rounded-sm space-y-2 transition-colors duration-300 ${cardClasses.shell}`}
+          >
             <div
-              className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-rust/35 to-transparent pointer-events-none"
+              className={`absolute top-0 left-4 right-4 h-px pointer-events-none ${cardClasses.accentLine}`}
               aria-hidden="true"
             />
-            <p className="font-display text-base font-bold text-ink leading-snug">
+            <p className={`font-display text-base font-bold leading-snug ${cardClasses.title}`}>
               {getStageLabel(displayRecord.stage)}
             </p>
             <div className="flex flex-wrap gap-1.5">
@@ -962,7 +1064,9 @@ export default function TraceabilityGlobe({
                   {t('shop.detail.globeCertified')}
                 </span>
               ) : (
-                <span className="font-body text-[10px] tracking-wider uppercase px-2 py-0.5 bg-warm-gray/20 text-ink-faded border border-warm-gray/35">
+                <span
+                  className={`font-body text-[10px] tracking-wider uppercase px-2 py-0.5 border ${cardClasses.uncertifiedBadge}`}
+                >
                   {t('shop.detail.globeUncertified')}
                 </span>
               )}
@@ -973,23 +1077,30 @@ export default function TraceabilityGlobe({
               )}
             </div>
             {displayRecord.carbon_note && (
-              <p className="font-body text-[11px] text-ink-faded leading-snug">{displayRecord.carbon_note}</p>
+              <p className={`font-body text-[11px] leading-snug ${cardClasses.muted}`}>
+                {displayRecord.carbon_note}
+              </p>
             )}
-            <p className="font-body text-caption text-sepia-mid">
+            <p className={`font-body text-caption ${cardClasses.body}`}>
               {displayRecord.location}
               {displayRecord.date ? ` · ${displayRecord.date}` : ''}
             </p>
-            <p className="font-mono text-[11px] text-ink-faded leading-relaxed">
+            <p className={`font-mono text-[11px] leading-relaxed ${cardClasses.mono}`}>
               {precise ? t('shop.detail.coordsRegistered') : t('shop.detail.coordsDerived')}{' '}
               {displayCoords.lat.toFixed(4)}°, {displayCoords.lng.toFixed(4)}°
             </p>
             {displayRecord.description && (
-              <p className="font-body text-body-sm text-ink-faded leading-relaxed line-clamp-4">
+              <p className={`font-body text-body-sm leading-relaxed line-clamp-4 ${cardClasses.description}`}>
                 {displayRecord.description}
               </p>
             )}
             {displayRecord.gallery && displayRecord.gallery.length > 0 && (
-              <TraceMediaGallery items={displayRecord.gallery} compact className="pt-1 border-t border-warm-gray/15" />
+              <TraceMediaGallery
+                items={displayRecord.gallery}
+                compact
+                horizontal
+                className={`pt-1 border-t ${cardClasses.galleryBorder}`}
+              />
             )}
           </div>
         </div>

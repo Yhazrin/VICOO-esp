@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select, func
+from sqlalchemy import select, func, not_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timezone
 from typing import Optional
@@ -24,6 +24,26 @@ router = APIRouter(prefix="/admin", tags=["Admin"])
 logger = logging.getLogger(__name__)
 
 
+def _exclude_health_audit_logs(stmt):
+    health_details = [
+        "GET /health%",
+        "GET health%",
+        "GET /api/v1/health%",
+        "GET /api/v1/admin/health%",
+        "GET /api/v1/system/health%",
+        "GET /api/v1/admin/system/health%",
+        "GET system/health%",
+    ]
+    return stmt.where(
+        not_(
+            or_(
+                AuditLog.resource == "health",
+                *[func.coalesce(AuditLog.details, "").like(pattern) for pattern in health_details],
+            )
+        )
+    )
+
+
 from typing import List
 from app.services.admin.service import AdminService
 from app.services.donation.service import DonationService
@@ -31,7 +51,7 @@ from app.services.donation.service import DonationService
 @router.get("/dashboard", response_model=ApiResponse)
 async def dashboard(
     db: AsyncSession = Depends(get_db),
-    _current_user: dict = Depends(require_role("admin", "editor")),
+    _current_user: dict = Depends(require_role("admin")),
 ):
     """Get aggregated dashboard statistics for admin. (Refactored)"""
     admin_service = AdminService(db)
@@ -43,6 +63,34 @@ async def dashboard(
     except Exception as e:
         logger.error("Dashboard stats failed: %s", e)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+
+
+@router.get("/donations", response_model=PaginatedResponse)
+async def list_donations_admin(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    status: Optional[str] = Query(None, description="Filter by donation status"),
+    db: AsyncSession = Depends(get_db),
+    _current_user: dict = Depends(require_role("admin")),
+):
+    """List all donations (admin)."""
+    from app.models.donation import Donation
+    from sqlalchemy import select, func
+
+    stmt = select(Donation)
+    count_stmt = select(func.count(Donation.id))
+    if status:
+        stmt = stmt.where(Donation.status == status)
+        count_stmt = count_stmt.where(Donation.status == status)
+    total = (await db.execute(count_stmt)).scalar() or 0
+    stmt = stmt.order_by(Donation.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
+    rows = (await db.execute(stmt)).scalars().all()
+    return PaginatedResponse(
+        data=[DonationOut.model_validate(d).model_dump(mode="json") for d in rows],
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
 
 
 @router.post("/donations/{donation_id}/approve", response_model=ApiResponse)
@@ -68,7 +116,7 @@ async def approve_donation_admin(
 @router.get("/analytics/ai", response_model=ApiResponse)
 async def ai_analytics(
     db: AsyncSession = Depends(get_db),
-    _current_user: dict = Depends(require_role("admin", "editor")),
+    _current_user: dict = Depends(require_role("admin")),
 ):
     """Get AI rollout metrics for quality gates and handoff tracking."""
     admin_service = AdminService(db)
@@ -90,7 +138,7 @@ async def batch_moderate_artworks(
     artwork_ids: List[int],
     status: str,
     db: AsyncSession = Depends(get_db),
-    _current_user: dict = Depends(require_role("admin", "editor")),
+    _current_user: dict = Depends(require_role("admin")),
 ):
     """Batch approve or reject artworks."""
     if not artwork_ids:
@@ -112,7 +160,7 @@ async def batch_moderate_children(
     child_ids: List[int],
     status: str,
     db: AsyncSession = Depends(get_db),
-    _current_user: dict = Depends(require_role("admin", "compliance")),
+    _current_user: dict = Depends(require_role("admin")),
 ):
     """Batch approve or withdraw child participants."""
     if not child_ids:
@@ -213,12 +261,12 @@ async def list_audit_logs(
 ):
     """List audit logs with optional filters."""
     try:
-        stmt = select(AuditLog)
+        stmt = _exclude_health_audit_logs(select(AuditLog))
         if action:
             stmt = stmt.where(AuditLog.action == action)
         if resource:
             stmt = stmt.where(AuditLog.resource == resource)
-        count_stmt = select(func.count(AuditLog.id))
+        count_stmt = _exclude_health_audit_logs(select(func.count(AuditLog.id)))
         if action:
             count_stmt = count_stmt.where(AuditLog.action == action)
         if resource:

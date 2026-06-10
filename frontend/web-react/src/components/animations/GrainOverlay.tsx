@@ -1,3 +1,5 @@
+import { useUIStore, DARK_THEMES } from '@/stores/uiStore';
+
 /**
  * GrainOverlay — CSS-only grain/noise texture overlay
  *
@@ -20,6 +22,9 @@ export default function GrainOverlay({
   className = '',
   zIndex = 9999,
 }: GrainOverlayProps) {
+  const currentTheme = useUIStore((s) => s.currentTheme);
+  const isDark = DARK_THEMES.has(currentTheme);
+
   // SVG noise filter as data URL
   const noiseSvg = `data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)'/%3E%3C/svg%3E`;
 
@@ -31,7 +36,7 @@ export default function GrainOverlay({
         backgroundImage: `url("${noiseSvg}")`,
         backgroundRepeat: 'repeat',
         backgroundSize: '256px 256px',
-        mixBlendMode: 'multiply',
+        mixBlendMode: isDark ? 'screen' : 'multiply',
         opacity,
       }}
       aria-hidden="true"

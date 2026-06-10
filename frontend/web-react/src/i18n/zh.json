@@ -123,6 +123,10 @@
     },
     "cancelOrder": "取消订单",
     "cancelOrderError": "取消订单失败，请重试",
+    "writeReview": "评价",
+    "review": {
+      "selectProduct": "选择要评价的商品"
+    },
     "addressSaveError": "保存地址失败，请重试",
     "addressDeleteError": "删除地址失败，请重试",
     "setDefaultError": "设置默认地址失败，请重试",
@@ -208,6 +212,58 @@
       "donate": "立即捐赠",
       "shop": "可持续购物"
     },
+    "impactHero": {
+      "eyebrow": "SDG 12 · 负责任消费与生产",
+      "title": "每一次行动，都留下痕迹。",
+      "subtitle": "与 UNIQLO 合作，VICOO 将日常基础服饰与再生材料、可溯源商品旅程，以及 SDG 12 所倡导的负责任消费相连。",
+      "subtitleShort": "VICOO × UNIQLO — 可溯源旅程、再生材料与 SDG 12 负责任消费。",
+      "tagsAria": "合作与可持续焦点",
+      "tags": {
+        "collab": "VICOO × UNIQLO",
+        "sdg12": "SDG 12 负责任消费",
+        "recycled": "再生材料",
+        "traceable": "可溯源商品",
+        "circular": "循环影响"
+      },
+      "cta": {
+        "explore": "探索影响路径",
+        "shop": "选购合作系列"
+      },
+      "scrollHint": "向下滚动",
+      "cards": {
+        "everyday": {
+          "title": "日常穿着，负责任地选择",
+          "body": "为基础衣橱而设计，更耐穿、更轻量。"
+        },
+        "trace": {
+          "title": "追溯每一件商品旅程",
+          "body": "从原料到成衣，路径清晰可见。"
+        },
+        "recycle": {
+          "title": "让材料回到循环中",
+          "body": "纤维回流，而非成为废弃物。"
+        },
+        "circularFashion": {
+          "title": "支持循环时尚",
+          "body": "让价值在穿着与再生之间持续流动。"
+        }
+      }
+    },
+    "impactNarrative": {
+      "scene01": {
+        "line1": "每一次行动，",
+        "line2": "都留下",
+        "line3": "痕迹。",
+        "subtitle": "VICOO × UNIQLO — 再生材料、可溯源旅程、SDG 12 下的循环选择。"
+      },
+      "scene04": {
+        "title": "每一次行动，都留下痕迹。",
+        "subtitle": "负责任消费，被看见——从日常基础款到再生纤维。"
+      }
+    },
+    "impactCta": {
+      "title": "每一次行动，都留下痕迹。"
+    },
     "globe": {
       "label": "模式 A — 原材料溯源",
       "title": "每一根线，都有迹可循",
@@ -225,6 +281,8 @@
       },
       "scene02": {
         "quote": "「想象与织物相遇之处，故事被穿在身上。」",
+        "title": "证明不必铺满画面，它可以围着产品安静运转。",
+        "body": "每个供应链节点都化成一枚被验证的小信号，沿着同一段材料旅程缓慢环绕，让首屏星球继续把故事讲下去。",
         "artworkAlt": "儿童画作 {{n}}"
       },
       "scene03": {
@@ -619,7 +677,8 @@
       "notifyEmailLabel": "邮箱",
       "send": "发送",
       "artworkBy": "{{name}} 的作品，{{age}} 岁",
-      "campaign": "活动"
+      "campaign": "活动",
+      "sustainabilityBadge": "可持续 {{score}} · {{tier}}"
     },
     "detail": {
       "addToCart": "加入购物车",
@@ -640,14 +699,43 @@
       "viewImageAria": "查看第 {{n}} 张图片",
       "loading": "加载中...",
       "reviews": "评价",
-      "reviewsLead": "购买者的真实反馈，仅作参考。",
+      "reviewsEyebrow": "社区反馈",
+      "reviewsLead": "来自穿着者的真实反馈，关注舒适度、品质、包装与可追溯影响。",
+      "reviewsCommunityTitle": "社区评价",
+      "reviewsCommunityLead": "关于合身度、舒适度、包装与可追溯影响的真实反馈。",
+      "reviewsVerifiedOnly": "仅展示已验证反馈",
+      "reviewsCount": "{{count}} 条评价",
+      "reviewsCountOne": "{{count}} 条评价",
+      "reviewsSignInLead": "登录后分享穿着感受与可感知的影响。",
+      "reviewsSignInCta": "登录撰写评价",
       "noReviews": "暂无评价",
+      "noReviewsBody": "成为第一位分享这件单品穿着感受、合身度，以及它如何融入更负责任衣橱的人。",
       "rating": "评分",
       "writeReview": "撰写评价",
+      "writeReviewLead": "你的反馈帮助他人做出更审慎的选择。",
+      "reviewTitleLabel": "评价标题",
+      "reviewTitlePlaceholder": "一句话概括你的体验",
+      "reviewBodyLabel": "评价内容",
+      "reviewBodyPlaceholder": "分享穿着感受、包装、面料品质或可追溯影响等方面的想法。",
+      "reviewChipsLabel": "体验标签（可选）",
+      "reviewChips": {
+        "trueToSize": "尺码准确",
+        "comfortableFabric": "面料舒适",
+        "thoughtfulPackaging": "包装用心",
+        "impactVisible": "影响可感知"
+      },
+      "reviewDimensions": {
+        "fitComfort": "合身与舒适",
+        "packaging": "包装",
+        "traceableImpact": "可追溯影响"
+      },
       "reviewTitle": "标题（可选）",
       "reviewBody": "分享穿着或包装体验",
       "reviewError": "您可能已评价过该商品",
-      "submitReview": "提交",
+      "reviewSubmitFailed": "评价提交失败，请稍后重试。",
+      "reviewSuccess": "感谢分享，您的评价已发布。",
+      "reviewAuthorAnonymous": "已验证买家",
+      "submitReview": "提交评价",
       "backToShop": "返回商城",
       "backToImpactShop": "返回公益商店",
       "globeTitle": "全球溯源视图",
@@ -763,7 +851,7 @@
       "votes": "{{count}} 票"
     },
     "donationBadge": "捐赠 {{percentage}}%",
-    "supportsCampaign": "支持项目：{{campaign}}",
+    "supportsCampaign": "关联公益：{{campaign}}",
     "viewTraceability": "溯源",
     "filterByCampaign": "按活动筛选",
     "allCampaigns": "全部活动",
@@ -1379,8 +1467,9 @@
     },
     "actionCard": {
       "donationList": "捐赠记录",
-      "campaignProgress": "活动进度",
-      "impactFund": "影响力基金"
+      "impactFund": "影响力基金",
+      "traceability": "供应链溯源",
+      "viewDetails": "查看详情"
     }
   },
   "orderDetail": {
@@ -1409,7 +1498,26 @@
       "successDesc": "我们将在1-3个工作日内处理您的申请"
     },
     "cancelError": "取消订单失败，请重试",
-    "returnError": "提交退换货申请失败，请重试"
+    "returnError": "提交退换货申请失败，请重试",
+    "writeReview": "评价",
+    "reviewSuccessHint": "您的评价将显示在商品页面的社区反馈中",
+    "afterSale": {
+      "title": "售后进度",
+      "typeReturn": "退货",
+      "typeExchange": "换货",
+      "rejected": "已拒绝",
+      "completed": "已完成",
+      "inProgress": "处理中",
+      "replacementOrder": "换货订单",
+      "viewReplacementOrder": "查看换货物流",
+      "steps": {
+        "submitted": "已提交",
+        "reviewing": "审核中",
+        "processing": "处理中",
+        "exchangeShipping": "换货发货",
+        "completed": "已完成"
+      }
+    }
   },
   "cart": {
     "title": "购物袋",
@@ -1444,6 +1552,7 @@
     "postalCode": "邮政编码",
     "country": "国家",
     "paymentMethod": "支付方式",
+    "wechat": "微信支付",
     "wechatPay": "微信支付",
     "alipay": "支付宝",
     "stripe": "信用卡",
@@ -1467,7 +1576,24 @@
     "paymentQRTitle": "微信支付",
     "paymentQRHint": "请扫描下方二维码完成支付",
     "paymentSuccess": "支付成功",
-    "paymentFailed": "支付失败"
+    "paymentFailed": "支付失败",
+    "phoneErrorChina": "请输入有效的11位中国手机号码",
+    "phoneErrorTaiwan": "请输入有效的10位台湾手机号码",
+    "phoneErrorHongKong": "请输入有效的8位香港手机号码",
+    "phoneErrorSingapore": "请输入有效的8位新加坡手机号码",
+    "phoneErrorDefault": "请输入有效的手机号码",
+    "nameError": "姓名格式不正确，请输入中英文",
+    "nameErrorChina": "请输入2-50位中英文姓名",
+    "nameErrorTaiwan": "請輸入2-50位中英文姓名",
+    "addressError": "详细地址格式不正确",
+    "addressErrorChina": "详细地址长度需在5-200字符之间",
+    "addressErrorTaiwan": "詳細地址長度需在5-200字符之間",
+    "postalCodeError": "邮政编码格式不正确",
+    "postalCodeErrorChina": "请输入6位邮政编码",
+    "postalCodeErrorTaiwan": "請輸入3-5位郵遞區號",
+    "postalCodeErrorUS": "格式示例: 12345 或 12345-6789",
+    "postalCodeErrorCA": "格式示例: A1A 1A1",
+    "postalCodeErrorUK": "格式示例: SW1A 1AA"
   },
   "submitArtwork": {
     "loginRequired": "请先登录以提交画作",

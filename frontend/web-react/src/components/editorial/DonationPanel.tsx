@@ -30,7 +30,7 @@ export default function DonationPanel({
   const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
 
-  const { data: apiTiers, isError: tiersError } = useQuery({
+  const { data: apiTiers, isError: _tiersError } = useQuery({
     queryKey: ['donation-tiers'],
     queryFn: () => donationsApi.getTiers(),
     staleTime: 10 * 60 * 1000,
@@ -269,7 +269,7 @@ export default function DonationPanel({
               type="checkbox"
               checked={anonymous}
               onChange={(e) => setAnonymous(e.target.checked)}
-              className="w-11 h-11 p-2.5 accent-[var(--color-rust)] cursor-pointer"
+              className="w-5 h-5 rounded-full accent-[var(--color-rust)] cursor-pointer"
             />
             <span className="font-body text-caption text-sepia-mid">
               {t('donate.form.anonymous')}

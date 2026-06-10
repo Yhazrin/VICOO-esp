@@ -58,3 +58,31 @@ export VICOO_REMOTE_DIR=/path/to/VICOO-esp   # 服务器上 git 仓库路径
 CI/助手环境通常**没有**你的服务器私钥，且**禁止**在命令中嵌入密码。由你在本机执行上述脚本即可完成与「在服务器上跑 `python -m app.add_campaigns_demo`」相同效果。
 
 若某步报错，把**脱敏**后的命令与日志贴出即可继续排查。
+
+## 6. 彩虹鱼 T 恤溯源配图（地球仪 + 时间轴）
+
+部署 `feat/rainbow-fish-trace-photos` 或含 `backend/static/photo/` 的分支后：
+
+```bash
+cd /home/student/vicoo   # 按实际路径
+git pull origin feat/rainbow-fish-trace-photos
+cd deploy/easy
+docker compose up -d --build backend frontend
+```
+
+`entrypoint.sh` 会在 backend 启动时自动执行 `python -m app.backfill_rainbow_fish_gallery`（幂等）。
+
+手动补写（若仍无图）：
+
+```bash
+docker exec -w /app/backend vicoo-backend python -m app.backfill_rainbow_fish_gallery
+```
+
+验证静态文件与 API：
+
+```bash
+curl -I http://127.0.0.1/static/photo/cotton-field-1.jpg
+curl -s "http://127.0.0.1:8000/api/v1/products/1/supply-chain" | head -c 500
+```
+
+`gallery` 字段应含 `/static/photo/cotton-field-1.jpg` 等 ASCII 路径。

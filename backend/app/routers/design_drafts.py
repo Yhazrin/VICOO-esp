@@ -21,7 +21,7 @@ async def list_design_drafts(
     status: str | None = Query(None),
     artwork_id: int | None = Query(None),
     db: AsyncSession = Depends(get_db),
-    _admin: dict = Depends(require_role("admin", "editor")),
+    _admin: dict = Depends(require_role("admin")),
 ):
     """List all design drafts with optional filters."""
     try:
@@ -62,7 +62,7 @@ async def create_design_draft(
 async def get_design_draft(
     draft_id: int,
     db: AsyncSession = Depends(get_db),
-    _admin: dict = Depends(require_role("admin", "editor")),
+    _admin: dict = Depends(require_role("admin")),
 ):
     """Get a design draft by ID."""
     try:
@@ -80,7 +80,7 @@ async def get_design_draft(
 async def generate_design(
     draft_id: int,
     db: AsyncSession = Depends(get_db),
-    _admin: dict = Depends(require_role("admin", "editor")),
+    _admin: dict = Depends(require_role("admin")),
 ):
     """Generate AI design from draft."""
     try:

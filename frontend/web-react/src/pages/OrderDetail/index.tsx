@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useParams, Navigate } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/authStore';
 import { useTranslation } from 'react-i18next';
@@ -9,7 +9,11 @@ import SectionContainer from '@/components/layout/SectionContainer';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
 
 import { ordersApi, type ReturnRequestData } from '@/services/orders';
+import { formatDateTime } from '@/utils/dateTime';
 import { impactFundApi } from '@/services/impactFund';
+import { afterSalesApi } from '@/services/afterSales';
+import OrderReviewModal from '@/components/order/OrderReviewModal';
+import AfterSaleProgress, { hasActiveAfterSale } from '@/components/order/AfterSaleProgress';
 import TraceabilityTimeline from '@/components/editorial/TraceabilityTimeline';
 import type { SupplyChainTimelineRecord } from '@/types';
 
@@ -43,6 +47,8 @@ export default function OrderDetail() {
   const [returnSuccess, setReturnSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isCancelling, setIsCancelling] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewProductId, setReviewProductId] = useState<number | null>(null);
 
   const { data: order, isLoading, isError } = useQuery({
     queryKey: ['order', id],
@@ -50,16 +56,20 @@ export default function OrderDetail() {
     enabled: !!id && isAuthenticated,
   });
 
-  const { data: impactEntries = [], isError: impactError } = useQuery({
+  const { data: impactEntries = [], isError: _impactError } = useQuery({
     queryKey: ['impact-fund', id],
     queryFn: () => impactFundApi.getOrderEntries(id!),
     enabled: !!id && isAuthenticated && (order?.status === 'paid' || order?.status === 'completed' || order?.status === 'shipped'),
     retry: false,
   });
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: `/orders/${id}` }} replace />;
-  }
+  const { data: afterSaleTickets = [] } = useQuery({
+    queryKey: ['order-after-sales', id],
+    queryFn: () => afterSalesApi.byOrder(id!),
+    enabled: !!id,
+  });
+
+  const activeAfterSale = hasActiveAfterSale(afterSaleTickets);
 
   const logisticsAsTimeline: SupplyChainTimelineRecord[] =
     order?.logistics_events?.map((ev, i) => ({
@@ -122,6 +132,7 @@ export default function OrderDetail() {
       await ordersApi.requestReturn(String(order.id), data);
       setReturnSuccess(true);
       queryClient.invalidateQueries({ queryKey: ['my-after-sales'] });
+      queryClient.invalidateQueries({ queryKey: ['order-after-sales', id] });
     } catch {
       setErrorMessage(t('orderDetail.returnError', 'Failed to submit return request — please retry'));
     }
@@ -136,6 +147,16 @@ export default function OrderDetail() {
     setReturnReason('');
     setReturnType('return');
     setReturnSuccess(false);
+  };
+
+  const openReviewModal = (productId: number) => {
+    setReviewProductId(productId);
+    setShowReviewModal(true);
+  };
+
+  const closeReviewModal = () => {
+    setShowReviewModal(false);
+    setReviewProductId(null);
   };
 
   if (isLoading || !order) {
@@ -244,6 +265,19 @@ export default function OrderDetail() {
             </motion.div>
           )}
 
+          {afterSaleTickets.length > 0 && (
+            <motion.div
+              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.05 }}
+              className="mb-10 space-y-4"
+            >
+              {afterSaleTickets.map((ticket) => (
+                <AfterSaleProgress key={ticket.id} ticket={ticket} />
+              ))}
+            </motion.div>
+          )}
+
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Main: items */}
             <div className="lg:col-span-7">
@@ -270,9 +304,23 @@ export default function OrderDetail() {
                         {currencySymbol(order.payment_method)}{Number(item.price).toFixed(2)} × {item.quantity}
                       </p>
                     </div>
-                    <span className="font-mono text-sm text-ink font-medium flex-shrink-0">
-                      {currencySymbol(order.payment_method)}{(Number(item.price) * item.quantity).toFixed(2)}
-                    </span>
+                    <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                      <span className="font-mono text-sm text-ink font-medium">
+                        ¥{(Number(item.price) * item.quantity).toFixed(2)}
+                      </span>
+                      {order.status === 'completed' && (
+                        <button
+                          type="button"
+                          onClick={() => openReviewModal(Number(item.product_id))}
+                          className="font-body text-[10px] tracking-[0.08em] uppercase text-sage hover:text-ink transition-colors cursor-pointer flex items-center gap-1"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                          </svg>
+                          {t('orderDetail.writeReview', '评价')}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -294,8 +342,18 @@ export default function OrderDetail() {
                     {isCancelling ? t('common.loading', 'Processing...') : t('profile.cancelOrder', 'Cancel Order')}
                   </button>
                 )}
-                {order.status === 'completed' && (
+                {order.status === 'completed' && order.items.length > 0 && (
                   <button
+                    type="button"
+                    onClick={() => openReviewModal(Number(order.items[0].product_id))}
+                    className="font-body text-label tracking-wide text-sage hover:text-ink transition-colors cursor-pointer border border-sage/30 px-6 py-2.5 hover:border-sage/50"
+                  >
+                    {t('orderDetail.writeReview', '评价')}
+                  </button>
+                )}
+                {order.status === 'completed' && !activeAfterSale && (
+                  <button
+                    type="button"
                     onClick={() => setShowReturnModal(true)}
                     className="font-body text-label tracking-wide text-ink hover:text-rust transition-colors cursor-pointer border border-warm-gray/30 px-6 py-2.5 hover:border-rust/30"
                   >
@@ -347,7 +405,7 @@ export default function OrderDetail() {
                     {t('orderDetail.orderDate', 'Order Date')}
                   </p>
                   <p className="font-body text-body-sm text-ink">
-                    {new Date(order.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    {formatDateTime(order.created_at)}
                   </p>
                 </div>
               </div>
@@ -518,6 +576,12 @@ export default function OrderDetail() {
           </>
         )}
       </AnimatePresence>
+
+      <OrderReviewModal
+        order={showReviewModal ? order : null}
+        initialProductId={reviewProductId}
+        onClose={closeReviewModal}
+      />
     </PageWrapper>
   );
 }

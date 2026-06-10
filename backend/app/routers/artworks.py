@@ -87,7 +87,7 @@ _mock_artworks = [
 @router.get("", response_model=PaginatedResponse)
 async def list_artworks(
     page: int = Query(1, ge=1),
-    page_size: int = Query(20, ge=1, le=100),
+    page_size: int = Query(20, ge=1, le=500),
     status: str | None = Query(None),
     campaign_id: int | None = Query(None),
     search: str | None = Query(None),
@@ -297,8 +297,40 @@ async def create_artwork(
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
 
 
+@router.post("/admin", response_model=ApiResponse, status_code=201)
+async def admin_create_artwork(
+    body: ArtworkCreate,
+    db: AsyncSession = Depends(get_db),
+    _admin: dict = Depends(require_role("admin")),
+):
+    """Admin-direct artwork creation (bypasses child consent check; allows
+    'draft' status)."""
+    try:
+        artwork = Artwork(
+            title=body.title,
+            description=body.description,
+            image_url=body.image_url,
+            thumbnail_url=body.thumbnail_url or body.image_url,
+            child_participant_id=body.child_participant_id,
+            artist_name=body.artist_name,
+            campaign_id=body.campaign_id,
+            status="pending",
+            like_count=0,
+            view_count=0,
+        )
+        db.add(artwork)
+        await db.flush()
+        await db.refresh(artwork, ["created_at", "updated_at"])
+        return ApiResponse(data=_serialize_artwork(artwork))
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"DB write failed during admin_create_artwork: {e}", exc_info=True)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+
+
 @router.put("/{artwork_id}", response_model=ApiResponse)
-async def update_artwork(artwork_id: int, body: ArtworkUpdate, db: AsyncSession = Depends(get_db), _admin: dict = Depends(require_role("admin", "editor"))):
+async def update_artwork(artwork_id: int, body: ArtworkUpdate, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user), _admin: dict = Depends(require_role("admin"))):
     """Update an artwork."""
     try:
         stmt = select(Artwork).options(selectinload(Artwork.child_participant)).where(Artwork.id == artwork_id)
@@ -338,7 +370,7 @@ async def get_artwork_status(artwork_id: int, db: AsyncSession = Depends(get_db)
 
 
 @router.put("/{artwork_id}/status", response_model=ApiResponse)
-async def update_artwork_status(artwork_id: int, body: ArtworkStatusUpdate, db: AsyncSession = Depends(get_db), _admin: dict = Depends(require_role("admin", "editor"))):
+async def update_artwork_status(artwork_id: int, body: ArtworkStatusUpdate, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user), _admin: dict = Depends(require_role("admin"))):
     """Update artwork status."""
     try:
         stmt = select(Artwork).options(selectinload(Artwork.child_participant)).where(Artwork.id == artwork_id)

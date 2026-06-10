@@ -24,13 +24,134 @@ function currencySymbol(currency?: string) {
 }
 
 interface AddressForm {
-  name: string;
+  recipient_name: string;
   phone: string;
-  street: string;
+  detail_address: string;
   city: string;
   province: string;
   postalCode: string;
   country: string;
+}
+
+// Phone validation by country/region
+function getPhonePattern(country: string): RegExp | null {
+  const patterns: Record<string, RegExp> = {
+    // China (CN) - 11 digits starting with 1
+    'China': /^1[3-9]\d{9}$/,
+    // Taiwan (TW) - 10 digits starting with 09
+    'Taiwan, China': /^09\d{8}$/,
+    // Hong Kong (HK) - 8 digits starting with 5/6/9
+    'Hong Kong, China': /^[569]\d{7}$/,
+    // Singapore (SG) - 8 digits
+    'Singapore': /^[89]\d{7}$/,
+    // Japan (JP) - 10/11 digits starting with 0
+    'Japan': /^0\d{9,10}$/,
+    // South Korea (KR) - 10/11 digits starting with 01
+    'South Korea': /^01[016789]\d{7,8}$/,
+    // US/CA - 10 digits
+    'United States': /^1?[2-9]\d{9}$/,
+    'Canada': /^1?[2-9]\d{9}$/,
+    // UK - 10/11 digits starting with 7
+    'United Kingdom': /^7[1-9]\d{9}$/,
+    // Germany - 10/11 digits starting with 1
+    'Germany': /^1[1-9]\d{9,10}$/,
+    // France - 10 digits starting with 6/7
+    'France': /^[67]\d{9}$/,
+    // Australia - 9/10 digits starting with 4
+    'Australia': /^4\d{8,9}$/,
+    // Default - require at least 8 digits
+    'default': /^\d{8,15}$/,
+  };
+  return patterns[country] || patterns['default'];
+}
+
+function validatePhone(phone: string, country: string): boolean {
+  if (!phone) return false;
+  const pattern = getPhonePattern(country);
+  return pattern ? pattern.test(phone) : true;
+}
+
+// Name validation (Chinese or English, 2-50 chars)
+function validateName(name: string): boolean {
+  if (!name || name.trim().length < 2 || name.trim().length > 50) return false;
+  // Allow Chinese characters, English letters, spaces, hyphens, apostrophes
+  return /^[一-龥a-zA-Z\s\-']+$/.test(name.trim());
+}
+
+// Address length validation (5-200 chars)
+function validateAddress(address: string): boolean {
+  if (!address || address.trim().length < 5 || address.trim().length > 200) return false;
+  return true;
+}
+
+// Postal code validation by country/region
+function getPostalCodePattern(country: string): RegExp | null {
+  const patterns: Record<string, RegExp> = {
+    'China': /^\d{6}$/,                              // 6 digits
+    'Taiwan, China': /^\d{3,5}$/,                      // 3-5 digits
+    'Japan': /^\d{3}-?\d{4}$/,                          // 123-4567 or 1234567
+    'South Korea': /^\d{5}$/,                           // 5 digits
+    'United States': /^\d{5}(-\d{4})?$/,               // 12345 or 12345-6789
+    'Canada': /^[A-Z]\d[A-Z]\s?\d[A-Z]\d$/i,            // A1A 1A1
+    'United Kingdom': /^[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}$/i, // Various UK formats
+    'Germany': /^\d{5}$/,                              // 5 digits
+    'France': /^\d{5}$/,                               // 5 digits
+    'Australia': /^\d{4}$/,                            // 4 digits
+    'Singapore': /^\d{6}$/,                           // 6 digits
+    'Hong Kong, China': /^(?:\d{6}|\s*)?$/,                   // Optional 6 digits
+  };
+  return patterns[country] || null;
+}
+
+function validatePostalCode(postalCode: string, country: string): boolean {
+  if (!postalCode) return true; // Optional field
+  const pattern = getPostalCodePattern(country);
+  if (!pattern) return true; // No pattern for this country, skip validation
+  return pattern.test(postalCode.trim());
+}
+
+// Field error messages for i18n
+function getFieldError(field: string, country: string, t: (key: string) => string): string | null {
+  const errors: Record<string, Record<string, string>> = {
+    name: {
+      default: t('checkout.nameError'),
+      China: t('checkout.nameErrorChina'),
+      'Taiwan, China': t('checkout.nameErrorTaiwan'),
+    },
+    address: {
+      default: t('checkout.addressError'),
+      China: t('checkout.addressErrorChina'),
+      'Taiwan, China': t('checkout.addressErrorTaiwan'),
+    },
+    postalCode: {
+      default: t('checkout.postalCodeError'),
+      China: t('checkout.postalCodeErrorChina'),
+      'Taiwan, China': t('checkout.postalCodeErrorTaiwan'),
+      'United States': t('checkout.postalCodeErrorUS'),
+      Canada: t('checkout.postalCodeErrorCA'),
+      'United Kingdom': t('checkout.postalCodeErrorUK'),
+    },
+  };
+  return errors[field]?.[country] || errors[field]?.['default'] || null;
+}
+
+function getPhoneError(country: string, t: (key: string) => string): string {
+  const errorMap: Record<string, string> = {
+    'China': t('checkout.phoneErrorChina'),
+    'Taiwan, China': t('checkout.phoneErrorTaiwan'),
+    'Hong Kong, China': t('checkout.phoneErrorHongKong'),
+    'Singapore': t('checkout.phoneErrorSingapore'),
+    'Japan': t('checkout.phoneErrorJapan'),
+    'South Korea': t('checkout.phoneErrorKr'),
+    'United States': t('checkout.phoneErrorUs'),
+    'Canada': t('checkout.phoneErrorCa'),
+    'United Kingdom': t('checkout.phoneErrorUk'),
+    'Germany': t('checkout.phoneErrorDe'),
+    'France': t('checkout.phoneErrorFr'),
+    'Australia': t('checkout.phoneErrorAu'),
+    'default': t('checkout.phoneErrorDefault'),
+  };
+  return errorMap[country] || errorMap['default'];
 }
 
 const STEPS = ['step1', 'step2', 'step3', 'step4'] as const;
@@ -40,6 +161,21 @@ const PAYMENT_OPTIONS: { key: PaymentMethod }[] = [
   { key: 'alipay' },
   { key: 'stripe' },
   { key: 'paypal' },
+];
+
+const COMMON_COUNTRIES = [
+  { code: 'CN', name: 'China' },
+  { code: 'US', name: 'United States' },
+  { code: 'JP', name: 'Japan' },
+  { code: 'KR', name: 'South Korea' },
+  { code: 'GB', name: 'United Kingdom' },
+  { code: 'DE', name: 'Germany' },
+  { code: 'FR', name: 'France' },
+  { code: 'AU', name: 'Australia' },
+  { code: 'CA', name: 'Canada' },
+  { code: 'SG', name: 'Singapore' },
+  { code: 'HK', name: 'Hong Kong, China' },
+  { code: 'TW', name: 'Taiwan, China' },
 ];
 
 export default function Checkout() {
@@ -55,9 +191,9 @@ export default function Checkout() {
 
   const [step, setStep] = useState(0);
   const [address, setAddress] = useState<AddressForm>({
-    name: '',
+    recipient_name: '',
     phone: '',
-    street: '',
+    detail_address: '',
     city: '',
     province: '',
     postalCode: '',
@@ -86,19 +222,29 @@ export default function Checkout() {
     enabled: isAuthenticated,
   });
 
-  const canProceedStep1 = selectedAddressId || (address.name.trim() && address.phone.trim() && address.street.trim() && address.city.trim() && address.province.trim());
+  const canProceedStep1 = selectedAddressId || (
+    address.recipient_name.trim() &&
+    validateName(address.recipient_name) &&
+    address.phone.trim() &&
+    validatePhone(address.phone, address.country) &&
+    address.detail_address.trim() &&
+    validateAddress(address.detail_address) &&
+    address.city.trim() &&
+    address.province.trim() &&
+    (!address.postalCode.trim() || validatePostalCode(address.postalCode, address.country))
+  );
 
   const selectSavedAddress = (addr: Address) => {
     setSelectedAddressId(addr.id);
     setShowManualAddress(false);
     setAddress({
-      name: addr.recipient_name,
+      recipient_name: addr.recipient_name,
       phone: addr.phone,
-      street: [addr.district, addr.detail_address].filter(Boolean).join(' '),
+      detail_address: [addr.district, addr.detail_address].filter(Boolean).join(' '),
       city: addr.city,
       province: addr.province,
       postalCode: addr.postal_code || '',
-      country: 'China',
+      country: addr.country || 'China',
     });
   };
 
@@ -131,16 +277,17 @@ export default function Checkout() {
     const addr = addressRef.current;
     const shouldSave = saveAddressRef.current;
     const selId = selectedAddressIdRef.current;
-    if (shouldSave && !selId && addr.name && addr.phone) {
+    if (shouldSave && !selId && addr.recipient_name && addr.phone) {
       try {
         await addressesApi.create({
-          recipient_name: addr.name,
+          recipient_name: addr.recipient_name,
           phone: addr.phone,
           province: addr.province,
           city: addr.city,
           district: '',
-          detail_address: addr.street,
+          detail_address: addr.detail_address,
           postal_code: addr.postalCode || undefined,
+          country: addr.country,
           is_default: false,
         });
       } catch {
@@ -162,9 +309,8 @@ export default function Checkout() {
       attempts++;
       if (attempts > maxAttempts) {
         if (!cancelled) {
-          try { await ordersApi.cancel(orderId); } catch { /* best-effort cleanup */ }
           setPendingPayOrder(null);
-          setError(t('checkout.paymentTimeout', 'Payment timed out — please place a new order'));
+          setError(t('checkout.paymentTimeout', '支付超时，请重新下单'));
         }
         return;
       }
@@ -251,14 +397,27 @@ export default function Checkout() {
           product_id: item.product.id,
           quantity: item.quantity,
         })),
-        shipping_address: selectedAddressId ? undefined : `${address.name}, ${address.phone}, ${address.street}, ${address.city}, ${address.province} ${address.postalCode}, ${address.country}`,
+        shipping_address: selectedAddressId ? undefined : `${address.recipient_name}, ${address.phone}, ${address.detail_address}, ${address.city}, ${address.province} ${address.postalCode}, ${address.country}`,
         address_id: selectedAddressId || undefined,
         payment_method: paymentMethod,
       };
 
       const order = await ordersApi.create(orderData);
-      const amount = typeof order.total_amount === 'string' ? parseFloat(order.total_amount) : order.total_amount;
-      const token = order.mock_pay_token;
+      const rawOrder = order as unknown as Record<string, unknown>;
+      const amountRaw = (rawOrder.total_amount ?? rawOrder.totalAmount ?? order.total_amount) as
+        | string
+        | number
+        | undefined;
+      const amount = typeof amountRaw === 'string' ? parseFloat(amountRaw) : Number(amountRaw ?? 0);
+      const token = (
+        rawOrder.mock_pay_token ??
+        rawOrder.mockPayToken ??
+        rawOrder.mock_payment_token ??
+        rawOrder.mockPaymentToken ??
+        rawOrder.payment_token ??
+        rawOrder.paymentToken ??
+        order.mock_pay_token
+      ) as string | undefined;
       if (!token) {
         setError(t('checkout.error'));
         placingRef.current = false;
@@ -270,9 +429,11 @@ export default function Checkout() {
       const qs = new URLSearchParams({ t: token });
       if (devApi) qs.set('apiBase', devApi);
       const payUrl = `${origin}/payment/confirm?${qs.toString()}`;
+      const orderId = String(rawOrder.id ?? rawOrder.order_id ?? rawOrder.orderId ?? order.id);
+      const orderNo = String(rawOrder.order_no ?? rawOrder.orderNo ?? order.order_no ?? '');
       setPendingPayOrder({
-        orderId: String(order.id),
-        orderNo: order.order_no,
+        orderId,
+        orderNo,
         amount,
         mockPayToken: token,
         payUrl,
@@ -295,14 +456,10 @@ export default function Checkout() {
     if (!pendingPayOrder) return;
     setIsProcessing(true);
     try {
-      await paymentsApi.mockConfirm(pendingPayOrder.mockPayToken);
-      const o = await ordersApi.getById(pendingPayOrder.orderId);
-      if (o.status === 'paid') {
-        setPendingPayOrder(null);
-        await finalizeOrder({ orderId: pendingPayOrder.orderId, orderNo: o.order_no });
-      } else {
-        setError(t('checkout.paymentFailed', 'Payment was not completed — please retry'));
-      }
+      // Use simplified mock payment confirm by order ID
+      await paymentsApi.mockConfirmByOrderId(pendingPayOrder.orderId);
+      setPendingPayOrder(null);
+      await finalizeOrder({ orderId: pendingPayOrder.orderId, orderNo: pendingPayOrder.orderNo });
     } catch {
       setError(t('checkout.error'));
     } finally {
@@ -437,12 +594,14 @@ export default function Checkout() {
                           id="checkout-name"
                           type="text"
                           required
-                          aria-required="true"
-                          value={address.name}
-                          onChange={(e) => setAddress({ ...address, name: e.target.value })}
+                          value={address.recipient_name}
+                          onChange={(e) => setAddress({ ...address, recipient_name: e.target.value })}
                           className="w-full px-4 py-3 border border-warm-gray/30 bg-transparent font-body text-body text-ink focus:outline-none focus:border-rust/50 transition-colors"
                           placeholder={t('checkout.fullName')}
                         />
+                        {address.recipient_name && !validateName(address.recipient_name) && (
+                          <p className="font-body text-caption text-rust mt-1">{getFieldError('name', address.country, t)}</p>
+                        )}
                       </div>
                       <div>
                         <label htmlFor="checkout-phone" className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
@@ -452,12 +611,15 @@ export default function Checkout() {
                           id="checkout-phone"
                           type="tel"
                           required
-                          aria-required="true"
+                          pattern="1[3-9]\d{9}"
                           value={address.phone}
                           onChange={(e) => setAddress({ ...address, phone: e.target.value })}
                           className="w-full px-4 py-3 border border-warm-gray/30 bg-transparent font-body text-body text-ink focus:outline-none focus:border-rust/50 transition-colors"
                           placeholder={t('checkout.phone')}
                         />
+                        {address.phone && !validatePhone(address.phone, address.country) && (
+                          <p className="font-body text-caption text-rust mt-1">{getPhoneError(address.country, t)}</p>
+                        )}
                       </div>
                     </div>
 
@@ -469,12 +631,14 @@ export default function Checkout() {
                         id="checkout-street"
                         type="text"
                         required
-                        aria-required="true"
-                        value={address.street}
-                        onChange={(e) => setAddress({ ...address, street: e.target.value })}
+                        value={address.detail_address}
+                        onChange={(e) => setAddress({ ...address, detail_address: e.target.value })}
                         className="w-full px-4 py-3 border border-warm-gray/30 bg-transparent font-body text-body text-ink focus:outline-none focus:border-rust/50 transition-colors"
                         placeholder={t('checkout.street')}
                       />
+                      {address.detail_address && !validateAddress(address.detail_address) && (
+                        <p className="font-body text-caption text-rust mt-1">{getFieldError('address', address.country, t)}</p>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -486,7 +650,6 @@ export default function Checkout() {
                           id="checkout-city"
                           type="text"
                           required
-                          aria-required="true"
                           value={address.city}
                           onChange={(e) => setAddress({ ...address, city: e.target.value })}
                           className="w-full px-4 py-3 border border-warm-gray/30 bg-transparent font-body text-body text-ink focus:outline-none focus:border-rust/50 transition-colors"
@@ -501,7 +664,6 @@ export default function Checkout() {
                           id="checkout-province"
                           type="text"
                           required
-                          aria-required="true"
                           value={address.province}
                           onChange={(e) => setAddress({ ...address, province: e.target.value })}
                           className="w-full px-4 py-3 border border-warm-gray/30 bg-transparent font-body text-body text-ink focus:outline-none focus:border-rust/50 transition-colors"
@@ -520,6 +682,23 @@ export default function Checkout() {
                           className="w-full px-4 py-3 border border-warm-gray/30 bg-transparent font-body text-body text-ink focus:outline-none focus:border-rust/50 transition-colors"
                           placeholder={t('checkout.postalCode')}
                         />
+                        {address.postalCode && !validatePostalCode(address.postalCode, address.country) && (
+                          <p className="font-body text-caption text-rust mt-1">{getFieldError('postalCode', address.country, t)}</p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block font-body text-caption text-sepia-mid tracking-wider uppercase mb-1.5">
+                          {t('checkout.country', 'Country')}
+                        </label>
+                        <select
+                          value={address.country}
+                          onChange={(e) => setAddress({ ...address, country: e.target.value })}
+                          className="w-full px-4 py-3 border border-warm-gray/30 bg-transparent font-body text-body text-ink focus:outline-none focus:border-rust/50 transition-colors cursor-pointer"
+                        >
+                          {COMMON_COUNTRIES.map((c) => (
+                            <option key={c.code} value={c.name}>{c.name}</option>
+                          ))}
+                        </select>
                       </div>
                     </div>
 
@@ -590,8 +769,8 @@ export default function Checkout() {
                           {t('checkout.back')}
                         </button>
                       </div>
-                      <p className="font-body text-body-sm text-ink">{address.name} · {address.phone}</p>
-                      <p className="font-body text-body-sm text-ink-faded mt-1">{address.street}, {address.city}, {address.province} {address.postalCode}</p>
+                      <p className="font-body text-body-sm text-ink">{address.recipient_name} · {address.phone}</p>
+                      <p className="font-body text-body-sm text-ink-faded mt-1">{address.detail_address}, {address.city}, {address.province} {address.postalCode}, {address.country}</p>
                     </div>
 
                     {/* Payment choice + scan note */}

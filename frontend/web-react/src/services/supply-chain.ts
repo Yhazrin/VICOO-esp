@@ -1,5 +1,6 @@
 import api from './api';
 import type { TraceMediaItem } from '@/types';
+import { normalizeApiLocale } from '@/utils/apiLocale';
 
 interface GetRecordsParams {
   page?: number;
@@ -15,8 +16,10 @@ export interface SupplyChainRecord {
   productName?: string;
   stage: string;
   location: string;
+  location_en?: string;
   timestamp: string;
   description: string;
+  description_en?: string;
   certified?: boolean;
   certifications?: string[];
   cert_image_url?: string | null;
@@ -82,8 +85,10 @@ export const supplyChainApi = {
     return normalizeRecordList(response.data.data);
   },
 
-  getProductJourney: async (productId: string | number): Promise<SupplyChainRecord[]> => {
-    const response = await api.get(`/supply-chain/trace/${productId}`);
+  getProductJourney: async (productId: string | number, locale?: string): Promise<SupplyChainRecord[]> => {
+    const params: Record<string, string> = {};
+    if (locale != null) params.locale = normalizeApiLocale(locale);
+    const response = await api.get(`/supply-chain/trace/${productId}`, { params });
     return normalizeRecordList(response.data.data?.records ?? response.data.data);
   },
 

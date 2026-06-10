@@ -48,6 +48,33 @@
     "error": {
       "invalidCredentials": "邮箱或密码错误",
       "userNotFound": "用户不存在"
+    },
+    "testAccounts": {
+      "show": "点击查看测试账号",
+      "hide": "收起测试账号",
+      "title": "演示测试账号",
+      "subtitle": "仅供评审与本地演示，点击账号可自动填入登录表单。",
+      "close": "关闭",
+      "fillForm": "点击填入",
+      "filled": "已填入登录表单",
+      "copyEmail": "复制邮箱",
+      "copyPassword": "复制密码",
+      "copied": "已复制",
+      "adminPanelSection": "独立管理后台（:8080）",
+      "openAdminPanel": "打开管理后台登录页",
+      "adminPanelNote": "以下账号用于管理后台，非本页登录",
+      "roles": {
+        "admin": "管理员（网站）",
+        "editor": "编辑",
+        "user": "普通用户",
+        "adminPanel": "管理后台 Admin"
+      },
+      "hints": {
+        "admin": "完整后台权限：商品、活动、订单、用户管理等。",
+        "editor": "内容编辑：活动、文章、画作审核等。",
+        "user": "普通购物体验：下单、捐赠、投票、个人中心。",
+        "adminPanel": "在 localhost:8080 管理后台登录，与上方网站账号体系独立。"
+      }
     }
   },
   "register": {
@@ -199,6 +226,58 @@
       "donate": "立即捐赠",
       "shop": "可持续购物"
     },
+    "impactHero": {
+      "eyebrow": "SDG 12 · 负责任消费与生产",
+      "title": "每一次行动，都留下痕迹。",
+      "subtitle": "与 UNIQLO 合作，VICOO 将日常基础服饰与再生材料、可溯源商品旅程，以及 SDG 12 所倡导的负责任消费相连。",
+      "subtitleShort": "VICOO × UNIQLO — 可溯源旅程、再生材料与 SDG 12 负责任消费。",
+      "tagsAria": "核心方向",
+      "tags": {
+        "collab": "VICOO × UNIQLO",
+        "sdg12": "SDG 12 负责任消费",
+        "recycled": "再生材料",
+        "traceable": "可溯源商品",
+        "circular": "循环影响"
+      },
+      "cta": {
+        "explore": "探索影响路径",
+        "shop": "选购合作系列"
+      },
+      "scrollHint": "向下滚动",
+      "cards": {
+        "everyday": {
+          "title": "日常穿着，更负责任",
+          "body": "为基础衣橱选择更耐穿、更轻量的日常单品。"
+        },
+        "trace": {
+          "title": "追溯每件商品旅程",
+          "body": "从原料到成衣，看见材料如何流动。"
+        },
+        "recycle": {
+          "title": "让材料回到循环",
+          "body": "回收纤维，减少一次性浪费。"
+        },
+        "circularFashion": {
+          "title": "支持循环时尚",
+          "body": "让价值在穿着与再生之间延续。"
+        }
+      }
+    },
+    "impactNarrative": {
+      "scene01": {
+        "line1": "每一次行动",
+        "line2": "都留下",
+        "line3": "痕迹。",
+        "subtitle": "VICOO × UNIQLO — 再生材料、可溯源旅程、SDG 12 下的循环选择。"
+      },
+      "scene04": {
+        "title": "每一次行动，都留下痕迹。",
+        "subtitle": "让负责任消费变得可见——从日常单品到再生纤维。"
+      }
+    },
+    "impactCta": {
+      "title": "每一次行动，都留下痕迹。"
+    },
     "globe": {
       "label": "模式 A — 原材料溯源",
       "title": "每一根线，都有迹可循",
@@ -216,6 +295,8 @@
       },
       "scene02": {
         "quote": "「想象与织物相遇之处，故事被穿在身上。」",
+        "title": "证明不必铺满画面，它可以围着产品安静运转。",
+        "body": "每个供应链节点都化成一枚被验证的小信号，沿着同一段材料旅程缓慢环绕，让首屏星球继续把故事讲下去。",
         "artworkAlt": "儿童画作 {{n}}"
       },
       "scene03": {
@@ -592,7 +673,8 @@
       "notifyEmailLabel": "邮箱",
       "send": "发送",
       "artworkBy": "{{name}} 的作品，{{age}} 岁",
-      "campaign": "活动"
+      "campaign": "活动",
+      "sustainabilityBadge": "可持续 {{score}} · {{tier}}"
     },
     "detail": {
       "addToCart": "加入购物车",
@@ -613,14 +695,43 @@
       "viewImageAria": "查看第 {{n}} 张图片",
       "loading": "加载中...",
       "reviews": "评价",
-      "reviewsLead": "购买者的真实反馈，仅作参考。",
+      "reviewsEyebrow": "社区反馈",
+      "reviewsLead": "来自穿着者的真实反馈，关注舒适度、品质、包装与可追溯影响。",
+      "reviewsCommunityTitle": "社区评价",
+      "reviewsCommunityLead": "关于合身度、舒适度、包装与可追溯影响的真实反馈。",
+      "reviewsVerifiedOnly": "仅展示已验证反馈",
+      "reviewsCount": "{{count}} 条评价",
+      "reviewsCountOne": "{{count}} 条评价",
+      "reviewsSignInLead": "登录后分享穿着感受与可感知的影响。",
+      "reviewsSignInCta": "登录撰写评价",
       "noReviews": "暂无评价",
+      "noReviewsBody": "成为第一位分享这件单品穿着感受、合身度，以及它如何融入更负责任衣橱的人。",
       "rating": "评分",
       "writeReview": "撰写评价",
+      "writeReviewLead": "你的反馈帮助他人做出更审慎的选择。",
+      "reviewTitleLabel": "评价标题",
+      "reviewTitlePlaceholder": "一句话概括你的体验",
+      "reviewBodyLabel": "评价内容",
+      "reviewBodyPlaceholder": "分享穿着感受、包装、面料品质或可追溯影响等方面的想法。",
+      "reviewChipsLabel": "体验标签（可选）",
+      "reviewChips": {
+        "trueToSize": "尺码准确",
+        "comfortableFabric": "面料舒适",
+        "thoughtfulPackaging": "包装用心",
+        "impactVisible": "影响可感知"
+      },
+      "reviewDimensions": {
+        "fitComfort": "合身与舒适",
+        "packaging": "包装",
+        "traceableImpact": "可追溯影响"
+      },
       "reviewTitle": "标题（可选）",
       "reviewBody": "分享穿着或包装体验",
       "reviewError": "您可能已评价过该商品",
-      "submitReview": "提交",
+      "reviewSubmitFailed": "评价提交失败，请稍后重试。",
+      "reviewSuccess": "感谢分享，您的评价已发布。",
+      "reviewAuthorAnonymous": "已验证买家",
+      "submitReview": "提交评价",
       "backToShop": "返回商城",
       "backToImpactShop": "返回公益商店",
       "globeTitle": "全球溯源视图",
@@ -736,7 +847,7 @@
       "votes": "{{count}} 票"
     },
     "donationBadge": "捐赠 {{percentage}}%",
-    "supportsCampaign": "支持项目：{{campaign}}",
+    "supportsCampaign": "关联公益：{{campaign}}",
     "viewTraceability": "溯源",
     "filterByCampaign": "按活动筛选",
     "allCampaigns": "全部活动",
@@ -1132,6 +1243,60 @@
     "clothingHint": "闲置衣物也可捐献，经处理后转为公益行动商品，收益支持乡村美育。",
     "clothingHintShort": "旧衣循环计划",
     "donateLink": "捐献衣物 →",
+    "nameError": "Name must be 2-50 characters",
+    "nameErrorCn": "请输入2-50位姓名",
+    "nameErrorTw": "請輸入2-50位姓名",
+    "phoneError": "Invalid phone number",
+    "phoneErrorCn": "请输入有效的11位手机号码",
+    "phoneErrorTw": "請輸入有效的10位台灣手機號碼",
+    "addressError": "Address must be 5-200 characters",
+    "addressErrorCn": "地址长度需在5-200字符",
+    "addressErrorTw": "地址長度需在5-200字符",
+    "postalCodeError": "Invalid postal code format",
+    "postalCodeErrorCn": "请输入6位邮政编码",
+    "postalCodeErrorTw": "請輸入3-5位郵遞區號",
+    "phoneErrorHk": "请输入有效的8位香港手机号码",
+    "phoneErrorSg": "请输入有效的8位新加坡手机号码",
+    "phoneErrorJp": "请输入有效的日本电话号码",
+    "phoneErrorKr": "请输入有效的韩国手机号码",
+    "phoneErrorUs": "请输入有效的美国电话号码",
+    "phoneErrorCa": "请输入有效的加拿大电话号码",
+    "phoneErrorUk": "请输入有效的英国电话号码",
+    "phoneErrorDe": "请输入有效的德国电话号码",
+    "phoneErrorFr": "请输入有效的法国电话号码",
+    "phoneErrorAu": "请输入有效的澳大利亚电话号码",
+    "postalCodeErrorJp": "格式: 123-4567 或 1234567",
+    "postalCodeErrorKr": "请输入5位邮政编码",
+    "postalCodeErrorUs": "格式: 12345 或 12345-6789",
+    "postalCodeErrorCa": "格式: A1A 1A1",
+    "postalCodeErrorUk": "格式: SW1A 1AA",
+    "nameErrorHk": "请输入2-50位中英文姓名",
+    "phonePlaceholderCn": "请输入11位手机号",
+    "phonePlaceholderTw": "請輸入10位手機號碼",
+    "phonePlaceholderHk": "請輸入8位電話號碼",
+    "phonePlaceholderSg": "請輸入8位電話號碼",
+    "phonePlaceholderJp": "請輸入電話號碼",
+    "phonePlaceholderKr": "請輸入10/11位手機號碼",
+    "phonePlaceholderUs": "请输入10位电话号码",
+    "phonePlaceholderCa": "请输入10位电话号码",
+    "phonePlaceholderUk": "请输入11位电话号码",
+    "phonePlaceholderDe": "请输入10/11位电话号码",
+    "phonePlaceholderFr": "请输入10位电话号码",
+    "phonePlaceholderAu": "请输入9/10位电话号码",
+    "namePlaceholder": "输入您的姓名",
+    "postalCodePlaceholder": "输入邮政编码",
+    "fieldCountry": "国家/地区",
+    "fieldContactName": "联系人姓名",
+    "phoneErrorHk": "请输入有效的8位香港手机号码",
+    "phoneErrorSg": "请输入有效的8位新加坡手机号码",
+    "phoneErrorJp": "请输入有效的日本电话号码",
+    "phoneErrorKr": "请输入有效的韩国手机号码",
+    "phoneErrorUs": "请输入有效的10位美国电话号码",
+    "phoneErrorCa": "请输入有效的10位加拿大电话号码",
+    "phoneErrorUk": "请输入有效的10位英国电话号码",
+    "phoneErrorDe": "请输入有效的10/11位德国电话号码",
+    "phoneErrorFr": "请输入有效的10位法国电话号码",
+    "phoneErrorAu": "请输入有效的9/10位澳大利亚电话号码",
     "heroTitle": "循环时尚",
     "heroSubtitle": "让旧衣获得新生，从提交审核到上架复用。",
     "statRecycled": "回收衣物",
@@ -1366,7 +1531,6 @@
     },
     "actionCard": {
       "donationList": "捐赠记录",
-      "campaignProgress": "活动进度",
       "impactFund": "影响力基金"
     }
   },
@@ -1396,7 +1560,26 @@
       "successDesc": "我们将在1-3个工作日内处理您的申请"
     },
     "cancelError": "取消订单失败，请重试",
-    "returnError": "提交退换货申请失败，请重试"
+    "returnError": "提交退换货申请失败，请重试",
+    "writeReview": "评价",
+    "reviewSuccessHint": "您的评价将显示在商品页面的社区反馈中",
+    "afterSale": {
+      "title": "售后进度",
+      "typeReturn": "退货",
+      "typeExchange": "换货",
+      "rejected": "已拒绝",
+      "completed": "已完成",
+      "inProgress": "处理中",
+      "replacementOrder": "换货订单",
+      "viewReplacementOrder": "查看换货物流",
+      "steps": {
+        "submitted": "已提交",
+        "reviewing": "审核中",
+        "processing": "处理中",
+        "exchangeShipping": "换货发货",
+        "completed": "已完成"
+      }
+    }
   },
   "cart": {
     "title": "购物袋",
@@ -1478,7 +1661,32 @@
     "linkCopied": "链接已复制",
     "copyFailed": "复制失败，请手动选中链接复制",
     "qrFallbackHint": "若扫码无反应，可把上方链接发到手机微信或浏览器打开。",
-    "localhostQrWarning": "当前为 localhost，手机无法打开。请在 .env 中设置 VITE_PUBLIC_SITE_ORIGIN 为本机局域网或公网前端地址（如 http://192.168.x.x:9111）。"
+    "localhostQrWarning": "当前为 localhost，手机无法打开。请在 .env 中设置 VITE_PUBLIC_SITE_ORIGIN 为本机局域网或公网前端地址（如 http://192.168.x.x:9111）。",
+    "phoneErrorChina": "请输入有效的11位中国手机号码",
+    "phoneErrorTaiwan": "请输入有效的10位台湾手机号码",
+    "phoneErrorHongKong": "请输入有效的8位香港手机号码",
+    "phoneErrorSingapore": "请输入有效的8位新加坡手机号码",
+    "phoneErrorJapan": "请输入有效的日本电话号码",
+    "phoneErrorKr": "请输入有效的韩国手机号码",
+    "phoneErrorUs": "请输入有效的10位美国电话号码",
+    "phoneErrorCa": "请输入有效的10位加拿大电话号码",
+    "phoneErrorUk": "请输入有效的10位英国电话号码",
+    "phoneErrorDe": "请输入有效的10/11位德国电话号码",
+    "phoneErrorFr": "请输入有效的10位法国电话号码",
+    "phoneErrorAu": "请输入有效的9/10位澳大利亚电话号码",
+    "phoneErrorDefault": "请输入有效的手机号码",
+    "nameError": "姓名格式不正确，请输入中英文",
+    "nameErrorChina": "请输入2-50位中英文姓名",
+    "nameErrorTaiwan": "請輸入2-50位中英文姓名",
+    "addressError": "详细地址格式不正确",
+    "addressErrorChina": "详细地址长度需在5-200字符之间",
+    "addressErrorTaiwan": "詳細地址長度需在5-200字符之間",
+    "postalCodeError": "邮政编码格式不正确",
+    "postalCodeErrorChina": "请输入6位邮政编码",
+    "postalCodeErrorTaiwan": "請輸入3-5位郵遞區號",
+    "postalCodeErrorUS": "格式示例: 12345 或 12345-6789",
+    "postalCodeErrorCA": "格式示例: A1A 1A1",
+    "postalCodeErrorUK": "格式示例: SW1A 1AA"
   },
   "submitArtwork": {
     "loginRequired": "请先登录以提交画作",
@@ -1718,6 +1926,33 @@
     "addressPlaceholder": "请输入完整的取件地址",
     "fieldPhone": "联系电话 *",
     "phonePlaceholder": "11位手机号",
+    "fieldCountry": "国家/地区",
+    "fieldContactName": "联系人姓名",
+    "namePlaceholder": "输入您的姓名",
+    "postalCodePlaceholder": "输入邮政编码",
+    "phoneError": "无效的手机号码",
+    "phoneErrorCn": "请输入有效的11位中国手机号码",
+    "phoneErrorTw": "請輸入有效的10位台灣手機號碼",
+    "phoneErrorHk": "请输入有效的8位香港手机号码",
+    "phoneErrorSg": "请输入有效的8位新加坡手机号码",
+    "phoneErrorJp": "请输入有效的日本电话号码",
+    "phoneErrorKr": "请输入有效的韩国手机号码",
+    "phoneErrorUs": "请输入有效的10位美国电话号码",
+    "phoneErrorCa": "请输入有效的10位加拿大电话号码",
+    "phoneErrorUk": "请输入有效的10位英国电话号码",
+    "phoneErrorDe": "请输入有效的10/11位德国电话号码",
+    "phoneErrorFr": "请输入有效的10位法国电话号码",
+    "phoneErrorAu": "请输入有效的9/10位澳大利亚电话号码",
+    "nameError": "姓名长度需在2-50字符",
+    "nameErrorCn": "请输入2-50位中英文姓名",
+    "nameErrorTw": "請輸入2-50位中英文姓名",
+    "nameErrorHk": "请输入2-50位中英文姓名",
+    "addressError": "地址长度需在5-200字符",
+    "addressErrorCn": "地址长度需在5-200字符",
+    "addressErrorTw": "地址長度需在5-200字符",
+    "postalCodeError": "邮政编码格式不正确",
+    "postalCodeErrorCn": "请输入6位邮政编码",
+    "postalCodeErrorTw": "請輸入3-5位郵遞區號",
     "submitBtn": "提交回收申请",
     "submitSuccess": "提交成功！",
     "submitError": "提交失败，请稍后重试。",

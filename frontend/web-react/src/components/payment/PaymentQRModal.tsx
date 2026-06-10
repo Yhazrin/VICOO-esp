@@ -57,12 +57,10 @@ export default function PaymentQRModal({
   };
 
   const dialogRef = useRef<HTMLDivElement>(null);
-  const onFailureRef = useRef(onFailure);
-  onFailureRef.current = onFailure;
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onFailureRef.current();
+      if (e.key === 'Escape') onFailure();
     };
     document.addEventListener('keydown', onKeyDown);
     document.body.style.overflow = 'hidden';
@@ -71,7 +69,7 @@ export default function PaymentQRModal({
       document.removeEventListener('keydown', onKeyDown);
       document.body.style.overflow = '';
     };
-  }, []);
+  }, [onFailure]);
 
   return (
     <div

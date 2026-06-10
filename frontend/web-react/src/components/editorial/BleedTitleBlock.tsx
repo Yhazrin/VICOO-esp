@@ -20,8 +20,8 @@ export default function BleedTitleBlock({
     <div
       ref={ref}
       className={`
-        relative overflow-hidden
-        ${overlay ? 'absolute inset-0 z-10 flex items-end' : ''}
+        relative
+        ${overlay ? 'absolute inset-0 z-10 flex items-end overflow-hidden' : ''}
         ${className}
       `}
     >
@@ -30,13 +30,9 @@ export default function BleedTitleBlock({
         animate={isVisible ? (prefersReducedMotion ? {} : { opacity: 1, y: 0 }) : {}}
         transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.9, ease: [0, 0, 0.2, 1] }}
         className={`
-          font-display font-black leading-[0.88] tracking-[-0.04em] text-ink
+          font-display font-black leading-[1.1] tracking-[-0.02em] text-ink
           ${overlay ? 'p-6 md:p-10 lg:p-16 bg-gradient-to-t from-paper/90 to-transparent w-full' : ''}
         `}
-        style={{
-          marginLeft: '-0.06em',
-          marginRight: '-0.06em',
-        }}
       >
         {children}
       </motion.div>

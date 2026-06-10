@@ -5,6 +5,8 @@ import { useAuthStore } from '@/stores/authStore';
 import { authApi } from '@/services/auth';
 import api from '@/services/api';
 
+const ADMIN_ROLES = ['admin', 'editor', 'compliance'];
+
 /**
  * Hook to restore user session on app load.
  * Security: Access token is NOT stored in localStorage (XSS prevention).
@@ -68,6 +70,11 @@ export function useSessionRestore() {
 
   useEffect(() => {
     if (user && !isAuthenticated) {
+      if (ADMIN_ROLES.includes(user.role)) {
+        useAuthStore.getState().logout();
+        window.location.replace('/admin/');
+        return;
+      }
       restoreSession(user, accessToken || undefined);
     }
   }, [user, isAuthenticated, restoreSession, accessToken]);

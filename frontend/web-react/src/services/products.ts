@@ -1,5 +1,6 @@
 import api from './api';
 import type { Product, PaginatedResponse } from '@/types';
+import { normalizeApiLocale } from '@/utils/apiLocale';
 
 const CATEGORY_MAP: Record<string, Product['category']> = {
   apparel: 'apparel',
@@ -107,6 +108,8 @@ export const productsApi = {
     isImpactProduct?: boolean;
     /** Locale passed to the backend to return product names in the corresponding language. Defaults to i18n.language */
     locale?: string;
+    /** 公益活动 ID，用于筛选特定活动下的商品 */
+    campaignId?: number;
   }): Promise<PaginatedResponse<Product>> => {
     const query: Record<string, string | number> = {};
     if (params?.page != null) query.page = params.page;
@@ -115,7 +118,8 @@ export const productsApi = {
     if (params?.isImpactProduct !== undefined) {
       query.is_impact_product = params.isImpactProduct ? 'true' : 'false';
     }
-    if (params?.locale != null) query.locale = params.locale;
+    if (params?.locale != null) query.locale = normalizeApiLocale(params.locale);
+    if (params?.campaignId != null) query.campaign_id = params.campaignId;
     const response = await api.get('/products', { params: query });
     const d = response.data;
     return {
@@ -129,21 +133,21 @@ export const productsApi = {
 
   getById: async (id: string, locale?: string): Promise<Product> => {
     const query: Record<string, string> = {};
-    if (locale != null) query.locale = locale;
+    if (locale != null) query.locale = normalizeApiLocale(locale);
     const response = await api.get(`/products/${id}`, { params: query });
     return normalizeProduct(response.data.data);
   },
 
   getFeatured: async (locale?: string): Promise<Product[]> => {
     const query: Record<string, string> = {};
-    if (locale != null) query.locale = locale;
+    if (locale != null) query.locale = normalizeApiLocale(locale);
     const response = await api.get('/products/featured', { params: query });
     return (response.data.data ?? []).map(normalizeProduct);
   },
 
   getByCategory: async (category: string, locale?: string): Promise<PaginatedResponse<Product>> => {
     const query: Record<string, string> = { category };
-    if (locale != null) query.locale = locale;
+    if (locale != null) query.locale = normalizeApiLocale(locale);
     const response = await api.get('/products', { params: query });
     const d = response.data;
     return {
@@ -155,8 +159,10 @@ export const productsApi = {
     };
   },
 
-  getArtwork: async (productId: string | number): Promise<any | null> => {
-    const response = await api.get(`/products/${productId}/artwork`);
+  getArtwork: async (productId: string | number, locale?: string): Promise<any | null> => {
+    const query: Record<string, string> = {};
+    if (locale != null) query.locale = normalizeApiLocale(locale);
+    const response = await api.get(`/products/${productId}/artwork`, { params: query });
     return response.data.data ?? null;
   },
 

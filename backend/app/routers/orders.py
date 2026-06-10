@@ -1,24 +1,28 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select, func
+from fastapi import APIRouter, Depends, HTTPException, Query, Header
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 import json
 import logging
+from typing import Optional
 
 from app.config import settings
 from app.database import get_db
 from app.models.order import Order, OrderItem
 from app.models.product import Product
+from app.models.user import User
 from app.schemas import (
     ApiResponse,
-    OrderCreate,
-    OrderLogisticsUpdate,
-    OrderOut,
-    OrderStatusUpdate,
     PaginatedResponse,
+    OrderOut,
+    OrderCreate,
+    OrderStatusUpdate,
+    OrderShipRequest,
+    OrderLogisticsUpdate,
+    ReturnRequestCreate,
 )
-from app.schemas.order import ReturnRequestCreate
 from app.deps import get_current_user, require_role
 from app.utils.mock_pay_token import issue_mock_pay_token
+from app.services.order.service import OrderService
 from app.data.impact_product_images import IMPACT_PRODUCT_IMAGE_BY_NAME
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
@@ -44,6 +48,7 @@ def order_to_out_dict(
     order: Order,
     items: list,
     product_map: dict | None = None,
+    user_map: dict | None = None,
     *,
     mock_pay_token: str | None = None,
 ) -> dict:
@@ -51,6 +56,7 @@ def order_to_out_dict(
     base = {
         "id": order.id,
         "user_id": order.user_id,
+        "user_name": (user_map or {}).get(order.user_id),
         "order_no": order.order_no,
         "total_amount": order.total_amount,
         "status": order.status,
@@ -71,6 +77,16 @@ def order_to_out_dict(
             }
             for i in items
         ],
+        # P1: Structured shipping address fields
+        "recipient_name": getattr(order, "recipient_name", None),
+        "recipient_phone": getattr(order, "recipient_phone", None),
+        "province": getattr(order, "province", None),
+        "city": getattr(order, "city", None),
+        "district": getattr(order, "district", None),
+        "detail_address": getattr(order, "detail_address", None),
+        "postal_code": getattr(order, "postal_code", None),
+        "country": getattr(order, "country", None),
+        "country_code": getattr(order, "country_code", None),
         "created_at": order.created_at,
         "updated_at": order.updated_at,
         "mock_pay_token": mock_pay_token,
@@ -87,6 +103,16 @@ async def _build_product_map(db: AsyncSession, items: list) -> dict:
     result = await db.execute(stmt)
     return {row.id: {"name": row.name, "image_url": row.image_url} for row in result.all()}
 
+
+async def _build_user_map(db: AsyncSession, orders: list[Order]) -> dict[int, str]:
+    """Fetch display names for order owners."""
+    user_ids = list({o.user_id for o in orders if o.user_id})
+    if not user_ids:
+        return {}
+    stmt = select(User.id, User.nickname, User.email).where(User.id.in_(user_ids))
+    result = await db.execute(stmt)
+    return {row.id: (row.nickname or row.email or f"User #{row.id}") for row in result.all()}
+
 _mock_orders = [
     {
         "id": 1,
@@ -97,7 +123,7 @@ _mock_orders = [
         "shipping_address": "88 Jianguo Road, Chaoyang District, Beijing",
         "payment_method": "wechat",
         "payment_id": "wx_order_001",
-        "items": [{"id": 1, "product_id": 1, "product_name": "Rainbow Fish Cotton T-Shirt", "product_image": _mock_impact_item_image("Rainbow Fish Cotton T-Shirt"), "quantity": 1, "price": "168.00"}, {"id": 2, "product_id": 4, "product_name": "Mother's Hands Eco Notebook", "product_image": _mock_impact_item_image("Mother's Hands Eco Notebook"), "quantity": 2, "price": "39.00"}],
+        "items": [{"id": 1, "product_id": 1, "product_name": "彩虹鱼棉质 T 恤", "product_image": _mock_impact_item_image("彩虹鱼棉质 T 恤"), "quantity": 1, "price": "168.00"}, {"id": 2, "product_id": 4, "product_name": "妈妈的手棉麻衬衫", "product_image": _mock_impact_item_image("妈妈的手棉麻衬衫"), "quantity": 2, "price": "39.00"}],
         "created_at": "2025-04-01T10:00:00",
         "updated_at": "2025-04-03T15:00:00",
     },
@@ -123,7 +149,7 @@ _mock_orders = [
         "shipping_address": "103 Tiyu West Road, Tianhe District, Guangzhou",
         "payment_method": "wechat",
         "payment_id": "wx_order_003",
-        "items": [{"id": 4, "product_id": 8, "product_name": "Chinese New Year Limited Gift Box", "product_image": _mock_impact_item_image("Chinese New Year Limited Gift Box"), "quantity": 1, "price": "368.00"}],
+        "items": [{"id": 4, "product_id": 8, "product_name": "过年了针织开衫", "product_image": _mock_impact_item_image("过年了针织开衫"), "quantity": 1, "price": "368.00"}],
         "created_at": "2025-04-10T16:00:00",
         "updated_at": "2025-04-10T16:05:00",
     },
@@ -136,7 +162,7 @@ _mock_orders = [
         "shipping_address": "88 Jianguo Road, Chaoyang District, Beijing",
         "payment_method": None,
         "payment_id": None,
-        "items": [{"id": 5, "product_id": 2, "product_name": "Starry Night Canvas Bag", "product_image": _mock_impact_item_image("Starry Night Canvas Bag"), "quantity": 1, "price": "89.00"}, {"id": 6, "product_id": 5, "product_name": "Space Journey Mug", "product_image": _mock_impact_item_image("Space Journey Mug"), "quantity": 1, "price": "68.00"}],
+        "items": [{"id": 5, "product_id": 2, "product_name": "星星之夜帆布托特包", "product_image": _mock_impact_item_image("星星之夜帆布托特包"), "quantity": 1, "price": "89.00"}, {"id": 6, "product_id": 5, "product_name": "太空旅行圆领卫衣", "product_image": _mock_impact_item_image("太空旅行圆领卫衣"), "quantity": 1, "price": "68.00"}],
         "created_at": "2025-04-15T11:00:00",
         "updated_at": "2025-04-15T11:00:00",
     },
@@ -149,7 +175,7 @@ _mock_orders = [
         "shipping_address": "1000 Lujiazui Ring Road, Pudong New Area, Shanghai",
         "payment_method": "alipay",
         "payment_id": "ali_order_005",
-        "items": [{"id": 7, "product_id": 1, "product_name": "Rainbow Fish Cotton T-Shirt", "product_image": _mock_impact_item_image("Rainbow Fish Cotton T-Shirt"), "quantity": 1, "price": "168.00"}, {"id": 8, "product_id": 7, "product_name": "Paint the Future Eco Pillow", "product_image": _mock_impact_item_image("Paint the Future Eco Pillow"), "quantity": 1, "price": "128.00"}],
+        "items": [{"id": 7, "product_id": 1, "product_name": "彩虹鱼棉质 T 恤", "product_image": _mock_impact_item_image("彩虹鱼棉质 T 恤"), "quantity": 1, "price": "168.00"}, {"id": 8, "product_id": 7, "product_name": "未来城市连帽卫衣", "product_image": _mock_impact_item_image("未来城市连帽卫衣"), "quantity": 1, "price": "128.00"}],
         "created_at": "2025-04-20T09:00:00",
         "updated_at": "2025-04-22T14:00:00",
     },
@@ -183,7 +209,6 @@ for _mo in _mock_orders:
     )
 
 
-from app.services.order.service import OrderService
 
 @router.get("", response_model=PaginatedResponse)
 async def list_orders(
@@ -198,7 +223,14 @@ async def list_orders(
     order_service = OrderService(db)
     try:
         is_admin = current_user.get("role") == "admin"
-        orders, total = await order_service.list_orders(current_user["id"], page, page_size, status=status, keyword=search, is_admin=is_admin)
+        orders, total = await order_service.list_orders(
+            current_user["id"],
+            is_admin=is_admin,
+            page=page,
+            page_size=page_size,
+            status=status,
+            keyword=search,
+        )
         
         # Batch load items for all orders
         order_ids = [o.id for o in orders]
@@ -213,7 +245,8 @@ async def list_orders(
             items_by_order = {}
             product_map = {}
 
-        data = [order_to_out_dict(order, items_by_order.get(order.id, []), product_map) for order in orders]
+        user_map = await _build_user_map(db, orders)
+        data = [order_to_out_dict(order, items_by_order.get(order.id, []), product_map, user_map) for order in orders]
 
         return PaginatedResponse(data=data, total=total, page=page, page_size=page_size)
     except HTTPException:
@@ -237,8 +270,13 @@ async def my_orders(
     order_service = OrderService(db)
     try:
         orders, total = await order_service.list_orders(
-            current_user["id"], page, page_size,
-            status=status, keyword=keyword, date_from=date_from, date_to=date_to,
+            current_user["id"],
+            page=page,
+            page_size=page_size,
+            status=status,
+            keyword=keyword,
+            date_from=date_from,
+            date_to=date_to,
         )
         # Batch load items for all orders
         order_ids = [o.id for o in orders]
@@ -253,7 +291,8 @@ async def my_orders(
             items_by_order = {}
             product_map = {}
 
-        data = [order_to_out_dict(order, items_by_order.get(order.id, []), product_map) for order in orders]
+        user_map = await _build_user_map(db, orders)
+        data = [order_to_out_dict(order, items_by_order.get(order.id, []), product_map, user_map) for order in orders]
         return PaginatedResponse(data=data, total=total, page=page, page_size=page_size)
     except HTTPException:
         raise
@@ -268,12 +307,38 @@ async def create_order(
     body: OrderCreate,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key"),
 ):
-    """Create a new order with inventory reservation. (Refactored)"""
+    """Create a new order with inventory reservation. (Refactored)
+
+    P1 Security: Uses idempotency_key header to prevent duplicate orders
+    when users click "Submit" multiple times rapidly.
+    """
     order_service = OrderService(db)
+
+    # P1: Idempotency check - if same idempotency key was used recently, return existing order
+    if idempotency_key:
+        idem_stmt = select(Order).where(
+            Order.user_id == current_user["id"],
+            Order.idempotency_key == idempotency_key
+        ).order_by(Order.created_at.desc())
+        idem_result = await db.execute(idem_stmt)
+        existing_order = idem_result.scalar_one_or_none()
+        if existing_order:
+            logger.info(f"Idempotent order reuse for key={idempotency_key}, order_id={existing_order.id}")
+            item_stmt = select(OrderItem).where(OrderItem.order_id == existing_order.id)
+            items = (await db.execute(item_stmt)).scalars().all()
+            product_map = await _build_product_map(db, items)
+            return ApiResponse(data=order_to_out_dict(existing_order, list(items), product_map))
+
     try:
         # Resolve address_id to shipping_address string
         order_data = body.model_dump()
+
+        # P1: Store idempotency key if provided
+        if idempotency_key:
+            order_data["idempotency_key"] = idempotency_key
+
         if body.address_id:
             from app.models.address import Address
             addr_stmt = select(Address).where(Address.id == body.address_id, Address.user_id == current_user["id"])
@@ -283,6 +348,16 @@ async def create_order(
                 raise HTTPException(status_code=404, detail="Address not found")
             parts = [addr.province, addr.city, addr.district, addr.detail_address]
             order_data["shipping_address"] = f"{addr.recipient_name} {addr.phone}, " + " ".join(p for p in parts if p)
+            # P1: Also populate structured address fields from saved address
+            order_data["recipient_name"] = addr.recipient_name
+            order_data["recipient_phone"] = addr.phone
+            order_data["province"] = addr.province
+            order_data["city"] = addr.city
+            order_data["district"] = addr.district
+            order_data["detail_address"] = addr.detail_address
+            order_data["postal_code"] = addr.postal_code
+            order_data["country"] = getattr(addr, "country", None)
+            order_data["country_code"] = getattr(addr, "country_code", None)
 
         order = await order_service.place_order(current_user["id"], order_data)
 
@@ -344,7 +419,7 @@ async def get_order(
 
 @router.post("/{order_id}/cancel", response_model=ApiResponse)
 async def cancel_order(
-    order_id: int, 
+    order_id: int,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -370,6 +445,85 @@ async def cancel_order(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
+@router.post("/{order_id}/confirm-receipt", response_model=ApiResponse)
+async def confirm_receipt(
+    order_id: int,
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """User confirms receipt of a shipped order. Order is marked completed only
+    after the admin has also confirmed delivery."""
+    order_service = OrderService(db)
+    try:
+        order = await order_service.confirm_receipt_by_user(
+            order_id, user_id=current_user["id"]
+        )
+        item_stmt = select(OrderItem).where(OrderItem.order_id == order_id)
+        items = (await db.execute(item_stmt)).scalars().all()
+        product_map = await _build_product_map(db, items)
+        out = order_to_out_dict(order, list(items), product_map)
+        return ApiResponse(data=out)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"confirm-receipt failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@router.post("/{order_id}/confirm-delivery", response_model=ApiResponse)
+async def confirm_delivery(
+    order_id: int,
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Admin confirms delivery of a shipped order. Order is marked completed only
+    after the user has also confirmed receipt."""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin only")
+    order_service = OrderService(db)
+    try:
+        order = await order_service.mark_delivered_by_admin(
+            order_id, admin_user_id=current_user["id"]
+        )
+        item_stmt = select(OrderItem).where(OrderItem.order_id == order_id)
+        items = (await db.execute(item_stmt)).scalars().all()
+        product_map = await _build_product_map(db, items)
+        out = order_to_out_dict(order, list(items), product_map)
+        return ApiResponse(data=out)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"confirm-delivery failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@router.post("/{order_id}/ship", response_model=ApiResponse)
+async def ship_order(
+    order_id: int,
+    body: OrderShipRequest,
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Admin marks a paid order as shipped with carrier and tracking number."""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin only")
+    order_service = OrderService(db)
+    try:
+        order = await order_service.ship_order(
+            order_id, carrier=body.carrier, tracking_number=body.tracking_number
+        )
+        item_stmt = select(OrderItem).where(OrderItem.order_id == order_id)
+        items = (await db.execute(item_stmt)).scalars().all()
+        product_map = await _build_product_map(db, items)
+        out = order_to_out_dict(order, list(items), product_map)
+        return ApiResponse(data=out)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"ship_order failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
 @router.put("/{order_id}/status", response_model=ApiResponse)
 async def update_order_status(
     order_id: int,
@@ -386,34 +540,14 @@ async def update_order_status(
         order = result.scalar_one_or_none()
         if not order:
             raise HTTPException(status_code=404, detail="Order not found")
-        # Enforce valid state transitions
-        _VALID_TRANSITIONS = {
-            "pending": {"cancelled", "paid"},
-            "paid": {"shipped", "refunded", "cancelled"},
-            "shipped": {"completed"},
-        }
-        allowed = _VALID_TRANSITIONS.get(order.status, set())
-        if body.status not in allowed:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Cannot transition from '{order.status}' to '{body.status}'. Allowed: {', '.join(sorted(allowed)) or 'none'}",
-            )
-
-        # Use cancel_order service to properly restore stock
-        if body.status == "cancelled":
-            order_service = OrderService(db)
-            order = await order_service.cancel_order(order_id)
-        else:
-            # Atomic status transition — prevents concurrent conflicting updates
-            from sqlalchemy import update as sql_update
-            result = await db.execute(
-                sql_update(Order)
-                .where(Order.id == order_id, Order.status == order.status)
-                .values(status=body.status)
-            )
-            if result.rowcount == 0:
-                raise HTTPException(status_code=400, detail="Order status changed concurrently, please retry")
-            await db.refresh(order)
+        if current_user.get("role") != "admin" and order.user_id != current_user["id"]:
+            raise HTTPException(status_code=403, detail="Forbidden")
+        # Non-admin users can only cancel their own orders
+        if current_user.get("role") != "admin" and body.status != "cancelled":
+            raise HTTPException(status_code=403, detail="Only admins can change order status to non-cancelled states")
+        order.status = body.status
+        await db.flush()
+        await db.refresh(order)
         item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
         items = (await db.execute(item_stmt)).scalars().all()
         product_map = await _build_product_map(db, items)
@@ -432,34 +566,29 @@ async def update_order_logistics(
     _admin: dict = Depends(require_role("admin")),
     db: AsyncSession = Depends(get_db),
 ):
-    """Admin: update carrier, tracking number, and append logistics event."""
-    try:
-        stmt = select(Order).where(Order.id == order_id)
-        result = await db.execute(stmt)
-        order = result.scalar_one_or_none()
-        if not order:
-            raise HTTPException(status_code=404, detail="Order not found")
-        if body.carrier is not None:
-            order.carrier = body.carrier
-        if body.tracking_number is not None:
-            order.tracking_number = body.tracking_number
-        events = _parse_logistics_events(getattr(order, "logistics_events", None))
-        if body.new_event is not None:
-            ev = body.new_event.model_dump()
-            events.append(ev)
-            order.logistics_events = json.dumps(events, ensure_ascii=False)
-        elif body.carrier is not None or body.tracking_number is not None:
-            order.logistics_events = json.dumps(events, ensure_ascii=False)
-        await db.flush()
-        item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
-        items = (await db.execute(item_stmt)).scalars().all()
-        product_map = await _build_product_map(db, items)
-        return ApiResponse(data=order_to_out_dict(order, list(items), product_map))
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.exception("Failed to update order logistics")
-        raise HTTPException(status_code=500, detail="Failed to update logistics")
+    """后台更新承运商、运单号并追加物流节点（仅管理员）。"""
+    stmt = select(Order).where(Order.id == order_id)
+    result = await db.execute(stmt)
+    order = result.scalar_one_or_none()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if body.carrier is not None:
+        order.carrier = body.carrier
+    if body.tracking_number is not None:
+        order.tracking_number = body.tracking_number
+    events = _parse_logistics_events(getattr(order, "logistics_events", None))
+    if body.new_event is not None:
+        ev = body.new_event.model_dump()
+        events.append(ev)
+        order.logistics_events = json.dumps(events, ensure_ascii=False)
+    elif body.carrier is not None or body.tracking_number is not None:
+        order.logistics_events = json.dumps(events, ensure_ascii=False)
+    await db.flush()
+    await db.refresh(order)
+    item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
+    items = (await db.execute(item_stmt)).scalars().all()
+    product_map = await _build_product_map(db, items)
+    return ApiResponse(data=order_to_out_dict(order, list(items), product_map))
 
 
 @router.post("/{order_id}/return", response_model=ApiResponse, status_code=201)
@@ -505,32 +634,38 @@ async def request_return(
                 "price": str(oi.price),
             })
 
-        description_parts = [f"Items: {json.dumps(items_desc, ensure_ascii=False)}"]
-        if body.reason:
-            description_parts.append(f"Reason: {body.reason}")
-        if body.type == "exchange":
-            if body.exchange_product_id:
-                description_parts.append(f"Exchange product ID: {body.exchange_product_id}")
-            if body.exchange_size:
-                description_parts.append(f"Exchange size: {body.exchange_size}")
-            if body.exchange_color:
-                description_parts.append(f"Exchange color: {body.exchange_color}")
+    import json as _json
+    ticket_items_payload = {
+        "items": items_desc,
+        "type": body.type,
+        "exchange_product_id": body.exchange_product_id,
+        "exchange_size": body.exchange_size,
+        "exchange_color": body.exchange_color,
+        "reason": body.reason,
+    }
+    description_parts = [f"Items: {_json.dumps(items_desc, ensure_ascii=False)}"]
+    if body.reason:
+        description_parts.append(f"Reason: {body.reason}")
+    if body.type == "exchange":
+        if body.exchange_product_id:
+            description_parts.append(f"Exchange product ID: {body.exchange_product_id}")
+        if body.exchange_size:
+            description_parts.append(f"Exchange size: {body.exchange_size}")
+        if body.exchange_color:
+            description_parts.append(f"Exchange color: {body.exchange_color}")
 
-        ticket = AfterSaleTicket(
-            user_id=current_user["id"],
-            order_id=order_id,
-            category=body.type,
-            status="open",
-            subject=f"{'Return' if body.type == 'return' else 'Exchange'} request - {order.order_no}",
-            description="\n".join(description_parts),
-        )
-        db.add(ticket)
-        await db.flush()
+    ticket = AfterSaleTicket(
+        user_id=current_user["id"],
+        order_id=order_id,
+        category=body.type,
+        status="open",
+        subject=f"{'退货' if body.type == 'return' else '换货'}申请 - {order.order_no}",
+        description="\n".join(description_parts),
+        items=_json.dumps(ticket_items_payload, ensure_ascii=False),
+    )
+    db.add(ticket)
+    await db.flush()
+    await db.refresh(ticket)
 
-        from app.schemas.circular_commerce import AfterSaleOut
-        return ApiResponse(data=AfterSaleOut.model_validate(ticket).model_dump())
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.exception("Failed to create return request")
-        raise HTTPException(status_code=500, detail="Failed to create return request")
+    from app.services.after_sales.service import enrich_tickets
+    return ApiResponse(data=(await enrich_tickets(db, [ticket]))[0])

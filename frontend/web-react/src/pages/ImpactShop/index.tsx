@@ -88,6 +88,7 @@ export default function ImpactShop() {
         category: activeCategory === 'all' ? undefined : activeCategory,
         isImpactProduct: true,
         locale: i18n.language,
+        page_size: 100,
       });
       return result;
     },
@@ -101,7 +102,7 @@ export default function ImpactShop() {
   );
 
   // Fetch campaigns for filter
-  const { data: campaignsData, isError: campaignsError } = useQuery({
+  const { data: campaignsData, isError: _campaignsError } = useQuery({
     queryKey: ['campaigns-list'],
     queryFn: async () => {
       const result = await campaignsApi.getAll();
@@ -111,7 +112,7 @@ export default function ImpactShop() {
   });
 
   // Fetch live impact stats
-  const { data: impactStats, isError: impactStatsError } = useQuery({
+  const { data: impactStats, isError: _impactStatsError } = useQuery({
     queryKey: ['impact-shop-stats'],
     queryFn: async () => {
       const [stats, artworks] = await Promise.all([

@@ -27,10 +27,11 @@ const Terms = lazy(() => import('@/pages/Terms'));
 const ChildrenSafety = lazy(() => import('@/pages/ChildrenSafety'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 const OrderDetail = lazy(() => import('@/pages/OrderDetail'));
+const Orders = lazy(() => import('@/pages/Orders'));
 const Support = lazy(() => import('@/pages/Support'));
 const Checkout = lazy(() => import('@/pages/Checkout'));
 const PaymentConfirm = lazy(() => import('@/pages/PaymentConfirm'));
-const AiDesign = lazy(() => import('@/pages/AiDesign'));
+const PaymentConfirmDonation = lazy(() => import('@/pages/PaymentConfirmDonation'));
 const SupplyChainStudio = lazy(() => import('@/pages/SupplyChainStudio'));
 const Campaigns = lazy(() => import('@/pages/Campaigns'));
 const CampaignDetail = lazy(() => import('@/pages/CampaignDetail'));
@@ -107,11 +108,12 @@ function AnimatedRoutes() {
             <Route path="donations/:id/certificate" element={<ErrorBoundary><DonationCertificate /></ErrorBoundary>} />
             <Route path="auth/callback" element={<ErrorBoundary><AuthCallback /></ErrorBoundary>} />
             <Route path="profile" element={<ErrorBoundary><Profile /></ErrorBoundary>} />
+            <Route path="orders" element={<ErrorBoundary><Orders /></ErrorBoundary>} />
             <Route path="orders/:id" element={<ErrorBoundary><OrderDetail /></ErrorBoundary>} />
             <Route path="checkout" element={<ErrorBoundary><Checkout /></ErrorBoundary>} />
             <Route path="payment/confirm" element={<ErrorBoundary><PaymentConfirm /></ErrorBoundary>} />
+            <Route path="payment/confirm-donation" element={<ErrorBoundary><PaymentConfirmDonation /></ErrorBoundary>} />
             <Route path="support" element={<ErrorBoundary><Support /></ErrorBoundary>} />
-            <Route path="ai-design" element={<ErrorBoundary><AiDesign /></ErrorBoundary>} />
             <Route path="studio/supply-chain" element={<ErrorBoundary><SupplyChainStudio /></ErrorBoundary>} />
             <Route path="clothing-recycle" element={<ErrorBoundary><ClothingRecycle /></ErrorBoundary>} />
             <Route path="donate-clothing" element={<ErrorBoundary><DonateClothing /></ErrorBoundary>} />

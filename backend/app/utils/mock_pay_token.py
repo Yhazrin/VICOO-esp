@@ -62,3 +62,30 @@ def parse_mock_pay_token(token: str, secret: str | bytes | None) -> dict[str, An
     except Exception as e:
         logger.debug("Mock pay token parse failed: %s", e)
         return None
+
+
+def issue_mock_donation_pay_token(
+    donation_id: int,
+    user_id: int,
+    secret: str | bytes | None,
+    ttl_seconds: int = 7200,
+) -> str:
+    if isinstance(secret, bytes):
+        secret_s = secret.decode("utf-8", errors="replace")
+    else:
+        secret_s = str(secret) if secret is not None else ""
+
+    payload = {
+        "did": donation_id,
+        "uid": user_id,
+        "exp": int(time.time()) + ttl_seconds,
+    }
+    body = json.dumps(payload, separators=(",", ":")).encode()
+    b64 = base64.urlsafe_b64encode(body).decode().rstrip(_PADDING)
+    sig = hmac.new(secret_s.encode("utf-8"), b64.encode("utf-8"), hashlib.sha256).digest()
+    sig_b64 = base64.urlsafe_b64encode(sig).decode().rstrip(_PADDING)
+    return f"{b64}.{sig_b64}"
+
+
+def parse_mock_donation_pay_token(token: str, secret: str | bytes | None) -> dict[str, Any] | None:
+    return parse_mock_pay_token(token, secret)

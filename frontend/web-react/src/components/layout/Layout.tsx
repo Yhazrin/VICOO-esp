@@ -8,13 +8,12 @@ import MobileNav from './MobileNav';
 import KeyedRouteContent from '../transitions/KeyedRouteContent';
 import GrainOverlay from '../animations/GrainOverlay';
 import { AIAssistantBall } from './AIAssistantBall';
-import { useUIStore } from '@/stores/uiStore';
+import { useUIStore, DARK_THEMES } from '@/stores/uiStore';
 import { COMPANY_NAV } from '@/constants/companyNav';
 
 // Lazy-load impact shell pages — these are heavy and only needed in impact mode
 const Home = lazy(() => import('@/pages/Home'));
 const Campaigns = lazy(() => import('@/pages/Campaigns'));
-const Donate = lazy(() => import('@/pages/Donate'));
 const ImpactShop = lazy(() => import('@/pages/ImpactShop'));
 const ClothingRecycle = lazy(() => import('@/pages/ClothingRecycle'));
 
@@ -24,7 +23,6 @@ function ImpactContent() {
   const content = (() => {
     switch (activeImpactTab) {
       case 'campaigns': return <Campaigns />;
-      case 'donate': return <Donate />;
       case 'shop': return <ImpactShop />;
       case 'clothing-recycle': return <ClothingRecycle />;
       default: return <Home />;
@@ -40,6 +38,7 @@ export default function Layout() {
   const activeImpactTab = useUIStore((s) => s.activeImpactTab);
   const setImpactMode = useUIStore((s) => s.setImpactMode);
   const setActiveImpactTab = useUIStore((s) => s.setActiveImpactTab);
+  const currentTheme = useUIStore((s) => s.currentTheme);
   const location = useLocation();
   const isImpactShopRoute = Boolean(useMatch({ path: '/impact/shop', end: false }));
   /** Only use tab content on the homepage `/` when the welfare shell is active; `/shop`, `/about`, etc. must render via `<Outlet />`, otherwise the regular store is blocked */
@@ -82,9 +81,6 @@ export default function Layout() {
   }, [isImpactShopRoute, setImpactMode, setActiveImpactTab]);
 
   useEffect(() => {
-    // Only auto-disable when navigating to company routes via internal link clicks,
-    // not when coming from the impact toggle button (which handles its own navigate).
-    // Skip if this route change was triggered by handleImpactToggle.
     if (!impactMode || isManualImpactToggle.current) {
       if (isManualImpactToggle.current) {
         isManualImpactToggle.current = false;
@@ -100,15 +96,23 @@ export default function Layout() {
     }
   }, [location.pathname, impactMode, setImpactMode]);
 
-  // Synchronizes in the same frame as the header welfare/UNIQLO switch, to avoid changing html variables after paint which would leave the header using old --color-* values (looks like lost styling)
+  // 同一帧同步所有 <html> 属性，避免 paint 后改变量导致样式闪烁
   useLayoutEffect(() => {
     const on = impactMode || isImpactShopRoute;
     if (on) {
       document.documentElement.setAttribute('data-welfare-vivid', '');
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      if (DARK_THEMES.has(currentTheme)) {
+        document.documentElement.setAttribute('data-dark-theme', '');
+      } else {
+        document.documentElement.removeAttribute('data-dark-theme');
+      }
     } else {
       document.documentElement.removeAttribute('data-welfare-vivid');
+      document.documentElement.setAttribute('data-theme', 'monochrome');
+      document.documentElement.removeAttribute('data-dark-theme');
     }
-  }, [impactMode, isImpactShopRoute]);
+  }, [impactMode, isImpactShopRoute, currentTheme]);
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-paper text-ink">

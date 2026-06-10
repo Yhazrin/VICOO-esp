@@ -56,6 +56,21 @@ export interface Campaign {
     age: number;
     quote: string;
   };
+  // Sustainability loop fields
+  sustainabilityEyebrow?: string;
+  sustainabilityTitle?: string;
+  sustainabilitySubtitle?: string;
+  sustainabilityP1Title?: string;
+  sustainabilityP1Body?: string;
+  sustainabilityP2Title?: string;
+  sustainabilityP2Body?: string;
+  sustainabilityP3Title?: string;
+  sustainabilityP3Body?: string;
+  sustainabilityP4Title?: string;
+  sustainabilityP4Body?: string;
+  sustainabilityFootnote?: string;
+  sustainabilityCtaTraceability?: string;
+  sustainabilityCtaShop?: string;
 }
 
 export interface Story {
@@ -132,7 +147,9 @@ export interface SupplyChainTimelineRecord {
   id: number;
   stage: string;
   description: string;
+  description_en?: string;
   location: string;
+  location_en?: string;
   date: string;
   verified: boolean;
   partnerName: string;
@@ -174,6 +191,8 @@ export interface Donation {
   certificate_pdf_url?: string;
   payment_notice?: string;
   simulation_mode?: boolean;
+  mock_pay_token?: string;
+  mockPayToken?: string;
 }
 
 export interface DonationCertificate {
@@ -214,12 +233,13 @@ export interface Order {
 }
 
 export interface Address {
-  name: string;
+  recipient_name: string;
   phone: string;
-  street: string;
+  detail_address: string;
   city: string;
   province: string;
-  postalCode: string;
+  district: string;
+  postal_code: string;
   country: string;
 }
 

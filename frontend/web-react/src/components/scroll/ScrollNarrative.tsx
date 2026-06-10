@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom';
 import { useReducedMotion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { useQuery } from '@tanstack/react-query';
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
-import { artworksApi } from '@/services/artworks';
+import { SUPPLY_CHAIN_ROUTES } from '@/data/supplyChain';
+import { useUIStore } from '@/stores/uiStore';
+import { useGoToImpactTab, scrollToImpactStory } from '@/components/impact/ImpactHomeHeroIntro';
 
 interface SceneProps {
   p: number;
@@ -15,10 +16,6 @@ interface SceneProps {
 
 /** i18n `t` for narrative scenes */
 type NarrativeTProps = { t: TFunction };
-
-interface Scene02Props extends SceneProps, NarrativeTProps {
-  images: string[];
-}
 
 /**
  * ScrollNarrative — Apple-style scroll-driven animation
@@ -31,19 +28,7 @@ export default function ScrollNarrative() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const prefersReducedMotion = useReducedMotion() ?? false;
   const { t } = useTranslation();
-
-  // Fetch real artworks for the gallery scene
-  const { data: artworksData, isError: artworksError } = useQuery({
-    queryKey: ['scroll-narrative-artworks'],
-    queryFn: () => artworksApi.getAll({ page_size: 5 }),
-    staleTime: 10 * 60 * 1000,
-    retry: 1,
-  });
-
-  const artworkImages = (artworksData?.items ?? [])
-    .slice(0, 5)
-    .map((a) => a.image_url)
-    .filter(Boolean) as string[];
+  const impactMode = useUIStore((s) => s.impactMode);
 
   // Scroll tracking
   useEffect(() => {
@@ -89,28 +74,29 @@ export default function ScrollNarrative() {
 
   return (
     <div
+      id="impact-scroll-story"
       ref={containerRef}
       className="relative z-10 -mt-[min(22dvh,12rem)] w-full"
-      style={{ height: '500vh' }}
+      style={{ height: '480vh' }}
     >
       <div
         className="sticky overflow-hidden"
         style={{ position: 'sticky', top: 0, height: '100vh', width: '100%', zIndex: 10 }}
       >
-        {/* Background: top fades from transparent so the hero globe can read through underneath */}
-        <div className="absolute inset-0 bg-gradient-to-b from-aged-stock/25 via-aged-stock/82 to-aged-stock" />
+        {/* Background: keep the top edge clean so the opening globe cards are not tinted. */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-aged-stock/20 to-aged-stock" />
 
         {/* Scene 01 — Brand Manifesto */}
-        <Scene01 p={p} rm={rm} mapRange={mapRange} t={t} />
+        <Scene01 p={p} rm={rm} mapRange={mapRange} t={t} impactMode={impactMode} />
 
-        {/* Scene 02 — Artwork Gallery */}
-        <Scene02 p={p} rm={rm} mapRange={mapRange} images={artworkImages} t={t} />
+        {/* Scene 02 — Orbital evidence flow */}
+        <Scene02 p={p} rm={rm} mapRange={mapRange} t={t} />
 
         {/* Scene 03 — Impact Numbers */}
         <Scene03 p={p} rm={rm} mapRange={mapRange} t={t} />
 
         {/* Scene 04 — Call to Action */}
-        <Scene04 p={p} rm={rm} mapRange={mapRange} t={t} />
+        <Scene04 p={p} rm={rm} mapRange={mapRange} t={t} impactMode={impactMode} />
 
         <SectionGrainOverlay opacity={0.03} />
       </div>
@@ -122,7 +108,13 @@ export default function ScrollNarrative() {
    Scene 01 — Brand Manifesto (0 → 28%)
    ═══════════════════════════════════════════════════════════════ */
 
-function Scene01({ p, rm, mapRange, t }: SceneProps & NarrativeTProps) {
+function Scene01({
+  p,
+  rm,
+  mapRange,
+  t,
+  impactMode,
+}: SceneProps & NarrativeTProps & { impactMode: boolean }) {
   // Layer opacity: visible 0–30%, fades out by 38%
   const opacity = rm ? 1 : (1 - mapRange(p, 0.25, 0.38, 0, 1));
   const y = rm ? 0 : mapRange(p, 0, 0.28, 0, -60);
@@ -164,17 +156,23 @@ function Scene01({ p, rm, mapRange, t }: SceneProps & NarrativeTProps) {
           <h1 className="font-display text-h1 md:text-[clamp(40px,6vw,72px)] font-bold text-ink leading-[1.05] tracking-[-0.03em]">
             <div className="overflow-hidden">
               <span className="inline-block" style={{ transform: `translateY(${line1}%)` }}>
-                {t('home.narrative.scene01.line1', 'Every Thread,')}
+                {impactMode
+                  ? t('home.impactNarrative.scene01.line1', 'Every Action')
+                  : t('home.narrative.scene01.line1', 'Every Thread,')}
               </span>
             </div>
             <div className="overflow-hidden mt-1">
               <span className="inline-block" style={{ transform: `translateY(${line2}%)` }}>
-                {t('home.narrative.scene01.line2', 'Traced from')}{' '}
+                {impactMode
+                  ? t('home.impactNarrative.scene01.line2', 'Leaves a')
+                  : `${t('home.narrative.scene01.line2', 'Traced from')} `}
               </span>
             </div>
             <div className="overflow-hidden mt-1">
               <span className="inline-block text-rust" style={{ transform: `translateY(${line3}%)` }}>
-                {t('home.narrative.scene01.line3', 'Source to Stitch')}
+                {impactMode
+                  ? t('home.impactNarrative.scene01.line3', 'Trace.')
+                  : t('home.narrative.scene01.line3', 'Source to Stitch')}
               </span>
             </div>
           </h1>
@@ -187,10 +185,17 @@ function Scene01({ p, rm, mapRange, t }: SceneProps & NarrativeTProps) {
         >
           <div className="border-l-2 border-rust/30 pl-6">
             <p className="font-body text-body-sm text-ink-faded leading-[1.8]">
-              {t('home.narrative.scene01.subtitle', 'From organic cotton fields to finished garments — verified at every step.')}
+              {impactMode
+                ? t(
+                    'home.impactNarrative.scene01.subtitle',
+                    'VICOO × UNIQLO — recycled materials, traceable journeys, circular choices under SDG 12.',
+                  )
+                : t('home.narrative.scene01.subtitle', 'From organic cotton fields to finished garments — verified at every step.')}
             </p>
             <p className="font-body text-caption text-sepia-mid tracking-[0.1em] uppercase mt-6">
-              {t('home.globe.label', 'Model A — Traceability')}
+              {impactMode
+                ? t('home.impactHero.eyebrow', 'SDG 12 · Responsible Consumption and Production')
+                : t('home.globe.label', 'Model A — Traceability')}
             </p>
           </div>
         </div>
@@ -210,33 +215,30 @@ function Scene01({ p, rm, mapRange, t }: SceneProps & NarrativeTProps) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   Scene 02 — Artwork Gallery (18% → 52%)
+   Scene 02 — Orbital Evidence Flow (18% → 52%)
    ═══════════════════════════════════════════════════════════════ */
 
-function Scene02({ p, rm, mapRange, images, t }: Scene02Props) {
+function Scene02({ p, rm, mapRange, t }: SceneProps & NarrativeTProps) {
   // Layer: visible 18–52%
   const opacity = rm ? 1
     : mapRange(p, 0.18, 0.24, 0, 1) * (1 - mapRange(p, 0.46, 0.52, 0, 1));
 
-  const layerY = rm ? 0 : mapRange(p, 0.18, 0.28, 50, 0);
+  const layerY = rm ? 0 : mapRange(p, 0.18, 0.30, 42, -10);
+  const orbitT = rm ? 1 : mapRange(p, 0.22, 0.42, 0, 1);
+  const orbitRotate = rm ? -8 : mapRange(p, 0.20, 0.48, -18, 18);
+  const apertureScale = rm ? 1 : mapRange(p, 0.18, 0.36, 0.86, 1.08);
+  const apertureOpacity = rm ? 0.72 : mapRange(p, 0.18, 0.28, 0.28, 0.78);
 
-  const positions = [
-    { x: '8%', y: '18%', w: 'w-40 md:w-56', rot: -2.5 },
-    { x: '55%', y: '12%', w: 'w-36 md:w-48', rot: 1.8 },
-    { x: '28%', y: '52%', w: 'w-44 md:w-60', rot: -1 },
-    { x: '68%', y: '48%', w: 'w-32 md:w-44', rot: 3 },
-    { x: '42%', y: '30%', w: 'w-36 md:w-52', rot: 0.5 },
-  ];
-
-  // Merge API images with fallback gradients — use API images first, fill remaining slots
-  const fallbackGradients = [
-    'linear-gradient(135deg, #C4A45A 0%, #8B7355 100%)',
-    'linear-gradient(135deg, #8B3A2A 0%, #C4A45A 100%)',
-    'linear-gradient(135deg, #5A7A5A 0%, #8B7355 100%)',
-    'linear-gradient(135deg, #D4C5A9 0%, #8B3A2A 100%)',
-    'linear-gradient(135deg, #7D8471 0%, #C4A45A 100%)',
-  ];
-  const srcs = images.length > 0 ? images.concat([]).slice(0, 5) : [];
+  const evidence = SUPPLY_CHAIN_ROUTES.slice(0, 3).flatMap((route, routeIndex) =>
+    route.nodes.slice(0, 2).map((node, nodeIndex) => ({
+      id: `${route.productId}-${node.id}`,
+      color: route.color,
+      label: node.labelEn,
+      angle: -112 + routeIndex * 78 + nodeIndex * 31,
+      radius: 34 + routeIndex * 5 + nodeIndex * 4,
+      delay: routeIndex * 0.025 + nodeIndex * 0.018,
+    })),
+  ).slice(0, 6);
 
   return (
     <div
@@ -260,44 +262,113 @@ function Scene02({ p, rm, mapRange, images, t }: Scene02Props) {
         </p>
       </div>
 
-      {/* Artwork cards */}
-      {positions.map((pos, i) => {
-        const delay = i * 0.03;
-        const enterX = rm ? 0 : mapRange(p, 0.19 + delay, 0.30 + delay, i % 2 === 0 ? -70 : 70, 0);
-        const enterSc = rm ? 1 : mapRange(p, 0.19 + delay, 0.30 + delay, 0.75, 1);
-        const cardOp = rm ? 1 : mapRange(p, 0.19 + delay, 0.28 + delay, 0, 1);
-
-        return (
+      {/* Globe aperture: lets the first-screen planet keep narrating under this scene. */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div
+          className="absolute left-1/2 top-1/2 h-[min(76vw,700px)] w-[min(88vw,920px)] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
+          style={{
+            opacity: rm ? 0.4 : mapRange(p, 0.22, 0.34, 0, 0.62) * (1 - mapRange(p, 0.44, 0.52, 0, 1)),
+            background:
+              'radial-gradient(circle at 50% 50%, rgba(245,238,224,0.88) 0%, rgba(241,231,206,0.52) 36%, rgba(241,231,206,0.18) 58%, rgba(241,231,206,0) 76%)',
+          }}
+        />
+        <div
+          className="relative h-[min(78vw,620px)] w-[min(78vw,620px)] rounded-full"
+          style={{
+            opacity: apertureOpacity,
+            transform: `scale(${apertureScale})`,
+            background:
+              'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.16) 35%, rgba(239,231,214,0.72) 72%, rgba(239,231,214,0) 73%)',
+            boxShadow: 'inset 0 0 90px rgba(255,255,255,0.2), 0 0 120px rgba(139,58,42,0.08)',
+          }}
+        >
+          <div className="absolute inset-[7%] rounded-full border border-rust/16" />
+          <div className="absolute inset-[17%] rounded-full border border-sage/18" />
           <div
-            key={i}
-            className={`absolute ${pos.w} aspect-[4/5] border-2 border-warm-gray/30 bg-aged-stock overflow-hidden shadow-lg`}
-            style={{
-              left: pos.x,
-              top: pos.y,
-              transform: `rotate(${pos.rot}deg) translateX(${enterX}px) scale(${enterSc})`,
-              opacity: cardOp,
-            }}
-          >
-            {srcs[i] ? (
-              <img
-                src={srcs[i]}
-                alt={t('home.narrative.scene02.artworkAlt', { n: i + 1 })}
-                className="w-full h-full object-cover"
-                style={{ filter: 'sepia(0.15) contrast(1.05) brightness(0.97)' }}
-                loading="lazy"
-              />
-            ) : (
-              <div
-                className="w-full h-full"
-                style={{ background: fallbackGradients[i] }}
-              />
-            )}
-            {/* Corner accents */}
-            <div className="absolute top-1.5 left-1.5 w-5 h-5 border-t border-l border-rust/25" />
-            <div className="absolute bottom-1.5 right-1.5 w-5 h-5 border-b border-r border-rust/25" />
-          </div>
-        );
-      })}
+            className="absolute inset-[27%] rounded-full border border-warm-gray/24"
+            style={{ transform: `rotate(${orbitRotate * -0.45}deg)` }}
+          />
+
+          <svg className="absolute inset-0 h-full w-full overflow-visible" viewBox="0 0 100 100" aria-hidden="true">
+            <path
+              d="M 15 54 C 29 16, 72 13, 86 43 C 99 72, 56 92, 24 73"
+              fill="none"
+              stroke="rgba(139,58,42,0.24)"
+              strokeWidth="0.22"
+              strokeDasharray="1.5 1.7"
+              strokeDashoffset={rm ? 0 : 18 - orbitT * 18}
+            />
+            <path
+              d="M 19 38 C 42 74, 70 76, 84 51 C 94 29, 62 18, 39 23"
+              fill="none"
+              stroke="rgba(82,105,86,0.24)"
+              strokeWidth="0.22"
+              strokeDasharray="1 2.1"
+              strokeDashoffset={rm ? 0 : -14 + orbitT * 14}
+            />
+          </svg>
+        </div>
+      </div>
+
+      {/* Evidence nodes orbit instead of photo cards. */}
+      <div
+        className="absolute inset-0 flex items-center justify-center"
+        style={{ transform: `rotate(${orbitRotate}deg)` }}
+      >
+        {evidence.map((item) => {
+          const enter = rm ? 1 : mapRange(p, 0.22 + item.delay, 0.34 + item.delay, 0, 1);
+          const fade = rm ? 1 : enter * (1 - mapRange(p, 0.43 + item.delay, 0.50 + item.delay, 0, 0.35));
+          const angle = (item.angle * Math.PI) / 180;
+          const x = Math.cos(angle) * item.radius;
+          const y = Math.sin(angle) * item.radius * 0.62;
+          const lineScale = rm ? 1 : mapRange(p, 0.24 + item.delay, 0.38 + item.delay, 0, 1);
+
+          return (
+            <div
+              key={item.id}
+              className="absolute left-1/2 top-1/2"
+              style={{
+                opacity: fade,
+                transform: `translate(-50%, -50%) translate(${x}vw, ${y}vh) rotate(${-orbitRotate}deg) scale(${0.86 + enter * 0.14})`,
+              }}
+            >
+              <div className="relative flex items-center gap-3">
+                <span
+                  className="block h-2.5 w-2.5 rounded-full ring-4 ring-paper/70"
+                  style={{ backgroundColor: item.color }}
+                />
+                <span
+                  className="block h-px w-10 origin-left bg-gradient-to-r from-rust/35 to-transparent"
+                  style={{ transform: `scaleX(${lineScale})` }}
+                  aria-hidden="true"
+                />
+                <span className="whitespace-nowrap border border-warm-gray/26 bg-paper/68 px-3 py-1.5 font-body text-[10px] uppercase tracking-[0.16em] text-ink/72 shadow-[0_16px_40px_-32px_rgba(26,26,22,0.3)] backdrop-blur-md">
+                  {item.label}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div
+        className="absolute bottom-20 left-8 right-8 md:left-16 md:right-auto md:max-w-md"
+        style={{
+          opacity: rm ? 1 : mapRange(p, 0.28, 0.40, 0, 1) * (1 - mapRange(p, 0.45, 0.52, 0, 1)),
+          transform: `translateY(${rm ? 0 : mapRange(p, 0.26, 0.40, 28, 0)}px)`,
+        }}
+      >
+        <div className="mb-5 h-px w-24 bg-gradient-to-r from-rust/45 to-transparent" />
+        <h2 className="font-display text-h3 md:text-h2 font-bold leading-[1.05] text-ink">
+          {t('home.narrative.scene02.title', 'Proof moves quietly around the product.')}
+        </h2>
+        <p className="mt-4 max-w-sm font-body text-body-sm leading-[1.8] text-ink-faded">
+          {t(
+            'home.narrative.scene02.body',
+            'Each waypoint becomes a small verified signal, orbiting the same material journey instead of interrupting it with a separate gallery.',
+          )}
+        </p>
+      </div>
     </div>
   );
 }
@@ -385,7 +456,14 @@ function Scene03({ p, rm, mapRange, t }: SceneProps & NarrativeTProps) {
    Scene 04 — Call to Action (65% → 100%)
    ═══════════════════════════════════════════════════════════════ */
 
-function Scene04({ p, rm, mapRange, t }: SceneProps & NarrativeTProps) {
+function Scene04({
+  p,
+  rm,
+  mapRange,
+  t,
+  impactMode,
+}: SceneProps & NarrativeTProps & { impactMode: boolean }) {
+  const goToTab = useGoToImpactTab();
   // Layer: visible 65–100%
   const opacity = rm ? 1 : mapRange(p, 0.65, 0.75, 0, 1);
   const layerY = rm ? 0 : mapRange(p, 0.68, 0.78, 50, 0);
@@ -406,34 +484,64 @@ function Scene04({ p, rm, mapRange, t }: SceneProps & NarrativeTProps) {
 
       <div className="text-center px-8 max-w-2xl">
         <h2 className="font-display text-h2 md:text-h1 font-bold text-paper leading-[1.05] tracking-[-0.03em] mb-4">
-          {t('home.narrative.scene04.title', 'Be Part of the Story')}
+          {impactMode
+            ? t('home.impactNarrative.scene04.title', 'Every Action Leaves a Trace.')
+            : t('home.narrative.scene04.title', 'Be Part of the Story')}
         </h2>
         <p className="font-body text-body-sm text-warm-gray/70 mb-12 max-w-md mx-auto leading-relaxed">
-          {t('home.narrative.scene04.subtitle', "Every purchase supports a child's creative journey. Join our community of impact.")}
+          {impactMode
+            ? t(
+                'home.impactNarrative.scene04.subtitle',
+                'Responsible consumption, made visible — from essentials to recycled fibers.',
+              )
+            : t('home.narrative.scene04.subtitle', "Every purchase supports a child's creative journey. Join our community of impact.")}
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link
-            to="/traceability"
-            className="inline-block font-body text-body-sm tracking-[0.15em] uppercase bg-rust text-paper px-8 py-4 hover:bg-rust-light transition-colors duration-300"
-            style={{ transform: `scale(${scale1})` }}
-          >
-            {t('home.narrative.scene04.traceability', 'Explore Traceability')}
-          </Link>
-          <Link
-            to="/campaigns"
-            className="inline-block font-body text-body-sm tracking-[0.15em] uppercase border border-sage/40 text-sage-pale px-8 py-4 hover:border-sage hover:text-paper transition-colors duration-300"
-            style={{ transform: `scale(${scale2})` }}
-          >
-            {t('home.narrative.scene04.campaign', 'Join Campaign')}
-          </Link>
-          <Link
-            to="/donate"
-            className="inline-block font-body text-body-sm tracking-[0.15em] uppercase border border-warm-gray/40 text-warm-gray px-8 py-4 hover:border-warm-gray hover:text-paper transition-colors duration-300"
-            style={{ transform: `scale(${scale1})` }}
-          >
-            {t('home.narrative.scene04.donate', 'Make Donation')}
-          </Link>
+        <div className="flex flex-col sm:flex-row flex-wrap gap-4 justify-center">
+          {impactMode ? (
+            <>
+              <button
+                type="button"
+                onClick={scrollToImpactStory}
+                className="inline-block font-body text-body-sm tracking-[0.12em] uppercase bg-[#FAF8F5] text-ink px-8 py-4 hover:bg-white transition-colors duration-300 cursor-pointer rounded-full"
+                style={{ transform: `scale(${scale1})` }}
+              >
+                {t('home.impactHero.cta.explore', 'Explore Impact')}
+              </button>
+              <button
+                type="button"
+                onClick={() => goToTab('shop')}
+                className="inline-block font-body text-body-sm tracking-[0.12em] uppercase border border-[#FAF8F5]/35 text-[#FAF8F5] px-8 py-4 hover:border-[#FAF8F5]/60 transition-colors duration-300 cursor-pointer rounded-full"
+                style={{ transform: `scale(${scale2})` }}
+              >
+                {t('home.impactHero.cta.shop', 'Shop the Collaboration')}
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/traceability"
+                className="inline-block font-body text-body-sm tracking-[0.15em] uppercase bg-rust text-paper px-8 py-4 hover:bg-rust-light transition-colors duration-300"
+                style={{ transform: `scale(${scale1})` }}
+              >
+                {t('home.narrative.scene04.traceability', 'Explore Traceability')}
+              </Link>
+              <Link
+                to="/campaigns"
+                className="inline-block font-body text-body-sm tracking-[0.15em] uppercase border border-sage/40 text-sage-pale px-8 py-4 hover:border-sage hover:text-paper transition-colors duration-300"
+                style={{ transform: `scale(${scale2})` }}
+              >
+                {t('home.narrative.scene04.campaign', 'Join Campaign')}
+              </Link>
+              <Link
+                to="/donate"
+                className="inline-block font-body text-body-sm tracking-[0.15em] uppercase border border-warm-gray/40 text-warm-gray px-8 py-4 hover:border-warm-gray hover:text-paper transition-colors duration-300"
+                style={{ transform: `scale(${scale1})` }}
+              >
+                {t('home.narrative.scene04.donate', 'Make Donation')}
+              </Link>
+            </>
+          )}
         </div>
       </div>
 

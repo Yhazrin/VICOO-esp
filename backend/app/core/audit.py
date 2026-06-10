@@ -1,13 +1,52 @@
 import functools
 import logging
 import json
+from contextvars import ContextVar
 from typing import Any, Callable, Optional
 
 from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from app.models.audit import AuditLog
+from app.models.user import User
 
 logger = logging.getLogger("vicoo.audit")
+
+# Set by the auth dependency on every authenticated request; read by the
+# audit decorator so it can attribute actions to the calling user even when
+# the service method signature does not include `current_user`.
+_current_user_var: ContextVar[Optional[dict]] = ContextVar("current_user", default=None)
+
+
+def set_current_user(user: Optional[dict]) -> None:
+    _current_user_var.set(user)
+
+
+def get_current_user() -> Optional[dict]:
+    return _current_user_var.get()
+
+
+async def _resolve_user_name(db: AsyncSession, user_id: Optional[int]) -> Optional[str]:
+    """Resolve the user nickname for the audit log.
+
+    For admin users, return the literal 'Admin' to keep the audit trail
+    consistent with the rest of the management console. For other users,
+    look up the nickname. Returns None if user_id is None or the user no
+    longer exists.
+    """
+    if user_id is None:
+        return None
+    try:
+        stmt = select(User).where(User.id == user_id)
+        user = (await db.execute(stmt)).scalar_one_or_none()
+        if not user:
+            return None
+        if user.role == "admin":
+            return "Admin"
+        return user.nickname
+    except Exception as e:  # pragma: no cover - defensive
+        logger.warning(f"Audit: failed to resolve user_name for id={user_id}: {e}")
+        return None
 
 
 async def log_audit(
@@ -19,14 +58,20 @@ async def log_audit(
     status: str = "success",
     details: Optional[dict] = None,
     ip_address: Optional[str] = None,
+    user_name: Optional[str] = None,
 ):
     """
     Manually log an audit event to the database.
+
+    If user_name is not provided, the system will resolve it from the users
+    table (admin users are normalised to the literal "Admin" display name).
     """
     try:
+        if user_name is None and user_id is not None:
+            user_name = await _resolve_user_name(db, user_id)
         audit_entry = AuditLog(
             user_id=user_id,
-            user_name=None,
+            user_name=user_name,
             action=action,
             resource=resource,
             resource_id=str(resource_id) if resource_id else None,
@@ -51,16 +96,33 @@ def audit_action(action: str, resource_type: str):
         async def wrapper(*args, **kwargs):
             # Extract dependencies
             db = kwargs.get("db")
+            if db is None and args:
+                # Try the first positional arg's `db` attribute (instance method)
+                first = args[0]
+                db = getattr(first, "db", None)
             user_id = kwargs.get("user_id")
-            
+
             # If current_user dict is provided, extract id
             current_user = kwargs.get("current_user")
             if current_user and isinstance(current_user, dict):
                 user_id = current_user.get("id")
+            elif user_id is None:
+                # Fall back to context-var set by the auth dependency
+                ctx_user = get_current_user()
+                if ctx_user and isinstance(ctx_user, dict):
+                    user_id = ctx_user.get("id") or ctx_user.get("sub")
+
+            # Service methods may pass the user id under a different name
+            # (e.g. admin_user_id) — scan kwargs and known param aliases.
+            if user_id is None:
+                for alias in ("admin_user_id", "operator_id", "actor_id"):
+                    if alias in kwargs:
+                        user_id = kwargs[alias]
+                        break
 
             try:
                 result = await func(*args, **kwargs)
-                
+
                 if db:
                     # Capture resource_id from result if it has an 'id' attribute
                     res_id = getattr(result, "id", None) if result else None

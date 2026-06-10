@@ -6,18 +6,15 @@ import type { SupplyChainRoute } from '@/data/supplyChain';
 import { createRouteVisuals, latLngToVector3 } from './globeUtils';
 import {
   createLandOutlinesGroup,
+  createLandTextureSphere,
   landOutlineRadius,
   LAND_OUTLINE_WIDTH_SUPPLY_CHAIN_PX,
   syncLandOutlineLine2Resolution,
 } from '@/utils/globeLandOutlines';
+import { useUIStore, type ThemeId } from '@/stores/uiStore';
+import { resolveGlobeColors } from '@/utils/globeThemeColors';
 
-/* ─── Brand palette hex → Three.js color ints ─── */
-const COLORS = {
-  wireframe: 0xC4B9A8, // warm-gray
-  ink: 0x1A1A16,
-};
-
-const GLOBE_RADIUS = 1.8;
+const GLOBE_RADIUS = 1.6;
 
 interface ParticleState {
   mesh: THREE.Mesh;
@@ -57,6 +54,10 @@ export default function SupplyChainGlobe({
   const suspendedRef = useRef(suspended);
   suspendedRef.current = suspended;
   const prefersReducedMotion = useReducedMotion();
+
+  const storeTheme = useUIStore(s => s.currentTheme);
+  const impactMode = useUIStore(s => s.impactMode);
+  const effectiveTheme: ThemeId = impactMode ? storeTheme : 'monochrome';
 
   useEffect(() => {
     if (!canvasRef.current || prefersReducedMotion) return;
@@ -108,6 +109,9 @@ export default function SupplyChainGlobe({
     controls.minPolarAngle = 0.18;
     controls.maxPolarAngle = Math.PI - 0.18;
 
+    /* ── Resolve theme colors ── */
+    const tc = resolveGlobeColors(effectiveTheme);
+
     /* ── Wireframe sphere ── */
     const wireGeo = new THREE.SphereGeometry(
       GLOBE_RADIUS,
@@ -115,27 +119,28 @@ export default function SupplyChainGlobe({
       isMobile ? 18 : 24,
     );
     const wireMat = new THREE.MeshBasicMaterial({
-      color: COLORS.wireframe,
+      color: tc.wire,
       wireframe: true,
       transparent: true,
-      opacity: 0.2,
+      opacity: tc.wireOpacity,
+      depthWrite: false,
     });
     globeGroup.add(new THREE.Mesh(wireGeo, wireMat));
 
-    /* ── Inner solid sphere (depth) ── */
-    const innerGeo = new THREE.SphereGeometry(GLOBE_RADIUS * 0.98, 32, 24);
-    const innerMat = new THREE.MeshBasicMaterial({
-      color: COLORS.ink,
+    /* ── Ocean sphere ── */
+    const oceanGeo = new THREE.SphereGeometry(GLOBE_RADIUS * 0.998, isMobile ? 32 : 48, isMobile ? 24 : 36);
+    const oceanMat = new THREE.MeshBasicMaterial({
+      color: tc.ocean,
       transparent: true,
-      opacity: 0.03,
+      opacity: tc.oceanOpacity,
+      depthWrite: false,
     });
-    globeGroup.add(new THREE.Mesh(innerGeo, innerMat));
+    globeGroup.add(new THREE.Mesh(oceanGeo, oceanMat));
 
     /* ── Latitude/longitude grid lines ── */
     const gridGroup = new THREE.Group();
-    const gridMat = new THREE.LineBasicMaterial({ color: COLORS.wireframe, transparent: true, opacity: 0.06 });
+    const gridMat = new THREE.LineBasicMaterial({ color: tc.wire, transparent: true, opacity: tc.gridOpacity, depthWrite: false });
 
-    // Latitude / longitude grid — same projection as routes & land (latLngToVector3)
     for (let lat = -60; lat <= 60; lat += 30) {
       const points: THREE.Vector3[] = [];
       for (let lng = -180; lng <= 180; lng += 5) {
@@ -155,12 +160,25 @@ export default function SupplyChainGlobe({
     }
     globeGroup.add(gridGroup);
 
-    const landColor = new THREE.Color(COLORS.ink).lerp(new THREE.Color(COLORS.wireframe), 0.42);
+    /* ── Land fill (canvas texture + vertex displacement relief) ── */
     if (!cancelled) {
+      const landSphere = createLandTextureSphere(
+        GLOBE_RADIUS * 0.998,
+        tc.land,
+        tc.landAlpha,
+        isMobile ? 512 : 1024,
+        GLOBE_RADIUS * 0.014,
+      );
+      globeGroup.add(landSphere);
+    }
+
+    /* ── Land outlines ── */
+    if (!cancelled) {
+      const outlineColor = new THREE.Color(tc.outline);
       const g = createLandOutlinesGroup(
         landOutlineRadius(GLOBE_RADIUS),
-        landColor,
-        0.52,
+        outlineColor,
+        tc.outlineOpacity,
         { lineWidthPx: LAND_OUTLINE_WIDTH_SUPPLY_CHAIN_PX }
       );
       globeGroup.add(g);
@@ -284,7 +302,7 @@ export default function SupplyChainGlobe({
       sceneRef.current = null;
       tickRef.current = null;
     };
-  }, [prefersReducedMotion, routes, lockOpacity]);
+  }, [prefersReducedMotion, routes, lockOpacity, effectiveTheme]);
 
   useEffect(() => {
     if (suspended || !sceneRef.current || !tickRef.current) return;

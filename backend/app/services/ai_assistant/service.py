@@ -14,6 +14,14 @@ from app.core.audit import audit_action
 from app.models.audit import AuditLog
 from app.services.supply_chain.service import SupplyChainService
 from app.models.product import Product
+from app.services.ai_assistant.prompts import (
+    get_catalog_clarification,
+    get_grounded_stub,
+    get_simulation_reply,
+    get_system_prompt,
+    get_tool_output_language_hint,
+    get_traceability_tool_blurb,
+)
 
 logger = logging.getLogger("vicoo.ai_service")
 
@@ -55,42 +63,6 @@ def _read_alias_map() -> Dict[str, List[str]]:
             alias_map[entry.lower()] = variants
     return alias_map
 
-SYSTEM_PROMPT = """You are the Uniqlo x VICOO Charity platform assistant. Your tone is warm, restrained, and professional.
-⚠️ Do NOT use any emoji characters (e.g. 💝 🌟 🎨 ✨ 👕 😊) in your replies. Keep text clean and minimal.
-Recommend products based on page context, prioritizing in-house database and retrieval results:
-1) In Uniqlo/regular shop context, prioritize regular products (/shop/{id}).
-2) In Impact/charity context, prioritize charity products (/impact/shop/{id}).
-3) When users explicitly mention sustainability/charity/donation/eco/sustainable/impact, prioritize Impact products even on Uniqlo pages.
-4) If users ask for recommendations without specifying Uniqlo or Impact, ask their preference first before recommending.
-5) When recommending products, include clickable links and explain reasons (material, price, charity ratio, traceability).
-6) Understand both Chinese and English synonyms (e.g. T-shirt/T恤, bag/包, clothes/衣物) for matching recommendations.
-7) Prioritize in-house database content; do not fabricate external products or links.
-8) For order/payment/privacy questions, provide only basic status without revealing sensitive information.
-9) For children's information, payment, and legal matters, remind users to refer to site terms and customer service.
-10) Guide users to learn about and participate in donations (explain tiers, process, certificates).
-11) Query and report campaign fundraising progress and impact data.
-12) Help users query personal donation records and history.
-13) Explain the clothing recycling process and its significance.
-14) Query charity product supply chain traceability information.
-15) Explain the impact fund allocation mechanism (60% artist / 30% school / 10% charity pool).
-When users express charity-related intent, proactively call tools for real-time data and give warm, professional replies.
-If replies contain structured data (donation records, campaign progress, impact fund), use the following format for frontend card rendering. [Wrap the entire JSON inside :::action-card; do not expose raw JSON outside]
-
-Campaign progress example:
-:::action-card[campaign-progress]{"items":[{"name":"Spring Blossom","raised":25000,"goal":50000,"participants":128},{"name":"Ocean Guardian","raised":18000,"goal":40000,"participants":95}]}
-
-Donation record example:
-:::action-card[donation-list]{"items":[{"name":"Alice","amount":200,"date":"2025-03-15"},{"name":"Bob","amount":100,"date":"2025-03-14"}]}
-
-Impact fund example:
-:::action-card[impact-fund]{"artistShare":6000,"schoolShare":3000,"charityShare":1000,"total":10000}
-
-Rules:
-1. One :::action-card block contains exactly one JSON object
-2. JSON must be valid (double quotes, no trailing commas)
-3. Do not repeat the same JSON data outside :::action-card
-4. Campaign progress items array includes all campaigns, each with name/raised/goal/participants fields"""
-
 class AIAssistantService(BaseService):
     """
     Service handling AI interactions, business-aware chat, and content moderation.
@@ -110,9 +82,7 @@ class AIAssistantService(BaseService):
         last_user = self._get_last_user_message(messages)
         if self._should_ask_catalog_clarification(last_user):
             return {
-                "reply": (
-                    "Sure — would you like recommendations from **Uniqlo** or **Impact**?"
-                ),
+                "reply": get_catalog_clarification(metadata, last_user),
                 "model": "rule-based-clarifier",
                 "source": "tooling"
             }
@@ -123,7 +93,7 @@ class AIAssistantService(BaseService):
         context_hint = f"\n[Platform Context: {context}]\n{business_context}"
 
         full_system_prompt = (
-            SYSTEM_PROMPT
+            get_system_prompt(metadata, last_user)
             + context_hint
             + f"\n[Catalog Routing]\nSelected catalog scope: {catalog_scope}\n"
         )
@@ -131,6 +101,7 @@ class AIAssistantService(BaseService):
         # 2. Lightweight tool invocation: detect explicit product/search/trace intents and fetch factual data
         tool_output = await self._maybe_call_tools(messages, context, metadata, catalog_scope)
         if tool_output:
+            full_system_prompt += get_tool_output_language_hint(metadata, last_user)
             full_system_prompt += f"\n\n[Tool Output]\n{tool_output}\n[End Tool Output]\n\nPlease use the above factual tool output to ground your answer and cite sources."
 
         # 2b. Retrieval-Augmented Generation (RAG) — fetch relevant snippets to ground answers for Impact/sustainability/shop contexts
@@ -146,6 +117,7 @@ class AIAssistantService(BaseService):
         if use_rag and last_user:
             rag_output = await self._retrieve_rag(last_user, context, catalog_scope, metadata)
             if rag_output:
+                full_system_prompt += get_tool_output_language_hint(metadata, last_user)
                 full_system_prompt += f"\n\n[Retrieval Results]\n{rag_output}\n[End Retrieval]\n\nPlease use the above retrieval snippets to ground your answer and cite sources."
 
         # 3. Check for API key
@@ -154,12 +126,12 @@ class AIAssistantService(BaseService):
             grounded = tool_output or rag_output
             if grounded:
                 return {
-                    "reply": f"Based on our database and retrieval results, here is what I found:\n\n{grounded}",
+                    "reply": get_grounded_stub(grounded, metadata, last_user),
                     "model": "simulation-mode",
                     "source": "local-stub"
                 }
             return {
-                "reply": f"Hello, I'm your charity assistant. I'm currently in demo mode (Context: {context}). Configure an API Key for more intelligent responses.",
+                "reply": get_simulation_reply(context, metadata, last_user),
                 "model": "simulation-mode",
                 "source": "local-stub"
             }
@@ -210,9 +182,7 @@ class AIAssistantService(BaseService):
         last_user = self._get_last_user_message(messages)
 
         if self._should_ask_catalog_clarification(last_user):
-            reply = (
-                "Sure — would you like recommendations from **Uniqlo** or **Impact**?"
-            )
+            reply = get_catalog_clarification(metadata, last_user)
             yield f"data: {json.dumps({'type': 'content_block_delta', 'text': reply})}\n\n"
             yield f"data: {json.dumps({'type': 'message_stop', 'model': 'rule-based-clarifier', 'source': 'tooling'})}\n\n"
             return
@@ -221,12 +191,14 @@ class AIAssistantService(BaseService):
         business_context = await self._get_business_context(user_id)
         context_hint = f"\n[Platform Context: {context}]\n{business_context}"
         full_system_prompt = (
-            SYSTEM_PROMPT + context_hint
+            get_system_prompt(metadata, last_user)
+            + context_hint
             + f"\n[Catalog Routing]\nSelected catalog scope: {catalog_scope}\n"
         )
 
         tool_output = await self._maybe_call_tools(messages, context, metadata, catalog_scope)
         if tool_output:
+            full_system_prompt += get_tool_output_language_hint(metadata, last_user)
             full_system_prompt += f"\n\n[Tool Output]\n{tool_output}\n[End Tool Output]\n\nPlease use the above factual tool output to ground your answer and cite sources."
 
         use_rag = False
@@ -239,11 +211,16 @@ class AIAssistantService(BaseService):
         if use_rag and last_user:
             rag_output = await self._retrieve_rag(last_user, context, catalog_scope, metadata)
             if rag_output:
+                full_system_prompt += get_tool_output_language_hint(metadata, last_user)
                 full_system_prompt += f"\n\n[Retrieval Results]\n{rag_output}\n[End Retrieval]\n\nPlease use the above retrieval snippets to ground your answer and cite sources."
 
         if not settings.OPENAI_API_KEY:
             grounded = tool_output or ""
-            reply = grounded or f"Hello, I'm your charity assistant. I'm currently in demo mode (Context: {context}). Configure an API Key for more intelligent responses."
+            reply = (
+                get_grounded_stub(grounded, metadata, last_user)
+                if grounded
+                else get_simulation_reply(context, metadata, last_user)
+            )
             yield f"data: {json.dumps({'type': 'content_block_delta', 'text': reply})}\n\n"
             yield f"data: {json.dumps({'type': 'message_stop', 'model': 'simulation-mode', 'source': 'local-stub'})}\n\n"
             return
@@ -664,13 +641,14 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
         if metadata and isinstance(metadata, dict):
             origin = metadata.get("frontendOrigin") or metadata.get("origin")
             if isinstance(origin, str) and origin.startswith(("http://", "https://")):
-                base = origin
+                base = origin.rstrip("/")
         if not base:
-            base = settings.FRONTEND_URL
+            base = (settings.FRONTEND_URL or "http://localhost:9111").rstrip("/")
+        # Dev: FRONTEND_URL may be http://localhost without Vite port
         lowered = base.lower()
-        if "localhost" in lowered or "127.0.0.1" in lowered:
-            base = "http://csi420-02-vm8.ucd.ie"
-        return base.rstrip("/") + "/"
+        if lowered in ("http://localhost", "https://localhost", "http://127.0.0.1", "https://127.0.0.1"):
+            base = "http://localhost:9111"
+        return base + "/"
 
     def _build_product_url(
         self, product_id: int, is_impact_product: bool, metadata: Optional[Dict[str, Any]] = None
@@ -722,6 +700,26 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                             out += f"; carbon_kg={step.get('carbon_kg')}"
                         out += "\n"
 
+                    # Generate structured traceability card if timeline exists
+                    if timeline and prod:
+                        import json
+                        stages_data = []
+                        for step in timeline:
+                            stages_data.append({
+                                "stage": step.get("stage", ""),
+                                "location": step.get("location", ""),
+                                "description": step.get("description", ""),
+                                "date": step.get("timestamp", "")[:10] if step.get("timestamp") else "",
+                                "verified": bool(step.get("certified")),
+                                "carbon": step.get("carbon_kg"),
+                            })
+                        card_json = json.dumps({
+                            "productName": prod.name,
+                            "productId": prod.id,
+                            "stages": stages_data,
+                        }, ensure_ascii=False)
+                        out += f"\n:::action-card[traceability]{card_json}:::\n"
+
                     out += "\n(Source: supply_chain records, product table)"
                     return out
                 except Exception as e:
@@ -769,7 +767,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
             # Supply chain trace
             if any(k in last_user for k in ["溯源", "供应链", "从哪来", "traceability", "supply chain"]):
                 base_url = self._resolve_frontend_base_url(metadata)
-                welfare_parts.append(f"Product traceability: each impact product has a full supply chain timeline (materials → processing → manufacturing → QC → logistics). Entry: {urljoin(base_url, 'supply-chain')}")
+                welfare_parts.append(get_traceability_tool_blurb(base_url, metadata, last_user))
 
             if welfare_parts:
                 welfare_output = "[Welfare Tool Output]\n" + "\n".join(welfare_parts) + "\n(Source: welfare services)\n"
@@ -809,6 +807,26 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                     if step.get("carbon_kg") is not None:
                         out += f"; carbon_kg={step.get('carbon_kg')}"
                     out += "\n"
+
+                # Generate structured traceability card if timeline exists
+                if timeline and prod:
+                    import json
+                    stages_data = []
+                    for step in timeline:
+                        stages_data.append({
+                            "stage": step.get("stage", ""),
+                            "location": step.get("location", ""),
+                            "description": step.get("description", ""),
+                            "date": step.get("timestamp", "")[:10] if step.get("timestamp") else "",
+                            "verified": bool(step.get("certified")),
+                            "carbon": step.get("carbon_kg"),
+                        })
+                    card_json = json.dumps({
+                        "productName": prod.name,
+                        "productId": prod.id,
+                        "stages": stages_data,
+                    }, ensure_ascii=False)
+                    out += f"\n:::action-card[traceability]{card_json}:::\n"
 
                 out += "\n(Source: supply_chain records, product table)"
                 return out
@@ -1022,7 +1040,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                                     "source": f"supply_chain/{r.id}",
                                     "title": r.stage or "stage",
                                     "text": snippet,
-                                    "url": urljoin(base_url, f"supply-chain/records/{r.id}"),
+                                    "url": urljoin(base_url, f"impact/shop/{r.product_id}"),
                                 }
                             )
                 except Exception as e:

@@ -9,11 +9,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="app-layout">
       <Sidebar />
-      <div className="main-area sidebar-permanent" style={{ paddingLeft: collapsed ? '60px' : undefined }}>
+      <div
+        className={`main-area ${collapsed ? 'sidebar-collapsed' : 'sidebar-expanded'}`}
+      >
         <TopBar />
         <main className="content-area">
           <Breadcrumb />
-          {children}
+          <div className="content-wrapper">
+            {children}
+          </div>
         </main>
       </div>
     </div>

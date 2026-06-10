@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 import logging
@@ -7,7 +8,8 @@ from app.database import get_db
 from app.models.user import User
 from app.schemas import ApiResponse, PaginatedResponse, UserOut, UserUpdate, UserRoleUpdate, UserStatusUpdate
 from app.deps import get_current_user, require_role
-from app.security import aes_encrypt, hash_password  # noqa: F401 — re-exported for service layer
+from app.security import aes_encrypt, hash_password
+from app.core.audit import log_audit
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -102,15 +104,33 @@ async def update_user_role(
     user_id: int,
     body: UserRoleUpdate,
     db: AsyncSession = Depends(get_db),
-    _current_user: dict = Depends(require_role("admin")),
+    current_user: dict = Depends(require_role("admin")),
+    request: Request = None,
 ):
     """Update user role (admin only). (Refactored)"""
-    if _current_user.get("id") == user_id:
+    if current_user.get("id") == user_id:
         raise HTTPException(status_code=403, detail="Admins cannot modify their own role")
-    
+
+    # Get old role for audit
     user_service = UserService(db)
+    old_user = await user_service.get_user_by_id(user_id)
+    old_role = old_user.role if old_user else None
+
     try:
         user = await user_service.update_user_role(user_id, body.role)
+
+        # Audit log
+        ip = request.client.host if request else None
+        await log_audit(
+            db=db,
+            user_id=current_user.get("id"),
+            action="modify_user_role",
+            resource="user",
+            resource_id=str(user_id),
+            details={"target_user_id": user_id, "old_role": old_role, "new_role": body.role},
+            ip_address=ip,
+        )
+
         return ApiResponse(data=UserOut.model_validate(user).model_dump())
     except HTTPException:
         raise
@@ -123,15 +143,33 @@ async def update_user_status(
     user_id: int,
     body: UserStatusUpdate,
     db: AsyncSession = Depends(get_db),
-    _current_user: dict = Depends(require_role("admin")),
+    current_user: dict = Depends(require_role("admin")),
+    request: Request = None,
 ):
     """Update user status (admin only). (Refactored)"""
-    if _current_user.get("id") == user_id:
+    if current_user.get("id") == user_id:
         raise HTTPException(status_code=403, detail="Admins cannot modify their own status")
-    
+
+    # Get old status for audit
     user_service = UserService(db)
+    old_user = await user_service.get_user_by_id(user_id)
+    old_status = old_user.status if old_user else None
+
     try:
         user = await user_service.update_user_status(user_id, body.status)
+
+        # Audit log
+        ip = request.client.host if request else None
+        await log_audit(
+            db=db,
+            user_id=current_user.get("id"),
+            action="update_user_status",
+            resource="user",
+            resource_id=str(user_id),
+            details={"target_user_id": user_id, "old_status": old_status, "new_status": body.status},
+            ip_address=ip,
+        )
+
         return ApiResponse(data=UserOut.model_validate(user).model_dump())
     except HTTPException:
         raise

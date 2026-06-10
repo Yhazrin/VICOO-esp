@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import PageWrapper from '@/components/layout/PageWrapper';
@@ -14,9 +14,12 @@ import { useAuthStore } from '@/stores/authStore';
 import { useAuth } from '@/hooks/useAuth';
 import { ordersApi, type OrderDetail } from '@/services/orders';
 import { donationsApi } from '@/services/donations';
+import { formatDate } from '@/utils/dateTime';
 import { clothingIntakesApi, type ClothingIntake } from '@/services/clothingIntakes';
 import { afterSalesApi, type AfterSaleTicket } from '@/services/afterSales';
 import { addressesApi, type Address, type AddressCreateData } from '@/services/addresses';
+import OrderReviewModal from '@/components/order/OrderReviewModal';
+import AfterSaleProgress from '@/components/order/AfterSaleProgress';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'text-sepia-mid',
@@ -53,7 +56,17 @@ export default function Profile() {
   const { user, isAuthenticated } = useAuthStore();
   const { logout } = useAuth();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<TabKey>('orders');
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState<TabKey>(
+    (searchParams.get('tab') as TabKey) || 'orders'
+  );
+
+  useEffect(() => {
+    const tab = searchParams.get('tab') as TabKey;
+    if (tab && ['orders', 'donations', 'clothing', 'support', 'addresses'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   // Order filters
   const [orderStatus, setOrderStatus] = useState('');
@@ -64,12 +77,16 @@ export default function Profile() {
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const [addressForm, setAddressForm] = useState<AddressCreateData>({
     label: '', recipient_name: '', phone: '', province: '', city: '',
-    district: '', detail_address: '', postal_code: '', is_default: false,
+    district: '', detail_address: '', postal_code: '', country: 'China', is_default: false,
   });
 
   // Inline error message for user feedback
   const [errorMessage, setErrorMessage] = useState('');
   const [cancellingOrderId, setCancellingOrderId] = useState<number | null>(null);
+
+  // Review modal state
+  const [reviewOrder, setReviewOrder] = useState<OrderDetail | null>(null);
+  const [reviewProductId, setReviewProductId] = useState<number | null>(null);
 
   const tabs: TabKey[] = ['orders', 'donations', 'clothing', 'support', 'addresses'];
 
@@ -129,7 +146,7 @@ export default function Profile() {
   };
 
   const resetAddressForm = () => {
-    setAddressForm({ label: '', recipient_name: '', phone: '', province: '', city: '', district: '', detail_address: '', postal_code: '', is_default: false });
+    setAddressForm({ label: '', recipient_name: '', phone: '', province: '', city: '', district: '', detail_address: '', postal_code: '', country: 'China', is_default: false });
     setEditingAddress(null);
     setShowAddressForm(false);
   };
@@ -179,6 +196,7 @@ export default function Profile() {
       district: addr.district || '',
       detail_address: addr.detail_address,
       postal_code: addr.postal_code || '',
+      country: addr.country || 'China',
       is_default: addr.is_default,
     });
     setEditingAddress(addr);
@@ -427,7 +445,7 @@ export default function Profile() {
                         <div>
                           <p className="font-mono text-xs text-sepia-mid">{order.order_no}</p>
                           <p className="font-body text-caption text-ink-faded mt-0.5">
-                            {new Date(order.created_at).toLocaleDateString(i18n.language, { year: 'numeric', month: 'short', day: 'numeric' })}
+                            {formatDate(order.created_at, i18n.language)}
                           </p>
                         </div>
                         <span className={`font-body text-overline tracking-[0.1em] uppercase px-3 py-1 border ${
@@ -499,6 +517,20 @@ export default function Profile() {
                               {cancellingOrderId === order.id ? t('common.loading', 'Processing...') : t('profile.cancelOrder', 'Cancel order')}
                             </button>
                           )}
+                          {order.status === 'completed' && order.items?.length > 0 && (
+                            <button
+                              onClick={() => {
+                                setReviewOrder(order);
+                                setReviewProductId(Number(order.items[0].product_id));
+                              }}
+                              className="font-body text-caption text-sage hover:text-ink transition-colors cursor-pointer flex items-center gap-1"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                              </svg>
+                              {t('profile.writeReview', '评价')}
+                            </button>
+                          )}
                           <Link
                             to={`/orders/${order.id}`}
                             className="font-body text-overline tracking-[0.1em] uppercase text-rust hover:text-rust-light transition-colors"
@@ -544,11 +576,7 @@ export default function Profile() {
                     <EditorialCard
                       key={donation.id}
                       title={`${donation.currency} ${Number(donation.amount).toFixed(2)}`}
-                      subtitle={new Date(donation.created_at).toLocaleDateString(i18n.language, {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })}
+                      subtitle={formatDate(donation.created_at, i18n.language)}
                       index={index}
                       hoverEffect="border"
                     >
@@ -630,21 +658,24 @@ export default function Profile() {
               ) : tickets.length === 0 ? (
                 <p className="font-body text-body-sm text-ink-faded">{t('profile.noTickets', 'No tickets yet')}</p>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {tickets.map((tk: AfterSaleTicket, index: number) => (
-                    <EditorialCard
-                      key={tk.id}
-                      title={tk.subject}
-                      subtitle={`${t('profile.orderId', 'Order')} #${tk.order_id}`}
-                      index={index}
-                      hoverEffect="border"
-                    >
-                      <p className="font-body text-overline uppercase text-sepia-mid">{tk.category}</p>
-                      <p className={`font-body text-caption mt-2 ${STATUS_COLORS[tk.status] ?? 'text-ink'}`}>{tk.status}</p>
-                      {tk.description && (
-                        <p className="font-body text-caption text-ink-faded mt-2 border-l-2 border-warm-gray/30 pl-3">{tk.description}</p>
-                      )}
-                    </EditorialCard>
+                <div className="space-y-6">
+                  {tickets.map((tk: AfterSaleTicket) => (
+                    <div key={tk.id} className="space-y-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <Link
+                          to={`/orders/${tk.order_id}`}
+                          className="font-mono text-xs text-rust hover:text-ink transition-colors"
+                        >
+                          {tk.order_no || `#${tk.order_id}`} →
+                        </Link>
+                        {tk.reason && (
+                          <p className="font-body text-caption text-ink-faded max-w-md truncate" title={tk.reason}>
+                            {tk.reason}
+                          </p>
+                        )}
+                      </div>
+                      <AfterSaleProgress ticket={tk} compact showReplacementLink />
+                    </div>
                   ))}
                 </div>
               )}
@@ -712,6 +743,23 @@ export default function Profile() {
                       <div>
                         <label htmlFor="addr-postal" className="block font-body text-[10px] tracking-wider uppercase text-sepia-mid mb-1">{t('profile.addresses.postalCode', 'Postal Code')}</label>
                         <input id="addr-postal" type="text" value={addressForm.postal_code} onChange={(e) => setAddressForm({ ...addressForm, postal_code: e.target.value })} className="w-full px-3 py-2 border border-warm-gray/30 bg-transparent font-body text-body-sm text-ink focus:outline-none focus:border-rust/50" />
+                      </div>
+                      <div>
+                        <label className="block font-body text-[10px] tracking-wider uppercase text-sepia-mid mb-1">{t('checkout.country', 'Country')}</label>
+                        <select value={addressForm.country} onChange={(e) => setAddressForm({ ...addressForm, country: e.target.value })} className="w-full px-3 py-2 border border-warm-gray/30 bg-transparent font-body text-body-sm text-ink focus:outline-none focus:border-rust/50 cursor-pointer">
+                          <option value="China">China</option>
+                          <option value="United States">United States</option>
+                          <option value="Japan">Japan</option>
+                          <option value="South Korea">South Korea</option>
+                          <option value="United Kingdom">United Kingdom</option>
+                          <option value="Germany">Germany</option>
+                          <option value="France">France</option>
+                          <option value="Australia">Australia</option>
+                          <option value="Canada">Canada</option>
+                          <option value="Singapore">Singapore</option>
+                          <option value="Hong Kong">Hong Kong</option>
+                          <option value="Taiwan">Taiwan</option>
+                        </select>
                       </div>
                       <div className="flex items-end">
                         <label className="flex items-center gap-2 cursor-pointer">
@@ -786,6 +834,15 @@ export default function Profile() {
           )}
         </SectionContainer>
       </PaperTextureBackground>
+
+      <OrderReviewModal
+        order={reviewOrder}
+        initialProductId={reviewProductId}
+        onClose={() => {
+          setReviewOrder(null);
+          setReviewProductId(null);
+        }}
+      />
     </PageWrapper>
   );
 }

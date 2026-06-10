@@ -1,6 +1,6 @@
 """
 公益店 SKU 溯源种子（5 阶段 / 条）：参考优衣库式全球协作与中国制造基地、日本面料与检品文化常见叙事。
-与 app/seed.py 中公益商品顺序一致：索引 0=彩虹鱼T… 9=牧羊曲壁挂；本模块为索引 1–9 生成记录（索引 0 在 seed 中已写）。
+与 app/seed.py 中公益商品顺序一致：索引 0=彩虹鱼T… 9=牧羊曲方巾；本模块为索引 1–9 生成记录（索引 0 在 seed 中已写）。
 """
 
 from __future__ import annotations
@@ -11,9 +11,13 @@ from decimal import Decimal
 from app.models.supply_chain import SupplyChainRecord
 
 # 优衣库式叙事关键词：SPA 企划、长三角/珠三角伙伴工厂、日本检针与色牢度标准协同、对中生产与对日品质基准
-_TRACE_NOTE = (
+_TRACE_NOTE_ZH = (
     "与日系品质基准对齐的检针、色牢度与缝制公差；"
     "原料与成衣批次可追溯，呼应优衣库全球供应链中「中国生产 + 日本标准」的常见结构。"
+)
+_TRACE_NOTE_EN = (
+    "Needle detection, colour fastness and sewing tolerances aligned with Japanese quality benchmarks; "
+    "full batch traceability from raw material to finished garment, mirroring the common Uniqlo supply chain model of 'Made in China + Japanese standards'."
 )
 
 
@@ -22,7 +26,9 @@ def _rec(
     product_id: int,
     stage: str,
     description: str,
+    description_en: str | None,
     location: str,
+    location_en: str | None,
     lat: float,
     lng: float,
     certified: bool,
@@ -36,7 +42,9 @@ def _rec(
         product_id=product_id,
         stage=stage,
         description=description,
+        description_en=description_en,
         location=location,
+        location_en=location_en,
         latitude=lat,
         longitude=lng,
         certified=certified,
@@ -51,20 +59,26 @@ def _rec(
 def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecord]:
     """
     为公益商品索引 1–9（对应 product_ids[1]..[9]）各写 5 条溯源。
-    product_ids 须与 seed 中公益 SKU 顺序一致。
+    product_ids 须与 seed 中公益 SKU 顺序一致；不足 10 条时仅为已有索引补写。
     """
-    if len(product_ids) < 10:
+    if len(product_ids) < 2:
         return []
 
     out: list[SupplyChainRecord] = []
-    # 索引 1：星星之夜帆布袋 — 再生帆布、日系检品
+    # 索引 1：星星之夜帆布托特包 — 再生帆布、日系检品
     pid = product_ids[1]
     out += [
         _rec(
             product_id=pid,
             stage="material_sourcing",
-            description=f"GRS 认证再生棉帆布坯布，宁波港集港；{_TRACE_NOTE}",
+            description=f"GRS 认证再生棉帆布坯布，宁波港集港；{_TRACE_NOTE_ZH}",
+            description_en=(
+                "GRS-certified recycled cotton canvas greige, collected at Ningbo port; "
+                "Needle detection, colour fastness and sewing tolerances aligned with Japanese quality benchmarks; "
+                "full batch traceability from raw material to finished garment, mirroring the common Uniqlo supply chain model of 'Made in China + Japanese standards'."
+            ),
             location="浙江宁波",
+            location_en="Ningbo, Zhejiang",
             lat=29.87,
             lng=121.55,
             certified=True,
@@ -76,7 +90,9 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
             product_id=pid,
             stage="processing",
             description="宽幅染色与防水涂层，工艺参数与日本合作方提供的耐洗色牢度目标对齐",
+            description_en="Wide-width dyeing and water-repellent coating, process parameters aligned with wash-fastness targets provided by Japanese partner",
             location="江苏无锡",
+            location_en="Wuxi, Jiangsu",
             lat=31.57,
             lng=120.30,
             certified=True,
@@ -88,7 +104,9 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
             product_id=pid,
             stage="manufacturing",
             description="车缝、提手加固与《星星之夜》环保印刷，长三角伙伴工厂",
+            description_en="Sewing, handle reinforcement and eco-printing of 'Starry Night' design at Yangtze River Delta partner factory",
             location="上海嘉定",
+            location_en="Jiading, Shanghai",
             lat=31.39,
             lng=121.26,
             certified=True,
@@ -101,7 +119,9 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
             product_id=pid,
             stage="quality_check",
             description="检针、撕裂与耐磨抽检（日系买方检品标准抽样方案）",
+            description_en="Needle detection, tear strength and abrasion resistance sampling (Japanese buyer inspection standard sampling plan)",
             location="江苏苏州",
+            location_en="Suzhou, Jiangsu",
             lat=31.30,
             lng=120.62,
             certified=True,
@@ -113,7 +133,9 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
             product_id=pid,
             stage="shipping",
             description="华东中心仓生物基袋包装，铁路干线 + 末端电动车",
+            description_en="Bio-based bag packaging at East China central warehouse, rail mainline + last-mile electric vehicle delivery",
             location="浙江嘉兴",
+            location_en="Jiaxing, Zhejiang",
             lat=30.75,
             lng=120.76,
             certified=False,
@@ -124,13 +146,17 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
     ]
 
     # 索引 2：春天的花园丝巾 — 湖丝、杭州印花、日本真丝贸易传统
+    if len(product_ids) <= 2:
+        return out
     pid = product_ids[2]
     out += [
         _rec(
             product_id=pid,
             stage="material_sourcing",
             description="湖州桑蚕丝原料，与国内丝绸集团批次号绑定；历史上日丝贸易港（神户）同类分级思路做厂内分级",
+            description_en="Huzhou mulberry silk raw material, bound to domestic silk group batch numbers; factory grading follows the same classification approach as historical Japanese silk trade port (Kobe) standards",
             location="浙江湖州",
+            location_en="Huzhou, Zhejiang",
             lat=30.89,
             lng=120.09,
             certified=True,
@@ -142,7 +168,9 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
             product_id=pid,
             stage="processing",
             description="缫丝与精炼，废水深度处理达标排放",
+            description_en="Silk reeling and refining, with advanced wastewater treatment and compliant discharge",
             location="浙江湖州",
+            location_en="Huzhou, Zhejiang",
             lat=30.89,
             lng=120.09,
             certified=True,
@@ -154,7 +182,9 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
             product_id=pid,
             stage="manufacturing",
             description="数码印花对齐儿童画作色域，苏州丝绸产业园内完成",
+            description_en="Digital printing aligned with child's painting colour gamut, completed within Suzhou Silk Industrial Park",
             location="江苏苏州",
+            location_en="Suzhou, Jiangsu",
             lat=31.30,
             lng=120.62,
             certified=True,
@@ -167,7 +197,9 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
             product_id=pid,
             stage="quality_check",
             description="摩擦色牢度、甲醛与可分解致癌芳香胺检测（GB + 买方日标对照）",
+            description_en="Colour fastness to rubbing, formaldehyde and carcinogenic aromatic amine testing (GB + Japanese buyer standard reference)",
             location="上海",
+            location_en="Shanghai",
             lat=31.23,
             lng=121.47,
             certified=True,
@@ -179,7 +211,9 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
             product_id=pid,
             stage="shipping",
             description="防震礼盒 + 华东发全国；对日空运包装加护角（可选渠道）",
+            description_en="Shockproof gift box packaging + nationwide distribution from East China; reinforced corners for Japan air freight (optional channel)",
             location="上海浦东",
+            location_en="Pudong, Shanghai",
             lat=31.14,
             lng=121.63,
             certified=False,
@@ -189,62 +223,74 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
         ),
     ]
 
-    # 索引 3：妈妈的手笔记本 — 山东纸、深圳印
+    # 索引 3：妈妈的手棉麻衬衫 — 天然棉麻、刺绣风印花
+    if len(product_ids) <= 3:
+        return out
     pid = product_ids[3]
     out += [
         _rec(
             product_id=pid,
             stage="material_sourcing",
-            description="FSC 混合来源再生纸浆，山东大型纸厂批次可追溯",
+            description="GOTS 认证有机棉与亚麻混纺纱线，山东产区批次可追溯",
+            description_en="GOTS-certified organic cotton and linen blended yarn, with traceable Shandong production area batches",
             location="山东济南",
+            location_en="Jinan, Shandong",
             lat=36.65,
             lng=117.12,
             certified=True,
             ts=datetime(2025, 4, 1),
-            carbon_kg=Decimal("1.8"),
-            carbon_note="铁路干浆",
+            carbon_kg=Decimal("2.0"),
+            carbon_note="铁路集货",
         ),
         _rec(
             product_id=pid,
             stage="processing",
-            description="涂布与裁切，低 VOC 油墨适配",
+            description="棉麻混纺织造与预缩水处理，低温植物染色",
+            description_en="Cotton-linen blended weaving and pre-shrinking treatment, low-temperature plant-based dyeing",
             location="山东潍坊",
+            location_en="Weifang, Shandong",
             lat=36.71,
             lng=119.16,
             certified=True,
             ts=datetime(2025, 4, 10),
-            carbon_kg=Decimal("1.1"),
+            carbon_kg=Decimal("1.5"),
             carbon_note="热电联产",
         ),
         _rec(
             product_id=pid,
             stage="manufacturing",
-            description="封面四色印刷与胶装，珠三角产能",
+            description="裁剪缝制与刺绣风印花，珠三角伙伴工厂",
+            description_en="Cutting, sewing and embroidery-style printing at Pearl River Delta partner factory",
             location="广东深圳",
+            location_en="Shenzhen, Guangdong",
             lat=22.55,
             lng=114.05,
             certified=True,
             ts=datetime(2025, 4, 22),
-            carbon_kg=Decimal("0.9"),
+            carbon_kg=Decimal("1.2"),
             carbon_note="绿电占比披露",
         ),
         _rec(
             product_id=pid,
             stage="quality_check",
-            description="纸张定量、装订牢固度与重金属迁移抽检",
+            description="甲醛、色牢度与纤维成分抽检（GB + 日标对照）",
+            description_en="Formaldehyde, colour fastness and fibre composition sampling (GB + Japanese standard reference)",
             location="广东深圳",
+            location_en="Shenzhen, Guangdong",
             lat=22.54,
             lng=114.06,
             certified=True,
             ts=datetime(2025, 5, 2),
-            carbon_kg=Decimal("0.25"),
+            carbon_kg=Decimal("0.3"),
             carbon_note="同城质检",
         ),
         _rec(
             product_id=pid,
             stage="shipping",
-            description="可降解收缩膜 + 华南仓发运",
+            description="生物基包装袋 + 华南仓发运",
+            description_en="Bio-based packaging bags + dispatch from South China warehouse",
             location="广东佛山",
+            location_en="Foshan, Guangdong",
             lat=23.03,
             lng=113.11,
             certified=False,
@@ -254,79 +300,95 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
         ),
     ]
 
-    # 索引 4：太空旅行马克杯 — 德化瓷
+    # 索引 4：太空旅行圆领卫衣 — 中厚卫衣面料、宇宙涂鸦印花
+    if len(product_ids) <= 4:
+        return out
     pid = product_ids[4]
     out += [
         _rec(
             product_id=pid,
             stage="material_sourcing",
-            description="高岭土与回收瓷粉配比，福建德化产业带",
-            location="福建德化",
-            lat=25.49,
-            lng=118.24,
+            description="有机棉毛圈坯布，新疆阿克苏长绒棉产区批次绑定",
+            description_en="Organic cotton terry greige, batch-bound to Xinjiang Aksu long-staple cotton production area",
+            location="新疆阿克苏",
+            location_en="Aksu, Xinjiang",
+            lat=41.17,
+            lng=80.26,
             certified=True,
             ts=datetime(2025, 3, 12),
-            carbon_kg=Decimal("2.0"),
-            carbon_note="园区短驳",
+            carbon_kg=Decimal("2.8"),
+            carbon_note="铁路干线集棉",
         ),
         _rec(
             product_id=pid,
             stage="processing",
-            description="球磨、练泥与釉料制备",
-            location="福建德化",
-            lat=25.49,
-            lng=118.24,
+            description="纺纱与毛圈织造，浙江绍兴面料产业带",
+            description_en="Spinning and terry weaving at Shaoxing, Zhejiang fabric industry belt",
+            location="浙江绍兴",
+            location_en="Shaoxing, Zhejiang",
+            lat=30.0,
+            lng=120.58,
             certified=True,
             ts=datetime(2025, 3, 20),
-            carbon_kg=Decimal("1.0"),
-            carbon_note="峰谷用电",
+            carbon_kg=Decimal("1.8"),
+            carbon_note="园区集中供热",
         ),
         _rec(
             product_id=pid,
             stage="manufacturing",
-            description="注浆成型、釉下彩与烧成（天然气窑炉）",
-            location="福建德化",
-            lat=25.49,
-            lng=118.24,
+            description="裁剪缝制与满版数码印花《太空旅行》，珠三角伙伴工厂",
+            description_en="Cutting, sewing and all-over digital printing of 'Space Travel' design at Pearl River Delta partner factory",
+            location="广东佛山",
+            location_en="Foshan, Guangdong",
+            lat=23.03,
+            lng=113.11,
             certified=True,
             ts=datetime(2025, 4, 5),
-            carbon_kg=Decimal("3.2"),
-            carbon_note="窑炉余热回收",
+            carbon_kg=Decimal("1.5"),
+            carbon_note="绿电采购协议",
         ),
         _rec(
             product_id=pid,
             stage="quality_check",
-            description="铅镉溶出 GB 4806.4；日方买方可选加严批次",
-            location="福建泉州",
-            lat=24.91,
-            lng=118.59,
+            description="缩水率、色牢度与甲醛检测（GB + 日标对照）",
+            description_en="Shrinkage, colour fastness and formaldehyde testing (GB + Japanese standard reference)",
+            location="广东深圳",
+            location_en="Shenzhen, Guangdong",
+            lat=22.55,
+            lng=114.05,
             certified=True,
             ts=datetime(2025, 4, 16),
-            carbon_kg=Decimal("0.3"),
-            carbon_note="同城送检",
+            carbon_kg=Decimal("0.35"),
+            carbon_note="同城质检",
         ),
         _rec(
             product_id=pid,
             stage="shipping",
-            description="珍珠棉防震 + 厦门港对台/对日支线可衔接",
-            location="福建厦门",
-            lat=24.48,
-            lng=118.09,
+            description="生物基袋包装 + 华南仓发运全国",
+            description_en="Bio-based bag packaging + nationwide dispatch from South China warehouse",
+            location="广东佛山",
+            location_en="Foshan, Guangdong",
+            lat=23.03,
+            lng=113.11,
             certified=False,
             ts=datetime(2025, 4, 24),
-            carbon_kg=Decimal("1.55"),
-            carbon_note="海运干线",
+            carbon_kg=Decimal("1.3"),
+            carbon_note="干线铁路减碳",
         ),
     ]
 
     # 索引 5：我的家帆布鞋 — 青岛硫化鞋产业带
+    if len(product_ids) <= 5:
+        return out
     pid = product_ids[5]
     out += [
         _rec(
             product_id=pid,
             stage="material_sourcing",
             description="有机棉帆布与天然橡胶底材，山东青岛鞋材集群",
+            description_en="Organic cotton canvas and natural rubber sole material from Qingdao, Shandong footwear cluster",
             location="山东青岛",
+            location_en="Qingdao, Shandong",
             lat=36.07,
             lng=120.38,
             certified=True,
@@ -338,7 +400,9 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
             product_id=pid,
             stage="processing",
             description="裁片与帮面缝制准备，日企常用硫化工艺参数本地化",
+            description_en="Upper cutting and sewing preparation, localisation of Japanese enterprise common vulcanisation process parameters",
             location="山东青岛",
+            location_en="Qingdao, Shandong",
             lat=36.07,
             lng=120.38,
             certified=True,
@@ -350,7 +414,9 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
             product_id=pid,
             stage="manufacturing",
             description="硫化成型与粘底，产线节拍与东京设计方封样一致",
+            description_en="Vulcanised forming and sole bonding, production line pace consistent with Tokyo design party seal sample",
             location="山东青岛",
+            location_en="Qingdao, Shandong",
             lat=36.08,
             lng=120.39,
             certified=True,
@@ -362,7 +428,9 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
             product_id=pid,
             stage="quality_check",
             description="曲折、耐磨与邻苯二甲酸酯抽检",
+            description_en="Flex, abrasion resistance and phthalate sampling",
             location="山东青岛",
+            location_en="Qingdao, Shandong",
             lat=36.07,
             lng=120.38,
             certified=True,
@@ -374,7 +442,9 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
             product_id=pid,
             stage="shipping",
             description="华北仓发全国（商品已 sold_out 仍保留溯源演示）",
+            description_en="Dispatch nationwide from North China warehouse (records preserved for demo even though product is sold out)",
             location="天津",
+            location_en="Tianjin",
             lat=39.12,
             lng=117.20,
             certified=False,
@@ -384,50 +454,60 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
         ),
     ]
 
-    # 索引 6：画出未来抱枕 — 南通家纺
+    # 索引 6：未来城市连帽卫衣 — 加绒卫衣、满版印花
+    if len(product_ids) <= 6:
+        return out
     pid = product_ids[6]
     out += [
         _rec(
             product_id=pid,
             stage="material_sourcing",
-            description="再生聚酯短纤与有机棉混配填充，江苏南通家纺集群",
+            description="有机棉加绒卫衣坯布，江苏南通纺织集群批次绑定",
+            description_en="Organic cotton fleece hoodie greige, batch-bound to Nantong, Jiangsu textile cluster",
             location="江苏南通",
+            location_en="Nantong, Jiangsu",
             lat=32.04,
             lng=120.86,
             certified=True,
             ts=datetime(2025, 5, 6),
-            carbon_kg=Decimal("2.2"),
+            carbon_kg=Decimal("2.6"),
             carbon_note="园区短驳",
         ),
         _rec(
             product_id=pid,
             stage="processing",
-            description="开松、混棉与绗缝片材",
+            description="起绒、定型与预缩水处理",
+            description_en="Brushing, setting and pre-shrinking treatment",
             location="江苏南通",
+            location_en="Nantong, Jiangsu",
             lat=32.04,
             lng=120.86,
             certified=True,
             ts=datetime(2025, 5, 18),
-            carbon_kg=Decimal("1.3"),
+            carbon_kg=Decimal("1.5"),
             carbon_note="光伏屋顶",
         ),
         _rec(
             product_id=pid,
             stage="manufacturing",
-            description="枕套缝制与隐形拉链，验针与线迹密度按日系检品手册",
+            description="裁剪缝制与背面满版数码印花《未来城市》，连帽结构验针",
+            description_en="Cutting, sewing and full-back digital printing of 'Future City' design, needle detection for hoodie structure",
             location="江苏南通",
+            location_en="Nantong, Jiangsu",
             lat=32.05,
             lng=120.87,
             certified=True,
             ts=datetime(2025, 6, 2),
-            carbon_kg=Decimal("1.0"),
+            carbon_kg=Decimal("1.3"),
             carbon_note="产线平衡",
         ),
         _rec(
             product_id=pid,
             stage="quality_check",
-            description="填充物成分、燃烧性能与拉链耐用",
+            description="缩水率、色牢度、拉链与绳带安全抽检",
+            description_en="Shrinkage, colour fastness, zipper and cord safety sampling",
             location="江苏苏州",
+            location_en="Suzhou, Jiangsu",
             lat=31.30,
             lng=120.62,
             certified=True,
@@ -438,8 +518,10 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
         _rec(
             product_id=pid,
             stage="shipping",
-            description="压缩卷包 + 华东仓发运（减容降碳）",
+            description="生物基袋包装 + 华东仓发运全国",
+            description_en="Bio-based bag packaging + nationwide dispatch from East China warehouse",
             location="浙江嘉兴",
+            location_en="Jiaxing, Zhejiang",
             lat=30.75,
             lng=120.76,
             certified=False,
@@ -449,79 +531,95 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
         ),
     ]
 
-    # 索引 7：过年了礼盒 — 多 SKU 组套东莞
+    # 索引 7：过年了针织开衫 — 可溯源羊毛混纺、提花织入
+    if len(product_ids) <= 7:
+        return out
     pid = product_ids[7]
     out += [
         _rec(
             product_id=pid,
             stage="material_sourcing",
-            description="礼盒用纸浆与大豆油墨，广东包装产业带；组件来自已验证上游批次",
-            location="广东东莞",
-            lat=23.02,
-            lng=113.75,
+            description="可溯源美利奴羊毛与再生纤维混纺纱线，内蒙古鄂尔多斯产区",
+            description_en="Traceable merino wool and recycled fibre blended yarn from Ordos, Inner Mongolia production area",
+            location="内蒙古鄂尔多斯",
+            location_en="Ordos, Inner Mongolia",
+            lat=39.61,
+            lng=109.78,
             certified=True,
             ts=datetime(2025, 1, 8),
-            carbon_kg=Decimal("2.8"),
-            carbon_note="集拼运输",
+            carbon_kg=Decimal("3.0"),
+            carbon_note="牧区集货铁路",
         ),
         _rec(
             product_id=pid,
             stage="processing",
-            description="礼盒印刷、开槽与裱糊",
-            location="广东东莞",
-            lat=23.02,
-            lng=113.75,
+            description="梳绒、纺纱与配色，低温染整工艺",
+            description_en="Carding, spinning and colour matching, low-temperature dyeing and finishing process",
+            location="河北清河",
+            location_en="Qinghe, Hebei",
+            lat=37.04,
+            lng=115.67,
             certified=True,
             ts=datetime(2025, 1, 20),
-            carbon_kg=Decimal("1.6"),
-            carbon_note="VOC 收集",
+            carbon_kg=Decimal("1.8"),
+            carbon_note="热电联产",
         ),
         _rec(
             product_id=pid,
             stage="manufacturing",
-            description="多 SKU 组套、封箱与贴标，对标日系礼盒跌落与堆码测试",
-            location="广东东莞",
-            lat=23.03,
-            lng=113.76,
+            description="电脑横机编织提花图案《过年了》，手工缝合与整烫",
+            description_en="Computerised flat knitting of jacquard pattern 'Spring Festival', manual seaming and finishing",
+            location="浙江桐乡",
+            location_en="Tongxiang, Zhejiang",
+            lat=30.63,
+            lng=120.57,
             certified=True,
             ts=datetime(2025, 2, 5),
-            carbon_kg=Decimal("1.4"),
-            carbon_note="精益线平衡",
+            carbon_kg=Decimal("1.2"),
+            carbon_note="产线平衡",
         ),
         _rec(
             product_id=pid,
             stage="quality_check",
-            description="套装齐套、条码与保质期一致性稽核",
-            location="广东深圳",
-            lat=22.55,
-            lng=114.05,
+            description="起球、缩水率与纤维成分抽检（GB + 日标对照）",
+            description_en="Pilling, shrinkage and fibre composition sampling (GB + Japanese standard reference)",
+            location="上海",
+            location_en="Shanghai",
+            lat=31.23,
+            lng=121.47,
             certified=True,
             ts=datetime(2025, 2, 18),
             carbon_kg=Decimal("0.4"),
-            carbon_note="抽检批次留样",
+            carbon_note="实验室集中送检",
         ),
         _rec(
             product_id=pid,
             stage="shipping",
-            description="冷链不必；华南仓发全国，节日峰值铁路加开",
-            location="广东佛山",
-            lat=23.03,
-            lng=113.11,
+            description="防蛀包装 + 华东仓发运全国",
+            description_en="Moth-proof packaging + nationwide dispatch from East China warehouse",
+            location="浙江嘉兴",
+            location_en="Jiaxing, Zhejiang",
+            lat=30.75,
+            lng=120.76,
             certified=False,
             ts=datetime(2025, 2, 26),
-            carbon_kg=Decimal("1.5"),
-            carbon_note="电商波次合单",
+            carbon_kg=Decimal("1.3"),
+            carbon_note="干线铁路",
         ),
     ]
 
-    # 索引 8：海豚之歌披肩 — 再生纤维杭州/嘉兴
+    # 索引 8：海豚之歌再生纤维披肩 — 再生纤维杭州/嘉兴
+    if len(product_ids) <= 8:
+        return out
     pid = product_ids[8]
     out += [
         _rec(
             product_id=pid,
             stage="material_sourcing",
             description="海洋塑料减量再生切片 + 有机棉混纺，嘉兴化纤园",
+            description_en="Ocean plastic reduction recycled chips + organic cotton blend, at Jiaxing Chemical Fibre Park",
             location="浙江嘉兴",
+            location_en="Jiaxing, Zhejiang",
             lat=30.75,
             lng=120.76,
             certified=True,
@@ -533,7 +631,9 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
             product_id=pid,
             stage="processing",
             description="纺纱与织造，对日出口面料常见卷装与检验码",
+            description_en="Spinning and weaving, with roll packaging and inspection codes common for Japan-export fabrics",
             location="浙江杭州",
+            location_en="Hangzhou, Zhejiang",
             lat=30.27,
             lng=120.15,
             certified=True,
@@ -545,7 +645,9 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
             product_id=pid,
             stage="manufacturing",
             description="数码印花披肩整饰与锁边，苏州吴江",
+            description_en="Digital printed stole finishing and overlocking in Suzhou Wujiang",
             location="江苏苏州",
+            location_en="Suzhou, Jiangsu",
             lat=31.16,
             lng=120.65,
             certified=True,
@@ -557,7 +659,9 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
             product_id=pid,
             stage="quality_check",
             description="起球、成分与披肩尺寸稳定性",
+            description_en="Pilling, composition and stole dimensional stability",
             location="上海",
+            location_en="Shanghai",
             lat=31.23,
             lng=121.47,
             certified=True,
@@ -569,7 +673,9 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
             product_id=pid,
             stage="shipping",
             description="生物基袋 + 华东仓发运",
+            description_en="Bio-based bags + dispatch from East China warehouse",
             location="浙江嘉兴",
+            location_en="Jiaxing, Zhejiang",
             lat=30.75,
             lng=120.76,
             certified=False,
@@ -579,26 +685,32 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
         ),
     ]
 
-    # 索引 9：牧羊曲壁挂 — 定西工坊（与日本民艺「手工温度」叙事可对照，非品牌关联）
+    # 索引 9：牧羊曲手绘方巾 — 定西工坊有机棉印制
+    if len(product_ids) <= 9:
+        return out
     pid = product_ids[9]
     out += [
         _rec(
             product_id=pid,
             stage="material_sourcing",
-            description="有机棉与植物染余料拼配，甘肃定西合作农社",
+            description="有机棉坯布与植物染料，甘肃定西合作农社",
+            description_en="Organic cotton greige and plant-based dyes from Gansu Dingxi cooperative farm",
             location="甘肃定西",
+            location_en="Dingxi, Gansu",
             lat=35.58,
             lng=104.63,
             certified=True,
             ts=datetime(2025, 6, 1),
-            carbon_kg=Decimal("2.6"),
+            carbon_kg=Decimal("2.0"),
             carbon_note="陆运集货",
         ),
         _rec(
             product_id=pid,
             stage="processing",
-            description="手工裁片与配色，工坊生物质取暖与低尘管理",
+            description="手工裁切与植物染色，工坊生物质取暖与低尘管理",
+            description_en="Manual cutting and plant-based dyeing, workshop biomass heating and low-dust management",
             location="甘肃定西",
+            location_en="Dingxi, Gansu",
             lat=35.58,
             lng=104.63,
             certified=True,
@@ -609,37 +721,43 @@ def extra_impact_supply_records(product_ids: list[int]) -> list[SupplyChainRecor
         _rec(
             product_id=pid,
             stage="manufacturing",
-            description="拼缝与装裱背板，兰州质检员驻点督导",
+            description="丝网印花牧羊图案与卷边缝制，兰州质检员驻点督导",
+            description_en="Screen printed shepherd pattern and rolled-edge sewing, with Lanzhou quality inspector on-site supervision",
             location="甘肃兰州",
+            location_en="Lanzhou, Gansu",
             lat=36.06,
             lng=103.83,
             certified=True,
             ts=datetime(2025, 7, 6),
-            carbon_kg=Decimal("1.15"),
+            carbon_kg=Decimal("0.9"),
             carbon_note="城配纯电",
         ),
         _rec(
             product_id=pid,
             stage="quality_check",
-            description="甲醛与燃烧性能抽检，对照东部实验室互认",
+            description="甲醛、色牢度与尺寸抽检，对照东部实验室互认",
+            description_en="Formaldehyde, colour fastness and dimension sampling, with mutual recognition from Eastern testing labs",
             location="陕西西安",
+            location_en="Xi'an, Shaanxi",
             lat=34.27,
             lng=108.95,
             certified=True,
             ts=datetime(2025, 7, 20),
-            carbon_kg=Decimal("0.4"),
+            carbon_kg=Decimal("0.35"),
             carbon_note="高铁送样",
         ),
         _rec(
             product_id=pid,
             stage="shipping",
             description="西北仓铁路干线 + 全国末端配送",
+            description_en="Northwest warehouse rail mainline + nationwide last-mile delivery",
             location="陕西西安",
+            location_en="Xi'an, Shaanxi",
             lat=34.27,
             lng=108.95,
             certified=False,
             ts=datetime(2025, 7, 28),
-            carbon_kg=Decimal("1.45"),
+            carbon_kg=Decimal("1.3"),
             carbon_note="铁路干线减碳",
         ),
     ]

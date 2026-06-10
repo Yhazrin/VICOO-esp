@@ -6,7 +6,7 @@ Usage:
 
 Creates tables and inserts sample data:
   - 5 users
-  - 3 campaigns
+  - 8 campaigns
   - 20 artworks
   - 10 donations
   - 24 products（10 件公益 × 儿童画作授权 + 14 件优衣库式常规）
@@ -17,8 +17,9 @@ Creates tables and inserts sample data:
 
 import asyncio
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
+import os
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -27,12 +28,12 @@ from app.database import engine, Base, AsyncSessionLocal
 from app.models.user import User, ChildParticipant
 from app.models.artwork import Artwork
 from app.models.campaign import Campaign
-from app.data.campaign_covers import COVER_FUTURE, COVER_HOMETOWN, COVER_SPRING
+from app.data.campaign_catalog_seed import CAMPAIGN_CATALOG, campaign_cover_url
+from app.data.campaign_covers import COVER_CHOIR, COVER_FUTURE, COVER_HOMETOWN, COVER_SPRING, COVER_WORKSHOP
 from app.models.donation import Donation
 from app.models.product import Product
 from app.models.order import Order, OrderItem
 from app.models.supply_chain import SupplyChainRecord
-from app.models.payment import PaymentTransaction
 from app.models.audit import AuditLog
 from app.models.settings import SiteSettings
 from app.models.contact import ContactMessage
@@ -50,6 +51,371 @@ from app.data.impact_origin_story_seed import (
     ORIGIN_COUNTRIES,
     ORIGIN_REGIONS,
 )
+from app.data.artwork_catalog_seed import (
+    ARTWORK_CATALOG,
+    artwork_image_url,
+    artwork_thumb_url,
+)
+
+_CAMPAIGN_COVER_FALLBACKS = (
+    COVER_SPRING,
+    COVER_HOMETOWN,
+    COVER_FUTURE,
+    COVER_WORKSHOP,
+    COVER_CHOIR,
+)
+
+
+def _seed_campaign_cover(seq: int) -> str:
+    from pathlib import Path
+
+    static_path = (
+        Path(__file__).resolve().parent.parent / "static" / "campaigns" / f"campaign_{seq}.jpg"
+    )
+    if static_path.is_file():
+        return campaign_cover_url(seq)
+    return _CAMPAIGN_COVER_FALLBACKS[(seq - 1) % len(_CAMPAIGN_COVER_FALLBACKS)]
+
+
+async def reset_seed_users():
+    """Reset seed users (admin, editor) to default credentials. Used on deployment."""
+    async with AsyncSessionLocal() as session:
+        print("Resetting seed user credentials...")
+        users_to_reset = [
+            ("admin@tonghua.org", settings.SEED_ADMIN_PASSWORD),
+            ("editor@tonghua.org", settings.SEED_EDITOR_PASSWORD),
+        ]
+        for email, password in users_to_reset:
+            result = await session.execute(
+                select(User).where(User.email == email)
+            )
+            user = result.scalar_one_or_none()
+            if user:
+                user.password_hash = hash_password(password)
+                print(f"  Reset password for {email}")
+            else:
+                print(f"  User {email} not found, skipping")
+        await session.commit()
+        print("Seed user credentials reset complete!")
+
+
+_DEMO_TRUNCATE_TABLES = (
+    "order_items",
+    "payment_transactions",
+    "orders",
+    "after_sale_tickets",
+    "product_reviews",
+    "clothing_intakes",
+    "supply_chain_records",
+    "donations",
+    "products",
+    "artworks",
+    "editorial_articles",
+    "contact_messages",
+    "audit_logs",
+    "site_settings",
+    "addresses",
+    "campaigns",
+    "child_participants",
+    "regions",
+    "countries",
+    "users",
+)
+
+
+async def clear_demo_data(session: AsyncSession) -> None:
+    """Remove incomplete or stale demo rows so seed can run cleanly."""
+    from sqlalchemy import text
+
+    bind = session.get_bind()
+    dialect = bind.dialect.name if bind is not None else "mysql"
+    if dialect == "mysql":
+        await session.execute(text("SET FOREIGN_KEY_CHECKS=0"))
+    for table in _DEMO_TRUNCATE_TABLES:
+        await session.execute(text(f"TRUNCATE TABLE `{table}`"))
+    if dialect == "mysql":
+        await session.execute(text("SET FOREIGN_KEY_CHECKS=1"))
+
+
+async def demo_data_is_complete(session: AsyncSession) -> bool:
+    from sqlalchemy import func, select
+
+    count = (await session.execute(select(func.count()).select_from(Product))).scalar_one()
+    return int(count or 0) > 0
+
+
+async def maybe_seed_demo() -> None:
+    """Load demo catalog in a non-destructive way.
+
+    - If no products exist: full seed (insert only, no truncate)
+    - If products exist: upsert products only (don't touch orders/logs)
+    - Destructive clear-and-reseed is opt-in via SEED_FORCE_RESET=1.
+    """
+    from sqlalchemy import func, select
+
+    want = settings.APP_ENV == "development" or getattr(settings, "SEED_IF_EMPTY", False)
+    if not want:
+        print("Skip seed (APP_ENV/SEED_IF_EMPTY).")
+        return
+
+    force_reset = getattr(settings, "SEED_FORCE_RESET", False) or os.environ.get("SEED_FORCE_RESET") == "1"
+
+    async with AsyncSessionLocal() as session:
+        if await demo_data_is_complete(session):
+            # Products exist - upsert products only
+            product_count = (await session.execute(select(func.count()).select_from(Product))).scalar_one()
+            print(f"Products exist ({product_count}); running products upsert only...")
+            await upsert_products_only()
+            return
+
+        user_exists = (await session.execute(select(User.id).limit(1))).scalar_one_or_none() is not None
+        if user_exists and force_reset:
+            print("SEED_FORCE_RESET=1; clearing before re-seed...")
+            await clear_demo_data(session)
+            await session.commit()
+        elif user_exists:
+            print("Partial demo data detected; running idempotent seed (no clear).")
+            await upsert_products_only()
+            return
+
+    print("Running demo seed before uvicorn...")
+    await seed()
+
+
+async def upsert_products_only() -> None:
+    """Update existing products without affecting orders/logs.
+
+    Only upserts products and supply chain records.
+    Does NOT touch users, campaigns, artworks, orders, donations, audit logs.
+    """
+    print("Upserting products only (products + supply chain only)...")
+    async with AsyncSessionLocal() as session:
+        from sqlalchemy import select
+
+        # Get existing campaigns for product associations
+        existing_campaigns = {c.id: c for c in (await session.execute(select(Campaign))).scalars().all()}
+        campaign_ids = list(existing_campaigns.keys())
+
+        # Get existing products for upsert
+        existing_products = {(p.artwork_id if p.artwork_id else None, p.name): p
+                          for p in (await session.execute(select(Product))).scalars().all()}
+
+        # Counters
+        products_created = 0
+        products_updated = 0
+
+        def _upsert_product(product_data: dict, is_impact: bool) -> Product:
+            """UPSERT product by artwork_id (impact) or name (regular)."""
+            nonlocal products_created, products_updated
+            if is_impact and product_data.get("artwork_id"):
+                key = (product_data["artwork_id"], None)
+            else:
+                key = (None, product_data["name"])
+            existing = existing_products.get(key)
+            if existing:
+                for field in ["name", "name_en", "description", "description_en",
+                              "price", "currency", "category", "image_url", "stock",
+                              "status", "is_impact_product", "campaign_id",
+                              "artwork_id", "donation_percentage",
+                              "origin_country_id", "origin_region_id",
+                              "trace_story_title", "trace_story_content",
+                              "trace_story_title_en", "trace_story_content_en"]:
+                    if field in product_data and product_data[field] is not None:
+                        setattr(existing, field, product_data[field])
+                products_updated += 1
+                print(f"  update: {product_data.get('name', product_data.get('name_en', '?'))}")
+                return existing
+            else:
+                product = Product(**product_data)
+                session.add(product)
+                products_created += 1
+                print(f"  create: {product_data.get('name', product_data.get('name_en', '?'))}")
+                existing_products[key] = product
+                return product
+
+        print("Upserting impact products...")
+        for pdata in _get_impact_products_data(campaign_ids):
+            _upsert_product(pdata, is_impact=True)
+
+        print("Upserting regular products...")
+        for pdata in regular_catalog_for_orm():
+            _upsert_product(pdata, is_impact=False)
+
+        await session.flush()
+        product_ids = [p.id for p in existing_products.values()]
+
+        # Supply chain
+        print("Upserting supply chain records...")
+        _upsert_supply_chain(session, product_ids)
+
+        await session.commit()
+        print(f"Products upsert complete! created={products_created}, updated={products_updated}")
+
+
+# ── Module-level helpers ────────────────────────────────────────────────────────
+
+_IMPACT_PRODUCT_CATALOG = [
+    {"name": "彩虹鱼棉质 T 恤", "name_en": "Rainbow Fish Organic Cotton Tee",
+     "artwork_id": 2, "campaign_idx": 0, "donation_pct": "30.00",
+     "description": "采用有机棉面料，印有获奖作品《彩虹鱼》。每件 T 恤的收益 30% 用于乡村美育基金。",
+     "description_en": "GOTS-style organic cotton printed with the award-winning \"Rainbow Fish\" artwork. 30% of each tee supports rural art education."},
+    {"name": "星星之夜帆布托特包", "name_en": "Starry Night Canvas Tote",
+     "artwork_id": 4, "campaign_idx": 0, "donation_pct": "25.00",
+     "description": "GRS 认证再生棉帆布，印有获奖画作《星星之夜》。可溯源再生棉帆布，日常通勤与公益表达兼得。",
+     "description_en": "GRS-certified recycled cotton canvas printed with the award-winning \"Starry Night\" painting. Traceable materials, everyday carry."},
+    {"name": "春天的花园丝巾", "name_en": "Spring Garden Silk Scarf",
+     "artwork_id": 1, "campaign_idx": 0, "donation_pct": "30.00",
+     "description": "100% 真丝面料，孩子们的画作化为丝巾图案，每一条都是独一无二的艺术品。",
+     "description_en": "Pure silk; each child's painting becomes a unique scarf pattern."},
+    {"name": "妈妈的手棉麻衬衫", "name_en": "\"Mother's Hands\" Cotton-Linen Shirt",
+     "artwork_id": 11, "campaign_idx": 1, "donation_pct": "25.00",
+     "description": "天然棉麻混纺面料，胸前手绘线稿刺绣风印花源自获奖画作《妈妈的手》。强调天然纤维原料可溯源。",
+     "description_en": "Natural cotton-linen blend with hand-drawn line art embroidery-style print from the award-winning \"Mother's Hands\" artwork. Traceable natural fibre origins."},
+    {"name": "太空旅行圆领卫衣", "name_en": "\"Space Travel\" Crewneck Sweatshirt",
+     "artwork_id": 15, "campaign_idx": 2, "donation_pct": "25.00",
+     "description": "中厚卫衣面料，胸前满印儿童宇宙涂鸦《太空旅行》。送给每个仰望星空的梦想家。",
+     "description_en": "Mid-weight fleece with all-over kids' space doodle print from \"Space Travel\". A gift for every dreamer who looks up."},
+    {"name": "我的家帆布鞋", "name_en": "\"My Home\" Canvas Sneakers",
+     "artwork_id": 3, "campaign_idx": 1, "donation_pct": "30.00",
+     "description": "有机棉帆布鞋面，可降解鞋底。鞋侧印有《我的家》画作。",
+     "description_en": "Organic cotton uppers, biodegradable outsole, \"My Home\" on the side."},
+    {"name": "未来城市连帽卫衣", "name_en": "\"Future City\" Hooded Sweatshirt",
+     "artwork_id": 19, "campaign_idx": 2, "donation_pct": "25.00",
+     "description": "加绒连帽卫衣，背后满印儿童手绘未来城市画作《未来城市》。适合秋冬联名穿搭。",
+     "description_en": "Fleece-lined hoodie with full-back kids' hand-drawn \"Future City\" print. A co-label piece for autumn/winter."},
+    {"name": "过年了针织开衫", "name_en": "\"Spring Festival\" Knit Cardigan",
+     "artwork_id": 18, "campaign_idx": 0, "donation_pct": "28.00",
+     "description": "可溯源羊毛与再生纤维混纺针织开衫，正面提花织入儿童节日画作《过年了》。温暖的公益穿搭。",
+     "description_en": "Traceable wool & recycled fibre blend cardigan with kids' festival painting \"Spring Festival\" jacquard-knit motif. Warm, wearable welfare."},
+    {"name": "海豚之歌再生纤维披肩", "name_en": "\"Song of the Dolphin\" Recycled-Fibre Stole",
+     "artwork_id": 8, "campaign_idx": 0, "donation_pct": "28.00",
+     "description": "海洋主题儿童画作《海豚之歌》授权印花，再生聚酯与有机棉混纺，收益 28% 捐入「春天的色彩」美育项目。",
+     "description_en": "Ocean-theme print, recycled poly blended with organic cotton; 28% to the \"Spring Colours\" art fund."},
+    {"name": "牧羊曲手绘方巾", "name_en": "\"Shepherd's Melody\" Hand-Drawn Bandana",
+     "artwork_id": 20, "campaign_idx": 1, "donation_pct": "22.00",
+     "description": "牧羊主题儿童画作《牧羊曲》转化为穿搭用方巾，可作头巾或颈巾。有机棉面料，甘肃定西工坊手工印制。",
+     "description_en": "Kids' pastoral painting \"Shepherd's Melody\" turned into a wearable bandana—head wrap or neckerchief. Organic cotton, hand-printed in Dingxi, Gansu."},
+]
+
+
+def _get_impact_products_data(campaign_ids: list[int]) -> list[dict]:
+    """Build impact product data dicts with trace story from seed data."""
+
+    result = []
+    for i, prod in enumerate(_IMPACT_PRODUCT_CATALOG):
+        story = IMPACT_TRACE_STORY_BY_NAME.get(prod["name"], DEFAULT_IMPACT_TRACE_STORY)
+        campaign_id = campaign_ids[prod["campaign_idx"]] if prod["campaign_idx"] < len(campaign_ids) else None
+
+        pdata = {
+            "name": prod["name"],
+            "name_en": prod["name_en"],
+            "description": prod["description"],
+            "description_en": prod["description_en"],
+            "price": Decimal({"彩虹鱼棉质 T 恤": "168.00", "星星之夜帆布托特包": "89.00",
+                              "春天的花园丝巾": "258.00", "妈妈的手棉麻衬衫": "198.00",
+                              "太空旅行圆领卫衣": "228.00", "我的家帆布鞋": "198.00",
+                              "未来城市连帽卫衣": "268.00", "过年了针织开衫": "328.00",
+                              "海豚之歌再生纤维披肩": "198.00", "牧羊曲手绘方巾": "88.00"}[prod["name"]]),
+            "currency": "CNY",
+            "image_url": _IMPACT_IMG.get(prod["name"]),
+            "category": {"彩虹鱼棉质 T 恤": "apparel", "星星之夜帆布托特包": "accessories",
+                         "春天的花园丝巾": "accessories", "妈妈的手棉麻衬衫": "apparel",
+                         "太空旅行圆领卫衣": "apparel", "我的家帆布鞋": "footwear",
+                         "未来城市连帽卫衣": "apparel", "过年了针织开衫": "apparel",
+                         "海豚之歌再生纤维披肩": "accessories", "牧羊曲手绘方巾": "accessories"}[prod["name"]],
+            "stock": 200 if prod["name"] != "我的家帆布鞋" else 0,
+            "status": "active" if prod["name"] != "我的家帆布鞋" else "sold_out",
+            "is_impact_product": True,
+            "campaign_id": campaign_id,
+            "artwork_id": prod["artwork_id"],
+            "donation_percentage": Decimal(prod["donation_pct"]),
+            "trace_story_title": story["title"],
+            "trace_story_content": story["content"],
+            "trace_story_title_en": story.get("title_en"),
+            "trace_story_content_en": story.get("content_en"),
+        }
+        result.append(pdata)
+    return result
+
+
+async def _upsert_supply_chain(session: AsyncSession, product_ids: list[int]) -> None:
+    """Upsert supply chain records for impact products."""
+    from sqlalchemy import select
+    from app.data.rainbow_fish_supply_gallery import rainbow_fish_gallery_json
+
+    if len(product_ids) < 2:
+        return
+
+    # Get existing supply chain records grouped by product
+    existing_records = {(r.product_id, r.stage): r
+                        for r in (await session.execute(select(SupplyChainRecord))).scalars().all()}
+
+    created = 0
+    updated = 0
+
+    # First product (index 0) has inline records in seed()
+    first_product_records = [
+        {"product_id": product_ids[0], "stage": "material_sourcing",
+         "description": "有机棉来自新疆阿克苏有机棉田，GOTS 认证",
+         "description_en": "GOTS-certified organic cotton from Aksu, Xinjiang",
+         "location": "新疆阿克苏", "location_en": "Aksu, Xinjiang",
+         "latitude": 41.17, "longitude": 80.26, "certified": True,
+         "gallery_json": rainbow_fish_gallery_json("material_sourcing")},
+        {"product_id": product_ids[0], "stage": "processing",
+         "description": "纱线纺织与面料染色，使用植物染料，无有害化学品",
+         "description_en": "Spinning, weaving and fabric dyeing using plant-based dyes, free from harmful chemicals",
+         "location": "浙江绍兴", "location_en": "Shaoxing, Zhejiang",
+         "latitude": 30.0, "longitude": 120.58, "certified": True,
+         "gallery_json": rainbow_fish_gallery_json("processing")},
+        {"product_id": product_ids[0], "stage": "manufacturing",
+         "description": "成衣裁剪与缝制，ISO 9001 质量管理体系工厂",
+         "description_en": "Garment cutting and sewing at ISO 9001 certified factory",
+         "location": "广东深圳", "location_en": "Shenzhen, Guangdong",
+         "latitude": 22.55, "longitude": 114.05, "certified": True,
+         "gallery_json": rainbow_fish_gallery_json("manufacturing")},
+        {"product_id": product_ids[0], "stage": "quality_check",
+         "description": "成品质量检验，甲醛含量、色牢度等 12 项指标检测",
+         "description_en": "Finished product quality inspection: formaldehyde content, colour fastness and 12 other indicators",
+         "location": "广东深圳", "location_en": "Shenzhen, Guangdong",
+         "latitude": 22.55, "longitude": 114.08, "certified": True,
+         "gallery_json": rainbow_fish_gallery_json("quality_check")},
+        {"product_id": product_ids[0], "stage": "shipping",
+         "description": "使用可降解包装材料，碳中和物流",
+         "description_en": "Biodegradable packaging materials, carbon-neutral logistics",
+         "location": "全国配送", "location_en": "Nationwide delivery",
+         "latitude": 35.86, "longitude": 104.2, "certified": False,
+         "gallery_json": rainbow_fish_gallery_json("shipping")},
+    ]
+
+    for rec_data in first_product_records:
+        key = (rec_data["product_id"], rec_data["stage"])
+        existing = existing_records.get(key)
+        if existing:
+            for field in ["description", "description_en", "location", "location_en", "gallery_json"]:
+                if rec_data.get(field) is not None:
+                    setattr(existing, field, rec_data[field])
+            updated += 1
+        else:
+            session.add(SupplyChainRecord(**rec_data))
+            created += 1
+
+    # Extra supply chain from impact_supply_chain_seed (indices 1-9)
+    extra_records = extra_impact_supply_records(product_ids)
+    for rec in extra_records:
+        key = (rec.product_id, rec.stage)
+        existing = existing_records.get(key)
+        if existing:
+            for field in ["description", "description_en", "location", "location_en"]:
+                val = getattr(rec, field, None)
+                if val is not None:
+                    setattr(existing, field, val)
+            updated += 1
+        else:
+            session.add(rec)
+            created += 1
+
+    await session.flush()
+    print(f"  supply chain: created={created}, updated={updated}")
 
 
 async def seed():
@@ -63,14 +429,14 @@ async def seed():
         print("Seeding users...")
         users = [
             User(
-                email="admin@vicoo.org",
+                email="admin@tonghua.org",
                 password_hash=hash_password(settings.SEED_ADMIN_PASSWORD),
-                nickname="管理员",
+                nickname="Admin",
                 role="admin",
                 status="active",
             ),
             User(
-                email="editor@vicoo.org",
+                email="editor@tonghua.org",
                 password_hash=hash_password(settings.SEED_EDITOR_PASSWORD),
                 nickname="编辑小王",
                 role="editor",
@@ -174,41 +540,22 @@ async def seed():
         print("Seeding campaigns...")
         campaigns = [
             Campaign(
-                title="春天的色彩 — 乡村儿童画展",
-                description="征集来自全国各地乡村小学孩子们的画作，展示他们眼中的春天。优秀作品将在城市美术馆展出，并制成公益明信片义卖。",
-                cover_image=COVER_SPRING,
-                start_date=datetime(2025, 3, 1),
-                end_date=datetime(2025, 6, 30),
-                goal_amount=Decimal("50000.00"),
-                current_amount=Decimal("32500.00"),
-                status="active",
-                participant_count=150,
-                artwork_count=8,
-            ),
-            Campaign(
-                title="我的家乡 — 故土记忆",
-                description="邀请孩子们用画笔记录家乡的山川河流、风土人情。记录正在消失的乡村记忆，唤起社会对乡土文化的关注。",
-                cover_image=COVER_HOMETOWN,
-                start_date=datetime(2025, 7, 1),
-                end_date=datetime(2025, 10, 31),
-                goal_amount=Decimal("80000.00"),
-                current_amount=Decimal("15000.00"),
-                status="active",
-                participant_count=95,
-                artwork_count=7,
-            ),
-            Campaign(
-                title="画出未来 — 科技与梦想",
-                description="以'未来科技'为主题，鼓励孩子们大胆想象未来世界。获奖作品将用于制作公益行动 T 恤图案，收益全部用于乡村美育。",
-                cover_image=COVER_FUTURE,
-                start_date=datetime(2025, 11, 1),
-                end_date=datetime(2026, 2, 28),
-                goal_amount=Decimal("100000.00"),
-                current_amount=Decimal("8500.00"),
-                status="active",
-                participant_count=60,
-                artwork_count=5,
-            ),
+                title=entry["title"],
+                subtitle=entry.get("subtitle"),
+                description=entry["description"],
+                cover_image=_seed_campaign_cover(entry["seq"]),
+                start_date=entry["start_date"],
+                end_date=entry["end_date"],
+                goal_amount=entry["goal_amount"],
+                current_amount=entry["current_amount"],
+                status=entry["status"],
+                participant_count=entry["participant_count"],
+                artwork_count=entry["artwork_count"],
+                sustainability_eyebrow=entry.get("sustainability_eyebrow"),
+                sustainability_title=entry.get("sustainability_title"),
+                sustainability_subtitle=entry.get("sustainability_subtitle"),
+            )
+            for entry in CAMPAIGN_CATALOG
         ]
         session.add_all(campaigns)
         await session.flush()
@@ -216,41 +563,21 @@ async def seed():
 
         # ── Artworks ─────────────────────────────────────────────
         print("Seeding artworks...")
-        artwork_data = [
-            ("春天的花园", "用蜡笔描绘的五彩花园", "小明", "approved", 128, 560, 0, child_ids[0]),
-            ("彩虹鱼", "水彩画出的深海彩虹鱼", "小红", "approved", 95, 430, 0, child_ids[1]),
-            ("我的家", "温暖的家，有爸爸妈妈和小狗", "小丽", "approved", 210, 890, 1, child_ids[2]),
-            ("星星之夜", "梵高风格的星空临摹", "小刚", "featured", 350, 1200, 0, child_ids[3]),
-            ("山间小溪", "写生画：家乡的小溪", "小芳", "approved", 78, 320, 1, child_ids[5]),
-            ("小猫咪", "我的第一只猫咪朋友", "小杰", "approved", 160, 670, 2, child_ids[6]),
-            ("丰收的秋天", "金黄色的稻田和农民伯伯", "小雨", "pending", 45, 180, None, child_ids[4]),
-            ("雪人一家", "冬天堆的雪人全家福", "小雪", "approved", 190, 780, 0, child_ids[7]),
-            ("海豚之歌", "蓝色大海中跳跃的海豚", "小海", "approved", 130, 520, 1, child_ids[8]),
-            ("老房子", "记录村里即将拆除的老房子", "小明", "approved", 88, 390, 2, child_ids[0]),
-            ("妈妈的手", "画妈妈做家务的双手", "小花", "featured", 280, 1050, 0, child_ids[9]),
-            ("夏日池塘", "荷叶上的青蛙和蜻蜓", "小丽", "approved", 105, 440, 1, child_ids[2]),
-            ("我的梦想", "穿上白大褂当医生", "小红", "approved", 175, 710, 2, child_ids[1]),
-            ("田野之歌", "风吹麦浪的田野", "小明", "approved", 62, 290, None, child_ids[0]),
-            ("太空旅行", "坐火箭去月球", "小刚", "approved", 140, 580, 0, child_ids[3]),
-            ("好朋友", "和朋友们在操场上玩", "小雨", "pending", 30, 120, None, child_ids[4]),
-            ("雨后彩虹", "暴雨过后的双彩虹", "小丽", "approved", 92, 410, 1, child_ids[2]),
-            ("过年了", "放鞭炮贴春联的热闹场面", "小雪", "approved", 220, 900, 2, child_ids[7]),
-            ("未来城市", "飞行汽车和太阳能大楼", "小海", "approved", 115, 470, 0, child_ids[8]),
-            ("牧羊曲", "草原上的小牧童和羊群", "小芳", "approved", 85, 350, 1, child_ids[5]),
-        ]
         artworks = []
-        for i, (title, desc, artist, status, likes, views, ci, cpid) in enumerate(artwork_data):
+        for entry in ARTWORK_CATALOG:
+            ci = entry.get("campaign_index")
+            cidx = entry.get("child_index")
             artworks.append(
                 Artwork(
-                    title=title,
-                    description=desc,
-                    image_url=f"https://picsum.photos/seed/vicoo-art-{i + 1}/900/900",
-                    thumbnail_url=f"https://picsum.photos/seed/vicoo-art-{i + 1}/400/400",
-                    child_participant_id=cpid,
-                    artist_name=artist,
-                    status=status,
-                    like_count=likes,
-                    view_count=views,
+                    title=entry["title"],
+                    description=entry["description"],
+                    image_url=artwork_image_url(entry["seq"]),
+                    thumbnail_url=artwork_thumb_url(entry["seq"]),
+                    child_participant_id=child_ids[cidx] if cidx is not None else None,
+                    artist_name=entry["artist_name"],
+                    status=entry["status"],
+                    like_count=entry["like_count"],
+                    view_count=entry["view_count"],
                     campaign_id=campaign_ids[ci] if ci is not None else None,
                 )
             )
@@ -286,195 +613,261 @@ async def seed():
                 await session.flush()
             region_id_by_name_zh[row["name_zh"]] = existing_region.id
 
-        # ── Products ─────────────────────────────────────────────
+        # Counters for logging
+        products_created = 0
+        products_updated = 0
+
+        # ── Products UPSERT ─────────────────────────────────────────────
         # 公益商品：is_impact_product=True，配图为可直连的 HTTPS（与上方 artworks.id 一一对应）
-        print("Seeding products...")
-        products = [
-            Product(
-                name="彩虹鱼棉质 T 恤",
-                name_en="Rainbow Fish Organic Cotton Tee",
-                description="采用有机棉面料，印有获奖作品《彩虹鱼》。每件 T 恤的收益 30% 用于乡村美育基金。",
-                description_en="GOTS-style organic cotton printed with the award-winning \"Rainbow Fish\" artwork. 30% of each tee supports rural art education.",
-                price=Decimal("168.00"), currency="CNY",
-                image_url=_IMPACT_IMG["彩虹鱼棉质 T 恤"],
-                category="apparel", stock=200, status="active",
-                is_impact_product=True, campaign_id=campaign_ids[0], donation_percentage=Decimal("30.00"),
-                artwork_id=2,
-                trace_story_title="从新疆棉田到东京衣橱",
-                trace_story_title_en="From Xinjiang cotton fields to a Tokyo display",
-            ),
-            Product(
-                name="星星之夜帆布袋",
-                name_en="Starry Night Tote Bag",
-                description="再生帆布材质，印有《星星之夜》星空画作。环保材质，公益行动。",
-                description_en="Recycled canvas printed with the \"Starry Night\" painting. Sustainable materials, everyday carry.",
-                price=Decimal("89.00"), currency="CNY",
-                image_url=_IMPACT_IMG["星星之夜帆布袋"],
-                category="accessories", stock=150, status="active",
-                is_impact_product=True, campaign_id=campaign_ids[0], donation_percentage=Decimal("25.00"),
-                artwork_id=4,
-                trace_story_title="全球棉花的二次生命",
-                trace_story_title_en="A second life for global cotton",
-            ),
-            Product(
-                name="春天的花园丝巾",
-                name_en="Spring Garden Silk Scarf",
-                description="100% 真丝面料，孩子们的画作化为丝巾图案，每一条都是独一无二的艺术品。",
-                description_en="Pure silk; each child's painting becomes a unique scarf pattern.",
-                price=Decimal("258.00"), currency="CNY",
-                image_url=_IMPACT_IMG["春天的花园丝巾"],
-                category="accessories", stock=80, status="active",
-                is_impact_product=True, campaign_id=campaign_ids[0], donation_percentage=Decimal("30.00"),
-                artwork_id=1,
-                trace_story_title="从乡村画室到东京橱窗",
-                trace_story_title_en="Children's art seen in Tokyo",
-            ),
-            Product(
-                name="妈妈的手环保笔记本",
-                name_en="\"Mother's Hands\" Recycled Notebook",
-                description="再生纸制作，封面印有《妈妈的手》。可用于记录生活中的美好瞬间。",
-                description_en="Recycled-paper cover with the \"Mother's Hands\" artwork. For small everyday notes.",
-                price=Decimal("39.00"), currency="CNY",
-                image_url=_IMPACT_IMG["妈妈的手环保笔记本"],
-                category="stationery", stock=500, status="active",
-                is_impact_product=True, campaign_id=campaign_ids[1], donation_percentage=Decimal("20.00"),
-                artwork_id=11,
-            ),
-            Product(
-                name="太空旅行马克杯",
-                name_en="\"Space Travel\" Ceramic Mug",
-                description="陶瓷马克杯，印有《太空旅行》画作。送给每个梦想家。",
-                description_en="Ceramic mug with the \"Space Travel\" print—a gift for dreamers.",
-                price=Decimal("68.00"), currency="CNY",
-                image_url=_IMPACT_IMG["太空旅行马克杯"],
-                category="lifestyle", stock=120, status="active",
-                is_impact_product=True, campaign_id=campaign_ids[2], donation_percentage=Decimal("25.00"),
-                artwork_id=15,
-            ),
-            Product(
-                name="我的家帆布鞋",
-                name_en="\"My Home\" Canvas Sneakers",
-                description="有机棉帆布鞋面，可降解鞋底。鞋侧印有《我的家》画作。",
-                description_en="Organic cotton uppers, biodegradable outsole, \"My Home\" on the side.",
-                price=Decimal("198.00"), currency="CNY",
-                image_url=_IMPACT_IMG["我的家帆布鞋"],
-                category="footwear", stock=0, status="sold_out",
-                is_impact_product=True, campaign_id=campaign_ids[1], donation_percentage=Decimal("30.00"),
-                artwork_id=3,
-            ),
-            Product(
-                name="画出未来环保抱枕",
-                name_en="\"Paint the Future\" Recycled Throw Pillow",
-                description="再生棉填充，有机棉外套。《未来城市》画作点亮客厅角落。",
-                description_en="Recycled fill, organic cover; \"Future City\" lights up the living room.",
-                price=Decimal("128.00"), currency="CNY",
-                image_url=_IMPACT_IMG["画出未来环保抱枕"],
-                category="home", stock=90, status="active",
-                is_impact_product=True, campaign_id=campaign_ids[2], donation_percentage=Decimal("25.00"),
-                artwork_id=19,
-            ),
-            Product(
-                name="过年了限定礼盒",
-                name_en="Festival Limited Gift Box",
-                description="包含 T 恤、帆布袋、笔记本三件套，精美包装。限量 100 套。",
-                description_en="Tee, tote, and notebook in one box—limited 100 sets.",
-                price=Decimal("368.00"), currency="CNY",
-                image_url=_IMPACT_IMG["过年了限定礼盒"],
-                category="gift_box", stock=35, status="active",
-                is_impact_product=True, campaign_id=campaign_ids[0], donation_percentage=Decimal("30.00"),
-                artwork_id=18,
-            ),
-            Product(
-                name="海豚之歌·再生纤维披肩",
-                name_en="\"Song of the Dolphin\" Recycled-Fibre Stole",
-                description="海洋主题儿童画作《海豚之歌》授权印花，再生聚酯与有机棉混纺，收益 28% 捐入「春天的色彩」美育项目。",
-                description_en="Ocean-theme print, recycled poly blended with organic cotton; 28% to the \"Spring Colours\" art fund.",
-                price=Decimal("198.00"), currency="CNY",
-                image_url=_IMPACT_IMG["海豚之歌·再生纤维披肩"],
-                category="accessories", stock=110, status="active",
-                is_impact_product=True, campaign_id=campaign_ids[0], donation_percentage=Decimal("28.00"),
-                artwork_id=8,
-            ),
-            Product(
-                name="牧羊曲·手工拼布壁挂",
-                name_en="\"Shepherd's Melody\" Patchwork Wall Hanging",
-                description="甘肃定西合作工坊手工缝制，图案来自《牧羊曲》画作，每件附带溯源卡，捐赠比例 22% 用于乡村儿童画材。",
-                description_en="Hand-stitched in Dingxi, Gansu; from the \"Shepherd's Melody\" painting with a traceability card. 22% to rural art supplies.",
-                price=Decimal("158.00"), currency="CNY",
-                image_url=_IMPACT_IMG["牧羊曲·手工拼布壁挂"],
-                category="home", stock=45, status="active",
-                is_impact_product=True, campaign_id=campaign_ids[1], donation_percentage=Decimal("22.00"),
-                artwork_id=20,
-            ),
-            # 优衣库式常规店 SKU（图文见 app/data/default_regular_products.py）
-            *[Product(**kwargs) for kwargs in regular_catalog_for_orm()],
+        print("Upserting products...")
+
+        def _upsert_product(session: AsyncSession, product_data: dict, is_impact: bool) -> Product:
+            """UPSERT product: update if exists, insert if not.
+
+            For impact products, match by artwork_id.
+            For regular products, match by name.
+            """
+            nonlocal products_created, products_updated
+
+            if is_impact and product_data.get("artwork_id"):
+                # Match by artwork_id for impact products
+                result = session.execute(
+                    select(Product).where(Product.artwork_id == product_data["artwork_id"])
+                )
+                existing = result.scalar_one_or_none()
+            else:
+                # Match by name for regular products
+                result = session.execute(
+                    select(Product).where(Product.name == product_data["name"])
+                )
+                existing = result.scalar_one_or_none()
+
+            if existing:
+                # UPDATE allowed fields
+                for field in ["name", "name_en", "description", "description_en",
+                              "price", "currency", "category", "image_url", "stock",
+                              "status", "is_impact_product", "campaign_id",
+                              "artwork_id", "donation_percentage",
+                              "origin_country_id", "origin_region_id",
+                              "trace_story_title", "trace_story_content",
+                              "trace_story_title_en", "trace_story_content_en"]:
+                    if field in product_data and product_data[field] is not None:
+                        setattr(existing, field, product_data[field])
+
+                products_updated += 1
+                print(f"  update product: {product_data.get('name', product_data.get('name_en', 'unknown'))}")
+                return existing
+            else:
+                # INSERT new product
+                product = Product(**product_data)
+                session.add(product)
+                products_created += 1
+                print(f"  create product: {product_data.get('name', product_data.get('name_en', 'unknown'))}")
+                return product
+
+        # Impact products catalog
+        impact_products_data = [
+            {
+                "name": "彩虹鱼棉质 T 恤",
+                "name_en": "Rainbow Fish Organic Cotton Tee",
+                "description": "采用有机棉面料，印有获奖作品《彩虹鱼》。每件 T 恤的收益 30% 用于乡村美育基金。",
+                "description_en": "GOTS-style organic cotton printed with the award-winning \"Rainbow Fish\" artwork. 30% of each tee supports rural art education.",
+                "price": Decimal("168.00"), "currency": "CNY",
+                "image_url": _IMPACT_IMG["彩虹鱼棉质 T 恤"],
+                "category": "apparel", "stock": 200, "status": "active",
+                "is_impact_product": True, "campaign_id": campaign_ids[0], "donation_percentage": Decimal("30.00"),
+                "artwork_id": 2,
+                "trace_story_title": "从新疆棉田到东京衣橱",
+                "trace_story_title_en": "From Xinjiang cotton fields to a Tokyo display",
+            },
+            {
+                "name": "星星之夜帆布托特包",
+                "name_en": "Starry Night Canvas Tote",
+                "description": "GRS 认证再生棉帆布，印有获奖画作《星星之夜》。可溯源再生棉帆布，日常通勤与公益表达兼得。",
+                "description_en": "GRS-certified recycled cotton canvas printed with the award-winning \"Starry Night\" painting. Traceable materials, everyday carry.",
+                "price": Decimal("89.00"), "currency": "CNY",
+                "image_url": _IMPACT_IMG["星星之夜帆布托特包"],
+                "category": "accessories", "stock": 150, "status": "active",
+                "is_impact_product": True, "campaign_id": campaign_ids[0], "donation_percentage": Decimal("25.00"),
+                "artwork_id": 4,
+                "trace_story_title": "全球棉花的二次生命",
+                "trace_story_title_en": "A second life for global cotton",
+            },
+            {
+                "name": "春天的花园丝巾",
+                "name_en": "Spring Garden Silk Scarf",
+                "description": "100% 真丝面料，孩子们的画作化为丝巾图案，每一条都是独一无二的艺术品。",
+                "description_en": "Pure silk; each child's painting becomes a unique scarf pattern.",
+                "price": Decimal("258.00"), "currency": "CNY",
+                "image_url": _IMPACT_IMG["春天的花园丝巾"],
+                "category": "accessories", "stock": 80, "status": "active",
+                "is_impact_product": True, "campaign_id": campaign_ids[0], "donation_percentage": Decimal("30.00"),
+                "artwork_id": 1,
+                "trace_story_title": "从乡村画室到东京橱窗",
+                "trace_story_title_en": "Children's art seen in Tokyo",
+            },
+            {
+                "name": "妈妈的手棉麻衬衫",
+                "name_en": "\"Mother's Hands\" Cotton-Linen Shirt",
+                "description": "天然棉麻混纺面料，胸前手绘线稿刺绣风印花源自获奖画作《妈妈的手》。强调天然纤维原料可溯源。",
+                "description_en": "Natural cotton-linen blend with hand-drawn line art embroidery-style print from the award-winning \"Mother's Hands\" artwork. Traceable natural fibre origins.",
+                "price": Decimal("198.00"), "currency": "CNY",
+                "image_url": _IMPACT_IMG["妈妈的手棉麻衬衫"],
+                "category": "apparel", "stock": 160, "status": "active",
+                "is_impact_product": True, "campaign_id": campaign_ids[1], "donation_percentage": Decimal("25.00"),
+                "artwork_id": 11,
+            },
+            {
+                "name": "太空旅行圆领卫衣",
+                "name_en": "\"Space Travel\" Crewneck Sweatshirt",
+                "description": "中厚卫衣面料，胸前满印儿童宇宙涂鸦《太空旅行》。送给每个仰望星空的梦想家。",
+                "description_en": "Mid-weight fleece with all-over kids' space doodle print from \"Space Travel\". A gift for every dreamer who looks up.",
+                "price": Decimal("228.00"), "currency": "CNY",
+                "image_url": _IMPACT_IMG["太空旅行圆领卫衣"],
+                "category": "apparel", "stock": 120, "status": "active",
+                "is_impact_product": True, "campaign_id": campaign_ids[2], "donation_percentage": Decimal("25.00"),
+                "artwork_id": 15,
+            },
+            {
+                "name": "我的家帆布鞋",
+                "name_en": "\"My Home\" Canvas Sneakers",
+                "description": "有机棉帆布鞋面，可降解鞋底。鞋侧印有《我的家》画作。",
+                "description_en": "Organic cotton uppers, biodegradable outsole, \"My Home\" on the side.",
+                "price": Decimal("198.00"), "currency": "CNY",
+                "image_url": _IMPACT_IMG["我的家帆布鞋"],
+                "category": "footwear", "stock": 0, "status": "sold_out",
+                "is_impact_product": True, "campaign_id": campaign_ids[1], "donation_percentage": Decimal("30.00"),
+                "artwork_id": 3,
+            },
+            {
+                "name": "未来城市连帽卫衣",
+                "name_en": "\"Future City\" Hooded Sweatshirt",
+                "description": "加绒连帽卫衣，背后满印儿童手绘未来城市画作《未来城市》。适合秋冬联名穿搭。",
+                "description_en": "Fleece-lined hoodie with full-back kids' hand-drawn \"Future City\" print. A co-label piece for autumn/winter.",
+                "price": Decimal("268.00"), "currency": "CNY",
+                "image_url": _IMPACT_IMG["未来城市连帽卫衣"],
+                "category": "apparel", "stock": 90, "status": "active",
+                "is_impact_product": True, "campaign_id": campaign_ids[2], "donation_percentage": Decimal("25.00"),
+                "artwork_id": 19,
+            },
+            {
+                "name": "过年了针织开衫",
+                "name_en": "\"Spring Festival\" Knit Cardigan",
+                "description": "可溯源羊毛与再生纤维混纺针织开衫，正面提花织入儿童节日画作《过年了》。温暖的公益穿搭。",
+                "description_en": "Traceable wool & recycled fibre blend cardigan with kids' festival painting \"Spring Festival\" jacquard-knit motif. Warm, wearable welfare.",
+                "price": Decimal("328.00"), "currency": "CNY",
+                "image_url": _IMPACT_IMG["过年了针织开衫"],
+                "category": "apparel", "stock": 60, "status": "active",
+                "is_impact_product": True, "campaign_id": campaign_ids[0], "donation_percentage": Decimal("28.00"),
+                "artwork_id": 18,
+            },
+            {
+                "name": "海豚之歌再生纤维披肩",
+                "name_en": "\"Song of the Dolphin\" Recycled-Fibre Stole",
+                "description": "海洋主题儿童画作《海豚之歌》授权印花，再生聚酯与有机棉混纺，收益 28% 捐入「春天的色彩」美育项目。",
+                "description_en": "Ocean-theme print, recycled poly blended with organic cotton; 28% to the \"Spring Colours\" art fund.",
+                "price": Decimal("198.00"), "currency": "CNY",
+                "image_url": _IMPACT_IMG["海豚之歌再生纤维披肩"],
+                "category": "accessories", "stock": 110, "status": "active",
+                "is_impact_product": True, "campaign_id": campaign_ids[0], "donation_percentage": Decimal("28.00"),
+                "artwork_id": 8,
+            },
+            {
+                "name": "牧羊曲手绘方巾",
+                "name_en": "\"Shepherd's Melody\" Hand-Drawn Bandana",
+                "description": "牧羊主题儿童画作《牧羊曲》转化为穿搭用方巾，可作头巾或颈巾。有机棉面料，甘肃定西工坊手工印制。",
+                "description_en": "Kids' pastoral painting \"Shepherd's Melody\" turned into a wearable bandana—head wrap or neckerchief. Organic cotton, hand-printed in Dingxi, Gansu.",
+                "price": Decimal("88.00"), "currency": "CNY",
+                "image_url": _IMPACT_IMG["牧羊曲手绘方巾"],
+                "category": "accessories", "stock": 180, "status": "active",
+                "is_impact_product": True, "campaign_id": campaign_ids[1], "donation_percentage": Decimal("22.00"),
+                "artwork_id": 20,
+            },
         ]
-        session.add_all(products)
+
+        # Regular products catalog
+        regular_products_data = regular_catalog_for_orm()
+
+        # UPSERT all products
+        all_products = []
+        for pdata in impact_products_data:
+            # Add trace story data
+            story = IMPACT_TRACE_STORY_BY_NAME.get(pdata["name"], DEFAULT_IMPACT_TRACE_STORY)
+            pdata["origin_country_id"] = country_id_by_code.get(story["country_code"])
+            pdata["origin_region_id"] = region_id_by_name_zh.get(story["region_name_zh"])
+            pdata["trace_story_title"] = story["title"]
+            pdata["trace_story_content"] = story["content"]
+            if story.get("title_en"):
+                pdata["trace_story_title_en"] = story["title_en"]
+            if story.get("content_en"):
+                pdata["trace_story_content_en"] = story["content_en"]
+
+            p = _upsert_product(session, pdata, is_impact=True)
+            all_products.append(p)
+
+        for pdata in regular_products_data:
+            p = _upsert_product(session, pdata, is_impact=False)
+            all_products.append(p)
+
         await session.flush()
-        for p in products:
-            if not p.is_impact_product:
-                continue
-            story = IMPACT_TRACE_STORY_BY_NAME.get(p.name, DEFAULT_IMPACT_TRACE_STORY)
-            p.origin_country_id = country_id_by_code.get(story["country_code"])
-            p.origin_region_id = region_id_by_name_zh.get(story["region_name_zh"])
-            p.trace_story_title = story["title"]
-            p.trace_story_content = story["content"]
-        product_ids = [p.id for p in products]
+        product_ids = [p.id for p in all_products]
 
         # ── Supply Chain Records ─────────────────────────────────
         print("Seeding supply chain records...")
-        _demo_gallery = json.dumps(
-            [
-                {
-                    "type": "image",
-                    "url": "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=640&q=80",
-                    "caption": "有机棉田现场",
-                },
-                {
-                    "type": "video",
-                    "url": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
-                    "caption": "采收与初加工短片（示例）",
-                },
-            ]
-        )
+        from app.data.rainbow_fish_supply_gallery import rainbow_fish_gallery_json
+
         supply_records = [
             SupplyChainRecord(
                 product_id=product_ids[0], stage="material_sourcing",
                 description="有机棉来自新疆阿克苏有机棉田，GOTS 认证",
-                location="新疆阿克苏", latitude=41.17, longitude=80.26,
+                description_en="GOTS-certified organic cotton from Aksu, Xinjiang",
+                location="新疆阿克苏", location_en="Aksu, Xinjiang",
+                latitude=41.17, longitude=80.26,
                 certified=True,
                 cert_image_url="/static/certs/gots_cert.jpg",
-                gallery_json=_demo_gallery,
+                gallery_json=rainbow_fish_gallery_json("material_sourcing"),
                 timestamp=datetime(2025, 2, 1),
             ),
             SupplyChainRecord(
                 product_id=product_ids[0], stage="processing",
                 description="纱线纺织与面料染色，使用植物染料，无有害化学品",
-                location="浙江绍兴", latitude=30.0, longitude=120.58,
+                description_en="Spinning, weaving and fabric dyeing using plant-based dyes, free from harmful chemicals",
+                location="浙江绍兴", location_en="Shaoxing, Zhejiang",
+                latitude=30.0, longitude=120.58,
                 certified=True,
                 cert_image_url="/static/certs/oeko_cert.jpg",
+                gallery_json=rainbow_fish_gallery_json("processing"),
                 timestamp=datetime(2025, 2, 15),
             ),
             SupplyChainRecord(
                 product_id=product_ids[0], stage="manufacturing",
                 description="成衣裁剪与缝制，ISO 9001 质量管理体系工厂",
-                location="广东深圳", latitude=22.55, longitude=114.05,
+                description_en="Garment cutting and sewing at ISO 9001 certified factory",
+                location="广东深圳", location_en="Shenzhen, Guangdong",
+                latitude=22.55, longitude=114.05,
                 certified=True,
                 cert_image_url="/static/certs/iso9001.jpg",
+                gallery_json=rainbow_fish_gallery_json("manufacturing"),
                 timestamp=datetime(2025, 3, 1),
             ),
             SupplyChainRecord(
                 product_id=product_ids[0], stage="quality_check",
                 description="成品质量检验，甲醛含量、色牢度等 12 项指标检测",
-                location="广东深圳", latitude=22.55, longitude=114.08,
+                description_en="Finished product quality inspection: formaldehyde content, colour fastness and 12 other indicators",
+                location="广东深圳", location_en="Shenzhen, Guangdong",
+                latitude=22.55, longitude=114.08,
                 certified=True,
+                gallery_json=rainbow_fish_gallery_json("quality_check"),
                 timestamp=datetime(2025, 3, 10),
             ),
             SupplyChainRecord(
                 product_id=product_ids[0], stage="shipping",
                 description="使用可降解包装材料，碳中和物流",
-                location="全国配送", latitude=35.86, longitude=104.2,
+                description_en="Biodegradable packaging materials, carbon-neutral logistics",
+                location="全国配送", location_en="Nationwide delivery",
+                latitude=35.86, longitude=104.2,
                 certified=False,
+                gallery_json=rainbow_fish_gallery_json("shipping"),
                 timestamp=datetime(2025, 3, 15),
             ),
         ]
@@ -660,6 +1053,8 @@ async def seed():
 
         await session.commit()
         print("Seed complete!")
+        print(f"  products_created: {products_created}")
+        print(f"  products_updated: {products_updated}")
     # 不要在嵌入 FastAPI 进程时 dispose 全局 engine，否则后续请求无法连库。
     # CLI 单独跑时在 __main__ 里 finally dispose。
 

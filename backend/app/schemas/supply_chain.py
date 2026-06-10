@@ -39,8 +39,10 @@ class SupplyChainRecordCreate(BaseModel):
         pattern="^(material_sourcing|processing|manufacturing|quality_check|shipping)$",
         description="Supply chain stage: material_sourcing, processing, manufacturing, quality_check, shipping",
     )
-    description: Optional[str] = Field(None, max_length=5000, description="Stage description and details")
+    description: Optional[str] = Field(None, description="Stage description and details")
+    description_en: Optional[str] = Field(None, description="English stage description and details")
     location: Optional[str] = Field(None, max_length=300, description="Geographic location of this stage")
+    location_en: Optional[str] = Field(None, max_length=300, description="English geographic location of this stage")
     certified: bool = Field(False, description="Whether this stage has certification")
     cert_image_url: Optional[str] = Field(None, max_length=500, description="Certification document image URL")
     carbon_kg: Optional[Decimal] = Field(None, ge=0, description="Carbon emissions in kg (non-negative)")
@@ -55,8 +57,14 @@ class SupplyChainRecordCreate(BaseModel):
 
 
 class SupplyChainRecordUpdate(BaseModel):
-    description: Optional[str] = Field(None, max_length=5000)
+    stage: Optional[str] = Field(
+        None,
+        pattern="^(material_sourcing|processing|manufacturing|quality_check|shipping)$",
+    )
+    description: Optional[str] = None
+    description_en: Optional[str] = None
     location: Optional[str] = Field(None, max_length=300)
+    location_en: Optional[str] = Field(None, max_length=300)
     certified: Optional[bool] = None
     cert_image_url: Optional[str] = Field(None, max_length=500)
     carbon_kg: Optional[Decimal] = None
@@ -75,7 +83,9 @@ class SupplyChainRecordOut(BaseModel):
     product_id: int
     stage: str
     description: Optional[str] = None
+    description_en: Optional[str] = None
     location: Optional[str] = None
+    location_en: Optional[str] = None
     certified: bool
     cert_image_url: Optional[str] = None
     carbon_kg: Optional[Decimal] = None
@@ -97,7 +107,9 @@ def supply_chain_record_to_out(r: Any) -> SupplyChainRecordOut:
         product_id=r.product_id,
         stage=stage_val,
         description=r.description,
+        description_en=getattr(r, "description_en", None),
         location=r.location,
+        location_en=getattr(r, "location_en", None),
         certified=bool(r.certified),
         cert_image_url=r.cert_image_url,
         carbon_kg=r.carbon_kg,

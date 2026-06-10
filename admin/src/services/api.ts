@@ -3,7 +3,7 @@ import { useAuthStore } from '../stores/authStore';
 import type {
   Artwork, Campaign, Donation, Order, User,
   AuditLogEntry, DashboardMetrics,
-  ChartDataPoint, SystemSettings, FilterParams, PaginatedResponse,
+  ChartDataPoint, SystemSettings, SystemHealth, FilterParams, PaginatedResponse,
   DonationListSummary,
   AdminProduct, OriginCountry, OriginRegion,
   SupplyChainRecord, TraceMediaItem,
@@ -211,7 +211,7 @@ export async function fetchAuditLogs(params: FilterParams = {}): Promise<Paginat
   const { data: envelope } = await api.get('/admin/audit-logs', {
     params: {
       page: params.page ?? 1,
-      page_size: params.pageSize ?? 10,
+      page_size: params.pageSize ?? 20,
       action: params.search || undefined,
       resource: params.status || undefined,
     },
@@ -242,9 +242,10 @@ export async function fetchArtworks(params: FilterParams = {}): Promise<Paginate
   const { data: envelope } = await api.get('/artworks', {
     params: {
       page: params.page ?? 1,
-      page_size: params.pageSize ?? 10,
+      page_size: params.pageSize ?? 20,
       status: params.status || undefined,
       search: params.search || undefined,
+      campaign_id: params.campaignId || undefined,
     },
   });
   const paginated = adaptPaginated<any>(envelope);
@@ -292,13 +293,80 @@ export async function updateArtworkStatus(id: string, status: Artwork['status'])
 }
 
 /**
+ * Update artwork fields via PUT /artworks/{id}.
+ */
+export async function updateArtwork(
+  id: string,
+  payload: Partial<Pick<Artwork, 'title' | 'description' | 'imageUrl'>>,
+): Promise<Artwork> {
+  const body: Record<string, unknown> = {};
+  if (payload.title !== undefined) body.title = payload.title;
+  if (payload.description !== undefined) body.description = payload.description;
+  if (payload.imageUrl !== undefined) body.image_url = payload.imageUrl;
+  const { data: envelope } = await api.put(`/artworks/${id}`, body);
+  const item = envelope.data;
+  return {
+    id: String(item.id),
+    title: item.title ?? '',
+    description: item.description ?? '',
+    childName: item.artist_name ?? item.childParticipant?.firstName ?? '',
+    childAge: item.childParticipant?.age ?? 0,
+    imageUrl: item.image_url ?? item.imageUrl ?? '',
+    status: item.status ?? 'pending',
+    category: item.category ?? '',
+    campaignId: item.campaign_id ? String(item.campaign_id) : undefined,
+    votes: item.vote_count ?? item.like_count ?? item.votes ?? 0,
+    createdAt: item.created_at ?? '',
+    reviewedAt: item.reviewed_at,
+    reviewedBy: item.reviewed_by,
+  };
+}
+
+/**
+ * Delete artwork via DELETE /artworks/{id}.
+ */
+export async function deleteArtwork(id: string): Promise<void> {
+  await api.delete(`/artworks/${id}`);
+}
+
+/**
+ * Admin-direct artwork creation (bypasses child consent).
+ * POST /artworks/admin
+ */
+export async function adminCreateArtwork(payload: {
+  title: string;
+  description?: string;
+  image_url: string;
+  thumbnail_url?: string;
+  artist_name: string;
+  campaign_id?: number;
+  child_participant_id?: number;
+}): Promise<Artwork> {
+  const { data: envelope } = await api.post('/artworks/admin', payload);
+  const item = envelope.data;
+  return {
+    id: String(item.id),
+    title: item.title ?? '',
+    description: item.description ?? '',
+    childName: item.artist_name ?? '',
+    childAge: 0,
+    imageUrl: item.image_url ?? item.imageUrl ?? '',
+    category: '',
+    status: item.status ?? 'pending',
+    votes: item.like_count ?? item.vote_count ?? 0,
+    campaignId: item.campaign_id ? String(item.campaign_id) : undefined,
+    createdAt: item.created_at ?? '',
+  };
+}
+
+/**
  * Fetch orders from GET /orders (business route, no /admin prefix).
  */
 export async function fetchOrders(params: FilterParams = {}): Promise<PaginatedResponse<Order>> {
   const { data: envelope } = await api.get('/orders', {
     params: {
       page: params.page ?? 1,
-      page_size: params.pageSize ?? 10,
+      page_size: params.pageSize ?? 20,
       status: params.status || undefined,
       search: params.search || undefined,
     },
@@ -310,12 +378,13 @@ export async function fetchOrders(params: FilterParams = {}): Promise<PaginatedR
       id: String(item.id),
       orderNo: item.order_no ?? '',
       userId: String(item.user_id ?? ''),
-      userName: item.user_name ?? '',
+      userName: item.user_name ?? (item.user_id != null ? `用户 #${item.user_id}` : ''),
       items: (item.items ?? []).map((it: any) => ({
         productId: String(it.product_id ?? ''),
         productName: it.product_name ?? '',
         quantity: it.quantity ?? 0,
         price: parseFloat(it.price ?? '0') || 0,
+        imageUrl: it.product_image ?? it.image_url ?? '',
       })),
       totalAmount: parseFloat(item.total_amount ?? '0') || 0,
       status: item.status ?? 'pending',
@@ -347,6 +416,7 @@ export async function updateOrderStatus(id: string, status: Order['status']): Pr
       productName: it.product_name ?? '',
       quantity: it.quantity ?? 0,
       price: parseFloat(it.price ?? '0') || 0,
+      imageUrl: it.product_image ?? it.image_url ?? '',
     })),
     totalAmount: parseFloat(item.total_amount ?? '0') || 0,
     status: item.status ?? status,
@@ -374,6 +444,7 @@ function adaptCampaign(item: any): Campaign {
   return {
     id: String(item.id),
     title: item.title ?? '',
+    subtitle: item.subtitle ?? '',
     description: item.description ?? '',
     startDate: item.start_date ?? '',
     endDate: item.end_date ?? '',
@@ -384,6 +455,20 @@ function adaptCampaign(item: any): Campaign {
     artworkCount: item.artwork_count ?? 0,
     coverImage: item.cover_image,
     createdAt: item.created_at ?? '',
+    sustainabilityEyebrow: item.sustainability_eyebrow ?? '',
+    sustainabilityTitle: item.sustainability_title ?? '',
+    sustainabilitySubtitle: item.sustainability_subtitle ?? '',
+    sustainabilityP1Title: item.sustainability_p1_title ?? '',
+    sustainabilityP1Body: item.sustainability_p1_body ?? '',
+    sustainabilityP2Title: item.sustainability_p2_title ?? '',
+    sustainabilityP2Body: item.sustainability_p2_body ?? '',
+    sustainabilityP3Title: item.sustainability_p3_title ?? '',
+    sustainabilityP3Body: item.sustainability_p3_body ?? '',
+    sustainabilityP4Title: item.sustainability_p4_title ?? '',
+    sustainabilityP4Body: item.sustainability_p4_body ?? '',
+    sustainabilityFootnote: item.sustainability_footnote ?? '',
+    sustainabilityCtaTraceability: item.sustainability_cta_traceability ?? '',
+    sustainabilityCtaShop: item.sustainability_cta_shop ?? '',
   };
 }
 
@@ -394,7 +479,7 @@ export async function fetchCampaigns(params: FilterParams = {}): Promise<Paginat
   const { data: envelope } = await api.get('/campaigns', {
     params: {
       page: params.page ?? 1,
-      page_size: params.pageSize ?? 10,
+      page_size: params.pageSize ?? 20,
       status: status || undefined,
     },
   });
@@ -405,11 +490,26 @@ export async function fetchCampaigns(params: FilterParams = {}): Promise<Paginat
 export async function createCampaign(data: Partial<Campaign>): Promise<Campaign> {
   const { data: envelope } = await api.post('/campaigns', {
     title: data.title,
+    subtitle: data.subtitle,
     description: data.description,
     start_date: data.startDate,
     end_date: data.endDate,
     goal_amount: data.targetAmount,
     cover_image: data.coverImage,
+    sustainability_eyebrow: data.sustainabilityEyebrow,
+    sustainability_title: data.sustainabilityTitle,
+    sustainability_subtitle: data.sustainabilitySubtitle,
+    sustainability_p1_title: data.sustainabilityP1Title,
+    sustainability_p1_body: data.sustainabilityP1Body,
+    sustainability_p2_title: data.sustainabilityP2Title,
+    sustainability_p2_body: data.sustainabilityP2Body,
+    sustainability_p3_title: data.sustainabilityP3Title,
+    sustainability_p3_body: data.sustainabilityP3Body,
+    sustainability_p4_title: data.sustainabilityP4Title,
+    sustainability_p4_body: data.sustainabilityP4Body,
+    sustainability_footnote: data.sustainabilityFootnote,
+    sustainability_cta_traceability: data.sustainabilityCtaTraceability,
+    sustainability_cta_shop: data.sustainabilityCtaShop,
   });
   return adaptCampaign(envelope.data);
 }
@@ -417,6 +517,7 @@ export async function createCampaign(data: Partial<Campaign>): Promise<Campaign>
 export async function updateCampaign(id: string, data: Partial<Campaign>): Promise<Campaign> {
   const body: Record<string, any> = {};
   if (data.title !== undefined) body.title = data.title;
+  if (data.subtitle !== undefined) body.subtitle = data.subtitle;
   if (data.description !== undefined) body.description = data.description;
   if (data.startDate !== undefined) body.start_date = data.startDate;
   if (data.endDate !== undefined) body.end_date = data.endDate;
@@ -431,8 +532,27 @@ export async function updateCampaign(id: string, data: Partial<Campaign>): Promi
     if (s === 'archived') s = 'cancelled' as typeof s;
     body.status = s;
   }
+  // Sustainability fields
+  if (data.sustainabilityEyebrow !== undefined) body.sustainability_eyebrow = data.sustainabilityEyebrow;
+  if (data.sustainabilityTitle !== undefined) body.sustainability_title = data.sustainabilityTitle;
+  if (data.sustainabilitySubtitle !== undefined) body.sustainability_subtitle = data.sustainabilitySubtitle;
+  if (data.sustainabilityP1Title !== undefined) body.sustainability_p1_title = data.sustainabilityP1Title;
+  if (data.sustainabilityP1Body !== undefined) body.sustainability_p1_body = data.sustainabilityP1Body;
+  if (data.sustainabilityP2Title !== undefined) body.sustainability_p2_title = data.sustainabilityP2Title;
+  if (data.sustainabilityP2Body !== undefined) body.sustainability_p2_body = data.sustainabilityP2Body;
+  if (data.sustainabilityP3Title !== undefined) body.sustainability_p3_title = data.sustainabilityP3Title;
+  if (data.sustainabilityP3Body !== undefined) body.sustainability_p3_body = data.sustainabilityP3Body;
+  if (data.sustainabilityP4Title !== undefined) body.sustainability_p4_title = data.sustainabilityP4Title;
+  if (data.sustainabilityP4Body !== undefined) body.sustainability_p4_body = data.sustainabilityP4Body;
+  if (data.sustainabilityFootnote !== undefined) body.sustainability_footnote = data.sustainabilityFootnote;
+  if (data.sustainabilityCtaTraceability !== undefined) body.sustainability_cta_traceability = data.sustainabilityCtaTraceability;
+  if (data.sustainabilityCtaShop !== undefined) body.sustainability_cta_shop = data.sustainabilityCtaShop;
   const { data: envelope } = await api.put(`/campaigns/${id}`, body);
   return adaptCampaign(envelope.data);
+}
+
+export async function deleteCampaign(id: string): Promise<void> {
+  await api.delete(`/campaigns/${id}`);
 }
 
 // ---------------------------------------------------------------------------
@@ -470,8 +590,9 @@ export async function fetchProducts(params: FilterParams = {}): Promise<Paginate
   const { data: envelope } = await api.get('/products', {
     params: {
       page: params.page ?? 1,
-      page_size: params.pageSize ?? 10,
+      page_size: params.pageSize ?? 20,
       status: params.status || undefined,
+      is_impact_product: params.isImpactProduct,
     },
   });
   const paginated = adaptPaginated<any>(envelope);
@@ -544,7 +665,9 @@ function adaptSupplyChainRecord(item: any): SupplyChainRecord {
     productId: String(item.product_id),
     stage: item.stage,
     description: item.description ?? '',
+    descriptionEn: item.description_en ?? '',
     location: item.location ?? '',
+    locationEn: item.location_en ?? '',
     latitude: item.latitude,
     longitude: item.longitude,
     certified: item.certified ?? false,
@@ -576,7 +699,9 @@ export async function createSupplyChainRecord(
     product_id: Number(productId),
     stage: payload.stage,
     description: payload.description,
+    description_en: payload.descriptionEn,
     location: payload.location,
+    location_en: payload.locationEn,
     latitude: payload.latitude ?? null,
     longitude: payload.longitude ?? null,
     certified: payload.certified,
@@ -596,7 +721,9 @@ export async function updateSupplyChainRecord(
   const body: any = {};
   if (payload.stage !== undefined) body.stage = payload.stage;
   if (payload.description !== undefined) body.description = payload.description;
+  if (payload.descriptionEn !== undefined) body.description_en = payload.descriptionEn;
   if (payload.location !== undefined) body.location = payload.location;
+  if (payload.locationEn !== undefined) body.location_en = payload.locationEn;
   if (payload.latitude !== undefined) body.latitude = payload.latitude;
   if (payload.longitude !== undefined) body.longitude = payload.longitude;
   if (payload.certified !== undefined) body.certified = payload.certified;
@@ -618,8 +745,9 @@ export async function uploadTraceMedia(file: File): Promise<{ url: string; mime:
   form.append('file', file);
   const { data: envelope } = await api.post('/supply-chain/media/upload', form, {
     headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 120000,
   });
-  return envelope.data;
+  return envelope.data as { url: string; mime: string };
 }
 
 export async function fetchOriginCountries(): Promise<OriginCountry[]> {
@@ -678,7 +806,7 @@ export async function fetchDonations(
   const { data: envelope } = await api.get('/donations', {
     params: {
       page: params.page ?? 1,
-      page_size: params.pageSize ?? 10,
+      page_size: params.pageSize ?? 20,
       status: params.status || undefined,
       payment_method: params.paymentMethod || undefined,
       search: params.search || undefined,
@@ -726,7 +854,7 @@ export async function fetchUsers(params: FilterParams = {}): Promise<PaginatedRe
   const { data: envelope } = await api.get('/users', {
     params: {
       page: params.page ?? 1,
-      page_size: params.pageSize ?? 10,
+      page_size: params.pageSize ?? 20,
       ...(params.search ? { search: params.search } : {}),
     },
   });
@@ -748,12 +876,29 @@ export async function updateUserStatus(id: string, status: User['status']): Prom
 // After-Sales
 // ---------------------------------------------------------------------------
 
+const AFTER_SALE_STATUS_FROM_API: Record<string, string> = {
+  open: 'pending',
+  in_progress: 'approved',
+  closed: 'rejected',
+  resolved: 'completed',
+};
+
+const AFTER_SALE_STATUS_TO_API: Record<string, string> = {
+  pending: 'open',
+  approved: 'in_progress',
+  rejected: 'closed',
+  completed: 'resolved',
+};
+
 export async function fetchAfterSales(params: FilterParams = {}): Promise<PaginatedResponse<AfterSalesItem>> {
+  const apiStatus = params.status
+    ? AFTER_SALE_STATUS_TO_API[params.status] ?? params.status
+    : undefined;
   const { data: envelope } = await api.get('/after-sales', {
     params: {
       page: params.page ?? 1,
-      page_size: params.pageSize ?? 10,
-      status: params.status || undefined,
+      page_size: params.pageSize ?? 20,
+      status: apiStatus || undefined,
     },
   });
   const paginated = adaptPaginated<any>(envelope);
@@ -763,18 +908,35 @@ export async function fetchAfterSales(params: FilterParams = {}): Promise<Pagina
       id: String(item.id),
       userId: String(item.user_id ?? ''),
       orderId: String(item.order_id ?? ''),
+      orderNo: item.order_no ?? undefined,
       category: item.category ?? item.type ?? '',
       subject: item.subject ?? item.reason ?? '',
+      reason: item.reason ?? undefined,
       description: item.description ?? '',
-      status: item.status ?? 'open',
+      status: AFTER_SALE_STATUS_FROM_API[item.status] ?? item.status ?? 'pending',
       createdAt: item.created_at ?? '',
       updatedAt: item.updated_at ?? '',
+      replacementOrderId: item.replacement_order_id ? String(item.replacement_order_id) : undefined,
+      replacementOrderNo: item.replacement_order_no ?? undefined,
+      replacementOrderStatus: item.replacement_order_status ?? undefined,
     })),
   };
 }
 
+export async function reviewAfterSales(
+  id: string,
+  action: 'approve' | 'reject',
+  adminNote?: string,
+): Promise<void> {
+  await api.post(`/after-sales/${id}/review`, {
+    action,
+    admin_note: adminNote || undefined,
+  });
+}
+
 export async function updateAfterSalesStatus(id: string, status: string): Promise<void> {
-  await api.patch(`/after-sales/${id}/status`, { status });
+  const apiStatus = AFTER_SALE_STATUS_TO_API[status] ?? status;
+  await api.patch(`/after-sales/${id}/status`, { status: apiStatus });
 }
 
 // ---------------------------------------------------------------------------
@@ -785,7 +947,7 @@ export async function fetchClothingIntakes(params: FilterParams = {}): Promise<P
   const { data: envelope } = await api.get('/clothing-intakes', {
     params: {
       page: params.page ?? 1,
-      page_size: params.pageSize ?? 10,
+      page_size: params.pageSize ?? 20,
       status: params.status || undefined,
     },
   });
@@ -877,6 +1039,23 @@ export async function updateSystemSettings(data: Partial<SystemSettings>): Promi
     refreshTokenTtlDays: d.refresh_token_ttl_days ?? 7,
     globalRateLimit: d.global_rate_limit ?? 1000,
     perUserRateLimit: d.per_user_rate_limit ?? 60,
+  };
+}
+
+export async function fetchSystemHealth(): Promise<SystemHealth> {
+  const { data: envelope } = await api.get('/system/health');
+  return {
+    status: envelope.status ?? 'unhealthy',
+    backend: envelope.backend ?? { status: 'degraded', service: 'FastAPI', runtime: 'Uvicorn', version: envelope.version ?? '1.0.0', environment: envelope.environment ?? 'development', uptimeSeconds: 0, responseTimeMs: 0 },
+    database: envelope.database ?? { status: 'error', engine: 'MySQL', version: null, latencyMs: null, checkedQuery: 'SELECT 1' },
+    redis: envelope.redis ?? { status: 'error', version: null, latencyMs: null, purpose: 'cache / rate limiting' },
+    deployment: envelope.deployment ?? { mode: 'Docker Compose', apiDocs: '/docs', publicHealth: '/health', adminHealth: '/api/v1/system/health' },
+    checks: envelope.checks ?? [],
+    version: envelope.version ?? '1.0.0',
+    environment: envelope.environment ?? 'development',
+    uptime: envelope.uptime ?? '0m',
+    uptimeSeconds: envelope.uptimeSeconds ?? 0,
+    checkedAt: envelope.checkedAt ?? new Date().toISOString(),
   };
 }
 

@@ -2,8 +2,7 @@ import json
 import logging
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import select, func
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from app.models.supply_chain import SupplyChainRecord
 from app.services.base import BaseService
@@ -41,7 +40,9 @@ class SupplyChainService(BaseService):
                 "id": r.id,
                 "stage": r.stage,
                 "description": r.description,
+                "description_en": getattr(r, "description_en", None),
                 "location": r.location,
+                "location_en": getattr(r, "location_en", None),
                 "timestamp": r.timestamp.isoformat() if r.timestamp else None,
                 "certified": r.certified,
                 "cert_image_url": r.cert_image_url,
@@ -64,7 +65,13 @@ class SupplyChainService(BaseService):
         return out
 
     @audit_action(action="create_traceability_record", resource_type="supply_chain")
-    async def add_record(self, product_id: int, record_data: Dict[str, Any]) -> SupplyChainRecord:
+    async def add_record(
+        self,
+        product_id: int,
+        record_data: Dict[str, Any],
+        *,
+        current_user: Optional[Dict[str, Any]] = None,
+    ) -> SupplyChainRecord:
         """
         Add a new stage to a product's supply chain (Admin action).
         """
@@ -77,7 +84,9 @@ class SupplyChainService(BaseService):
             product_id=product_id,
             stage=record_data.get("stage"),
             description=record_data.get("description"),
+            description_en=record_data.get("description_en"),
             location=record_data.get("location"),
+            location_en=record_data.get("location_en"),
             latitude=record_data.get("latitude"),
             longitude=record_data.get("longitude"),
             certified=record_data.get("certified", False),
@@ -92,7 +101,13 @@ class SupplyChainService(BaseService):
         return record
 
     @audit_action(action="update_traceability_record", resource_type="supply_chain")
-    async def update_record(self, record_id: int, data: Dict[str, Any]) -> Optional[SupplyChainRecord]:
+    async def update_record(
+        self,
+        record_id: int,
+        data: Dict[str, Any],
+        *,
+        current_user: Optional[Dict[str, Any]] = None,
+    ) -> Optional[SupplyChainRecord]:
         """Partial update (admin/editor)."""
         _UPDATABLE_FIELDS = {"stage", "description", "location", "latitude", "longitude", "certified", "timestamp", "cert_image_url", "carbon_kg", "carbon_note"}
 

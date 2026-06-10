@@ -31,8 +31,8 @@ async def test_admin_dashboard_stats(app):
         stats = await admin_service.get_dashboard_stats()
         
         assert float(stats["total_donation_amount"]) >= 500.00
-        assert "pending_artworks_count" in stats
-        assert "total_users_count" in stats
+        assert "pending_artworks" in stats
+        assert "total_users" in stats
 
 @pytest.mark.asyncio
 async def test_admin_batch_moderate_artworks(app):

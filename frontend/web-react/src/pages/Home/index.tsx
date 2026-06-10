@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
 import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
@@ -10,74 +9,21 @@ import GlobeSection from '@/components/scroll/GlobeSection';
 import Planar3DScene from '@/components/scroll/Planar3DScene';
 import MagneticButton from '@/components/animations/MagneticButton';
 import { KineticTextMarquee } from '@/components/animations/KineticMarquee';
-import { artworksApi } from '@/services/artworks';
-import { donationsApi } from '@/services/donations';
-
-/* ─── Brand Pillar ─── */
-
-interface BrandPillarProps {
-  label: string;
-  value: string;
-  index: number;
-  delay?: number;
-}
-
-function BrandPillar({ label, value, index, delay = 0 }: BrandPillarProps) {
-  const prefersReducedMotion = useReducedMotion();
-
-  return (
-    <motion.div
-      {...(prefersReducedMotion ? {} : {
-        initial: { opacity: 0, y: 30 },
-        whileInView: { opacity: 1, y: 0 },
-        viewport: { once: true },
-        transition: {
-          type: 'spring',
-          stiffness: 380,
-          damping: 30,
-          delay: index * 0.1 + delay,
-        },
-      })}
-      className="border-l border-sage/40 pl-6"
-    >
-      <p className="font-display text-h3 md:text-h2 font-bold text-ink leading-[0.95]">
-        {value}
-      </p>
-      <p className="font-body text-caption text-sepia-mid tracking-[0.12em] uppercase mt-2">
-        {label}
-      </p>
-    </motion.div>
-  );
-}
+import { useUIStore } from '@/stores/uiStore';
 
 /* ─── Home Page ─── */
 
 export default function Home() {
   const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
-  /** Staggers the second WebGL instance against SupplyChainGlobe, reducing main-thread long tasks on welfare homepage entry */
+  const impactMode = useUIStore((s) => s.impactMode);
+  /** 与 SupplyChainGlobe 错开第二套 WebGL，减轻公益首页进页主线程长任务 */
   const [showPlanar, setShowPlanar] = useState(false);
   useEffect(() => {
     const id = window.setTimeout(() => setShowPlanar(true), 300);
     return () => clearTimeout(id);
   }, []);
   const { scrollYProgress } = useScroll();
-  const { data: homeLiveStats, isError: statsError } = useQuery({
-    queryKey: ['home-live-stats'],
-    queryFn: async () => {
-      const [artworks, donations] = await Promise.all([
-        artworksApi.getAll({ page_size: 1 }),
-        donationsApi.getImpactStats(),
-      ]);
-      return {
-        totalArtworks: artworks.total ?? 0,
-        totalDonations: Number(donations.total_amount ?? 0),
-        source: 'live' as const,
-      };
-    },
-    staleTime: 5 * 60 * 1000,
-    retry: 1,
-  });
 
   // CTA section scroll-driven animations — headline fades up first
   const headlineOpacity = useTransform(
@@ -127,15 +73,6 @@ export default function Home() {
     prefersReducedMotion ? [1, 1] : [0.8, 1]
   );
 
-  const brandPillars = [
-    { label: t('home.pillars.traceable'), value: '100%' },
-    { label: t('home.pillars.children'), value: (homeLiveStats?.totalArtworks ?? 0).toLocaleString() },
-    { label: t('home.pillars.reinvested'), value: Math.round(homeLiveStats?.totalDonations ?? 0).toLocaleString() },
-  ];
-  const sourceLabel = homeLiveStats?.source === 'live'
-    ? t('home.metricsSource.live', 'Live API')
-    : '--';
-
   return (
     <PageWrapper>
       {/* 3D Planar Scene -- slightly delayed mount to avoid competing with the homepage globe for GPU/main thread */}
@@ -147,53 +84,51 @@ export default function Home() {
       {/* Scroll-driven narrative */}
       <ScrollNarrative />
 
-      {/* Call to Action — scroll-driven fade in */}
-      <section className="bg-ink text-paper section-spacing">
-        <SectionContainer>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            {/* Left column — text */}
-            <motion.div style={{ opacity: headlineOpacity, y: headlineY }}>
-              <h2 className="font-display text-h2 md:text-h1 font-bold leading-[0.95] mb-6">
-                {t('home.cta.title')}
-              </h2>
-            </motion.div>
-
-            <motion.div
-              style={{ opacity: descOpacity, y: descY }}
-              className="md:col-start-2 md:row-start-1"
-            >
-              <p className="font-body text-body-sm text-warm-gray leading-relaxed max-w-md">
-                {t('home.cta.description')}
-              </p>
-            </motion.div>
-
-            {/* Right column — buttons with spring scale animation */}
-            <div className="flex flex-col gap-4 md:items-end md:col-start-2">
-              <motion.div style={{ opacity: donateOpacity, scale: donateScale }}>
-                <MagneticButton strength={0.35}>
-                  <Link
-                    to="/donate"
-                    className="inline-block font-body text-body-sm tracking-[0.15em] uppercase bg-rust text-paper px-8 py-4 cursor-pointer hover:bg-pale-gold hover:text-ink transition-all duration-300"
-                  >
-                    {t('home.cta.donate')}
-                  </Link>
-                </MagneticButton>
+      {/* Call to Action — 优衣库首页；公益模式已在首屏 Hero 提供 CTA */}
+      {!impactMode && (
+        <section className="bg-ink text-paper section-spacing">
+          <SectionContainer>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+              <motion.div style={{ opacity: headlineOpacity, y: headlineY }}>
+                <h2 className="font-display text-h2 md:text-h1 font-bold leading-[0.95] mb-6">
+                  {t('home.cta.title')}
+                </h2>
               </motion.div>
 
-              <motion.div style={{ opacity: shopOpacity, scale: shopScale }}>
-                <MagneticButton strength={0.35}>
-                  <Link
-                    to="/shop"
-                    className="inline-block font-body text-body-sm tracking-[0.15em] uppercase border border-sage/40 text-paper px-8 py-4 cursor-pointer hover:border-sage hover:text-sage-pale transition-all duration-300"
-                  >
-                    {t('home.cta.shop')}
-                  </Link>
-                </MagneticButton>
+              <motion.div
+                style={{ opacity: descOpacity, y: descY }}
+                className="md:col-start-2 md:row-start-1"
+              >
+                <p className="font-body text-body-sm text-warm-gray leading-relaxed max-w-md">
+                  {t('home.cta.description')}
+                </p>
               </motion.div>
+              <div className="flex flex-col gap-4 md:items-end md:col-start-2">
+                <motion.div style={{ opacity: donateOpacity, scale: donateScale }}>
+                  <MagneticButton strength={0.35}>
+                    <Link
+                      to="/donate"
+                      className="inline-block font-body text-body-sm tracking-[0.15em] uppercase bg-rust text-paper px-8 py-4 cursor-pointer hover:bg-pale-gold hover:text-ink transition-all duration-300"
+                    >
+                      {t('home.cta.donate')}
+                    </Link>
+                  </MagneticButton>
+                </motion.div>
+                <motion.div style={{ opacity: shopOpacity, scale: shopScale }}>
+                  <MagneticButton strength={0.35}>
+                    <Link
+                      to="/shop"
+                      className="inline-block font-body text-body-sm tracking-[0.15em] uppercase border border-sage/40 text-paper px-8 py-4 cursor-pointer hover:border-sage hover:text-sage-pale transition-all duration-300"
+                    >
+                      {t('home.cta.shop')}
+                    </Link>
+                  </MagneticButton>
+                </motion.div>
+              </div>
             </div>
-          </div>
-        </SectionContainer>
-      </section>
+          </SectionContainer>
+        </section>
+      )}
 
       {/* Editorial Marquee — continuous motion strip */}
       <KineticTextMarquee
@@ -206,38 +141,6 @@ export default function Home() {
         speed={0.6}
         className="border-y border-warm-gray/30"
       />
-
-      {/* Editorial divider */}
-      <div className="editorial-divider" aria-hidden="true" />
-
-      {/* Bottom feature strip — 3 brand pillars with whileInView stagger */}
-      <SectionContainer>
-        <div className="py-12 md:py-16">
-          <div className="flex items-baseline gap-3 mb-10">
-            <span className="font-body text-caption text-sepia-mid tracking-[0.2em]">
-              {t('common.location.shanghai')}
-            </span>
-            <span className="flex-1 h-px bg-warm-gray/40" />
-            <span className="font-body text-caption text-sepia-mid tracking-[0.2em]">
-              {t('home.est')}
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
-            {brandPillars.map((pillar, i) => (
-              <BrandPillar
-                key={pillar.label}
-                label={pillar.label}
-                value={pillar.value}
-                index={i}
-              />
-            ))}
-          </div>
-          <p className="mt-8 font-body text-caption tracking-[0.1em] uppercase text-sepia-mid">
-            {t('home.metricsSource.label', 'Metrics Source')}: {sourceLabel}
-          </p>
-        </div>
-      </SectionContainer>
     </PageWrapper>
   );
 }

@@ -19,7 +19,9 @@ class SupplyChainRecord(Base):
         nullable=False,
     )
     description = Column(Text, nullable=True)
+    description_en = Column(Text, nullable=True)
     location = Column(String(300), nullable=True)
+    location_en = Column(String(300), nullable=True)
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
     certified = Column(Boolean, default=False, nullable=False)

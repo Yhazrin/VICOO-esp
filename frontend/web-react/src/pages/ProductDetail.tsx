@@ -1,9 +1,8 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useParams, useNavigate, useLocation, matchPath } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import toast from 'react-hot-toast';
-import { motion, useReducedMotion } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 
@@ -16,7 +15,7 @@ import { useCartStore } from '@/stores/cartStore';
 import { useUIStore } from '@/stores/uiStore';
 import { productsApi } from '@/services/products';
 import { supplyChainApi } from '@/services/supply-chain';
-import { reviewsApi } from '@/services/reviewsApi';
+import ProductReviewsSection from '@/components/product/ProductReviewsSection';
 import { useAuthStore } from '@/stores/authStore';
 import type { SupplyChainTimelineRecord, TraceMediaItem } from '@/types';
 import { companyProductPath, impactProductPath } from '@/utils/productPaths';
@@ -78,13 +77,9 @@ export default function ProductDetail() {
     matchPath({ path: '/impact/shop/:id', end: true }, pathname)
   );
   const { t, i18n } = useTranslation();
-  const qc = useQueryClient();
   const { isAuthenticated } = useAuthStore();
   const prefersReducedMotion = useReducedMotion();
   const currentTheme = useUIStore((s) => s.currentTheme);
-  const [reviewRating, setReviewRating] = useState(5);
-  const [reviewTitle, setReviewTitle] = useState('');
-  const [reviewBody, setReviewBody] = useState('');
   const { data: product, isLoading: loading, isError: productError } = useQuery({
     queryKey: ['product', id, i18n.language],
     queryFn: () => productsApi.getById(id!, i18n.language),
@@ -92,16 +87,16 @@ export default function ProductDetail() {
     retry: false,
   });
 
-  const { data: linkedArtwork, isError: artworkError } = useQuery({
-    queryKey: ['product-artwork', id],
-    queryFn: () => productsApi.getArtwork(id!),
+  const { data: linkedArtwork } = useQuery({
+    queryKey: ['product-artwork', id, i18n.language],
+    queryFn: () => productsApi.getArtwork(id!, i18n.language),
     enabled: !!id && !!product?.artworkId,
     retry: false,
   });
 
-  const { data: supplyChainRaw = [], isError: supplyChainError } = useQuery({
-    queryKey: ['product-supply-chain', id],
-    queryFn: () => supplyChainApi.getProductJourney(id!),
+  const { data: supplyChainRaw = [] } = useQuery({
+    queryKey: ['product-supply-chain', id, i18n.language],
+    queryFn: () => supplyChainApi.getProductJourney(id!, i18n.language),
     enabled: !!id && !!product,
     retry: false,
   });
@@ -123,7 +118,9 @@ export default function ProductDetail() {
           id: Number(r.id) || i + 1,
           stage: r.stage,
           description: r.description,
+          description_en: (r as { description_en?: string }).description_en,
           location: r.location,
+          location_en: (r as { location_en?: string }).location_en,
           date: r.timestamp ? r.timestamp.split('T')[0] : '',
           verified: r.certified ?? false,
           partnerName: r.artisan?.name ?? r.productName ?? '',
@@ -138,35 +135,12 @@ export default function ProductDetail() {
     [supplyChainRaw]
   );
 
-  const { data: reviewsResult, isError: reviewsError } = useQuery({
-    queryKey: ['reviews', id],
-    queryFn: () => reviewsApi.listByProduct(Number(id)),
-    enabled: !!id && !!product,
-    retry: false,
-  });
-
-  const reviewMutation = useMutation({
-    mutationFn: () =>
-      reviewsApi.create({
-        product_id: Number(id),
-        rating: reviewRating,
-        title: reviewTitle || undefined,
-        body: reviewBody || undefined,
-      }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['reviews', id] });
-      setReviewTitle('');
-      setReviewBody('');
-    },
-    onError: (err: Error) => toast.error(err.message || t('review.error', 'Failed to submit review')),
-  });
-
   const [selectedImage, setSelectedImage] = useState(0);
-  const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [globePinId, setGlobePinId] = useState<number | null>(null);
+  const [artworkModalOpen, setArtworkModalOpen] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
   const setCartOpen = useCartStore((s) => s.setCartOpen);
   const addedTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
@@ -241,7 +215,7 @@ export default function ProductDetail() {
       navigate('/login', { state: { from: location.pathname } });
       return;
     }
-    addItem(product, quantity, selectedSize || undefined, selectedColor || undefined);
+    addItem(product, 1, selectedSize || undefined, selectedColor || undefined);
     setAdded(true);
     setCartOpen(true);
     if (addedTimeoutRef.current) clearTimeout(addedTimeoutRef.current);
@@ -267,8 +241,8 @@ export default function ProductDetail() {
   if (loading || !product) {
     if (isImpactProductDetail && impactHeroPreview && id) {
       return (
-        <PageWrapper>
-          <PaperTextureBackground variant="paper" className="pt-12 md:pt-16 pb-16 md:pb-24">
+        <PageWrapper className="-mt-[4.25rem] md:-mt-24">
+          <PaperTextureBackground variant="paper" className="pt-0 pb-16 md:pb-24">
             <SectionContainer>
               <div className="grid grid-cols-1 md:grid-cols-12 gap-14 md:gap-20 lg:gap-24 items-start">
                 <div className="md:col-span-6 lg:col-span-7">
@@ -316,9 +290,9 @@ export default function ProductDetail() {
   }
 
   return (
-    <PageWrapper>
+    <PageWrapper className="-mt-[4.25rem] md:-mt-24">
       {/* Product section */}
-      <PaperTextureBackground variant="paper" className="pt-12 md:pt-16 pb-16 md:pb-24">
+      <PaperTextureBackground variant="paper" className="pt-0 pb-16 md:pb-24">
         <SectionContainer>
           <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-14 lg:gap-16 items-stretch">
             {/* Images */}
@@ -340,7 +314,7 @@ export default function ProductDetail() {
                   src={productImages[selectedImage] ?? productImages[0]}
                   alt={safeProduct.name}
                   aspectRatio="portrait"
-                  size="full"
+                  size="lg"
                   viewTransitionName={
                     isImpactProductDetail && id && selectedImage === 0
                       ? `impact-product-${id}`
@@ -379,7 +353,7 @@ export default function ProductDetail() {
                 <div className="space-y-7 md:space-y-9">
                   <header className="space-y-4">
                     <span className="inline-block font-body text-[10px] md:text-[11px] tracking-[0.38em] uppercase text-sepia-mid px-3 py-1 rounded-full border border-warm-gray/20 bg-warm-gray/5">
-                      {safeProduct.category}
+                      {t(`shop.filters.${safeProduct.category}`, safeProduct.category)}
                     </span>
                     <h1 className="font-display text-[clamp(1.85rem,3.6vw,2.85rem)] text-ink font-semibold leading-[1.05] tracking-[-0.03em]">
                       {safeProduct.name}
@@ -407,7 +381,25 @@ export default function ProductDetail() {
                   )}
 
                   {linkedArtwork && (
-                    <div className="rounded-xl border border-warm-gray/20 bg-gradient-to-br from-paper/90 to-aged-stock/50 px-5 py-5 shadow-sm">
+                    <button
+                      type="button"
+                      onClick={() => setArtworkModalOpen(true)}
+                      className="block w-full text-left relative rounded-xl overflow-hidden border border-warm-gray/20 bg-gradient-to-br from-paper/90 to-aged-stock/50 px-5 py-5 shadow-sm hover:border-warm-gray/40 transition-colors duration-300 cursor-pointer"
+                    >
+                      {/* Dreamy artwork background — fades in from left to right */}
+                      {linkedArtwork.image_url && (
+                        <div
+                          className="absolute inset-0 pointer-events-none"
+                          style={{
+                            backgroundImage: `url(${linkedArtwork.image_url})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center right',
+                            maskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.85) 45%, rgba(0,0,0,0.95) 100%)',
+                            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.85) 45%, rgba(0,0,0,0.95) 100%)',
+                          }}
+                        />
+                      )}
+                      <div className="relative z-10">
                       <p className="font-body text-[10px] tracking-[0.24em] uppercase text-sepia-mid mb-3">
                         {t('shop.detail.artwork')}
                       </p>
@@ -422,6 +414,7 @@ export default function ProductDetail() {
                           </p>
                         )}
                     </div>
+                    </button>
                   )}
 
                   {hasTraceStory && (
@@ -502,65 +495,7 @@ export default function ProductDetail() {
                     </div>
                   )}
 
-                  <div className="rounded-xl border border-warm-gray/18 bg-paper/35 px-4 py-4 md:px-5 md:py-5">
-                    <div className="flex flex-wrap items-end justify-between gap-3 mb-3">
-                      <p className="font-body text-[10px] tracking-[0.22em] uppercase text-sepia-mid">
-                        {t('shop.detail.sustainability')}
-                      </p>
-                      <p className="font-display text-3xl md:text-4xl text-ink tabular-nums leading-none tracking-tight">
-                        {safeProduct.sustainabilityScore}
-                        <span className="font-body text-sm text-sepia-mid font-normal">/100</span>
-                      </p>
-                    </div>
-                    <div
-                      className="h-1.5 w-full rounded-full bg-warm-gray/25 overflow-hidden"
-                      role="presentation"
-                    >
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-sage/70 to-sage transition-[width] duration-500 ease-out"
-                        style={{ width: `${Math.min(100, Math.max(0, safeProduct.sustainabilityScore))}%` }}
-                      />
-                    </div>
-                    <div className="flex gap-1.5 mt-3" aria-hidden="true">
-                      {[1, 2, 3, 4, 5].map((level) => (
-                        <div
-                          key={level}
-                          className={`h-1 flex-1 rounded-sm ${
-                            level <= safeProduct.sustainabilityScore / 20 ? 'bg-sage/55' : 'bg-warm-gray/22'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    <label className="font-body text-[10px] tracking-[0.22em] uppercase text-sepia-mid sm:min-w-[5rem]">
-                      {t('shop.detail.quantity')}
-                    </label>
-                    <div className="inline-flex items-center rounded-full border border-warm-gray/25 bg-warm-gray/5">
-                      <button
-                        type="button"
-                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                        aria-label={t('cart.decreaseQuantity')}
-                        className="min-w-[44px] min-h-[44px] px-3 py-2 text-ink hover:bg-warm-gray/15 transition-colors duration-300 cursor-pointer rounded-l-full"
-                      >
-                        −
-                      </button>
-                      <span className="font-mono text-sm px-5 py-2 text-ink tabular-nums" aria-live="polite">
-                        {quantity}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setQuantity(quantity + 1)}
-                        aria-label={t('cart.increaseQuantity')}
-                        className="min-w-[44px] min-h-[44px] px-3 py-2 text-ink hover:bg-warm-gray/15 transition-colors duration-300 cursor-pointer rounded-r-full"
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-
-                    <div className="w-full sm:w-auto flex gap-3">
+                    <div className="w-full flex justify-center gap-3">
                       <motion.button
                         type="button"
                         whileHover={prefersReducedMotion ? undefined : { y: -1 }}
@@ -568,7 +503,7 @@ export default function ProductDetail() {
                         transition={{ type: 'spring', stiffness: 520, damping: 28 }}
                         onClick={handleAddToCart}
                         disabled={!safeProduct.inStock}
-                        className={`flex-1 sm:flex-none font-body text-[11px] md:text-body-sm tracking-[0.22em] uppercase px-8 py-4 md:py-[1.125rem] rounded-full shadow-[0_14px_40px_-22px_rgba(18,17,14,0.55)] transition-colors duration-500 ${
+                        className={`font-body text-[11px] md:text-body-sm tracking-[0.22em] uppercase px-8 py-4 md:py-[1.125rem] rounded-full shadow-[0_14px_40px_-22px_rgba(18,17,14,0.55)] transition-colors duration-500 ${
                           added
                             ? 'bg-sage text-paper'
                             : safeProduct.inStock
@@ -589,13 +524,13 @@ export default function ProductDetail() {
                           window.dispatchEvent(new CustomEvent('ai-assistant-prefill', {
                             detail: {
                               text: t('aiAssistant.productPrefill', { id }),
-                              metadata: { product_id: Number(id), impactMode: product.isImpactProduct },
+                          metadata: { product_id: Number(id), impactMode: product.isImpactProduct },
                             },
                           }));
                         }}
-                        className="flex-1 sm:flex-none inline-flex items-center justify-center rounded-full border border-warm-gray/25 bg-paper px-4 py-3 text-ink text-[11px] tracking-[0.12em] uppercase hover:bg-aged-stock transition-colors cursor-pointer"
+                        className="inline-flex items-center justify-center rounded-full bg-ink text-paper hover:bg-ink-faded px-6 py-4 md:py-[1.125rem] text-[11px] md:text-body-sm tracking-[0.22em] uppercase shadow-[0_14px_40px_-22px_rgba(18,17,14,0.55)] transition-colors duration-500 cursor-pointer"
                       >
-                        {t('aiAssistant.askAboutProduct')}
+                        ASK AI
                       </button>
                     </div>
                   </div>
@@ -663,91 +598,96 @@ export default function ProductDetail() {
         )}
       </PaperTextureBackground>
 
-      {/* Reviews */}
-      <PaperTextureBackground variant="paper" className="py-16 md:py-24">
-        <SectionContainer>
-          <h2 className="font-display text-h3 font-semibold text-ink mb-3 tracking-[-0.02em]">
-            {t('shop.detail.reviews')}
-          </h2>
-          <p className="font-body text-caption text-sepia-mid max-w-md mb-12 leading-relaxed">
-            {t('shop.detail.reviewsLead')}
-          </p>
-          <ul className="space-y-5 mb-12">
-            {reviewsError && (
-              <li className="font-body text-caption text-rust">{t('common.loadError', 'Failed to load reviews.')}</li>
-            )}
-            {!reviewsError && (reviewsResult?.data ?? []).length === 0 && (
-              <li className="font-body text-caption text-ink-faded">{t('shop.detail.noReviews')}</li>
-            )}
-            {(reviewsResult?.data ?? []).map((r) => (
-              <li
-                key={r.id}
-                className="rounded-xl border border-warm-gray/18 bg-paper/50 px-5 py-5 shadow-sm"
-              >
-                <p className="font-mono text-[10px] tracking-[0.12em] uppercase text-sepia-mid">
-                  {t('shop.detail.rating')} {r.rating}/5 · {r.created_at?.slice(0, 10)}
-                </p>
-                {r.title && (
-                  <p className="font-display text-lg text-ink mt-2.5 leading-snug tracking-tight">{r.title}</p>
-                )}
-                {r.body && (
-                  <p className="font-body text-body-sm text-ink-faded mt-2 leading-[1.75] max-w-2xl">{r.body}</p>
-                )}
-              </li>
-            ))}
-          </ul>
-          {isAuthenticated && (
-            <form
-              className="max-w-lg rounded-xl border border-warm-gray/20 bg-warm-gray/5 px-6 py-7 space-y-5"
-              onSubmit={(e) => {
-                e.preventDefault();
-                reviewMutation.mutate();
-              }}
-            >
-              <p className="font-body text-[10px] tracking-[0.22em] uppercase text-sepia-mid">
-                {t('shop.detail.writeReview')}
-              </p>
-              <label className="font-body text-caption text-ink-faded block">
-                {t('shop.detail.rating')}
-                <input
-                  type="range"
-                  min={1}
-                  max={5}
-                  value={reviewRating}
-                  onChange={(e) => setReviewRating(Number(e.target.value))}
-                  className="w-full mt-2 accent-[var(--color-ink)]"
-                />
-              </label>
-              <input
-                className="w-full rounded-full border border-warm-gray/25 bg-paper px-4 py-2.5 font-body text-body-sm text-ink placeholder:text-ink-faded/60 focus:border-warm-gray/50 outline-none transition-colors"
-                placeholder={t('shop.detail.reviewTitle')}
-                aria-label={t('shop.detail.reviewTitle')}
-                value={reviewTitle}
-                onChange={(e) => setReviewTitle(e.target.value)}
-              />
-              <textarea
-                className="w-full rounded-xl border border-warm-gray/25 bg-paper p-3 font-body text-body-sm text-ink min-h-[100px] placeholder:text-ink-faded/60 focus:border-warm-gray/45 outline-none transition-colors"
-                placeholder={t('shop.detail.reviewBody')}
-                aria-label={t('shop.detail.reviewBody')}
-                value={reviewBody}
-                onChange={(e) => setReviewBody(e.target.value)}
-              />
-              {reviewMutation.isError && (
-                <p className="text-rust font-body text-caption" role="alert">
-                  {t('shop.detail.reviewError')}
-                </p>
-              )}
-              <button
-                type="submit"
-                disabled={reviewMutation.isPending}
-                className="font-body text-[10px] tracking-[0.22em] uppercase bg-ink text-paper px-6 py-3.5 rounded-full hover:bg-ink-faded cursor-pointer disabled:opacity-50 transition-colors duration-500"
-              >
-                {reviewMutation.isPending ? t('common.loading') : t('shop.detail.submitReview')}
-              </button>
-            </form>
-          )}
-        </SectionContainer>
+      <PaperTextureBackground variant="paper">
+        {id && <ProductReviewsSection productId={Number(id)} />}
       </PaperTextureBackground>
+
+      {/* Artwork Modal — glassmorphism floating window */}
+      <AnimatePresence>
+        {artworkModalOpen && linkedArtwork?.image_url && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+            className="fixed inset-0 z-[70] flex items-center justify-center p-6"
+            style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)' }}
+            onClick={() => setArtworkModalOpen(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.88, y: 24 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 12 }}
+              transition={{
+                type: 'spring',
+                stiffness: 260,
+                damping: 28,
+                mass: 0.85,
+                restDisplacementThreshold: 0.001,
+                restSpeedThreshold: 0.001,
+              }}
+              className="relative max-w-3xl max-h-[85vh] w-full overflow-hidden"
+              style={{
+                borderRadius: 28,
+                background: 'rgba(255,255,255,0.13)',
+                backdropFilter: 'blur(40px) saturate(1.7)',
+                WebkitBackdropFilter: 'blur(40px) saturate(1.7)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                boxShadow: '0 40px 100px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.06)',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <motion.img
+                src={linkedArtwork.image_url}
+                alt={linkedArtwork.title || linkedArtwork.artist_name || 'Artwork'}
+                className="w-full h-full object-contain"
+                style={{ maxHeight: '80vh' }}
+                initial={{ scale: 1.05 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 180, damping: 22, delay: 0.08 }}
+              />
+              <motion.button
+                type="button"
+                onClick={() => setArtworkModalOpen(false)}
+                className="absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center cursor-pointer"
+                style={{
+                  background: 'rgba(0,0,0,0.25)',
+                  backdropFilter: 'blur(12px)',
+                  color: '#fff',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                }}
+                whileHover={{ scale: 1.12 }}
+                whileTap={{ scale: 0.88, rotate: 90 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </motion.button>
+              {linkedArtwork.artist_name && (
+                <motion.div
+                  className="absolute bottom-0 left-0 right-0 px-6 py-4"
+                  style={{
+                    background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 100%)',
+                  }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <p className="font-display text-lg text-white font-semibold">
+                    {linkedArtwork.artist_name}
+                  </p>
+                  {linkedArtwork.title && linkedArtwork.title !== linkedArtwork.artist_name && (
+                    <p className="font-body text-sm text-white/80 mt-1">
+                      {linkedArtwork.title}
+                    </p>
+                  )}
+                </motion.div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Back link */}
       <SectionContainer className="py-10">

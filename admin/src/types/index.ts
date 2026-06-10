@@ -31,6 +31,7 @@ export interface Artwork {
 export interface Campaign {
   id: string;
   title: string;
+  subtitle?: string;
   description: string;
   startDate: string;
   endDate: string;
@@ -41,6 +42,21 @@ export interface Campaign {
   artworkCount: number;
   coverImage?: string;
   createdAt: string;
+  // Sustainability loop fields
+  sustainabilityEyebrow?: string;
+  sustainabilityTitle?: string;
+  sustainabilitySubtitle?: string;
+  sustainabilityP1Title?: string;
+  sustainabilityP1Body?: string;
+  sustainabilityP2Title?: string;
+  sustainabilityP2Body?: string;
+  sustainabilityP3Title?: string;
+  sustainabilityP3Body?: string;
+  sustainabilityP4Title?: string;
+  sustainabilityP4Body?: string;
+  sustainabilityFootnote?: string;
+  sustainabilityCtaTraceability?: string;
+  sustainabilityCtaShop?: string;
 }
 
 export interface Donation {
@@ -66,7 +82,7 @@ export interface Order {
   userName: string;
   items: OrderItem[];
   totalAmount: number;
-  status: 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
+  status: 'pending' | 'paid' | 'shipped' | 'completed' | 'cancelled';
   paymentMethod: string;
   shippingAddress: string;
   trackingNo?: string;
@@ -138,6 +154,8 @@ export interface FilterParams {
   sortOrder?: 'asc' | 'desc';
   startDate?: string;
   endDate?: string;
+  campaignId?: string;
+  isImpactProduct?: boolean;
 }
 
 export interface PaymentMethodConfig {
@@ -161,6 +179,60 @@ export interface SystemSettings {
   refreshTokenTtlDays: number;
   globalRateLimit: number;
   perUserRateLimit: number;
+}
+
+export interface BackendHealth {
+  status: 'healthy' | 'degraded';
+  service: string;
+  runtime: string;
+  version: string;
+  environment: string;
+  uptimeSeconds: number;
+  responseTimeMs: number;
+}
+
+export interface DatabaseHealth {
+  status: 'connected' | 'error';
+  engine: string;
+  version: string | null;
+  latencyMs: number | null;
+  checkedQuery: string;
+}
+
+export interface RedisHealth {
+  status: 'connected' | 'error';
+  version: string | null;
+  latencyMs: number | null;
+  purpose: string;
+}
+
+export interface DeploymentInfo {
+  mode: string;
+  apiDocs: string;
+  publicHealth: string;
+  adminHealth: string;
+}
+
+export interface HealthCheck {
+  name: string;
+  status: string;
+  latencyMs?: number | null;
+  version?: string | null;
+  mode?: string;
+}
+
+export interface SystemHealth {
+  status: 'healthy' | 'degraded' | 'unhealthy';
+  backend: BackendHealth;
+  database: DatabaseHealth;
+  redis: RedisHealth;
+  deployment: DeploymentInfo;
+  checks: HealthCheck[];
+  version: string;
+  environment: string;
+  uptime: string;
+  uptimeSeconds: number;
+  checkedAt: string;
 }
 
 export interface AdminProduct {
@@ -212,12 +284,17 @@ export interface TraceMediaItem {
 export interface AfterSalesItem {
   id: string;
   orderId: string;
+  orderNo?: string;
   userId: string;
   category: string;
   subject: string;
+  reason?: string;
   description: string;
   status: string;
   createdAt: string;
+  replacementOrderId?: string;
+  replacementOrderNo?: string;
+  replacementOrderStatus?: string;
 }
 
 export interface ClothingDonationItem {
@@ -236,7 +313,9 @@ export interface SupplyChainRecord {
   productId: string;
   stage: 'material_sourcing' | 'processing' | 'manufacturing' | 'quality_check' | 'shipping';
   description: string;
+  descriptionEn?: string;
   location: string;
+  locationEn?: string;
   latitude?: number;
   longitude?: number;
   certified: boolean;

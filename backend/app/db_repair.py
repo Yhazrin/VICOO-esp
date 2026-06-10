@@ -41,12 +41,16 @@ _IMPACT_TITLE_MARKERS = (
     "妈妈的手",
     "太空旅行",
     "我的家帆布鞋",
-    "画出未来",
+    "未来城市",
     "过年了",
     "海豚之歌",
     "牧羊曲",
     "再生纤维披肩",
-    "手工拼布壁挂",
+    "手绘方巾",
+    "棉麻衬衫",
+    "圆领卫衣",
+    "连帽卫衣",
+    "针织开衫",
 )
 
 _COMPANY_TITLE_MARKERS = (
@@ -73,17 +77,85 @@ def _company_from_title(name: str) -> bool:
 
 
 def _needs_impact_image_refresh(url: str | None) -> bool:
-    """空链接、Unsplash、或已废弃的 /static/products/*.jpg 占位，需写回 Picsum。"""
+    """空链接、Unsplash、或旧占位图需写回；本地 /static/products/ 自有图保留。"""
     u = (url or "").strip()
     if not u:
         return True
-    if "picsum.photos" in u:
+    _current_urls = set(IMPACT_PRODUCT_IMAGE_BY_NAME.values())
+    if u in _current_urls:
         return False
-    if "/static/products/" in u:
+    if "picsum.photos" in u:
         return True
     if "unsplash.com" in u:
         return True
     return False
+
+
+_IMPACT_PRODUCT_RENAME: dict[str, dict] = {
+    "星星之夜帆布袋": {
+        "name": "星星之夜帆布托特包",
+        "description": "GRS 认证再生棉帆布，印有获奖画作《星星之夜》。可溯源再生棉帆布，日常通勤与公益表达兼得。",
+    },
+    "妈妈的手环保笔记本": {
+        "name": "妈妈的手棉麻衬衫",
+        "description": "天然棉麻混纺面料，胸前手绘线稿刺绣风印花源自获奖画作《妈妈的手》。强调天然纤维原料可溯源。",
+        "price": 198.00,
+        "category": "apparel",
+    },
+    "太空旅行马克杯": {
+        "name": "太空旅行圆领卫衣",
+        "description": "中厚卫衣面料，胸前满印儿童宇宙涂鸦《太空旅行》。送给每个仰望星空的梦想家。",
+        "price": 228.00,
+        "category": "apparel",
+    },
+    "画出未来环保抱枕": {
+        "name": "未来城市连帽卫衣",
+        "description": "加绒连帽卫衣，背后满印儿童手绘未来城市画作《未来城市》。适合秋冬联名穿搭。",
+        "price": 268.00,
+        "category": "apparel",
+    },
+    "过年了限定礼盒": {
+        "name": "过年了针织开衫",
+        "description": "可溯源羊毛与再生纤维混纺针织开衫，正面提花织入儿童节日画作《过年了》。温暖的公益穿搭。",
+        "price": 328.00,
+        "category": "apparel",
+    },
+    "海豚之歌·再生纤维披肩": {
+        "name": "海豚之歌再生纤维披肩",
+    },
+    "牧羊曲·手工拼布壁挂": {
+        "name": "牧羊曲手绘方巾",
+        "description": "牧羊主题儿童画作《牧羊曲》转化为穿搭用方巾，可作头巾或颈巾。有机棉面料，甘肃定西工坊手工印制。",
+        "price": 88.00,
+        "category": "accessories",
+        "stock": 180,
+    },
+}
+
+
+async def repair_impact_product_renames(session: AsyncSession) -> int:
+    """幂等：把数据库中旧产品名 → 新产品名 + 新属性。"""
+    result = await session.execute(select(Product).where(Product.is_impact_product.is_(True)))
+    updated = 0
+    for p in result.scalars().all():
+        key = (p.name or "").strip()
+        patch = _IMPACT_PRODUCT_RENAME.get(key)
+        if not patch:
+            continue
+        for attr, val in patch.items():
+            if attr == "price":
+                from decimal import Decimal
+                setattr(p, attr, Decimal(str(val)))
+            else:
+                setattr(p, attr, val)
+        new_name = patch.get("name", key)
+        img = IMPACT_PRODUCT_IMAGE_BY_NAME.get(new_name)
+        if img:
+            p.image_url = img
+        updated += 1
+    if updated:
+        logger.info("db_repair: renamed/updated impact products: %s", updated)
+    return updated
 
 
 async def repair_impact_product_images(session: AsyncSession) -> int:
@@ -106,14 +178,19 @@ async def repair_impact_product_images(session: AsyncSession) -> int:
 
 async def repair_legacy_static_product_image_urls(session: AsyncSession) -> int:
     """
-    旧种子 / 演示里使用了不存在的 /static/products/*.jpg。按商品名对齐公益主图或常规店目录，否则 Picsum。
-    幂等；需在 repair_impact_product_images 之后执行，以便仅处理 is_impact=False 的占位行。
+    旧种子 / 演示里使用了不存在的 /static/products/*.jpg 占位。
+    按商品名对齐公益主图或常规店目录，否则 Picsum。
+    幂等；需在 repair_impact_product_images 之后执行。
+    注：当前 /static/products/ 下存有自有产品图，仅替换不在白名单中的旧占位。
     """
+    _current_urls = set(IMPACT_PRODUCT_IMAGE_BY_NAME.values())
     result = await session.execute(select(Product))
     updated = 0
     for p in result.scalars().all():
         u = (p.image_url or "").strip()
         if "/static/products/" not in u:
+            continue
+        if u in _current_urls:
             continue
         name = (p.name or "").strip()
         fixed = (
@@ -165,6 +242,7 @@ async def repair_product_catalog(session: AsyncSession) -> int:
     if created:
         logger.info("db_repair: created baseline company SKUs: %s", created)
 
+    await repair_impact_product_renames(session)
     await repair_impact_product_images(session)
     await repair_legacy_static_product_image_urls(session)
     return created
