@@ -1,7 +1,7 @@
 """add missing column indexes for frequently filtered columns
 
-Revision ID: m3n4o5p6q7r8
-Revises: k2l3m4n5o6p7
+Revision ID: r8s9t0u1v2w3
+Revises: q7r8s9t0u1v2
 Create Date: 2026-05-27
 
 """
@@ -11,8 +11,8 @@ from alembic import op
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'm3n4o5p6q7r8'
-down_revision: Union[str, None] = 'k2l3m4n5o6p7'
+revision: str = 'r8s9t0u1v2w3'
+down_revision: Union[str, None] = 'q7r8s9t0u1v2'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
