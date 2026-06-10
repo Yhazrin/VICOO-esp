@@ -17,21 +17,31 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
+def _index_exists(table: str, index_name: str) -> bool:
+    bind = op.get_bind()
+    result = bind.execute(
+        __import__('sqlalchemy').text(
+            "SELECT COUNT(*) FROM information_schema.statistics "
+            "WHERE table_schema = DATABASE() AND table_name = :t AND index_name = :i"
+        ),
+        {"t": table, "i": index_name},
+    )
+    return result.scalar() > 0
+
+
 def upgrade() -> None:
-    # Products: status filtered in most product queries
-    op.create_index(op.f('ix_products_status'), 'products', ['status'], unique=False)
-    # Users: role checked in every require_role() call and analytics queries
-    op.create_index(op.f('ix_users_role'), 'users', ['role'], unique=False)
-    # Payment transactions: status queried during payment verification
-    op.create_index(op.f('ix_payment_transactions_status'), 'payment_transactions', ['status'], unique=False)
-    # Child participants: status filtered in admin queries
-    op.create_index(op.f('ix_child_participants_status'), 'child_participants', ['status'], unique=False)
-    # Editorial articles: category filtered in listing queries
-    op.create_index(op.f('ix_editorial_articles_category'), 'editorial_articles', ['category'], unique=False)
-    # Donations: payment_method filtered in analytics queries
-    op.create_index(op.f('ix_donations_payment_method'), 'donations', ['payment_method'], unique=False)
-    # After-sale tickets: category filtered in listing queries
-    op.create_index(op.f('ix_after_sale_tickets_category'), 'after_sale_tickets', ['category'], unique=False)
+    indexes = [
+        ('ix_products_status', 'products', ['status']),
+        ('ix_users_role', 'users', ['role']),
+        ('ix_payment_transactions_status', 'payment_transactions', ['status']),
+        ('ix_child_participants_status', 'child_participants', ['status']),
+        ('ix_editorial_articles_category', 'editorial_articles', ['category']),
+        ('ix_donations_payment_method', 'donations', ['payment_method']),
+        ('ix_after_sale_tickets_category', 'after_sale_tickets', ['category']),
+    ]
+    for idx_name, table, columns in indexes:
+        if not _index_exists(table, idx_name):
+            op.create_index(op.f(idx_name), table, columns, unique=False)
 
 
 def downgrade() -> None:
