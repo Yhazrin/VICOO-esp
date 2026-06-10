@@ -17,6 +17,18 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
+def _table_exists(table: str) -> bool:
+    bind = op.get_bind()
+    result = bind.execute(
+        __import__('sqlalchemy').text(
+            "SELECT COUNT(*) FROM information_schema.tables "
+            "WHERE table_schema = DATABASE() AND table_name = :t"
+        ),
+        {"t": table},
+    )
+    return result.scalar() > 0
+
+
 def _index_exists(table: str, index_name: str) -> bool:
     bind = op.get_bind()
     result = bind.execute(
@@ -40,7 +52,7 @@ def upgrade() -> None:
         ('ix_after_sale_tickets_category', 'after_sale_tickets', ['category']),
     ]
     for idx_name, table, columns in indexes:
-        if not _index_exists(table, idx_name):
+        if _table_exists(table) and not _index_exists(table, idx_name):
             op.create_index(op.f(idx_name), table, columns, unique=False)
 
 
