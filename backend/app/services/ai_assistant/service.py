@@ -443,7 +443,7 @@ Return a JSON object with: suggested_title, suggested_tags (list), style_descrip
                 ).order_by(Donation.created_at.desc()).limit(5)
                 donations = (await self.db.execute(stmt)).scalars().all()
                 if donations:
-                    ctx += f"User recent donation history:\n"
+                    ctx += "User recent donation history:\n"
                     for d in donations:
                         ts = d.created_at.strftime("%Y-%m-%d") if d.created_at else "N/A"
                         ctx += f"  - {ts} | {d.amount} {d.currency} | {d.payment_method or 'N/A'} | {d.status}\n"

@@ -634,38 +634,43 @@ async def request_return(
                 "price": str(oi.price),
             })
 
-    import json as _json
-    ticket_items_payload = {
-        "items": items_desc,
-        "type": body.type,
-        "exchange_product_id": body.exchange_product_id,
-        "exchange_size": body.exchange_size,
-        "exchange_color": body.exchange_color,
-        "reason": body.reason,
-    }
-    description_parts = [f"Items: {_json.dumps(items_desc, ensure_ascii=False)}"]
-    if body.reason:
-        description_parts.append(f"Reason: {body.reason}")
-    if body.type == "exchange":
-        if body.exchange_product_id:
-            description_parts.append(f"Exchange product ID: {body.exchange_product_id}")
-        if body.exchange_size:
-            description_parts.append(f"Exchange size: {body.exchange_size}")
-        if body.exchange_color:
-            description_parts.append(f"Exchange color: {body.exchange_color}")
+        import json as _json
+        ticket_items_payload = {
+            "items": items_desc,
+            "type": body.type,
+            "exchange_product_id": body.exchange_product_id,
+            "exchange_size": body.exchange_size,
+            "exchange_color": body.exchange_color,
+            "reason": body.reason,
+        }
+        description_parts = [f"Items: {_json.dumps(items_desc, ensure_ascii=False)}"]
+        if body.reason:
+            description_parts.append(f"Reason: {body.reason}")
+        if body.type == "exchange":
+            if body.exchange_product_id:
+                description_parts.append(f"Exchange product ID: {body.exchange_product_id}")
+            if body.exchange_size:
+                description_parts.append(f"Exchange size: {body.exchange_size}")
+            if body.exchange_color:
+                description_parts.append(f"Exchange color: {body.exchange_color}")
 
-    ticket = AfterSaleTicket(
-        user_id=current_user["id"],
-        order_id=order_id,
-        category=body.type,
-        status="open",
-        subject=f"{'退货' if body.type == 'return' else '换货'}申请 - {order.order_no}",
-        description="\n".join(description_parts),
-        items=_json.dumps(ticket_items_payload, ensure_ascii=False),
-    )
-    db.add(ticket)
-    await db.flush()
-    await db.refresh(ticket)
+        ticket = AfterSaleTicket(
+            user_id=current_user["id"],
+            order_id=order_id,
+            category=body.type,
+            status="open",
+            subject=f"{'退货' if body.type == 'return' else '换货'}申请 - {order.order_no}",
+            description="\n".join(description_parts),
+            items=_json.dumps(ticket_items_payload, ensure_ascii=False),
+        )
+        db.add(ticket)
+        await db.flush()
+        await db.refresh(ticket)
 
-    from app.services.after_sales.service import enrich_tickets
-    return ApiResponse(data=(await enrich_tickets(db, [ticket]))[0])
+        from app.services.after_sales.service import enrich_tickets
+        return ApiResponse(data=(await enrich_tickets(db, [ticket]))[0])
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Failed to create after-sale ticket: %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to create after-sale ticket")

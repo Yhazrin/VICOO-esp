@@ -29,7 +29,6 @@ class OrderService(BaseService):
         keyword: Optional[str] = None,
         date_from: Optional[str] = None,
         date_to: Optional[str] = None,
-        is_admin: bool = False,
     ) -> Tuple[List[Order], int]:
         """
         List orders with pagination and optional filters.

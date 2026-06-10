@@ -175,27 +175,32 @@ async def publish_product_from_intake(
         db.add(product)
         await db.flush()
 
-    intake.product_id = product.id
-    intake.status = "listed"
-    await db.flush()
-    await db.refresh(intake)
-    await db.refresh(product)
+        intake.product_id = product.id
+        intake.status = "listed"
+        await db.flush()
+        await db.refresh(intake)
+        await db.refresh(product)
 
-    # Audit log
-    ip = request.client.host if request else None
-    await log_audit(
-        db=db,
-        user_id=staff.get("id"),
-        action="publish_product_from_intake",
-        resource="clothing_intake",
-        resource_id=str(intake_id),
-        details={"product_id": product.id, "product_name": body.name},
-        ip_address=ip,
-    )
+        # Audit log
+        ip = request.client.host if request else None
+        await log_audit(
+            db=db,
+            user_id=staff.get("id"),
+            action="publish_product_from_intake",
+            resource="clothing_intake",
+            resource_id=str(intake_id),
+            details={"product_id": product.id, "product_name": body.name},
+            ip_address=ip,
+        )
 
-    return ApiResponse(
-        data={
-            "intake": ClothingIntakeOut.model_validate(intake).model_dump(),
-            "product": ProductOut.model_validate(product).model_dump(),
-        }
-    )
+        return ApiResponse(
+            data={
+                "intake": ClothingIntakeOut.model_validate(intake).model_dump(),
+                "product": ProductOut.model_validate(product).model_dump(),
+            }
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Failed to publish product from intake")
+        raise HTTPException(status_code=500, detail="Failed to publish product")

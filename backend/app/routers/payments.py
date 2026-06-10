@@ -274,11 +274,10 @@ async def alipay_notify(request: Request, db: AsyncSession = Depends(get_db)):
         # --- Create payment transaction record ---
         payment_tx = PaymentTransaction(
             order_id=order.id if order else None,
-            donation_id=None,
+            donation_id=donation_id,
             amount=total_amount,
             method="alipay",
             order_no=out_trade_no if not donation_id else None,
-            donation_id=donation_id,
             raw_data=params,
         )
         logger.info("Alipay payment processed: TX=%s", trade_no)
