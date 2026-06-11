@@ -75,15 +75,17 @@ async def _count_active_tokens(user_id: int) -> int:
 
 @pytest.fixture
 def mock_mailer():
-    """Patch both reset and recovery mailer functions on the auth router.
+    """Patch reset + recovery mailers on the *router* module.
 
-    Patches the names in the *source* module (`app.services.mailer`) so the
-    patch works whether the router has imported them yet or not.
+    The router binds `send_password_reset_email` into its own namespace at
+    import time, so patching `app.services.mailer.send_password_reset_email`
+    wouldn't intercept the router's call. Patching the names on the router
+    itself is the only way to make `await_args` populate.
     """
     with patch(
-        "app.services.mailer.send_password_reset_email", new=AsyncMock()
+        "app.routers.auth.send_password_reset_email", new=AsyncMock()
     ) as mock_reset, patch(
-        "app.services.mailer.send_password_recovery_email", new=AsyncMock()
+        "app.routers.auth.send_password_recovery_email", new=AsyncMock()
     ) as mock_recovery:
         yield {"reset": mock_reset, "recovery": mock_recovery}
 
@@ -155,7 +157,7 @@ async def test_verify_otp_wrong_increments_attempts(client, mock_mailer):
         f"{API}/auth/reset/verify-otp", json={"token": token, "otp": "000000"}
     )
     assert r.status_code == 400, r.text
-    assert r.json()["detail"]["code"] == "invalid_otp"
+    assert r.json()["code"] == "invalid_otp"
     row = await _get_token_row(token)
     assert row is not None and row.otp_attempts == 1
 
@@ -175,7 +177,7 @@ async def test_verify_otp_5_wrong_locks_token(client, mock_mailer):
         f"{API}/auth/reset/verify-otp", json={"token": token, "otp": "999999"}
     )
     assert r6.status_code == 400, r6.text
-    assert r6.json()["detail"]["code"] == "too_many_attempts"
+    assert r6.json()["code"] == "too_many_attempts"
 
 
 @pytest.mark.asyncio
@@ -195,7 +197,7 @@ async def test_verify_otp_expired_returns_400(client, mock_mailer):
         f"{API}/auth/reset/verify-otp", json={"token": token, "otp": otp}
     )
     assert r.status_code == 400, r.text
-    assert r.json()["detail"]["code"] == "expired"
+    assert r.json()["code"] == "expired"
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -238,7 +240,7 @@ async def test_confirm_second_use_rejected(client, mock_mailer):
         json={"token": token, "otp": otp, "new_password": "AnotherPass1!"},
     )
     assert r2.status_code == 400, r2.text
-    assert r2.json()["detail"]["code"] == "expired"
+    assert r2.json()["code"] == "expired"
 
 
 @pytest.mark.asyncio
@@ -261,7 +263,7 @@ async def test_confirm_wrong_otp_rejected_even_after_successful_verify(client, m
         json={"token": token, "otp": fake_otp, "new_password": "NewPassword1!"},
     )
     assert r.status_code == 400, r.text
-    assert r.json()["detail"]["code"] == "invalid_otp"
+    assert r.json()["code"] == "invalid_otp"
 
 
 @pytest.mark.asyncio
@@ -294,7 +296,7 @@ async def test_confirm_writes_audit_log(client, mock_mailer):
     assert r.status_code == 200, r.text
     async with AsyncSessionLocal() as session:
         result = await session.execute(
-            text("SELECT action, user_id FROM audit_log WHERE user_id = :uid"),
+            text("SELECT action, user_id FROM audit_logs WHERE user_id = :uid"),
             {"uid": user.id},
         )
         actions = [row[0] for row in result.fetchall()]

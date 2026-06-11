@@ -4,7 +4,6 @@ Stores a hashed one-time reset token + hashed OTP, with expiry and
 attempt counter. The raw values are never persisted.
 """
 from sqlalchemy import (
-    BigInteger,
     Column,
     DateTime,
     ForeignKey,
@@ -20,7 +19,7 @@ from app.database import Base
 class PasswordResetToken(Base):
     __tablename__ = "password_reset_tokens"
 
-    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(
         Integer,
         ForeignKey("users.id", ondelete="CASCADE"),

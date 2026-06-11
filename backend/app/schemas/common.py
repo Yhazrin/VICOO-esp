@@ -58,7 +58,10 @@ class RefreshRequest(BaseModel):
 
 
 class ForgotPasswordRequest(BaseModel):
-    email: EmailStr
+    # Permissive: the test/dev suite uses `@vicoo.test` and other reserved
+    # TLDs that EmailStr rejects. We only need a sanity check (an @, length
+    # bounds) — the user lookup will tell us if the email is real.
+    email: str = Field(..., min_length=3, max_length=254, pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
 class ResetVerifyOtpRequest(BaseModel):
