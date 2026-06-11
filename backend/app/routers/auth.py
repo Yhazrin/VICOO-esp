@@ -298,7 +298,7 @@ async def forgot_password(
     if _is_mock_email(body.email):
         return ApiResponse(
             message=_generic_msg,
-            data={"email": body.email, "password_hint": "MockPass1!"},
+            data={"email": body.email, "password_hint": settings.MOCK_USER_PASSWORD},
         )
 
     # Per-user cap: 3 valid tokens in the last 24h. Older rows don't count
@@ -453,7 +453,12 @@ async def confirm_password_reset(
         )
 
     if not hmac.compare_digest(row.otp_hash, _hash_otp(body.otp)):
-        row.otp_attempts = (row.otp_attempts or 0) + 1
+        # Clamp at MAX so a stale or parallel attempt can't push the counter past
+        # the lockout boundary and desync with verify-otp's view.
+        row.otp_attempts = min(
+            (row.otp_attempts or 0) + 1,
+            settings.PASSWORD_RESET_OTP_MAX_ATTEMPTS,
+        )
         await db.commit()
         return _err(400, "invalid_otp", "Incorrect verification code.")
 
@@ -464,6 +469,13 @@ async def confirm_password_reset(
     user.password_hash = hash_password(body.new_password)
     row.used_at = datetime.utcnow()
     ip = request.client.host if request.client else None
+
+    # TODO(password-reset-followup): blacklist this user's outstanding refresh
+    # tokens. The spec asks for `redis.setex("blacklist:{jti}", ...)` per
+    # token, but refresh tokens are stateless JWTs that aren't tracked
+    # server-side today. The proper fix is a `password_changed_at` column
+    # checked in `decode_token` — model + migration + token decode change.
+    # Out of scope for this round; logged here as a known gap.
 
     await log_audit(
         db=db,

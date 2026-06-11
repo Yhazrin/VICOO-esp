@@ -312,11 +312,11 @@ async def test_confirm_writes_audit_log(client, mock_mailer):
 async def test_mock_account_returns_password_hint(client, mock_mailer, monkeypatch):
     monkeypatch.setattr(settings, "DEMO_MODE", True)
     email = "vicoo-tester@vicoo.test"
-    await _create_user(email, "MockPass1!")
+    await _create_user(email, settings.MOCK_USER_PASSWORD)
     r = await client.post(f"{API}/auth/forgot-password", json={"email": email})
     assert r.status_code == 200, r.text
     data = r.json()["data"]
     assert "password_hint" in data
-    assert data["password_hint"] == "MockPass1!"
+    assert data["password_hint"] == settings.MOCK_USER_PASSWORD
     mock_mailer["reset"].assert_not_awaited()
     mock_mailer["recovery"].assert_not_awaited()
