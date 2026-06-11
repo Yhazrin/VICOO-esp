@@ -621,7 +621,7 @@ async def seed():
         # 公益商品：is_impact_product=True，配图为可直连的 HTTPS（与上方 artworks.id 一一对应）
         print("Upserting products...")
 
-        def _upsert_product(session: AsyncSession, product_data: dict, is_impact: bool) -> Product:
+        async def _upsert_product(session: AsyncSession, product_data: dict, is_impact: bool) -> Product:
             """UPSERT product: update if exists, insert if not.
 
             For impact products, match by artwork_id.
@@ -631,13 +631,13 @@ async def seed():
 
             if is_impact and product_data.get("artwork_id"):
                 # Match by artwork_id for impact products
-                result = session.execute(
+                result = await session.execute(
                     select(Product).where(Product.artwork_id == product_data["artwork_id"])
                 )
                 existing = result.scalar_one_or_none()
             else:
                 # Match by name for regular products
-                result = session.execute(
+                result = await session.execute(
                     select(Product).where(Product.name == product_data["name"])
                 )
                 existing = result.scalar_one_or_none()
@@ -802,11 +802,11 @@ async def seed():
             if story.get("content_en"):
                 pdata["trace_story_content_en"] = story["content_en"]
 
-            p = _upsert_product(session, pdata, is_impact=True)
+            p = await _upsert_product(session, pdata, is_impact=True)
             all_products.append(p)
 
         for pdata in regular_products_data:
-            p = _upsert_product(session, pdata, is_impact=False)
+            p = await _upsert_product(session, pdata, is_impact=False)
             all_products.append(p)
 
         await session.flush()

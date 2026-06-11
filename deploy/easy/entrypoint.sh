@@ -50,11 +50,20 @@ python -m alembic upgrade head
 
 echo "Migrations complete."
 
-# 空库时在本进程先灌演示数据，再启动 uvicorn —— 避免 lifespan 里长时间 seed 导致健康检查连不上 :8000
-# （lifespan 仍会检测到已有用户并跳过 seed，兼容本地非 Docker 启动）
-echo "Checking demo seed..."
-UVICORN_RELOAD="${UVICORN_RELOAD:-0}"
-python - <<'PY'
+# One-shot seed guard: /data/.seed_v1 marker file
+# When the marker is present, skip auto-seed entirely (subsequent
+# deployments must NOT re-seed). To force a re-seed:
+#   1. Delete the marker
+#   2. Run `python -m app.scripts.full_reseed` inside the container
+#   3. Re-create the marker: `touch /data/.seed_v1`
+SEED_MARKER="${SEED_MARKER:-/data/.seed_v1}"
+
+if [ -f "$SEED_MARKER" ]; then
+    echo "Seed marker present ($SEED_MARKER) — skipping demo seed."
+else
+    echo "No seed marker found. Running first-time demo seed..."
+    UVICORN_RELOAD="${UVICORN_RELOAD:-0}"
+    python - <<'PY'
 import asyncio
 
 from app.seed import maybe_seed_demo
@@ -62,24 +71,31 @@ from app.seed import maybe_seed_demo
 asyncio.run(maybe_seed_demo())
 PY
 
-# Reset seed user credentials on every deployment (in case testers changed passwords)
-echo "Resetting seed user credentials..."
-cd /app/backend
-python - <<'PY'
+    # Reset seed user credentials (tester-proofing)
+    echo "Resetting seed user credentials..."
+    cd /app/backend
+    python - <<'PY'
 import asyncio
 from app.seed import reset_seed_users
 asyncio.run(reset_seed_users())
 PY
 
-echo "Backfilling rainbow fish trace photos..."
-cd /app/backend
-python - <<'PY'
+    # Backfill rainbow fish trace photos
+    echo "Backfilling rainbow fish trace photos..."
+    cd /app/backend
+    python - <<'PY'
 import asyncio
 
 from app.backfill_rainbow_fish_gallery import main
 
 asyncio.run(main())
 PY
+
+    # Stamp the marker so this block never runs again
+    mkdir -p "$(dirname "$SEED_MARKER")"
+    echo "Stamping seed marker at $SEED_MARKER"
+    date -u +"%Y-%m-%dT%H:%M:%SZ" > "$SEED_MARKER"
+fi
 
 echo "Starting VICOO API..."
 
