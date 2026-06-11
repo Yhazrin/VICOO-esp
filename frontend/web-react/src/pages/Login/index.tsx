@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -61,6 +61,20 @@ export default function Login() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [resetSuccess, setResetSuccess] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get('reset') === 'success') {
+      setResetSuccess(true);
+      // Clear the param so a refresh doesn't re-show the banner.
+      const next = new URLSearchParams(searchParams);
+      next.delete('reset');
+      const qs = next.toString();
+      navigate(qs ? `?${qs}` : location.pathname, { replace: true });
+      const timer = setTimeout(() => setResetSuccess(false), 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams, navigate]);
 
   // ADFS-inspired identity detection state
   const [detectedMode, setDetectedMode] = useState<LoginMode>('user');
@@ -457,6 +471,17 @@ export default function Login() {
                 {t('login.forgotPassword')}
               </Link>
             </div>
+
+            {resetSuccess && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                role="status"
+                className="font-body text-caption text-emerald-800 bg-emerald-50 border border-emerald-200/60 rounded-full px-4 py-2 text-center"
+              >
+                {t('login.successReset')}
+              </motion.div>
+            )}
 
             {(submitError || loginError) && (
               <motion.div
