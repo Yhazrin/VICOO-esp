@@ -13,8 +13,6 @@ logger = logging.getLogger(__name__)
 
 
 def _serialize_campaign(campaign, *, include_description: bool = False) -> dict:
-    from app.schemas.campaign import CampaignListItem, CampaignOut
-
     schema = CampaignOut if include_description else CampaignListItem
     data = schema.model_validate(campaign).model_dump()
     data["display_status"] = resolve_campaign_phase(
