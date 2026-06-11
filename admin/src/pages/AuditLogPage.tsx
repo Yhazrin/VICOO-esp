@@ -241,7 +241,11 @@ export default function AuditLogPage() {
       {/* Charts */}
       <div className="dashboard-charts-grid" style={{ marginBottom: 24 }}>
         <AuditActivityChart data={activityTrendData} />
-        <EventTypeChart data={eventTypeData} />
+        <EventTypeChart
+          data={eventTypeData}
+          focusedKey={actionFilter || null}
+          onFocusChange={(key) => { setActionFilter(key); setPage(1); }}
+        />
       </div>
 
       {/* Filters */}
