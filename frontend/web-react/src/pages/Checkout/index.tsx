@@ -384,8 +384,8 @@ export default function Checkout() {
 
   const handlePlaceOrder = async () => {
     if (placingRef.current) return;
-    if (!selectedAddressId && !/^1\d{10}$/.test(address.phone.trim())) {
-      setError(t('checkout.phoneInvalid', 'Please enter a valid 11-digit phone number'));
+    if (!selectedAddressId && !validatePhone(address.phone.trim(), address.country)) {
+      setError(getPhoneError(address.country, t));
       return;
     }
     placingRef.current = true;
@@ -419,6 +419,7 @@ export default function Checkout() {
         order.mock_pay_token
       ) as string | undefined;
       if (!token) {
+        console.error('[handlePlaceOrder] order response missing mock_pay_token', { order: rawOrder });
         setError(t('checkout.error'));
         placingRef.current = false;
         return;
@@ -440,9 +441,19 @@ export default function Checkout() {
       });
       // Keep placingRef = true — polling will handle reset via pendingPayOrder change
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : '';
-      if (msg.includes('422') || msg.includes('stock')) {
+      const status = (err as { response?: { status?: number; data?: { detail?: unknown } } })?.response?.status;
+      const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
+      const msg = err instanceof Error ? err.message : String(err);
+      // Diagnostic: surface the real failure to DevTools console so we don't have to guess
+      console.error('[handlePlaceOrder] failed', { status, detail, msg, err, itemsCount: items.length, paymentMethod });
+      if (status === 404) {
+        setError(t('checkout.cartStale', 'An item in your cart is no longer available. Please refresh and try again.'));
+      } else if (status === 401) {
+        setError(t('checkout.loginExpired', 'Your session has expired. Please log in again.'));
+      } else if (status === 400 && (typeof detail === 'string' && /stock/i.test(detail))) {
         setError(t('checkout.outOfStock', 'Some items are out of stock — please update your cart'));
+      } else if (status === 400) {
+        setError(t('checkout.invalidRequest', 'We could not process your order. Please review your address and try again.'));
       } else {
         setError(t('checkout.error'));
       }
