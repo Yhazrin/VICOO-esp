@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional
 
 from sqlalchemy import select
 
+from app.models.product import Product
 from app.models.supply_chain import SupplyChainRecord
 from app.services.base import BaseService
 from app.core.audit import audit_action
@@ -28,11 +29,71 @@ class SupplyChainService(BaseService):
         result = await self.db.execute(stmt)
         return result.scalars().all()
 
+    async def ensure_supply_chain_records(self, product_id: int) -> None:
+        """
+        Lazy-backfill missing trace rows for duplicate SKUs.
+
+        When impact catalog seeding created many rows with the same name but only the
+        earliest ids received supply_chain_records, copy the donor timeline onto the
+        requested product_id (same product name, existing records).
+        """
+        existing = await self.get_product_traceability(product_id)
+        if existing:
+            return
+
+        product = await self.db.get(Product, product_id)
+        if not product or not (product.name or "").strip():
+            return
+
+        name = product.name.strip()
+        donor_id = await self.db.scalar(
+            select(Product.id)
+            .join(SupplyChainRecord, SupplyChainRecord.product_id == Product.id)
+            .where(Product.name == name, Product.id != product_id)
+            .order_by(Product.id.asc())
+            .limit(1)
+        )
+        if donor_id is None:
+            return
+
+        donor_records = await self.get_product_traceability(donor_id)
+        if not donor_records:
+            return
+
+        for r in donor_records:
+            self.db.add(
+                SupplyChainRecord(
+                    product_id=product_id,
+                    stage=r.stage,
+                    description=r.description,
+                    description_en=getattr(r, "description_en", None),
+                    location=r.location,
+                    location_en=getattr(r, "location_en", None),
+                    latitude=r.latitude,
+                    longitude=r.longitude,
+                    certified=r.certified,
+                    cert_image_url=r.cert_image_url,
+                    carbon_kg=r.carbon_kg,
+                    carbon_note=r.carbon_note,
+                    gallery_json=r.gallery_json,
+                    timestamp=r.timestamp,
+                )
+            )
+        await self.db.flush()
+        logger.info(
+            "Copied %s supply chain records from product %s to %s (name=%r)",
+            len(donor_records),
+            donor_id,
+            product_id,
+            name,
+        )
+
     async def get_sustainability_timeline(self, product_id: int) -> List[Dict[str, Any]]:
         """
         Get a formatted timeline of the supply chain.
         Must include latitude/longitude for globe UI (same shape as /supply-chain/trace).
         """
+        await self.ensure_supply_chain_records(product_id)
         records = await self.get_product_traceability(product_id)
         out: List[Dict[str, Any]] = []
         for r in records:

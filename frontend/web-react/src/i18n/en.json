@@ -56,7 +56,8 @@
     "hidePassword": "Hide password",
     "error": {
       "invalidCredentials": "Invalid email or password",
-      "userNotFound": "User not found"
+      "userNotFound": "User not found",
+      "accountBanned": "This account has been disabled and cannot sign in."
     }
   },
   "register": {

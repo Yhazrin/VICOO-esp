@@ -19,6 +19,7 @@ import LoginAmbientBackground from './LoginAmbientBackground';
 import type { AmbientMode } from './loginAmbientTypes';
 import { TestAccountsPanel } from './TestAccountsPanel';
 import type { TestAccount } from './testAccounts';
+import { extractApiErrorDetail, localizeLoginErrorMessage } from '@/utils/loginError';
 
 // Admin roles that can access admin panel
 const ADMIN_ROLES = ['admin', 'editor', 'compliance'];
@@ -59,6 +60,7 @@ export default function Login() {
   const [ambientPulse, setAmbientPulse] = useState(0);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // ADFS-inspired identity detection state
   const [detectedMode, setDetectedMode] = useState<LoginMode>('user');
@@ -159,6 +161,7 @@ export default function Login() {
 
     // Show loading state
     setIsSubmitting(true);
+    setSubmitError(null);
 
     try {
       const response = await fetch('/api/v1/auth/login', {
@@ -170,7 +173,10 @@ export default function Login() {
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        throw new Error(data.message || 'Login failed');
+        const message = localizeLoginErrorMessage(extractApiErrorDetail(data), t);
+        setSubmitError(message);
+        toast.error(message);
+        return;
       }
 
       const data = await response.json();
@@ -195,7 +201,10 @@ export default function Login() {
         navigate(userTarget, { replace: true });
       }
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Login failed';
+      const message = err instanceof Error
+        ? localizeLoginErrorMessage(err.message, t)
+        : t('login.error.invalidCredentials', 'Invalid email or password');
+      setSubmitError(message);
       toast.error(message);
     } finally {
       setIsSubmitting(false);
@@ -449,14 +458,14 @@ export default function Login() {
               </Link>
             </div>
 
-            {loginError && (
+            {(submitError || loginError) && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 role="alert"
                 className="font-body text-caption text-rust bg-rust/[0.06] rounded-full px-4 py-2 text-center"
               >
-                {loginError}
+                {submitError || loginError}
               </motion.div>
             )}
 

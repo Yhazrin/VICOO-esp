@@ -5,6 +5,19 @@ import toast from 'react-hot-toast';
 
 const API_BASE = '/api/v1';
 
+function extractApiErrorDetail(data: unknown): string | undefined {
+  if (!data || typeof data !== 'object') return undefined;
+  const record = data as Record<string, unknown>;
+  if (typeof record.detail === 'string') return record.detail;
+  if (typeof record.message === 'string') return record.message;
+  return undefined;
+}
+
+function isAccountBannedMessage(message: string): boolean {
+  const lower = message.toLowerCase();
+  return lower.includes('banned') || lower.includes('disabled') || message.includes('禁用');
+}
+
 export default function LoginPage() {
   const { t } = useTranslation();
   const login = useAuthStore((s) => s.login);
@@ -29,7 +42,11 @@ export default function LoginPage() {
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        throw new Error(data.message || t('login.errorInvalidCredentials'));
+        const raw = extractApiErrorDetail(data);
+        if (raw && isAccountBannedMessage(raw)) {
+          throw new Error(t('login.errorAccountBanned'));
+        }
+        throw new Error(raw || t('login.errorInvalidCredentials'));
       }
       const data = await response.json();
       const userData = data.data?.user || data.user;
