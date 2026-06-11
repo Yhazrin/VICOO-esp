@@ -18,6 +18,18 @@
             "subject": "VICOO 账户找回",
             "title": "您的密码提示或临时访问凭证",
             "content": "您发起了找回密码请求。您当前的密码提示或访问密钥如上所示。请使用它登录并尽快修改您的密码。"
+        },
+        "reset": {
+            "subject": "Reset your VICOO password",
+            "title": "Reset your password",
+            "intro": "We received a request to reset your VICOO password.",
+            "instruction": "Use the verification code below and click the link to choose a new password. The code and link expire in 1 hour.",
+            "codeLabel": "Verification code",
+            "linkLabel": "Reset link",
+            "buttonText": "Reset your password",
+            "expiry": "This code and link expire in 1 hour.",
+            "disclaimer": "If you didn't request a password reset, you can safely ignore this email — your password will remain unchanged.",
+            "signature": "— VICOO Team"
         }
     }
 }
