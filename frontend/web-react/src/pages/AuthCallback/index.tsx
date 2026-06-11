@@ -32,12 +32,15 @@ export default function AuthCallback() {
     let cancelled = false;
 
     async function completeAuthentication() {
-      const accessToken = searchParams.get('access_token');
-      const nickname = searchParams.get('nickname');
-      const email = searchParams.get('email');
-      const avatar = searchParams.get('avatar');
-      const role = searchParams.get('role') as User['role'] | null;
-      const errorParam = searchParams.get('error');
+      // Parse token from URL fragment (#access_token=xxx) - fragment is never sent to server
+      const hash = window.location.hash;
+      const params = new URLSearchParams(hash.substring(1));
+      const accessToken = params.get('access_token');
+      const nickname = params.get('nickname');
+      const email = params.get('email');
+      const avatar = params.get('avatar');
+      const role = params.get('role') as User['role'] | null;
+      const errorParam = params.get('error');
 
       if (errorParam) {
         setError(t('authCallback.authenticationFailed'));
