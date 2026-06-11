@@ -55,10 +55,22 @@ export interface ReturnRequestData {
   exchange_color?: string;
 }
 
+// Falls back to a Math.random() UUID when crypto.randomUUID is unavailable (older browsers, non-secure contexts).
+function generateIdempotencyKey(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 export const ordersApi = {
   create: async (data: CreateOrderRequest): Promise<OrderDetail> => {
     // P1: Idempotency key to prevent duplicate orders on rapid submit
-    const idempotencyKey = crypto.randomUUID();
+    const idempotencyKey = generateIdempotencyKey();
     const response = await api.post('/orders', data, {
       headers: { 'Idempotency-Key': idempotencyKey },
     });
