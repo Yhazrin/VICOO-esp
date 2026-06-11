@@ -1,10 +1,11 @@
 import logging
 from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any, Tuple
-from sqlalchemy import select, func, and_, or_
+from sqlalchemy import select, func
 from app.models.campaign import Campaign
 from app.services.base import BaseService
 from app.utils.cache import invalidate_cache
+from app.utils.campaign_phase import build_campaign_status_filter, normalize_status_filter, resolve_campaign_phase
 from app.core.audit import audit_action
 from app.core.errors import ResourceNotFoundException, ServiceUnavailableException
 
@@ -28,30 +29,14 @@ class CampaignService(BaseService):
         """List campaigns with pagination."""
         try:
             stmt = select(Campaign)
-            # Frontend has an "upcoming" tab; DB enum has no 'upcoming', approximate with future start_date
             if status:
-                if status == "upcoming":
-                    now = datetime.now(timezone.utc)
-                    upcoming_cond = and_(
-                        Campaign.start_date > now,
-                        or_(Campaign.status == "active", Campaign.status == "draft"),
-                    )
-                    stmt = stmt.where(upcoming_cond)
-                else:
-                    stmt = stmt.where(Campaign.status == status)
+                normalized = normalize_status_filter(status)
+                stmt = stmt.where(build_campaign_status_filter(normalized or status))
 
-            # Count total
             count_stmt = select(func.count(Campaign.id))
             if status:
-                if status == "upcoming":
-                    now = datetime.now(timezone.utc)
-                    ucond = and_(
-                        Campaign.start_date > now,
-                        or_(Campaign.status == "active", Campaign.status == "draft"),
-                    )
-                    count_stmt = count_stmt.where(ucond)
-                else:
-                    count_stmt = count_stmt.where(Campaign.status == status)
+                normalized = normalize_status_filter(status)
+                count_stmt = count_stmt.where(build_campaign_status_filter(normalized or status))
             total = (await self.db.execute(count_stmt)).scalar() or 0
             
             # Get items
@@ -65,8 +50,13 @@ class CampaignService(BaseService):
             raise ServiceUnavailableException(message="Database query failed")
 
     async def get_active_campaign(self) -> Campaign:
-        """Get the latest active campaign (no Redis cache: returns ORM)."""
-        stmt = select(Campaign).where(Campaign.status == "active").order_by(Campaign.created_at.desc())
+        """Get the latest campaign that is in progress by date."""
+        now = datetime.now(timezone.utc)
+        stmt = (
+            select(Campaign)
+            .where(build_campaign_status_filter("active", now))
+            .order_by(Campaign.created_at.desc())
+        )
         result = await self.db.execute(stmt)
         campaign = result.scalar_one_or_none()
         if not campaign:

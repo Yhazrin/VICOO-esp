@@ -458,14 +458,43 @@ export async function updateOrderStatus(id: string, status: Order['status']): Pr
 // Campaigns
 // ---------------------------------------------------------------------------
 
+function mapCampaignDisplayPhase(phase: string): Campaign['status'] {
+  switch (phase) {
+    case 'upcoming':
+      return 'upcoming';
+    case 'active':
+      return 'active';
+    case 'completed':
+      return 'ended';
+    case 'cancelled':
+      return 'archived';
+    case 'draft':
+    default:
+      return 'draft';
+  }
+}
+
+function resolveAdminCampaignStatus(item: Record<string, unknown>): Campaign['status'] {
+  const displayPhase = item.display_status ?? item.displayStatus;
+  if (displayPhase) {
+    return mapCampaignDisplayPhase(String(displayPhase));
+  }
+
+  const dbStatus = String(item.status ?? 'draft').toLowerCase();
+  if (dbStatus === 'cancelled') return 'archived';
+  if (dbStatus === 'draft') return 'draft';
+  if (dbStatus === 'completed') return 'ended';
+
+  const now = Date.now();
+  const startMs = item.start_date ? new Date(String(item.start_date)).getTime() : Number.NaN;
+  const endMs = item.end_date ? new Date(String(item.end_date)).getTime() : Number.NaN;
+  if (!Number.isNaN(startMs) && now < startMs) return 'upcoming';
+  if (!Number.isNaN(endMs) && now > endMs) return 'ended';
+  return 'active';
+}
+
 function adaptCampaign(item: any): Campaign {
-  const rawStatus = item.status ?? 'draft';
-  const status =
-    rawStatus === 'completed'
-      ? 'ended'
-      : rawStatus === 'cancelled'
-        ? 'archived'
-        : rawStatus;
+  const status = resolveAdminCampaignStatus(item);
   return {
     id: String(item.id),
     title: item.title ?? '',
@@ -473,7 +502,7 @@ function adaptCampaign(item: any): Campaign {
     description: item.description ?? '',
     startDate: item.start_date ?? '',
     endDate: item.end_date ?? '',
-    status: status as Campaign['status'],
+    status,
     targetAmount: parseFloat(item.goal_amount ?? '0') || 0,
     raisedAmount: parseFloat(item.current_amount ?? '0') || 0,
     participantCount: item.participant_count ?? 0,
