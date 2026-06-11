@@ -1,19 +1,24 @@
 import api from './api';
 import { resolveApiAssetUrl } from '@/utils/resolveApiAssetUrl';
+import { resolveCampaignDisplayPhase } from '@/utils/campaignPhase';
 import type { Campaign, PaginatedResponse } from '@/types';
 
 /** Normalize snake_case backend CampaignOut → camelCase frontend Campaign */
 function normalizeCampaign(raw: Record<string, unknown>): Campaign {
   const coverRaw = (raw.cover_image as string) ?? (raw.coverImageUrl as string) ?? '';
+  const dbStatus = (raw.status as string) ?? 'active';
+  const startDate = (raw.start_date as string) ?? (raw.startDate as string) ?? '';
+  const endDate = (raw.end_date as string) ?? (raw.endDate as string) ?? '';
+  const displayStatus = (raw.display_status as string) ?? (raw.displayStatus as string) ?? undefined;
   return {
     id: raw.id as number,
     title: (raw.title as string) ?? '',
     subtitle: (raw.subtitle as string) ?? '',
     description: (raw.description as string) ?? '',
     coverImageUrl: resolveApiAssetUrl(coverRaw),
-    startDate: (raw.start_date as string) ?? (raw.startDate as string) ?? '',
-    endDate: (raw.end_date as string) ?? (raw.endDate as string) ?? '',
-    status: ((raw.status as string) ?? 'active') as Campaign['status'],
+    startDate,
+    endDate,
+    status: resolveCampaignDisplayPhase({ status: dbStatus, startDate, endDate, displayStatus }),
     artworkCount: (raw.artwork_count as number) ?? (raw.artworkCount as number) ?? 0,
     participantCount: (raw.participant_count as number) ?? (raw.participantCount as number) ?? 0,
     goalAmount: Number(raw.goal_amount ?? raw.goalAmount ?? 0),

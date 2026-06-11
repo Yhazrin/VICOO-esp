@@ -333,6 +333,7 @@
         "btnCreate": "+ 创建活动",
         "filterAllStatuses": "全部状态",
         "filterDraft": "草稿",
+        "filterUpcoming": "即将开始",
         "filterActive": "进行中",
         "filterEnded": "已结束",
         "filterArchived": "已归档",
@@ -784,6 +785,7 @@
         "campaign": {
             "pending": "待审核",
             "draft": "草稿",
+            "upcoming": "即将开始",
             "active": "进行中",
             "ended": "已结束",
             "archived": "已归档"

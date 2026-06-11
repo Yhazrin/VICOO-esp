@@ -36,6 +36,7 @@ const STATUS_TYPE_MAP: Record<string, string> = {
   // Draft / Inactive
   archived: 'neutral',
   draft: 'neutral',
+  upcoming: 'warning',
   ended: 'neutral',
   refunded: 'neutral',
   inactive: 'neutral',

@@ -84,6 +84,7 @@ class CampaignListItem(BaseModel):
     goal_amount: Decimal
     current_amount: Decimal
     status: str
+    display_status: Optional[str] = None
     participant_count: int
     artwork_count: int
     # Sustainability fields
@@ -116,6 +117,7 @@ class CampaignOut(BaseModel):
     goal_amount: Decimal
     current_amount: Decimal
     status: str
+    display_status: Optional[str] = None
     participant_count: int
     artwork_count: int
     created_at: datetime

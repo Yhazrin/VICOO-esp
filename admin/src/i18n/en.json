@@ -326,6 +326,7 @@
         "btnCreate": "+ Create Campaign",
         "filterAllStatuses": "All Statuses",
         "filterDraft": "Draft",
+        "filterUpcoming": "Upcoming",
         "filterActive": "Active",
         "filterEnded": "Ended",
         "filterArchived": "Archived",
@@ -774,6 +775,7 @@
         "campaign": {
             "pending": "Pending",
             "draft": "Draft",
+            "upcoming": "Upcoming",
             "active": "Active",
             "ended": "Ended",
             "archived": "Archived"

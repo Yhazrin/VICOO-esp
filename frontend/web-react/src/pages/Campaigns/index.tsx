@@ -37,8 +37,8 @@ export default function Campaigns() {
   const campaigns = useMemo(() => {
     let list = data?.items ?? [];
 
-    if (filter !== 'all') {
-      list = list.filter((c) => c.status === filter);
+    if (filter === 'all') {
+      list = list.filter((c) => c.status !== 'draft' && c.status !== 'cancelled');
     }
 
     if (search.trim()) {

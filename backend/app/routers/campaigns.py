@@ -6,9 +6,19 @@ from app.database import get_db
 from app.schemas import ApiResponse, CampaignCreate, CampaignListItem, CampaignOut, CampaignUpdate, PaginatedResponse
 from app.deps import require_role
 from app.services.campaign.service import CampaignService
+from app.utils.campaign_phase import resolve_campaign_phase
 
 router = APIRouter(prefix="/campaigns", tags=["Campaigns"])
 logger = logging.getLogger(__name__)
+
+
+def _serialize_campaign(campaign, *, include_description: bool = False) -> dict:
+    schema = CampaignOut if include_description else CampaignListItem
+    data = schema.model_validate(campaign).model_dump()
+    data["display_status"] = resolve_campaign_phase(
+        campaign.status, campaign.start_date, campaign.end_date
+    )
+    return data
 
 # Fallback mock data for non-critical failures
 from decimal import Decimal
@@ -35,7 +45,7 @@ async def list_campaigns(
     try:
         campaigns, total = await service.list_campaigns(page, page_size, status)
         return PaginatedResponse(
-            data=[CampaignListItem.model_validate(c).model_dump() for c in campaigns],
+            data=[_serialize_campaign(c) for c in campaigns],
             total=total,
             page=page,
             page_size=page_size,
@@ -50,7 +60,7 @@ async def get_active_campaign(db: AsyncSession = Depends(get_db)):
     service = CampaignService(db)
     try:
         campaign = await service.get_active_campaign()
-        return ApiResponse(data=CampaignOut.model_validate(campaign).model_dump())
+        return ApiResponse(data=_serialize_campaign(campaign, include_description=True))
     except Exception as e:
         logger.error("Failed to get active campaign: %s", e)
         raise HTTPException(status_code=503, detail="Service temporarily unavailable")
@@ -61,7 +71,7 @@ async def get_campaign(campaign_id: int, db: AsyncSession = Depends(get_db)):
     service = CampaignService(db)
     try:
         campaign = await service.get_campaign_by_id(campaign_id)
-        return ApiResponse(data=CampaignOut.model_validate(campaign).model_dump())
+        return ApiResponse(data=_serialize_campaign(campaign, include_description=True))
     except HTTPException:
         raise
     except Exception as e:
@@ -78,7 +88,7 @@ async def create_campaign(
     service = CampaignService(db)
     try:
         campaign = await service.create_campaign(body.model_dump())
-        return ApiResponse(data=CampaignOut.model_validate(campaign).model_dump())
+        return ApiResponse(data=_serialize_campaign(campaign, include_description=True))
     except Exception as e:
         logger.exception("Campaign creation failed")
         raise HTTPException(status_code=500, detail="Failed to create campaign")
@@ -94,7 +104,7 @@ async def update_campaign(
     service = CampaignService(db)
     try:
         campaign = await service.update_campaign(campaign_id, body.model_dump(exclude_unset=True))
-        return ApiResponse(data=CampaignOut.model_validate(campaign).model_dump())
+        return ApiResponse(data=_serialize_campaign(campaign, include_description=True))
     except Exception as e:
         logger.error("Update failed: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error")

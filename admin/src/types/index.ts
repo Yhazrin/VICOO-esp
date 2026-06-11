@@ -35,7 +35,7 @@ export interface Campaign {
   description: string;
   startDate: string;
   endDate: string;
-  status: 'draft' | 'active' | 'ended' | 'archived';
+  status: 'draft' | 'upcoming' | 'active' | 'ended' | 'archived';
   targetAmount: number;
   raisedAmount: number;
   participantCount: number;

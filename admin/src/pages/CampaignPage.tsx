@@ -158,6 +158,7 @@ export default function CampaignPage() {
   const summaryStats = {
     total: campaigns.length,
     active: campaigns.filter((c: Campaign) => c.status === 'active').length,
+    upcoming: campaigns.filter((c: Campaign) => c.status === 'upcoming').length,
     raised: campaigns.reduce((sum: number, c: Campaign) => sum + (c.raisedAmount || 0), 0),
     drafts: campaigns.filter((c: Campaign) => c.status === 'draft').length,
   };
@@ -488,6 +489,7 @@ export default function CampaignPage() {
         </SummaryCard>
         <SummaryCard title={t('campaign.summaryActiveTitle')} subtitle={t('campaign.summaryActiveSubtitle')} icon={TargetIcon}>
           <MiniStat label={t('campaign.summaryActiveCampaigns')} value={summaryStats.active} />
+          <MiniStat label={t('campaign.filterUpcoming', '即将开始')} value={summaryStats.upcoming} />
           <MiniStat label={t('campaign.summaryEnded')} value={campaigns.filter((c: Campaign) => c.status === 'ended').length} />
         </SummaryCard>
         <SummaryCard title={t('campaign.summaryRaisedTitle')} subtitle={t('campaign.summaryRaisedSubtitle')} icon={MoneyIcon}>
@@ -506,9 +508,10 @@ export default function CampaignPage() {
         >
           <option value="">{t('campaign.filterAllStatuses')}</option>
           <option value="draft">{t('campaign.filterDraft')}</option>
+          <option value="upcoming">{t('campaign.filterUpcoming')}</option>
           <option value="active">{t('campaign.filterActive')}</option>
-          <option value="completed">{t('campaign.filterCompleted', 'Completed')}</option>
-          <option value="cancelled">{t('campaign.filterCancelled', 'Cancelled')}</option>
+          <option value="ended">{t('campaign.filterEnded')}</option>
+          <option value="archived">{t('campaign.filterArchived')}</option>
         </select>
         </div>
       </div>
