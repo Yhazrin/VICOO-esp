@@ -12,7 +12,7 @@ import StatusBadge from '../components/ui/StatusBadge';
 import { PageHeader } from '../components/ui/PageHeader';
 import { SummaryCard, MiniStat } from '../components/ui/SummaryCard';
 import { DonationTrendChart } from '../components/charts/DonationTrendChart';
-import { fetchDonations, approveDonationAdmin } from '../services/api';
+import { fetchDonations, approveDonationAdmin, fetchDonationTrend } from '../services/api';
 import type { Donation } from '../types';
 import { formatDateTime, formatTimestamp } from '../utils/dateTime';
 
@@ -63,6 +63,11 @@ export default function DonationPage() {
         search: search || undefined,
         paymentMethod: paymentFilter || undefined,
       }),
+  });
+
+  const { data: trendData } = useQuery({
+    queryKey: ['donationTrend'],
+    queryFn: fetchDonationTrend,
   });
 
   const approveMutation = useMutation({
@@ -340,7 +345,7 @@ export default function DonationPage() {
 
       {/* Chart */}
       <div style={{ marginBottom: 24 }}>
-        <DonationTrendChart />
+        <DonationTrendChart data={trendData ?? []} />
       </div>
 
       {/* Filters */}
