@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
@@ -89,6 +89,26 @@ export default function CampaignDetail() {
   const [supportFloating, setSupportFloating] = useState(false);
   const [supportFixedLeft, setSupportFixedLeft] = useState<number | null>(null);
   const [supportFixedWidth, setSupportFixedWidth] = useState<number | null>(null);
+
+  const refreshCampaign = useCallback(async () => {
+    if (!id) return;
+    const data = await campaignsApi.getById(id);
+    setCampaign(data);
+    return data;
+  }, [id]);
+
+  const handleDonationCompleted = useCallback(async () => {
+    setPendingDonationPay(null);
+    setShowSupportDetails(false);
+    try {
+      await refreshCampaign();
+    } catch {
+      // Keep existing campaign stats if refresh fails.
+    }
+    queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+    toast.success(t('donate.success', 'Thank you for your donation!'));
+  }, [queryClient, refreshCampaign, t]);
+
   const donateMutation = useMutation({
     mutationFn: async (data: {
       amount: number;
@@ -115,7 +135,6 @@ export default function CampaignDetail() {
       });
     },
     onSuccess: async (result, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['campaign', id] });
       const token = (result.mock_pay_token || result.mockPayToken || '').trim();
       if (!token) {
         toast.error(t('donate.paymentFailed', 'Payment was not completed.'));
@@ -159,9 +178,7 @@ export default function CampaignDetail() {
         const donation = await donationsApi.getById(pendingDonationPay.donationId);
         if (cancelled) return;
         if ((donation.status || '').toLowerCase() === 'completed') {
-          setPendingDonationPay(null);
-          setShowSupportDetails(false);
-          toast.success(t('donate.success', 'Thank you for your donation!'));
+          void handleDonationCompleted();
         }
       } catch {
         // ignore transient errors during polling
@@ -172,7 +189,7 @@ export default function CampaignDetail() {
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [pendingDonationPay, t]);
+  }, [handleDonationCompleted, pendingDonationPay, t]);
 
   const handleDonationSimulatePaid = async () => {
     if (!pendingDonationPay) return;
@@ -180,9 +197,7 @@ export default function CampaignDetail() {
       await paymentsApi.mockDonationConfirm(pendingDonationPay.mockPayToken);
       const donation = await donationsApi.getById(pendingDonationPay.donationId);
       if ((donation.status || '').toLowerCase() === 'completed') {
-        setPendingDonationPay(null);
-        setShowSupportDetails(false);
-        toast.success(t('donate.success', 'Thank you for your donation!'));
+        await handleDonationCompleted();
       } else {
         toast.error(t('donate.paymentFailed', 'Payment was not completed.'));
       }
