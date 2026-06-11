@@ -70,7 +70,7 @@ function ScrollToTop() {
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     });
   }, [pathname]);
-  return null;
+  return null;  // Return null
 }
 
 function AnimatedRoutes() {
