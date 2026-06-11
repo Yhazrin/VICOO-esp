@@ -96,6 +96,7 @@
         "loggingInButton": "Authenticating...",
         "errorRequired": "Please enter username and password",
         "errorInvalidCredentials": "Invalid username or password",
+        "errorAccountBanned": "This account has been disabled and cannot sign in.",
         "errorLoginFailed": "Login failed, please try again",
         "toastSuccess": "Login successful"
     },

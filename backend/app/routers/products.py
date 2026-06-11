@@ -27,6 +27,7 @@ from app.deps import require_role, get_current_user
 from app.data.default_regular_products import regular_catalog_mock_dicts, SKU_EXTRA_BY_PRODUCT_NAME
 from app.data.product_i18n_seed import PRODUCT_I18N_BY_NAME_ZH
 from app.data.impact_product_images import IMPACT_PRODUCT_IMAGE_BY_NAME as _IMPACT_IMG
+from app.services.supply_chain.service import SupplyChainService
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
@@ -370,7 +371,11 @@ async def get_product_supply_chain(
     """Get supply chain records for a product."""
     try:
         product = (await db.execute(select(Product).where(Product.id == product_id))).scalar_one_or_none()
-        product_name = product.name if product else ""
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+        product_name = product.name or ""
+        sc_service = SupplyChainService(db)
+        await sc_service.ensure_supply_chain_records(product_id)
         stmt = select(SupplyChainRecord).where(SupplyChainRecord.product_id == product_id)
         result = await db.execute(stmt)
         records = result.scalars().all()

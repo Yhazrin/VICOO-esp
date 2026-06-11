@@ -5,6 +5,7 @@ import type { LoginRequest, RegisterRequest } from '@/types';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { getErrorMessage } from '@/utils/error';
+import { localizeLoginErrorMessage } from '@/utils/loginError';
 
 export function useAuth() {
   const user = useAuthStore((s) => s.user);
@@ -53,10 +54,7 @@ export function useAuth() {
 
   const getLocalizedLoginError = () => {
     if (!loginMutation.error) return undefined;
-    const msg = getErrorMessage(loginMutation.error);
-    if (msg === 'Invalid credentials') return t('login.error.invalidCredentials', 'Invalid email or password');
-    if (msg === 'User not found') return t('login.error.userNotFound', 'User not found');
-    return msg;
+    return localizeLoginErrorMessage(getErrorMessage(loginMutation.error), t);
   };
 
   const getLocalizedRegisterError = () => {
