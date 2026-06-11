@@ -79,7 +79,13 @@ async def _resolve_origin_ids(
     return resolved_country_id, region_id
 
 
-def _apply_product_filters(stmt, category: str | None, status: str | None, is_impact_product: bool | None):
+def _apply_product_filters(
+    stmt,
+    category: str | None,
+    status: str | None,
+    is_impact_product: bool | None,
+    campaign_id: int | None = None,
+):
     """Apply common product filter conditions to a query statement."""
     if category:
         stmt = stmt.where(Product.category == category)
@@ -87,6 +93,8 @@ def _apply_product_filters(stmt, category: str | None, status: str | None, is_im
         stmt = stmt.where(Product.status == status)
     if is_impact_product is not None:
         stmt = stmt.where(Product.is_impact_product == is_impact_product)
+    if campaign_id is not None:
+        stmt = stmt.where(Product.campaign_id == campaign_id)
     return stmt
 
 
@@ -196,13 +204,18 @@ async def list_products(
     category: str | None = Query(None),
     status: str | None = Query(None),
     is_impact_product: bool | None = Query(None),
+    campaign_id: int | None = Query(None),
     locale: str = Query("zh", pattern="^(zh|en)$"),
     db: AsyncSession = Depends(get_db),
 ):
     """List products with optional filtering."""
     try:
-        stmt = _apply_product_filters(select(Product), category, status, is_impact_product).order_by(Product.id.desc())
-        count_stmt = _apply_product_filters(select(func.count(Product.id)), category, status, is_impact_product)
+        stmt = _apply_product_filters(
+            select(Product), category, status, is_impact_product, campaign_id
+        ).order_by(Product.id.desc())
+        count_stmt = _apply_product_filters(
+            select(func.count(Product.id)), category, status, is_impact_product, campaign_id
+        )
         total = (await db.execute(count_stmt)).scalar() or 0
         stmt = stmt.offset((page - 1) * page_size).limit(page_size)
         result = await db.execute(stmt)
@@ -226,6 +239,8 @@ async def list_products(
             filtered = [p for p in filtered if p["status"] == status]
         if is_impact_product is not None:
             filtered = [p for p in filtered if p.get("is_impact_product", False) == is_impact_product]
+        if campaign_id is not None:
+            filtered = [p for p in filtered if p.get("campaign_id") == campaign_id]
         for p in filtered:
             _localize_product_dict(p, locale)
         start = (page - 1) * page_size

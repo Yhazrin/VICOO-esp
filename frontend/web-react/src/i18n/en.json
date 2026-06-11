@@ -797,6 +797,14 @@
       "sustainability": "Sustainability"
     },
     "results": "{{count}} products",
+    "pagination": {
+      "prev": "Previous",
+      "next": "Next",
+      "ariaLabel": "Product pagination",
+      "prevAria": "Previous page",
+      "nextAria": "Next page",
+      "pageAria": "Page"
+    },
     "empty": "No products found in this category.",
     "loadError": "Failed to load products. Please try again.",
     "collection": "Collection",
@@ -890,6 +898,14 @@
     "allCampaigns": "All Campaigns",
     "collection": "Impact Collection",
     "results": "{{count}} impact products",
+    "pagination": {
+      "prev": "Previous",
+      "next": "Next",
+      "ariaLabel": "Impact product pagination",
+      "prevAria": "Previous page",
+      "nextAria": "Next page",
+      "pageAria": "Page"
+    },
     "empty": "No impact products found.",
     "impactSummary": {
       "title": "Your Impact",
