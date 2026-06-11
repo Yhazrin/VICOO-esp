@@ -61,6 +61,17 @@ class ForgotPasswordRequest(BaseModel):
     email: EmailStr
 
 
+class ResetVerifyOtpRequest(BaseModel):
+    token: str = Field(..., min_length=10, max_length=200)
+    otp: str = Field(..., min_length=6, max_length=6, pattern=r"^\d{6}$")
+
+
+class ResetConfirmRequest(BaseModel):
+    token: str = Field(..., min_length=10, max_length=200)
+    otp: str = Field(..., min_length=6, max_length=6, pattern=r"^\d{6}$")
+    new_password: str = Field(..., min_length=8, max_length=128)
+
+
 # ── Audit / Admin ─────────────────────────────────────────────────
 class AuditLogOut(BaseModel):
     id: int
