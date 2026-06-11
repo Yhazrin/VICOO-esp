@@ -764,6 +764,14 @@
       "sustainability": "可持续评分"
     },
     "results": "{{count}} 件商品",
+    "pagination": {
+      "prev": "上一页",
+      "next": "下一页",
+      "ariaLabel": "商品分页导航",
+      "prevAria": "上一页",
+      "nextAria": "下一页",
+      "pageAria": "第"
+    },
     "empty": "此分类下没有商品。",
     "loadError": "加载商品失败，请重试",
     "collection": "全部商品",
@@ -857,6 +865,14 @@
     "allCampaigns": "全部活动",
     "collection": "公益系列",
     "results": "{{count}} 件公益商品",
+    "pagination": {
+      "prev": "上一页",
+      "next": "下一页",
+      "ariaLabel": "公益商品分页导航",
+      "prevAria": "上一页",
+      "nextAria": "下一页",
+      "pageAria": "第"
+    },
     "empty": "暂无公益商品。",
     "impactSummary": {
       "title": "你的影响力",

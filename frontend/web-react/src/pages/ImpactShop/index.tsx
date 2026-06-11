@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
@@ -6,15 +6,19 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import ProductCard from '@/components/editorial/ProductCard';
+import ProductPagination from '@/components/ui/ProductPagination';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { productsApi } from '@/services/products';
 import { campaignsApi } from '@/services/campaigns';
 import { donationsApi } from '@/services/donations';
 import { artworksApi } from '@/services/artworks';
-import type { Campaign, Product } from '@/types';
+import type { Campaign } from '@/types';
 import { matchesProductSearch } from '@/utils/productSearch';
 
 type Category = 'all' | 'apparel' | 'accessories' | 'stationery' | 'prints' | 'lifestyle' | 'footwear' | 'home' | 'gift_box';
+
+const PAGE_SIZE = 12;
+const CATEGORY_ORDER: Category[] = ['apparel', 'accessories', 'stationery', 'prints', 'lifestyle', 'footwear', 'home', 'gift_box'];
 
 /* ─── Empty State ─── */
 
@@ -79,48 +83,45 @@ export default function ImpactShop() {
   const searchQuery = searchParams.get('search')?.trim() ?? '';
   const [activeCategory, setActiveCategory] = useState<Category>('all');
   const [activeCampaignId, setActiveCampaignId] = useState<number | 'all'>('all');
+  const [page, setPage] = useState(1);
 
-  // Fetch ALL impact products by walking pages (backend caps page_size at 100,
-// but the impact store has no pagination UI, so we need every record).
-const PAGE_SIZE = 100;
+  useEffect(() => {
+    setPage(1);
+  }, [activeCategory, activeCampaignId, searchQuery]);
 
-async function fetchAllImpactProducts(
-  category: Category | undefined,
-  locale: string,
-): Promise<Product[]> {
-  const items: Product[] = [];
-  let page = 1;
-  // Hard cap at 50 pages (5000 items) to avoid infinite loop on bad data
-  while (page <= 50) {
-    const result = await productsApi.getAll({
-      category,
-      isImpactProduct: true,
-      locale,
-      page,
-      page_size: PAGE_SIZE,
-    });
-    items.push(...result.items);
-    if (items.length >= result.total || result.items.length === 0) break;
-    page += 1;
-  }
-  return items;
-}
+  const { data, isLoading, error: productsError } = useQuery({
+    queryKey: [
+      'products',
+      'impact',
+      {
+        category: activeCategory,
+        campaignId: activeCampaignId,
+        isImpactProduct: true,
+        locale: i18n.language,
+        page,
+        pageSize: PAGE_SIZE,
+      },
+    ],
+    queryFn: () =>
+      productsApi.getAll({
+        page,
+        page_size: PAGE_SIZE,
+        category: activeCategory === 'all' ? undefined : activeCategory,
+        isImpactProduct: true,
+        campaignId: activeCampaignId === 'all' ? undefined : activeCampaignId,
+        locale: i18n.language,
+      }),
+    staleTime: 5 * 60 * 1000,
+  });
 
-// Fetch impact products
-const { data, isLoading, error: productsError } = useQuery({
-  queryKey: ['products', 'impact', { category: activeCategory, isImpactProduct: true, locale: i18n.language }],
-  queryFn: () => fetchAllImpactProducts(
-    activeCategory === 'all' ? undefined : activeCategory,
-    i18n.language,
-  ),
-  staleTime: 5 * 60 * 1000,
-});
+  /** 公益商店：仅展示公益属性商品（与优衣库常规店目录分离） */
+  const impactItems = useMemo(
+    () => (data?.items ?? []).filter((p) => p.isImpactProduct),
+    [data?.items],
+  );
 
-/** 公益商店：仅展示公益属性商品（与优衣库常规店目录分离） */
-const impactItems = useMemo(
-  () => (data ?? []).filter((p) => p.isImpactProduct),
-  [data]
-);
+  const totalPages = data?.totalPages ?? 1;
+  const serverTotal = data?.total ?? 0;
 
 
   // Fetch campaigns for filter
@@ -155,21 +156,22 @@ const impactItems = useMemo(
     return campaignsData?.items ?? [];
   }, [campaignsData]);
 
+  const { data: categoryRows } = useQuery({
+    queryKey: ['product-categories'],
+    queryFn: () => productsApi.getCategories(),
+    staleTime: 10 * 60 * 1000,
+  });
+
   const filtered = useMemo(() => {
-    let list = impactItems;
-    if (searchQuery) {
-      list = list.filter((p) => matchesProductSearch(p, searchQuery));
-    }
-    if (activeCampaignId !== 'all') {
-      list = list.filter((p) => p.campaignId === activeCampaignId);
-    }
-    return list;
-  }, [impactItems, activeCampaignId, searchQuery]);
+    if (!searchQuery) return impactItems;
+    return impactItems.filter((p) => matchesProductSearch(p, searchQuery));
+  }, [impactItems, searchQuery]);
 
   const categories: Category[] = useMemo(() => {
-    const cats = new Set(impactItems.map((p) => p.category));
-    return ['all', ...Array.from(cats)] as Category[];
-  }, [impactItems]);
+    const cats = new Set(categoryRows ?? []);
+    const ordered = CATEGORY_ORDER.filter((c) => cats.has(c));
+    return ['all', ...ordered];
+  }, [categoryRows]);
 
   const clearFilters = () => {
     setActiveCategory('all');
@@ -252,7 +254,7 @@ const impactItems = useMemo(
           {/* Results count */}
           <div className="mb-4">
             <span className="font-body text-[11px] text-sepia-mid tracking-wider uppercase">
-              {t('impactShop.results', { count: filtered.length })}
+              {t('impactShop.results', { count: searchQuery ? filtered.length : serverTotal })}
             </span>
           </div>
 
@@ -275,6 +277,13 @@ const impactItems = useMemo(
               </motion.div>
             </AnimatePresence>
           )}
+
+          <ProductPagination
+            page={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            i18nPrefix="impactShop.pagination"
+          />
         </div>
       </SectionContainer>
 

@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
@@ -6,6 +6,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import ProductCard from '@/components/editorial/ProductCard';
+import ProductPagination from '@/components/ui/ProductPagination';
 import PromoCard from '@/components/editorial/PromoCard';
 import SepiaImageFrame from '@/components/editorial/SepiaImageFrame';
 import StoryQuoteBlock from '@/components/editorial/StoryQuoteBlock';
@@ -34,6 +35,8 @@ function hexNeedsLightForeground(hex: string): boolean {
 const PROMO_INTERVAL = 4;
 type PromoVariant = 'story' | 'sustainability' | 'editorial';
 const PROMO_VARIANTS: PromoVariant[] = ['story', 'sustainability', 'editorial'];
+const PAGE_SIZE = 12;
+const CATEGORY_ORDER: Category[] = ['apparel', 'accessories', 'stationery', 'prints', 'lifestyle', 'footwear', 'home', 'gift_box'];
 
 const sortOptions = (t: (k: string) => string): { value: SortOption; label: string }[] => [
   { value: 'default', label: t('shop.sort.default') },
@@ -101,11 +104,18 @@ export default function Shop() {
   const [seasonFilter, setSeasonFilter] = useState<SeasonFilter>('all');
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [filtersExpanded, setFiltersExpanded] = useState(false);
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    setPage(1);
+  }, [activeCategory, searchQuery, sortBy, priceRange, selectedSizes, selectedColors, sustainFilter, seasonFilter]);
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['products', 'company', { category: activeCategory, isImpactProduct: false, locale: i18n.language }],
+    queryKey: ['products', 'company', { category: activeCategory, isImpactProduct: false, locale: i18n.language, page, pageSize: PAGE_SIZE }],
     queryFn: async () => {
       const result = await productsApi.getAll({
+        page,
+        page_size: PAGE_SIZE,
         category: activeCategory === 'all' ? undefined : activeCategory,
         isImpactProduct: false,
         locale: i18n.language,
@@ -114,6 +124,15 @@ export default function Shop() {
     },
     staleTime: 5 * 60 * 1000,
   });
+
+  const { data: categoryRows } = useQuery({
+    queryKey: ['product-categories'],
+    queryFn: () => productsApi.getCategories(),
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const totalPages = data?.totalPages ?? 1;
+  const serverTotal = data?.total ?? 0;
 
   /** UNIQLO regular store: only non-welfare products (completely separated from the welfare shop catalog, double safeguard) */
   const companyItems = useMemo(
@@ -137,12 +156,10 @@ export default function Shop() {
   }, [companyItems]);
 
   const categories: Category[] = useMemo(() => {
-    const cats = new Set(companyItems.map((p) => p.category));
-    const ordered = (
-      ['apparel', 'accessories', 'stationery', 'prints', 'lifestyle', 'footwear', 'home', 'gift_box'] as const
-    ).filter((c) => cats.has(c));
-    return ['all', ...ordered] as Category[];
-  }, [companyItems]);
+    const cats = new Set(categoryRows ?? []);
+    const ordered = CATEGORY_ORDER.filter((c) => cats.has(c));
+    return ['all', ...ordered];
+  }, [categoryRows]);
 
   const priceBounds = useMemo(() => {
     const items = companyItems;
@@ -264,6 +281,8 @@ export default function Shop() {
     return items;
   }, [filtered]);
 
+  const displayedCount = activeFilterCount > 0 || searchQuery ? filtered.length : serverTotal;
+
   return (
     <PageWrapper>
       <SectionContainer noTopSpacing>
@@ -283,12 +302,12 @@ export default function Shop() {
             </h1>
             {searchQuery && (
               <p className="font-body text-caption text-sepia-mid mt-1">
-                {t('shop.results', { count: filtered.length })}
+                {t('shop.results', { count: displayedCount })}
               </p>
             )}
           </div>
           <span className="font-body text-caption text-sepia-mid tracking-wider hidden sm:block">
-            {t('shop.results', { count: filtered.length })}
+            {t('shop.results', { count: displayedCount })}
           </span>
         </div>
 
@@ -662,6 +681,8 @@ export default function Shop() {
               </motion.div>
             </AnimatePresence>
           )}
+
+          <ProductPagination page={page} totalPages={totalPages} onPageChange={setPage} />
         </div>
         </>
         )}
