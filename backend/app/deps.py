@@ -36,8 +36,8 @@ async def get_redis_client():
 async def is_token_blacklisted(jti: str) -> bool:
     """Check if a token's JTI is in the Redis blacklist.
 
-    Fail-closed: raise on Redis errors so logged-out tokens are never
-    accepted during a Redis outage.
+    Fail-open: allow requests through when Redis is unavailable so that
+    a Redis outage doesn't bring down all authenticated endpoints.
     """
     if not jti:
         return False
@@ -45,8 +45,8 @@ async def is_token_blacklisted(jti: str) -> bool:
         client = await get_redis_client()
         return await client.exists(f"blacklist:{jti}")
     except Exception as e:
-        logger.error("Redis error during blacklist check: %s", e)
-        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+        logger.warning("Redis error during blacklist check (fail-open): %s", e)
+        return False
 
 
 async def get_current_user(
