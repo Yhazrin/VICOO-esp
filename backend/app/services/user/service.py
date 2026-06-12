@@ -1,15 +1,20 @@
 import logging
 from typing import Optional, Dict, Any
 
-from fastapi import HTTPException
 from sqlalchemy import select, func
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
 
-from app.core.errors import ResourceNotFoundException
+from app.core.errors import (
+    EmailAlreadyExistsException,
+    OAuthOnlyAccountException,
+    ResourceNotFoundException,
+    WrongCurrentPasswordException,
+)
 from app.models.user import User
 from app.services.base import BaseService
 from app.core.audit import audit_action
-from app.security import aes_encrypt
+from app.security import aes_encrypt, hash_password, verify_password
+from app.services.auth.service import _check_server_side_password_strength
 
 logger = logging.getLogger("vicoo.user_service")
 
@@ -50,21 +55,60 @@ class UserService(BaseService):
             raise ResourceNotFoundException(message=f"User with ID {user_id} not found")
         return user
 
+    def _verify_current_password(self, user: User, current_password: Optional[str]) -> None:
+        if not user.password_hash:
+            raise OAuthOnlyAccountException()
+        if not current_password or not verify_password(current_password, user.password_hash):
+            raise WrongCurrentPasswordException()
+
     @audit_action(action="update_profile", resource_type="user")
     async def update_user_profile(self, user_id: int, update_data: Dict[str, Any]) -> User:
         """
         Update user personal profile.
         """
         user = await self.get_user_by_id(user_id)
-        
+
+        new_email = update_data.get("email")
+        current_password = update_data.get("current_password")
+        new_password = update_data.get("new_password")
+
+        wants_email_change = (
+            new_email is not None
+            and (user.email or "").lower() != str(new_email).lower()
+        )
+        wants_password_change = new_password is not None
+
+        if wants_email_change or wants_password_change:
+            self._verify_current_password(user, current_password)
+
+        if wants_password_change:
+            _check_server_side_password_strength(new_password)
+            user.password_hash = hash_password(new_password)
+
+        if wants_email_change:
+            existing = (
+                await self.db.execute(
+                    select(User).where(User.email == new_email, User.id != user_id)
+                )
+            ).scalar_one_or_none()
+            if existing:
+                raise EmailAlreadyExistsException()
+            user.email = str(new_email).lower()
+
         if "nickname" in update_data and update_data["nickname"] is not None:
             user.nickname = update_data["nickname"]
         if "avatar" in update_data and update_data["avatar"] is not None:
             user.avatar = update_data["avatar"]
         if "phone" in update_data and update_data["phone"] is not None:
             user.phone_encrypted = aes_encrypt(update_data["phone"])
-            
-        await self.db.flush()
+
+        try:
+            await self.db.flush()
+        except IntegrityError:
+            await self.db.rollback()
+            raise EmailAlreadyExistsException()
+
+        await self.db.refresh(user, ["created_at", "updated_at"])
         return user
 
     @audit_action(action="update_role", resource_type="user")

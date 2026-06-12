@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import PageWrapper from '@/components/layout/PageWrapper';
@@ -12,14 +12,19 @@ import { MagazineDivider } from '@/components/editorial/MagazineDivider';
 import { EditorialCard } from '@/components/editorial/EditorialCard';
 import { useAuthStore } from '@/stores/authStore';
 import { useAuth } from '@/hooks/useAuth';
+import { authApi } from '@/services/auth';
 import { ordersApi, type OrderDetail } from '@/services/orders';
 import { donationsApi } from '@/services/donations';
 import { formatDate } from '@/utils/dateTime';
+import { resolveMediaUrl } from '@/utils/mediaUrl';
 import { clothingIntakesApi, type ClothingIntake } from '@/services/clothingIntakes';
 import { afterSalesApi, type AfterSaleTicket } from '@/services/afterSales';
 import { addressesApi, type Address, type AddressCreateData } from '@/services/addresses';
 import OrderReviewModal from '@/components/order/OrderReviewModal';
 import AfterSaleProgress from '@/components/order/AfterSaleProgress';
+import ProfileOverview from './ProfileOverview';
+import ProfileSettingsModal from './ProfileSettingsModal';
+import { PROFILE_TABS, useProfileTabs, type TabKey } from './useProfileTabs';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'text-sepia-mid',
@@ -41,32 +46,47 @@ const STATUS_COLORS: Record<string, string> = {
   closed: 'text-archive-brown',
 };
 
-type TabKey = 'orders' | 'donations' | 'clothing' | 'support' | 'addresses';
-
 const ORDER_STATUSES = ['', 'pending', 'paid', 'shipped', 'completed', 'cancelled'] as const;
 
 function currencySymbol(paymentMethod?: string | null) {
   return paymentMethod === 'paypal' || paymentMethod === 'stripe' ? '$' : '¥';
 }
 
+import type { TFunction } from 'i18next';
+
+function orderStatusLabel(status: string, t: TFunction) {
+  return t(`profile.orderStatus.${status}`, {
+    defaultValue: t(`profile.orders.filter${status.charAt(0).toUpperCase() + status.slice(1)}`, status),
+  });
+}
+
 export default function Profile() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const prefersReducedMotion = useReducedMotion();
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, updateUser } = useAuthStore();
   const { logout } = useAuth();
   const queryClient = useQueryClient();
-  const [searchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState<TabKey>(
-    (searchParams.get('tab') as TabKey) || 'orders'
-  );
+  const { activeTab, setActiveTab, handleTabKeyDown } = useProfileTabs();
+  const [showSettings, setShowSettings] = useState(false);
+
+  const needsOverviewData = activeTab === 'overview';
+  const needsOrders = activeTab === 'orders' || needsOverviewData;
+  const needsDonations = activeTab === 'donations' || needsOverviewData;
+  const needsClothing = activeTab === 'clothing' || needsOverviewData;
+  const needsSupport = activeTab === 'support' || needsOverviewData;
+  const needsAddresses = activeTab === 'addresses';
+
+  const { data: freshProfile } = useQuery({
+    queryKey: ['profile'],
+    queryFn: authApi.getProfile,
+    enabled: isAuthenticated,
+    staleTime: 60_000,
+  });
 
   useEffect(() => {
-    const tab = searchParams.get('tab') as TabKey;
-    if (tab && ['orders', 'donations', 'clothing', 'support', 'addresses'].includes(tab)) {
-      setActiveTab(tab);
-    }
-  }, [searchParams]);
+    if (freshProfile) updateUser(freshProfile);
+  }, [freshProfile, updateUser]);
 
   // Order filters
   const [orderStatus, setOrderStatus] = useState('');
@@ -88,57 +108,57 @@ export default function Profile() {
   const [reviewOrder, setReviewOrder] = useState<OrderDetail | null>(null);
   const [reviewProductId, setReviewProductId] = useState<number | null>(null);
 
-  const tabs: TabKey[] = ['orders', 'donations', 'clothing', 'support', 'addresses'];
-
-  const handleTabKeyDown = (e: React.KeyboardEvent, tab: TabKey) => {
-    const idx = tabs.indexOf(tab);
-    if (e.key === 'ArrowRight') {
-      e.preventDefault();
-      const next = tabs[(idx + 1) % tabs.length];
-      setActiveTab(next);
-      document.getElementById(`tab-${next}`)?.focus();
-    } else if (e.key === 'ArrowLeft') {
-      e.preventDefault();
-      const prev = tabs[(idx - 1 + tabs.length) % tabs.length];
-      setActiveTab(prev);
-      document.getElementById(`tab-${prev}`)?.focus();
-    }
-  };
-
-  const { data: orders = [], isLoading: loadingOrders, isError: errorOrders } = useQuery({
+  const { data: orders = [], isLoading: loadingOrders, isError: errorOrders, isSuccess: ordersLoaded } = useQuery({
     queryKey: ['my-orders', orderStatus, orderKeyword],
     queryFn: () => ordersApi.getMyOrders({
       status: orderStatus || undefined,
       keyword: orderKeyword || undefined,
     }),
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && needsOrders,
   });
 
-  const { data: donations = [], isLoading: loadingDonations, isError: errorDonations } = useQuery({
+  const { data: donations = [], isLoading: loadingDonations, isError: errorDonations, isSuccess: donationsLoaded } = useQuery({
     queryKey: ['my-donations'],
     queryFn: () => donationsApi.getMyDonations(),
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && needsDonations,
     staleTime: 10 * 60 * 1000,
   });
 
-  const { data: intakes = [], isLoading: loadingIntakes, isError: errorIntakes } = useQuery({
+  const { data: intakes = [], isLoading: loadingIntakes, isError: errorIntakes, isSuccess: intakesLoaded } = useQuery({
     queryKey: ['my-clothing-intakes'],
     queryFn: () => clothingIntakesApi.mine(),
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && needsClothing,
   });
 
-  const { data: tickets = [], isLoading: loadingTickets, isError: errorTickets } = useQuery({
+  const { data: tickets = [], isLoading: loadingTickets, isError: errorTickets, isSuccess: ticketsLoaded } = useQuery({
     queryKey: ['my-after-sales'],
     queryFn: () => afterSalesApi.mine(),
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && needsSupport,
   });
 
-  const { data: addresses = [], isLoading: loadingAddresses, isError: addressError } = useQuery({
+  const { data: addresses = [], isLoading: loadingAddresses, isError: addressError, isSuccess: addressesLoaded } = useQuery({
     queryKey: ['my-addresses'],
     queryFn: () => addressesApi.getAll(),
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && needsAddresses,
     staleTime: 15 * 60 * 1000,
   });
+
+  const overviewLoading =
+    needsOverviewData &&
+    (loadingOrders || loadingDonations || loadingIntakes || loadingTickets);
+
+  const tabCounts: Partial<Record<TabKey, number>> = {
+    orders: ordersLoaded ? orders.length : undefined,
+    donations: donationsLoaded ? donations.length : undefined,
+    clothing: intakesLoaded ? intakes.length : undefined,
+    support: ticketsLoaded ? tickets.length : undefined,
+    addresses: addressesLoaded ? addresses.length : undefined,
+  };
+
+  const handleNavigateTab = (tab: TabKey, status?: string) => {
+    if (status !== undefined) setOrderStatus(status);
+    setActiveTab(tab);
+  };
 
   const handleLogout = () => {
     logout();
@@ -287,16 +307,24 @@ export default function Profile() {
               <div className="flex items-center gap-6 pb-6 border-b border-warm-gray/20">
                 <motion.div
                   whileHover={prefersReducedMotion ? undefined : { scale: 1.03 }}
-                  className="w-20 h-20 bg-warm-gray/20 flex items-center justify-center border-2 border-rust/20 relative cursor-default"
+                  className="w-20 h-20 bg-warm-gray/20 flex items-center justify-center border-2 border-rust/20 relative overflow-hidden cursor-default"
                 >
                   <SectionGrainOverlay />
                   <div className="absolute top-1.5 left-1.5 w-3 h-3 border-t border-l border-rust/30 pointer-events-none" aria-hidden="true" />
                   <div className="absolute top-1.5 right-1.5 w-3 h-3 border-t border-r border-rust/30 pointer-events-none" aria-hidden="true" />
                   <div className="absolute bottom-1.5 left-1.5 w-3 h-3 border-b border-l border-rust/30 pointer-events-none" aria-hidden="true" />
                   <div className="absolute bottom-1.5 right-1.5 w-3 h-3 border-b border-r border-rust/30 pointer-events-none" aria-hidden="true" />
-                  <span className="font-display text-2xl text-ink relative z-10">
-                    {user.nickname ? user.nickname.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
-                  </span>
+                  {user.avatarUrl ? (
+                    <img
+                      src={resolveMediaUrl(user.avatarUrl)}
+                      alt=""
+                      className="w-full h-full object-cover relative z-10"
+                    />
+                  ) : (
+                    <span className="font-display text-2xl text-ink relative z-10">
+                      {user.nickname ? user.nickname.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
+                    </span>
+                  )}
                 </motion.div>
                 <div>
                   <h2 className="font-display text-xl text-ink">{user.nickname || user.email}</h2>
@@ -329,6 +357,14 @@ export default function Profile() {
                 <motion.button
                   whileHover={prefersReducedMotion ? undefined : { scale: 1.01 }}
                   whileTap={prefersReducedMotion ? undefined : { scale: 0.99 }}
+                  onClick={() => setShowSettings(true)}
+                  className="cursor-pointer flex-1 font-body text-body-sm tracking-[0.1em] uppercase bg-ink text-paper px-6 py-3 hover:bg-rust transition-colors duration-300"
+                >
+                  {t('profile.settings.editProfile', 'Edit Profile')}
+                </motion.button>
+                <motion.button
+                  whileHover={prefersReducedMotion ? undefined : { scale: 1.01 }}
+                  whileTap={prefersReducedMotion ? undefined : { scale: 0.99 }}
                   onClick={handleLogout}
                   className="cursor-pointer flex-1 font-body text-body-sm tracking-[0.1em] uppercase border border-warm-gray/40 text-ink px-6 py-3 hover:bg-warm-gray/10 transition-colors duration-300"
                 >
@@ -351,7 +387,7 @@ export default function Profile() {
             className="flex items-center mb-12 rounded-full bg-white/80 backdrop-blur-xl shadow-sm px-2 py-1 overflow-x-auto"
             role="tablist"
           >
-            {tabs.map((tab) => (
+            {PROFILE_TABS.map((tab) => (
               <button
                 key={tab}
                 role="tab"
@@ -367,16 +403,23 @@ export default function Profile() {
                     : 'text-ink-faded hover:text-ink'
                 }`}
               >
-                {t(`profile.tabs.${tab}`)} ({
-                  tab === 'orders' ? orders.length :
-                  tab === 'donations' ? donations.length :
-                  tab === 'clothing' ? intakes.length :
-                  tab === 'support' ? tickets.length :
-                  addresses.length
-                })
+                {t(`profile.tabs.${tab}`)}
+                {tabCounts[tab] !== undefined ? ` (${tabCounts[tab]})` : ''}
               </button>
             ))}
           </div>
+
+          {/* Overview tab */}
+          {activeTab === 'overview' && (
+            <ProfileOverview
+              orders={orders}
+              donations={donations}
+              intakes={intakes}
+              tickets={tickets}
+              isLoading={overviewLoading}
+              onNavigateTab={handleNavigateTab}
+            />
+          )}
 
           {/* Orders tab */}
           {activeTab === 'orders' && (
@@ -454,7 +497,7 @@ export default function Profile() {
                           order.status === 'shipped' ? 'text-archive-brown border-archive-brown/30 bg-archive-brown/5' :
                           'text-sepia-mid border-warm-gray/30 bg-warm-gray/5'
                         }`}>
-                          {order.status}
+                          {orderStatusLabel(order.status, t)}
                         </span>
                       </div>
 
@@ -842,6 +885,14 @@ export default function Profile() {
           setReviewOrder(null);
           setReviewProductId(null);
         }}
+      />
+
+      <ProfileSettingsModal
+        key={user.id}
+        user={user}
+        open={showSettings}
+        onClose={() => setShowSettings(false)}
+        onError={setErrorMessage}
       />
     </PageWrapper>
   );

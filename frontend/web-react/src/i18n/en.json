@@ -148,6 +148,7 @@
     "addressDeleteError": "Failed to delete address. Please try again.",
     "setDefaultError": "Failed to set default address. Please try again.",
     "tabs": {
+      "overview": "Overview",
       "orders": "My Orders",
       "donations": "My Donations",
       "clothing": "Clothing",
@@ -155,6 +156,67 @@
       "addresses": "Addresses",
       "artworks": "My Artworks"
     },
+    "settings": {
+      "title": "Edit Profile",
+      "editProfile": "Edit Profile",
+      "phone": "Phone",
+      "phonePlaceholder": "Optional — 7–20 digits",
+      "changeAvatar": "Change avatar",
+      "avatarHint": "Click to upload a new avatar",
+      "saveError": "Failed to save profile — please retry",
+      "avatarUploadError": "Avatar upload failed — please retry",
+      "securitySection": "Security",
+      "securityHint": "Required when changing email or password",
+      "currentPassword": "Current password",
+      "currentPasswordPlaceholder": "Enter your current login password",
+      "newPassword": "New password",
+      "newPasswordPlaceholder": "Leave blank to keep unchanged",
+      "passwordRules": "At least 8 characters",
+      "errors": {
+        "currentPasswordRequired": "Current password is required to change email or password",
+        "passwordMismatch": "New passwords do not match",
+        "wrongPassword": "Current password is incorrect",
+        "emailExists": "This email is already registered",
+        "weakPassword": "Password is too weak",
+        "oauthOnly": "Social login account — set a password via forgot-password first",
+        "invalidPhone": "Invalid phone number format"
+      }
+    },
+    "overview": {
+      "title": "Overview",
+      "subtitle": "Your activity at a glance",
+      "actionRequired": "Needs attention",
+      "pendingPayment": "Pending payment",
+      "awaitingDelivery": "Awaiting delivery",
+      "activeSupport": "Active support tickets",
+      "totalDonated": "Total donated",
+      "artworksPending": "{{count}} artwork(s) under review",
+      "intakesInProgress": "{{count}} clothing donation(s) in progress",
+      "quickLinks": "Quick links",
+      "linkShop": "Browse Shop",
+      "linkArtwork": "Submit Artwork",
+      "linkClothing": "Donate Clothing",
+      "linkDonate": "Make a Donation"
+    },
+    "orderStatus": {
+      "pending": "Pending",
+      "paid": "Paid",
+      "shipped": "Shipped",
+      "delivered": "Delivered",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "failed": "Failed",
+      "refunded": "Refunded"
+    },
+    "artworkStatus": {
+      "pending": "Under review",
+      "approved": "Approved",
+      "featured": "Featured",
+      "rejected": "Rejected"
+    },
+    "artworksError": "Unable to load artworks at this time.",
+    "noArtworks": "No artworks yet",
+    "viewArtwork": "View artwork",
     "orders": {
       "filterAll": "All",
       "filterPending": "Pending",

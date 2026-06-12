@@ -48,7 +48,7 @@ async def create_address(
     try:
         _ADDRESS_CREATABLE = {
             "label", "recipient_name", "phone", "province", "city",
-            "district", "detail_address", "postal_code", "is_default",
+            "district", "detail_address", "postal_code", "country", "country_code", "is_default",
         }
         safe_data = {k: v for k, v in body.model_dump().items() if k in _ADDRESS_CREATABLE}
         addr = Address(
@@ -66,6 +66,7 @@ async def create_address(
             )
             await db.flush()
 
+        await db.refresh(addr, ["created_at", "updated_at"])
         return ApiResponse(data=AddressOut.model_validate(addr).model_dump())
     except HTTPException:
         raise
@@ -91,7 +92,7 @@ async def update_address(
 
         _ADDRESS_UPDATABLE = {
             "label", "recipient_name", "phone", "province", "city",
-            "district", "detail_address", "postal_code", "is_default",
+            "district", "detail_address", "postal_code", "country", "country_code", "is_default",
         }
         update_data = body.model_dump(exclude_unset=True)
         for key, value in update_data.items():
@@ -107,6 +108,7 @@ async def update_address(
             )
             await db.flush()
 
+        await db.refresh(addr, ["created_at", "updated_at"])
         return ApiResponse(data=AddressOut.model_validate(addr).model_dump())
     except HTTPException:
         raise
@@ -161,6 +163,7 @@ async def set_default_address(
         )
         addr.is_default = True
         await db.flush()
+        await db.refresh(addr, ["created_at", "updated_at"])
         return ApiResponse(data=AddressOut.model_validate(addr).model_dump())
     except HTTPException:
         raise

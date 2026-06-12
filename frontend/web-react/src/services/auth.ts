@@ -48,9 +48,10 @@ function extractTokens(data: BackendAuthData) {
   };
 }
 
-function normalizeUser(user: BackendAuthData['user']): User {
+function normalizeUser(user: BackendAuthData['user'] & { avatar?: string | null }): User {
   return {
     ...user,
+    avatarUrl: user.avatarUrl ?? user.avatar ?? undefined,
     createdAt: user.createdAt ?? user.created_at,
   };
 }
@@ -98,13 +99,20 @@ export const authApi = {
   },
 
   getProfile: async (): Promise<User> => {
-    const response = await api.get<{ success: boolean; data: User }>('/users/me');
-    return response.data.data;
+    const response = await api.get<{ success: boolean; data: User & { avatar?: string | null } }>('/users/me');
+    return normalizeUser(response.data.data);
   },
 
-  updateProfile: async (data: { nickname?: string; avatar?: string; phone?: string }): Promise<User> => {
-    const response = await api.put<{ success: boolean; data: User }>('/users/me', data);
-    return response.data.data;
+  updateProfile: async (data: {
+    nickname?: string;
+    avatar?: string;
+    phone?: string;
+    email?: string;
+    current_password?: string;
+    new_password?: string;
+  }): Promise<User> => {
+    const response = await api.put<{ success: boolean; data: User & { avatar?: string | null } }>('/users/me', data);
+    return normalizeUser(response.data.data);
   },
 
   // REMOVED: Legacy method that injected token in request body
