@@ -41,3 +41,46 @@ class ConflictException(BusinessException):
 class ServiceUnavailableException(BusinessException):
     def __init__(self, message: str = "Service temporarily unavailable", data: Optional[Dict[str, Any]] = None):
         super().__init__(status_code=503, message=message, code="SERVICE_UNAVAILABLE", data=data)
+
+
+# ── Auth / registration-specific errors ─────────────────────────
+# These are the structured codes the frontend keys on. Keep them in sync with
+# frontend/web-react/src/i18n/{en,zh}.json under `register.errors.*`.
+class EmailAlreadyExistsException(BusinessException):
+    """409 — the email is already registered. Frontend shows a 'sign in instead' hint."""
+
+    def __init__(self, data: Optional[Dict[str, Any]] = None):
+        super().__init__(
+            status_code=409,
+            message="An account with this email already exists.",
+            code="EMAIL_ALREADY_EXISTS",
+            data=data,
+        )
+
+
+class WeakPasswordException(BusinessException):
+    """400 — password didn't pass server-side strength checks beyond the schema layer."""
+
+    def __init__(self, message: str = "Password is too weak. Please choose a stronger one.", data: Optional[Dict[str, Any]] = None):
+        super().__init__(status_code=400, message=message, code="WEAK_PASSWORD", data=data)
+
+
+class InvalidNicknameException(BusinessException):
+    """400 — nickname is syntactically invalid (e.g. whitespace-only, control chars)."""
+
+    def __init__(self, message: str = "Nickname is invalid.", data: Optional[Dict[str, Any]] = None):
+        super().__init__(status_code=400, message=message, code="INVALID_NICKNAME", data=data)
+
+
+class InvalidPhoneException(BusinessException):
+    """400 — phone didn't match the expected format."""
+
+    def __init__(self, message: str = "Phone number is invalid.", data: Optional[Dict[str, Any]] = None):
+        super().__init__(status_code=400, message=message, code="INVALID_PHONE", data=data)
+
+
+class RegistrationRateLimitedException(BusinessException):
+    """429 — too many registration attempts from this IP."""
+
+    def __init__(self, message: str = "Too many registration attempts. Please try again later.", data: Optional[Dict[str, Any]] = None):
+        super().__init__(status_code=429, message=message, code="RATE_LIMITED", data=data)

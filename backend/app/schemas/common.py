@@ -3,9 +3,20 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Dict, Generic, List, Optional, TypeVar
 
+import re
+
 from pydantic import BaseModel, Field, EmailStr, model_validator
 
 T = TypeVar("T")
+
+# bcrypt (passlib CryptContext) silently truncates input at 72 bytes. Allowing
+# longer passwords invites two password strings that share a 72-byte prefix to
+# hash to the same value. We reject anything > 72 bytes at the schema layer so
+# the user gets a clear validation error instead of an alias collision later.
+_PASSWORD_MAX_BYTES = 72
+
+# Permissive phone: optional leading +, then 7-20 chars of digits / spaces / hyphens.
+_PHONE_PATTERN = re.compile(r"^\+?[\d\s-]{7,20}$")
 
 
 # ── Generic API wrappers ──────────────────────────────────────────
@@ -41,9 +52,37 @@ class LoginRequest(BaseModel):
 
 class RegisterRequest(BaseModel):
     email: EmailStr
-    password: str = Field(..., min_length=8, max_length=128, description="Password (min 8 chars)")
+    # bcrypt hard limit is 72 bytes — see _PASSWORD_MAX_BYTES comment above.
+    password: str = Field(
+        ...,
+        min_length=8,
+        max_length=_PASSWORD_MAX_BYTES,
+        description="Password (8–72 bytes; bcrypt truncates beyond that)",
+    )
     nickname: str = Field(..., min_length=1, max_length=100)
     phone: Optional[str] = Field(None, max_length=20)
+
+    @model_validator(mode="after")
+    def _validate_password_not_whitespace(self):
+        # Reject passwords made entirely of whitespace (e.g. "        ") —
+        # they pass `min_length=8` but provide no security.
+        if self.password and not self.password.strip():
+            raise ValueError("password must contain non-whitespace characters")
+        return self
+
+    @model_validator(mode="after")
+    def _validate_nickname(self):
+        if self.nickname and not self.nickname.strip():
+            raise ValueError("nickname must contain non-whitespace characters")
+        return self
+
+    @model_validator(mode="after")
+    def _validate_phone(self):
+        if self.phone is None or self.phone == "":
+            return self
+        if not _PHONE_PATTERN.match(self.phone):
+            raise ValueError("phone must be 7–20 digits (optional leading +, spaces and hyphens allowed)")
+        return self
 
 
 class TokenResponse(BaseModel):

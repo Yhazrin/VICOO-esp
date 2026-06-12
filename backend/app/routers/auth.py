@@ -106,28 +106,43 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
 
 @router.post("/register", response_model=ApiResponse, status_code=201)
 async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
-    """Register a new user account."""
+    """Register a new user account.
+
+    Returns structured `BusinessException`s (`EMAIL_ALREADY_EXISTS`,
+    `WEAK_PASSWORD`, `INVALID_NICKNAME`, `INVALID_PHONE`) with a `code` field
+    so the frontend can show a specific message. Pydantic validation errors
+    (bad email, short password, bad phone format) come back as 422 with
+    `code: VALIDATION_FAILED` and an `errors` array.
+
+    The 500 path is reserved for genuinely unexpected errors — surface them
+    loudly so we don't silently hide regressions behind a generic "Registration
+    failed" message.
+    """
     auth_service = AuthService(db)
     try:
-        user, token, refresh = await auth_service.register_user(body.email, body.password, body.nickname)
-
-        response_data = ApiResponse(
-            success=True,
-            data={
-                "user": {"id": user.id, "email": user.email, "nickname": user.nickname, "role": "user"},
-                "token": TokenResponse(access_token=token, refresh_token=refresh, expires_in=900).model_dump(),
-            },
-            message="Registration successful",
+        user, token, refresh = await auth_service.register_user(
+            email=body.email,
+            password=body.password,
+            nickname=body.nickname,
+            phone=body.phone,
         )
-
-        json_response = JSONResponse(status_code=201, content=response_data.model_dump())
-        _set_auth_cookies(json_response, token, refresh)
-        return json_response
     except HTTPException:
+        # BusinessException is a subclass of HTTPException; re-raise so the
+        # dedicated handler at app.main:295 preserves the structured `code`.
         raise
-    except Exception as e:
-        logger.error("Register error: %s", e)
-        raise HTTPException(status_code=400, detail="Registration failed")
+
+    response_data = ApiResponse(
+        success=True,
+        data={
+            "user": {"id": user.id, "email": user.email, "nickname": user.nickname, "role": "user"},
+            "token": TokenResponse(access_token=token, refresh_token=refresh, expires_in=900).model_dump(),
+        },
+        message="Registration successful",
+    )
+
+    json_response = JSONResponse(status_code=201, content=response_data.model_dump())
+    _set_auth_cookies(json_response, token, refresh)
+    return json_response
 
 
 @router.post("/refresh", response_model=ApiResponse)

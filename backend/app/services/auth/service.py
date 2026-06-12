@@ -4,8 +4,15 @@ from typing import Tuple
 
 from fastapi import HTTPException
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.errors import (
+    EmailAlreadyExistsException,
+    InvalidNicknameException,
+    InvalidPhoneException,
+    WeakPasswordException,
+)
 from app.models.user import User
 from app.security import (
     create_access_token,
@@ -17,6 +24,38 @@ from app.security import (
 from app.services.base import BaseService
 from app.config import settings
 from app.core.audit import audit_action
+
+import re as _re
+
+# Mirror the schema-layer validation. Service-layer checks act as defence in
+# depth in case the schema is bypassed (e.g. internal callers, future gRPC
+# endpoint) — the schema raises 422, the service raises a BusinessException.
+_NICKNAME_CONTROL = _re.compile(r"[\x00-\x1f\x7f]")
+_PHONE_PATTERN = _re.compile(r"^\+?[\d\s-]{7,20}$")
+
+
+def _check_server_side_password_strength(password: str) -> None:
+    """Schema enforces length and non-whitespace; this adds the bcrypt-byte cap
+    defence in depth (Python `len` is chars, not bytes — a password of 70 emoji
+    could exceed 72 bytes even when under the 72-char schema max)."""
+    if password and len(password.encode("utf-8")) > 72:
+        raise WeakPasswordException(
+            "Password is too long. Please use at most 72 bytes of password."
+        )
+
+
+def _check_server_side_nickname(nickname: str) -> None:
+    if not nickname or not nickname.strip():
+        raise InvalidNicknameException("Nickname must contain non-whitespace characters.")
+    if _NICKNAME_CONTROL.search(nickname):
+        raise InvalidNicknameException("Nickname contains invalid control characters.")
+
+
+def _check_server_side_phone(phone: str | None) -> None:
+    if phone is None or phone == "":
+        return
+    if not _PHONE_PATTERN.match(phone):
+        raise InvalidPhoneException("Phone number format is invalid.")
 
 logger = logging.getLogger("vicoo.auth_service")
 
@@ -60,14 +99,30 @@ class AuthService(BaseService):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     @audit_action(action="register", resource_type="user")
-    async def register_user(self, email: str, password: str, nickname: str) -> Tuple[User, str, str]:
+    async def register_user(
+        self,
+        email: str,
+        password: str,
+        nickname: str,
+        phone: str | None = None,
+    ) -> Tuple[User, str, str]:
         """
         Register a new user.
+
+        Raises structured `BusinessException`s so the frontend can show a
+        specific message. Race conditions on the email-unique index raise
+        `EmailAlreadyExistsException` (translated from `IntegrityError`).
         """
+        # Defence-in-depth validation. The Pydantic schema catches these first
+        # for HTTP traffic; the service layer enforces the same rules for
+        # internal callers and future RPC endpoints.
+        _check_server_side_password_strength(password)
+        _check_server_side_nickname(nickname)
+        _check_server_side_phone(phone)
+
         existing = (await self.db.execute(select(User).where(User.email == email))).scalar_one_or_none()
         if existing:
-            # Generic message to prevent email enumeration
-            raise HTTPException(status_code=400, detail="Registration failed.")
+            raise EmailAlreadyExistsException()
 
         user = User(
             email=email,
@@ -77,8 +132,15 @@ class AuthService(BaseService):
             status="active",
         )
         self.db.add(user)
-        await self.db.flush()
-        
+        try:
+            await self.db.flush()
+        except IntegrityError:
+            # Race: another request inserted the same email between our SELECT
+            # and our INSERT. Roll back and surface the same structured error
+            # the pre-check would have raised.
+            await self.db.rollback()
+            raise EmailAlreadyExistsException()
+
         access = create_access_token(subject=str(user.id), role="user")
         refresh = create_refresh_token(subject=str(user.id), role="user")
         return user, access, refresh
