@@ -18,7 +18,32 @@ export function useGoToImpactTab() {
 }
 
 export function scrollToImpactStory() {
-  document.getElementById('impact-scroll-story')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const target = document.getElementById('impact-scroll-story');
+  if (!target) return;
+
+  const SPEED = 1.2; // px per frame (~72px/s at 60fps)
+  let running = true;
+
+  const stop = () => {
+    if (!running) return;
+    running = false;
+    window.removeEventListener('wheel', stop);
+    window.removeEventListener('touchstart', stop);
+    window.removeEventListener('keydown', stop);
+  };
+
+  window.addEventListener('wheel', stop, { passive: true });
+  window.addEventListener('touchstart', stop, { passive: true });
+  window.addEventListener('keydown', stop);
+
+  const step = () => {
+    if (!running) return;
+    const rect = target.getBoundingClientRect();
+    if (rect.top <= 0) return; // reached
+    window.scrollBy(0, Math.min(SPEED, rect.top));
+    requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
 }
 
 type ImpactHomeHeroIntroProps = {
@@ -46,8 +71,8 @@ export default function ImpactHomeHeroIntro({ isDark }: ImpactHomeHeroIntroProps
     : 'bg-[#1C1C1A] text-[#FAF8F5] hover:bg-[#2a2a28]';
 
   const secondaryBtn = isDark
-    ? 'border-white/25 text-[#F5F2EE] hover:border-white/40'
-    : 'border-[#1C1C1A]/20 text-[#1C1C1A] hover:border-[#1C1C1A]/35';
+    ? 'border-white/25 text-[#F5F2EE] hover:border-white/40 bg-white/[0.08] backdrop-blur-xl backdrop-saturate-150'
+    : 'border-[#1C1C1A]/20 text-[#1C1C1A] hover:border-[#1C1C1A]/35 bg-white/30 backdrop-blur-xl backdrop-saturate-150';
 
   const titleShadow = isDark
     ? 'drop-shadow-[0_4px_28px_rgba(0,0,0,0.65)]'
@@ -92,7 +117,7 @@ export default function ImpactHomeHeroIntro({ isDark }: ImpactHomeHeroIntroProps
         <button
           type="button"
           onClick={() => goToTab('shop')}
-          className={`font-body text-sm font-semibold tracking-[0.1em] uppercase px-7 py-3.5 md:px-8 md:py-4 rounded-full border bg-transparent transition-colors cursor-pointer ${secondaryBtn}`}
+          className={`font-body text-sm font-semibold tracking-[0.1em] uppercase px-7 py-3.5 md:px-8 md:py-4 rounded-full border transition-colors cursor-pointer ${secondaryBtn}`}
         >
           {t('home.impactHero.cta.shop', 'Shop the Collaboration')}
         </button>
