@@ -76,7 +76,10 @@ async def list_records(
     """List supply chain records with optional filters. (Refactored)"""
     sc_service = SupplyChainService(db)
     try:
-        # For simple listing, we can still use query or add a dedicated method to service
+        # Mirror /trace lazy-backfill so admin sees the same nodes as the storefront.
+        if product_id is not None:
+            await sc_service.ensure_supply_chain_records(product_id)
+
         stmt = select(SupplyChainRecord)
         if product_id is not None:
             stmt = stmt.where(SupplyChainRecord.product_id == product_id)

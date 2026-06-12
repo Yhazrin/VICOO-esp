@@ -174,3 +174,39 @@ async def test_supply_chain_node_update_full_payload(client, admin_auth_headers)
         assert abs(float(rec.longitude) - 121.47) < 1e-6
         assert rec.certified is True
         assert rec.carbon_kg == Decimal("0.5")
+
+
+@pytest.mark.asyncio
+async def test_list_records_backfills_from_donor_product(client, admin_auth_headers):
+    """GET /supply-chain/records?product_id=X 应与 /trace 一样触发 lazy-backfill。"""
+    donor_name = "回填测试-同名商品"
+
+    r1 = await client.post(f"{API}/products", json={
+        "name": donor_name, "price": "99.00", "stock": 10, "category": "apparel",
+    }, headers=admin_auth_headers)
+    assert r1.status_code == 201, r1.text
+    donor_id = r1.json()["data"]["id"]
+
+    r2 = await client.post(f"{API}/supply-chain/records", json={
+        "product_id": donor_id,
+        "stage": "material_sourcing",
+        "description": "原料",
+        "location": "新疆",
+    }, headers=admin_auth_headers)
+    assert r2.status_code == 201, r2.text
+
+    r3 = await client.post(f"{API}/products", json={
+        "name": donor_name, "price": "99.00", "stock": 5, "category": "apparel",
+    }, headers=admin_auth_headers)
+    assert r3.status_code == 201, r3.text
+    target_id = r3.json()["data"]["id"]
+
+    r4 = await client.get(
+        f"{API}/supply-chain/records",
+        params={"product_id": target_id, "page_size": 100},
+    )
+    assert r4.status_code == 200, r4.text
+    body = r4.json()
+    assert body["total"] >= 1
+    assert any(row["stage"] == "material_sourcing" for row in body["data"])
+    assert all(row["product_id"] == target_id for row in body["data"])

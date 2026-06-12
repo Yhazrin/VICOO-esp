@@ -17,7 +17,7 @@ import type { AdminProduct, SupplyChainRecord, TraceMediaItem } from '../types';
 import {
   createProduct, updateProduct, deleteProduct,
   fetchProducts, fetchOriginCountries, fetchOriginRegions,
-  fetchSupplyChainRecords, createSupplyChainRecord,
+  fetchSupplyChainRecords, createSupplyChainRecord, formatApiValidationError,
   updateSupplyChainRecord, deleteSupplyChainRecord,
   fetchCampaigns, fetchArtworks,
   uploadTraceMedia,
@@ -213,7 +213,7 @@ export default function ProductPage() {
   // For selectors: fetch up to 200 campaigns + artworks
   const { data: allCampaignsResp } = useQuery({
     queryKey: ['campaigns-all'],
-    queryFn: () => fetchCampaigns({ page: 1, pageSize: 200 }),
+    queryFn: () => fetchCampaigns({ page: 1, pageSize: 100 }),
   });
   const allCampaigns: any[] = allCampaignsResp?.data ?? [];
 
@@ -261,12 +261,8 @@ export default function ProductPage() {
       toast.success(t('product.toastNodeCreated'));
       closeNodeModal();
     },
-    onError: (e: any) =>
-      toast.error(
-        e?.response?.data?.detail
-          ? String(e.response.data.detail)
-          : t('product.toastNodeCreateFailed', '保存节点失败'),
-      ),
+    onError: (e: unknown) =>
+      toast.error(formatApiValidationError(e, t('product.toastNodeCreateFailed', '保存节点失败'))),
   });
 
   const updateNodeMut = useMutation({
@@ -277,12 +273,8 @@ export default function ProductPage() {
       toast.success(t('product.toastNodeUpdated'));
       closeNodeModal();
     },
-    onError: (e: any) =>
-      toast.error(
-        e?.response?.data?.detail
-          ? String(e.response.data.detail)
-          : t('product.toastNodeUpdateFailed', '更新节点失败'),
-      ),
+    onError: (e: unknown) =>
+      toast.error(formatApiValidationError(e, t('product.toastNodeUpdateFailed', '更新节点失败'))),
   });
 
   const deleteNodeMut = useMutation({
@@ -291,12 +283,8 @@ export default function ProductPage() {
       queryClient.invalidateQueries({ queryKey: ['supply-chain'] });
       toast.success(t('product.toastNodeDeleted'));
     },
-    onError: (e: any) =>
-      toast.error(
-        e?.response?.data?.detail
-          ? String(e.response.data.detail)
-          : t('product.toastNodeDeleteFailed', '删除节点失败'),
-      ),
+    onError: (e: unknown) =>
+      toast.error(formatApiValidationError(e, t('product.toastNodeDeleteFailed', '删除节点失败'))),
   });
 
   /* ── Helpers ── */
@@ -319,6 +307,12 @@ export default function ProductPage() {
     return Number.isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
   }
 
+  function clampCoord(v: number | null, min: number, max: number): number | null {
+    if (v === null) return null;
+    if (v < min || v > max) return null;
+    return v;
+  }
+
   function serializeNode(n: typeof emptyNode) {
     return {
       stage: n.stage,
@@ -326,14 +320,14 @@ export default function ProductPage() {
       descriptionEn: n.descriptionEn?.trim() || undefined,
       location: n.location?.trim() || undefined,
       locationEn: n.locationEn?.trim() || undefined,
-      latitude: numOrNull(n.latitude as unknown as string),
-      longitude: numOrNull(n.longitude as unknown as string),
+      latitude: clampCoord(numOrNull(n.latitude as unknown as string), -90, 90),
+      longitude: clampCoord(numOrNull(n.longitude as unknown as string), -180, 180),
       certified: n.certified,
       certImageUrl: n.certImageUrl?.trim() || undefined,
       carbonKg: numOrNull(n.carbonKg as unknown as string),
       carbonNote: n.carbonNote?.trim() || undefined,
       timestamp: timestampOrNow(n.timestamp as unknown as string),
-      gallery: n.gallery ?? [],
+      gallery: (n.gallery ?? []).filter((g) => Boolean(g.url?.trim())),
     };
   }
 
