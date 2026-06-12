@@ -130,6 +130,8 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ env.DOCKER_USERNAME }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: 设置 Docker Buildx
+        uses: docker/setup-buildx-action@v3
       - name: 构建并推送Backend镜像
         uses: docker/build-push-action@v5
         with:
@@ -138,6 +140,8 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          provenance: false
+          sbom: false
 
   # ==================== Frontend ====================
   frontend-lint:
@@ -209,6 +213,8 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ env.DOCKER_USERNAME }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: 设置 Docker Buildx
+        uses: docker/setup-buildx-action@v3
       - name: 构建Frontend
         run: |
           cd frontend/web-react
@@ -229,6 +235,8 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          provenance: false
+          sbom: false
           # 与 deploy/easy/.env 中 VITE_PUBLIC_SITE_ORIGIN 一致（Repository variables：VICOO_PUBLIC_SITE_ORIGIN）
           build-args: |
             VITE_API_BASE_URL=/api/v1
@@ -266,6 +274,8 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ env.DOCKER_USERNAME }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: 设置 Docker Buildx
+        uses: docker/setup-buildx-action@v3
       - name: 构建Admin
         run: |
           cd admin
@@ -279,6 +289,8 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          provenance: false
+          sbom: false
           build-args: |
             VITE_API_BASE_URL=/api/v1
 
