@@ -6,6 +6,8 @@ export const IMPACT_CARD_KEYS = ['everyday', 'trace', 'recycle', 'circularFashio
 
 export type ImpactTabKey = 'campaigns' | 'donate' | 'clothing-recycle' | 'shop';
 
+let stopActiveImpactAutoScroll: (() => void) | null = null;
+
 export function useGoToImpactTab() {
   const setActiveImpactTab = useUIStore((s) => s.setActiveImpactTab);
   const setImpactMode = useUIStore((s) => s.setImpactMode);
@@ -18,36 +20,89 @@ export function useGoToImpactTab() {
 }
 
 export function scrollToImpactStory() {
-  const target = document.getElementById('impact-scroll-story');
-  if (!target) return;
+  stopActiveImpactAutoScroll?.();
 
-  const PX_PER_SEC = 180;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const maxScrollY = () => Math.max(
+    0,
+    document.documentElement.scrollHeight - window.innerHeight,
+  );
+
+  const startY = window.scrollY;
+  const endY = maxScrollY();
+  const distance = endY - startY;
+
+  if (distance < 4) return;
+
+  if (reduceMotion) {
+    window.scrollTo(0, endY);
+    return;
+  }
+
+  const root = document.documentElement;
+  const previousScrollBehavior = root.style.scrollBehavior;
+  const duration = Math.min(18000, Math.max(9500, distance * 2.8));
+  const startedAt = performance.now();
   let running = true;
-  let lastTime = 0;
+  let rafId = 0;
+  let lastProgrammaticY = startY;
+
+  const clamp01 = (value: number) => Math.max(0, Math.min(1, value));
+  const easeOutCubic = (value: number) => 1 - Math.pow(1 - value, 3);
+  const smoothstep = (value: number) => value * value * (3 - 2 * value);
+  const storyBeatLag = (progress: number) => {
+    const beats = [0.14, 0.36, 0.58, 0.78];
+    const strongestBeat = beats.reduce((best, beat) => {
+      const distanceToBeat = (progress - beat) / 0.055;
+      return Math.max(best, Math.exp(-(distanceToBeat * distanceToBeat)));
+    }, 0);
+    return strongestBeat * 0.012;
+  };
 
   const stop = () => {
     if (!running) return;
     running = false;
+    cancelAnimationFrame(rafId);
+    root.style.scrollBehavior = previousScrollBehavior;
+    stopActiveImpactAutoScroll = null;
     window.removeEventListener('wheel', stop);
     window.removeEventListener('touchstart', stop);
+    window.removeEventListener('pointerdown', stop);
     window.removeEventListener('keydown', stop);
   };
 
+  root.style.scrollBehavior = 'auto';
+  stopActiveImpactAutoScroll = stop;
   window.addEventListener('wheel', stop, { passive: true });
   window.addEventListener('touchstart', stop, { passive: true });
+  window.addEventListener('pointerdown', stop, { passive: true });
   window.addEventListener('keydown', stop);
 
   const step = (now: number) => {
     if (!running) return;
-    const rect = target.getBoundingClientRect();
-    if (rect.top <= 0) return;
-    if (lastTime === 0) { lastTime = now; requestAnimationFrame(step); return; }
-    const dt = (now - lastTime) / 1000;
-    lastTime = now;
-    window.scrollBy(0, Math.min(PX_PER_SEC * dt, rect.top));
-    requestAnimationFrame(step);
+    const elapsed = now - startedAt;
+    const currentMaxY = maxScrollY();
+    const progress = clamp01(elapsed / duration);
+    if (progress >= 1) {
+      window.scrollTo(0, currentMaxY);
+      stop();
+      return;
+    }
+
+    const entry = progress < 0.08 ? easeOutCubic(progress / 0.08) * 0.08 : progress;
+    const exit = entry > 0.9 ? 0.9 + smoothstep((entry - 0.9) / 0.1) * 0.1 : entry;
+    const envelope = Math.sin(progress * Math.PI);
+    const breath = Math.sin(progress * Math.PI * 8 - Math.PI / 2) * 0.014 * envelope;
+    const motionProgress = clamp01(exit + breath - storyBeatLag(progress));
+    const nextY = Math.max(
+      lastProgrammaticY,
+      startY + (currentMaxY - startY) * motionProgress,
+    );
+    lastProgrammaticY = nextY;
+    window.scrollTo(0, Math.min(currentMaxY, nextY));
+    rafId = requestAnimationFrame(step);
   };
-  requestAnimationFrame(step);
+  rafId = requestAnimationFrame(step);
 }
 
 type ImpactHomeHeroIntroProps = {
