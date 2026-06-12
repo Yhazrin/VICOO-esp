@@ -119,7 +119,12 @@ async def test_forgot_real_email_sends_otp_and_link(client, mock_mailer):
 
 @pytest.mark.asyncio
 async def test_forgot_per_user_token_cap(client, mock_mailer):
-    """Real-user cap: max 3 valid (un-used, un-expired) tokens per user per 24h."""
+    """Real-user cap: max 3 valid (un-used, un-expired) tokens per user per 24h.
+
+    The endpoint intentionally returns 200 with the generic message even
+    when the cap is hit (no email enumeration). The enforcement is
+    observable as ``no new row in password_reset_tokens``.
+    """
     email = "cap@gmail.com"
     user = await _create_user(email)
     for i in range(3):
@@ -127,7 +132,13 @@ async def test_forgot_per_user_token_cap(client, mock_mailer):
         assert r.status_code == 200, r.text
     assert await _count_active_tokens(user.id) == 3
     r4 = await client.post(f"{API}/auth/forgot-password", json={"email": email})
-    assert r4.status_code == 429, r4.text
+    # Anti-enumeration: same generic 200 as the success case.
+    assert r4.status_code == 200, r4.text
+    assert r4.json()["data"]["email"] == email
+    # Real enforcement: still 3, not 4.
+    assert await _count_active_tokens(user.id) == 3
+    # And no extra email was attempted.
+    assert mock_mailer["reset"].await_count == 3
 
 
 # ─────────────────────────────────────────────────────────────────────

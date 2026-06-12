@@ -72,7 +72,16 @@ class CampaignService(BaseService):
             raise ResourceNotFoundException(message=f"Campaign {campaign_id} not found")
         return campaign
 
-    _CREATABLE_FIELDS = {"title", "description", "goal_amount", "start_date", "end_date", "status", "cover_image"}
+    _CREATABLE_FIELDS = {
+        "title", "description", "goal_amount", "start_date", "end_date", "status", "cover_image",
+        "sustainability_eyebrow", "sustainability_title", "sustainability_subtitle",
+        "sustainability_p1_title", "sustainability_p1_body",
+        "sustainability_p2_title", "sustainability_p2_body",
+        "sustainability_p3_title", "sustainability_p3_body",
+        "sustainability_p4_title", "sustainability_p4_body",
+        "sustainability_footnote",
+        "sustainability_cta_traceability", "sustainability_cta_shop",
+    }
 
     @audit_action(action="create_campaign", resource_type="campaign")
     async def create_campaign(self, data: Dict[str, Any]) -> Campaign:
@@ -90,7 +99,16 @@ class CampaignService(BaseService):
             logger.error("Error creating campaign: %s", e)
             raise ServiceUnavailableException()
 
-    _UPDATABLE_FIELDS = {"title", "description", "goal_amount", "start_date", "end_date", "status", "cover_image"}
+    _UPDATABLE_FIELDS = {
+        "title", "description", "goal_amount", "start_date", "end_date", "status", "cover_image",
+        "sustainability_eyebrow", "sustainability_title", "sustainability_subtitle",
+        "sustainability_p1_title", "sustainability_p1_body",
+        "sustainability_p2_title", "sustainability_p2_body",
+        "sustainability_p3_title", "sustainability_p3_body",
+        "sustainability_p4_title", "sustainability_p4_body",
+        "sustainability_footnote",
+        "sustainability_cta_traceability", "sustainability_cta_shop",
+    }
 
     @audit_action(action="update_campaign", resource_type="campaign")
     async def update_campaign(self, campaign_id: int, data: Dict[str, Any]) -> Campaign:

@@ -131,6 +131,7 @@ class DonationService(BaseService):
         _ALLOWED_FIELDS = {
             "donor_user_id", "donor_name", "amount", "currency",
             "payment_method", "campaign_id", "is_anonymous", "message",
+            "status", "payment_id",
         }
         safe_data = {k: v for k, v in donation_data.items() if k in _ALLOWED_FIELDS}
         donation = Donation(**safe_data)
