@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { OrderDetail } from '@/services/orders';
+import { type OrderDetail, resolveOrderItemName } from '@/services/orders';
 import { reviewsApi } from '@/services/reviewsApi';
 import { serializeReviewBody, FEEDBACK_CHIP_IDS, type FeedbackChipId } from '@/utils/reviewChips';
 
@@ -13,7 +13,7 @@ export interface OrderReviewModalProps {
 }
 
 export default function OrderReviewModal({ order, initialProductId, onClose }: OrderReviewModalProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const queryClient = useQueryClient();
 
   const [productId, setProductId] = useState<number | null>(null);
@@ -133,7 +133,7 @@ export default function OrderReviewModal({ order, initialProductId, onClose }: O
                             <img src={item.product_image} alt="" className="w-6 h-6 rounded object-cover" />
                           )}
                           <span className="font-body text-xs text-ink truncate max-w-[120px]">
-                            {item.product_name || `#${item.product_id}`}
+                            {resolveOrderItemName(item, i18n.language)}
                           </span>
                         </button>
                       ))}

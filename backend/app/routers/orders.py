@@ -71,6 +71,7 @@ def order_to_out_dict(
                 "id": i.id,
                 "product_id": i.product_id,
                 "product_name": (product_map or {}).get(i.product_id, {}).get("name"),
+                "product_name_en": (product_map or {}).get(i.product_id, {}).get("name_en"),
                 "product_image": (product_map or {}).get(i.product_id, {}).get("image_url"),
                 "quantity": i.quantity,
                 "price": str(i.price),
@@ -99,9 +100,9 @@ async def _build_product_map(db: AsyncSession, items: list) -> dict:
     product_ids = list({i.product_id for i in items if i.product_id})
     if not product_ids:
         return {}
-    stmt = select(Product.id, Product.name, Product.image_url).where(Product.id.in_(product_ids))
+    stmt = select(Product.id, Product.name, Product.name_en, Product.image_url).where(Product.id.in_(product_ids))
     result = await db.execute(stmt)
-    return {row.id: {"name": row.name, "image_url": row.image_url} for row in result.all()}
+    return {row.id: {"name": row.name, "name_en": row.name_en, "image_url": row.image_url} for row in result.all()}
 
 
 async def _build_user_map(db: AsyncSession, orders: list[Order]) -> dict[int, str]:

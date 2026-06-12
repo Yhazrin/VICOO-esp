@@ -8,7 +8,7 @@ import PageWrapper from '@/components/layout/PageWrapper';
 import SectionContainer from '@/components/layout/SectionContainer';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
 
-import { ordersApi, type ReturnRequestData } from '@/services/orders';
+import { ordersApi, type ReturnRequestData, resolveOrderItemName } from '@/services/orders';
 import { formatDateTime } from '@/utils/dateTime';
 import { impactFundApi } from '@/services/impactFund';
 import { afterSalesApi } from '@/services/afterSales';
@@ -33,7 +33,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function OrderDetail() {
   const { id } = useParams<{ id: string }>();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -298,7 +298,7 @@ export default function OrderDetail() {
                     </Link>
                     <div className="flex-1 min-w-0">
                       <Link to={`/shop/${item.product_id}`} className="font-body text-body-sm text-ink hover:text-rust transition-colors block truncate">
-                        {item.product_name || `Product #${item.product_id}`}
+                        {resolveOrderItemName(item, i18n.language)}
                       </Link>
                       <p className="font-mono text-[11px] text-sepia-mid mt-0.5">
                         {currencySymbol(order.payment_method)}{Number(item.price).toFixed(2)} × {item.quantity}
@@ -534,7 +534,7 @@ export default function OrderDetail() {
                           {item.product_image && <img src={item.product_image} alt={item.product_name || ''} className="w-full h-full object-cover" loading="lazy" />}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-body text-body-sm text-ink truncate">{item.product_name || `#${item.product_id}`}</p>
+                          <p className="font-body text-body-sm text-ink truncate">{resolveOrderItemName(item, i18n.language)}</p>
                           <p className="font-mono text-[11px] text-sepia-mid">{currencySymbol(order.payment_method)}{Number(item.price).toFixed(2)} × {item.quantity}</p>
                         </div>
                         {selectedItems[item.id] !== undefined && (

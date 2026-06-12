@@ -6,9 +6,15 @@ export interface OrderLineItem {
   id: number;
   product_id: number;
   product_name?: string | null;
+  product_name_en?: string | null;
   product_image?: string | null;
   quantity: number;
   price: string;
+}
+
+export function resolveOrderItemName(item: OrderLineItem, lang: string | undefined): string {
+  const isEn = lang?.startsWith('en');
+  return (isEn && item.product_name_en?.trim()) || item.product_name || `#${item.product_id}`;
 }
 
 export interface LogisticsEvent {

@@ -9,7 +9,7 @@ import PaperTextureBackground from '@/components/editorial/PaperTextureBackgroun
 import { MagazineDivider } from '@/components/editorial/MagazineDivider';
 import { EditorialCard } from '@/components/editorial/EditorialCard';
 import { useAuthStore } from '@/stores/authStore';
-import { ordersApi, type OrderDetail } from '@/services/orders';
+import { ordersApi, type OrderDetail, resolveOrderItemName } from '@/services/orders';
 
 const ORDER_STATUSES = ['', 'pending', 'paid', 'shipped', 'completed', 'cancelled'] as const;
 
@@ -168,7 +168,7 @@ export default function Orders() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-body text-caption text-ink truncate">
-                            {item.product_name || `#${item.product_id}`}
+                            {resolveOrderItemName(item, i18n.language)}
                           </p>
                           <p className="font-mono text-[10px] text-sepia-mid">×{item.quantity}</p>
                         </div>
