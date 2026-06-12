@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { getErrorMessage } from '@/utils/error';
 import { localizeLoginErrorMessage } from '@/utils/loginError';
+import { localizeRegisterErrorMessage } from '@/utils/registerError';
 
 export function useAuth() {
   const user = useAuthStore((s) => s.user);
@@ -60,8 +61,9 @@ export function useAuth() {
   const getLocalizedRegisterError = () => {
     if (!registerMutation.error) return undefined;
     const msg = getErrorMessage(registerMutation.error);
-    if (msg.includes('already exists')) return t('register.error.userExists', 'User already exists');
-    return msg;
+    // Prefer the structured code → i18n lookup, fall back to legacy string
+    // matching for any un-styled 4xx (e.g. older backends, proxy 502s).
+    return localizeRegisterErrorMessage(registerMutation.error, t) || msg;
   };
 
   return {

@@ -79,7 +79,15 @@
     },
     "errors": {
       "passwordMismatch": "Passwords do not match",
-      "passwordTooShort": "Password must be at least 8 characters"
+      "passwordTooShort": "Password must be at least 8 characters",
+      "emailAlreadyExists": "An account with this email already exists. Try signing in instead.",
+      "weakPassword": "Password is too weak. Please use a mix of letters, numbers, or symbols.",
+      "passwordTooLong": "Password is too long. Please use at most 72 characters.",
+      "invalidNickname": "Nickname is invalid. Please avoid whitespace-only or control characters.",
+      "invalidPhone": "Phone number format is invalid. Use 7–20 digits, with optional leading +.",
+      "validationFailed": "Please check the form for errors and try again.",
+      "rateLimited": "Too many registration attempts. Please wait a moment and try again.",
+      "internalError": "Something went wrong on our end. Please try again in a moment."
     }
   },
   "profile": {

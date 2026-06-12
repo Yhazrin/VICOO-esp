@@ -79,7 +79,15 @@
     },
     "errors": {
       "passwordMismatch": "密码不匹配",
-      "passwordTooShort": "密码至少需要8个字符"
+      "passwordTooShort": "密码至少需要8个字符",
+      "emailAlreadyExists": "该邮箱已注册，请尝试直接登录。",
+      "weakPassword": "密码强度不足，请混合使用字母、数字或符号。",
+      "passwordTooLong": "密码过长，请使用不超过 72 个字符的密码。",
+      "invalidNickname": "昵称无效，请避免纯空白或包含控制字符。",
+      "invalidPhone": "手机号格式无效，请输入 7-20 位数字（可带前缀 +）。",
+      "validationFailed": "请检查表单中的错误后重试。",
+      "rateLimited": "注册请求过于频繁，请稍后再试。",
+      "internalError": "服务器开小差了，请稍后再试。"
     }
   },
   "profile": {
