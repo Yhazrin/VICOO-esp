@@ -24,7 +24,24 @@
     "group": {
       "company": "Company",
       "impact": "Impact"
-    }
+    },
+    "settings": {
+      "aiBallStyle": "AI Ball Style",
+      "orbRings": "Orb Rings",
+      "orbRingsDesc": "Rotating concentric rings + gradient core",
+      "orbShort": "Orb",
+      "particlePlanet": "Particle Planet",
+      "particlePlanetDesc": "Canvas particle orbit animation",
+      "particlesShort": "Particles",
+      "theme": "Theme",
+      "title": "Settings"
+    },
+    "orders": "My Orders",
+    "primary": "Primary navigation",
+    "supplyChainStudio": "Supply Chain Studio",
+    "toggleLanguage": "Toggle language",
+    "toggleMenu": "Toggle menu",
+    "userMenu": "User menu"
   },
   "auth": {
     "loginSuccess": "Login successful",
@@ -47,21 +64,22 @@
     "hidePassword": "Hide password",
     "error": {
       "invalidCredentials": "Invalid email or password",
-      "userNotFound": "User not found"
+      "userNotFound": "User not found",
+      "accountBanned": "This account has been disabled and cannot sign in."
     },
     "testAccounts": {
-      "show": "View demo test accounts",
+      "show": "Show test accounts",
       "hide": "Hide test accounts",
-      "title": "Demo test accounts",
-      "subtitle": "For reviewers and local demos only. Tap an account to fill the sign-in form.",
+      "title": "Test Accounts",
+      "subtitle": "Demo accounts below. Click to auto-fill the login form.",
       "close": "Close",
-      "fillForm": "Tap to fill",
-      "filled": "Credentials filled in the form",
+      "fillForm": "Fill form",
+      "filled": "Filled",
       "copyEmail": "Copy email",
       "copyPassword": "Copy password",
       "copied": "Copied",
-      "adminPanelSection": "Admin console (:8080)",
-      "openAdminPanel": "Open admin sign-in",
+      "adminPanelSection": "Admin Panel",
+      "openAdminPanel": "Open admin panel",
       "adminPanelNote": "For the admin SPA — not this sign-in page",
       "roles": {
         "admin": "Admin (website)",
@@ -75,7 +93,9 @@
         "user": "Shop, donate, vote, and manage profile.",
         "adminPanel": "Sign in at localhost:8080 — separate from website accounts above."
       }
-    }
+    },
+    "noAccount": "Don't have an account?",
+    "successReset": "Password reset successfully. Please log in with your new password."
   },
   "register": {
     "title": "Join Our Community",
@@ -95,7 +115,13 @@
     },
     "errors": {
       "passwordMismatch": "Passwords do not match",
-      "passwordTooShort": "Password must be at least 8 characters"
+      "passwordTooShort": "Password must be at least 8 characters",
+      "emailRequired": "Email is required",
+      "invalidEmail": "Please enter a valid email address",
+      "emailAlreadyExists": "This email is already registered",
+      "internalError": "Registration failed. Please try again later.",
+      "weakPassword": "Password is too weak. Use at least 8 characters.",
+      "passwordTooLong": "Password is too long. Please use at most 128 characters."
     }
   },
   "profile": {
@@ -170,13 +196,56 @@
       "postalCode": "Postal Code",
       "noAddresses": "No saved addresses yet",
       "defaultBadge": "Default"
+    },
+    "writeReview": "Review",
+    "review": {
+      "selectProduct": "Select a product to review"
+    },
+    "viewDetail": "View details",
+    "overview": {
+      "title": "Overview",
+      "subtitle": "Your activity at a glance",
+      "quickLinks": "Quick links",
+      "linkShop": "Browse Shop",
+      "linkDonate": "Make a Donation",
+      "linkClothing": "Donate Clothing",
+      "pendingPayment": "Pending payment",
+      "awaitingDelivery": "Awaiting delivery",
+      "activeSupport": "Active support tickets",
+      "intakesInProgress": "{{count}} clothing donation(s) in progress",
+      "actionRequired": "Needs attention",
+      "totalDonated": "Total donated"
+    },
+    "settings": {
+      "title": "Edit Profile",
+      "editProfile": "Edit Profile",
+      "securitySection": "Security",
+      "securityHint": "Required when changing email or password",
+      "currentPassword": "Current password",
+      "currentPasswordPlaceholder": "Enter your current login password",
+      "newPassword": "New password",
+      "newPasswordPlaceholder": "Leave blank to keep unchanged",
+      "passwordRules": "At least 8 characters",
+      "changeAvatar": "Change avatar",
+      "avatarHint": "Click to upload a new avatar",
+      "avatarUploadError": "Avatar upload failed — please retry",
+      "saveError": "Failed to save profile — please retry",
+      "errors": {
+        "currentPasswordRequired": "Current password is required",
+        "wrongPassword": "Current password is incorrect",
+        "weakPassword": "Password is too weak",
+        "passwordMismatch": "New passwords do not match",
+        "emailExists": "This email is already registered",
+        "oauthOnly": "Social login account — set a password via forgot-password first"
+      }
     }
   },
   "authCallback": {
     "authenticating": "Authenticating...",
     "authenticationFailed": "Authentication Failed",
     "backToLogin": "Back to Login",
-    "noTokenReceived": "No authentication token received"
+    "noTokenReceived": "No authentication token received",
+    "user": "User"
   },
   "home": {
     "est": "Est. 2026",
@@ -237,7 +306,7 @@
       "title": "Every Action Leaves a Trace.",
       "subtitle": "In collaboration with UNIQLO, VICOO connects everyday essentials with recycled materials, traceable product journeys, and responsible consumption aligned with SDG 12.",
       "subtitleShort": "VICOO × UNIQLO — traceable journeys, recycled materials, and responsible consumption under SDG 12.",
-      "tagsAria": "Focus areas",
+      "tagsAria": "Collaboration and sustainability focus",
       "tags": {
         "collab": "VICOO × UNIQLO",
         "sdg12": "SDG 12 Responsible Consumption",
@@ -386,7 +455,18 @@
       "donate": "Support This Campaign",
       "progress": "of goal raised",
       "participants": "participants",
-      "daysLeft": "days left"
+      "daysLeft": "days left",
+      "dateTbd": "To be announced",
+      "endDate": "End date",
+      "startDate": "Start date",
+      "impactMechanismTitle": "Impact Mechanism",
+      "linkedProducts": "Linked Products",
+      "moreSupportOptions": "More Support Options",
+      "networks": "Campaign Networks",
+      "products": "Products",
+      "productsEyebrow": "Linked Products",
+      "snapshot": "Campaign Snapshot",
+      "voiceEyebrow": "Voice"
     },
     "listing": {
       "sectionTitle": "All Campaigns",
@@ -407,7 +487,11 @@
       "nextAria": "Next page",
       "pageAria": "Page"
     },
-    "empty": "No campaigns found matching your criteria.",
+    "empty": {
+      "_default": "No campaigns found matching your criteria.",
+      "title": "No campaigns found",
+      "subtitle": "Please check back later"
+    },
     "empty.title": "No campaigns found in this category.",
     "empty.subtitle": "Check back soon.",
     "goalReached": "Goal Reached",
@@ -455,7 +539,8 @@
         "subtitle": "Choirs in Yunnan and Guizhou villages: sheet music, outfits, and one performance in the city.",
         "description": "We help form small choirs in villages across Yunnan and Guizhou, providing sheet music, outfits, and one chance to perform in the city."
       }
-    }
+    },
+    "loading": "Loading campaign..."
   },
   "stories": {
     "hero": {
@@ -562,7 +647,8 @@
         "minAmount": "Minimum donation is ¥{{min}}",
         "maxAmount": "Maximum donation is ¥{{max}}"
       },
-      "amountRange": "Range: ¥{{min}} – ¥{{max}}"
+      "amountRange": "Range: ¥{{min}} – ¥{{max}}",
+      "amountPresets": "Quick amounts"
     },
     "tiers": {
       "seedling": {
@@ -664,7 +750,26 @@
       "a3": "Yes, all donations to Uniqlo × VICOO Welfare are tax-deductible. You will receive an official receipt for your records.",
       "q4": "How can I track my donation impact?",
       "a4": "You will receive updates on how your donation is making a difference. We also publish quarterly financial reports showing the impact of all donations."
-    }
+    },
+    "successSimulation": "Thank you for your donation. This environment completed the payment in simulation mode so you can verify the certificate flow end to end.",
+    "certificate": {
+      "kicker": "Certificate Center",
+      "title": "Your Donation Certificate",
+      "subtitle": "We generated a shareable, downloadable certificate for your completed donation.",
+      "loading": "Loading certificate...",
+      "error": "Unable to load the certificate right now. Please try again.",
+      "documentTitle": "Donation Certificate",
+      "issuedOn": "Issued on: {{date}}",
+      "number": "Certificate No.: {{number}}",
+      "sideTitle": "Share Summary",
+      "download": "Download PDF",
+      "backToDonate": "Back to Donate",
+      "amount": "Donation amount: {{amount}}",
+      "project": "Campaign: {{project}}",
+      "view": "View Certificate",
+      "keepGiving": "Keep Exploring"
+    },
+    "paymentFailed": "Payment failed, please try again"
   },
   "shop": {
     "hero": {
@@ -783,7 +888,8 @@
       "globeUncertified": "Not certified",
       "globeCarbonBadge": "~{{kg}} kg CO₂",
       "globeAria": "Interactive traceability globe. Click the canvas, then use arrow keys to nudge the view. Press Escape to release focus.",
-      "globeDefocusHint": "Tap the same pin again to release · Escape"
+      "globeDefocusHint": "Tap the same pin again to release · Escape",
+      "error": "Failed to load product details"
     },
     "sort": {
       "label": "Sort by",
@@ -864,7 +970,22 @@
       "editorial": "Editorial",
       "editorialBody": "Seasonal lookbooks, material deep-dives, and the artisans behind every stitch.",
       "cta": "Learn More"
-    }
+    },
+    "pagination": {
+      "prev": "Previous",
+      "next": "Next",
+      "ariaLabel": "Product pagination",
+      "prevAria": "Previous page",
+      "nextAria": "Next page",
+      "pageAria": "Page"
+    },
+    "categories": {
+      "accessories": "Accessories",
+      "apparel": "Apparel",
+      "home": "Home",
+      "stationery": "Stationery"
+    },
+    "closeFilters": "Close filters"
   },
   "impactShop": {
     "hero": {
@@ -897,7 +1018,17 @@
       "title": "Trace Every Thread",
       "subtitle": "See exactly where your product comes from — from organic cotton field to finished garment.",
       "button": "Explore Traceability"
-    }
+    },
+    "pagination": {
+      "prev": "Previous",
+      "next": "Next",
+      "ariaLabel": "Impact product pagination",
+      "prevAria": "Previous page",
+      "nextAria": "Next page",
+      "pageAria": "Page"
+    },
+    "age": "{{age}} years old",
+    "traceable": "Traceable"
   },
   "artworkCard": {
     "age": "Age {{age}}"
@@ -1059,7 +1190,15 @@
         "title": "Child-Safe Production",
         "desc": "Full compliance with child protection regulations and consent protocols."
       }
-    }
+    },
+    "integrity": {
+      "explanation": "All supply chain records use append-only mode — once written, they cannot be modified or deleted. Each record includes a timestamp and verification signature to ensure data integrity and traceability.",
+      "heading": "Append-only Timeline Architecture",
+      "subtitle": "Append-only timeline architecture ensures traceability data is authentic and tamper-proof",
+      "title": "Data Integrity",
+      "verifiedLabel": "Verified records only"
+    },
+    "searchError": "Search failed, please try again"
   },
   "contact": {
     "hero": {
@@ -1113,7 +1252,13 @@
       "sending": "Sending",
       "successTitle": "Message Sent",
       "success": "Thank you for reaching out. We'll get back to you within 24 hours.",
-      "error": "Something went wrong. Please try again."
+      "error": "Something went wrong. Please try again.",
+      "emailPlaceholder": "your@email.com",
+      "maxLength": "Maximum {max} characters",
+      "messagePlaceholder": "Type your message here...",
+      "minLength": "Minimum {min} characters",
+      "namePlaceholder": "Enter your name",
+      "sendAnother": "Send another message"
     },
     "contactTitle": "Get in Touch",
     "formTitle": "Send Us a Message",
@@ -1125,7 +1270,11 @@
       "wechatLabel": "WeChat",
       "address": "Shanghai, China",
       "locationLabel": "Location",
-      "officeCaption": "VICOO Shanghai Office"
+      "officeCaption": "VICOO Shanghai Office",
+      "customerService": "Customer Service",
+      "hours": "Business Hours",
+      "responseTime": "Average Response Time",
+      "responseTimeText": "Average response within 12 hours"
     },
     "pullQuote": {
       "quote": "Every question is an invitation to understand our mission more deeply — and every answer is a chance to weave another thread of trust.",
@@ -1150,7 +1299,8 @@
   "notFound": {
     "title": "Page Not Found",
     "subtitle": "This chapter seems to be missing from our publication.",
-    "cta": "Return to Table of Contents"
+    "cta": "Return to Table of Contents",
+    "label": "404"
   },
   "footer": {
     "tagline": "Where childhood imagination meets conscious couture.",
@@ -1183,7 +1333,8 @@
     "brand": {
       "description": "Vision In Creative Opportunity"
     },
-    "builtWith": "Built with care"
+    "builtWith": "Built with care",
+    "brandName": "VICOO"
   },
   "forgotPassword": {
     "title": "Reset Password",
@@ -1197,7 +1348,33 @@
     "errorNotFound": "Email address not found in our records.",
     "errorGeneric": "An error occurred. Please try again later.",
     "mockTitle": "Account Found (Mock Mode)",
-    "mockInstruction": "Since this is a test account, your password is shown below:"
+    "mockInstruction": "Since this is a test account, your password is shown below:",
+    "resetPassword": {
+      "setTitle": "Reset Password",
+      "setSubtitle": "Enter your email and we'll send a verification code",
+      "verifyTitle": "Verify Identity",
+      "verifySubtitle": "Enter the code sent to your email",
+      "otpLabel": "Verification Code",
+      "otpHint": "6-digit verification code",
+      "verifyButton": "Verify",
+      "verifying": "Verifying...",
+      "requestNew": "Resend Code",
+      "newPasswordLabel": "New Password",
+      "confirmPasswordLabel": "Confirm New Password",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "resetButton": "Reset Password",
+      "resetting": "Resetting...",
+      "backToLogin": "Back to Login",
+      "errors": {
+        "invalidOtp": "Invalid or expired verification code",
+        "missingToken": "Invalid reset link",
+        "passwordMismatch": "Passwords do not match",
+        "passwordTooShort": "Password must be at least 8 characters"
+      },
+      "passwordMismatch": "Passwords do not match",
+      "passwordTooShort": "Password must be at least 8 characters"
+    }
   },
   "artwork": {
     "detail": {
@@ -1205,7 +1382,8 @@
       "artist": "Artist",
       "vote": "Vote for this Artwork",
       "votes": "Votes",
-      "tags": "Tags"
+      "tags": "Tags",
+      "unknownArtist": "Unknown artist"
     },
     "loading": "Loading...",
     "notFound": "Artwork not found",
@@ -1235,7 +1413,10 @@
     "cancel": "Cancel",
     "edit": "Edit",
     "delete": "Delete",
-    "scroll": "Scroll"
+    "scroll": "Scroll",
+    "dismiss": "Dismiss",
+    "loadError": "Failed to load, please try again",
+    "skipToContent": "Skip to content"
   },
   "error": {
     "somethingWentWrong": "Something went wrong",
@@ -1258,7 +1439,13 @@
     "title": "Clothing Donation Registration",
     "subtitle": "Sorted and sanitized before entering the recycled product pool, listed by operations",
     "summary": "Item Summary *",
-    "types": "Types (e.g., outerwear, children's clothing)",
+    "types": {
+      "tshirt": "T-Shirt",
+      "pants": "Pants",
+      "jacket": "Jacket",
+      "skirt": "Skirt",
+      "other": "Other"
+    },
     "qty": "Estimated Quantity",
     "condition": "Condition & Notes",
     "pickup": "Pickup / Shipping Address",
@@ -1282,16 +1469,16 @@
     "postalCodeError": "Invalid postal code format",
     "postalCodeErrorCn": "请输入6位邮政编码",
     "postalCodeErrorTw": "請輸入3-5位郵遞區號",
-    "phoneErrorHk": "请输入有效的8位香港手机号码",
-    "phoneErrorSg": "请输入有效的8位新加坡手机号码",
-    "phoneErrorJp": "请输入有效的日本电话号码",
-    "phoneErrorKr": "请输入有效的韩国手机号码",
-    "phoneErrorUs": "请输入有效的美国电话号码",
-    "phoneErrorCa": "请输入有效的加拿大电话号码",
-    "phoneErrorUk": "请输入有效的英国电话号码",
-    "phoneErrorDe": "请输入有效的德国电话号码",
-    "phoneErrorFr": "请输入有效的法国电话号码",
-    "phoneErrorAu": "请输入有效的澳大利亚电话号码",
+    "phoneErrorHk": "Please enter a valid 8-digit Hong Kong mobile number",
+    "phoneErrorSg": "Please enter a valid 8-digit Singapore mobile number",
+    "phoneErrorJp": "Please enter a valid Japanese phone number",
+    "phoneErrorKr": "Please enter a valid South Korean mobile number",
+    "phoneErrorUs": "Please enter a valid 10-digit US phone number",
+    "phoneErrorCa": "Please enter a valid 10-digit Canadian phone number",
+    "phoneErrorUk": "Please enter a valid 10-digit UK phone number",
+    "phoneErrorDe": "Please enter a valid 10/11-digit German phone number",
+    "phoneErrorFr": "Please enter a valid 10-digit French phone number",
+    "phoneErrorAu": "Please enter a valid 9/10-digit Australian phone number",
     "postalCodeErrorJp": "格式: 123-4567 或 1234567",
     "postalCodeErrorKr": "请输入5位邮政编码",
     "postalCodeErrorUs": "格式: 12345 或 12345-6789",
@@ -1314,16 +1501,6 @@
     "postalCodePlaceholder": "Enter postal code",
     "fieldCountry": "Country/Region",
     "fieldContactName": "Contact Name",
-    "phoneErrorHk": "Please enter a valid 8-digit Hong Kong mobile number",
-    "phoneErrorSg": "Please enter a valid 8-digit Singapore mobile number",
-    "phoneErrorJp": "Please enter a valid Japanese phone number",
-    "phoneErrorKr": "Please enter a valid South Korean mobile number",
-    "phoneErrorUs": "Please enter a valid 10-digit US phone number",
-    "phoneErrorCa": "Please enter a valid 10-digit Canadian phone number",
-    "phoneErrorUk": "Please enter a valid 10-digit UK phone number",
-    "phoneErrorDe": "Please enter a valid 10/11-digit German phone number",
-    "phoneErrorFr": "Please enter a valid 10-digit French phone number",
-    "phoneErrorAu": "Please enter a valid 9/10-digit Australian phone number",
     "heroTitle": "Circular Fashion",
     "heroSubtitle": "Give old garments a second life, from submission and review to relisting and reuse.",
     "statRecycled": "Garments Recovered",
@@ -1389,13 +1566,6 @@
     "processStep4": "You can track the full journey from your order history.",
     "showcaseDescription": "Each item carries a recycle badge and full supply chain traceability. Browse the circular shop to discover unique pieces.",
     "submitFirst": "Submit your first recycling request",
-    "types": {
-      "tshirt": "T-Shirt",
-      "pants": "Pants",
-      "jacket": "Jacket",
-      "skirt": "Skirt",
-      "other": "Other"
-    },
     "conditions": {
       "new": "New",
       "likeNew": "Like New",
@@ -1423,7 +1593,11 @@
       "tieDyeTee": "Tie-Dye Eco Tee",
       "handPaintedJeans": "Hand-Painted Jeans",
       "patchworkDress": "Patchwork Dress"
-    }
+    },
+    "addressRequired": "Pickup address is required",
+    "descriptionRequired": "Please describe the clothing",
+    "phoneRequired": "Phone number is required",
+    "photoUploadError": "Photo upload failed. Please retry."
   },
   "support": {
     "loginRequired": "Log in to submit after-sales ticket",
@@ -1450,7 +1624,14 @@
     "contactTitle": "Other Channels",
     "contactEmail": "Email: support@vicoo.com",
     "contactHours": "Mon–Fri, 9:00–18:00 CST",
-    "descriptionPlaceholder": "Describe the issue in detail"
+    "descriptionPlaceholder": "Describe the issue in detail",
+    "fieldPhotos": "Attach Photos (optional)",
+    "photoCount": "{{count}} file(s) selected",
+    "photoUploadError": "Photo upload failed. Please retry.",
+    "photoUploadPrompt": "Click to upload photos",
+    "returnExchangeTitle": "Returns & Exchanges",
+    "returnExchangeHint": "For returns or exchanges, open your order detail page and use the request button on completed orders.",
+    "viewOrders": "View My Orders"
   },
   "aiAssistant": {
     "title": "AI Assistant",
@@ -1558,7 +1739,9 @@
     },
     "actionCard": {
       "donationList": "Donation Records",
-      "impactFund": "Impact Fund"
+      "impactFund": "Impact Fund",
+      "traceability": "Supply Chain Traceability",
+      "viewDetails": "View Details"
     }
   },
   "orderDetail": {
@@ -1605,8 +1788,24 @@
         "processing": "Processing",
         "exchangeShipping": "Exchange Shipping",
         "completed": "Completed"
-      }
-    }
+      },
+      "adminNote": "Admin Note",
+      "carrierPlaceholder": "Carrier",
+      "refunded": "Refunded ¥{{amount}}",
+      "returnShipHint": "Enter return shipping info",
+      "returnShipped": "Return shipment: {{carrier}} {{tracking}}",
+      "submitReturnShip": "Submit return shipment",
+      "trackingPlaceholder": "Tracking number",
+      "typeSupport": "Support",
+      "viewReplacement": "View replacement order"
+    },
+    "fund": {
+      "artist": "Artist",
+      "charity": "Charity",
+      "school": "School"
+    },
+    "impactFund": "Impact Fund",
+    "impactFundDesc": "A portion of proceeds is donated to children's art education and community projects"
   },
   "cart": {
     "title": "Shopping Bag",
@@ -1622,19 +1821,22 @@
     "items": "{{count}} item",
     "items_plural": "{{count}} items",
     "addedToBag": "Added to bag",
-    "viewBag": "View Bag"
+    "viewBag": "View Bag",
+    "close": "Close bag",
+    "loginToCheckout": "Log in to checkout",
+    "outOfStock": "Out of stock"
   },
   "paymentConfirm": {
-    "title": "Confirm payment",
-    "subtitle": "Demo only · no real charge",
-    "confirm": "Confirm payment",
-    "success": "Payment successful",
-    "backHome": "Back to home",
-    "invalidLink": "Invalid or missing payment link",
-    "loadFailed": "Could not load order. Please scan again from checkout.",
-    "confirmFailed": "Could not confirm payment. Please try again.",
-    "notPending": "This order is not awaiting payment",
-    "alreadyPaid": "This order is already paid"
+    "title": "Payment Confirmation",
+    "subtitle": "Please confirm and complete your payment",
+    "confirm": "Confirm Payment",
+    "success": "Payment successful!",
+    "backHome": "Back to Home",
+    "invalidLink": "Invalid payment link",
+    "loadFailed": "Failed to load order",
+    "confirmFailed": "Failed to confirm payment",
+    "notPending": "This order is not pending payment",
+    "alreadyPaid": "This order has already been paid"
   },
   "checkout": {
     "title": "Checkout",
@@ -1673,34 +1875,34 @@
     "savedAddresses": "Saved Addresses",
     "enterNewAddress": "Enter a new address",
     "saveAddress": "Save to address book",
-    "paymentQRTitle": "Scan to pay",
-    "paymentQRHint": "Scan the QR code with your phone and confirm payment in the browser",
+    "paymentQRTitle": "WeChat Pay",
+    "paymentQRHint": "Scan the QR code below to complete payment",
     "paymentSuccess": "Payment Success",
     "paymentFailed": "Payment Failed",
-    "simulatePaid": "Simulate paid (this device)",
-    "qrLoading": "Generating QR code…",
-    "qrError": "Could not generate QR code",
+    "simulatePaid": "Simulate payment",
+    "qrLoading": "Loading QR code...",
+    "qrError": "Failed to load QR code",
     "scanPayLabel": "Payment",
-    "scanPaySummary": "Scan to pay (demo — no real charge)",
-    "scanPayHint": "After you place the order, scan the QR code in the dialog and tap confirm on the payment page.",
-    "allMethodsScanNote": "Choose a preferred method below; checkout still completes via the same scan-to-pay demo flow.",
+    "scanPaySummary": "Scan the QR code below to complete payment",
+    "scanPayHint": "Scan the QR code with your selected payment method",
+    "allMethodsScanNote": "Select WeChat or Alipay, then scan the QR code to pay",
     "copyPaymentLink": "Copy payment link",
     "linkCopied": "Link copied",
-    "copyFailed": "Copy failed — select the link manually",
-    "qrFallbackHint": "If scanning fails, open the link above on your phone (browser or chat).",
-    "localhostQrWarning": "You are on localhost — phones cannot open it. Set VITE_PUBLIC_SITE_ORIGIN in .env to your LAN or public site URL (e.g. http://192.168.x.x:9111).",
+    "copyFailed": "Copy failed",
+    "qrFallbackHint": "Use the link above to complete payment",
+    "localhostQrWarning": "QR code may not work in local development",
     "phoneErrorChina": "Please enter a valid 11-digit Chinese mobile number",
     "phoneErrorTaiwan": "Please enter a valid 10-digit Taiwanese mobile number",
     "phoneErrorHongKong": "Please enter a valid 8-digit Hong Kong mobile number",
     "phoneErrorSingapore": "Please enter a valid 8-digit Singapore mobile number",
     "phoneErrorJapan": "Please enter a valid Japanese phone number",
-    "phoneErrorKr": "Please enter a valid South Korean mobile number",
-    "phoneErrorUs": "Please enter a valid 10-digit US phone number",
-    "phoneErrorCa": "Please enter a valid 10-digit Canadian phone number",
-    "phoneErrorUk": "Please enter a valid 10-digit UK phone number",
-    "phoneErrorDe": "Please enter a valid 10/11-digit German phone number",
-    "phoneErrorFr": "Please enter a valid 10-digit French phone number",
-    "phoneErrorAu": "Please enter a valid 9/10-digit Australian phone number",
+    "phoneErrorKr": "Please enter a valid Korean phone number",
+    "phoneErrorUs": "Please enter a valid US phone number",
+    "phoneErrorCa": "Please enter a valid Canadian phone number",
+    "phoneErrorUk": "Please enter a valid UK phone number",
+    "phoneErrorDe": "Please enter a valid German phone number",
+    "phoneErrorFr": "Please enter a valid French phone number",
+    "phoneErrorAu": "Please enter a valid Australian phone number",
     "phoneErrorDefault": "Please enter a valid phone number",
     "nameError": "Invalid name format. Please use Chinese or English characters.",
     "nameErrorChina": "Name must be 2-50 characters in Chinese or English",
@@ -1713,7 +1915,15 @@
     "postalCodeErrorTaiwan": "Please enter 3-5 digit postal code",
     "postalCodeErrorUS": "Format: 12345 or 12345-6789",
     "postalCodeErrorCA": "Format: A1A 1A1",
-    "postalCodeErrorUK": "Format: SW1A 1AA"
+    "postalCodeErrorUK": "Format: SW1A 1AA",
+    "wechat": "WeChat Pay",
+    "cartStale": "An item in your cart is no longer available. Please refresh and try again.",
+    "loginExpired": "Your session has expired. Please log in again.",
+    "invalidRequest": "We could not process your order. Please review your address and try again.",
+    "addressesLoadError": "Could not load saved addresses",
+    "outOfStock": "Some items are out of stock — please update your cart",
+    "paymentTimeout": "Payment timed out. Please place a new order.",
+    "qrAlt": "Payment QR code"
   },
   "submitArtwork": {
     "loginRequired": "Please log in to submit artwork",
@@ -1758,7 +1968,10 @@
       "approved": "Approved",
       "rejected": "Rejected",
       "published": "Published"
-    }
+    },
+    "loadError": "Failed to load design drafts",
+    "price": "Price",
+    "stock": "Stock"
   },
   "artworkSubmit": {
     "badge": "Artwork Submission & Review",
@@ -1820,7 +2033,8 @@
         "title": "Urban Forest — Green Living Art Creation",
         "description": "Depict your ideal green city and imagine a future where humans and nature coexist in harmony. Artworks will be used in an eco-friendly tote bag design series."
       }
-    }
+    },
+    "error": "Submission failed, please try again"
   },
   "supplyChain": {
     "overviewTitle": "Supply Chain Overview",
@@ -1952,28 +2166,28 @@
     "fieldAddress": "Pickup Address *",
     "addressPlaceholder": "Enter the full pickup address",
     "fieldPhone": "Contact Phone *",
-    "phonePlaceholder": "11-digit mobile number",
+    "phonePlaceholder": "Enter phone number",
     "fieldCountry": "Country/Region",
     "fieldContactName": "Contact Name",
-    "namePlaceholder": "Enter your name",
+    "namePlaceholder": "Enter recipient name",
     "postalCodePlaceholder": "Enter postal code",
-    "phoneError": "Invalid phone number",
+    "phoneError": "Please enter a valid phone number",
     "phoneErrorCn": "Please enter a valid 11-digit Chinese mobile number",
     "phoneErrorTw": "Please enter a valid 10-digit Taiwanese mobile number",
     "phoneErrorHk": "Please enter a valid 8-digit Hong Kong mobile number",
     "phoneErrorSg": "Please enter a valid 8-digit Singapore mobile number",
     "phoneErrorJp": "Please enter a valid Japanese phone number",
-    "phoneErrorKr": "Please enter a valid South Korean mobile number",
-    "phoneErrorUs": "Please enter a valid 10-digit US phone number",
-    "phoneErrorCa": "Please enter a valid 10-digit Canadian phone number",
-    "phoneErrorUk": "Please enter a valid 10-digit UK phone number",
-    "phoneErrorDe": "Please enter a valid 10/11-digit German phone number",
-    "phoneErrorFr": "Please enter a valid 10-digit French phone number",
-    "phoneErrorAu": "Please enter a valid 9/10-digit Australian phone number",
+    "phoneErrorKr": "Please enter a valid Korean phone number",
+    "phoneErrorUs": "Please enter a valid US phone number",
+    "phoneErrorCa": "Please enter a valid Canadian phone number",
+    "phoneErrorUk": "Please enter a valid UK phone number",
+    "phoneErrorDe": "Please enter a valid German phone number",
+    "phoneErrorFr": "Please enter a valid French phone number",
+    "phoneErrorAu": "Please enter a valid Australian phone number",
     "nameError": "Name must be 2-50 characters",
-    "nameErrorCn": "Please enter 2-50 characters name",
-    "nameErrorTw": "Please enter 2-50 characters name",
-    "nameErrorHk": "Please enter 2-50 characters name",
+    "nameErrorCn": "Name must be 2-50 characters in Chinese or English",
+    "nameErrorTw": "Name must be 2-50 characters in Chinese or English",
+    "nameErrorHk": "Name must be 2-50 characters in Chinese or English",
     "addressError": "Address must be 5-200 characters",
     "addressErrorCn": "Address must be 5-200 characters",
     "addressErrorTw": "Address must be 5-200 characters",
@@ -2044,6 +2258,113 @@
     "processStep3": "Items are sorted, cleaned, and listed in the circular shop.",
     "processStep4": "You can track the full journey from your order history.",
     "showcaseDescription": "Each item carries a recycle badge and full supply chain traceability. Browse the circular shop to discover unique pieces.",
-    "submitFirst": "Submit your first recycling request"
+    "submitFirst": "Submit your first recycling request",
+    "phonePlaceholderCn": "11-digit mobile number",
+    "phonePlaceholderTw": "10-digit mobile number",
+    "phonePlaceholderHk": "8-digit phone number",
+    "phonePlaceholderSg": "8-digit phone number",
+    "phonePlaceholderJp": "Phone number",
+    "phonePlaceholderKr": "10/11-digit mobile number",
+    "phonePlaceholderUs": "10-digit phone number",
+    "phonePlaceholderCa": "10-digit phone number",
+    "phonePlaceholderUk": "11-digit phone number",
+    "phonePlaceholderDe": "10/11-digit phone number",
+    "phonePlaceholderFr": "10-digit phone number",
+    "phonePlaceholderAu": "9/10-digit phone number",
+    "postalCodeErrorJp": "Format: 123-4567 or 1234567",
+    "postalCodeErrorKr": "Please enter 5-digit postal code",
+    "postalCodeErrorUs": "Format: 12345 or 12345-6789",
+    "postalCodeErrorCa": "Format: A1A 1A1",
+    "postalCodeErrorUk": "Format: SW1A 1AA",
+    "fieldPostalCode": "Postal Code"
+  },
+  "campaigns.detailLoadError": "This campaign could not be loaded. It may have been removed or the link is invalid.",
+  "editorial": {
+    "advertisement": "Advertisement"
+  },
+  "hero": {
+    "cards": {
+      "bag": "Tote Bag",
+      "childDrawing": "Child's Drawing",
+      "hoodie": "Hoodie",
+      "organicLabel": "Organic Certified",
+      "tshirt": "T-Shirt"
+    },
+    "cta": "Explore Our Work",
+    "eyebrow": "Uniqlo × VICOO Welfare"
+  },
+  "legal": {
+    "children": {
+      "intro": "We are committed to protecting the privacy and rights of every minor participating in our campaigns. This page outlines our policies and practices regarding child data protection.",
+      "lastUpdated": "Last updated: January 2026",
+      "overline": "LEGAL",
+      "title": "Children's Protection Policy"
+    },
+    "privacy": {
+      "intro": "This privacy policy explains how VICOO collects, uses, and protects your personal information. We value your privacy and take appropriate measures to protect your data.",
+      "lastUpdated": "Last updated: January 2026",
+      "overline": "LEGAL",
+      "title": "Privacy Policy"
+    },
+    "terms": {
+      "lastUpdated": "Last updated: January 2026",
+      "overline": "LEGAL",
+      "title": "Terms of Service"
+    }
+  },
+  "materialTrace": {
+    "carbon": {
+      "reduction": "Carbon Reduction",
+      "saved": "CO₂ Saved",
+      "subtitle": "Full lifecycle carbon comparison",
+      "sustainable": "Sustainable",
+      "title": "Carbon Footprint Comparison",
+      "total": "Total Emissions",
+      "traditional": "Traditional",
+      "vsTraditional": "vs Traditional"
+    },
+    "disclaimer": "This page displays sample data. The production environment will connect to the real supply chain traceability system.",
+    "integrity": {
+      "certifications": "Certifications & Standards",
+      "subtitle": "Append-only timeline architecture ensures traceability data is authentic and tamper-proof",
+      "title": "Data Integrity"
+    },
+    "lookup": {
+      "inputLabel": "Product ID",
+      "notFound": "Product not found",
+      "placeholder": "Enter product ID e.g. TH-2026-001",
+      "search": "Search",
+      "subtitle": "Enter a product ID to view the complete supply chain traceability record",
+      "title": "Product Traceability"
+    },
+    "timeline": {
+      "activeId": "Active node",
+      "subtitle": "Timeline records of supply chain nodes",
+      "title": "Traceability Timeline"
+    }
+  },
+  "search": {
+    "placeholder": "Search..."
+  },
+  "supplyChainStudio": {
+    "addRow": "Add node",
+    "adminOnly": "Admin only",
+    "caption": "Supply chain data entry and management",
+    "image": "Upload image",
+    "lead": "Upload verification images and videos for each supply chain node",
+    "noRecords": "No supply chain records",
+    "pickProduct": "Select product",
+    "removeRow": "Remove node",
+    "save": "Save",
+    "saveError": "Failed to save",
+    "saved": "Saved",
+    "selectProduct": "Please select a product",
+    "title": "Supply Chain Studio",
+    "uploadError": "Upload failed",
+    "uploadLocal": "Upload local file",
+    "uploaded": "Uploaded",
+    "uploading": "Uploading...",
+    "urlOrUpload": "Enter image URL or upload local file",
+    "video": "Upload video"
   }
 }

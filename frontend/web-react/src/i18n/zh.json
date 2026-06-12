@@ -32,8 +32,16 @@
       "orbShort": "光环",
       "particlePlanet": "粒子星球",
       "particlePlanetDesc": "Canvas 粒子轨道动画",
-      "particlesShort": "粒子"
-    }
+      "particlesShort": "粒子",
+      "theme": "主题",
+      "title": "设置"
+    },
+    "orders": "我的订单",
+    "primary": "主导航",
+    "supplyChainStudio": "供应链管理",
+    "toggleLanguage": "切换语言",
+    "toggleMenu": "切换菜单",
+    "userMenu": "用户菜单"
   },
   "auth": {
     "loginSuccess": "登录成功",
@@ -54,27 +62,26 @@
     "wechat": "微信",
     "showPassword": "显示密码",
     "hidePassword": "隐藏密码",
-    "noAccount": "还没有账号？",
-    "testAccounts": {
-      "show": "显示测试账号",
-      "hide": "隐藏测试账号",
-      "filled": "已填入测试账号信息",
-      "title": "测试账号",
-      "subtitle": "开发和演示用快捷登录。点击任意卡片可填入表单。",
-      "fillForm": "点击填入",
-      "copyEmail": "复制邮箱",
-      "copyPassword": "复制密码",
-      "copied": "已复制",
-      "close": "关闭",
-      "adminPanelSection": "管理后台",
-      "openAdminPanel": "打开管理后台"
-    },
     "error": {
       "invalidCredentials": "邮箱或密码错误",
       "userNotFound": "用户不存在",
       "accountBanned": "该账号已被禁用，无法登录"
     },
-    "successReset": "密码已重置，请使用新密码登录。"
+    "noAccount": "还没有账户？",
+    "testAccounts": {
+      "adminPanelSection": "管理面板",
+      "close": "关闭",
+      "copied": "已复制",
+      "copyEmail": "复制邮箱",
+      "copyPassword": "复制密码",
+      "fillForm": "填入表单",
+      "filled": "已填入",
+      "hide": "隐藏测试账号",
+      "openAdminPanel": "打开管理面板",
+      "show": "查看测试账号",
+      "subtitle": "以下为演示账号，点击可快速填入登录表单",
+      "title": "测试账号"
+    }
   },
   "register": {
     "title": "加入我们的社区",
@@ -95,14 +102,8 @@
     "errors": {
       "passwordMismatch": "密码不匹配",
       "passwordTooShort": "密码至少需要8个字符",
-      "emailAlreadyExists": "该邮箱已注册，请尝试直接登录。",
-      "weakPassword": "密码强度不足，请混合使用字母、数字或符号。",
-      "passwordTooLong": "密码过长，请使用不超过 72 个字符的密码。",
-      "invalidNickname": "昵称无效，请避免纯空白或包含控制字符。",
-      "invalidPhone": "手机号格式无效，请输入 7-20 位数字（可带前缀 +）。",
-      "validationFailed": "请检查表单中的错误后重试。",
-      "rateLimited": "注册请求过于频繁，请稍后再试。",
-      "internalError": "服务器开小差了，请稍后再试。"
+      "emailRequired": "请输入邮箱",
+      "invalidEmail": "请输入有效的邮箱地址"
     }
   },
   "profile": {
@@ -139,7 +140,6 @@
     "total": "合计",
     "viewDetails": "查看详情",
     "tabs": {
-      "overview": "概览",
       "orders": "我的订单",
       "donations": "我的捐赠",
       "clothing": "衣物捐献",
@@ -147,67 +147,6 @@
       "addresses": "地址管理",
       "artworks": "我的画作"
     },
-    "settings": {
-      "title": "编辑资料",
-      "editProfile": "编辑资料",
-      "phone": "手机号",
-      "phonePlaceholder": "选填，7–20 位数字",
-      "changeAvatar": "更换头像",
-      "avatarHint": "点击上传新头像",
-      "saveError": "保存资料失败，请重试",
-      "avatarUploadError": "头像上传失败，请重试",
-      "securitySection": "账号安全",
-      "securityHint": "修改邮箱或密码时需验证当前密码",
-      "currentPassword": "当前密码",
-      "currentPasswordPlaceholder": "请输入当前登录密码",
-      "newPassword": "新密码",
-      "newPasswordPlaceholder": "留空则不修改",
-      "passwordRules": "至少 8 个字符",
-      "errors": {
-        "currentPasswordRequired": "修改邮箱或密码时请填写当前密码",
-        "passwordMismatch": "两次输入的新密码不一致",
-        "wrongPassword": "当前密码错误",
-        "emailExists": "该邮箱已被注册",
-        "weakPassword": "密码强度不足",
-        "oauthOnly": "社交登录账号请先在忘记密码中设置登录密码",
-        "invalidPhone": "手机号格式无效"
-      }
-    },
-    "overview": {
-      "title": "概览",
-      "subtitle": "一眼看清你的 VICOO 足迹",
-      "actionRequired": "待处理",
-      "pendingPayment": "待付款订单",
-      "awaitingDelivery": "待收货订单",
-      "activeSupport": "进行中售后",
-      "totalDonated": "累计捐赠",
-      "artworksPending": "{{count}} 幅画作审核中",
-      "intakesInProgress": "{{count}} 笔衣物捐献处理中",
-      "quickLinks": "快捷入口",
-      "linkShop": "浏览商城",
-      "linkArtwork": "提交画作",
-      "linkClothing": "旧衣回收",
-      "linkDonate": "进行捐赠"
-    },
-    "orderStatus": {
-      "pending": "待付款",
-      "paid": "已付款",
-      "shipped": "已发货",
-      "delivered": "已送达",
-      "completed": "已完成",
-      "cancelled": "已取消",
-      "failed": "失败",
-      "refunded": "已退款"
-    },
-    "artworkStatus": {
-      "pending": "审核中",
-      "approved": "已通过",
-      "featured": "精选",
-      "rejected": "未通过"
-    },
-    "artworksError": "暂时无法加载画作。",
-    "noArtworks": "暂无画作",
-    "viewArtwork": "查看画作",
     "cancelOrder": "取消订单",
     "cancelOrderError": "取消订单失败，请重试",
     "writeReview": "评价",
@@ -243,7 +182,8 @@
       "postalCode": "邮编",
       "noAddresses": "暂无保存的地址",
       "defaultBadge": "默认"
-    }
+    },
+    "viewDetail": "查看详情"
   },
   "home": {
     "est": "创立于 2026",
@@ -453,7 +393,18 @@
       "donate": "支持此活动",
       "progress": "目标已完成",
       "participants": "参与者",
-      "daysLeft": "天剩余"
+      "daysLeft": "天剩余",
+      "dateTbd": "待定",
+      "endDate": "结束日期",
+      "startDate": "开始日期",
+      "impactMechanismTitle": "影响力机制",
+      "linkedProducts": "关联商品",
+      "moreSupportOptions": "更多支持方式",
+      "networks": "活动网络",
+      "products": "相关商品",
+      "productsEyebrow": "关联商品",
+      "snapshot": "活动概览",
+      "voiceEyebrow": "声音"
     },
     "listing": {
       "sectionTitle": "全部活动",
@@ -474,7 +425,10 @@
       "nextAria": "下一页",
       "pageAria": "第"
     },
-    "empty": "没有找到符合条件的活动。",
+    "empty": {
+      "subtitle": "请稍后再来查看",
+      "title": "暂无活动"
+    },
     "empty.title": "该类别下暂无活动",
     "empty.subtitle": "请稍后再来",
     "goalReached": "目标达成",
@@ -495,6 +449,34 @@
       "footnote": "对外陈述均应有据可查：第三方证书、内部批次记录或独立审计摘要。若数据尚在补齐，页面会标明「待核验」而非静默省略。",
       "ctaTraceability": "全站溯源",
       "ctaShop": "公益商城档案"
+    },
+    "loading": "加载活动中...",
+    "items": {
+      "springExhibition": {
+        "title": "春日色彩 — 乡村儿童画展",
+        "subtitle": "来自乡村小学的画作、城市画廊展览与公益明信片义卖。",
+        "description": "我们收集全国各地乡村小学孩子们的画作，用他们的眼睛呈现春天。精选作品在城市美术馆展出，并制成公益明信片套装义卖。"
+      },
+      "hometownMemories": {
+        "title": "我的故乡 — 土地的记忆",
+        "subtitle": "孩子们描绘家乡的河流、风俗与故事——留住那些可能消逝的记忆。",
+        "description": "我们邀请孩子们用画笔记录故乡的山水和人文，记录正在消逝的乡村记忆，呼吁社会关注本土文化保护。"
+      },
+      "futureAndDreams": {
+        "title": "画出未来 — 科技与梦想",
+        "subtitle": "「未来科技」主题：获奖画作印在可持续T恤上；全部收益资助乡村美育。",
+        "description": "以「未来科技」为主题，鼓励孩子们大胆想象明天的世界。获奖作品用于公益T恤印花，收益全部用于乡村美育。"
+      },
+      "sustainableWorkshop": {
+        "title": "纯真编织 — 可持续材料工作坊",
+        "subtitle": "在乡村小学使用回收面料和植物染料制作小被子和围巾。",
+        "description": "我们在乡村小学开展回收面料和天然染料的入门工作坊，用回收布料制作拼布小被子和围巾。材料费用和导师津贴由本活动捐赠支持。"
+      },
+      "mountainChoir": {
+        "title": "云山之声 — 乡村儿童合唱团",
+        "subtitle": "云南和贵州村庄的合唱团：乐谱、服装与一次城市演出。",
+        "description": "我们帮助在云南和贵州的村庄组建小型合唱团，提供乐谱、服装，并给予一次在城市演出的机会。"
+      }
     }
   },
   "stories": {
@@ -602,7 +584,8 @@
         "minAmount": "最低捐赠金额为 ¥{{min}}",
         "maxAmount": "最高捐赠金额为 ¥{{max}}"
       },
-      "amountRange": "范围：¥{{min}} – ¥{{max}}"
+      "amountRange": "范围：¥{{min}} – ¥{{max}}",
+      "amountPresets": "快捷金额"
     },
     "tiers": {
       "seedling": {
@@ -722,7 +705,8 @@
       "a3": "是的，所有捐赠给Uniqlo × VICOO 公益的款项都可以抵税。您将收到官方收据作为记录。",
       "q4": "如何追踪我的捐赠影响？",
       "a4": "您将收到关于您的捐赠如何产生影响的更新。我们还发布季度财务报告，展示所有捐赠的影响。"
-    }
+    },
+    "paymentFailed": "支付失败，请重试"
   },
   "shop": {
     "hero": {
@@ -841,7 +825,8 @@
       "globeUncertified": "未认证",
       "globeCarbonBadge": "约 {{kg}} kg CO₂",
       "globeAria": "交互式溯源地球仪。点击画布后可用方向键微调视角，按 Escape 松开聚焦。",
-      "globeDefocusHint": "再点同一亮点以松开视角 · Escape"
+      "globeDefocusHint": "再点同一亮点以松开视角 · Escape",
+      "error": "加载商品详情失败"
     },
     "sort": {
       "label": "排序",
@@ -930,7 +915,14 @@
       "editorial": "编辑精选",
       "editorialBody": "季节造型手册、材料深度解析，以及每一针背后的匠人故事。",
       "cta": "了解更多"
-    }
+    },
+    "categories": {
+      "accessories": "配饰",
+      "apparel": "服装",
+      "home": "家居",
+      "stationery": "文具"
+    },
+    "closeFilters": "关闭筛选"
   },
   "impactShop": {
     "hero": {
@@ -971,7 +963,9 @@
       "title": "追溯每一根线",
       "subtitle": "查看产品的完整来源——从有机棉田到成衣。",
       "button": "探索溯源"
-    }
+    },
+    "age": "{{age}}岁",
+    "traceable": "可溯源"
   },
   "artworkCard": {
     "age": "{{age}}岁"
@@ -1133,7 +1127,15 @@
         "title": "儿童安全生产",
         "desc": "完全符合儿童保护法规和知情同意协议。"
       }
-    }
+    },
+    "integrity": {
+      "explanation": "所有供应链记录采用追加写入模式，一旦写入即不可修改或删除。每条记录都包含时间戳与验证签名，确保数据的完整性与可追溯性。",
+      "heading": "Append-only 仅追加时间线架构",
+      "subtitle": "Append-only 时间线架构确保溯源数据真实可靠、不可篡改",
+      "title": "数据可信度",
+      "verifiedLabel": "仅展示已验证记录"
+    },
+    "searchError": "查询失败，请重试"
   },
   "contact": {
     "hero": {
@@ -1187,7 +1189,13 @@
       "sending": "发送中",
       "successTitle": "消息已发送",
       "success": "感谢您的来信，我们将在24小时内回复您。",
-      "error": "出了点问题，请重试。"
+      "error": "出了点问题，请重试。",
+      "emailPlaceholder": "your@email.com",
+      "maxLength": "最多 {max} 个字符",
+      "messagePlaceholder": "在此输入您的留言...",
+      "minLength": "至少 {min} 个字符",
+      "namePlaceholder": "请输入您的姓名",
+      "sendAnother": "发送另一条消息"
     },
     "contactTitle": "联系方式",
     "formTitle": "给我们留言",
@@ -1199,7 +1207,11 @@
       "wechatLabel": "微信",
       "address": "中国上海",
       "locationLabel": "地址",
-      "officeCaption": "VICOO 上海办公室"
+      "officeCaption": "VICOO 上海办公室",
+      "customerService": "客户服务",
+      "hours": "工作时间",
+      "responseTime": "平均回复时间",
+      "responseTimeText": "平均回复时间在12小时以内"
     },
     "pullQuote": {
       "quote": "每一个问题都是深入了解我们使命的邀请——每一个回答都是编织信任纽带的机会。",
@@ -1224,7 +1236,8 @@
   "notFound": {
     "title": "页面未找到",
     "subtitle": "这个章节似乎从我们的出版物中遗失了。",
-    "cta": "返回目录"
+    "cta": "返回目录",
+    "label": "404"
   },
   "footer": {
     "tagline": "童年想象力遇见有意识的时装。",
@@ -1257,7 +1270,8 @@
     "brand": {
       "description": "创意机遇中的愿景"
     },
-    "builtWith": "用心打造"
+    "builtWith": "用心打造",
+    "brandName": "VICOO"
   },
   "forgotPassword": {
     "title": "重置密码",
@@ -1271,38 +1285,7 @@
     "errorNotFound": "未找到该邮箱地址。",
     "errorGeneric": "发生错误，请稍后再试。",
     "mockTitle": "已找到账号（演示模式）",
-    "mockInstruction": "这是测试账号，您的密码如下：",
-    "resetPassword": {
-      "verifyTitle": "请输入验证码",
-      "verifySubtitle": "请输入我们发送至您邮箱的 6 位验证码。",
-      "otpLabel": "验证码",
-      "otpPlaceholder": "000000",
-      "otpHint": "请输入邮件中的 6 位验证码。",
-      "verifyButton": "验证",
-      "verifying": "验证中...",
-      "setTitle": "设置新密码",
-      "setSubtitle": "请设置一个易记的新密码，至少 8 位。",
-      "newPasswordLabel": "新密码",
-      "confirmPasswordLabel": "确认密码",
-      "showPassword": "显示密码",
-      "hidePassword": "隐藏密码",
-      "passwordHint": "密码长度至少 8 位。",
-      "passwordMismatch": "两次输入的密码不一致。",
-      "passwordTooShort": "密码长度至少 8 位。",
-      "resetButton": "重置密码",
-      "resetting": "重置中...",
-      "backToLogin": "← 返回登录",
-      "requestNew": "重新获取链接",
-      "errors": {
-        "missingToken": "重置链接无效或已失效，请重新申请。",
-        "expired": "重置链接已过期，请重新申请。",
-        "invalidOtp": "验证码错误，请重试。",
-        "tooManyAttempts": "错误次数过多，请重新申请重置链接。",
-        "weakPassword": "密码强度不足，请重新设置。",
-        "generic": "操作失败，请重试。"
-      },
-      "success": "密码已重置，您现在可以登录了。"
-    }
+    "mockInstruction": "这是测试账号，您的密码如下："
   },
   "artwork": {
     "detail": {
@@ -1310,7 +1293,8 @@
       "artist": "创作者",
       "vote": "为作品投票",
       "votes": "票",
-      "tags": "标签"
+      "tags": "标签",
+      "unknownArtist": "未知艺术家"
     },
     "loading": "加载中...",
     "notFound": "未找到作品",
@@ -1340,7 +1324,10 @@
     "cancel": "取消",
     "edit": "编辑",
     "delete": "删除",
-    "scroll": "滚动"
+    "scroll": "滚动",
+    "dismiss": "关闭",
+    "loadError": "加载失败，请重试",
+    "skipToContent": "跳转到内容"
   },
   "error": {
     "somethingWentWrong": "出了点问题",
@@ -1353,7 +1340,8 @@
     "authenticationFailed": "认证失败",
     "noTokenReceived": "未收到令牌",
     "authenticating": "认证中...",
-    "backToLogin": "返回登录"
+    "backToLogin": "返回登录",
+    "user": "用户"
   },
   "campaigns.detail.statusLine": "{{status}} · 活动",
   "campaigns.detail.about": "关于此活动",
@@ -1370,7 +1358,13 @@
     "title": "衣物捐献登记",
     "subtitle": "分拣消毒后进入再生商品池，由运营上架",
     "summary": "物品概要 *",
-    "types": "类型（如外套、童装）",
+    "types": {
+      "tshirt": "T 恤",
+      "pants": "裤装",
+      "jacket": "外套",
+      "skirt": "裙装",
+      "other": "其他"
+    },
     "qty": "预估件数",
     "condition": "成色与备注",
     "pickup": "取件/寄送地址",
@@ -1412,7 +1406,6 @@
     "fieldPhotos": "上传衣物照片",
     "photoCount": "已选择 {{count}} 个文件",
     "photoUploadPrompt": "点击上传照片",
-    "photoUploadError": "照片上传失败，请重试。",
     "photosAttached": "已附 {{count}} 张照片",
     "fieldAddress": "取件地址 *",
     "addressPlaceholder": "请输入完整取件地址",
@@ -1448,13 +1441,6 @@
     "processStep4": "您可以在订单历史中追踪完整流程。",
     "showcaseDescription": "每件商品都带有回收标识和完整的供应链溯源。浏览循环商店发现独特的单品。",
     "submitFirst": "提交您的第一份回收申请",
-    "types": {
-      "tshirt": "T 恤",
-      "pants": "裤装",
-      "jacket": "外套",
-      "skirt": "裙装",
-      "other": "其他"
-    },
     "conditions": {
       "new": "全新",
       "likeNew": "九成新",
@@ -1482,7 +1468,10 @@
       "tieDyeTee": "扎染环保 T 恤",
       "handPaintedJeans": "手绘牛仔裤",
       "patchworkDress": "拼布连衣裙"
-    }
+    },
+    "addressRequired": "请输入取件地址",
+    "descriptionRequired": "请描述衣物信息",
+    "phoneRequired": "请输入联系电话"
   },
   "support": {
     "loginRequired": "登录后提交售后工单",
@@ -1502,17 +1491,10 @@
     "logistics": "物流",
     "other": "其他",
     "submitError": "提交失败，请重试",
-    "fieldPhotos": "附上照片（可选）",
-    "photoCount": "已选择 {{count}} 个文件",
-    "photoUploadPrompt": "点击上传照片",
-    "photoUploadError": "照片上传失败，请重试。",
     "tipsTitle": "提交前须知",
     "tip1": "准备好订单 ID —— 可在订单历史中找到。",
     "tip2": "质量问题请附照片，可加快处理速度。",
     "tip3": "大部分工单会在 2 个工作日内处理完毕。",
-    "returnExchangeTitle": "退货与换货",
-    "returnExchangeHint": "退货/换货请在「我的订单」中打开对应已完成订单，使用订单详情页的申请入口。",
-    "viewOrders": "查看我的订单",
     "contactTitle": "其他渠道",
     "contactEmail": "邮箱：support@vicoo.com",
     "contactHours": "周一至周五 9:00–18:00",
@@ -1647,28 +1629,11 @@
       "title": "售后进度",
       "typeReturn": "退货",
       "typeExchange": "换货",
-      "typeSupport": "售后咨询",
       "rejected": "已拒绝",
       "completed": "已完成",
       "inProgress": "处理中",
-      "adminNote": "客服备注",
-      "refunded": "已退款 ¥{{amount}}",
-      "returnShipHint": "请填写寄回物流信息",
-      "carrierPlaceholder": "快递公司",
-      "trackingPlaceholder": "运单号",
-      "submitReturnShip": "提交寄回信息",
-      "returnShipped": "寄回物流：{{carrier}} {{tracking}}",
-      "viewReplacement": "查看换货订单",
       "replacementOrder": "换货订单",
       "viewReplacementOrder": "查看换货物流",
-      "step": {
-        "submitted": "已提交",
-        "reviewing": "审核中",
-        "returnShip": "寄回商品",
-        "processing": "退款处理",
-        "exchangeShipping": "换货发货",
-        "completed": "已完成"
-      },
       "steps": {
         "submitted": "已提交",
         "reviewing": "审核中",
@@ -1676,7 +1641,14 @@
         "exchangeShipping": "换货发货",
         "completed": "已完成"
       }
-    }
+    },
+    "fund": {
+      "artist": "艺术家",
+      "charity": "公益项目",
+      "school": "学校"
+    },
+    "impactFund": "影响力基金",
+    "impactFundDesc": "部分收益将捐赠给儿童美育和社区项目"
   },
   "cart": {
     "title": "购物袋",
@@ -1692,7 +1664,10 @@
     "items": "{{count}} 件商品",
     "items_plural": "{{count}} 件商品",
     "addedToBag": "已加入购物袋",
-    "viewBag": "查看购物袋"
+    "viewBag": "查看购物袋",
+    "close": "关闭购物袋",
+    "loginToCheckout": "请先登录再结算",
+    "outOfStock": "已售罄"
   },
   "checkout": {
     "title": "结算",
@@ -1755,7 +1730,30 @@
     "postalCodeErrorTaiwan": "請輸入3-5位郵遞區號",
     "postalCodeErrorUS": "格式示例: 12345 或 12345-6789",
     "postalCodeErrorCA": "格式示例: A1A 1A1",
-    "postalCodeErrorUK": "格式示例: SW1A 1AA"
+    "postalCodeErrorUK": "格式示例: SW1A 1AA",
+    "addressesLoadError": "无法加载已保存的地址",
+    "allMethodsScanNote": "选择微信或支付宝后，请扫描二维码完成支付",
+    "copyFailed": "复制失败",
+    "copyPaymentLink": "复制支付链接",
+    "linkCopied": "链接已复制",
+    "localhostQrWarning": "本地开发环境下二维码可能无法正常支付",
+    "outOfStock": "部分商品已售罄，请更新购物车",
+    "paymentTimeout": "支付超时，请重新下单",
+    "phoneErrorJapan": "请输入有效的日本电话号码",
+    "phoneErrorKr": "请输入有效的韩国手机号码",
+    "phoneErrorUs": "请输入有效的美国电话号码",
+    "phoneErrorCa": "请输入有效的加拿大电话号码",
+    "phoneErrorUk": "请输入有效的英国电话号码",
+    "phoneErrorDe": "请输入有效的德国电话号码",
+    "phoneErrorFr": "请输入有效的法国电话号码",
+    "phoneErrorAu": "请输入有效的澳大利亚电话号码",
+    "qrAlt": "支付二维码",
+    "qrError": "二维码加载失败",
+    "qrFallbackHint": "请使用上方链接完成支付",
+    "qrLoading": "正在加载二维码...",
+    "scanPayHint": "请使用所选支付方式扫描二维码",
+    "scanPaySummary": "请扫描二维码完成支付",
+    "simulatePaid": "模拟支付完成"
   },
   "submitArtwork": {
     "loginRequired": "请先登录以提交画作",
@@ -1800,7 +1798,10 @@
       "approved": "已通过",
       "rejected": "已驳回",
       "published": "已发布"
-    }
+    },
+    "loadError": "加载设计稿失败",
+    "price": "价格",
+    "stock": "库存"
   },
   "artworkSubmit": {
     "badge": "作品投稿与审核",
@@ -1862,7 +1863,8 @@
         "title": "城市森林 — 绿色生活艺术创作",
         "description": "描绘理想中的绿色城市，想象人与自然和谐共生的未来。作品将用于环保手提袋系列设计。"
       }
-    }
+    },
+    "error": "提交失败，请稍后再试"
   },
   "supplyChain": {
     "overviewTitle": "供应链总览",
@@ -1994,7 +1996,7 @@
     "fieldAddress": "取件地址 *",
     "addressPlaceholder": "请输入完整的取件地址",
     "fieldPhone": "联系电话 *",
-    "phonePlaceholder": "11位手机号",
+    "phonePlaceholder": "请输入电话号码",
     "submitBtn": "提交回收申请",
     "submitSuccess": "提交成功！",
     "submitError": "提交失败，请稍后重试。",
@@ -2059,6 +2061,151 @@
     "processStep3": "衣物经过分拣、清洁后上架循环商店。",
     "processStep4": "您可以在回收记录中追踪完整流程。",
     "showcaseDescription": "每件商品都带有回收标识和完整的供应链溯源。浏览循环商店发现独特的单品。",
-    "submitFirst": "提交您的第一份回收申请"
+    "submitFirst": "提交您的第一份回收申请",
+    "phoneErrorCn": "请输入有效的11位中国手机号码",
+    "phoneErrorTw": "请输入有效的10位台湾手机号码",
+    "phoneErrorHk": "请输入有效的8位香港手机号码",
+    "phoneErrorSg": "请输入有效的8位新加坡手机号码",
+    "phoneErrorJp": "请输入有效的日本电话号码",
+    "phoneErrorKr": "请输入有效的韩国手机号码",
+    "phoneErrorUs": "请输入有效的美国电话号码",
+    "phoneErrorCa": "请输入有效的加拿大电话号码",
+    "phoneErrorUk": "请输入有效的英国电话号码",
+    "phoneErrorDe": "请输入有效的德国电话号码",
+    "phoneErrorFr": "请输入有效的法国电话号码",
+    "phoneErrorAu": "请输入有效的澳大利亚电话号码",
+    "phoneError": "请输入有效的电话号码",
+    "phonePlaceholderCn": "请输入11位手机号",
+    "phonePlaceholderTw": "请输入10位手机号码",
+    "phonePlaceholderHk": "请输入8位电话号码",
+    "phonePlaceholderSg": "请输入8位电话号码",
+    "phonePlaceholderJp": "请输入电话号码",
+    "phonePlaceholderKr": "请输入10/11位手机号码",
+    "phonePlaceholderUs": "10位电话号码",
+    "phonePlaceholderCa": "10位电话号码",
+    "phonePlaceholderUk": "11位电话号码",
+    "phonePlaceholderDe": "10/11位电话号码",
+    "phonePlaceholderFr": "10位电话号码",
+    "phonePlaceholderAu": "9/10位电话号码",
+    "nameErrorCn": "请输入2-50位中英文姓名",
+    "nameErrorTw": "请输入2-50位中英文姓名",
+    "nameErrorHk": "请输入2-50位中英文姓名",
+    "nameError": "姓名须为2-50个字符",
+    "namePlaceholder": "请输入收件人姓名",
+    "addressErrorCn": "地址长度需在5-200字符",
+    "addressErrorTw": "地址长度需在5-200字符",
+    "addressError": "地址长度须在5-200个字符之间",
+    "postalCodeErrorCn": "请输入6位邮政编码",
+    "postalCodeErrorTw": "请输入3-5位邮递区号",
+    "postalCodeErrorJp": "格式: 123-4567 或 1234567",
+    "postalCodeErrorKr": "请输入5位邮政编码",
+    "postalCodeErrorUs": "格式: 12345 或 12345-6789",
+    "postalCodeErrorCa": "格式: A1A 1A1",
+    "postalCodeErrorUk": "格式: SW1A 1AA",
+    "postalCodeError": "邮政编码格式不正确",
+    "postalCodePlaceholder": "请输入邮政编码",
+    "fieldContactName": "联系人姓名",
+    "fieldCountry": "国家/地区",
+    "fieldPostalCode": "邮政编码"
+  },
+  "editorial": {
+    "advertisement": "广告"
+  },
+  "hero": {
+    "cards": {
+      "bag": "手提袋",
+      "childDrawing": "儿童画作",
+      "hoodie": "卫衣",
+      "organicLabel": "有机认证",
+      "tshirt": "T恤"
+    },
+    "cta": "探索我们的工作",
+    "eyebrow": "Uniqlo × VICOO 公益"
+  },
+  "legal": {
+    "children": {
+      "intro": "我们致力于保护每一位参与活动的未成年人的隐私和权益。本页面说明我们在儿童数据保护方面的政策与实践。",
+      "lastUpdated": "最后更新：2026年1月",
+      "overline": "法律信息",
+      "title": "儿童保护政策"
+    },
+    "privacy": {
+      "intro": "本隐私政策说明了 VICOO 如何收集、使用和保护您的个人信息。我们重视您的隐私，并采取适当措施保护您的数据。",
+      "lastUpdated": "最后更新：2026年1月",
+      "overline": "法律信息",
+      "title": "隐私政策"
+    },
+    "terms": {
+      "lastUpdated": "最后更新：2026年1月",
+      "overline": "法律信息",
+      "title": "使用条款"
+    }
+  },
+  "materialTrace": {
+    "carbon": {
+      "reduction": "碳减排",
+      "saved": "减少碳排放",
+      "subtitle": "全生命周期碳排放对比",
+      "sustainable": "可持续供应链",
+      "title": "碳足迹对比",
+      "total": "总碳排放",
+      "traditional": "传统供应链",
+      "vsTraditional": "对比传统供应链"
+    },
+    "disclaimer": "当前页面展示的是示例数据。生产环境将连接到真实的供应链溯源系统。",
+    "integrity": {
+      "certifications": "认证与标准",
+      "subtitle": "Append-only 时间线架构确保溯源数据真实可靠、不可篡改",
+      "title": "数据可信度"
+    },
+    "lookup": {
+      "inputLabel": "商品 ID",
+      "notFound": "未找到该商品",
+      "placeholder": "输入商品 ID，例如 TH-2026-001",
+      "search": "搜索",
+      "subtitle": "输入商品 ID 查看完整的供应链溯源记录",
+      "title": "商品溯源"
+    },
+    "timeline": {
+      "activeId": "当前节点",
+      "subtitle": "供应链各节点的时间线记录",
+      "title": "溯源时间线"
+    }
+  },
+  "paymentConfirm": {
+    "alreadyPaid": "该订单已完成支付",
+    "backHome": "返回首页",
+    "confirm": "确认支付",
+    "confirmFailed": "确认支付失败",
+    "invalidLink": "无效的支付链接",
+    "loadFailed": "加载订单失败",
+    "notPending": "该订单不在待支付状态",
+    "subtitle": "请确认并完成您的支付",
+    "success": "支付成功！",
+    "title": "支付确认"
+  },
+  "search": {
+    "placeholder": "搜索..."
+  },
+  "supplyChainStudio": {
+    "addRow": "添加节点",
+    "adminOnly": "仅管理员可访问",
+    "caption": "供应链数据录入与管理",
+    "image": "上传图片",
+    "lead": "为每个供应链节点上传验证图片和视频",
+    "noRecords": "暂无供应链记录",
+    "pickProduct": "选择商品",
+    "removeRow": "删除节点",
+    "save": "保存",
+    "saveError": "保存失败",
+    "saved": "已保存",
+    "selectProduct": "请选择商品",
+    "title": "供应链管理",
+    "uploadError": "上传失败",
+    "uploadLocal": "上传本地文件",
+    "uploaded": "已上传",
+    "uploading": "上传中...",
+    "urlOrUpload": "输入图片 URL 或上传本地文件",
+    "video": "上传视频"
   }
 }

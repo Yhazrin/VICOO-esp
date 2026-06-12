@@ -44,10 +44,13 @@
         "miniStatActive": "活跃",
         "miniStatDisabled": "已禁用",
         "miniStatWeeklyGrowth": "本周增长",
-        "miniStatVerified": "已验证"
+        "miniStatVerified": "已验证",
+        "confirmDelete": "确认删除",
+        "confirmDeleteDesc": "此操作不可撤销，确定要删除吗？",
+        "uploading": "上传中..."
     },
     "generic": {
-        "error": "发生错误，请重试。",
+        "error": "发生错误，请重试",
         "retry": "重试"
     },
     "sidebar": {
@@ -103,7 +106,7 @@
         "errorAccountBanned": "该账号已被禁用，无法登录",
         "errorLoginFailed": "登录失败，请重试",
         "toastSuccess": "登录成功",
-        "footerText": "VICOO 管理后台 v1.0"
+        "footerText": "VICOO 管理后台"
     },
     "dashboard": {
         "issueLabel": "授权访问 — 第 01 号",
@@ -119,7 +122,7 @@
         "sectionArtworksTitle": "精选作品",
         "sectionArtworksLabel": "01 —",
         "accessFullArchive": "查看完整档案 →",
-        "sectionFinancialsTitle": "财务记录",
+        "sectionFinancialsTitle": "财务概览",
         "sectionFinancialsLabel": "02 —",
         "anonLabel": "匿名",
         "authOkLabel": "已验证",
@@ -157,7 +160,6 @@
         "metricDonationsSubtitle": "捐赠总额",
         "sectionPendingTitle": "待审核作品",
         "sectionPendingSubtitle": "待审核",
-        "sectionFinancialsTitle": "财务概览",
         "sectionFinancialsSubtitle": "财务",
         "weeklyDonation": "本周捐赠",
         "activeCampaignsShort": "活跃活动",
@@ -222,7 +224,10 @@
         "summaryReviewedTitle": "已审核",
         "summaryReviewedSubtitle": "审核",
         "summaryApproved": "已通过",
-        "summaryRejected": "已拒绝"
+        "summaryRejected": "已拒绝",
+        "colChild": "小画家",
+        "colDate": "日期",
+        "colTitle": "作品标题"
     },
     "donation": {
         "title": "捐赠台账",
@@ -371,7 +376,7 @@
         "errorGoalAmount": "目标金额必须大于0",
         "errorCreateFailed": "活动创建失败",
         "errorUpdateFailed": "活动更新失败",
-        "confirmDelete": "确定删除此活动？",
+        "confirmDelete": "确认删除此活动？该操作不可撤销。",
         "tabBasic": "基本信息",
         "tabSustainability": "可持续板块",
         "tabArtworks": "关联作品",
@@ -403,8 +408,7 @@
         "labelP4Body": "要点 4 内容",
         "labelFootnote": "脚注",
         "labelCtaTraceability": "溯源按钮文案",
-        "labelCtaShop": "商店按钮文案",
-        "confirmDelete": "确认删除此活动？该操作不可撤销。"
+        "labelCtaShop": "商店按钮文案"
     },
     "product": {
         "title": "商品管理",
@@ -524,7 +528,9 @@
         "summaryImpactTitle": "公益",
         "summaryImpactSubtitle": "商品",
         "summaryImpactProducts": "公益商品",
-        "summaryRegular": "普通商品"
+        "summaryRegular": "普通商品",
+        "nodeDescriptionEn": "节点描述（英文）",
+        "nodeLocationEn": "节点位置（英文）"
     },
     "user": {
         "title": "用户目录",
@@ -582,7 +588,8 @@
         "summaryActiveTitle": "活跃",
         "summaryActiveSubtitle": "状态",
         "summaryActiveUsers": "活跃",
-        "summaryDisabled": "已禁用"
+        "summaryDisabled": "已禁用",
+        "toastRoleFailed": "修改角色失败"
     },
     "auditLog": {
         "title": "审计日志",
@@ -679,7 +686,12 @@
         "toastDelivered": "换货订单已确认送达",
         "toastShipError": "发货失败",
         "toastUpdated": "状态已更新",
-        "toastError": "更新失败"
+        "toastError": "更新失败",
+        "statusClosed": "已关闭",
+        "statusInProgress": "处理中",
+        "statusOpen": "待处理",
+        "statusResolved": "已解决",
+        "colPhotos": "照片"
     },
     "clothingDonation": {
         "title": "衣物捐献管理",
@@ -711,7 +723,10 @@
         "toastUpdated": "状态已更新",
         "toastError": "更新失败",
         "colAddress": "取件地址",
-        "detailTitle": "衣物捐赠详情"
+        "detailTitle": "衣物捐赠详情",
+        "statusListed": "已上架",
+        "statusSubmitted": "已提交",
+        "colPhotos": "照片"
     },
     "settings": {
         "loading": "正在加载系统配置...",
@@ -782,7 +797,9 @@
         "healthPublicHealth": "公共健康检查",
         "healthAdminEndpoint": "管理员端点",
         "healthAutoRefresh": "每 2 小时自动刷新",
-        "healthUpdated": "已刷新"
+        "healthUpdated": "已刷新",
+        "healthErrorHint": "健康检查失败提示",
+        "loadFailed": "加载设置失败"
     },
     "statusBadge": {
         "artwork": {
@@ -851,7 +868,8 @@
     },
     "dataTable": {
         "loading": "加载中...",
-        "empty": "暂无数据"
+        "empty": "暂无数据",
+        "emptyTitle": "暂无数据"
     },
     "modal": {},
     "navigation": {
