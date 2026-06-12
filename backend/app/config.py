@@ -2,10 +2,12 @@ from pydantic_settings import BaseSettings
 from typing import Optional, List
 from pydantic import model_validator
 import logging
+import os
 import secrets
 import json
 
 _config_logger = logging.getLogger("vicoo.config")
+_DEV_PASSWORD_RESET_OTP_PEPPER = "vicoo-dev-pepper-do-not-use-in-prod"
 
 
 def _gen_secret(length: int = 32) -> str:
@@ -92,6 +94,12 @@ class Settings(BaseSettings):
 
     # Demo mode -- when True, uncontrolled mock fallbacks are allowed on DB failures
     DEMO_MODE: bool = False
+
+    # Password reset — REQUIRED in production
+    # Pepper used when hashing the 6-digit OTP. Any random string. NEVER commit.
+    PASSWORD_RESET_OTP_PEPPER: str = os.getenv("PASSWORD_RESET_OTP_PEPPER", _DEV_PASSWORD_RESET_OTP_PEPPER)
+    PASSWORD_RESET_TOKEN_TTL_SECONDS: int = 60 * 60  # 1 hour
+    PASSWORD_RESET_OTP_MAX_ATTEMPTS: int = 5
 
     @model_validator(mode="before")
     @classmethod
@@ -185,3 +193,22 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+# Production guard: warn if password-reset security knobs are unset in prod.
+# The OTP pepper being the dev default means anyone with DB read access can
+# brute-force the OTP; the FRONTEND_URL being localhost means reset emails
+# would send a broken link.
+if settings.APP_ENV == "production":
+    if (
+        "PASSWORD_RESET_OTP_PEPPER" not in os.environ
+        or settings.PASSWORD_RESET_OTP_PEPPER == _DEV_PASSWORD_RESET_OTP_PEPPER
+    ):
+        raise ValueError(
+            "PASSWORD_RESET_OTP_PEPPER must be configured to a non-default value in production."
+        )
+    if "FRONTEND_URL" not in os.environ or settings.FRONTEND_URL.startswith("http://localhost"):
+        _config_logger.warning(
+            "FRONTEND_URL is not configured for production (current=%r). "
+            "Password reset emails will contain localhost links.",
+            settings.FRONTEND_URL,
+        )

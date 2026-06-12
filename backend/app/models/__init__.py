@@ -16,6 +16,7 @@ from app.models.impact_fund import ImpactFundEntry
 from app.models.design_draft import DesignDraft
 from app.models.country import Country
 from app.models.region import Region
+from app.models.password_reset import PasswordResetToken
 
 __all__ = [
     "User",
@@ -40,4 +41,5 @@ __all__ = [
     "DesignDraft",
     "Country",
     "Region",
+    "PasswordResetToken",
 ]

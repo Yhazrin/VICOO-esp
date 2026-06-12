@@ -172,3 +172,61 @@ async def send_password_recovery_email(to_email: str, password_hint: str, locale
     except Exception as e:
         logger.error("Failed to send recovery email to %s: %s", to_email, e)
         raise
+
+
+async def send_password_reset_email(
+    to_email: str, reset_url: str, otp: str, locale: str = "en"
+) -> None:
+    """Send a password reset link + 6-digit OTP via Resend.
+
+    English-only by spec (locked decision). The `locale` parameter is
+    kept for API symmetry with sibling functions but the email body is
+    always rendered from the `emails.reset.*` keys which contain English.
+    """
+    if not settings.RESEND_API_KEY:
+        logger.warning("RESEND_API_KEY not configured. Skipping password reset email for %s", to_email)
+        return
+
+    subject = t("emails.reset.subject", locale=locale)
+    title = t("emails.reset.title", locale=locale)
+    intro = t("emails.reset.intro", locale=locale)
+    instruction = t("emails.reset.instruction", locale=locale)
+    code_label = t("emails.reset.codeLabel", locale=locale)
+    button_text = t("emails.reset.buttonText", locale=locale)
+    expiry = t("emails.reset.expiry", locale=locale)
+    disclaimer = t("emails.reset.disclaimer", locale=locale)
+    signature = t("emails.reset.signature", locale=locale)
+
+    try:
+        loop = asyncio.get_running_loop()
+
+        def _send():
+            return resend.Emails.send({
+                "from": settings.MAIL_FROM,
+                "to": [to_email],
+                "subject": subject,
+                "html": f"""
+                <div style="font-family: 'IBM Plex Mono', monospace; background-color: #F5F0E8; padding: 40px; border: 1px solid #D4CFC4; color: #1A1A16;">
+                    <h1 style="font-family: 'Playfair Display', serif; font-size: 32px; border-bottom: 2px solid #1A1A16; padding-bottom: 10px;">{title}</h1>
+                    <p style="margin-top: 30px; font-size: 16px;">{intro}</p>
+                    <p style="font-size: 14px; color: #4A4A40;">{instruction}</p>
+                    <div style="margin: 24px 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.15em; color: #7A6A58;">{code_label}</div>
+                    <div style="background-color: #EDE6D6; padding: 20px; border: 1px dashed #8B3A2A; font-size: 28px; font-weight: bold; text-align: center; letter-spacing: 0.4em; font-family: 'IBM Plex Mono', monospace;">
+                        {otp}
+                    </div>
+                    <div style="margin: 28px 0 12px; text-align: center;">
+                        <a href="{reset_url}" style="display: inline-block; background-color: #1A1A16; color: #F5F0E8; padding: 14px 32px; text-decoration: none; font-family: 'IBM Plex Mono', monospace; font-size: 12px; text-transform: uppercase; letter-spacing: 0.15em;">{button_text}</a>
+                    </div>
+                    <p style="font-size: 11px; color: #7A6A58; text-align: center; word-break: break-all;">{reset_url}</p>
+                    <p style="font-size: 13px; color: #4A4A40; margin-top: 24px;">{expiry}</p>
+                    <p style="font-size: 13px; color: #4A4A40; margin-top: 20px; padding-top: 16px; border-top: 1px solid #D4CFC4;">{disclaimer}</p>
+                    <p style="margin-top: 40px; font-size: 10px; color: #7A6A58;">{signature}</p>
+                </div>
+                """,
+            })
+
+        response = await loop.run_in_executor(None, _send)
+        logger.info("Password reset email sent to %s. ID: %s", to_email, response.get("id"))
+    except Exception as e:
+        logger.error("Failed to send password reset email to %s: %s", to_email, e)
+        # Do not re-raise — caller returns generic success regardless of mail outcome.

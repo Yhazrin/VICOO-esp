@@ -18,6 +18,18 @@
             "subject": "VICOO Account Recovery",
             "title": "Your password hint or temporary access",
             "content": "You requested a password recovery. Your current password hint or access key is shown above. Please use it to log in and change your password."
+        },
+        "reset": {
+            "subject": "Reset your VICOO password",
+            "title": "Reset your password",
+            "intro": "We received a request to reset your VICOO password.",
+            "instruction": "Use the verification code below and click the link to choose a new password. The code and link expire in 1 hour.",
+            "codeLabel": "Verification code",
+            "linkLabel": "Reset link",
+            "buttonText": "Reset your password",
+            "expiry": "This code and link expire in 1 hour.",
+            "disclaimer": "If you didn't request a password reset, you can safely ignore this email — your password will remain unchanged.",
+            "signature": "— VICOO Team"
         }
     }
 }

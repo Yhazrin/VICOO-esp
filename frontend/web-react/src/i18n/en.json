@@ -58,7 +58,8 @@
       "invalidCredentials": "Invalid email or password",
       "userNotFound": "User not found",
       "accountBanned": "This account has been disabled and cannot sign in."
-    }
+    },
+    "successReset": "Your password has been reset. Please sign in with your new password."
   },
   "register": {
     "title": "Join Our Community",
@@ -1218,7 +1219,38 @@
     "errorNotFound": "Email address not found in our records.",
     "errorGeneric": "An error occurred. Please try again later.",
     "mockTitle": "Account Found (Mock Mode)",
-    "mockInstruction": "Since this is a test account, your password is shown below:"
+    "mockInstruction": "Since this is a test account, your password is shown below:",
+    "resetPassword": {
+      "verifyTitle": "Verify Your Code",
+      "verifySubtitle": "Enter the 6-digit code we sent to your email.",
+      "otpLabel": "Verification code",
+      "otpPlaceholder": "000000",
+      "otpHint": "Enter the 6-digit code from your email.",
+      "verifyButton": "Verify Code",
+      "verifying": "Verifying...",
+      "setTitle": "Choose a New Password",
+      "setSubtitle": "Pick something memorable — at least 8 characters.",
+      "newPasswordLabel": "New password",
+      "confirmPasswordLabel": "Confirm password",
+      "showPassword": "Show",
+      "hidePassword": "Hide",
+      "passwordHint": "Must be at least 8 characters.",
+      "passwordMismatch": "Passwords don't match.",
+      "passwordTooShort": "Password must be at least 8 characters.",
+      "resetButton": "Reset Password",
+      "resetting": "Resetting...",
+      "backToLogin": "← Back to login",
+      "requestNew": "Request a new link",
+      "errors": {
+        "missingToken": "Reset link is missing or invalid. Please request a new one.",
+        "expired": "This reset link has expired. Please request a new one.",
+        "invalidOtp": "Incorrect code. Please try again.",
+        "tooManyAttempts": "Too many incorrect attempts. Please request a new reset link.",
+        "weakPassword": "Password is too weak. Please choose a stronger one.",
+        "generic": "Something went wrong. Please try again."
+      },
+      "success": "Your password has been reset. You can now log in."
+    }
   },
   "artwork": {
     "detail": {

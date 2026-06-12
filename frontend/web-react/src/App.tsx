@@ -19,6 +19,7 @@ const Login = lazy(() => import('@/pages/Login'));
 const Register = lazy(() => import('@/pages/Register'));
 const AuthCallback = lazy(() => import('@/pages/AuthCallback'));
 const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
 const Donate = lazy(() => import('@/pages/Donate'));
 const DonationCertificate = lazy(() => import('@/pages/DonationCertificate'));
 const Profile = lazy(() => import('@/pages/Profile'));
@@ -92,6 +93,7 @@ function AnimatedRoutes() {
           <Route path="login" element={<ErrorBoundary><Login /></ErrorBoundary>} />
           <Route path="register" element={<ErrorBoundary><Register /></ErrorBoundary>} />
           <Route path="forgot-password" element={<ErrorBoundary><ForgotPassword /></ErrorBoundary>} />
+          <Route path="reset-password" element={<ErrorBoundary><ResetPassword /></ErrorBoundary>} />
 
           {/* Company portal + utility pages use standard Layout */}
           <Route element={<Layout />}>
