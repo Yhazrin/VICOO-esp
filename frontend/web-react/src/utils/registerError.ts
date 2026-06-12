@@ -49,7 +49,10 @@ export function localizeRegisterErrorMessage(
 ): string {
   const code = extractRegisterErrorCode(error);
   if (code) {
-    return t(CODE_TO_I18N_KEY[code], t('register.errors.internalError'));
+    const key = CODE_TO_I18N_KEY[code];
+    const translated = t(key);
+    if (translated && translated !== key) return translated;
+    return t('register.errors.internalError');
   }
 
   const message = extractApiErrorDetail(

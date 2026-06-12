@@ -54,6 +54,21 @@
     "wechat": "微信",
     "showPassword": "显示密码",
     "hidePassword": "隐藏密码",
+    "noAccount": "还没有账号？",
+    "testAccounts": {
+      "show": "显示测试账号",
+      "hide": "隐藏测试账号",
+      "filled": "已填入测试账号信息",
+      "title": "测试账号",
+      "subtitle": "开发和演示用快捷登录。点击任意卡片可填入表单。",
+      "fillForm": "点击填入",
+      "copyEmail": "复制邮箱",
+      "copyPassword": "复制密码",
+      "copied": "已复制",
+      "close": "关闭",
+      "adminPanelSection": "管理后台",
+      "openAdminPanel": "打开管理后台"
+    },
     "error": {
       "invalidCredentials": "邮箱或密码错误",
       "userNotFound": "用户不存在",

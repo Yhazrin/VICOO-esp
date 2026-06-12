@@ -54,6 +54,21 @@
     "wechat": "WeChat",
     "showPassword": "Show password",
     "hidePassword": "Hide password",
+    "noAccount": "New to VICOO?",
+    "testAccounts": {
+      "show": "Show test accounts",
+      "hide": "Hide test accounts",
+      "filled": "Test account credentials filled in",
+      "title": "Test Accounts",
+      "subtitle": "Quick sign-in for development and demos. Click any card to fill the form.",
+      "fillForm": "Click to fill",
+      "copyEmail": "Copy email",
+      "copyPassword": "Copy password",
+      "copied": "Copied",
+      "close": "Close",
+      "adminPanelSection": "Admin Panel",
+      "openAdminPanel": "Open admin panel"
+    },
     "error": {
       "invalidCredentials": "Invalid email or password",
       "userNotFound": "User not found",
