@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func, not_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import datetime, timezone, timedelta
+from typing import Optional, Any
 import hmac
 import logging
 import os
@@ -42,6 +42,32 @@ def _exclude_health_audit_logs(stmt):
             )
         )
     )
+
+
+def _fill_daily_series(
+    rows: list[tuple],
+    *,
+    days: int = 7,
+    value_keys: tuple[str, ...] = ("value",),
+) -> list[dict[str, Any]]:
+    """Build a fixed-length daily series for the last N calendar days (UTC)."""
+    today = datetime.now(timezone.utc).date()
+    day_list = [today - timedelta(days=offset) for offset in range(days - 1, -1, -1)]
+    keyed: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        day_str = str(row[0])
+        keyed[day_str] = {value_keys[i]: row[i + 1] for i in range(len(value_keys))}
+
+    series: list[dict[str, Any]] = []
+    for day in day_list:
+        day_str = day.isoformat()
+        src = keyed.get(day_str, {})
+        entry: dict[str, Any] = {"date": day_str}
+        for key in value_keys:
+            raw = src.get(key, 0)
+            entry[key] = float(raw) if key in {"amount", "total", "revenue"} else int(raw)
+        series.append(entry)
+    return series
 
 
 from typing import List
@@ -508,7 +534,24 @@ async def donation_analytics(
             for row in campaign_result.all()
         ]
 
-        return ApiResponse(data={"by_method": by_method, "by_campaign": by_campaign})
+        cutoff_7d = datetime.now(timezone.utc) - timedelta(days=7)
+        daily_stmt = (
+            select(
+                func.date(Donation.created_at).label("day"),
+                func.coalesce(func.sum(Donation.amount), 0).label("total"),
+            )
+            .where(Donation.status == "completed", Donation.created_at >= cutoff_7d)
+            .group_by(func.date(Donation.created_at))
+            .order_by(func.date(Donation.created_at))
+        )
+        daily_rows = (await db.execute(daily_stmt)).all()
+        daily_trend = _fill_daily_series(daily_rows, value_keys=("amount",))
+
+        return ApiResponse(data={
+            "by_method": by_method,
+            "by_campaign": by_campaign,
+            "daily_trend": daily_trend,
+        })
     except HTTPException:
         raise
     except Exception as e:
@@ -557,9 +600,43 @@ async def order_analytics(
             select(func.coalesce(func.sum(Order.total_amount), 0)).where(Order.status.in_(["paid", "shipped", "completed"]))
         )).scalar() or 0
 
+        cutoff_7d = datetime.now(timezone.utc) - timedelta(days=7)
+        orders_daily_stmt = (
+            select(
+                func.date(Order.created_at).label("day"),
+                func.count(Order.id).label("orders"),
+            )
+            .where(Order.created_at >= cutoff_7d)
+            .group_by(func.date(Order.created_at))
+            .order_by(func.date(Order.created_at))
+        )
+        completed_daily_stmt = (
+            select(
+                func.date(Order.created_at).label("day"),
+                func.count(Order.id).label("completed"),
+            )
+            .where(Order.created_at >= cutoff_7d, Order.status == "completed")
+            .group_by(func.date(Order.created_at))
+            .order_by(func.date(Order.created_at))
+        )
+        orders_rows = (await db.execute(orders_daily_stmt)).all()
+        completed_rows = (await db.execute(completed_daily_stmt)).all()
+        orders_map = {str(row[0]): int(row[1]) for row in orders_rows}
+        completed_map = {str(row[0]): int(row[1]) for row in completed_rows}
+        today = datetime.now(timezone.utc).date()
+        daily_trend = [
+            {
+                "date": (today - timedelta(days=offset)).isoformat(),
+                "orders": orders_map.get((today - timedelta(days=offset)).isoformat(), 0),
+                "completed": completed_map.get((today - timedelta(days=offset)).isoformat(), 0),
+            }
+            for offset in range(6, -1, -1)
+        ]
+
         return ApiResponse(data={
             "by_status": by_status,
             "total_revenue": str(total_revenue),
+            "daily_trend": daily_trend,
         })
     except HTTPException:
         raise

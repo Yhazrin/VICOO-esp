@@ -12,7 +12,7 @@ import ImageUploadField from '../components/ui/ImageUploadField';
 import { PageHeader } from '../components/ui/PageHeader';
 import { SummaryCard, MiniStat } from '../components/ui/SummaryCard';
 import { ReviewStatusChart } from '../components/charts/ReviewStatusChart';
-import { fetchArtworks, updateArtworkStatus, updateArtwork, deleteArtwork, analyzeArtwork, uploadTraceMedia, adminCreateArtwork } from '../services/api';
+import { fetchArtworks, fetchArtworkByCategory, updateArtworkStatus, updateArtwork, deleteArtwork, analyzeArtwork, uploadTraceMedia, adminCreateArtwork } from '../services/api';
 import type { Artwork } from '../types';
 import dayjs from 'dayjs';
 import { formatDateTime } from '../utils/dateTime';
@@ -99,12 +99,20 @@ export default function ArtworkPage() {
     queryFn: () => fetchArtworks({ page, pageSize: 20, status: statusFilter || undefined, search: search || undefined, sortBy, sortOrder }),
   });
 
+  const { data: artworkStatsData } = useQuery({
+    queryKey: ['artworkStats'],
+    queryFn: fetchArtworkByCategory,
+    staleTime: 5 * 60 * 1000,
+  });
+
   const artworks = data?.data || [];
 
   const updateMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: Artwork['status'] }) => updateArtworkStatus(id, status),
     onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: ['artworks'] });
+      queryClient.invalidateQueries({ queryKey: ['artworkStats'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardArtworkStats'] });
       toast.success(vars.status === 'approved' ? t('artwork.toastApproved') : t('artwork.toastRejected'));
     },
     onError: (e: any) => {
@@ -121,6 +129,8 @@ export default function ArtworkPage() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['artworks'] });
+      queryClient.invalidateQueries({ queryKey: ['artworkStats'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardArtworkStats'] });
       toast.success(t('common.saveSuccess'));
     },
     onError: () => {
@@ -132,6 +142,8 @@ export default function ArtworkPage() {
     mutationFn: deleteArtwork,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['artworks'] });
+      queryClient.invalidateQueries({ queryKey: ['artworkStats'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardArtworkStats'] });
       setDetailModal(false);
       setSelectedArtwork(null);
       toast.success(t('common.deleteSuccess'));
@@ -146,6 +158,8 @@ export default function ArtworkPage() {
       adminCreateArtwork(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['artworks'] });
+      queryClient.invalidateQueries({ queryKey: ['artworkStats'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardArtworkStats'] });
       setCreateModal(false);
       setCreateForm({ title: '', description: '', imageUrl: '', artistName: 'Admin' });
       toast.success(t('common.saveSuccess', '添加成功'));
@@ -364,7 +378,7 @@ export default function ArtworkPage() {
 
       {/* Chart */}
       <div style={{ marginBottom: 24 }}>
-        <ReviewStatusChart />
+        <ReviewStatusChart data={artworkStatsData ?? []} />
       </div>
 
       {/* Filters */}

@@ -137,6 +137,8 @@
         "chartPending": "Pending",
         "chartApproved": "Approved",
         "chartFeatured": "Featured",
+        "chartRejected": "Rejected",
+        "chartArchived": "Archived",
         "chartOrders": "Orders",
         "chartCompleted": "Completed",
         "chartOperations": "Operations",
