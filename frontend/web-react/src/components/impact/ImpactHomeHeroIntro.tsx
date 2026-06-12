@@ -21,8 +21,9 @@ export function scrollToImpactStory() {
   const target = document.getElementById('impact-scroll-story');
   if (!target) return;
 
-  const SPEED = 3; // px per frame (~180px/s at 60fps)
+  const PX_PER_SEC = 180;
   let running = true;
+  let lastTime = 0;
 
   const stop = () => {
     if (!running) return;
@@ -36,11 +37,14 @@ export function scrollToImpactStory() {
   window.addEventListener('touchstart', stop, { passive: true });
   window.addEventListener('keydown', stop);
 
-  const step = () => {
+  const step = (now: number) => {
     if (!running) return;
     const rect = target.getBoundingClientRect();
-    if (rect.top <= 0) return; // reached
-    window.scrollBy(0, Math.min(SPEED, rect.top));
+    if (rect.top <= 0) return;
+    if (lastTime === 0) { lastTime = now; requestAnimationFrame(step); return; }
+    const dt = (now - lastTime) / 1000;
+    lastTime = now;
+    window.scrollBy(0, Math.min(PX_PER_SEC * dt, rect.top));
     requestAnimationFrame(step);
   };
   requestAnimationFrame(step);
