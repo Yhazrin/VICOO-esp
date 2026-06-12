@@ -18,6 +18,7 @@ from app.models.country import Country
 from app.models.region import Region
 from app.models.password_reset import PasswordResetToken
 from app.models.attachment import Attachment
+from app.models.cart import CartItem
 
 __all__ = [
     "User",
@@ -44,4 +45,5 @@ __all__ = [
     "Region",
     "PasswordResetToken",
     "Attachment",
+    "CartItem",
 ]

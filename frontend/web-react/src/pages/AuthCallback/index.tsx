@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
+import { useCartStore } from '@/stores/cartStore';
 import PageWrapper from '@/components/layout/PageWrapper';
 import PaperTextureBackground from '@/components/editorial/PaperTextureBackground';
 import api from '@/services/api';
@@ -80,6 +81,7 @@ export default function AuthCallback() {
       }
 
       restoreSession(user, accessToken);
+      useCartStore.getState().syncWithServer();
       setTimeout(() => {
         if (!cancelled) navigate('/', { replace: true });
       }, 500);

@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/authStore';
+import { useCartStore } from '@/stores/cartStore';
 import { authApi } from '@/services/auth';
 import type { LoginRequest, RegisterRequest } from '@/types';
 import toast from 'react-hot-toast';
@@ -23,6 +24,8 @@ export function useAuth() {
     onSuccess: (data) => {
       login(data.user, data.access_token, data.refresh_token);
       queryClient.invalidateQueries();
+      // Merge local cart into server cart
+      useCartStore.getState().syncWithServer();
       toast.success(t('auth.loginSuccess', 'Login successful'));
     },
     onSettled: () => setLoading(false),
@@ -34,6 +37,8 @@ export function useAuth() {
     onSuccess: (data) => {
       login(data.user, data.access_token, data.refresh_token);
       queryClient.invalidateQueries();
+      // Merge local cart into server cart
+      useCartStore.getState().syncWithServer();
       toast.success(t('auth.registerSuccess', 'Registration successful'));
     },
     onSettled: () => setLoading(false),

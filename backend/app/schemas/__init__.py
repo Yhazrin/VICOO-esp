@@ -150,6 +150,7 @@ from app.schemas.address import (
 )
 from app.schemas.impact_fund import ImpactFundEntryOut
 from app.schemas.design_draft import DesignDraftCreate, DesignDraftUpdate, DesignDraftOut
+from app.schemas.cart import CartItemIn, CartItemOut, CartItemUpdate, CartSyncRequest, CartOut
 
 __all__ = [
     # Common
@@ -261,4 +262,10 @@ __all__ = [
     "DesignDraftCreate",
     "DesignDraftUpdate",
     "DesignDraftOut",
+    # Cart
+    "CartItemIn",
+    "CartItemOut",
+    "CartItemUpdate",
+    "CartSyncRequest",
+    "CartOut",
 ]
