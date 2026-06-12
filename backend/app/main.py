@@ -379,6 +379,7 @@ from app.routers.editorial import router as editorial_router
 from app.routers.addresses import router as addresses_router
 from app.routers.impact_fund import router as impact_fund_router
 from app.routers.design_drafts import router as design_drafts_router
+from app.routers.uploads import router as uploads_router
 
 # Health check router
 from fastapi import APIRouter, Depends
@@ -544,7 +545,7 @@ routers = (
     donations_router, products_router, orders_router, payments_router, admin_router,
     supply_chain_router, contact_router, clothing_intakes_router, reviews_router,
     after_sales_router, sustainability_router, ai_router, editorial_router, health_router,
-    addresses_router, impact_fund_router, design_drafts_router,
+    addresses_router, impact_fund_router, design_drafts_router, uploads_router,
 )
 
 # Compat: rewrite legacy /api/* requests to /api/v1/* in-place (no external redirect)

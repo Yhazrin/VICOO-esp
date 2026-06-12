@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.models.circular_commerce import ClothingIntake
+from app.models.attachment import Attachment
 from app.models.product import Product
 from app.schemas import (
     ApiResponse,
@@ -23,6 +24,69 @@ from app.core.audit import log_audit
 
 router = APIRouter(prefix="/clothing-intakes", tags=["Clothing Intakes"])
 logger = logging.getLogger(__name__)
+
+
+async def _persist_attachments(
+    db: AsyncSession,
+    *,
+    owner_type: str,
+    owner_id: int,
+    urls: list[str],
+    uploader_user_id: int,
+) -> list[str]:
+    """Materialise uploaded file URLs as Attachment rows. Returns the URLs
+    that were persisted (in input order) so callers can echo them in the API
+    response. URLs that don't start with ``/static/uploads/`` are rejected
+    so callers can't smuggle in arbitrary paths from other tenants."""
+    cleaned: list[str] = []
+    for url in urls:
+        if not isinstance(url, str) or not url.startswith("/static/uploads/"):
+            continue
+        cleaned.append(url)
+    if not cleaned:
+        return []
+    rows = [
+        Attachment(
+            owner_type=owner_type,
+            owner_id=owner_id,
+            url=url,
+            mime="image/*",
+            size_bytes=0,
+            original_name=None,
+            uploader_user_id=uploader_user_id,
+        )
+        for url in cleaned
+    ]
+    db.add_all(rows)
+    await db.flush()
+    return cleaned
+
+
+async def _load_image_urls(
+    db: AsyncSession, owner_type: str, owner_ids: list[int]
+) -> dict[int, list[str]]:
+    """Bulk-load image URLs for a set of owner rows. Returns ``{owner_id:
+    [url, ...]}`` (URLs in insertion order). Empty input → empty dict."""
+    if not owner_ids:
+        return {}
+    stmt = (
+        select(Attachment.owner_id, Attachment.url)
+        .where(Attachment.owner_type == owner_type, Attachment.owner_id.in_(owner_ids))
+        .order_by(Attachment.id.asc())
+    )
+    out: dict[int, list[str]] = {oid: [] for oid in owner_ids}
+    for owner_id, url in (await db.execute(stmt)).all():
+        out.setdefault(owner_id, []).append(url)
+    return out
+
+
+def _serialise(rows, urls_by_id: dict[int, list[str]]) -> list[dict]:
+    payloads = []
+    for r in rows:
+        d = ClothingIntakeOut.model_validate(r).model_dump()
+        d["image_urls"] = urls_by_id.get(r.id, [])
+        payloads.append(d)
+    return payloads
 
 
 @router.post("", response_model=ApiResponse, status_code=201)
@@ -44,8 +108,17 @@ async def create_intake(
         )
         db.add(row)
         await db.flush()
+        await _persist_attachments(
+            db,
+            owner_type="clothing_intake",
+            owner_id=row.id,
+            urls=body.image_urls,
+            uploader_user_id=current_user["id"],
+        )
         await db.refresh(row)
-        return ApiResponse(data=ClothingIntakeOut.model_validate(row).model_dump())
+        out = ClothingIntakeOut.model_validate(row).model_dump()
+        out["image_urls"] = body.image_urls
+        return ApiResponse(data=out)
     except HTTPException:
         raise
     except Exception as e:
@@ -71,8 +144,9 @@ async def list_my_intakes(
             .offset((page - 1) * page_size).limit(page_size)
         )
         rows = (await db.execute(stmt)).scalars().all()
+        urls_by_id = await _load_image_urls(db, "clothing_intake", [r.id for r in rows])
         return PaginatedResponse(
-            data=[ClothingIntakeOut.model_validate(r).model_dump() for r in rows],
+            data=_serialise(rows, urls_by_id),
             total=total, page=page, page_size=page_size,
         )
     except HTTPException:
@@ -100,7 +174,8 @@ async def list_all_intakes(
         total = (await db.execute(count_stmt)).scalar() or 0
         stmt = stmt.order_by(ClothingIntake.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
         rows = (await db.execute(stmt)).scalars().all()
-        data = [ClothingIntakeOut.model_validate(r).model_dump() for r in rows]
+        urls_by_id = await _load_image_urls(db, "clothing_intake", [r.id for r in rows])
+        data = _serialise(rows, urls_by_id)
         return PaginatedResponse(data=data, total=total, page=page, page_size=page_size)
     except HTTPException:
         raise
@@ -127,6 +202,9 @@ async def update_intake_status(
         row.admin_note = body.admin_note
     await db.flush()
     await db.refresh(row)
+    urls_by_id = await _load_image_urls(db, "clothing_intake", [row.id])
+    payload = ClothingIntakeOut.model_validate(row).model_dump()
+    payload["image_urls"] = urls_by_id.get(row.id, [])
 
     # Audit log
     ip = request.client.host if request else None
@@ -140,7 +218,7 @@ async def update_intake_status(
         ip_address=ip,
     )
 
-    return ApiResponse(data=ClothingIntakeOut.model_validate(row).model_dump())
+    return ApiResponse(data=payload)
 
 
 @router.post("/{intake_id}/publish-product", response_model=ApiResponse, status_code=201)
@@ -180,6 +258,9 @@ async def publish_product_from_intake(
         await db.flush()
         await db.refresh(intake)
         await db.refresh(product)
+        urls_by_id = await _load_image_urls(db, "clothing_intake", [intake.id])
+        intake_payload = ClothingIntakeOut.model_validate(intake).model_dump()
+        intake_payload["image_urls"] = urls_by_id.get(intake.id, [])
 
         # Audit log
         ip = request.client.host if request else None
@@ -195,7 +276,7 @@ async def publish_product_from_intake(
 
         return ApiResponse(
             data={
-                "intake": ClothingIntakeOut.model_validate(intake).model_dump(),
+                "intake": intake_payload,
                 "product": ProductOut.model_validate(product).model_dump(),
             }
         )

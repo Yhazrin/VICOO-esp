@@ -17,6 +17,7 @@ from app.models.design_draft import DesignDraft
 from app.models.country import Country
 from app.models.region import Region
 from app.models.password_reset import PasswordResetToken
+from app.models.attachment import Attachment
 
 __all__ = [
     "User",
@@ -42,4 +43,5 @@ __all__ = [
     "Country",
     "Region",
     "PasswordResetToken",
+    "Attachment",
 ]

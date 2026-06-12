@@ -14,6 +14,11 @@ class ClothingIntakeCreate(BaseModel):
     condition_notes: Optional[str] = Field(None, max_length=2000)
     pickup_address: Optional[str] = Field(None, max_length=2000)
     contact_phone: Optional[str] = Field(None, max_length=30)
+    image_urls: list[str] = Field(
+        default_factory=list,
+        max_length=8,
+        description="Relative URLs returned by POST /uploads/image",
+    )
 
 
 class ClothingIntakeStatusUpdate(BaseModel):
@@ -36,6 +41,7 @@ class ClothingIntakeOut(BaseModel):
     status: str
     product_id: Optional[int] = None
     admin_note: Optional[str] = None
+    image_urls: list[str] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
 
@@ -81,6 +87,11 @@ class AfterSaleCreate(BaseModel):
     category: str = Field(..., pattern="^(return|exchange|quality|logistics|other)$")
     subject: str = Field(..., min_length=1, max_length=200)
     description: Optional[str] = Field(None, max_length=5000)
+    image_urls: list[str] = Field(
+        default_factory=list,
+        max_length=8,
+        description="Relative URLs returned by POST /uploads/image",
+    )
 
 
 class AfterSaleStatusUpdate(BaseModel):
@@ -107,6 +118,7 @@ class AfterSaleOut(BaseModel):
     replacement_order_no: Optional[str] = None
     replacement_carrier: Optional[str] = None
     replacement_tracking_number: Optional[str] = None
+    image_urls: list[str] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
 
