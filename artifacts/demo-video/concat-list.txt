@@ -1,0 +1,3 @@
+file '/workspace/artifacts/demo-video/test-results/demo-video-VICOO-功能演示录屏-chromium/video-1.webm'
+file '/workspace/artifacts/demo-video/test-results/demo-video-VICOO-功能演示录屏-chromium/video-2.webm'
+file '/workspace/artifacts/demo-video/test-results/demo-video-VICOO-功能演示录屏-chromium/video.webm'
