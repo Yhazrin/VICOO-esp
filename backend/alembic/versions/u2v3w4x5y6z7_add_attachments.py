@@ -20,12 +20,12 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     op.create_table(
         "attachments",
-        sa.Column("id", sa.BigInteger(), primary_key=True, autoincrement=True),
+        sa.Column("id", sa.Integer(), primary_key=True, autoincrement=True),
         sa.Column("owner_type", sa.String(length=40), nullable=False),
         sa.Column("owner_id", sa.Integer(), nullable=False),
         sa.Column("url", sa.String(length=500), nullable=False),
         sa.Column("mime", sa.String(length=100), nullable=False),
-        sa.Column("size_bytes", sa.BigInteger(), nullable=False),
+        sa.Column("size_bytes", sa.Integer(), nullable=False),
         sa.Column("original_name", sa.String(length=255), nullable=True),
         sa.Column(
             "uploader_user_id",

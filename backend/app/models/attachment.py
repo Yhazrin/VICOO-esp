@@ -13,7 +13,6 @@ from sqlalchemy import (
     Integer,
     String,
     DateTime,
-    BigInteger,
     Index,
     ForeignKey,
     func,
@@ -24,12 +23,12 @@ from app.database import Base
 class Attachment(Base):
     __tablename__ = "attachments"
 
-    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     owner_type = Column(String(40), nullable=False)
     owner_id = Column(Integer, nullable=False)
     url = Column(String(500), nullable=False)
     mime = Column(String(100), nullable=False)
-    size_bytes = Column(BigInteger, nullable=False)
+    size_bytes = Column(Integer, nullable=False)
     original_name = Column(String(255), nullable=True)
     uploader_user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     created_at = Column(DateTime, server_default=func.now(), nullable=False)

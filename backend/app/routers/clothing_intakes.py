@@ -117,7 +117,8 @@ async def create_intake(
         )
         await db.refresh(row)
         out = ClothingIntakeOut.model_validate(row).model_dump()
-        out["image_urls"] = body.image_urls
+        urls_by_id = await _load_image_urls(db, "clothing_intake", [row.id])
+        out["image_urls"] = urls_by_id.get(row.id, [])
         return ApiResponse(data=out)
     except HTTPException:
         raise
