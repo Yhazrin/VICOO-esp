@@ -362,6 +362,39 @@ async def create_order(
 
         order = await order_service.place_order(current_user["id"], order_data)
 
+        # Auto-save address to user's address book if structured fields were provided
+        if not body.address_id and body.recipient_name and body.detail_address:
+            from app.models.address import Address
+            try:
+                existing = await db.execute(
+                    select(Address).where(
+                        Address.user_id == current_user["id"],
+                        Address.recipient_name == body.recipient_name,
+                        Address.phone == (body.recipient_phone or ""),
+                        Address.detail_address == body.detail_address,
+                        Address.city == body.city,
+                    )
+                )
+                if not existing.scalar_one_or_none():
+                    new_addr = Address(
+                        user_id=current_user["id"],
+                        label=None,
+                        recipient_name=body.recipient_name,
+                        phone=body.recipient_phone or "",
+                        province=body.province or "",
+                        city=body.city or "",
+                        district=body.district or "",
+                        detail_address=body.detail_address,
+                        postal_code=body.postal_code,
+                        country=body.country,
+                        country_code=body.country_code,
+                        is_default=False,
+                    )
+                    db.add(new_addr)
+                    await db.flush()
+            except Exception:
+                pass  # Don't fail order creation over address save
+
         # Re-fetch with items for full detail
         item_stmt = select(OrderItem).where(OrderItem.order_id == order.id)
         items = (await db.execute(item_stmt)).scalars().all()

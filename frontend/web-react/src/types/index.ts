@@ -309,6 +309,15 @@ export interface CreateOrderRequest {
   shipping_address?: string;
   address_id?: number;
   payment_method?: 'wechat' | 'alipay' | 'stripe' | 'paypal';
+  recipient_name?: string;
+  recipient_phone?: string;
+  province?: string;
+  city?: string;
+  district?: string;
+  detail_address?: string;
+  postal_code?: string;
+  country?: string;
+  country_code?: string;
 }
 
 export interface CreatePaymentRequest {

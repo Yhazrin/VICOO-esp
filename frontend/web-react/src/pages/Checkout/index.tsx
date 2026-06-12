@@ -201,7 +201,6 @@ export default function Checkout() {
   });
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
   const [showManualAddress, setShowManualAddress] = useState(false);
-  const [saveAddress, setSaveAddress] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('wechat');
   const [isProcessing, setIsProcessing] = useState(false);
   const placingRef = useRef(false);
@@ -263,37 +262,10 @@ export default function Checkout() {
     typeof window !== 'undefined' &&
     (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
-  const addressRef = useRef(address);
-  addressRef.current = address;
-  const saveAddressRef = useRef(saveAddress);
-  saveAddressRef.current = saveAddress;
-  const selectedAddressIdRef = useRef(selectedAddressId);
-  selectedAddressIdRef.current = selectedAddressId;
-
   const finalizeOrder = useCallback(async (result: { orderId: string; orderNo: string }) => {
     if (finalizeOnceRef.current) return;
     finalizeOnceRef.current = true;
     setOrderResult(result);
-    const addr = addressRef.current;
-    const shouldSave = saveAddressRef.current;
-    const selId = selectedAddressIdRef.current;
-    if (shouldSave && !selId && addr.recipient_name && addr.phone) {
-      try {
-        await addressesApi.create({
-          recipient_name: addr.recipient_name,
-          phone: addr.phone,
-          province: addr.province,
-          city: addr.city,
-          district: '',
-          detail_address: addr.detail_address,
-          postal_code: addr.postalCode || undefined,
-          country: addr.country,
-          is_default: false,
-        });
-      } catch {
-        /* silent — don't block order flow */
-      }
-    }
     clearCart();
     setStep(3);
   }, [clearCart]);
@@ -392,6 +364,7 @@ export default function Checkout() {
     setIsProcessing(true);
     setError('');
     try {
+      const countryEntry = COMMON_COUNTRIES.find((c) => c.name === address.country);
       const orderData: CreateOrderRequest = {
         items: items.map((item) => ({
           product_id: item.product.id,
@@ -400,6 +373,17 @@ export default function Checkout() {
         shipping_address: selectedAddressId ? undefined : `${address.recipient_name}, ${address.phone}, ${address.detail_address}, ${address.city}, ${address.province} ${address.postalCode}, ${address.country}`,
         address_id: selectedAddressId || undefined,
         payment_method: paymentMethod,
+        ...((!selectedAddressId && address.recipient_name) ? {
+          recipient_name: address.recipient_name,
+          recipient_phone: address.phone,
+          province: address.province,
+          city: address.city,
+          district: '',
+          detail_address: address.detail_address,
+          postal_code: address.postalCode || undefined,
+          country: address.country,
+          country_code: countryEntry?.code || undefined,
+        } : {}),
       };
 
       const order = await ordersApi.create(orderData);
@@ -713,13 +697,6 @@ export default function Checkout() {
                       </div>
                     </div>
 
-                    {/* Save address checkbox */}
-                    {!selectedAddressId && (
-                      <label className="flex items-center gap-2 cursor-pointer mt-2">
-                        <input type="checkbox" checked={saveAddress} onChange={(e) => setSaveAddress(e.target.checked)} className="accent-rust" />
-                        <span className="font-body text-caption text-ink">{t('checkout.saveAddress', 'Save to address book')}</span>
-                      </label>
-                    )}
                     </>
                     )}
                   </div>
