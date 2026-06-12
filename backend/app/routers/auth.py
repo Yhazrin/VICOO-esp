@@ -201,7 +201,7 @@ async def _jitter_ms() -> None:
 
 
 async def _enforce_ip_forgot_limit(request: Request) -> JSONResponse | None:
-    """Per-IP cap of 5 forgot-password requests per hour (Redis sliding window).
+    """Per-IP cap of 5 forgot-password requests in a fixed 1-hour bucket.
 
     Returns a 429 JSONResponse if the cap is exceeded, else None.
     """
@@ -242,7 +242,7 @@ async def _enforce_ip_confirm_limit(request: Request) -> JSONResponse | None:
 
 
 async def _count_active_tokens_for_user(db: AsyncSession, user_id: int) -> int:
-    """Count un-used, un-expired tokens for a user (used for 24h cap)."""
+    """Count currently active tokens (unused and unexpired) for a user."""
     stmt = select(func.count(PasswordResetToken.id)).where(
         PasswordResetToken.user_id == user_id,
         PasswordResetToken.used_at.is_(None),
@@ -301,8 +301,7 @@ async def forgot_password(
             data={"email": body.email, "password_hint": settings.MOCK_USER_PASSWORD},
         )
 
-    # Per-user cap: 3 valid tokens in the last 24h. Older rows don't count
-    # (their `used_at` is set, or `expires_at` has passed).
+    # Per-user cap: max 3 active tokens at once (unused + unexpired).
     active = await _count_active_tokens_for_user(db, user.id)
     if active >= 3:
         await _jitter_ms()
@@ -314,15 +313,11 @@ async def forgot_password(
             resource="user",
             resource_id=str(user.id),
             status="rate_limited",
-            details={"reason": "user_24h_cap", "active_tokens": active},
+            details={"reason": "active_token_cap", "active_tokens": active},
             ip_address=ip,
         )
         await db.commit()
-        return _err(
-            429,
-            "rate_limited",
-            "Too many active reset requests. Please use an existing link or wait.",
-        )
+        return ApiResponse(message=_generic_msg, data={"email": body.email})
 
     # Generate raw values for the URL + email. Storage gets the hashes only.
     raw_token = secrets.token_urlsafe(32)

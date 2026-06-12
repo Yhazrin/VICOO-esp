@@ -32,7 +32,7 @@ export default function ResetPassword() {
   const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   useEffect(() => {
-    if (!rawToken) setMissingToken(true);
+    setMissingToken(!rawToken);
   }, [rawToken]);
 
   const handleOtpChange = (idx: number, value: string) => {
@@ -52,7 +52,7 @@ export default function ResetPassword() {
     }
   };
 
-  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+  const handleOtpPaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
     const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, OTP_LENGTH);
     if (!pasted) return;
     e.preventDefault();
@@ -220,7 +220,7 @@ export default function ResetPassword() {
                   ))}
                 </div>
                 <p className="font-body text-caption text-ink-faded/50 text-center mt-2">
-                  {t('forgotPassword.resetPassword.passwordHint')}
+                  {t('forgotPassword.resetPassword.otpHint')}
                 </p>
               </div>
 

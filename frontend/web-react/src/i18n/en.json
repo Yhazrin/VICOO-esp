@@ -1225,6 +1225,7 @@
       "verifySubtitle": "Enter the 6-digit code we sent to your email.",
       "otpLabel": "Verification code",
       "otpPlaceholder": "000000",
+      "otpHint": "Enter the 6-digit code from your email.",
       "verifyButton": "Verify Code",
       "verifying": "Verifying...",
       "setTitle": "Choose a New Password",

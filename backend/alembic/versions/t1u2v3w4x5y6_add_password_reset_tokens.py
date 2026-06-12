@@ -26,7 +26,7 @@ def upgrade() -> None:
         sa.Column("otp_hash", sa.String(length=64), nullable=False),
         sa.Column("ip_address", sa.String(length=45), nullable=True),
         sa.Column("user_agent", sa.String(length=500), nullable=True),
-        sa.Column("created_at", sa.DateTime(), nullable=False),
+        sa.Column("created_at", sa.DateTime(), nullable=False, server_default=sa.text("CURRENT_TIMESTAMP")),
         sa.Column("expires_at", sa.DateTime(), nullable=False),
         sa.Column("used_at", sa.DateTime(), nullable=True),
         sa.Column("otp_attempts", sa.Integer(), nullable=False, server_default="0"),
