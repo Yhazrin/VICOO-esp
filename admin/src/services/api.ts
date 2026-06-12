@@ -127,29 +127,44 @@ export async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
   };
 }
 
+const ARTWORK_STATUS_ORDER = ['pending', 'approved', 'featured', 'rejected', 'archived'] as const;
+
+function formatChartDate(isoDate: string): string {
+  const parts = isoDate.split('-');
+  if (parts.length >= 3) return `${parts[1]}/${parts[2]}`;
+  return isoDate;
+}
+
+export interface DonationDailyPoint {
+  date: string;
+  amount: number;
+  value: number;
+}
+
+export interface OrderActivityPoint {
+  date: string;
+  orders: number;
+  completed: number;
+}
+
 /**
- * Fetch donation analytics from GET /admin/analytics/donations.
- * Backend returns { by_method: [{method, count, total}], by_campaign: [...] }.
- * Frontend expects ChartDataPoint[] with name, value, and per-method amounts.
- * We transform by_method into a single ChartDataPoint "total" entry, or if the
- * shape changes later we can adapt accordingly.
+ * Fetch donation daily trend from GET /admin/analytics/donations.
+ * Backend returns { daily_trend: [{ date, amount }], by_method, by_campaign }.
  */
-export async function fetchDonationTrend(): Promise<ChartDataPoint[]> {
+export async function fetchDonationTrend(): Promise<DonationDailyPoint[]> {
   const { data: envelope } = await api.get('/admin/analytics/donations');
   const d = envelope.data;
-  // If backend returns by_method, transform into chart-friendly format
-  if (d.by_method && Array.isArray(d.by_method)) {
-    // Build a single summary point from payment-method breakdown
-    const point: ChartDataPoint = { name: 'total', value: 0 };
-    for (const m of d.by_method) {
-      const amt = parseFloat(m.total ?? '0') || 0;
-      point[m.method] = amt;
-      point.value = (point.value as number) + amt;
-    }
-    return [point];
+  if (d.daily_trend && Array.isArray(d.daily_trend)) {
+    return d.daily_trend.map((row: { date: string; amount?: number | string }) => {
+      const amount = parseFloat(String(row.amount ?? 0)) || 0;
+      return {
+        date: formatChartDate(row.date),
+        amount,
+        value: amount,
+      };
+    });
   }
-  // Fallback: if backend already returns array
-  return Array.isArray(d) ? d : [];
+  return [];
 }
 
 /**
@@ -161,12 +176,30 @@ export async function fetchArtworkByCategory(): Promise<ChartDataPoint[]> {
   const { data: envelope } = await api.get('/admin/analytics/artworks');
   const d = envelope.data;
   if (d.by_status) {
-    return Object.entries(d.by_status).map(([name, value]) => ({
+    const byStatus = d.by_status as Record<string, number>;
+    return ARTWORK_STATUS_ORDER.map((name) => ({
       name,
-      value: value as number,
+      value: Number(byStatus[name] ?? 0),
     }));
   }
-  return Array.isArray(d) ? d : [];
+  return [];
+}
+
+/**
+ * Fetch order daily activity from GET /admin/analytics/orders.
+ * Backend returns { daily_trend: [{ date, orders, completed }], by_status, total_revenue }.
+ */
+export async function fetchOrderActivity(): Promise<OrderActivityPoint[]> {
+  const { data: envelope } = await api.get('/admin/analytics/orders');
+  const d = envelope.data;
+  if (d.daily_trend && Array.isArray(d.daily_trend)) {
+    return d.daily_trend.map((row: { date: string; orders?: number; completed?: number }) => ({
+      date: formatChartDate(row.date),
+      orders: Number(row.orders ?? 0),
+      completed: Number(row.completed ?? 0),
+    }));
+  }
+  return [];
 }
 
 /**

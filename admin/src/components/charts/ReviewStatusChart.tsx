@@ -5,7 +5,9 @@ import type { ChartDataPoint } from '../../types';
 const STATUS_COLORS: Record<string, string> = {
   pending: 'var(--color-warning)',
   approved: 'var(--color-primary)',
+  featured: 'var(--color-info)',
   rejected: 'var(--color-error)',
+  archived: 'var(--color-text-3)',
   draft: 'var(--color-text-3)',
 };
 

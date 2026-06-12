@@ -12,7 +12,7 @@ import Button from '../components/ui/Button';
 import { PageHeader } from '../components/ui/PageHeader';
 import { SummaryCard, MiniStat } from '../components/ui/SummaryCard';
 import { OrderActivityChart } from '../components/charts/OrderActivityChart';
-import { fetchOrders, updateOrderStatus } from '../services/api';
+import { fetchOrders, fetchOrderActivity, updateOrderStatus } from '../services/api';
 import type { Order } from '../types';
 import { formatDateTime, formatDateTimeFull } from '../utils/dateTime';
 
@@ -65,10 +65,17 @@ export default function OrderPage() {
     queryFn: () => fetchOrders({ page, pageSize: 20, status: statusFilter || undefined, search: search || undefined }),
   });
 
+  const { data: orderActivityData } = useQuery({
+    queryKey: ['orderActivity'],
+    queryFn: fetchOrderActivity,
+    staleTime: 5 * 60 * 1000,
+  });
+
   const updateMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: Order['status'] }) => updateOrderStatus(id, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['orderActivity'] });
       toast.success(t('order.toastUpdated'));
     },
     onError: (e: any) => {
@@ -171,7 +178,7 @@ export default function OrderPage() {
 
       {/* Chart */}
       <div style={{ marginBottom: 24 }}>
-        <OrderActivityChart />
+        <OrderActivityChart data={orderActivityData ?? []} />
       </div>
 
       {/* Filters */}
