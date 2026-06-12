@@ -467,6 +467,7 @@ export default function Header() {
 
   const handleLogout = () => {
     logout();
+    useCartStore.setState({ items: [], stockWarnings: {} });
     setUserMenuOpen(false);
     setActiveSubmenu(null);
     navigate('/login');
@@ -712,7 +713,7 @@ export default function Header() {
 
           {/* Cart icon — white disc */}
           <button
-            onClick={toggleCart}
+            onClick={() => { isAuthenticated ? toggleCart() : navigate('/login', { state: { from: location.pathname } }); }}
             className={`relative flex h-9 w-9 items-center justify-center rounded-full transition-all cursor-pointer ${iconDisc}`}
             aria-label={t('cart.title')}
           >
@@ -721,7 +722,7 @@ export default function Header() {
               <line x1="3" y1="6" x2="21" y2="6" />
               <path d="M16 10a4 4 0 01-8 0" />
             </svg>
-            {totalCartItems > 0 && (
+            {isAuthenticated && totalCartItems > 0 && (
               <span
                 className={`absolute -right-1 -top-1 flex h-4.5 min-h-[18px] w-4.5 min-w-[18px] items-center justify-center rounded-full font-mono text-[10px] leading-none ${
                   impactMode

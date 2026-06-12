@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/authStore';
+import { useCartStore } from '@/stores/cartStore';
 import { authApi } from '@/services/auth';
 import api from '@/services/api';
 
@@ -72,6 +73,7 @@ export function useSessionRestore() {
     if (user && !isAuthenticated) {
       if (ADMIN_ROLES.includes(user.role)) {
         useAuthStore.getState().logout();
+        useCartStore.setState({ items: [], stockWarnings: {} });
         window.location.replace('/admin/');
         return;
       }

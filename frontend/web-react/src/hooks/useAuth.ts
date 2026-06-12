@@ -48,11 +48,13 @@ export function useAuth() {
     mutationFn: () => authApi.logout(),
     onSuccess: () => {
       logout();
+      useCartStore.setState({ items: [], stockWarnings: {} });
       queryClient.clear();
       toast.success(t('auth.logoutSuccess', 'Logged out successfully'));
     },
     onError: () => {
       logout();
+      useCartStore.setState({ items: [], stockWarnings: {} });
       queryClient.clear();
       toast.success(t('auth.logoutSuccess', 'Logged out successfully'));
     },

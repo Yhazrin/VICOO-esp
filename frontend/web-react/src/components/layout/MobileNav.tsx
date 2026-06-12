@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useUIStore, DARK_THEMES } from '@/stores/uiStore';
 import { useAuthStore } from '@/stores/authStore';
+import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/hooks/useAuth';
 import { useRef, useEffect, useState } from 'react';
 import { COMPANY_NAV } from '@/constants/companyNav';
@@ -63,6 +64,7 @@ export default function MobileNav() {
 
   const handleLogout = () => {
     logout();
+    useCartStore.setState({ items: [], stockWarnings: {} });
     setUserMenuOpen(false);
     setMobileNavOpen(false);
     navigate('/login');

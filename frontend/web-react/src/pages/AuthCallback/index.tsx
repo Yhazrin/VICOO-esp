@@ -76,6 +76,7 @@ export default function AuthCallback() {
 
       if (ADMIN_ROLES.includes(user.role)) {
         useAuthStore.getState().logout();
+        useCartStore.setState({ items: [], stockWarnings: {} });
         window.location.replace('/admin/');
         return;
       }

@@ -8,6 +8,7 @@ import PaperTextureBackground from '@/components/editorial/PaperTextureBackgroun
 import SectionGrainOverlay from '@/components/editorial/SectionGrainOverlay';
 import { EditorialCard } from '@/components/editorial/EditorialCard';
 import { useAuthStore } from '@/stores/authStore';
+import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/hooks/useAuth';
 import { authApi } from '@/services/auth';
 import { ordersApi, type OrderDetail } from '@/services/orders';
@@ -159,6 +160,7 @@ export default function Profile() {
 
   const handleLogout = () => {
     logout();
+    useCartStore.setState({ items: [], stockWarnings: {} });
     navigate('/login');
   };
 

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useUIStore } from '@/stores/uiStore';
 import { useAuthStore } from '@/stores/authStore';
+import { useCartStore } from '@/stores/cartStore';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { useRef, useEffect, useState } from 'react';
@@ -63,6 +64,7 @@ export default function MagazineNav() {
 
   const handleLogout = () => {
     logout();
+    useCartStore.setState({ items: [], stockWarnings: {} });
     setUserMenuOpen(false);
     navigate('/login');
   };

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useAuthStore } from '@/stores/authStore';
+import { useCartStore } from '@/stores/cartStore';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -99,6 +100,7 @@ api.interceptors.response.use(
         onRefreshFailed(refreshError);
         // Clear auth state so the user is redirected to login
         useAuthStore.getState().logout();
+        useCartStore.setState({ items: [], stockWarnings: {} });
         return Promise.reject(refreshError);
       }
     }

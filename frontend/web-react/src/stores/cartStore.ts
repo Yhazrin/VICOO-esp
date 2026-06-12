@@ -1,9 +1,11 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import type { CartItem, Product } from '@/types';
 import { productsApi } from '@/services/products';
 import { cartApi } from '@/services/cart';
 import { useAuthStore } from './authStore';
+
+// Clean up stale guest-cart data from old persist middleware
+try { localStorage.removeItem('vicoo-cart'); } catch {}
 
 interface CartState {
   items: CartItem[];
@@ -56,9 +58,7 @@ async function hydrateServerItems(serverItems: { product_id: number; quantity: n
   return hydrated.filter(Boolean) as CartItem[];
 }
 
-export const useCartStore = create<CartState>()(
-  persist(
-    (set, get) => ({
+export const useCartStore = create<CartState>()((set, get) => ({
       items: [],
       isOpen: false,
       stockWarnings: {},
@@ -237,12 +237,7 @@ export const useCartStore = create<CartState>()(
           // Keep local items if load fails
         }
       },
-    }),
-    {
-      name: 'vicoo-cart',
-      partialize: (state) => ({ items: state.items }),
-    }
-  )
+    })
 );
 
 // Selectors
