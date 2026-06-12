@@ -65,7 +65,7 @@ export default function MobileNav() {
     logout();
     setUserMenuOpen(false);
     setMobileNavOpen(false);
-    navigate('/');
+    navigate('/login');
   };
 
   const handleImpactToggle = () => {
@@ -226,15 +226,6 @@ export default function MobileNav() {
                 >
                   {t('nav.submitArtwork', 'Submit Artwork')}
                 </Link>
-                {(user.role === 'admin' || user.role === 'editor') && (
-                  <Link
-                    to="/ai-design"
-                    onClick={() => setMobileNavOpen(false)}
-                    className="inline-block font-body text-body-sm text-ink-faded border border-warm-gray/40 px-6 py-3 rounded-full hover:text-ink transition-colors cursor-pointer"
-                  >
-                    {t('nav.aiDesign', 'AI Design')}
-                  </Link>
-                )}
                 {(user.role === 'admin' || user.role === 'editor') && (
                   <Link
                     to="/studio/supply-chain"

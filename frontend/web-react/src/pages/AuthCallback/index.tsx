@@ -91,7 +91,7 @@ export default function AuthCallback() {
 
   return (
     <PageWrapper>
-      <PaperTextureBackground variant="paper" className="min-h-[100dvh] flex items-center justify-center relative">
+      <PaperTextureBackground variant="paper" className="min-h-[calc(100dvh-4.25rem)] md:min-h-[calc(100dvh-6rem)] flex items-center justify-center relative">
 
         <div className="text-center relative z-10">
           {error ? (

@@ -163,6 +163,7 @@
     "addressDeleteError": "Failed to delete address. Please try again.",
     "setDefaultError": "Failed to set default address. Please try again.",
     "tabs": {
+      "overview": "Overview",
       "orders": "My Orders",
       "donations": "My Donations",
       "clothing": "Clothing",

@@ -1,8 +1,9 @@
 """
-Canonical demo artwork catalog (20 items) aligned with static files:
+Canonical demo artwork catalog (20 items).
 
-  /static/artworks/artwork_{seq}.jpg
-  /static/artworks/thumb_{seq}.jpg
+Image URLs use picsum.photos (external, always reachable).
+If local static files are placed under backend/static/artworks/,
+seed_artwork_assets.py will override these to /static/artworks/ paths on startup.
 
 Order matches mock list in app.routers.artworks and app.seed artwork_data.
 """
@@ -12,16 +13,17 @@ from __future__ import annotations
 from typing import Any
 
 ARTWORK_COUNT = 20
+# Keep local prefix for seed_artwork_assets.py compatibility
 ARTWORK_STATIC_PREFIX = "/static/artworks/artwork_"
 ARTWORK_THUMB_PREFIX = "/static/artworks/thumb_"
 
 
 def artwork_image_url(seq: int) -> str:
-    return f"{ARTWORK_STATIC_PREFIX}{seq}.jpg"
+    return f"https://picsum.photos/seed/vicoo-art-{seq}/900/900"
 
 
 def artwork_thumb_url(seq: int) -> str:
-    return f"{ARTWORK_THUMB_PREFIX}{seq}.jpg"
+    return f"https://picsum.photos/seed/vicoo-art-{seq}/400/400"
 
 
 # child_index: index into seed child_participants list (0–9)

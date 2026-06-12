@@ -45,7 +45,7 @@
   --color-accent: #1A1A16;
   --color-accent-2: #01847F;
 
-  /* ── Shadows — Subtle, Print-Inspired ── */
+  /* ── Shadows — Subtle, frosted-glass depth ── */
   --shadow-sm: 0 1px 2px rgba(26, 26, 22, 0.03);
   --shadow-md: 0 2px 8px rgba(26, 26, 22, 0.05);
   --shadow-lg: 0 4px 16px rgba(26, 26, 22, 0.07);
@@ -1181,6 +1181,8 @@ h3 { font-size: 18px; line-height: 1.4; }
 /* Table actions container */
 .table-actions {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 6px;
 }
 

@@ -552,7 +552,7 @@ export default function ProductPage() {
       render: (v) => formatDateTime(v),
     },
     {
-      key: 'id' as any, title: t('product.colActions'), width: 130,
+      key: 'id' as any, title: t('product.colActions'), width: 160,
       render: (_v, row) => (
         <div className="table-actions">
           <Button size="sm" variant="secondary" onClick={() => openEdit(row)}>

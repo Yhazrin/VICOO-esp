@@ -88,9 +88,9 @@ export default function ClothingDonationPage() {
     {
       key: '_actions',
       title: t('clothingDonation.colActions'),
-      width: 280,
+      width: 240,
       render: (_v, record) => (
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        <div className="table-actions">
           <Button variant="secondary" size="sm" onClick={() => setSelected(record)}>
             {t('common.detail')}
           </Button>

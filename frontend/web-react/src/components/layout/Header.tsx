@@ -469,7 +469,7 @@ export default function Header() {
     logout();
     setUserMenuOpen(false);
     setActiveSubmenu(null);
-    navigate('/');
+    navigate('/login');
   };
 
   const handleThemeChange = (themeId: ThemeId) => {

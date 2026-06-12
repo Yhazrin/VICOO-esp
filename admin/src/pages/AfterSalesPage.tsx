@@ -254,11 +254,11 @@ export default function AfterSalesPage() {
     {
       key: '_actions',
       title: t('afterSales.colActions'),
-      width: 280,
+      width: 260,
       render: (_v, record) => {
         if (record.status === 'pending') {
           return (
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            <div className="table-actions">
               <Button
                 variant="primary"
                 size="sm"
@@ -286,7 +286,7 @@ export default function AfterSalesPage() {
           const isExchange = record.category === 'exchange';
 
           return (
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            <div className="table-actions">
               {(isReturn || isExchange) && !record.goodsReceivedAt && (
                 <Button
                   variant="primary"
@@ -319,22 +319,12 @@ export default function AfterSalesPage() {
               )}
               {isExchange && record.replacementOrderId && record.replacementOrderStatus === 'shipped' && (
                 <Button
-                  variant="primary"
+                  variant="secondary"
                   size="sm"
                   loading={deliverMutation.isPending}
                   onClick={() => deliverMutation.mutate(record.replacementOrderId!)}
                 >
                   {t('afterSales.btnConfirmDelivery')}
-                </Button>
-              )}
-              {!isReturn && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  loading={statusMutation.isPending}
-                  onClick={() => statusMutation.mutate({ id: record.id, status: 'completed' })}
-                >
-                  {t('afterSales.btnComplete')}
                 </Button>
               )}
             </div>

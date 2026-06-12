@@ -64,7 +64,7 @@ export default function MagazineNav() {
   const handleLogout = () => {
     logout();
     setUserMenuOpen(false);
-    navigate('/');
+    navigate('/login');
   };
 
   return (

@@ -302,7 +302,7 @@ export default function ArtworkPage() {
     {
       key: 'action',
       title: t('artwork.colCommand'),
-      width: 180,
+      width: 200,
       render: (_: any, record: Artwork) => (
         <div className="table-actions">
           <Button
