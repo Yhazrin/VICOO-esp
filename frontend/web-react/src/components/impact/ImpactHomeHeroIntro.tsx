@@ -21,7 +21,7 @@ export function scrollToImpactStory() {
   const target = document.getElementById('impact-scroll-story');
   if (!target) return;
 
-  const SPEED = 1.2; // px per frame (~72px/s at 60fps)
+  const SPEED = 3; // px per frame (~180px/s at 60fps)
   let running = true;
 
   const stop = () => {
