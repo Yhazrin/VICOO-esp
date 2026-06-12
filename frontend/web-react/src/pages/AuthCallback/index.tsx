@@ -82,7 +82,7 @@ export default function AuthCallback() {
       }
 
       restoreSession(user, accessToken);
-      useCartStore.getState().syncWithServer();
+      useCartStore.getState().loadFromServer();
       setTimeout(() => {
         if (!cancelled) navigate('/', { replace: true });
       }, 500);
