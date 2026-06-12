@@ -309,9 +309,9 @@ async def test_aftersales_admin_full_chain(client, admin_auth_headers, user_auth
         oid = o.id
         await db.commit()
 
-    # User creates after-sale ticket
+    # User creates after-sale ticket (quality/support path)
     r = await client.post(f"{API}/after-sales", json={
-        "order_id": oid, "category": "return", "subject": "审计测试", "description": "完整链路",
+        "order_id": oid, "category": "quality", "subject": "审计测试", "description": "完整链路",
     }, headers=user_auth_headers)
     assert r.status_code in (200, 201), r.text
     tid = r.json()["data"]["id"]
@@ -327,9 +327,9 @@ async def test_aftersales_admin_full_chain(client, admin_auth_headers, user_auth
         t = (await db.execute(select(AfterSaleTicket).where(AfterSaleTicket.id == tid))).scalar_one()
         assert t.status in ("in_progress", "resolved", "closed", "approved")
 
-    # Reject variant: close
+    # Reject variant: close (different category on same order)
     r = await client.post(f"{API}/after-sales", json={
-        "order_id": oid + 1 if False else oid, "category": "exchange", "subject": "审计-驳回测试", "description": "reject path",
+        "order_id": oid, "category": "logistics", "subject": "审计-驳回测试", "description": "reject path",
     }, headers=user_auth_headers)
     if r.status_code in (200, 201):
         tid2 = r.json()["data"]["id"]

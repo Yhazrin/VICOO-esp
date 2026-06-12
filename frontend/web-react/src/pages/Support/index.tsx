@@ -25,8 +25,6 @@ export default function Support() {
   const [submitError, setSubmitError] = useState('');
 
   const categories = [
-    { value: 'return', label: t('support.return') },
-    { value: 'exchange', label: t('support.exchange') },
     { value: 'quality', label: t('support.quality') },
     { value: 'logistics', label: t('support.logistics') },
     { value: 'other', label: t('support.other') },
@@ -47,7 +45,7 @@ export default function Support() {
       }
       return afterSalesApi.create({
         order_id: Number(orderId),
-        category: category as 'return' | 'exchange' | 'quality' | 'logistics' | 'other',
+        category: category as 'quality' | 'logistics' | 'other',
         subject,
         description: description || undefined,
         image_urls,
@@ -237,6 +235,18 @@ export default function Support() {
                     {t('support.tip3', 'Most tickets are resolved within 2 business days.')}
                   </li>
                 </ul>
+              </div>
+
+              <div className="rounded-xl border border-warm-gray/20 bg-aged-stock/30 p-6">
+                <h3 className="font-display text-h3 text-ink mb-3">
+                  {t('support.returnExchangeTitle', 'Returns & Exchanges')}
+                </h3>
+                <p className="font-body text-body-sm text-ink-faded mb-4">
+                  {t('support.returnExchangeHint', 'For returns or exchanges, open your order detail page and use the request button on completed orders.')}
+                </p>
+                <Link to="/profile?tab=orders" className="font-body text-caption text-rust tracking-[0.1em] uppercase hover:underline">
+                  {t('support.viewOrders', 'View My Orders')} &rarr;
+                </Link>
               </div>
 
               <div className="rounded-xl border border-warm-gray/20 bg-aged-stock/30 p-6">

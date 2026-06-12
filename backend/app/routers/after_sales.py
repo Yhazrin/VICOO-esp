@@ -14,17 +14,17 @@ from app.schemas import (
     AfterSaleCreate,
     AfterSaleOut,
     AfterSaleReviewRequest,
+    AfterSaleReturnShipmentUpdate,
     AfterSaleStatusUpdate,
     ApiResponse,
     PaginatedResponse,
 )
 from app.deps import get_current_user, require_role
 from app.services.after_sales.service import (
+    AfterSalesService,
     enrich_tickets,
     normalize_status_filter,
-    parse_ticket_payload,
 )
-from app.services.order.service import OrderService
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/after-sales", tags=["After-sales"])
@@ -42,8 +42,6 @@ def _resolve_status(status: str) -> str:
 async def _load_image_urls_for_tickets(
     db: AsyncSession, ticket_ids: list[int]
 ) -> dict[int, list[str]]:
-    """Bulk-load image URLs for a batch of after-sale tickets. Returns
-    ``{ticket_id: [url, ...]}`` (URLs in insertion order)."""
     if not ticket_ids:
         return {}
     stmt = (
@@ -63,8 +61,6 @@ async def _load_image_urls_for_tickets(
 async def _enrich_with_images(
     db: AsyncSession, rows: list[AfterSaleTicket]
 ) -> list[dict]:
-    """Wrap :func:`enrich_tickets` so each payload also carries ``image_urls``
-    loaded from the attachments table."""
     payloads = await enrich_tickets(db, list(rows))
     urls_by_id = await _load_image_urls_for_tickets(db, [r.id for r in rows])
     for ticket, payload in zip(rows, payloads):
@@ -78,14 +74,12 @@ async def create_ticket(
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    ostmt = select(Order).where(Order.id == body.order_id)
-    order = (await db.execute(ostmt)).scalar_one_or_none()
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
-    if order.user_id != current_user["id"] and current_user.get("role") != "admin":
-        raise HTTPException(status_code=403, detail="Forbidden")
+    service = AfterSalesService(db)
+    order = await service.get_order_for_user(body.order_id, current_user)
+    await service.validate_support_ticket(order, body.category)
+
     row = AfterSaleTicket(
-        user_id=current_user["id"],
+        user_id=order.user_id,
         order_id=body.order_id,
         category=body.category,
         subject=body.subject,
@@ -95,8 +89,6 @@ async def create_ticket(
     db.add(row)
     await db.flush()
 
-    # Materialise any uploaded image URLs into attachment rows. Same
-    # path-prefix guard as the clothing-intake path.
     image_urls: list[str] = []
     for url in body.image_urls:
         if isinstance(url, str) and url.startswith("/static/uploads/"):
@@ -131,14 +123,24 @@ async def my_tickets(
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    base = select(AfterSaleTicket).where(AfterSaleTicket.user_id == current_user["id"])
+    count_stmt = select(func.count(AfterSaleTicket.id)).where(
+        AfterSaleTicket.user_id == current_user["id"]
+    )
+    total = (await db.execute(count_stmt)).scalar() or 0
     stmt = (
-        select(AfterSaleTicket)
-        .where(AfterSaleTicket.user_id == current_user["id"])
-        .order_by(AfterSaleTicket.created_at.desc())
-        .limit(100)
+        base.order_by(AfterSaleTicket.created_at.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
     )
     rows = (await db.execute(stmt)).scalars().all()
-    return ApiResponse(data=await _enrich_with_images(db, list(rows)))
+    data = await _enrich_with_images(db, list(rows))
+    return PaginatedResponse(
+        data=data,
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
 
 
 @router.get("/by-order/{order_id}", response_model=ApiResponse)
@@ -147,12 +149,8 @@ async def tickets_for_order(
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """List after-sales tickets linked to an order (for order detail progress UI)."""
-    order = await db.get(Order, order_id)
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
-    if order.user_id != current_user["id"] and current_user.get("role") != "admin":
-        raise HTTPException(status_code=403, detail="Forbidden")
+    service = AfterSalesService(db)
+    await service.get_order_for_user(order_id, current_user)
 
     stmt = (
         select(AfterSaleTicket)
@@ -203,44 +201,63 @@ async def review_ticket(
     row = (await db.execute(stmt)).scalar_one_or_none()
     if not row:
         raise HTTPException(status_code=404, detail="Ticket not found")
-    if row.status != "open":
-        raise HTTPException(status_code=400, detail="Ticket has already been processed")
 
+    service = AfterSalesService(db)
     if body.action == "reject":
-        row.status = "closed"
-        if body.admin_note:
-            row.description = "\n".join(
-                part for part in [row.description, f"Admin note: {body.admin_note}"] if part
-            )
-        await db.flush()
-        await db.refresh(row)
-        return ApiResponse(data=(await _enrich_with_images(db, [row]))[0])
+        row = await service.reject_ticket(row, admin_note=body.admin_note)
+    else:
+        row = await service.approve_ticket(row, admin_note=body.admin_note)
 
-    original_order = await db.get(Order, row.order_id)
-    if not original_order:
-        raise HTTPException(status_code=404, detail="Original order not found")
+    return ApiResponse(data=(await _enrich_with_images(db, [row]))[0])
 
-    replacement_order = None
-    if row.category == "exchange":
-        payload = parse_ticket_payload(row)
-        line_items = payload.get("items") or []
-        if not line_items:
-            raise HTTPException(status_code=400, detail="Exchange ticket has no items")
-        exchange_product_id = payload.get("exchange_product_id")
-        order_service = OrderService(db)
-        replacement_order = await order_service.create_replacement_order(
-            user_id=row.user_id,
-            original_order=original_order,
-            line_items=line_items,
-            exchange_product_id=exchange_product_id,
-        )
-        row.replacement_order_id = replacement_order.id
 
-    row.status = "in_progress"
-    if body.admin_note:
-        row.description = "\n".join(
-            part for part in [row.description, f"Admin note: {body.admin_note}"] if part
-        )
+@router.post("/{ticket_id}/confirm-received", response_model=ApiResponse)
+async def confirm_return_received(
+    ticket_id: int,
+    _staff: dict = Depends(require_role("admin")),
+    db: AsyncSession = Depends(get_db),
+):
+    row = (await db.execute(select(AfterSaleTicket).where(AfterSaleTicket.id == ticket_id))).scalar_one_or_none()
+    if not row:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    service = AfterSalesService(db)
+    row = await service.confirm_return_received(row)
+    return ApiResponse(data=(await _enrich_with_images(db, [row]))[0])
+
+
+@router.post("/{ticket_id}/refund", response_model=ApiResponse)
+async def process_refund(
+    ticket_id: int,
+    _staff: dict = Depends(require_role("admin")),
+    db: AsyncSession = Depends(get_db),
+):
+    row = (await db.execute(select(AfterSaleTicket).where(AfterSaleTicket.id == ticket_id))).scalar_one_or_none()
+    if not row:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    service = AfterSalesService(db)
+    row = await service.process_refund(row)
+    return ApiResponse(data=(await _enrich_with_images(db, [row]))[0])
+
+
+@router.patch("/{ticket_id}/return-shipment", response_model=ApiResponse)
+async def submit_return_shipment(
+    ticket_id: int,
+    body: AfterSaleReturnShipmentUpdate,
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    row = (await db.execute(select(AfterSaleTicket).where(AfterSaleTicket.id == ticket_id))).scalar_one_or_none()
+    if not row:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    if row.user_id != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    if row.category not in ("return", "exchange"):
+        raise HTTPException(status_code=400, detail="Return shipment only applies to return/exchange tickets")
+    if row.status != "in_progress":
+        raise HTTPException(status_code=400, detail="Ticket must be approved before submitting return shipment")
+
+    row.return_carrier = body.return_carrier.strip()
+    row.return_tracking_no = body.return_tracking_no.strip()
     await db.flush()
     await db.refresh(row)
     return ApiResponse(data=(await _enrich_with_images(db, [row]))[0])
@@ -270,5 +287,4 @@ async def update_ticket_status_legacy(
     _staff: dict = Depends(require_role("admin")),
     db: AsyncSession = Depends(get_db),
 ):
-    """Legacy admin path alias for status updates."""
     return await update_ticket_status(ticket_id, body, _staff, db)

@@ -95,6 +95,10 @@ class Settings(BaseSettings):
     # Demo mode -- when True, uncontrolled mock fallbacks are allowed on DB failures
     DEMO_MODE: bool = False
 
+    # After-sales: days after order completion when return/exchange is allowed
+    AFTER_SALE_WINDOW_DAYS: int = 15
+    AFTER_SALE_RETURN_ADDRESS: str = "VICOO 售后中心，上海市浦东新区示例路 100 号，邮编 200120，电话 400-000-0000"
+
     # Password reset — REQUIRED in production
     # Pepper used when hashing the 6-digit OTP. Any random string. NEVER commit.
     PASSWORD_RESET_OTP_PEPPER: str = os.getenv("PASSWORD_RESET_OTP_PEPPER", _DEV_PASSWORD_RESET_OTP_PEPPER)
