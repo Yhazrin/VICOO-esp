@@ -64,6 +64,8 @@ export const useCartStore = create<CartState>()((set, get) => ({
       stockWarnings: {},
 
       addItem: (product, quantity = 1, selectedSize, selectedColor) => {
+        if (!isAuthed()) return;
+
         const qty = Math.max(1, quantity);
         set((state) => {
           const existing = state.items.find(
@@ -81,15 +83,12 @@ export const useCartStore = create<CartState>()((set, get) => ({
           return { items: [...state.items, { product, quantity: Math.min(99, qty), selectedSize, selectedColor }] };
         });
 
-        // Sync to server if authenticated
-        if (isAuthed()) {
-          cartApi.addItem({
-            product_id: product.id,
-            quantity: qty,
-            selected_size: selectedSize,
-            selected_color: selectedColor,
-          }).catch(() => {});
-        }
+        cartApi.addItem({
+          product_id: product.id,
+          quantity: qty,
+          selected_size: selectedSize,
+          selected_color: selectedColor,
+        }).catch(() => {});
       },
 
       removeItem: (productId, selectedSize, selectedColor) => {

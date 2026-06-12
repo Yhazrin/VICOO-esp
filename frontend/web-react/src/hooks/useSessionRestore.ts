@@ -78,6 +78,7 @@ export function useSessionRestore() {
         return;
       }
       restoreSession(user, accessToken || undefined);
+      useCartStore.getState().loadFromServer();
     }
   }, [user, isAuthenticated, restoreSession, accessToken]);
 

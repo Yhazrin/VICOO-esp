@@ -11,6 +11,7 @@ import {
 } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthStore } from '@/stores/authStore';
+import { useCartStore } from '@/stores/cartStore';
 import { useUIStore } from '@/stores/uiStore';
 import { detectIdentityMode, type LoginMode } from '@/lib/auth/identity-detection';
 import vicooLogo from '@/assets/vicoo-logo.png';
@@ -212,6 +213,7 @@ export default function Login() {
         const login = useAuthStore.getState().login;
         const tokenData = data.data?.token || data.token || data;
         login(userData, tokenData.access_token || tokenData.accessToken, tokenData.refresh_token);
+        await useCartStore.getState().loadFromServer();
         navigate(userTarget, { replace: true });
       }
     } catch (err: unknown) {
