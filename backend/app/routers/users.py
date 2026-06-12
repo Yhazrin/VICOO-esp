@@ -76,7 +76,7 @@ async def update_me(
     """Update current user profile. (Refactored)"""
     user_service = UserService(db)
     try:
-        user = await user_service.update_user_profile(current_user["id"], body.model_dump())
+        user = await user_service.update_user_profile(current_user["id"], body.model_dump(exclude_unset=True))
         return ApiResponse(data=UserOut.model_validate(user).model_dump())
     except HTTPException:
         raise

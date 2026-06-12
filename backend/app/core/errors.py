@@ -84,3 +84,22 @@ class RegistrationRateLimitedException(BusinessException):
 
     def __init__(self, message: str = "Too many registration attempts. Please try again later.", data: Optional[Dict[str, Any]] = None):
         super().__init__(status_code=429, message=message, code="RATE_LIMITED", data=data)
+
+
+class WrongCurrentPasswordException(BusinessException):
+    """401 — current password verification failed."""
+
+    def __init__(self, message: str = "Current password is incorrect.", data: Optional[Dict[str, Any]] = None):
+        super().__init__(status_code=401, message=message, code="WRONG_CURRENT_PASSWORD", data=data)
+
+
+class OAuthOnlyAccountException(BusinessException):
+    """400 — account has no local password (OAuth-only)."""
+
+    def __init__(self, data: Optional[Dict[str, Any]] = None):
+        super().__init__(
+            status_code=400,
+            message="This account uses social login. Set a password via forgot-password before changing email.",
+            code="OAUTH_ONLY_ACCOUNT",
+            data=data,
+        )

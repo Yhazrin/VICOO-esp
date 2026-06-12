@@ -17,6 +17,9 @@ class UserUpdate(BaseModel):
     nickname: Optional[str] = Field(None, min_length=1, max_length=100)
     avatar: Optional[str] = Field(None, max_length=500)
     phone: Optional[str] = Field(None, max_length=20, pattern=r"^[\d\s\-\+\(\)]{5,20}$", description="Phone number (will be encrypted at rest)")
+    email: Optional[EmailStr] = Field(None, description="New email address (requires current_password)")
+    current_password: Optional[str] = Field(None, min_length=1, max_length=128, description="Required when changing email or password")
+    new_password: Optional[str] = Field(None, min_length=8, max_length=128, description="New password (requires current_password)")
 
 
 class UserOut(BaseModel):
