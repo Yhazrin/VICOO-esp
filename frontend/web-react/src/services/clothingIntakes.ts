@@ -12,6 +12,7 @@ export interface ClothingIntake {
   status: string;
   product_id?: number | null;
   admin_note?: string | null;
+  image_urls?: string[];
   created_at: string;
   updated_at: string;
 }
@@ -23,6 +24,7 @@ export interface ClothingIntakeCreatePayload {
   condition_notes?: string;
   pickup_address?: string;
   contact_phone?: string;
+  image_urls?: string[];
 }
 
 export const clothingIntakesApi = {

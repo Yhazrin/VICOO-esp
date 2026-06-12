@@ -296,6 +296,7 @@ export interface AfterSalesItem {
   replacementOrderId?: string;
   replacementOrderNo?: string;
   replacementOrderStatus?: string;
+  imageUrls: string[];
 }
 
 export interface ClothingDonationItem {
@@ -307,6 +308,7 @@ export interface ClothingDonationItem {
   conditionNotes: string;
   status: string;
   createdAt: string;
+  imageUrls: string[];
 }
 
 export interface SupplyChainRecord {

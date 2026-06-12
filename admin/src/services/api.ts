@@ -1010,6 +1010,7 @@ export async function fetchAfterSales(params: FilterParams = {}): Promise<Pagina
       replacementOrderId: item.replacement_order_id ? String(item.replacement_order_id) : undefined,
       replacementOrderNo: item.replacement_order_no ?? undefined,
       replacementOrderStatus: item.replacement_order_status ?? undefined,
+      imageUrls: Array.isArray(item.image_urls) ? item.image_urls : [],
     })),
   };
 }
@@ -1054,6 +1055,7 @@ export async function fetchClothingIntakes(params: FilterParams = {}): Promise<P
       conditionNotes: item.condition_notes ?? '',
       status: item.status ?? 'pending',
       createdAt: item.created_at ?? '',
+      imageUrls: Array.isArray(item.image_urls) ? item.image_urls : [],
     })),
   };
 }

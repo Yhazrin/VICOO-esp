@@ -8,6 +8,7 @@ import SectionContainer from '@/components/layout/SectionContainer';
 import { VintageInput } from '@/components/editorial/VintageInput';
 import { VintageSelect } from '@/components/editorial/VintageSelect';
 import { afterSalesApi } from '@/services/afterSales';
+import { uploadUserImage } from '@/services/uploads';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function Support() {
@@ -19,6 +20,7 @@ export default function Support() {
   const [category, setCategory] = useState('quality');
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
+  const [photos, setPhotos] = useState<File[]>([]);
   const [fieldError, setFieldError] = useState('');
   const [submitError, setSubmitError] = useState('');
 
@@ -31,19 +33,33 @@ export default function Support() {
   ];
 
   const mutation = useMutation({
-    mutationFn: () =>
-      afterSalesApi.create({
+    mutationFn: async () => {
+      const image_urls: string[] = [];
+      for (const file of photos) {
+        try {
+          const { url } = await uploadUserImage(file);
+          image_urls.push(url);
+        } catch (err) {
+          throw new Error(
+            t('support.photoUploadError', 'Photo upload failed. Please retry.'),
+          );
+        }
+      }
+      return afterSalesApi.create({
         order_id: Number(orderId),
         category: category as 'return' | 'exchange' | 'quality' | 'logistics' | 'other',
         subject,
         description: description || undefined,
-      }),
+        image_urls,
+      });
+    },
     onSuccess: () => {
       setSubmitError('');
       qc.invalidateQueries({ queryKey: ['my-after-sales'] });
       setSubject('');
       setDescription('');
       setOrderId('');
+      setPhotos([]);
     },
     onError: () => setSubmitError(t('support.submitError', 'Submission failed — please retry')),
   });
@@ -137,6 +153,38 @@ export default function Support() {
                 onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setDescription(e.target.value)}
                 placeholder={t('support.descriptionPlaceholder', 'Describe the issue in detail')}
               />
+
+              {/* Photo upload — same shape as DonateClothing so admins get
+                  the same gallery layout when viewing attached evidence. */}
+              <div className="space-y-2">
+                <span className="font-body text-overline tracking-[0.2em] uppercase text-sepia-mid block">
+                  {t('support.fieldPhotos', 'Attach Photos (optional)')}
+                </span>
+                <label
+                  htmlFor="support-photo-upload"
+                  className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-rust/30 rounded-xl py-6 cursor-pointer hover:border-rust/50 transition-colors bg-aged-stock/30"
+                >
+                  <svg className="w-6 h-6 text-sepia-mid" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 16v-8m0 0l-3 3m3-3l3 3M3 16.5V18a2.25 2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 18v-1.5" />
+                  </svg>
+                  <span className="font-body text-caption text-sepia-mid">
+                    {photos.length > 0
+                      ? t('support.photoCount', '{{count}} file(s) selected', { count: photos.length })
+                      : t('support.photoUploadPrompt', 'Click to upload photos')}
+                  </span>
+                  <input
+                    id="support-photo-upload"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="sr-only"
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                      if (e.target.files) setPhotos(Array.from(e.target.files));
+                    }}
+                  />
+                </label>
+              </div>
+
               {fieldError && (
                 <p className="font-body text-caption text-rust" role="alert">
                   {fieldError}

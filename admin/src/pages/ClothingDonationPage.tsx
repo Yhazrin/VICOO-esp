@@ -53,6 +53,33 @@ export default function ClothingDonationPage() {
     { key: 'id', title: t('clothingDonation.colId'), width: 80 },
     { key: 'garmentTypes', title: t('clothingDonation.colType'), width: 90, render: (v) => v || '-' },
     { key: 'quantityEstimate', title: t('clothingDonation.colItemCount'), width: 80, render: (v) => v ?? '-' },
+    {
+      key: 'imageUrls',
+      title: t('clothingDonation.colPhotos', 'Photos'),
+      width: 120,
+      render: (v) => {
+        const urls: string[] = Array.isArray(v) ? v : [];
+        if (urls.length === 0) return <span style={{ color: 'var(--color-text-3)' }}>-</span>;
+        return (
+          <div style={{ display: 'flex', gap: 4 }}>
+            {urls.slice(0, 3).map((url) => (
+              <a key={url} href={url} target="_blank" rel="noopener noreferrer">
+                <img
+                  src={url}
+                  alt=""
+                  style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: 4, border: '1px solid var(--color-border)' }}
+                />
+              </a>
+            ))}
+            {urls.length > 3 && (
+              <span style={{ fontSize: 12, color: 'var(--color-text-3)', alignSelf: 'center' }}>
+                +{urls.length - 3}
+              </span>
+            )}
+          </div>
+        );
+      },
+    },
     { key: 'conditionNotes', title: t('clothingDonation.colDescription'), width: 200, render: (v) => (v ? String(v).slice(0, 50) + (String(v).length > 50 ? '…' : '') : '-') },
     { key: 'contactPhone', title: t('clothingDonation.colPhone'), width: 120, render: (v) => v || '-' },
     { key: 'pickupAddress', title: t('clothingDonation.colAddress'), width: 160, render: (v) => (v ? String(v).slice(0, 40) + (String(v).length > 40 ? '…' : '') : '-') },
@@ -202,6 +229,24 @@ export default function ClothingDonationPage() {
               <div style={{ fontSize: 11, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{t('clothingDonation.colDescription')}</div>
               <div style={{ fontSize: 13, padding: 12, background: 'var(--color-bg)', borderRadius: 6 }}>{selected.conditionNotes || '-'}</div>
             </div>
+            {selected.imageUrls && selected.imageUrls.length > 0 && (
+              <div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>
+                  {t('clothingDonation.colPhotos', 'Photos')} ({selected.imageUrls.length})
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8 }}>
+                  {selected.imageUrls.map((url) => (
+                    <a key={url} href={url} target="_blank" rel="noopener noreferrer">
+                      <img
+                        src={url}
+                        alt=""
+                        style={{ width: '100%', height: 120, objectFit: 'cover', borderRadius: 6, border: '1px solid var(--color-border)', display: 'block' }}
+                      />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
             <div>
               <div style={{ fontSize: 11, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{t('clothingDonation.colSubmittedAt')}</div>
               <div style={{ fontSize: 13 }}>{formatDateTime(selected.createdAt)}</div>

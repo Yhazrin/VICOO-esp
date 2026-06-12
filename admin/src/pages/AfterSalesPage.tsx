@@ -143,6 +143,33 @@ export default function AfterSalesPage() {
       },
     },
     {
+      key: 'imageUrls',
+      title: t('afterSales.colPhotos', 'Photos'),
+      width: 120,
+      render: (v) => {
+        const urls: string[] = Array.isArray(v) ? v : [];
+        if (urls.length === 0) return <span style={{ color: 'var(--color-text-3)' }}>—</span>;
+        return (
+          <div style={{ display: 'flex', gap: 4 }}>
+            {urls.slice(0, 3).map((url) => (
+              <a key={url} href={url} target="_blank" rel="noopener noreferrer">
+                <img
+                  src={url}
+                  alt=""
+                  style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: 4, border: '1px solid var(--color-border)' }}
+                />
+              </a>
+            ))}
+            {urls.length > 3 && (
+              <span style={{ fontSize: 12, color: 'var(--color-text-3)', alignSelf: 'center' }}>
+                +{urls.length - 3}
+              </span>
+            )}
+          </div>
+        );
+      },
+    },
+    {
       key: 'replacementOrderNo',
       title: t('afterSales.colReplacementOrder'),
       width: 160,

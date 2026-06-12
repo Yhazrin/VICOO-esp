@@ -8,6 +8,7 @@ import SectionContainer from '@/components/layout/SectionContainer';
 import { VintageInput } from '@/components/editorial/VintageInput';
 import { VintageSelect } from '@/components/editorial/VintageSelect';
 import { clothingIntakesApi, type ClothingIntake } from '@/services/clothingIntakes';
+import { uploadUserImage } from '@/services/uploads';
 import { useAuthStore } from '@/stores/authStore';
 import {
   TYPE_LABEL_KEYS, CONDITION_LABEL_KEYS,
@@ -65,19 +66,33 @@ export default function DonateForm({ onSubmitted }: DonateFormProps) {
   };
 
   const createIntakeMutation = useMutation({
-    mutationFn: () =>
-      clothingIntakesApi.create({
+    mutationFn: async () => {
+      // Upload photos first so a partial failure doesn't leave an intake
+      // record referring to files that never landed on the server.
+      const image_urls: string[] = [];
+      for (const file of photos) {
+        try {
+          const { url } = await uploadUserImage(file);
+          image_urls.push(url);
+        } catch (err) {
+          throw new Error(
+            t('donateClothing.photoUploadError', 'Photo upload failed. Please retry.'),
+          );
+        }
+      }
+      return clothingIntakesApi.create({
         summary: description.trim(),
         garment_types: typeLabelMap[clothingType] || clothingType,
         quantity_estimate: quantity,
         condition_notes: [
           conditionLabelMap[condition],
           notes.trim(),
-          photos.length > 0 ? t('donateClothing.photosAttached', '{{count}} photos attached', { count: photos.length }) : null,
         ].filter(Boolean).join(' · '),
         pickup_address: address.trim(),
         contact_phone: phone.trim(),
-      }),
+        image_urls,
+      });
+    },
     onSuccess: (createdIntake) => {
       queryClient.setQueryData<ClothingIntake[]>(['my-clothing-intakes'], (prev = []) => [createdIntake, ...prev]);
       setSubmitted(true);
@@ -85,6 +100,9 @@ export default function DonateForm({ onSubmitted }: DonateFormProps) {
       setDescription(''); setClothingType('tshirt'); setQuantity(1); setCondition('like-new');
       setNotes(''); setPhotos([]); setAddress(''); setPhone('');
       setTimeout(() => { if (mountedRef.current) onSubmitted(); }, 300);
+    },
+    onError: () => {
+      toast.error(t('donateClothing.error', 'Submission failed. Please try again later.'));
     },
   });
 

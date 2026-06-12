@@ -15,6 +15,7 @@ export interface AfterSaleTicket {
   replacement_order_status?: string | null;
   replacement_carrier?: string | null;
   replacement_tracking_number?: string | null;
+  image_urls?: string[];
   created_at: string;
   updated_at: string;
 }
@@ -25,6 +26,7 @@ export const afterSalesApi = {
     category: 'return' | 'exchange' | 'quality' | 'logistics' | 'other';
     subject: string;
     description?: string;
+    image_urls?: string[];
   }): Promise<AfterSaleTicket> => {
     const { data } = await api.post('/after-sales', payload);
     return data.data;
