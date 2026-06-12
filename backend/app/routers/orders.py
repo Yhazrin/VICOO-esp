@@ -601,17 +601,11 @@ async def request_return(
     """Request a return or exchange for a completed order."""
     try:
         from app.models.circular_commerce import AfterSaleTicket
+        from app.services.after_sales.service import AfterSalesService, enrich_tickets
 
-        # Validate order exists and belongs to user
-        stmt = select(Order).where(Order.id == order_id)
-        result = await db.execute(stmt)
-        order = result.scalar_one_or_none()
-        if not order:
-            raise HTTPException(status_code=404, detail="Order not found")
-        if order.user_id != current_user["id"] and current_user.get("role") != "admin":
-            raise HTTPException(status_code=403, detail="Access denied")
-        if order.status != "completed":
-            raise HTTPException(status_code=400, detail="Can only request returns for completed orders")
+        service = AfterSalesService(db)
+        order = await service.get_order_for_user(order_id, current_user)
+        await service.validate_structured_return(order, body.type)
 
         # Validate items belong to this order
         item_stmt = select(OrderItem).where(OrderItem.order_id == order_id)
@@ -655,7 +649,7 @@ async def request_return(
                 description_parts.append(f"Exchange color: {body.exchange_color}")
 
         ticket = AfterSaleTicket(
-            user_id=current_user["id"],
+            user_id=order.user_id,
             order_id=order_id,
             category=body.type,
             status="open",
@@ -667,7 +661,6 @@ async def request_return(
         await db.flush()
         await db.refresh(ticket)
 
-        from app.services.after_sales.service import enrich_tickets
         return ApiResponse(data=(await enrich_tickets(db, [ticket]))[0])
     except HTTPException:
         raise

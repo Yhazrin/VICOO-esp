@@ -21,6 +21,8 @@ import Button from '../components/ui/Button';
 import {
   fetchAfterSales,
   reviewAfterSales,
+  confirmAfterSalesReceived,
+  processAfterSalesRefund,
   updateAfterSalesStatus,
   updateOrderStatus,
 } from '../services/api';
@@ -47,8 +49,8 @@ export default function AfterSalesPage() {
   };
 
   const reviewMutation = useMutation({
-    mutationFn: ({ id, action }: { id: string; action: 'approve' | 'reject' }) =>
-      reviewAfterSales(id, action),
+    mutationFn: ({ id, action, adminNote }: { id: string; action: 'approve' | 'reject'; adminNote?: string }) =>
+      reviewAfterSales(id, action, adminNote),
     onSuccess: (_data, variables) => {
       invalidate();
       toast.success(
@@ -95,6 +97,34 @@ export default function AfterSalesPage() {
       toast.error(t('afterSales.toastError'));
     },
   });
+
+  const confirmReceivedMutation = useMutation({
+    mutationFn: (id: string) => confirmAfterSalesReceived(id),
+    onSuccess: () => {
+      invalidate();
+      toast.success(t('afterSales.toastReceived'));
+    },
+    onError: () => {
+      toast.error(t('afterSales.toastError'));
+    },
+  });
+
+  const refundMutation = useMutation({
+    mutationFn: (id: string) => processAfterSalesRefund(id),
+    onSuccess: () => {
+      invalidate();
+      toast.success(t('afterSales.toastRefunded'));
+    },
+    onError: () => {
+      toast.error(t('afterSales.toastError'));
+    },
+  });
+
+  const handleReject = (id: string) => {
+    const note = window.prompt(t('afterSales.rejectNotePrompt', 'Rejection reason (optional):'));
+    if (note === null) return;
+    reviewMutation.mutate({ id, action: 'reject', adminNote: note || undefined });
+  };
 
   const orderSearchLink = (orderNo?: string, orderId?: string) => {
     const q = orderNo || orderId;
@@ -197,6 +227,24 @@ export default function AfterSalesPage() {
         ),
     },
     {
+      key: 'refundStatus',
+      title: t('afterSales.colRefund'),
+      width: 120,
+      render: (_v, record) => {
+        if (record.category !== 'return') return '—';
+        if (record.refundStatus === 'succeeded') {
+          return (
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--color-success, #16a34a)' }}>
+              ¥{Number(record.refundAmount ?? 0).toLocaleString()}
+            </span>
+          );
+        }
+        if (record.refundStatus === 'pending') return t('afterSales.refundPending', 'Refunding');
+        if (record.refundStatus === 'failed') return t('afterSales.refundFailed', 'Failed');
+        return '—';
+      },
+    },
+    {
       key: 'status',
       title: t('afterSales.colStatus'),
       width: 120,
@@ -208,7 +256,7 @@ export default function AfterSalesPage() {
       title: t('afterSales.colActions'),
       width: 280,
       render: (_v, record) => {
-        if (record.status === 'open') {
+        if (record.status === 'pending') {
           return (
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               <Button
@@ -225,7 +273,7 @@ export default function AfterSalesPage() {
                 variant="danger"
                 size="sm"
                 loading={reviewMutation.isPending}
-                onClick={() => reviewMutation.mutate({ id: record.id, action: 'reject' })}
+                onClick={() => handleReject(record.id)}
               >
                 {t('afterSales.btnReject')}
               </Button>
@@ -234,9 +282,32 @@ export default function AfterSalesPage() {
         }
 
         if (record.status === 'approved') {
+          const isReturn = record.category === 'return';
+          const isExchange = record.category === 'exchange';
+
           return (
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {record.replacementOrderId && record.replacementOrderStatus === 'paid' && (
+              {(isReturn || isExchange) && !record.goodsReceivedAt && (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  loading={confirmReceivedMutation.isPending}
+                  onClick={() => confirmReceivedMutation.mutate(record.id)}
+                >
+                  {t('afterSales.btnConfirmReceived')}
+                </Button>
+              )}
+              {isReturn && record.goodsReceivedAt && record.refundStatus !== 'succeeded' && (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  loading={refundMutation.isPending}
+                  onClick={() => refundMutation.mutate(record.id)}
+                >
+                  {t('afterSales.btnRefund')}
+                </Button>
+              )}
+              {isExchange && record.replacementOrderId && record.replacementOrderStatus === 'paid' && (
                 <Button
                   variant="primary"
                   size="sm"
@@ -246,7 +317,7 @@ export default function AfterSalesPage() {
                   {t('afterSales.btnShip')}
                 </Button>
               )}
-              {record.replacementOrderId && record.replacementOrderStatus === 'shipped' && (
+              {isExchange && record.replacementOrderId && record.replacementOrderStatus === 'shipped' && (
                 <Button
                   variant="primary"
                   size="sm"
@@ -256,14 +327,16 @@ export default function AfterSalesPage() {
                   {t('afterSales.btnConfirmDelivery')}
                 </Button>
               )}
-              <Button
-                variant="secondary"
-                size="sm"
-                loading={statusMutation.isPending}
-                onClick={() => statusMutation.mutate({ id: record.id, status: 'completed' })}
-              >
-                {t('afterSales.btnComplete')}
-              </Button>
+              {!isReturn && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  loading={statusMutation.isPending}
+                  onClick={() => statusMutation.mutate({ id: record.id, status: 'completed' })}
+                >
+                  {t('afterSales.btnComplete')}
+                </Button>
+              )}
             </div>
           );
         }
@@ -299,10 +372,10 @@ export default function AfterSalesPage() {
           }}
         >
           <option value="">{t('afterSales.filterAllStatuses')}</option>
-          <option value="open">{t('afterSales.statusOpen', 'Open')}</option>
-          <option value="in_progress">{t('afterSales.statusInProgress', 'In Progress')}</option>
-          <option value="resolved">{t('afterSales.statusResolved', 'Resolved')}</option>
-          <option value="closed">{t('afterSales.statusClosed', 'Closed')}</option>
+          <option value="pending">{t('afterSales.statusPending')}</option>
+          <option value="approved">{t('afterSales.statusApproved')}</option>
+          <option value="completed">{t('afterSales.statusCompleted')}</option>
+          <option value="rejected">{t('afterSales.statusRejected')}</option>
         </select>
       </div>
 
@@ -317,7 +390,7 @@ export default function AfterSalesPage() {
       <div style={{ marginTop: 24 }}>
         <Pagination
           page={page}
-          totalPages={Math.ceil(total / 10)}
+          totalPages={Math.ceil(total / 20)}
           pageSize={20}
           total={total}
           onPageChange={setPage}

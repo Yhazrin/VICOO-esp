@@ -107,14 +107,14 @@ async def test_complete_admin_chain(client, admin_auth_headers, user_auth_header
         oa = o.id
         await db.commit()
     r = await client.post(f"{API}/after-sales", json={
-        "order_id": oa, "category": "return", "subject": "链路-售后", "description": "ok"
+        "order_id": oa, "category": "quality", "subject": "链路-售后", "description": "ok"
     }, headers=user_auth_headers)
     assert r.status_code in (200, 201)
     tid1 = r.json()["data"]["id"]
     r = await client.post(f"{API}/after-sales/{tid1}/review", json={"action": "approve"}, headers=admin_auth_headers)
     assert r.status_code in (200, 201)
     r = await client.post(f"{API}/after-sales", json={
-        "order_id": oa, "category": "exchange", "subject": "链路-售后-2", "description": "reject"
+        "order_id": oa, "category": "logistics", "subject": "链路-售后-2", "description": "reject"
     }, headers=user_auth_headers)
     assert r.status_code in (200, 201)
     tid2 = r.json()["data"]["id"]

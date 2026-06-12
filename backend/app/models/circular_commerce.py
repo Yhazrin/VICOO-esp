@@ -9,6 +9,7 @@ from sqlalchemy import (
     Enum,
     ForeignKey,
     UniqueConstraint,
+    DECIMAL,
     func,
 )
 from app.database import Base
@@ -82,5 +83,14 @@ class AfterSaleTicket(Base):
     description = Column(Text, nullable=True)
     items = Column(Text, nullable=True)  # JSON: item-level return/exchange details
     replacement_order_id = Column(Integer, ForeignKey("orders.id"), nullable=True, index=True)
+    admin_note = Column(Text, nullable=True)
+    return_carrier = Column(String(100), nullable=True)
+    return_tracking_no = Column(String(120), nullable=True)
+    refund_amount = Column(DECIMAL(12, 2), nullable=True)
+    refund_status = Column(
+        Enum("pending", "succeeded", "failed", name="after_sale_refund_status"),
+        nullable=True,
+    )
+    goods_received_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)

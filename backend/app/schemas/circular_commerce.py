@@ -98,6 +98,11 @@ class AfterSaleStatusUpdate(BaseModel):
     status: str = Field(..., pattern="^(open|in_progress|resolved|closed)$")
 
 
+class AfterSaleReturnShipmentUpdate(BaseModel):
+    return_carrier: str = Field(..., min_length=1, max_length=100)
+    return_tracking_no: str = Field(..., min_length=1, max_length=120)
+
+
 class AfterSaleReviewRequest(BaseModel):
     action: str = Field(..., pattern="^(approve|reject)$")
     admin_note: Optional[str] = Field(None, max_length=1000)
@@ -118,6 +123,12 @@ class AfterSaleOut(BaseModel):
     replacement_order_no: Optional[str] = None
     replacement_carrier: Optional[str] = None
     replacement_tracking_number: Optional[str] = None
+    admin_note: Optional[str] = None
+    return_carrier: Optional[str] = None
+    return_tracking_no: Optional[str] = None
+    refund_amount: Optional[Decimal] = None
+    refund_status: Optional[str] = None
+    goods_received_at: Optional[datetime] = None
     image_urls: list[str] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime

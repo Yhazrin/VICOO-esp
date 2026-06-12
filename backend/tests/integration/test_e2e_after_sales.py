@@ -1,17 +1,14 @@
-"""端到端集成测试：用户售后申请 → admin 接收并处理（退货/换货/维修）。
-
-覆盖 Goal 子任务 #7。
-"""
+"""端到端集成测试：用户售后申请 → admin 接收并处理（退货/换货/维修）。"""
 import pytest
 from decimal import Decimal
 
+from app.models.payment import PaymentTransaction
 from app.models.product import Product
 from app.models.order import Order, OrderItem
-from app.services.order.service import OrderService
 
 
-async def _setup_paid_order(db):
-    """构造一个 paid 订单给用户1。"""
+async def _setup_completed_order(db):
+    """构造一个 completed 订单给用户1。"""
     product = Product(
         name="售后测试商品",
         price=Decimal("100.00"),
@@ -25,39 +22,49 @@ async def _setup_paid_order(db):
         user_id=1,
         order_no=f"TH-ATSTEST-{product.id}",
         total_amount=Decimal("100.00"),
-        status="paid",
+        status="completed",
         shipping_address="售后测试地址",
+        payment_method="stripe",
     )
     db.add(order)
     await db.flush()
 
     item = OrderItem(order_id=order.id, product_id=product.id, quantity=1, price=Decimal("100.00"))
     db.add(item)
+
+    payment = PaymentTransaction(
+        order_id=order.id,
+        amount=Decimal("100.00"),
+        method="stripe",
+        status="success",
+        provider_transaction_id=f"pi_test_{order.id}",
+    )
+    db.add(payment)
     await db.commit()
-    return order, product
+    await db.refresh(order)
+    await db.refresh(item)
+    return order, product, item
 
 
 @pytest.mark.asyncio
-async def test_user_create_return_ticket_visible_to_admin(client, auth_headers, admin_auth_headers):
-    """用户发起退货工单 → admin 在工单列表里看到。"""
+async def test_user_create_return_ticket_via_order_endpoint(client, auth_headers, admin_auth_headers):
+    """用户通过订单接口发起退货 → admin 在工单列表里看到。"""
     from app.database import AsyncSessionLocal
     async with AsyncSessionLocal() as db:
-        order, _ = await _setup_paid_order(db)
+        order, _, item = await _setup_completed_order(db)
         order_id = order.id
+        order_item_id = item.id
 
-    # 用户提交退货申请
     payload = {
-        "order_id": order_id,
-        "category": "return",
-        "subject": "尺码不合适",
-        "description": "Reason: 尺码偏大",
+        "type": "return",
+        "items": [{"order_item_id": order_item_id, "quantity": 1}],
+        "reason": "尺码不合适",
     }
-    r = await client.post("/api/v1/after-sales", json=payload, headers=auth_headers)
+    r = await client.post(f"/api/v1/orders/{order_id}/return", json=payload, headers=auth_headers)
     assert r.status_code == 201, r.text
     ticket_id = r.json()["data"]["id"]
     assert r.json()["data"]["status"] == "open"
 
-    # admin 列表中能查到
     admin_list = await client.get(
         "/api/v1/after-sales?page=1&page_size=20", headers=admin_auth_headers
     )
@@ -65,7 +72,6 @@ async def test_user_create_return_ticket_visible_to_admin(client, auth_headers, 
     listed = admin_list.json()["data"]
     assert any(t["id"] == ticket_id for t in listed)
 
-    # 用户的 /after-sales/mine 也能看到
     mine = await client.get("/api/v1/after-sales/mine", headers=auth_headers)
     assert mine.status_code == 200
     mine_data = mine.json()["data"]
@@ -73,41 +79,105 @@ async def test_user_create_return_ticket_visible_to_admin(client, auth_headers, 
 
 
 @pytest.mark.asyncio
-async def test_admin_can_approve_exchange_ticket(client, auth_headers, admin_auth_headers):
-    """admin 批准换货工单，自动创建换货订单。"""
+async def test_support_blocks_return_category(client, auth_headers):
+    """Support 接口不再接受 return/exchange 类别。"""
     from app.database import AsyncSessionLocal
     async with AsyncSessionLocal() as db:
-        order, product = await _setup_paid_order(db)
+        order, _, _ = await _setup_completed_order(db)
         order_id = order.id
-        product_id = product.id
 
-    # 提交换货工单
-    ticket_payload = {
+    payload = {
         "order_id": order_id,
-        "category": "exchange",
-        "subject": "换货",
-        "description": "换同款不同尺码",
+        "category": "return",
+        "subject": "尺码不合适",
+        "description": "Reason: 尺码偏大",
     }
+    r = await client.post("/api/v1/after-sales", json=payload, headers=auth_headers)
+    assert r.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_admin_return_refund_flow(client, auth_headers, admin_auth_headers):
+    """admin 批准退货 → 确认收货 → 退款成功。"""
+    from app.database import AsyncSessionLocal
+    async with AsyncSessionLocal() as db:
+        order, product, item = await _setup_completed_order(db)
+        order_id = order.id
+        order_item_id = item.id
+        initial_stock = product.stock
+
     create = await client.post(
-        "/api/v1/after-sales", json=ticket_payload, headers=auth_headers
+        f"/api/v1/orders/{order_id}/return",
+        json={
+            "type": "return",
+            "items": [{"order_item_id": order_item_id, "quantity": 1}],
+            "reason": "质量问题",
+        },
+        headers=auth_headers,
     )
     assert create.status_code == 201
-    ticket = create.json()["data"]
-    ticket_id = ticket["id"]
+    ticket_id = create.json()["data"]["id"]
 
-    # admin 标记工单 items（通过修改 description 的方式插入 items）
-    items_payload = {
-        "items": [{"product_id": product_id, "quantity": 1}],
-    }
-    # 实际 API 不直接更新 items，需要在 review 时由 admin 携带
-    # 这里通过 review approve 触发（虽然缺少 exchange items，可能走 fallback）
+    approve = await client.post(
+        f"/api/v1/after-sales/{ticket_id}/review",
+        json={"action": "approve"},
+        headers=admin_auth_headers,
+    )
+    assert approve.status_code == 200
+    assert approve.json()["data"]["status"] == "in_progress"
+    assert approve.json()["data"]["admin_note"]
+
+    received = await client.post(
+        f"/api/v1/after-sales/{ticket_id}/confirm-received",
+        headers=admin_auth_headers,
+    )
+    assert received.status_code == 200
+    assert received.json()["data"]["goods_received_at"]
+
+    async with AsyncSessionLocal() as db:
+        refreshed_product = await db.get(Product, product.id)
+        assert refreshed_product.stock == initial_stock + 1
+
+    refund = await client.post(
+        f"/api/v1/after-sales/{ticket_id}/refund",
+        headers=admin_auth_headers,
+    )
+    assert refund.status_code == 200
+    body = refund.json()["data"]
+    assert body["refund_status"] == "succeeded"
+    assert body["status"] == "resolved"
+    assert Decimal(str(body["refund_amount"])) == Decimal("100.00")
+
+
+@pytest.mark.asyncio
+async def test_admin_can_reject_exchange_ticket(client, auth_headers, admin_auth_headers):
+    """admin 拒绝换货工单。"""
+    from app.database import AsyncSessionLocal
+    async with AsyncSessionLocal() as db:
+        order, _, item = await _setup_completed_order(db)
+        order_id = order.id
+        order_item_id = item.id
+
+    create = await client.post(
+        f"/api/v1/orders/{order_id}/return",
+        json={
+            "type": "exchange",
+            "items": [{"order_item_id": order_item_id, "quantity": 1}],
+            "reason": "换同款不同尺码",
+        },
+        headers=auth_headers,
+    )
+    assert create.status_code == 201
+    ticket_id = create.json()["data"]["id"]
+
     review = await client.post(
         f"/api/v1/after-sales/{ticket_id}/review",
-        json={"action": "reject", "admin_note": "测试拒绝"},
+        json={"action": "reject", "admin_note": "库存不足"},
         headers=admin_auth_headers,
     )
     assert review.status_code == 200
     assert review.json()["data"]["status"] == "closed"
+    assert review.json()["data"]["admin_note"] == "库存不足"
 
 
 @pytest.mark.asyncio
@@ -115,7 +185,7 @@ async def test_admin_can_resolve_quality_ticket(client, auth_headers, admin_auth
     """用户提交质量维修工单 → admin 标记 resolved。"""
     from app.database import AsyncSessionLocal
     async with AsyncSessionLocal() as db:
-        order, _ = await _setup_paid_order(db)
+        order, _, _ = await _setup_completed_order(db)
         order_id = order.id
 
     create = await client.post(
@@ -131,7 +201,6 @@ async def test_admin_can_resolve_quality_ticket(client, auth_headers, admin_auth
     assert create.status_code == 201
     ticket_id = create.json()["data"]["id"]
 
-    # admin 更新状态为 resolved
     status_upd = await client.patch(
         f"/api/v1/after-sales/{ticket_id}/status",
         json={"status": "resolved"},

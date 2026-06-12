@@ -293,6 +293,12 @@ export interface AfterSalesItem {
   description: string;
   status: string;
   createdAt: string;
+  adminNote?: string;
+  returnCarrier?: string;
+  returnTrackingNo?: string;
+  refundAmount?: string;
+  refundStatus?: string;
+  goodsReceivedAt?: string;
   replacementOrderId?: string;
   replacementOrderNo?: string;
   replacementOrderStatus?: string;

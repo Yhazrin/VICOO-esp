@@ -1040,6 +1040,12 @@ export async function fetchAfterSales(params: FilterParams = {}): Promise<Pagina
       status: AFTER_SALE_STATUS_FROM_API[item.status] ?? item.status ?? 'pending',
       createdAt: item.created_at ?? '',
       updatedAt: item.updated_at ?? '',
+      adminNote: item.admin_note ?? undefined,
+      returnCarrier: item.return_carrier ?? undefined,
+      returnTrackingNo: item.return_tracking_no ?? undefined,
+      refundAmount: item.refund_amount != null ? String(item.refund_amount) : undefined,
+      refundStatus: item.refund_status ?? undefined,
+      goodsReceivedAt: item.goods_received_at ?? undefined,
       replacementOrderId: item.replacement_order_id ? String(item.replacement_order_id) : undefined,
       replacementOrderNo: item.replacement_order_no ?? undefined,
       replacementOrderStatus: item.replacement_order_status ?? undefined,
@@ -1057,6 +1063,14 @@ export async function reviewAfterSales(
     action,
     admin_note: adminNote || undefined,
   });
+}
+
+export async function confirmAfterSalesReceived(id: string): Promise<void> {
+  await api.post(`/after-sales/${id}/confirm-received`);
+}
+
+export async function processAfterSalesRefund(id: string): Promise<void> {
+  await api.post(`/after-sales/${id}/refund`);
 }
 
 export async function updateAfterSalesStatus(id: string, status: string): Promise<void> {
