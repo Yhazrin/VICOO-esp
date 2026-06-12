@@ -307,7 +307,7 @@ async def forgot_password(
 
     if not user:
         await _jitter_ms()
-        return ApiResponse(message=_generic_msg, data={"email": body.email})
+        raise HTTPException(status_code=404, detail="未找到与该邮箱关联的账户")
 
     # Mock branch — only in DEMO_MODE, preserves the existing dev workflow.
     if _is_mock_email(body.email):
