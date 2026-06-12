@@ -159,6 +159,7 @@ class SupplyChainService(BaseService):
         )
         self.db.add(record)
         await self.db.flush()
+        await self.db.refresh(record)
         return record
 
     @audit_action(action="update_traceability_record", resource_type="supply_chain")
@@ -170,7 +171,11 @@ class SupplyChainService(BaseService):
         current_user: Optional[Dict[str, Any]] = None,
     ) -> Optional[SupplyChainRecord]:
         """Partial update (admin/editor)."""
-        _UPDATABLE_FIELDS = {"stage", "description", "location", "latitude", "longitude", "certified", "timestamp", "cert_image_url", "carbon_kg", "carbon_note"}
+        _UPDATABLE_FIELDS = {
+            "stage", "description", "description_en", "location", "location_en",
+            "latitude", "longitude", "certified", "timestamp", "cert_image_url",
+            "carbon_kg", "carbon_note",
+        }
 
         record = await self.db.get(SupplyChainRecord, record_id)
         if not record:
@@ -185,6 +190,7 @@ class SupplyChainService(BaseService):
                 setattr(record, key, val)
 
         await self.db.flush()
+        await self.db.refresh(record)
         return record
 
     @audit_action(action="delete_traceability_record", resource_type="supply_chain")

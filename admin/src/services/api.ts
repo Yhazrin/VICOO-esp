@@ -713,6 +713,37 @@ export async function deleteProduct(id: string): Promise<void> {
 // Supply Chain Records
 // ---------------------------------------------------------------------------
 
+/** Backend 422 wraps Pydantic errors as { message, errors }, not FastAPI `detail`. */
+export function formatApiValidationError(err: unknown, fallback = ''): string {
+  const data = (err as { response?: { data?: Record<string, unknown> } })?.response?.data;
+  if (!data) return fallback;
+  if (typeof data.message === 'string' && data.message.trim()) return data.message;
+  const errors = data.errors;
+  if (Array.isArray(errors) && errors.length > 0) {
+    return errors
+      .map((e: { loc?: unknown[]; msg?: string }) => {
+        const loc = Array.isArray(e.loc)
+          ? e.loc.filter((x) => x !== 'body').join('.')
+          : '';
+        return loc ? `${loc}: ${e.msg ?? ''}` : (e.msg ?? '');
+      })
+      .filter(Boolean)
+      .join('; ');
+  }
+  if (data.detail != null) return String(data.detail);
+  return fallback;
+}
+
+function apiNumOrNull(v: number | string | null | undefined): number | null {
+  if (v === '' || v === null || v === undefined) return null;
+  const n = typeof v === 'number' ? v : Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+function sanitizeTraceGallery(gallery: TraceMediaItem[] | undefined): TraceMediaItem[] {
+  return (gallery ?? []).filter((g) => Boolean(g.url?.trim()));
+}
+
 function adaptSupplyChainRecord(item: any): SupplyChainRecord {
   return {
     id: String(item.id),
@@ -752,18 +783,18 @@ export async function createSupplyChainRecord(
   const { data: envelope } = await api.post('/supply-chain/records', {
     product_id: Number(productId),
     stage: payload.stage,
-    description: payload.description ?? null,
-    description_en: payload.descriptionEn ?? null,
-    location: payload.location ?? null,
-    location_en: payload.locationEn ?? null,
-    latitude: payload.latitude ?? null,
-    longitude: payload.longitude ?? null,
+    description: payload.description?.trim() || null,
+    description_en: payload.descriptionEn?.trim() || null,
+    location: payload.location?.trim() || null,
+    location_en: payload.locationEn?.trim() || null,
+    latitude: apiNumOrNull(payload.latitude as number | string | null | undefined),
+    longitude: apiNumOrNull(payload.longitude as number | string | null | undefined),
     certified: payload.certified ?? false,
-    cert_image_url: payload.certImageUrl ?? null,
-    carbon_kg: payload.carbonKg ?? null,
-    carbon_note: payload.carbonNote ?? null,
+    cert_image_url: payload.certImageUrl?.trim() || null,
+    carbon_kg: apiNumOrNull(payload.carbonKg as number | string | null | undefined),
+    carbon_note: payload.carbonNote?.trim() || null,
     timestamp: payload.timestamp || new Date().toISOString(),
-    gallery: payload.gallery ?? [],
+    gallery: sanitizeTraceGallery(payload.gallery),
   });
   return adaptSupplyChainRecord(envelope.data);
 }
@@ -778,14 +809,20 @@ export async function updateSupplyChainRecord(
   if (payload.descriptionEn !== undefined) body.description_en = payload.descriptionEn;
   if (payload.location !== undefined) body.location = payload.location;
   if (payload.locationEn !== undefined) body.location_en = payload.locationEn;
-  if (payload.latitude !== undefined) body.latitude = payload.latitude;
-  if (payload.longitude !== undefined) body.longitude = payload.longitude;
+  if (payload.latitude !== undefined) {
+    body.latitude = apiNumOrNull(payload.latitude as number | string | null | undefined);
+  }
+  if (payload.longitude !== undefined) {
+    body.longitude = apiNumOrNull(payload.longitude as number | string | null | undefined);
+  }
   if (payload.certified !== undefined) body.certified = payload.certified;
-  if (payload.certImageUrl !== undefined) body.cert_image_url = payload.certImageUrl;
-  if (payload.carbonKg !== undefined) body.carbon_kg = payload.carbonKg;
-  if (payload.carbonNote !== undefined) body.carbon_note = payload.carbonNote;
+  if (payload.certImageUrl !== undefined) body.cert_image_url = payload.certImageUrl?.trim() || null;
+  if (payload.carbonKg !== undefined) {
+    body.carbon_kg = apiNumOrNull(payload.carbonKg as number | string | null | undefined);
+  }
+  if (payload.carbonNote !== undefined) body.carbon_note = payload.carbonNote?.trim() || null;
   if (payload.timestamp !== undefined) body.timestamp = payload.timestamp;
-  if (payload.gallery !== undefined) body.gallery = payload.gallery;
+  if (payload.gallery !== undefined) body.gallery = sanitizeTraceGallery(payload.gallery);
   const { data: envelope } = await api.patch(`/supply-chain/records/${recordId}`, body);
   return adaptSupplyChainRecord(envelope.data);
 }
